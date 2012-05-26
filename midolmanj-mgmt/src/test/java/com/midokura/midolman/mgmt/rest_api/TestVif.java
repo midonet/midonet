@@ -1,7 +1,6 @@
 /*
- * @(#)testVif        1.6 11/11/15
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
@@ -53,7 +52,8 @@ public class TestVif extends JerseyTest {
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString().endsWith("tenants/" + testTenantName));
+        assertTrue(response.getLocation().toString()
+                .endsWith("tenants/" + testTenantName));
 
         // Create a router.
         router.setName(testRouterName);
@@ -76,7 +76,8 @@ public class TestVif extends JerseyTest {
         port.setLocalNetworkLength(32);
         port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
-        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
+        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON)
+                .post(ClientResponse.class, port);
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());
 
@@ -95,7 +96,10 @@ public class TestVif extends JerseyTest {
         // Create a bridge port
         URI bridgePortUri = URI.create(testBridgeUri.toString() + "/ports");
         log.debug("bridgePortUri: {}", bridgePortUri);
-        response = resource().uri(bridgePortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, "{}");
+        DtoBridgePort bport = new DtoBridgePort();
+        bport.setDeviceId(bridge.getId());
+        response = resource().uri(bridgePortUri).type(APPLICATION_PORT_JSON)
+                .post(ClientResponse.class, bport);
         assertEquals(201, response.getStatus());
 
         testBridgePortId = FuncTest.getUuidFromLocation(response.getLocation());
@@ -108,25 +112,29 @@ public class TestVif extends JerseyTest {
         UUID id = UUID.randomUUID();
         vif.setId(id);
         vif.setPortId(testBridgePortId);
-        response = resource().path("/vifs").type(APPLICATION_VIF_JSON).post(ClientResponse.class, vif);
+        response = resource().path("/vifs").type(APPLICATION_VIF_JSON)
+                .post(ClientResponse.class, vif);
         log.debug("status {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
         URI vifUri = response.getLocation();
 
         // Get
-        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON).get(ClientResponse.class);
+        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON)
+                .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         vif = response.getEntity(DtoVif.class);
         log.debug("id: {}", vif.getId());
         log.debug("portId: {}", vif.getPortId());
 
         // List
-        response = resource().path("/vifs").type(APPLICATION_VIF_JSON).get(ClientResponse.class);
+        response = resource().path("/vifs").type(APPLICATION_VIF_JSON)
+                .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
 
         // Delete
-        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON).delete(ClientResponse.class);
+        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON)
+                .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
     }
 
@@ -137,25 +145,29 @@ public class TestVif extends JerseyTest {
         UUID id = UUID.randomUUID();
         vif.setId(id);
         vif.setPortId(testRouterPortId);
-        response = resource().path("/vifs").type(APPLICATION_VIF_JSON).post(ClientResponse.class, vif);
+        response = resource().path("/vifs").type(APPLICATION_VIF_JSON)
+                .post(ClientResponse.class, vif);
         log.debug("status {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
         URI vifUri = response.getLocation();
 
         // Get
-        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON).get(ClientResponse.class);
+        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON)
+                .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         vif = response.getEntity(DtoVif.class);
         log.debug("id: {}", vif.getId());
         log.debug("portId: {}", vif.getPortId());
 
         // List
-        response = resource().path("/vifs").type(APPLICATION_VIF_JSON).get(ClientResponse.class);
+        response = resource().path("/vifs").type(APPLICATION_VIF_JSON)
+                .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
 
         // Delete
-        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON).delete(ClientResponse.class);
+        response = resource().uri(vifUri).type(APPLICATION_VIF_JSON)
+                .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
     }
 }

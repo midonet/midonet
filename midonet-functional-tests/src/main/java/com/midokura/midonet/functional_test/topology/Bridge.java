@@ -4,12 +4,11 @@
 
 package com.midokura.midonet.functional_test.topology;
 
+import java.util.UUID;
+
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-
-import java.util.UUID;
 
 public class Bridge {
 
@@ -49,6 +48,10 @@ public class Bridge {
     public BridgePort.Builder addPort() {
         return new BridgePort.Builder(mgmt, dto);
     }
+    
+    public LogicalBridgePort.Builder addLinkPort() {
+        return new LogicalBridgePort.Builder(mgmt, dto);
+    }
 
     public Subnet.Builder newDhcpSubnet() {
         return new Subnet.Builder(this.mgmt, this.dto);
@@ -61,7 +64,7 @@ public class Bridge {
         dto.setInboundFilter(id);
         mgmt.updateBridge(dto);
     }
-
+    
     public void delete() {
         mgmt.delete(dto.getUri());
     }

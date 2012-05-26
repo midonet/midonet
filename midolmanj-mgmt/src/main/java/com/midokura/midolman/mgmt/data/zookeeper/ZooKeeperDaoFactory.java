@@ -19,7 +19,6 @@ import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
@@ -29,7 +28,18 @@ import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.io.VifSerializer;
-import com.midokura.midolman.mgmt.data.zookeeper.op.*;
+import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.op.VifOpBuilder;
+import com.midokura.midolman.mgmt.data.zookeeper.op.VifOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
@@ -52,7 +62,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /**
      * Constructor
-     *
+     * 
      * @param config
      *            AppConfig object to initialize ZooKeeperDaoFactory.
      * @throws DaoInitializationException
@@ -74,7 +84,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /**
      * Get the Directory object. Override this method to use a mock Directory.
-     *
+     * 
      * @return Directory object.
      * @throws StateAccessException
      *             Data access error.
@@ -110,7 +120,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getAdRouteDao()
      */
     @Override
@@ -124,7 +134,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getApplicationDao()
      */
     @Override
@@ -134,7 +144,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getBgpDao()
      */
     @Override
@@ -148,18 +158,13 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getBridgeDao()
      */
     @Override
     public BridgeDao getBridgeDao() throws StateAccessException {
         return new BridgeDaoAdapter(getBridgeZkDao(), getBridgeOpService(),
                 getPortDao());
-    }
-
-    @Override
-    public BridgeLinkDao getBridgeLinkDao() throws StateAccessException {
-        return new BridgeLinkDaoAdapter(getBridgeZkDao());
     }
 
     private BridgeZkManager getBridgeZkManager() throws StateAccessException {
@@ -189,13 +194,12 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
     private BridgeSerializer getBridgeSerializer() {
         Serializer<BridgeMgmtConfig> serializer = new JsonJaxbSerializer<BridgeMgmtConfig>();
         Serializer<BridgeNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<BridgeNameMgmtConfig>();
-        Serializer<PeerRouterConfig> peerSerializer = new JsonJaxbSerializer<PeerRouterConfig>();
-        return new BridgeSerializer(serializer, nameSerializer, peerSerializer);
+        return new BridgeSerializer(serializer, nameSerializer);
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getChainDao()
      */
     @Override
@@ -255,7 +259,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getPortDao()
      */
     @Override
@@ -289,7 +293,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getRouteDao()
      */
     @Override
@@ -303,7 +307,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getRouterDao()
      */
     @Override
@@ -328,24 +332,13 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private RouterOpService getRouterOpService() throws StateAccessException {
         return new RouterOpService(getRouterOpBuilder(), getPortOpService(),
-                getBridgeOpBuilder(), getRouterZkDao());
+                getRouterZkDao());
     }
 
     private RouterSerializer getRouterSerializer() {
         Serializer<RouterMgmtConfig> serializer = new JsonJaxbSerializer<RouterMgmtConfig>();
         Serializer<RouterNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<RouterNameMgmtConfig>();
-        Serializer<PeerRouterConfig> peerSerializer = new JsonJaxbSerializer<PeerRouterConfig>();
-        return new RouterSerializer(serializer, nameSerializer, peerSerializer);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.DaoFactory#getRouterLinkDao()
-     */
-    @Override
-    public RouterLinkDao getRouterLinkDao() throws StateAccessException {
-        return new RouterLinkDaoAdapter(getRouterZkDao(), getRouterOpService());
+        return new RouterSerializer(serializer, nameSerializer);
     }
 
     @Override
@@ -359,7 +352,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getTenantDao()
      */
     @Override
@@ -385,7 +378,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getVifDao()
      */
     @Override
@@ -414,7 +407,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getVpnDao()
      */
     @Override

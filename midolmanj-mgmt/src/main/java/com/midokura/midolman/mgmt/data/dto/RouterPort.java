@@ -7,7 +7,10 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
+import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for router port.
@@ -38,14 +41,29 @@ public abstract class RouterPort extends Port {
 
     /**
      * Constructor
-     *
+     * 
+     * @param id
+     * @param config
+     * @param mgmtConfig
+     */
+    public RouterPort(UUID id, RouterPortConfig config,
+            PortMgmtConfig mgmtConfig) {
+        super(id, config, mgmtConfig);
+        this.networkAddress = config.getNwAddr();
+        this.networkLength = config.nwLength;
+        this.portAddress = config.getPortAddr();
+    }
+
+    /**
+     * Constructor
+     * 
      * @param id
      *            ID of the port
-     * @param vifId
-     *            ID of the VIF
+     * @param deviceId
+     *            ID of the device
      */
-    public RouterPort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
+    public RouterPort(UUID id, UUID deviceId) {
+        super(id, deviceId);
     }
 
     /**
@@ -105,9 +123,22 @@ public abstract class RouterPort extends Port {
         this.portAddress = portAddress;
     }
 
+    /**
+     * Set the PortConfig fields
+     * 
+     * @param config
+     *            RouterPortConfig object
+     */
+    public void setConfig(RouterPortConfig config) {
+        super.setConfig(config);
+        config.nwAddr = Net.convertStringAddressToInt(this.networkAddress);
+        config.nwLength = this.networkLength;
+        config.portAddr = Net.convertStringAddressToInt(this.portAddress);
+    }
+
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -116,5 +147,4 @@ public abstract class RouterPort extends Port {
                 + ", networkLength=" + networkLength + ", portAddress="
                 + portAddress;
     }
-
 }

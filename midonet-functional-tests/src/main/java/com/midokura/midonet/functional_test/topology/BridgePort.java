@@ -4,24 +4,22 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import java.util.Collection;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class BridgePort {
     public static class Builder {
         MidolmanMgmt mgmt;
         DtoBridge bridge;
-        DtoPort port;
+        DtoBridgePort port;
 
         public Builder(MidolmanMgmt mgmt, DtoBridge bridge) {
             this.mgmt = mgmt;
             this.bridge = bridge;
-            this.port = new DtoPort();
+            this.port = new DtoBridgePort();
         }
 
         public Builder setInboundFilter(UUID chainId) {
@@ -40,14 +38,15 @@ public class BridgePort {
         }
 
         public BridgePort build() {
-            return new BridgePort(mgmt, mgmt.addBridgePort(bridge, port));
+            return new BridgePort(mgmt, 
+                    mgmt.addMaterializedBridgePort(bridge, port));
         }
     }
 
     private MidolmanMgmt mgmt;
-    private DtoPort port;
+    private DtoBridgePort port;
 
-    public BridgePort(MidolmanMgmt mgmt, DtoPort port) {
+    public BridgePort(MidolmanMgmt mgmt, DtoBridgePort port) {
         this.mgmt = mgmt;
         this.port = port;
     }

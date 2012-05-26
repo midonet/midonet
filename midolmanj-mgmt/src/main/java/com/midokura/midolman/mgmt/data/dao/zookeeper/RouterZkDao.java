@@ -12,7 +12,6 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
@@ -150,83 +149,6 @@ public class RouterZkDao {
     }
 
     /**
-     * Get a set of peer router IDs for a given router.
-     *
-     * @param routerId
-     *            ID of the routerId.
-     * @return Set of router IDs.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public Set<String> getPeerRouterIds(UUID routerId)
-            throws StateAccessException {
-        log.debug("RouterZkDao.getPeerRouterIds entered: routerId={}", routerId);
-
-        String path = pathBuilder.getRouterRoutersPath(routerId);
-        Set<String> ids = zkDao.getChildren(path, null);
-
-        log.debug("RouterZkDao.getPeerRouterIds exiting: path=" + path
-                + " ids count=" + ids.size());
-        return ids;
-    }
-
-    /**
-     * Get a set of connected bridge IDs for a given router.
-     *
-     * @param routerId
-     *            ID of the routerId.
-     * @return Set of bridge IDs.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public Set<String> getBridgeIds(UUID routerId) throws StateAccessException {
-        String path = pathBuilder.getRouterBridgesPath(routerId);
-        return zkDao.getChildren(path, null);
-    }
-
-    /**
-     * Get the PeerRouterConfig object for the link between the given IDs.
-     *
-     * @param id
-     *            Router ID
-     * @param peerId
-     *            Peer router ID
-     * @return PeerRouterConfig object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public PeerRouterConfig getRouterLinkData(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("RouterZkDao.getRouterLinkData entered: id=" + id
-                + ", peerId=" + peerId);
-
-        String path = pathBuilder.getRouterRouterPath(id, peerId);
-        byte[] data = zkDao.get(path);
-        PeerRouterConfig config = serializer.deserializePeer(data);
-
-        log.debug("RouterZkDao.getRouterLinkData exiting.");
-        return config;
-    }
-
-    /**
-     * Get the PeerRouterConfig object for the link between the given IDs.
-     *
-     * @param id
-     *            Router ID
-     * @param bridgeId
-     *            Bridge ID
-     * @return PeerRouterConfig object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public PeerRouterConfig getRouterBridgeLinkData(UUID id, UUID bridgeId)
-            throws StateAccessException {
-        String path = pathBuilder.getRouterBridgePath(id, bridgeId);
-        byte[] data = zkDao.get(path);
-        return serializer.deserializePeer(data);
-    }
-
-    /**
      * Wrapper for multi ZK API. The paths in the Op list are expected already
      * to be created.
      *
@@ -237,59 +159,5 @@ public class RouterZkDao {
         log.debug("RouterZkDao.multi entered: ops count={}", ops.size());
         zkDao.multi(ops);
         log.debug("RouterZkDao.multi exiting.");
-    }
-
-    /**
-     * Checks whether the given link exists.
-     *
-     * @param id
-     *            Router ID
-     * @param peerId
-     *            Peer router ID
-     * @return True if the router link exists.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public boolean routerLinkExists(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("RouterZkDao.routerLinkExists entered: id=" + id
-                + ", peerId=" + peerId);
-
-        String path = pathBuilder.getRouterRouterPath(id, peerId);
-        boolean exists = zkDao.exists(path);
-
-        log.debug("RouterZkDao.routerLinkExists exiting: exists=" + exists);
-        return exists;
-    }
-
-    /**
-     * Checks whether the given link exists.
-     *
-     * @param routerId
-     *            Router ID
-     * @param bridgeId
-     *            Bridge ID
-     * @return True if the router to bridge link exists.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public boolean routerBridgeLinkExists(UUID routerId, UUID bridgeId)
-            throws StateAccessException {
-        String path = pathBuilder.getRouterBridgePath(routerId, bridgeId);
-        return zkDao.exists(path);
-    }
-
-    /**
-     * Construct a new PeerRouterConfig object
-     *
-     * @param portId
-     *            Port ID
-     * @param peerPortId
-     *            Peer port ID
-     * @return PeerRouterConfig object
-     */
-    public PeerRouterConfig constructPeerRouterConfig(UUID portId,
-            UUID peerPortId) {
-        return new PeerRouterConfig(portId, peerPortId);
     }
 }

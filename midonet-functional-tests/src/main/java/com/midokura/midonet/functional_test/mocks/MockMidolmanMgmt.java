@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
@@ -16,6 +17,9 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
 import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestContainerFactory;
+
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,35 +206,46 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         put(b.getUri(), b);
     }
 
-
     @Override
-    public DtoPeerRouterLink linkRouterToPeer(
-        DtoRouter router, DtoLogicalRouterPort logPort) {
-        return resource().uri(router.getPeerRouters())
+    public void linkRouterToPeer(DtoLogicalRouterPort port) {
+        resource().uri(port.getLink())
             .type(MediaType.APPLICATION_JSON)
-            .post(DtoPeerRouterLink.class, logPort);
+            .post(port);
     }
-
+  
     @Override
-    public DtoBridgeRouterLink linkRouterToBridge(
-        DtoRouter router, DtoBridgeRouterPort logPort) {
-        return resource().uri(router.getPeerBridges())
-            .type(MediaType.APPLICATION_JSON)
-            .post(DtoBridgeRouterLink.class, logPort);
+    public void unlinkRouterFromPeer(DtoLogicalRouterPort port) {
+        resource().uri(port.getUnlink())
+        .type(MediaType.APPLICATION_JSON)
+        .post();
     }
-
+    
     @Override
-    public DtoMaterializedRouterPort addRouterPort(DtoRouter r,
+    public DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
                                                    DtoMaterializedRouterPort p) {
         URI uri = post(r.getPorts(), p);
         return get(uri, DtoMaterializedRouterPort.class);
     }
+    
+    @Override
+    public DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
+            DtoLogicalRouterPort p) {
+        URI uri = post(r.getPorts(), p);
+        return get(uri, DtoLogicalRouterPort.class);
+    }
 
     @Override
-    public DtoPort addBridgePort(DtoBridge b,
-                                 DtoPort p) {
+    public DtoBridgePort addMaterializedBridgePort(DtoBridge b,
+                                 DtoBridgePort p) {
         URI uri = post(b.getPorts(), p);
-        return get(uri, DtoPort.class);
+        return get(uri, DtoBridgePort.class);
+    }
+    
+    @Override
+    public DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
+            DtoLogicalBridgePort p) {
+        URI uri = post(b.getPorts(), p);
+        return get(uri, DtoLogicalBridgePort.class);
     }
 
     @Override

@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
@@ -137,7 +137,7 @@ public class TestPortGroup extends JerseyTest {
         assertEquals("Bridge1", bridge.getName());
         assertEquals(tenant1.getId(), bridge.getTenantId());
         // Create a port on Bridge1 that belongs to both of Tenant1's PortGroups
-        DtoPort port = new DtoPort();
+        DtoBridgePort port = new DtoBridgePort();
         port.setPortGroupIDs(new UUID[] {group1.getId(), group2.getId()});
         response = resource().uri(bridge.getPorts())
                 .type(APPLICATION_PORT_JSON)
@@ -145,7 +145,7 @@ public class TestPortGroup extends JerseyTest {
         assertEquals("The port was created.", 201, response.getStatus());
         port = resource().uri(response.getLocation())
                 .accept(APPLICATION_PORT_JSON)
-                .get(DtoPort.class);
+                .get(DtoBridgePort.class);
         assertEquals("Bridge1", bridge.getName());
         assertEquals(bridge.getId(), port.getDeviceId());
         assertThat("The port's groups should be group1 and group2",

@@ -27,47 +27,47 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 @RunWith(MockitoJUnitRunner.class)
 public class TestChainOpService {
 
-	private ChainOpService testObject;
+    private ChainOpService testObject;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private ChainOpBuilder opBuilder;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ChainOpBuilder opBuilder;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private ChainZkDao zkDao;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ChainZkDao zkDao;
 
-	@Before
-	public void setUp() {
-		testObject = new ChainOpService(opBuilder, zkDao);
-	}
+    @Before
+    public void setUp() {
+        testObject = new ChainOpService(opBuilder, zkDao);
+    }
 
-	@Test
-	public void testBuildDeleteWithCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
-		InOrder inOrder = inOrder(opBuilder);
+        // Setup
+        UUID id = UUID.randomUUID();
+        InOrder inOrder = inOrder(opBuilder);
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, true);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, true);
 
-		// Verify the order of execution
-		Assert.assertTrue(ops.size() > 0);
-		inOrder.verify(opBuilder).getChainDeleteOps(id);
-		inOrder.verify(opBuilder).getChainDeleteOp(id);
-	}
+        // Verify the order of execution
+        Assert.assertTrue(ops.size() > 0);
+        inOrder.verify(opBuilder).getChainDeleteOps(id);
+        inOrder.verify(opBuilder).getChainDeleteOp(id);
+    }
 
-	@Test
-	public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
+        // Setup
+        UUID id = UUID.randomUUID();
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, false);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, false);
 
-		// Verify that cascade did not happen
-		Assert.assertTrue(ops.size() > 0);
-		verify(opBuilder, never()).getChainDeleteOps(id);
-	}
+        // Verify that cascade did not happen
+        Assert.assertTrue(ops.size() > 0);
+        verify(opBuilder, never()).getChainDeleteOps(id);
+    }
 
 }

@@ -21,6 +21,7 @@ public class ResourceUriBuilder {
     public static final String DHCP = "/dhcp";
     public static final String DHCP_HOSTS = "/hosts";
     public static final String PORTS = "/ports";
+    public static final String PEER_PORTS = "/peer_ports";
     public static final String PORT_GROUPS = "/port_groups";
     public static final String CHAINS = "/chains";
     public static final String RULES = "/rules";
@@ -33,6 +34,8 @@ public class ResourceUriBuilder {
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
     public static final String METRICS = "/metrics";
+    public static final String LINK = "/link";
+    public static final String UNLINK = "/unlink";
 
     private ResourceUriBuilder() {
     }
@@ -82,17 +85,6 @@ public class ResourceUriBuilder {
                 .path(bridgeId.toString()).build();
     }
 
-    public static URI getBridgeRouters(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(ROUTERS)
-                .build();
-    }
-
-    public static URI getBridgeRouter(
-            URI baseUri, UUID bridgeId, UUID routerId) {
-        return UriBuilder.fromUri(getBridgeRouters(baseUri, bridgeId))
-                .path(routerId.toString()).build();
-    }
-
     public static URI getTenantBridges(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
                 .build();
@@ -107,9 +99,24 @@ public class ResourceUriBuilder {
                 .build();
     }
 
+    public static URI getPortLink(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
+                .path(LINK).build();
+    }
+
+    public static URI getPortUnlink(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
+                .path(UNLINK).build();
+    }
+
     public static URI getBridgePorts(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(PORTS)
                 .build();
+    }
+
+    public static URI getBridgePeerPorts(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId))
+                .path(PEER_PORTS).build();
     }
 
     public static URI getFilteringDb(URI baseUri, UUID bridgeId) {
@@ -123,12 +130,12 @@ public class ResourceUriBuilder {
     }
 
     public static URI getBridgeDhcp(URI bridgeDhcpsUri, IntIPv4 subnetAddr) {
-        return UriBuilder.fromUri(bridgeDhcpsUri)
-                .path(subnetAddr.toString()).build();
+        return UriBuilder.fromUri(bridgeDhcpsUri).path(subnetAddr.toString())
+                .build();
     }
 
     public static URI getBridgeDhcp(URI baseUri, UUID bridgeId,
-                                    IntIPv4 subnetAddr) {
+            IntIPv4 subnetAddr) {
         URI dhcpsUri = getBridgeDhcps(baseUri, bridgeId);
         return getBridgeDhcp(dhcpsUri, subnetAddr);
     }
@@ -155,6 +162,11 @@ public class ResourceUriBuilder {
                 .build();
     }
 
+    public static URI getRouterPeerPorts(URI baseUri, UUID routerId) {
+        return UriBuilder.fromUri(getRouter(baseUri, routerId))
+                .path(PEER_PORTS).build();
+    }
+
     public static URI getChains(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(CHAINS).build();
     }
@@ -175,11 +187,6 @@ public class ResourceUriBuilder {
 
     public static URI getChainRules(URI baseUri, UUID chainId) {
         return UriBuilder.fromUri(getChain(baseUri, chainId)).path(RULES)
-                .build();
-    }
-
-    public static URI getRouterRouters(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTERS)
                 .build();
     }
 
@@ -232,28 +239,6 @@ public class ResourceUriBuilder {
                 .build();
     }
 
-    public static URI getRouterLinks(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTERS)
-                .build();
-    }
-
-    public static URI getRouterLink(URI baseUri, UUID routerId,
-                                    UUID peerRouterId) {
-        return UriBuilder.fromUri(getRouterLinks(baseUri, routerId))
-                .path(peerRouterId.toString()).build();
-    }
-
-    public static URI getRouterBridges(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(BRIDGES)
-                .build();
-    }
-
-    public static URI getRouterBridge(URI baseUri, UUID routerId,
-                                    UUID bridgeId) {
-        return UriBuilder.fromUri(getRouterBridges(baseUri, routerId))
-                .path(bridgeId.toString()).build();
-    }
-
     public static URI getRoutes(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(ROUTES).build();
     }
@@ -274,26 +259,28 @@ public class ResourceUriBuilder {
 
     public static URI getHost(URI baseUri, UUID hostId) {
         return UriBuilder.fromUri(getHosts(baseUri)).path(hostId.toString())
-                 .build();
+                .build();
     }
 
     public static URI getHostInterfaces(URI baseUri, UUID hostId) {
-        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(INTERFACES).build();
+        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(INTERFACES)
+                .build();
     }
 
-    public static URI getHostInterface(URI baseUri, UUID hostId, UUID interfaceId) {
+    public static URI getHostInterface(URI baseUri, UUID hostId,
+            UUID interfaceId) {
         return UriBuilder.fromUri(getHostInterfaces(baseUri, hostId))
-                         .path(interfaceId.toString()).build();
+                .path(interfaceId.toString()).build();
     }
 
     public static URI getHostCommands(URI baseUri, UUID hostId) {
-        return UriBuilder
-            .fromUri(getHost(baseUri, hostId)).path(COMMANDS).build();
+        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(COMMANDS)
+                .build();
     }
+
     public static URI getHostCommand(URI baseUri, UUID hostId, Integer id) {
-        return UriBuilder
-            .fromUri(getHostCommands(baseUri, hostId))
-            .path(id.toString()).build();
+        return UriBuilder.fromUri(getHostCommands(baseUri, hostId))
+                .path(id.toString()).build();
     }
 
     public static URI getPortGroups(URI baseUri) {
@@ -301,8 +288,8 @@ public class ResourceUriBuilder {
     }
 
     public static URI getPortGroup(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(getPortGroups(baseUri))
-                .path(id.toString()).build();
+        return UriBuilder.fromUri(getPortGroups(baseUri)).path(id.toString())
+                .build();
     }
     public static URI getMetrics(URI baseUri){
         return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();

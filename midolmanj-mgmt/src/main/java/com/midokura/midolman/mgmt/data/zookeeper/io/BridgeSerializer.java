@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.util.Serializer;
 
@@ -19,27 +18,24 @@ public class BridgeSerializer {
 
     private final Serializer<BridgeMgmtConfig> serializer;
     private final Serializer<BridgeNameMgmtConfig> nameSerializer;
-    private final Serializer<PeerRouterConfig> peerSerializer;
 
     /**
      * Constructor.
-     *
+     * 
      * @param serializer
      *            BridgeMgmtConfig serializer.
      * @param nameSerializer
      *            BridgeNameMgmtConfig serializer.
      */
     public BridgeSerializer(Serializer<BridgeMgmtConfig> serializer,
-            Serializer<BridgeNameMgmtConfig> nameSerializer,
-            Serializer<PeerRouterConfig> peerSerializer) {
+            Serializer<BridgeNameMgmtConfig> nameSerializer) {
         this.serializer = serializer;
         this.nameSerializer = nameSerializer;
-        this.peerSerializer = peerSerializer;
     }
 
     /**
      * Deserialize BridgeMgmtConfig object.
-     *
+     * 
      * @param data
      *            Byte array to deserialize from.
      * @return BridgeMgmtConfig object.
@@ -59,7 +55,7 @@ public class BridgeSerializer {
 
     /**
      * Deserialize BridgeNameMgmtConfig object.
-     *
+     * 
      * @param data
      *            Byte array to deserialize from.
      * @return BridgeNameMgmtConfig object.
@@ -79,7 +75,7 @@ public class BridgeSerializer {
 
     /**
      * Serialize BridgeMgmtConfig object.
-     *
+     * 
      * @param config
      *            BridgeMgmtConfig object.
      * @return byte array.
@@ -99,7 +95,7 @@ public class BridgeSerializer {
 
     /**
      * Serialize BridgeNameMgmtConfig object.
-     *
+     * 
      * @param config
      *            BridgeNameMgmtConfig object.
      * @return byte array.
@@ -116,45 +112,4 @@ public class BridgeSerializer {
                     BridgeNameMgmtConfig.class);
         }
     }
-
-    /**
-     * Deserialize PeerRouterConfig object.
-     *
-     * @param data
-     *            Byte array to deserialize from.
-     * @return PeerRouterConfig object.
-     * @throws ZkStateSerializationException
-     *             Serialization error.
-     */
-    public PeerRouterConfig deserializePeer(byte[] data)
-            throws ZkStateSerializationException {
-        try {
-            return peerSerializer.bytesToObj(data, PeerRouterConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize PeerRouterConfig.", e,
-                    PeerRouterConfig.class);
-        }
-    }
-
-    /**
-     * Serialize PeerRouterConfig object.
-     *
-     * @param config
-     *            PeerRouterConfig object.
-     * @return byte array.
-     * @throws ZkStateSerializationException
-     *             Serialization error.
-     */
-    public byte[] serialize(PeerRouterConfig config)
-            throws ZkStateSerializationException {
-        try {
-            return peerSerializer.objToBytes(config);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize PeerRouterConfig", e,
-                    PeerRouterConfig.class);
-        }
-    }
-
 }

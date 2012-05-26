@@ -30,7 +30,7 @@ public class PortOpService {
 
     /**
      * Constructor
-     *
+     * 
      * @param opBuilder
      *            PortOpBuilder object
      * @param zkDao
@@ -42,40 +42,8 @@ public class PortOpService {
     }
 
     /**
-     * Build list of Op objects to create a port link
-     *
-     * @param id
-     *            ID of the port
-     * @param config
-     *            PortConfig object
-     * @param peerId
-     *            ID of the peer port
-     * @param peerConfig
-     *            PortConfig of the peer port
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildCreateLink(UUID id, PortConfig config, UUID peerId,
-            PortConfig peerConfig) throws StateAccessException {
-        log.debug("PortOpService.buildCreate entered: id=" + id + ", peerId="
-                + peerId);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(opBuilder.getPortCreateOp(id, null));
-        ops.add(opBuilder.getPortCreateOp(peerId, null));
-
-        ops.addAll(opBuilder.getPortLinkCreateOps(id, config, peerId,
-                peerConfig));
-
-        log.debug("PortOpService.buildCreate exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
      * Build list of Op objects to create a port
-     *
+     * 
      * @param id
      *            ID of the port
      * @param config
@@ -103,33 +71,8 @@ public class PortOpService {
     }
 
     /**
-     * Build list of Op objects to delete a port link
-     *
-     * @param id
-     *            ID of the port
-     * @param peerId
-     *            ID of the peer port
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public List<Op> buildDeleteLink(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("PortOpService.buildDelete exiting: id=" + id + ", peerId="
-                + peerId);
-
-        List<Op> ops = new ArrayList<Op>();
-        ops.addAll(opBuilder.getPortDeleteOps(id));
-        ops.add(opBuilder.getPortDeleteOp(peerId));
-        ops.add(opBuilder.getPortDeleteOp(id));
-
-        log.debug("PortOpService.buildDelete exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
      * Build list of Op objects to delete a port
-     *
+     * 
      * @param id
      *            ID of the port
      * @param cascade
@@ -159,30 +102,48 @@ public class PortOpService {
 
     /**
      * Build list of Op objects to update a port
-     *
+     * 
      * @param id
      *            ID of the port
      * @param mgmtConfig
      *            PortMgmtConfig pbject
+     * @param config
+     *            PortConfig pbject
      * @return List of Op objects
      * @throws StateAccessException
      *             Data access error
      */
-    public List<Op> buildUpdate(UUID id, PortMgmtConfig mgmtConfig)
-            throws StateAccessException {
+    public List<Op> buildUpdate(UUID id, PortMgmtConfig mgmtConfig,
+            PortConfig config) throws StateAccessException {
         log.debug("PortOpService.buildUpdate entered: id={}", id);
         List<Op> ops = new ArrayList<Op>();
 
-        ops.add(opBuilder.getPortSetDataOp(id, mgmtConfig));
+        if (mgmtConfig != null) {
+            ops.add(opBuilder.getPortSetDataOp(id, mgmtConfig));
+        }
+
+        if (config != null) {
+            ops.addAll(opBuilder.getPortSetDataOps(id, config));
+        }
 
         log.debug("PortOpService.buildUpdate exiting: ops count={}", ops.size());
         return ops;
     }
 
+    public List<Op> buildUpdate(UUID id, PortMgmtConfig mgmtConfig)
+            throws StateAccessException {
+        return buildUpdate(id, mgmtConfig, null);
+    }
+
+    public List<Op> buildUpdate(UUID id, PortConfig config)
+            throws StateAccessException {
+        return buildUpdate(id, null, config);
+    }
+
     /**
      * Builds operations to handle the VIF plug event for the port side. If VIF
      * ID is set to null, it means unplugging.
-     *
+     * 
      * @param id
      *            port ID
      * @param vifId
@@ -198,7 +159,7 @@ public class PortOpService {
         List<Op> ops = new ArrayList<Op>();
         PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
         mgmtConfig.vifId = vifId;
-        ops.addAll(buildUpdate(id, mgmtConfig));
+        ops.addAll(buildUpdate(id, mgmtConfig, null));
 
         log.debug("PortOpService.buildPlug exiting: ops count={}", ops.size());
         return ops;
@@ -206,7 +167,7 @@ public class PortOpService {
 
     /**
      * Build Op list for bridge delete event.
-     *
+     * 
      * @param bridgeId
      *            Bridge ID
      * @return Op list
@@ -232,7 +193,7 @@ public class PortOpService {
 
     /**
      * Build Op list for router delete event.
-     *
+     * 
      * @param routerId
      *            Router ID
      * @return Op list

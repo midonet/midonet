@@ -18,7 +18,7 @@ public class DtoBridge {
     private UUID outboundFilter;
     private URI uri;
     private URI ports;
-    private URI routers;
+    private URI peerPorts;
     private URI filteringDb;
     private URI dhcpSubnets;
 
@@ -78,12 +78,12 @@ public class DtoBridge {
         this.ports = ports;
     }
 
-    public URI getPeerRouters() {
-        return routers;
+    public URI getPeerPorts() {
+        return peerPorts;
     }
 
-    public void setPeerRouters(URI routers) {
-        this.routers = routers;
+    public void setPeerPorts(URI peerPorts) {
+        this.peerPorts = peerPorts;
     }
 
     public URI getFilteringDb() {

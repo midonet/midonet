@@ -11,7 +11,6 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
@@ -34,7 +33,7 @@ public class RouterOpBuilder {
 
     /**
      * Constructor
-     *
+     * 
      * @param zkDao
      *            ZkManager object to access ZK data.
      * @param pathBuilder
@@ -51,7 +50,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the router create Op object.
-     *
+     * 
      * @param id
      *            ID of the router.
      * @param config
@@ -72,7 +71,7 @@ public class RouterOpBuilder {
 
     /**
      * Gets a list of Op objects to create a router in Midolman side.
-     *
+     * 
      * @param id
      *            ID of the router
      * @return List of Op objects.
@@ -95,7 +94,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the router delete Op object.
-     *
+     * 
      * @param id
      *            ID of the router.
      * @return Op for router delete.
@@ -112,7 +111,7 @@ public class RouterOpBuilder {
 
     /**
      * Gets a list of Op objects to delete a Router in Midolman side.
-     *
+     * 
      * @param id
      *            ID of the router
      * @return List of Op objects.
@@ -131,125 +130,8 @@ public class RouterOpBuilder {
     }
 
     /**
-     * Get the router link create Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for router link create.
-     */
-    public Op getRouterRoutersCreateOp(UUID id) {
-        log.debug("RouterOpBuilder.getRouterRoutersCreateOp entered: id={}", id);
-
-        String path = pathBuilder.getRouterRoutersPath(id);
-        Op op = zkDao.getPersistentCreateOp(path, null);
-
-        log.debug("RouterOpBuilder.getRouterRoutersCreateOp exiting.");
-        return op;
-    }
-
-    public Op getRouterRouterCreateOp(UUID id, UUID peerId,
-            PeerRouterConfig config) throws ZkStateSerializationException {
-        log.debug("RouterOpBuilder.getRouterRouterCreateOp entered: id=" + id
-                + ", peerId=" + peerId);
-
-        String path = pathBuilder.getRouterRouterPath(id, peerId);
-        byte[] data = serializer.serialize(config);
-        Op op = zkDao.getPersistentCreateOp(path, data);
-
-        log.debug("RouterOpBuilder.getRouterRouterCreateOp exiting.");
-        return op;
-    }
-
-    /**
-     * Get the bridge link create Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for bridge link create.
-     */
-    public Op getRouterBridgesCreateOp(UUID id) {
-        String path = pathBuilder.getRouterBridgesPath(id);
-        return zkDao.getPersistentCreateOp(path, null);
-    }
-
-    /**
-     * Get the bridges link create Op object.
-     *
-     * @param routerId
-     *            ID of the router
-     * @param bridgeId
-     *            ID of the bridge
-     * @return Op for bridge link create.
-     */
-    public Op getRouterBridgeCreateOp(UUID routerId, UUID bridgeId,
-            PeerRouterConfig config) throws ZkStateSerializationException {
-        String path = pathBuilder.getRouterBridgePath(routerId, bridgeId);
-        byte[] data = serializer.serialize(config);
-        return zkDao.getPersistentCreateOp(path, data);
-    }
-
-    /**
-     * Get the routers link delete Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for router link delete..
-     */
-    public Op getRouterRoutersDeleteOp(UUID id) {
-        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id={}", id);
-
-        String path = pathBuilder.getRouterRoutersPath(id);
-        Op op = zkDao.getDeleteOp(path);
-
-        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp exiting.");
-        return op;
-    }
-
-    /**
-     * Get the router link delete Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for router link delete..
-     */
-    public Op getRouterRouterDeleteOp(UUID id, UUID peerRouterId) {
-        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp entered: id=" + id
-                + ", peer=" + peerRouterId);
-
-        String path = pathBuilder.getRouterRouterPath(id, peerRouterId);
-        Op op = zkDao.getDeleteOp(path);
-
-        log.debug("RouterOpBuilder.getRouterRoutersDeleteOp exiting.");
-        return op;
-    }
-
-    /**
-     * Get the bridges link delete Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for bridge link delete.
-     */
-    public Op getRouterBridgesDeleteOp(UUID id) {
-        String path = pathBuilder.getRouterBridgesPath(id);
-        return zkDao.getDeleteOp(path);
-    }
-
-    /**
-     * Get the bridge link delete Op object.
-     *
-     * @param id
-     *            ID of the router
-     * @return Op for bridge link delete.
-     */
-    public Op getRouterBridgeDeleteOp(UUID id, UUID bridgeId) {
-        String path = pathBuilder.getRouterBridgePath(id, bridgeId);
-        return zkDao.getDeleteOp(path);
-    }
-
-    /**
      * Get the router update Op object.
-     *
+     * 
      * @param id
      *            ID of the router.
      * @param config
@@ -270,7 +152,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router create Op object.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -290,7 +172,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router delete Op object.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -310,7 +192,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router name create Op object.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @param name
@@ -334,7 +216,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router name delete Op object.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @param name

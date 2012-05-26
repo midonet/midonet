@@ -24,7 +24,7 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -78,12 +78,12 @@ public class VmSshTest {
         Router router = tenant.addRouter().setName("rtr1").build();
 
         IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-        RouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
+        MaterializedRouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
         tapPort = new TapWrapper(tapPortName);
         ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        RouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
+        MaterializedRouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
         ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
 
         tapPort.closeFd();

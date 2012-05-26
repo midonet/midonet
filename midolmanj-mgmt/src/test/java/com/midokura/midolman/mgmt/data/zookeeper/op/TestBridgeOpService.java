@@ -30,72 +30,72 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 @RunWith(MockitoJUnitRunner.class)
 public class TestBridgeOpService {
 
-	private BridgeOpService testObject;
+    private BridgeOpService testObject;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private BridgeOpBuilder opBuilder;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private BridgeOpBuilder opBuilder;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private BridgeZkDao zkDao;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private BridgeZkDao zkDao;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private PortOpService portOpService;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PortOpService portOpService;
 
-	@Before
-	public void setUp() {
-		testObject = new BridgeOpService(opBuilder, portOpService, zkDao);
-	}
+    @Before
+    public void setUp() {
+        testObject = new BridgeOpService(opBuilder, portOpService, zkDao);
+    }
 
-	@Test
-	public void testBuildCreateBridgeSuccess() throws Exception {
+    @Test
+    public void testBuildCreateBridgeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
-		BridgeConfig config = new BridgeConfig();
-		BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig("foo", "bar");
-		BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
-		InOrder inOrder = inOrder(opBuilder);
+        // Setup
+        UUID id = UUID.randomUUID();
+        BridgeConfig config = new BridgeConfig();
+        BridgeMgmtConfig mgmtConfig = new BridgeMgmtConfig("foo", "bar");
+        BridgeNameMgmtConfig nameConfig = new BridgeNameMgmtConfig();
+        InOrder inOrder = inOrder(opBuilder);
 
-		// Execute
-		List<Op> ops = testObject.buildCreate(id, config, mgmtConfig,
-				nameConfig);
+        // Execute
+        List<Op> ops = testObject.buildCreate(id, config, mgmtConfig,
+                nameConfig);
 
-		// Verify the order of execution
-		Assert.assertTrue(ops.size() > 0);
-		inOrder.verify(opBuilder).getBridgeCreateOps(id, config);
-		inOrder.verify(opBuilder).getBridgeCreateOp(id, mgmtConfig);
-		inOrder.verify(opBuilder).getTenantBridgeNameCreateOp(
-				mgmtConfig.tenantId, mgmtConfig.name, nameConfig);
-	}
+        // Verify the order of execution
+        Assert.assertTrue(ops.size() > 0);
+        inOrder.verify(opBuilder).getBridgeCreateOps(id, config);
+        inOrder.verify(opBuilder).getBridgeCreateOp(id, mgmtConfig);
+        inOrder.verify(opBuilder).getTenantBridgeNameCreateOp(
+                mgmtConfig.tenantId, mgmtConfig.name, nameConfig);
+    }
 
-	@Test
-	public void testBuildDeleteWithCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
-		InOrder inOrder = inOrder(opBuilder, portOpService);
+        // Setup
+        UUID id = UUID.randomUUID();
+        InOrder inOrder = inOrder(opBuilder, portOpService);
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, true);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, true);
 
-		// Verify the order of execution
-		Assert.assertTrue(ops.size() > 0);
-		inOrder.verify(opBuilder).getBridgeDeleteOps(id);
-		inOrder.verify(portOpService).buildBridgePortsDelete(id);
-		inOrder.verify(opBuilder).getBridgeDeleteOp(id);
-	}
+        // Verify the order of execution
+        Assert.assertTrue(ops.size() > 0);
+        inOrder.verify(opBuilder).getBridgeDeleteOps(id);
+        inOrder.verify(portOpService).buildBridgePortsDelete(id);
+        inOrder.verify(opBuilder).getBridgeDeleteOp(id);
+    }
 
-	@Test
-	public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
+        // Setup
+        UUID id = UUID.randomUUID();
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, false);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, false);
 
-		// Verify that cascade did not happen
-		Assert.assertTrue(ops.size() > 0);
-		verify(opBuilder, never()).getBridgeDeleteOps(id);
-	}
+        // Verify that cascade did not happen
+        Assert.assertTrue(ops.size() > 0);
+        verify(opBuilder, never()).getBridgeDeleteOps(id);
+    }
 }

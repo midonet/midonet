@@ -50,15 +50,6 @@ public interface DaoFactory {
     BridgeDao getBridgeDao() throws StateAccessException;
 
     /**
-     * Get BridgeLinkDao object for bridge linking data access.
-     *
-     * @return BridgeLinkDao object.
-     * @throws StateAccessException
-     *              Data access error.
-     */
-    BridgeLinkDao getBridgeLinkDao() throws StateAccessException;
-
-    /**
      * Get chain DAO
      *
      * @return ChainDao object
@@ -102,15 +93,6 @@ public interface DaoFactory {
      *             Data access error.
      */
     RouterDao getRouterDao() throws StateAccessException;
-
-    /**
-     * Get RouterLinkDao object for router linking data access.
-     *
-     * @return RouterLinkDao object.
-     * @throws StateAccessException
-     *              Data access error.
-     */
-    RouterLinkDao getRouterLinkDao() throws StateAccessException;
 
     /**
      * Get rule DAO

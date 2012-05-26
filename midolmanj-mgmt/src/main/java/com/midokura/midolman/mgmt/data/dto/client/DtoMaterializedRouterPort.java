@@ -8,6 +8,8 @@ import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.PortType;
+
 @XmlRootElement
 public class DtoMaterializedRouterPort extends DtoRouterPort {
     private String localNetworkAddress = null;
@@ -47,4 +49,8 @@ public class DtoMaterializedRouterPort extends DtoRouterPort {
         this.vpns = vpns;
     }
 
+    @Override
+    public String getType() {
+        return PortType.MATERIALIZED_ROUTER;
+    }
 }

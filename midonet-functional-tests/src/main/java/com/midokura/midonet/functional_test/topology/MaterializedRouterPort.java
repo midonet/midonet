@@ -16,7 +16,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
-public class RouterPort {
+public class MaterializedRouterPort {
 
     public static class VMPortBuilder {
         private MidolmanMgmt mgmt;
@@ -42,8 +42,9 @@ public class RouterPort {
             return this;
         }
 
-        public RouterPort build() {
-            DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
+        public MaterializedRouterPort build() {
+            DtoMaterializedRouterPort p = mgmt.addMaterializedRouterPort(
+                    router, port);
             DtoRoute rt = new DtoRoute();
             rt.setDstNetworkAddr(p.getLocalNetworkAddress());
             rt.setDstNetworkLength(p.getLocalNetworkLength());
@@ -53,7 +54,7 @@ public class RouterPort {
             rt.setNextHopPort(p.getId());
             rt.setWeight(10);
             rt = mgmt.addRoute(router, rt);
-            return new RouterPort(mgmt, p);
+            return new MaterializedRouterPort(mgmt, p);
         }
     }
 
@@ -92,8 +93,9 @@ public class RouterPort {
             return this;
         }
 
-        public RouterPort build() {
-            DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
+        public MaterializedRouterPort build() {
+            DtoMaterializedRouterPort p = mgmt.addMaterializedRouterPort(
+                    router, port);
             for (IntIPv4 dst : routes) {
                 DtoRoute rt = new DtoRoute();
                 rt.setDstNetworkAddr(dst.toString());
@@ -106,7 +108,7 @@ public class RouterPort {
                 rt.setWeight(10);
                 rt = mgmt.addRoute(router, rt);
             }
-            return new RouterPort(mgmt, p);
+            return new MaterializedRouterPort(mgmt, p);
         }
     }
 
@@ -156,8 +158,9 @@ public class RouterPort {
             return this;
         }
 
-        public RouterPort build() {
-            DtoMaterializedRouterPort p = mgmt.addRouterPort(router, port);
+        public MaterializedRouterPort build() {
+            DtoMaterializedRouterPort p = mgmt.addMaterializedRouterPort(
+                    router, port);
             vpn = mgmt.addVpn(p, vpn);
             DtoRoute rt = new DtoRoute();
             rt.setDstNetworkAddr(port.getLocalNetworkAddress());
@@ -168,7 +171,7 @@ public class RouterPort {
             rt.setNextHopPort(p.getId());
             rt.setWeight(10);
             rt = mgmt.addRoute(router, rt);
-            RouterPort port = new RouterPort(mgmt, p);
+            MaterializedRouterPort port = new MaterializedRouterPort(mgmt, p);
             port.setVpn(vpn);
             return port;
         }
@@ -178,7 +181,7 @@ public class RouterPort {
     public DtoMaterializedRouterPort port;
     private DtoVpn vpn;
 
-    RouterPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port) {
+    MaterializedRouterPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port) {
         this.mgmt = mgmt;
         this.port = port;
     }

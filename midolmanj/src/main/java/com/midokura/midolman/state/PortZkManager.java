@@ -1,7 +1,6 @@
 /*
- * @(#)PortZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.state;
 
@@ -23,9 +22,6 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
  * Class to manage the port ZooKeeper data.
- *
- * @version 1.6 08 Sept 2011
- * @author Ryu Ishimoto
  */
 public class PortZkManager extends ZkManager {
 
@@ -127,46 +123,29 @@ public class PortZkManager extends ZkManager {
      */
     public List<Op> preparePortCreate(ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException {
-        // Create a new GRE key. Hide this from outside.
-        ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
-        entry.value.greKey = gre.key;
+
+        ZkNodeEntry<Integer, GreKey> gre = null;
+        if (!(entry.value instanceof LogicalPortConfig)) {
+            // Create a new GRE key. Hide this from outside.
+            gre = greZkManager.createGreKey();
+            entry.value.greKey = gre.key;
+        }
         List<Op> ops = new ArrayList<Op>();
 
         if (entry.value instanceof PortDirectory.BridgePortConfig) {
             ops.addAll(prepareBridgePortCreate(entry));
         } else if (entry.value
-                instanceof PortDirectory.MaterializedRouterPortConfig) {
+                instanceof PortDirectory.RouterPortConfig) {
             ops.addAll(prepareRouterPortCreate(entry));
-        } else if (entry.value
-                instanceof PortDirectory.LogicalRouterPortConfig) {
-            throw new IllegalArgumentException(
-                    "A single logical port cannot be created.");
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
-        // Update GreKey to reference the port.
-        gre.value.ownerId = entry.key;
-        ops.addAll(greZkManager.prepareGreUpdate(gre));
-        return ops;
-    }
 
-    public List<Op> preparePortCreateLink(
-            ZkNodeEntry<UUID, PortConfig> localPortEntry,
-            ZkNodeEntry<UUID, PortConfig> peerPortEntry)
-            throws ZkStateSerializationException {
-        List<Op> ops = new ArrayList<Op>();
-
-        if (localPortEntry.value
-                instanceof PortDirectory.LogicalBridgePortConfig)
-            ops.addAll(prepareBridgePortCreate(localPortEntry));
-        else
-            ops.addAll(prepareRouterPortCreate(localPortEntry));
-        if (peerPortEntry.value
-                instanceof PortDirectory.LogicalBridgePortConfig)
-            ops.addAll(prepareBridgePortCreate(peerPortEntry));
-        else
-            ops.addAll(prepareRouterPortCreate(peerPortEntry));
-
+        if (gre != null) {
+            // Update GreKey to reference the port.
+            gre.value.ownerId = entry.key;
+            ops.addAll(greZkManager.prepareGreUpdate(gre));
+        }
         return ops;
     }
 
@@ -183,6 +162,17 @@ public class PortZkManager extends ZkManager {
             path = pathManager.getPortVpnPath(entry.key);
             log.debug("Preparing to delete: {}", path);
             ops.add(Op.delete(path, -1));
+        } else if(entry.value instanceof PortDirectory.LogicalRouterPortConfig){
+            // Update the peer
+            PortDirectory.LogicalRouterPortConfig logicalPort =
+                    (PortDirectory.LogicalRouterPortConfig) entry.value;
+            if (logicalPort.peerId() != null) {
+                ZkNodeEntry<UUID, PortConfig> peer = get(logicalPort.peerId());
+                if (peer.value instanceof LogicalPortConfig) {
+                    ((LogicalPortConfig) peer.value).setPeerId(null);
+                    ops.addAll(preparePortUpdate(peer));
+                }
+            }
         }
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
                 entry.key, null);
@@ -229,25 +219,6 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    private List<Op> prepareLinkDelete(ZkNodeEntry<UUID, PortConfig> entry)
-            throws ZkStateSerializationException, StateAccessException {
-        List<Op> ops;
-        UUID peerId;
-        if (entry.value instanceof PortDirectory.LogicalBridgePortConfig) {
-            ops = prepareBridgePortDelete(entry);
-            peerId = ((PortDirectory.LogicalBridgePortConfig) entry.value).peer_uuid;
-        } else {
-            ops = prepareRouterPortDelete(entry);
-            peerId = ((PortDirectory.LogicalRouterPortConfig) entry.value).peer_uuid;
-        }
-        ZkNodeEntry<UUID, PortConfig> peer = get(peerId);
-        if (peer.value instanceof PortDirectory.LogicalBridgePortConfig)
-            ops.addAll(prepareBridgePortDelete(peer));
-        else
-            ops.addAll(prepareRouterPortDelete(peer));
-        return ops;
-    }
-
     public List<Op> preparePortDelete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
         return preparePortDelete(get(id));
@@ -265,19 +236,40 @@ public class PortZkManager extends ZkManager {
     public List<Op> preparePortDelete(ZkNodeEntry<UUID, PortConfig> entry)
             throws StateAccessException {
         List<Op> res;
-        if (entry.value instanceof PortDirectory.LogicalBridgePortConfig ||
-                entry.value instanceof PortDirectory.LogicalRouterPortConfig) {
-            res = prepareLinkDelete(entry);
-        } else if (entry.value instanceof PortDirectory.BridgePortConfig) {
+        if (entry.value instanceof PortDirectory.BridgePortConfig) {
             res = prepareBridgePortDelete(entry);
-            res.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
-        } else if (entry.value instanceof PortDirectory.MaterializedRouterPortConfig) {
+        } else if (entry.value instanceof PortDirectory.RouterPortConfig) {
             res = prepareRouterPortDelete(entry);
-            res.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
         } else {
             throw new IllegalArgumentException("Unsupported port type");
         }
+
+        if (!(entry.value instanceof LogicalPortConfig)) {
+            res.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
+        }
         return res;
+    }
+
+    public List<Op> preparePortUpdate(ZkNodeEntry<UUID, PortConfig> entry)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // For now, only logical port supported
+        if (entry.value instanceof LogicalPortConfig) {
+            try {
+                ops.add(Op.setData(pathManager.getPortPath(entry.key),
+                        serialize(entry.value), -1));
+            } catch (IOException e) {
+                throw new ZkStateSerializationException(
+                        "Could not deserialize port " + entry.key
+                        + " to PortConfig", e, PortConfig.class);
+            }
+        } else {
+            throw new UnsupportedOperationException(
+                    "Can only update logical port");
+        }
+
+        return ops;
     }
 
     /**
@@ -315,7 +307,11 @@ public class PortZkManager extends ZkManager {
             new ZkNodeEntry<UUID, PortConfig>(peerPort.peer_uuid, localPort);
         ZkNodeEntry<UUID, PortConfig> peerPortEntry =
             new ZkNodeEntry<UUID, PortConfig>(localPort.peer_uuid, peerPort);
-        multi(preparePortCreateLink(localPortEntry, peerPortEntry));
+
+        List<Op> ops = preparePortCreate(localPortEntry);
+        ops.addAll(preparePortCreate(peerPortEntry));
+
+        multi(ops);
         return new ZkNodeEntry<UUID, UUID>(peerPort.peer_uuid,
                 localPort.peer_uuid);
     }

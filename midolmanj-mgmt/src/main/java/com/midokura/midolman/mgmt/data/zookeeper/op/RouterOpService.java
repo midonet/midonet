@@ -15,10 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -31,12 +29,11 @@ public class RouterOpService {
             .getLogger(RouterOpService.class);
     private final RouterOpBuilder opBuilder;
     private final PortOpService portOpService;
-    private final BridgeOpBuilder bridgeOpBuilder;
     private final RouterZkDao zkDao;
 
     /**
      * Constructor
-     *
+     * 
      * @param opBuilder
      *            RouterOpBuilder object.
      * @param portOpService
@@ -45,17 +42,15 @@ public class RouterOpService {
      *            RouterZkDao object.
      */
     public RouterOpService(RouterOpBuilder opBuilder,
-            PortOpService portOpService, BridgeOpBuilder bridgeOpBuilder,
-            RouterZkDao zkDao) {
+            PortOpService portOpService, RouterZkDao zkDao) {
         this.opBuilder = opBuilder;
         this.portOpService = portOpService;
-        this.bridgeOpBuilder = bridgeOpBuilder;
         this.zkDao = zkDao;
     }
 
     /**
      * Build list of Op objects to create a router
-     *
+     * 
      * @param id
      *            Router Id
      * @param mgmtConfig
@@ -75,10 +70,6 @@ public class RouterOpService {
         ops.addAll(opBuilder.getRouterCreateOps(id, config));
         ops.add(opBuilder.getRouterCreateOp(id, mgmtConfig));
 
-        // links
-        ops.add(opBuilder.getRouterRoutersCreateOp(id));
-        ops.add(opBuilder.getRouterBridgesCreateOp(id));
-
         // tenant
         ops.add(opBuilder.getTenantRouterCreateOp(mgmtConfig.tenantId, id));
 
@@ -91,7 +82,7 @@ public class RouterOpService {
 
     /**
      * Build list of Op objects to delete a router
-     *
+     * 
      * @param id
      *            Router ID to delete
      * @param cascade
@@ -124,10 +115,6 @@ public class RouterOpService {
         // tenant
         ops.add(opBuilder.getTenantRouterDeleteOp(mgmtConfig.tenantId, id));
 
-        // links
-        ops.add(opBuilder.getRouterRoutersDeleteOp(id));
-        ops.add(opBuilder.getRouterBridgesDeleteOp(id));
-
         // root
         ops.add(opBuilder.getRouterDeleteOp(id));
 
@@ -138,15 +125,14 @@ public class RouterOpService {
 
     /**
      * Build list of Op objects to update a router
-     *
+     * 
      * @param router
      *            Router DTO
      * @return List of Op objects
      * @throws StateAccessException
      *             Data access error
      */
-    public List<Op> buildUpdate(Router router)
-            throws StateAccessException {
+    public List<Op> buildUpdate(Router router) throws StateAccessException {
         UUID id = router.getId();
         String name = router.getName();
         log.debug("RouterOpService.buildUpdate entered: id=" + id + ",name="
@@ -181,134 +167,8 @@ public class RouterOpService {
     }
 
     /**
-     * Build list of Op objects to link routers
-     *
-     * @param portId
-     *            Port ID
-     * @param config
-     *            PortConfig object
-     * @param peerPortId
-     *            Peer port ID
-     * @param peerConfig
-     *            Peer PortConfig object
-     *
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildLink(UUID portId, PortConfig config, UUID peerPortId,
-                              PortConfig peerConfig) throws StateAccessException {
-        log.debug("RouterOpService.buildLink entered: portId=" + portId
-                + ",peerPortId=" + peerPortId + ",routerId=" + config.device_id
-                + ",peerRouterId=" + peerConfig.device_id);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(opBuilder.getRouterRouterCreateOp(config.device_id,
-                peerConfig.device_id,
-                zkDao.constructPeerRouterConfig(portId, peerPortId)));
-
-        ops.add(opBuilder.getRouterRouterCreateOp(peerConfig.device_id,
-                config.device_id,
-                zkDao.constructPeerRouterConfig(peerPortId, portId)));
-
-        // Create the port entries.
-        ops.addAll(portOpService.buildCreateLink(portId, config, peerPortId,
-                peerConfig));
-
-        log.debug("RouterOpService.buildLink exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to unlink routers
-     *
-     * @param id
-     *            Router ID
-     * @param peerId
-     *            Peer router ID
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildUnlink(UUID id, UUID peerId)
-            throws StateAccessException {
-        log.debug("RouterOpService.buildUnLink entered: id=" + id + ",peerId="
-                + peerId);
-
-        PeerRouterConfig config = zkDao.getRouterLinkData(id, peerId);
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.addAll(portOpService.buildDeleteLink(config.portId,
-                config.peerPortId));
-        ops.add(opBuilder.getRouterRouterDeleteOp(peerId, id));
-        ops.add(opBuilder.getRouterRouterDeleteOp(id, peerId));
-
-        log.debug("RouterOpService.buildUnLink exiting: ops count={}",
-                ops.size());
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to link a bridge.
-     *
-     * @param rtrPortId
-     *            Router port ID
-     * @param rtrPortConfig
-     *            PortConfig object for router port.
-     * @param brPortId
-     *            Bridge port ID
-     * @param brPortConfig
-     *            PortConfig object for the bridge port.
-     *
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildBridgeLink(UUID rtrPortId, PortConfig rtrPortConfig,
-            UUID brPortId, PortConfig brPortConfig)
-            throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(opBuilder.getRouterBridgeCreateOp(rtrPortConfig.device_id,
-                brPortConfig.device_id,
-                zkDao.constructPeerRouterConfig(rtrPortId, brPortId)));
-
-        ops.add(bridgeOpBuilder.getBridgeRouterCreateOp(brPortConfig.device_id,
-                rtrPortConfig.device_id,
-                zkDao.constructPeerRouterConfig(brPortId, rtrPortId)));
-
-        // Create the port entries.
-        ops.addAll(portOpService.buildCreateLink(rtrPortId, rtrPortConfig,
-                brPortId, brPortConfig));
-        return ops;
-    }
-
-    /**
-     * Build list of Op objects to unlink a bridge
-     *
-     * @param routerId
-     *            Router ID
-     * @param bridgeId
-     *            Bridge ID
-     * @return List of Op objects
-     * @throws StateAccessException
-     *             Data access error
-     */
-    public List<Op> buildBridgeUnlink(UUID routerId, UUID bridgeId)
-            throws StateAccessException {
-        PeerRouterConfig config = zkDao.getRouterBridgeLinkData(routerId, bridgeId);
-        List<Op> ops = new ArrayList<Op>();
-        ops.addAll(portOpService.buildDeleteLink(config.portId,
-                config.peerPortId));
-        ops.add(opBuilder.getRouterBridgeDeleteOp(routerId, bridgeId));
-        ops.add(bridgeOpBuilder.getBridgeRouterDeleteOp(bridgeId, routerId));
-        return ops;
-    }
-
-    /**
      * Build operations to delete all routers for a tenant.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @return Op list

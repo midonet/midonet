@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface LogicalPortConfig {
     UUID peerId();
+    void setPeerId(UUID id);
 }

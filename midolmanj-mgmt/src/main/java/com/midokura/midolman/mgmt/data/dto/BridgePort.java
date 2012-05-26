@@ -7,19 +7,16 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Class representing a bridge port.
  */
-@XmlRootElement
-public class BridgePort extends Port {
+public abstract class BridgePort extends Port {
 
     /**
      * Default constructor
@@ -30,56 +27,42 @@ public class BridgePort extends Port {
 
     /**
      * Constructor
-     *
+     * 
      * @param id
      *            ID of port
-     * @param vifId
-     *            VIF ID
      */
-    public BridgePort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
+    public BridgePort(UUID id, UUID deviceId) {
+        super(id, deviceId);
     }
 
     /**
-     * Convert this object to PortConfig object.
-     *
-     * @return PortConfig object.
+     * Constructor
+     * 
+     * @param id
+     * @param config
+     * @param mgmtConfig
      */
-    @Override
-    public PortConfig toConfig() {
-        PortDirectory.BridgePortConfig config = new PortDirectory.BridgePortConfig();
-        super.toConfig(config);
-        return config;
+    public BridgePort(UUID id, BridgePortConfig config,
+            PortMgmtConfig mgmtConfig) {
+        super(id, config, mgmtConfig);
     }
 
     /**
-     * Convert this object to PortMgmtConfig object.
-     *
-     * @return PortMgmtConfig object.
+     * @param config
+     *            BridgePortConfig object to set.
      */
-    @Override
-    public PortMgmtConfig toMgmtConfig() {
-        return new PortMgmtConfig(vifId);
+    public void setConfig(BridgePortConfig config) {
+        super.setConfig(config);
     }
 
     /**
      * Convert this object to ZkNodeEntry object.
-     *
+     * 
      * @return ZkNodeEntry object.
      */
     @Override
     public ZkNodeEntry<UUID, PortConfig> toZkNode() {
         return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
-     */
-    @Override
-    public PortType getType() {
-        return PortType.BRIDGE;
     }
 
     /**

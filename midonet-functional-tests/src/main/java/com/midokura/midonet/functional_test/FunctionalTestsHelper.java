@@ -17,7 +17,8 @@ import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -84,6 +85,7 @@ public class FunctionalTestsHelper {
                     break;
                 default:
                     zkClient = "/usr/share/zookeeper/bin/zkCli.sh";
+
             }
         }
 
@@ -138,7 +140,13 @@ public class FunctionalTestsHelper {
             .runAndWait();
     }
 
-    protected void removeMidoPort(RouterPort port) {
+    protected void removeMidoPort(MaterializedRouterPort port) {
+        if (port != null) {
+            port.delete();
+        }
+    }
+    
+    protected void removeMidoPort(LogicalRouterPort port) {
         if (port != null) {
             port.delete();
         }
@@ -208,7 +216,7 @@ public class FunctionalTestsHelper {
             });
     }
 
-    public static void removeVpn(MidolmanMgmt mgmt, RouterPort vpn1) {
+    public static void removeVpn(MidolmanMgmt mgmt, MaterializedRouterPort vpn1) {
         if (mgmt != null && vpn1 != null) {
             mgmt.deleteVpn(vpn1.getVpn());
         }

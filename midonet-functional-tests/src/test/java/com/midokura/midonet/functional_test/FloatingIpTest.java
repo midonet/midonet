@@ -23,7 +23,7 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
@@ -72,7 +72,7 @@ public class FloatingIpTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
-        RouterPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
+        MaterializedRouterPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
         tapPort1 = new TapWrapper("flIpTestTap1");
         ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
         rtrIp = IntIPv4.fromString("192.168.66.1");
@@ -80,7 +80,7 @@ public class FloatingIpTest {
                 MAC.fromString("02:00:00:aa:aa:01"), tapAddr1, rtrIp);
 
         IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
-        RouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
+        MaterializedRouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
         tapPort2 = new TapWrapper("flIpTestTap2");
         ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
         helper2 = new PacketHelper(
@@ -91,7 +91,7 @@ public class FloatingIpTest {
         // only packets that go via the uplink use the the floatingIP.
         privAddr = IntIPv4.fromString("192.168.55.5");
         pubAddr = IntIPv4.fromString("10.0.173.5");
-        RouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
+        MaterializedRouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
         ovsBridge.addInternalPort(p3.port.getId(), "flIpTestInt", privAddr, 24);
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 

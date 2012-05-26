@@ -45,12 +45,14 @@ public class TestBridge extends JerseyTest {
         tenant.setId(testTenantName);
 
         resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).accept(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
+        response = resource.type(APPLICATION_TENANT_JSON)
+                .accept(APPLICATION_TENANT_JSON)
+                .post(ClientResponse.class, tenant);
         log.debug("status: {}", response.getStatus());
         log.debug("location: {}", response.getLocation());
         assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString().endsWith("tenants/" + testTenantName));
+        assertTrue(response.getLocation().toString()
+                .endsWith("tenants/" + testTenantName));
 
         bridge.setName(testBridgeName);
         resource = resource().path("tenants/" + testTenantName + "/bridges");
@@ -73,12 +75,14 @@ public class TestBridge extends JerseyTest {
         log.debug("body: {}", body);
 
         String idString = response.getLocation().toString();
-        idString = idString.substring(idString.lastIndexOf("/") + 1, idString.length());
+        idString = idString.substring(idString.lastIndexOf("/") + 1,
+                idString.length());
         log.debug("idString: {}", idString);
         try {
             UUID.fromString(idString);
         } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" + e);
+            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}"
+                    + e);
         }
     }
 
@@ -99,15 +103,18 @@ public class TestBridge extends JerseyTest {
         log.debug("body: {}", body);
 
         String idString = response.getLocation().toString();
-        idString = idString.substring(idString.lastIndexOf("/") + 1, idString.length());
+        idString = idString.substring(idString.lastIndexOf("/") + 1,
+                idString.length());
         log.debug("idString: {}", idString);
         try {
             UUID.fromString(idString);
         } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}" + e);
+            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}"
+                    + e);
         }
 
-        bridge = resource().uri(bridgeUri).type(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+        bridge = resource().uri(bridgeUri).type(APPLICATION_BRIDGE_JSON)
+                .get(DtoBridge.class);
         assertEquals("TEST-CREATE-BRIDGE", bridge.getName());
         assertEquals(id, bridge.getId());
         log.debug("bridge port: {}", bridge.getPorts());
@@ -116,7 +123,8 @@ public class TestBridge extends JerseyTest {
 
     @Test
     public void testGet() {
-        bridge = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+        bridge = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
+                .get(DtoBridge.class);
         log.debug("testGet {}", bridge.getName());
         log.debug("testGet {}", bridge.getId());
         log.debug("testGet {}", bridge.getTenantId());
@@ -135,13 +143,14 @@ public class TestBridge extends JerseyTest {
         bridge = new DtoBridge();
         bridge.setName(newName);
 
-        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON).put(ClientResponse.class, bridge);
+        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
+                .put(ClientResponse.class, bridge);
         log.debug("status: {}", response.getStatus());
         log.debug("body of Bridge Update: {}", response.getEntity(String.class));
         assertEquals(200, response.getStatus());
 
-
-        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON).get(ClientResponse.class);
+        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
+                .get(ClientResponse.class);
         bridge = response.getEntity(DtoBridge.class);
         log.debug("name: {}", bridge.getName());
         assertEquals(200, response.getStatus());

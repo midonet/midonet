@@ -68,11 +68,6 @@ public class StaticMockDaoFactory implements DaoFactory {
     }
 
     @Override
-    public BridgeLinkDao getBridgeLinkDao() throws StateAccessException {
-        return factoryInstance.getBridgeLinkDao();
-    }
-
-    @Override
     public ChainDao getChainDao() throws StateAccessException {
         return factoryInstance.getChainDao();
     }
@@ -95,11 +90,6 @@ public class StaticMockDaoFactory implements DaoFactory {
     @Override
     public RouterDao getRouterDao() throws StateAccessException {
         return factoryInstance.getRouterDao();
-    }
-
-    @Override
-    public RouterLinkDao getRouterLinkDao() throws StateAccessException {
-        return factoryInstance.getRouterLinkDao();
     }
 
     @Override

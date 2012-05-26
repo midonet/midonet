@@ -23,7 +23,8 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.BridgeRouterLink;
+import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
+import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Rule;
@@ -42,13 +43,14 @@ public class L2FilteringTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     Tenant tenant1;
-    BridgeRouterLink link1;
     Bridge bridge1;
     BridgePort bPort1;
     BridgePort bPort2;
     BridgePort bPort3;
     BridgePort bPort4;
     BridgePort bPort5;
+    LogicalBridgePort bPort6;
+    LogicalRouterPort rPort1;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
@@ -71,8 +73,12 @@ public class L2FilteringTest {
         bridge1 = tenant1.addBridge().setName("br1").build();
         Router rtr = tenant1.addRouter().setName("rtr1").build();
         // Link the Bridge and Router
-        link1 = rtr.addBridgeRouterLink(
-                bridge1, IntIPv4.fromString("10.0.0.0", 24));
+        rPort1 = rtr.addLinkPort()
+                .setNetworkAddress("10.0.0.0")
+                .setNetworkLength(24)
+                .setPortAddress("10.0.0.1").build();
+        bPort6 = bridge1.addLinkPort().build();
+        rPort1.link(bPort6);
 
         // Add ports to the bridge.
         bPort1 = bridge1.addPort().build();
@@ -106,8 +112,9 @@ public class L2FilteringTest {
         removeBridge(ovsBridge1);
         stopMidolman(midolman1);
 
-        if (null != link1)
-            link1.delete();
+        if (null != rPort1) {
+            rPort1.unlink();
+        }
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
     }

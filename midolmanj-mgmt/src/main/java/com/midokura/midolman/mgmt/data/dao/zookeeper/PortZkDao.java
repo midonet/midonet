@@ -33,7 +33,7 @@ public class PortZkDao {
 
     /**
      * Constructor
-     *
+     * 
      * @param zkDao
      *            PortZkManager object to access ZK data.
      * @param pathBuilder
@@ -50,7 +50,7 @@ public class PortZkDao {
 
     /**
      * Checks whether a port exists with the given ID.
-     *
+     * 
      * @param id
      *            Port ID
      * @return True if port exists.
@@ -69,7 +69,7 @@ public class PortZkDao {
 
     /**
      * Get the data for the given port.
-     *
+     * 
      * @param id
      *            ID of the port.
      * @return PortConfig stored in ZK.
@@ -88,7 +88,7 @@ public class PortZkDao {
 
     /**
      * Get the data for the given port.
-     *
+     * 
      * @param id
      *            ID of the port.
      * @return PortMgmtConfig stored in ZK.
@@ -100,7 +100,10 @@ public class PortZkDao {
 
         String path = pathBuilder.getPortPath(id);
         byte[] data = zkDao.get(path);
-        PortMgmtConfig config = serializer.deserialize(data);
+        PortMgmtConfig config = null;
+        if (data != null) {
+            config = serializer.deserialize(data);
+        }
 
         log.debug("PortZkDao.getMgmtData exiting: path=" + path);
         return config;
@@ -108,7 +111,7 @@ public class PortZkDao {
 
     /**
      * Get a set of port IDs for a given router.
-     *
+     * 
      * @param routerId
      *            ID of the router.
      * @return Set of port IDs.
@@ -126,14 +129,13 @@ public class PortZkDao {
             ids.add(node.key);
         }
 
-        log.debug("PortZkDao.getRouterPortIds exiting: ids count="
-                + ids.size());
+        log.debug("PortZkDao.getRouterPortIds exiting: ids count=" + ids.size());
         return ids;
     }
 
     /**
      * Get a set of port IDs for a given bridge.
-     *
+     * 
      * @param bridgeId
      *            ID of the bridge.
      * @return Set of port IDs.
@@ -151,15 +153,18 @@ public class PortZkDao {
             ids.add(node.key);
         }
 
-        log.debug("PortZkDao.getBridgePortIds exiting: ids count="
-                + ids.size());
+        // Get the logical bridge ports.
+        Set<UUID> portIds = zkDao.getBridgeLogicalPortIDs(bridgeId, null);
+        ids.addAll(portIds);
+
+        log.debug("PortZkDao.getBridgePortIds exiting: ids count=" + ids.size());
         return ids;
     }
 
     /**
      * Wrapper for multi ZK API. The paths in the Op list are expected already
      * to be created.
-     *
+     * 
      * @param ops
      * @throws StateAccessException
      */

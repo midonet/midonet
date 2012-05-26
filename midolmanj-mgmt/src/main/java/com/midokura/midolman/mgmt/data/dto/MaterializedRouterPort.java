@@ -5,29 +5,27 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
-import java.util.HashSet;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 
 /**
  * Data transfer class for materialized router port.
  */
-@XmlRootElement
-public class MaterializedRouterPort extends RouterPort {
+public class MaterializedRouterPort extends RouterPort implements
+        MaterializedPort {
 
-    protected String localNetworkAddress = null;
-    protected int localNetworkLength;
+    /**
+     * VIF ID
+     */
+    private UUID vifId;
+    private String localNetworkAddress;
+    private int localNetworkLength;
 
     /**
      * Constructor
@@ -38,35 +36,49 @@ public class MaterializedRouterPort extends RouterPort {
 
     /**
      * Constructor
-     *
+     * 
      * @param id
      *            ID of the port
+     * @param deviceId
+     *            ID of the device
+     */
+    public MaterializedRouterPort(UUID id, UUID deviceId) {
+        super(id, deviceId);
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param id
+     *            ID of the port
+     * @param deviceId
+     *            ID of the device
+     * @param vifId
+     *            ID of the VIF.
+     */
+    public MaterializedRouterPort(UUID id, UUID deviceId, UUID vifId) {
+        super(id, deviceId);
+        this.vifId = vifId;
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param id
+     *            ID of the port
+     * @param config
+     *            MaterializedRouterPortConfig object
      * @param mgmtConfig
      *            PortMgmtConfig object
      * @param config
      *            MaterializedRouterPortConfig object
      */
-    public MaterializedRouterPort(UUID id, PortMgmtConfig mgmtConfig,
-            MaterializedRouterPortConfig config) {
-        this(id, config.device_id, mgmtConfig.vifId);
+    public MaterializedRouterPort(UUID id, MaterializedRouterPortConfig config,
+            PortMgmtConfig mgmtConfig) {
+        super(id, config, mgmtConfig);
         this.localNetworkAddress = Net
                 .convertIntAddressToString(config.localNwAddr);
         this.localNetworkLength = config.localNwLength;
-        this.networkAddress = Net.convertIntAddressToString(config.nwAddr);
-        this.networkLength = config.nwLength;
-        this.portAddress = Net.convertIntAddressToString(config.portAddr);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param id
-     *            ID of the port
-     * @param vifId
-     *            ID of the VIF.
-     */
-    public MaterializedRouterPort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId, vifId);
     }
 
     /**
@@ -100,6 +112,23 @@ public class MaterializedRouterPort extends RouterPort {
     }
 
     /**
+     * @return the vifId
+     */
+    @Override
+    public UUID getVifId() {
+        return vifId;
+    }
+
+    /**
+     * @param vifId
+     *            the vifId to set
+     */
+    @Override
+    public void setVifId(UUID vifId) {
+        this.vifId = vifId;
+    }
+
+    /**
      * @return the bgps URI
      */
     public URI getBgps() {
@@ -123,52 +152,80 @@ public class MaterializedRouterPort extends RouterPort {
 
     /**
      * Convert this object to PortConfig object.
-     *
+     * 
      * @return PortConfig object.
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.MaterializedRouterPortConfig config = new PortDirectory.MaterializedRouterPortConfig(
-                this.getDeviceId(), Net.convertStringAddressToInt(this
-                        .getNetworkAddress()), this.getNetworkLength(),
-                Net.convertStringAddressToInt(this.getPortAddress()), null,
-                new HashSet<Route>(), Net.convertStringAddressToInt(this
-                        .getLocalNetworkAddress()),
-                this.getLocalNetworkLength(), new HashSet<BGP>());
-        super.toConfig(config);
+        PortDirectory.MaterializedRouterPortConfig config = new PortDirectory.MaterializedRouterPortConfig();
+        super.setConfig(config);
+        config.localNwAddr = Net
+                .convertStringAddressToInt(this.localNetworkAddress);
+        config.localNwLength = this.localNetworkLength;
         return config;
     }
 
     /*
      * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dto.Port#toZkNode()
-     */
-    @Override
-    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
-        return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
-    }
-
-    /*
-     * (non-Javadoc)
-     *
+     * 
      * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
      */
     @Override
-    public PortType getType() {
+    public String getType() {
         return PortType.MATERIALIZED_ROUTER;
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
+     * @see com.midokura.midolman.mgmt.data.dto.Port#isLogical()
+     */
+    @Override
+    public boolean isLogical() {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.midokura.midolman.mgmt.data.dto.Port#attachmentId()
+     */
+    @Override
+    public UUID getAttachmentId() {
+        return this.vifId;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.midokura.midolman.mgmt.data.dto.Port#setAttachmentId(java.util.UUID)
+     */
+    @Override
+    public void setAttachmentId(UUID id) {
+        this.vifId = id;
+    }
+
+    /**
+     * Convert this object to PortMgmtConfig object.
+     * 
+     * @return PortMgmtConfig object.
+     */
+    @Override
+    public PortMgmtConfig toMgmtConfig() {
+        return new PortMgmtConfig(this.getVifId());
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
         return super.toString() + ", localNetworkAddress="
                 + localNetworkAddress + ", localNetworkLength="
-                + localNetworkLength;
+                + localNetworkLength + ", vifId=" + vifId;
     }
 
 }

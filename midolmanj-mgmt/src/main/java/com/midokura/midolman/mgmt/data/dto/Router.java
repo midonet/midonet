@@ -34,7 +34,7 @@ public class Router extends UriResource {
 
     /**
      * Constructor
-     *
+     * 
      * @param id
      *            ID of the router.
      * @param name
@@ -51,7 +51,7 @@ public class Router extends UriResource {
 
     /**
      * Get router ID.
-     *
+     * 
      * @return Router ID.
      */
     public UUID getId() {
@@ -60,7 +60,7 @@ public class Router extends UriResource {
 
     /**
      * Set router ID.
-     *
+     * 
      * @param id
      *            ID of the router.
      */
@@ -70,7 +70,7 @@ public class Router extends UriResource {
 
     /**
      * Get router name.
-     *
+     * 
      * @return Router name.
      */
     public String getName() {
@@ -79,7 +79,7 @@ public class Router extends UriResource {
 
     /**
      * Set router name.
-     *
+     * 
      * @param name
      *            Name of the router.
      */
@@ -89,7 +89,7 @@ public class Router extends UriResource {
 
     /**
      * Get tenant ID.
-     *
+     * 
      * @return Tenant ID.
      */
     public String getTenantId() {
@@ -98,7 +98,7 @@ public class Router extends UriResource {
 
     /**
      * Set tenant ID.
-     *
+     * 
      * @param tenantId
      *            Tenant ID of the router.
      */
@@ -134,33 +134,22 @@ public class Router extends UriResource {
     }
 
     /**
+     * @return the peer ports URI
+     */
+    public URI getPeerPorts() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getRouterPeerPorts(getBaseUri(), id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the routes URI.
      */
     public URI getRoutes() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getRouterRoutes(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return the peerRouters URI.
-     */
-    public URI getPeerRouters() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getRouterRouters(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return the peerBridges URI.
-     */
-    public URI getPeerBridges() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getRouterBridges(getBaseUri(), id);
         } else {
             return null;
         }
@@ -180,7 +169,7 @@ public class Router extends UriResource {
 
     /**
      * Convert this object to RouterConfig object
-     *
+     * 
      * @return RouterConfig object
      */
     public RouterConfig toConfig() {
@@ -190,7 +179,7 @@ public class Router extends UriResource {
 
     /**
      * Convert this object to RouterMgmtConfig object.
-     *
+     * 
      * @return RouterMgmtConfig object.
      */
     public RouterMgmtConfig toMgmtConfig() {
@@ -199,7 +188,7 @@ public class Router extends UriResource {
 
     /**
      * Convert this object to RouterNameMgmtConfig object.
-     *
+     * 
      * @return RouterNameMgmtConfig object.
      */
     public RouterNameMgmtConfig toNameMgmtConfig() {
@@ -208,7 +197,7 @@ public class Router extends UriResource {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#toString()
      */
     @Override

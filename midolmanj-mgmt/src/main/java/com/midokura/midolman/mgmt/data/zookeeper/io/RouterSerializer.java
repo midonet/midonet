@@ -6,7 +6,6 @@ package com.midokura.midolman.mgmt.data.zookeeper.io;
 
 import java.io.IOException;
 
-import com.midokura.midolman.mgmt.data.dto.config.PeerRouterConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -19,29 +18,24 @@ public class RouterSerializer {
 
     private final Serializer<RouterMgmtConfig> serializer;
     private final Serializer<RouterNameMgmtConfig> nameSerializer;
-    private final Serializer<PeerRouterConfig> peerSerializer;
 
     /**
      * Constructor.
-     *
+     * 
      * @param serializer
      *            RouterMgmtConfig serializer.
      * @param nameSerializer
      *            RouterNameMgmtConfig serializer.
-     * @param peerSerializer
-     *            PeerRouterConfig serializer.
      */
     public RouterSerializer(Serializer<RouterMgmtConfig> serializer,
-            Serializer<RouterNameMgmtConfig> nameSerializer,
-            Serializer<PeerRouterConfig> peerSerializer) {
+            Serializer<RouterNameMgmtConfig> nameSerializer) {
         this.serializer = serializer;
         this.nameSerializer = nameSerializer;
-        this.peerSerializer = peerSerializer;
     }
 
     /**
      * Deserialize RouterMgmtConfig object.
-     *
+     * 
      * @param data
      *            Byte array to deserialize from.
      * @return RouterMgmtConfig object.
@@ -60,28 +54,8 @@ public class RouterSerializer {
     }
 
     /**
-     * Deserialize PeerRouterConfig object.
-     *
-     * @param data
-     *            Byte array to deserialize from.
-     * @return PeerRouterConfig object.
-     * @throws ZkStateSerializationException
-     *             Serialization error.
-     */
-    public PeerRouterConfig deserializePeer(byte[] data)
-            throws ZkStateSerializationException {
-        try {
-            return peerSerializer.bytesToObj(data, PeerRouterConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize PeerRouterConfig.", e,
-                    PeerRouterConfig.class);
-        }
-    }
-
-    /**
      * Deserialize RouterNameMgmtConfig object.
-     *
+     * 
      * @param data
      *            Byte array to deserialize from.
      * @return RouterNameMgmtConfig object.
@@ -100,28 +74,8 @@ public class RouterSerializer {
     }
 
     /**
-     * Serialize PeerRouterConfig object.
-     *
-     * @param config
-     *            PeerRouterConfig object.
-     * @return byte array.
-     * @throws ZkStateSerializationException
-     *             Serialization error.
-     */
-    public byte[] serialize(PeerRouterConfig config)
-            throws ZkStateSerializationException {
-        try {
-            return peerSerializer.objToBytes(config);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize PeerRouterConfig", e,
-                    PeerRouterConfig.class);
-        }
-    }
-
-    /**
      * Serialize RouterMgmtConfig object.
-     *
+     * 
      * @param config
      *            RouterMgmtConfig object.
      * @return byte array.
@@ -141,7 +95,7 @@ public class RouterSerializer {
 
     /**
      * Serialize RouterNameMgmtConfig object.
-     *
+     * 
      * @param config
      *            RouterNameMgmtConfig object.
      * @return byte array.

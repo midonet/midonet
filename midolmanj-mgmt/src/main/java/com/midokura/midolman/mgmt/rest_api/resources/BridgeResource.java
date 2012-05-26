@@ -37,7 +37,7 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.resources.ForwardingElementLinkResource.BridgeRoutersResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePeerPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -55,7 +55,7 @@ public class BridgeResource {
 
     /**
      * Handler to deleting a bridge.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -68,7 +68,7 @@ public class BridgeResource {
      *             Data access error.
      */
     @DELETE
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -90,7 +90,7 @@ public class BridgeResource {
 
     /**
      * Handler to getting a bridge.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -133,7 +133,7 @@ public class BridgeResource {
 
     /**
      * Port resource locator for bridges.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @returns BridgePortResource object to handle sub-resource requests.
@@ -144,20 +144,8 @@ public class BridgeResource {
     }
 
     /**
-     * Bridge resource locator for router links.
-     *
-     * @param id
-     *            Router ID from the request.
-     * @returns RouterBridgesResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
-    public BridgeRoutersResource getRoutersResource(@PathParam("id") UUID id) {
-        return new BridgeRoutersResource(id);
-    }
-
-    /**
      * Filtering database resource locator for bridges.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @returns BridgeFilterDbResource object to handle sub-resource requests.
@@ -170,7 +158,7 @@ public class BridgeResource {
 
     /**
      * DHCP resource locator for bridges.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @returns BridgeDhcpResource object to handle sub-resource requests.
@@ -181,8 +169,21 @@ public class BridgeResource {
     }
 
     /**
+     * Peer port resource locator for bridges.
+     * 
+     * @param id
+     *            Bridge ID from the request.
+     * @returns BridgePeerPortResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
+    public BridgePeerPortResource BridgePeerPortResource(
+            @PathParam("id") UUID id) {
+        return new BridgePeerPortResource(id);
+    }
+
+    /**
      * Handler to updating a bridge.
-     *
+     * 
      * @param id
      *            Bridge ID from the request.
      * @param bridge
@@ -197,7 +198,7 @@ public class BridgeResource {
      *             Data access error.
      */
     @PUT
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
@@ -224,7 +225,7 @@ public class BridgeResource {
 
         /**
          * Constructor.
-         *
+         * 
          * @param tenantId
          *            UUID of a tenant.
          */
@@ -234,7 +235,7 @@ public class BridgeResource {
 
         /**
          * Handler for creating a tenant bridge.
-         *
+         * 
          * @param bridge
          *            Bridge object.
          * @param context
@@ -257,7 +258,8 @@ public class BridgeResource {
                 @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                 @Context Authorizer authorizer) throws StateAccessException {
 
-            if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantId)) {
+            if (!authorizer.tenantAuthorized(context, AuthAction.WRITE,
+                    tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add bridge to this tenant.");
             }
@@ -266,12 +268,13 @@ public class BridgeResource {
             bridge.setTenantId(tenantId);
             UUID id = dao.create(bridge);
             return Response.created(
-                    ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id)).build();
+                    ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))
+                    .build();
         }
 
         /**
          * Handler to list tenant bridges.
-         *
+         * 
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -292,7 +295,8 @@ public class BridgeResource {
                 @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                 @Context Authorizer authorizer) throws StateAccessException {
 
-            if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
+            if (!authorizer
+                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view bridges of this tenant.");
             }

@@ -7,6 +7,7 @@ package com.midokura.midolman.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -208,12 +209,15 @@ public class BridgeZkManager extends ZkManager {
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         // Delete the ports.
-        // Note: we do not delete logical ports here or their peers will remain
-        // dangling. Logical ports must be removed before cascading delete.
         List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
                 .listBridgePorts(entry.key);
         for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
             ops.addAll(portZkManager.preparePortDelete(portEntry));
+        }
+       Set<UUID> logicalPortIds = portZkManager.getBridgeLogicalPortIDs(
+               entry.key, null);
+        for (UUID portId : logicalPortIds) {
+            ops.addAll(portZkManager.preparePortDelete(portId));
         }
         ops.add(
             Op.delete(pathManager.getBridgePortsPath(entry.key), -1));

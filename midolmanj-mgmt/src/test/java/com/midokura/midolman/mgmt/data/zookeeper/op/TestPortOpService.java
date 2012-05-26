@@ -27,46 +27,46 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
 @RunWith(MockitoJUnitRunner.class)
 public class TestPortOpService {
 
-	private PortOpService testObject;
+    private PortOpService testObject;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private PortOpBuilder opBuilder;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PortOpBuilder opBuilder;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private PortZkDao zkDao;
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PortZkDao zkDao;
 
-	@Before
-	public void setUp() {
-		testObject = new PortOpService(opBuilder, zkDao);
-	}
+    @Before
+    public void setUp() {
+        testObject = new PortOpService(opBuilder, zkDao);
+    }
 
-	@Test
-	public void testBuildDeleteWithCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
-		InOrder inOrder = inOrder(opBuilder);
+        // Setup
+        UUID id = UUID.randomUUID();
+        InOrder inOrder = inOrder(opBuilder);
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, true);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, true);
 
-		// Verify the order of execution
-		Assert.assertTrue(ops.size() > 0);
-		inOrder.verify(opBuilder).getPortDeleteOps(id);
-		inOrder.verify(opBuilder).getPortDeleteOp(id);
-	}
+        // Verify the order of execution
+        Assert.assertTrue(ops.size() > 0);
+        inOrder.verify(opBuilder).getPortDeleteOps(id);
+        inOrder.verify(opBuilder).getPortDeleteOp(id);
+    }
 
-	@Test
-	public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
+    @Test
+    public void testBuildDeleteWithNoCascadeSuccess() throws Exception {
 
-		// Setup
-		UUID id = UUID.randomUUID();
+        // Setup
+        UUID id = UUID.randomUUID();
 
-		// Execute
-		List<Op> ops = testObject.buildDelete(id, false);
+        // Execute
+        List<Op> ops = testObject.buildDelete(id, false);
 
-		// Verify that cascade did not happen
-		Assert.assertTrue(ops.size() > 0);
-		verify(opBuilder, never()).getPortDeleteOps(id);
-	}
+        // Verify that cascade did not happen
+        Assert.assertTrue(ops.size() > 0);
+        verify(opBuilder, never()).getPortDeleteOps(id);
+    }
 }

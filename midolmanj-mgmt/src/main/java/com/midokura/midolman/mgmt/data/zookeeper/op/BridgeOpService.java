@@ -33,7 +33,7 @@ public class BridgeOpService {
 
     /**
      * Constructor
-     *
+     * 
      * @param opBuilder
      *            BridgeOpBuilder object.
      * @param portOpService
@@ -50,7 +50,7 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to create a bridge
-     *
+     * 
      * @param id
      *            ID of the bridge
      * @param config
@@ -76,9 +76,6 @@ public class BridgeOpService {
         // Create the root bridge path
         ops.add(opBuilder.getBridgeCreateOp(id, mgmtConfig));
 
-        // links
-        ops.add(opBuilder.getBridgeRoutersCreateOp(id));
-
         // Add the bridge under tenant.
         ops.add(opBuilder.getTenantBridgeCreateOp(mgmtConfig.tenantId, id));
 
@@ -93,7 +90,7 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to delete a bridge
-     *
+     * 
      * @param id
      *            ID of the port
      * @param cascade
@@ -126,9 +123,6 @@ public class BridgeOpService {
         // Delete the tenant bridge
         ops.add(opBuilder.getTenantBridgeDeleteOp(mgmtConfig.tenantId, id));
 
-        // links
-        ops.add(opBuilder.getBridgeRoutersDeleteOp(id));
-
         // Delete the root bridge path.
         ops.add(opBuilder.getBridgeDeleteOp(id));
 
@@ -139,15 +133,14 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to update a bridge
-     *
+     * 
      * @param bridge
      *            BridgeConfig of the bridge to be updated.
      * @return Op list
      * @throws StateAccessException
      *             Data error.
      */
-    public List<Op> buildUpdate(Bridge bridge)
-            throws StateAccessException {
+    public List<Op> buildUpdate(Bridge bridge) throws StateAccessException {
         UUID id = bridge.getId();
         String name = bridge.getName();
         log.debug("BridgeOpBuilder.buildUpdate entered: id=" + id + ", name="
@@ -165,8 +158,8 @@ public class BridgeOpService {
                     config.name));
 
             // Move NameConfig to the new name path.
-            ops.add(opBuilder.getTenantBridgeNameCreateOp(config.tenantId, name,
-                    nameConfig));
+            ops.add(opBuilder.getTenantBridgeNameCreateOp(config.tenantId,
+                    name, nameConfig));
 
             // Update the management config
             config.name = name;
@@ -184,7 +177,7 @@ public class BridgeOpService {
 
     /**
      * Build operations to delete all bridges for a tenant.
-     *
+     * 
      * @param tenantId
      *            ID of the tenant
      * @return Op list

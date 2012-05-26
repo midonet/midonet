@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.dao;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortInUseException;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -33,8 +34,10 @@ public interface PortDao {
      *            ID of the port to delete.
      * @throws StateAccessException
      *             Data access error.
+     * @throws PortInUseException
+     *             Attempt to delete a used port.
      */
-    void delete(UUID id) throws StateAccessException;
+    void delete(UUID id) throws StateAccessException, PortInUseException;
 
     /**
      * Check if a port exists.
@@ -57,6 +60,7 @@ public interface PortDao {
      *             Data access error.
      */
     Port get(UUID id) throws StateAccessException;
+
     /**
      * Get Port by AdRoute.
      *
@@ -85,6 +89,20 @@ public interface PortDao {
     Port getByVpn(UUID vpnId) throws StateAccessException;
 
     /**
+     * Link two logical ports
+     *
+     * @param id
+     *            Port ID
+     * @param peerId
+     *            Peer port ID
+     * @throws StateAccessException
+     * @throws PortInUseException
+     *             Attempt to link used ports.
+     */
+    void link(UUID id, UUID peerId) throws StateAccessException,
+            PortInUseException;
+
+    /**
      * Get bridge ports.
      *
      * @return List of Port objects.
@@ -92,6 +110,15 @@ public interface PortDao {
      *             Data access error.
      */
     List<Port> listBridgePorts(UUID bridgeId) throws StateAccessException;
+
+    /**
+     * Get bridge peer ports.
+     *
+     * @return List of peer Port objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    List<Port> listBridgePeerPorts(UUID bridgeId) throws StateAccessException;
 
     /**
      * Get router ports.
@@ -105,10 +132,28 @@ public interface PortDao {
     List<Port> listRouterPorts(UUID routerId) throws StateAccessException;
 
     /**
+     * Get router peer ports.
+     *
+     * @return List of peer Port objects.
+     * @throws StateAccessException
+     *             Data access error.
+     */
+    List<Port> listRouterPeerPorts(UUID routerId) throws StateAccessException;
+
+    /**
+     * Unlink two logical ports
+     *
+     * @param id
+     *            Port ID
+     * @throws StateAccessException
+     */
+    void unlink(UUID id) throws StateAccessException;
+
+    /**
      * Update the Port whose ID is specified in the Port DTO.
      *
      * @param port
-     *          New port configuration.
+     *            New port configuration.
      * @throws StateAccessException
      */
     void update(Port port) throws StateAccessException;

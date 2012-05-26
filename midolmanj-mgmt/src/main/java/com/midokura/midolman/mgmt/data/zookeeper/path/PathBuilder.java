@@ -27,7 +27,7 @@ public class PathBuilder {
 
     /**
      * Constructor
-     *
+     * 
      * @param basePath
      *            Base path of Zk.
      */
@@ -47,7 +47,7 @@ public class PathBuilder {
 
     /**
      * Get ZK bridge path.
-     *
+     * 
      * @param id
      *            Bridge UUID
      * @return /bridges/bridgeId
@@ -58,34 +58,8 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK path to a bridge's routers.
-     *
-     * @param id
-     *            Bridge UUID
-     * @return /bridges/bridgeId/routers
-     */
-    public String getBridgeRoutersPath(UUID id) {
-        return new StringBuilder(getBridgePath(id)).append("/")
-                .append(ROUTERS_PATH).toString();
-    }
-
-    /**
-     * Get ZK path to a bridge's connected router.
-     *
-     * @param bridgeId
-     *            Bridge UUID
-     * @param routerId
-     *            Router UUID
-     * @return /bridges/bridgeId/routers/routerId
-     */
-    public String getBridgeRouterPath(UUID bridgeId, UUID routerId) {
-        return new StringBuilder(getBridgeRoutersPath(bridgeId)).append("/")
-                .append(routerId).toString();
-    }
-
-    /**
      * Get ZK bridges path.
-     *
+     * 
      * @return /bridges
      */
     public String getBridgesPath() {
@@ -95,7 +69,7 @@ public class PathBuilder {
 
     /**
      * Get ZK chain path.
-     *
+     * 
      * @return /chains/chainId
      */
     public String getChainPath(UUID id) {
@@ -105,7 +79,7 @@ public class PathBuilder {
 
     /**
      * Get ZK chains path.
-     *
+     * 
      * @return /chains
      */
     public String getChainsPath() {
@@ -115,27 +89,27 @@ public class PathBuilder {
 
     /**
      * Get ZK port group path.
-     *
+     * 
      * @return /port_groups/groupId
      */
     public String getPortGroupPath(UUID id) {
-        return new StringBuilder(getPortGroupsPath())
-                .append("/").append(id).toString();
+        return new StringBuilder(getPortGroupsPath()).append("/").append(id)
+                .toString();
     }
 
     /**
      * Get ZK port groups path.
-     *
+     * 
      * @return /port_groups
      */
     public String getPortGroupsPath() {
-        return new StringBuilder(basePath).append("/")
-                .append(PORT_GROUPS_PATH).toString();
+        return new StringBuilder(basePath).append("/").append(PORT_GROUPS_PATH)
+                .toString();
     }
 
     /**
      * Get ZK port path.
-     *
+     * 
      * @param id
      *            Port ID.
      * @return /ports/portId
@@ -147,7 +121,7 @@ public class PathBuilder {
 
     /**
      * Get ZK port path.
-     *
+     * 
      * @return /ports
      */
     public String getPortsPath() {
@@ -157,7 +131,7 @@ public class PathBuilder {
 
     /**
      * Get ZK router path.
-     *
+     * 
      * @param id
      *            Router UUID
      * @return /routers/routerId
@@ -168,58 +142,8 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK router peer router path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers/routerId
-     */
-    public String getRouterRouterPath(UUID routerId, UUID peerRouterId) {
-        return new StringBuilder(getRouterRoutersPath(routerId)).append("/")
-                .append(peerRouterId).toString();
-    }
-
-    /**
-     * Get ZK router peer router path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/routers
-     */
-    public String getRouterRoutersPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append("/")
-                .append(ROUTERS_PATH).toString();
-    }
-
-    /**
-     * Get ZK router linked bridge path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @param bridgeId
-     *            Bridge UUID
-     * @return /routers/routerId/bridges/bridgeId
-     */
-    public String getRouterBridgePath(UUID routerId, UUID bridgeId) {
-        return new StringBuilder(getRouterBridgesPath(routerId)).append("/")
-                .append(bridgeId).toString();
-    }
-
-    /**
-     * Get ZK router linked bridges path.
-     *
-     * @param routerId
-     *            Router UUID
-     * @return /routers/routerId/bridges
-     */
-    public String getRouterBridgesPath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append("/")
-                .append(BRIDGES_PATH).toString();
-    }
-
-    /**
      * Get ZK router path.
-     *
+     * 
      * @return /routers
      */
     public String getRoutersPath() {
@@ -229,7 +153,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant port group name path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/port_group-names/name
@@ -241,7 +165,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant port group names path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenant/tenantId/port_group-names
@@ -253,19 +177,19 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant chain name path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/chain-names/name
      */
     public String getTenantChainNamePath(String tenantId, String name) {
-        return new StringBuilder(getTenantChainNamesPath(tenantId))
-                .append("/").append(name).toString();
+        return new StringBuilder(getTenantChainNamesPath(tenantId)).append("/")
+                .append(name).toString();
     }
 
     /**
      * Get ZK tenant chain-names path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenant/tenantId/chain-names
@@ -277,19 +201,19 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant chain path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/chains/chainId
      */
     public String getTenantChainPath(String tenantId, UUID chainId) {
-        return new StringBuilder(getTenantChainsPath(tenantId))
-                .append("/").append(chainId).toString();
+        return new StringBuilder(getTenantChainsPath(tenantId)).append("/")
+                .append(chainId).toString();
     }
 
     /**
      * Get ZK tenant chains path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/chains
@@ -301,7 +225,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant bridge name path.
-     *
+     * 
      * @return /tenants/tenantId/bridge-names/name
      */
     public String getTenantBridgeNamePath(String tenantId, String name) {
@@ -311,7 +235,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant bridge names path.
-     *
+     * 
      * @return /tenants/tenantId/bridge-names
      */
     public String getTenantBridgeNamesPath(String tenantId) {
@@ -321,7 +245,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant bridge path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @param bridgeId
@@ -335,7 +259,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant bridge path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @return /tenants/tenantId/bridges
@@ -347,7 +271,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant path.
-     *
+     * 
      * @param id
      *            Tenant ID
      * @return /tenants/tenantId
@@ -359,7 +283,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant router name path.
-     *
+     * 
      * @return /tenants/tenantId/router-names/name
      */
     public String getTenantRouterNamePath(String tenantId, String name) {
@@ -369,7 +293,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant router names path.
-     *
+     * 
      * @return /tenants/tenantId/router-names
      */
     public String getTenantRouterNamesPath(String tenantId) {
@@ -379,7 +303,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant router path.
-     *
+     * 
      * @param tenantId
      *            Tenant UUID
      * @param routerId
@@ -393,7 +317,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant router path.
-     *
+     * 
      * @param tenantId
      *            Tenant ID
      * @return /tenants/tenantId/routers
@@ -405,7 +329,7 @@ public class PathBuilder {
 
     /**
      * Get ZK tenant path.
-     *
+     * 
      * @return /tenants
      */
     public String getTenantsPath() {
@@ -415,7 +339,7 @@ public class PathBuilder {
 
     /**
      * Get VIF path.
-     *
+     * 
      * @return /vifs/vifId
      */
     public String getVifPath(UUID vifId) {
@@ -425,7 +349,7 @@ public class PathBuilder {
 
     /**
      * Get VIF path.
-     *
+     * 
      * @return /vifs
      */
     public String getVifsPath() {

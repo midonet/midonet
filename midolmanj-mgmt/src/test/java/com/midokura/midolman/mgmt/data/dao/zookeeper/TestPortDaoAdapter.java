@@ -64,8 +64,6 @@ public class TestPortDaoAdapter {
         port.setNetworkAddress("192.168.100.0");
         port.setNetworkLength(24);
         port.setPeerId(peerId);
-        port.setPeerPortAddress("196.168.200.2");
-        port.setPeerRouterId(peerRouterId);
         port.setPortAddress("192.168.200.1");
         return port;
     }
@@ -85,7 +83,7 @@ public class TestPortDaoAdapter {
         Assert.assertNull(port);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = PortInUseException.class)
     public void testDeleteWithVifPluggedError() throws Exception {
 
         Port port = createTestMaterializedPort(UUID.randomUUID(),
@@ -95,7 +93,7 @@ public class TestPortDaoAdapter {
         testObject.delete(port.getId());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test(expected = PortInUseException.class)
     public void testDeleteLogicalPortError() throws Exception {
 
         Port port = createTestLogicalPort(UUID.randomUUID(), UUID.randomUUID(),

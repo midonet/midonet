@@ -17,11 +17,10 @@ public class DtoRouter {
     private UUID inboundFilter;
     private UUID outboundFilter;
     private URI uri;
+    private URI peerPorts;
     private URI ports;
     private URI chains;
     private URI routes;
-    private URI peerRouters;
-    private URI bridges;
 
     public UUID getId() {
         return id;
@@ -95,20 +94,11 @@ public class DtoRouter {
         this.routes = routes;
     }
 
-    public URI getPeerRouters() {
-        return peerRouters;
+    public URI getPeerPorts() {
+        return peerPorts;
     }
 
-    public void setPeerRouters(URI peerRouters) {
-        this.peerRouters = peerRouters;
+    public void setPeerPorts(URI peerPorts) {
+        this.peerPorts = peerPorts;
     }
-
-    public URI getPeerBridges() {
-        return bridges;
-    }
-
-    public void setPeerBridges(URI bridges) {
-        this.bridges = bridges;
-    }
-
 }

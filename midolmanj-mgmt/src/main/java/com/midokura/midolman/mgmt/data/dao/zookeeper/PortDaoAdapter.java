@@ -17,17 +17,12 @@ import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.data.dto.BridgePort;
-import com.midokura.midolman.mgmt.data.dto.LogicalBridgePort;
-import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.PortFactory;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -41,6 +36,17 @@ public class PortDaoAdapter implements PortDao {
     private final PortOpService opService;
     private final BgpDao bgpDao;
     private final VpnDao vpnDao;
+
+    private List<Port> getPeerLogicalPorts(List<Port> ports)
+            throws StateAccessException {
+        List<Port> logicalPorts = new ArrayList<Port>();
+        for (Port port : ports) {
+            if (port.isLogical() && port.hasAttachment()) {
+                logicalPorts.add(get(port.getAttachmentId()));
+            }
+        }
+        return logicalPorts;
+    }
 
     /**
      * Constructor
@@ -73,6 +79,9 @@ public class PortDaoAdapter implements PortDao {
     public UUID create(Port port) throws StateAccessException {
         log.debug("PortDaoAdapter.create entered: port={}", port);
 
+        // Don't create a port with any attachment
+        port.setAttachmentId(null);
+
         UUID id = UUID.randomUUID();
         port.setId(id);
         List<Op> ops = opService.buildCreate(port.getId(), port.toConfig(),
@@ -89,21 +98,14 @@ public class PortDaoAdapter implements PortDao {
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#delete(java.util.UUID)
      */
     @Override
-    public void delete(UUID id) throws StateAccessException {
+    public void delete(UUID id) throws StateAccessException, PortInUseException {
         log.debug("PortDaoAdapter.delete entered: id={}", id);
 
         Port port = get(id);
 
-        // Don't let a port that has a vif plugged in get deleted.
-        if (port.getVifId() != null) {
-            throw new IllegalArgumentException(
-                    "Cannot delete a port with VIF plugged in.");
-        }
-
-        if (port instanceof LogicalRouterPort
-                || port instanceof LogicalBridgePort) {
-            throw new UnsupportedOperationException(
-                    "Cannot delete a logical port without deleting the link.");
+        // Don't let a port that has if plugged in..
+        if (port.hasAttachment()) {
+            throw new PortInUseException("Cannot delete a port being used.");
         }
 
         List<Op> ops = opService.buildDelete(port.getId(), true);
@@ -137,24 +139,8 @@ public class PortDaoAdapter implements PortDao {
         Port port = null;
         if (zkDao.exists(id)) {
             PortConfig config = zkDao.getData(id);
-            if (config instanceof LogicalRouterPortConfig) {
-                port = new LogicalRouterPort(id,
-                        (LogicalRouterPortConfig) config);
-            } else {
-                PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-                if (config instanceof MaterializedRouterPortConfig) {
-                    port = new MaterializedRouterPort(id, mgmtConfig,
-                            (MaterializedRouterPortConfig) config);
-                } else {
-                    port = new BridgePort(id, config.device_id,
-                            mgmtConfig.vifId);
-                }
-            }
-            port.setInboundFilter(config.inboundFilter);
-            port.setOutboundFilter(config.outboundFilter);
-            if (null != config.portGroupIDs && config.portGroupIDs.size() > 0)
-                port.setPortGroupIDs(config.portGroupIDs
-                        .toArray(new UUID[config.portGroupIDs.size()]));
+            PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
+            port = PortFactory.createPort(id, config, mgmtConfig);
         }
 
         log.debug("PortDaoAdapter.get existing: port={}", port);
@@ -214,6 +200,55 @@ public class PortDaoAdapter implements PortDao {
     /*
      * (non-Javadoc)
      *
+     * @see com.midokura.midolman.mgmt.data.dao.PortDao#link(java.util.UUID,
+     * java.util.UUID)
+     */
+    @Override
+    public void link(UUID id, UUID peerId) throws StateAccessException,
+            PortInUseException {
+        log.debug("PortDaoAdapter.link entered: id=" + id + ", peerId="
+                + peerId);
+
+        if (id == null || peerId == null) {
+            throw new IllegalArgumentException("Null port IDs passed in");
+        }
+
+        // Get two ports
+        Port port = get(id);
+        if (port == null) {
+            throw new IllegalArgumentException("No port found with ID " + id);
+        }
+
+        Port peerPort = get(peerId);
+        if (peerPort == null) {
+            throw new IllegalArgumentException("No port found with ID "
+                    + peerPort);
+        }
+
+        if (!port.isLogical() || !peerPort.isLogical()) {
+            throw new IllegalArgumentException("Non logical ports passed in.");
+        }
+
+        if (port.hasAttachment() || peerPort.hasAttachment()) {
+            throw new PortInUseException(
+                    "At least one of the ports already linked.");
+        }
+
+        // Set peer IDs
+        port.setAttachmentId(peerId);
+        peerPort.setAttachmentId(id);
+
+        // Get the multi operations to link
+        List<Op> ops = opService.buildUpdate(id, port.toConfig());
+        ops.addAll(opService.buildUpdate(peerId, peerPort.toConfig()));
+        zkDao.multi(ops);
+
+        log.debug("PortDaoAdapter.link exiting");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePorts(java.util
      * .UUID)
@@ -233,6 +268,28 @@ public class PortDaoAdapter implements PortDao {
         log.debug("PortDaoAdapter.listBridgePorts exiting: port count={}",
                 ports.size());
         return ports;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePeerPorts(java.
+     * util.UUID)
+     */
+    @Override
+    public List<Port> listBridgePeerPorts(UUID bridgeId)
+            throws StateAccessException {
+        log.debug("PortDaoAdapter.listBridgePeerPorts entered: bridgeId={}",
+                bridgeId);
+
+        // TODO: Find more efficient way to do this.
+        List<Port> ports = listBridgePorts(bridgeId);
+        List<Port> logicalPorts = getPeerLogicalPorts(ports);
+
+        log.debug("PortDaoAdapter.listBridgePeerPorts exiting: port count={}",
+                logicalPorts.size());
+        return logicalPorts;
     }
 
     /*
@@ -263,6 +320,72 @@ public class PortDaoAdapter implements PortDao {
      * (non-Javadoc)
      *
      * @see
+     * com.midokura.midolman.mgmt.data.dao.PortDao#listRouterPeerPorts(java.
+     * util.UUID)
+     */
+    @Override
+    public List<Port> listRouterPeerPorts(UUID routerId)
+            throws StateAccessException {
+        log.debug("PortDaoAdapter.listRouterPeerPorts entered: routerId={}",
+                routerId);
+
+        // TODO: Find more efficient way to do this.
+        List<Port> ports = listRouterPorts(routerId);
+        List<Port> logicalPorts = getPeerLogicalPorts(ports);
+
+        log.debug("PortDaoAdapter.listRouterPeerPorts exiting: port count={}",
+                logicalPorts.size());
+        return logicalPorts;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.midokura.midolman.mgmt.data.dao.PortDao#unlink(java.util.UUID)
+     */
+    @Override
+    public void unlink(UUID id) throws StateAccessException {
+        log.debug("PortDaoAdapter.unlink entered: id={}", id);
+
+        if (id == null) {
+            throw new IllegalArgumentException("Null ID passed in");
+        }
+
+        // Get the port
+        Port port = get(id);
+        if (port == null) {
+            throw new IllegalArgumentException("No port found with ID " + id);
+        }
+
+        // If this isn't a logical port, throw an exception.
+        if (!port.isLogical()) {
+            throw new IllegalArgumentException(id + " is not a logical port.");
+        }
+
+        // If already unlinked, don't do anything
+        if (!port.hasAttachment()) {
+            return;
+        }
+
+        // Get the peer port
+        Port peerPort = get(port.getAttachmentId());
+
+        // Unset the peer IDs
+        port.setAttachmentId(null);
+        peerPort.setAttachmentId(null);
+
+        // Get unlink ops
+        List<Op> ops = opService.buildUpdate(id, port.toConfig());
+        ops.addAll(opService.buildUpdate(peerPort.getId(), peerPort.toConfig()));
+        zkDao.multi(ops);
+
+        log.debug("PortDaoAdapter.unlink exiting");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#update(com.midokura.midolman
      * .mgmt.data.dto.Port)
      */
@@ -270,15 +393,19 @@ public class PortDaoAdapter implements PortDao {
     public void update(Port port) throws StateAccessException {
         log.debug("PortDaoAdapter.update entered: port={}", port);
 
-        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
-        mgmtConfig.vifId = port.getVifId();  // null means unplug
+        // Cannot update logical port
+        if (port.isLogical()) {
+            throw new UnsupportedOperationException(
+                    "Cannot update a logical port");
+        }
 
-        // Currently you can only do 'plug'/'unplug' so you can just call
-        // buildPlug method.  However, in the future, we may want to add port
-        // name and update that as well.
+        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
+        mgmtConfig.vifId = port.getAttachmentId(); // null means unplug
+
         List<Op> ops = opService.buildUpdate(port.getId(), mgmtConfig);
         zkDao.multi(ops);
 
         log.debug("PortDaoAdapter.update exiting");
     }
+
 }

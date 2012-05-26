@@ -4,10 +4,7 @@
 
 package com.midokura.midolman.mgmt.data.dto.client;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
-public class DtoRouterPort extends DtoPort {
+public abstract class DtoRouterPort extends DtoPort {
     private String networkAddress = null;
     private int networkLength;
     private String portAddress = null;
@@ -36,4 +33,29 @@ public class DtoRouterPort extends DtoPort {
         this.portAddress = portAddress;
     }
 
+    @Override
+    public boolean equals(Object other) {
+
+        if (!super.equals(other)) {
+            return false;
+        }
+
+        DtoRouterPort port = (DtoRouterPort) other;
+
+        if (networkAddress != null ? !networkAddress
+                .equals(port.networkAddress) : port.networkAddress != null) {
+            return false;
+        }
+
+        if (networkLength != port.networkLength) {
+            return false;
+        }
+
+        if (portAddress != null ? !portAddress.equals(port.portAddress)
+                : port.portAddress != null) {
+            return false;
+        }
+
+        return true;
+    }
 }

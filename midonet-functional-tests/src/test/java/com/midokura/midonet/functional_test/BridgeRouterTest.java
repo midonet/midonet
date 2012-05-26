@@ -22,8 +22,9 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.BridgeRouterLink;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
+import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
@@ -48,10 +49,12 @@ public class BridgeRouterTest {
     IntIPv4 subnetAddr2 = IntIPv4.fromString("192.168.240.0", 24);
 
     Router rtr;
-    BridgeRouterLink link1;
-    BridgeRouterLink link2;
+    LogicalRouterPort routerPort1;
+    LogicalRouterPort routerPort2;
+    LogicalBridgePort bridge1Port;
+    LogicalBridgePort bridge2Port;
     Tenant tenant1;
-    RouterPort p1;
+    MaterializedRouterPort p1;
     TapWrapper tap1;
     TapWrapper tap2;
     OpenvSwitchDatabaseConnectionImpl ovsdb;
@@ -90,7 +93,14 @@ public class BridgeRouterTest {
         ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
         // Link the Bridge and Router
-        link1 = rtr.addBridgeRouterLink(bridge1, subnetAddr1);
+        routerPort1 = rtr.addLinkPort()
+                .setNetworkAddress(subnetAddr1.toUnicastString())
+                .setNetworkLength(subnetAddr1.getMaskLength())
+                .setPortAddress(
+                        new IntIPv4(subnetAddr1.address + 1)
+                            .toUnicastString()).build();
+        bridge1Port = bridge1.addLinkPort().build();
+        routerPort1.link(bridge1Port);
 
         // Create another virtual L2 bridge with one tap port.
         Bridge bridge2 = tenant1.addBridge().setName("br2").build();
@@ -99,7 +109,14 @@ public class BridgeRouterTest {
         ovsBridge.addSystemPort(bPort2.getId(), tap2.getName());
 
         // Link the Bridge and Router
-        link2 = rtr.addBridgeRouterLink(bridge2, subnetAddr2);
+        routerPort2 = rtr.addLinkPort()
+                .setNetworkAddress(subnetAddr2.toUnicastString())
+                .setNetworkLength(subnetAddr2.getMaskLength())
+                .setPortAddress(
+                        new IntIPv4(subnetAddr2.address + 1)
+                            .toUnicastString()).build();
+        bridge2Port = bridge2.addLinkPort().build();
+        routerPort2.link(bridge2Port);
 
         sleepBecause("we wait for the network configuration to bootup", 5);
     }
@@ -110,10 +127,10 @@ public class BridgeRouterTest {
         removeTapWrapper(tap2);
         removeBridge(ovsBridge);
         stopMidolman(midolman);
-        if (null != link1)
-            link1.delete();
-        if (null != link2)
-            link2.delete();
+        if (null != routerPort1)
+            routerPort1.unlink();
+        if (null != routerPort2)
+            routerPort2.unlink();
         removeTenant(tenant1);
         stopMidolmanMgmt(api);
     }

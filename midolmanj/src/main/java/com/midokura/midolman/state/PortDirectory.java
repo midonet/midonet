@@ -55,17 +55,24 @@ public class PortDirectory {
             this.portAddr = portAddr;
             this.routes = routes;
             if (mac == null) {
-                // TODO: Use the midokura OUI.
-                byte[] macBytes = new byte[6];
-                rand.nextBytes(macBytes);
-                macBytes[0] = 0x02;
-                this.hwAddr = new MAC(macBytes);
+                initializeHwAddr();
             } else
                 this.hwAddr = mac;
         }
 
         // Default constructor for the Jackson deserialization.
-        public RouterPortConfig() { super(); }
+        public RouterPortConfig() {
+            super();
+            initializeHwAddr();
+        }
+
+        private void initializeHwAddr() {
+            // TODO: Use the midokura OUI.
+            byte[] macBytes = new byte[6];
+            rand.nextBytes(macBytes);
+            macBytes[0] = 0x02;
+            this.hwAddr = new MAC(macBytes);
+        }
 
         // Custom accessors for Jackson serialization
 
@@ -112,6 +119,11 @@ public class PortDirectory {
 
         public UUID peerId() { return peer_uuid; }
 
+        @Override
+        public void setPeerId(UUID id) {
+            peer_uuid = id;
+        }
+
         // Default constructor for the Jackson deserialization.
         public LogicalBridgePortConfig() { super(); }
 
@@ -151,6 +163,11 @@ public class PortDirectory {
         public UUID peer_uuid;
 
         public UUID peerId() { return peer_uuid; }
+
+        @Override
+        public void setPeerId(UUID id) {
+            peer_uuid = id;
+        }
 
         public LogicalRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,

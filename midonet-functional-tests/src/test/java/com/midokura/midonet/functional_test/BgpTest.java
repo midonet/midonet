@@ -28,7 +28,7 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bgp;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Route;
 import com.midokura.midonet.functional_test.topology.Router;
@@ -95,7 +95,7 @@ public class BgpTest {
 
         IntIPv4 ip1 = IntIPv4.fromString("10.10.173.1");
         IntIPv4 ip2 = IntIPv4.fromString("10.10.173.2");
-        RouterPort p1 = router.addGwPort().setLocalLink(ip1, ip2).build();
+        MaterializedRouterPort p1 = router.addGwPort().setLocalLink(ip1, ip2).build();
         bgpPort = new TapWrapper(bgpPortPortName);
         ovsBridge.addSystemPort(p1.port.getId(), bgpPort.getName());
 

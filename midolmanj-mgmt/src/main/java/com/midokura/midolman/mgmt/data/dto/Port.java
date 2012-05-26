@@ -9,6 +9,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
@@ -17,6 +23,13 @@ import com.midokura.midolman.state.ZkNodeEntry;
 /**
  * Class representing port.
  */
+@XmlRootElement
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = MaterializedBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
+        @JsonSubTypes.Type(value = LogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
+        @JsonSubTypes.Type(value = MaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
+        @JsonSubTypes.Type(value = LogicalRouterPort.class, name = PortType.LOGICAL_ROUTER) })
 public abstract class Port extends UriResource {
 
     /**
@@ -45,11 +58,6 @@ public abstract class Port extends UriResource {
     protected UUID[] portGroupIDs = null;
 
     /**
-     * VIF ID
-     */
-    protected UUID vifId = null;
-
-    /**
      * Default constructor
      */
     public Port() {
@@ -57,21 +65,38 @@ public abstract class Port extends UriResource {
 
     /**
      * Constructor
-     *
+     * 
      * @param id
      *            Port ID
-     * @param vifId
-     *            VIF ID
+     * @param deviceId
+     *            Device ID
      */
-    public Port(UUID id, UUID device_id, UUID vifId) {
+    public Port(UUID id, UUID deviceId) {
         this.id = id;
-        this.vifId = vifId;
-        this.deviceId = device_id;
+        this.deviceId = deviceId;
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param id
+     * @param config
+     * @param mgmtConfig
+     */
+    public Port(UUID id, PortConfig config, PortMgmtConfig mgmtConfig) {
+        this.id = id;
+        this.deviceId = config.device_id;
+        this.inboundFilter = config.inboundFilter;
+        this.outboundFilter = config.outboundFilter;
+        if (config.portGroupIDs != null && config.portGroupIDs.size() > 0) {
+            this.portGroupIDs = config.portGroupIDs
+                    .toArray(new UUID[config.portGroupIDs.size()]);
+        }
     }
 
     /**
      * Get port ID.
-     *
+     * 
      * @return port ID.
      */
     public UUID getId() {
@@ -80,7 +105,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Set port ID.
-     *
+     * 
      * @param id
      *            ID of the port.
      */
@@ -90,7 +115,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Get device ID.
-     *
+     * 
      * @return device ID.
      */
     public UUID getDeviceId() {
@@ -104,7 +129,7 @@ public abstract class Port extends UriResource {
 
     /**
      * logical Set device ID.
-     *
+     * 
      * @param deviceId
      *            ID of the device.
      */
@@ -137,21 +162,6 @@ public abstract class Port extends UriResource {
     }
 
     /**
-     * @return the vifId
-     */
-    public UUID getVifId() {
-        return vifId;
-    }
-
-    /**
-     * @param vifId
-     *            the vifId to set
-     */
-    public void setVifId(UUID vifId) {
-        this.vifId = vifId;
-    }
-
-    /**
      * @return the self URI
      */
     @Override
@@ -165,12 +175,27 @@ public abstract class Port extends UriResource {
 
     /**
      * Convert this object to PortConfig object.
-     *
+     * 
      * @return PortConfig object.
      */
     public abstract PortConfig toConfig();
 
-    public void toConfig(PortConfig config) {
+    /**
+     * Convert this object to PortMgmtConfig object.
+     * 
+     * @return PortConfig object.
+     */
+    public PortMgmtConfig toMgmtConfig() {
+        return null;
+    }
+
+    /**
+     * Set the PortConfig fields
+     * 
+     * @param config
+     *            PortConfig object
+     */
+    public void setConfig(PortConfig config) {
         config.device_id = deviceId;
         config.inboundFilter = inboundFilter;
         config.outboundFilter = outboundFilter;
@@ -180,38 +205,54 @@ public abstract class Port extends UriResource {
         } else {
             config.portGroupIDs = new HashSet<UUID>();
         }
-        ;
     }
 
     /**
-     * Convert this object to PortMgmtConfig object.
-     *
-     * @return PortMgmtConfig object.
+     * Convert this object to ZkNodeEntry
+     * 
+     * @return ZkNodeEntry
      */
-    public PortMgmtConfig toMgmtConfig() {
-        return new PortMgmtConfig(this.getVifId());
+    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
+        return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
     }
 
     /**
-     * Convert this object to ZkNodeEntry object.
-     *
-     * @return ZkNodeEntry object.
+     * @return whether this port is a logical port
      */
-    public abstract ZkNodeEntry<UUID, PortConfig> toZkNode();
+    @XmlTransient
+    public abstract boolean isLogical();
+
+    /**
+     * @return ID of the attached resource
+     */
+    @XmlTransient
+    public abstract UUID getAttachmentId();
+
+    /**
+     * @param id
+     *            Attachment resource ID
+     */
+    public abstract void setAttachmentId(UUID id);
 
     /**
      * @return　The port type
      */
-    public abstract PortType getType();
+    public abstract String getType();
+
+    /**
+     * Checks whether this object can be deleted.
+     */
+    public boolean hasAttachment() {
+        return (getAttachmentId() != null);
+    }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "id=" + id + ", deviceId=" + deviceId + ", vifId=" + vifId;
+        return "id=" + id + ", deviceId=" + deviceId;
     }
-
 }

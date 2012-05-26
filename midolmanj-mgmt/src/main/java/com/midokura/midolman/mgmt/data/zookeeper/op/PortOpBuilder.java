@@ -4,6 +4,7 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.op;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class PortOpBuilder {
 
     /**
      * Constructor
-     *
+     * 
      * @param zkDao
      *            ZkManager object to access ZK data.
      * @param pathBuilder
@@ -50,7 +51,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port update Op object.
-     *
+     * 
      * @param id
      *            ID of the port.
      * @param config
@@ -71,41 +72,34 @@ public class PortOpBuilder {
     }
 
     /**
-     * Get a list of Ops to link ports.
-     *
+     * Get the port update Op object.
+     * 
      * @param id
-     *            ID of the port
+     *            ID of the port.
      * @param config
-     *            PortConfig object representing the port.
-     * @param peerId
-     *            ID of the peer port.
-     * @param peerConfig
-     *            PortConfig object representing the peer port.
-     * @return A list of Op.
-     * @throws ZkStateSerializationException
-     *             Serialization error.
+     *            PortConfig to set
+     * @return Op for router update.
+     * @throws StateAccessException
      */
-    public List<Op> getPortLinkCreateOps(UUID id, PortConfig config,
-            UUID peerId, PortConfig peerConfig)
-            throws ZkStateSerializationException {
-        log.debug("PortOpBuilder.getPortLinkCreateOps entered: id=" + id
-                + ", peerId=" + peerId);
+    public List<Op> getPortSetDataOps(UUID id, PortConfig config)
+            throws StateAccessException {
+        log.debug("PortOpBuilder.getPortSetDataOps entered: id=" + id
+                + ", config=" + config);
 
-        ZkNodeEntry<UUID, PortConfig> port = new ZkNodeEntry<UUID, PortConfig>(
+        List<Op> ops = new ArrayList<Op>();
+
+        // If config is passed in, update this also
+        ZkNodeEntry<UUID, PortConfig> entry = new ZkNodeEntry<UUID, PortConfig>(
                 id, config);
-        ZkNodeEntry<UUID, PortConfig> peerPort = new ZkNodeEntry<UUID, PortConfig>(
-                peerId, peerConfig);
+        ops.addAll(zkDao.preparePortUpdate(entry));
 
-        List<Op> ops = zkDao.preparePortCreateLink(port, peerPort);
-
-        log.debug("PortOpBuilder.getPortLinkCreateOps exiting: ops count="
-                + ops.size());
+        log.debug("PortOpBuilder.getPortSetDataOps exiting.");
         return ops;
     }
 
     /**
      * Get the port create Op object.
-     *
+     * 
      * @param id
      *            ID of the port.
      * @param config
@@ -130,7 +124,7 @@ public class PortOpBuilder {
 
     /**
      * Gets a list of Op objects to create a port in Midolman side.
-     *
+     * 
      * @param id
      *            ID of the port
      * @param config
@@ -152,7 +146,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port delete Op object.
-     *
+     * 
      * @param id
      *            ID of the port.
      * @return Op for port delete.
@@ -169,7 +163,7 @@ public class PortOpBuilder {
 
     /**
      * Gets a list of Op objects to delete a Port in Midolman side.
-     *
+     * 
      * @param id
      *            ID of the port
      * @return List of Op objects.

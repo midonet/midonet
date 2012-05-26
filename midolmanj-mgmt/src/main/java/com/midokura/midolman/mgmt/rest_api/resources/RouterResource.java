@@ -37,8 +37,7 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.resources.ForwardingElementLinkResource.RouterBridgesResource;
-import com.midokura.midolman.mgmt.rest_api.resources.ForwardingElementLinkResource.RouterRoutersResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPeerPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.RouterRouteResource;
 import com.midokura.midolman.state.NoStatePathException;
@@ -57,7 +56,7 @@ public class RouterResource {
 
     /**
      * Handler to deleting a router.
-     *
+     * 
      * @param id
      *            Router ID from the request.
      * @param context
@@ -92,7 +91,7 @@ public class RouterResource {
 
     /**
      * Handler to getting a router.
-     *
+     * 
      * @param id
      *            Router ID from the request.
      * @param context
@@ -134,32 +133,8 @@ public class RouterResource {
     }
 
     /**
-     * Router resource locator for routers.
-     *
-     * @param id
-     *            Router ID from the request.
-     * @returns RouterLinkResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
-    public RouterRoutersResource getLinkResource(@PathParam("id") UUID id) {
-        return new RouterRoutersResource(id);
-    }
-
-    /**
-     * Router resource locator for linked bridges.
-     *
-     * @param id
-     *            Router ID from the request.
-     * @returns RouterBridgesResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.BRIDGES)
-    public RouterBridgesResource getBridgesResource(@PathParam("id") UUID id) {
-        return new RouterBridgesResource(id);
-    }
-
-    /**
      * Port resource locator for routers.
-     *
+     * 
      * @param id
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
@@ -171,7 +146,7 @@ public class RouterResource {
 
     /**
      * Route resource locator for routers.
-     *
+     * 
      * @param id
      *            Router ID from the request.
      * @returns RouterRouteResource object to handle sub-resource requests.
@@ -182,8 +157,21 @@ public class RouterResource {
     }
 
     /**
+     * Peer port resource locator for bridges.
+     * 
+     * @param id
+     *            Router ID from the request.
+     * @returns RouterPortResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
+    public RouterPeerPortResource RouterPeerPortResource(
+            @PathParam("id") UUID id) {
+        return new RouterPeerPortResource(id);
+    }
+
+    /**
      * Handler to updating a router.
-     *
+     * 
      * @param id
      *            Router ID from the request.
      * @param router
@@ -225,7 +213,7 @@ public class RouterResource {
 
         /**
          * Constructor
-         *
+         * 
          * @param tenantId
          *            ID of a tenant.
          */
@@ -235,7 +223,7 @@ public class RouterResource {
 
         /**
          * Handler for creating a tenant router.
-         *
+         * 
          * @param router
          *            Router object.
          * @param uriInfo
@@ -275,7 +263,7 @@ public class RouterResource {
 
         /**
          * Handler to list tenant routers.
-         *
+         * 
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

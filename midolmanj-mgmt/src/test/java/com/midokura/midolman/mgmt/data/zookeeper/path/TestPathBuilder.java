@@ -16,7 +16,6 @@ public class TestPathBuilder {
     public void testBuild() throws Exception {
 
         UUID uuid = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
         String strId = "foo";
         String testName = "bar";
         String root = "/root";
@@ -117,18 +116,6 @@ public class TestPathBuilder {
         expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
-        // Router routers
-        result = builder.getRouterRoutersPath(uuid);
-        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.ROUTERS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Router router
-        result = builder.getRouterRouterPath(uuid, uuid);
-        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid + "/"
-                + PathBuilder.ROUTERS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Tenant chains
         result = builder.getTenantChainsPath(strId);
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
@@ -161,12 +148,6 @@ public class TestPathBuilder {
         // Bridges
         result = builder.getBridgePath(uuid);
         expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
-        // Bridges
-        result = builder.getBridgeRouterPath(uuid, uuid2);
-        expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid + "/"
-                + PathBuilder.ROUTERS_PATH + "/" + uuid2;
         Assert.assertEquals(expected, result);
 
         // Ports

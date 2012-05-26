@@ -61,25 +61,20 @@ public class Router {
         this.postRoutingChain = postRoutingChain;
     }
 
-    public RouterPort.VMPortBuilder addVmPort() {
-        return new RouterPort.VMPortBuilder(mgmt, dto);
+    public MaterializedRouterPort.VMPortBuilder addVmPort() {
+        return new MaterializedRouterPort.VMPortBuilder(mgmt, dto);
     }
 
-    public RouterPort.GWPortBuilder addGwPort() {
-        return new RouterPort.GWPortBuilder(mgmt, dto);
+    public MaterializedRouterPort.GWPortBuilder addGwPort() {
+        return new MaterializedRouterPort.GWPortBuilder(mgmt, dto);
     }
 
-    public RouterPort.VPNPortBuilder addVpnPort() {
-        return new RouterPort.VPNPortBuilder(mgmt, dto);
+    public MaterializedRouterPort.VPNPortBuilder addVpnPort() {
+        return new MaterializedRouterPort.VPNPortBuilder(mgmt, dto);
     }
-
-    public PeerRouterLink.Builder addRouterLink() {
-        return new PeerRouterLink.Builder(mgmt, dto);
-    }
-
-    public BridgeRouterLink addBridgeRouterLink(
-            Bridge br, IntIPv4 subnet) {
-        return new BridgeRouterLink.Builder(mgmt, dto, br, subnet).build();
+    
+    public LogicalRouterPort.Builder addLinkPort() {
+        return new LogicalRouterPort.Builder(mgmt, dto);
     }
 
     public String getName() {

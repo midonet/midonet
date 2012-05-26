@@ -26,7 +26,7 @@ public class ApplicationResource {
 
     /**
      * Tenant resource locator.
-     *
+     * 
      * @returns TenantResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.TENANTS)
@@ -36,7 +36,7 @@ public class ApplicationResource {
 
     /**
      * Router resource locator.
-     *
+     * 
      * @returns RouterResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.ROUTERS)
@@ -46,7 +46,7 @@ public class ApplicationResource {
 
     /**
      * Bridge resource locator.
-     *
+     * 
      * @returns BridgeResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.BRIDGES)
@@ -56,7 +56,7 @@ public class ApplicationResource {
 
     /**
      * Port resource locator.
-     *
+     * 
      * @returns PortResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.PORTS)
@@ -66,7 +66,7 @@ public class ApplicationResource {
 
     /**
      * VIF resource locator.
-     *
+     * 
      * @returns VifResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.VIFS)
@@ -76,7 +76,7 @@ public class ApplicationResource {
 
     /**
      * Route resource locator.
-     *
+     * 
      * @returns RouteResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.ROUTES)
@@ -86,7 +86,7 @@ public class ApplicationResource {
 
     /**
      * Chain resource locator.
-     *
+     * 
      * @returns ChainResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.CHAINS)
@@ -96,7 +96,7 @@ public class ApplicationResource {
 
     /**
      * PortGroups resource locator.
-     *
+     * 
      * @returns ChainResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.PORT_GROUPS)
@@ -106,7 +106,7 @@ public class ApplicationResource {
 
     /**
      * Rule resource locator.
-     *
+     * 
      * @returns RuleResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.RULES)
@@ -116,7 +116,7 @@ public class ApplicationResource {
 
     /**
      * BGP resource locator.
-     *
+     * 
      * @returns BgpResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.BGP)
@@ -126,7 +126,7 @@ public class ApplicationResource {
 
     /**
      * Ad route resource locator.
-     *
+     * 
      * @returns AdRouteResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.AD_ROUTES)
@@ -136,7 +136,7 @@ public class ApplicationResource {
 
     /**
      * VPN resource locator.
-     *
+     * 
      * @returns VpnResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.VPN)
@@ -146,7 +146,7 @@ public class ApplicationResource {
 
     /**
      * Host resource locator
-     *
+     * 
      * @return HostResource object to handle sub-resource requests.
      */
     @Path(ResourceUriBuilder.HOSTS)
@@ -166,7 +166,7 @@ public class ApplicationResource {
 
     /**
      * Handler for getting root application resources.
-     *
+     * 
      * @param uriInfo
      *            Object that holds the request URI data.
      * @param config

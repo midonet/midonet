@@ -6,10 +6,22 @@ package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import com.midokura.midolman.mgmt.data.dto.PortType;
+
 @XmlRootElement
-public class DtoPort {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = DtoBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
+        @JsonSubTypes.Type(value = DtoLogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
+        @JsonSubTypes.Type(value = DtoMaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
+        @JsonSubTypes.Type(value = DtoLogicalRouterPort.class, name = PortType.LOGICAL_ROUTER) })
+public abstract class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;
     private UUID inboundFilter = null;
@@ -72,5 +84,49 @@ public class DtoPort {
 
     public void setUri(URI uri) {
         this.uri = uri;
+    }
+
+    public abstract String getType();
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o)
+            return true;
+
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        DtoPort that = (DtoPort) o;
+
+        if (id != null ? !id.equals(that.id) : that.id != null) {
+            return false;
+        }
+
+        if (deviceId != null ? !deviceId.equals(that.deviceId)
+                : that.deviceId != null) {
+            return false;
+        }
+
+        if (inboundFilter != null ? !inboundFilter.equals(that.inboundFilter)
+                : that.inboundFilter != null) {
+            return false;
+        }
+
+        if (outboundFilter != null ? !outboundFilter
+                .equals(that.outboundFilter) : that.outboundFilter != null) {
+            return false;
+        }
+
+        if (portGroupIDs != null ? !portGroupIDs.equals(that.portGroupIDs)
+                : that.portGroupIDs != null) {
+            return false;
+        }
+
+        if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
+            return false;
+        }
+
+        return true;
     }
 }

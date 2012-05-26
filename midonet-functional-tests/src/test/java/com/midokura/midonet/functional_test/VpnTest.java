@@ -24,9 +24,9 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.RouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.PeerRouterLink;
+import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -47,13 +47,13 @@ public class VpnTest {
     Tenant tenant1;
     TapWrapper tapPort1;
     TapWrapper tapPort2;
-    PeerRouterLink link;
     OpenvSwitchDatabaseConnection ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
-    RouterPort vpn1;
-    RouterPort vpn2;
+    MaterializedRouterPort vpn1;
+    MaterializedRouterPort vpn2;
+    LogicalRouterPort uplinkPort;
 
     @Before
     public void setUp() throws InterruptedException, IOException {
@@ -72,7 +72,7 @@ public class VpnTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
         IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
-        RouterPort p = router1.addVmPort().setVMAddress(ip1).build();
+        MaterializedRouterPort p = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("vpnTestTap1");
         ovsBridge.addSystemPort(p.port.getId(), tapPort1.getName());
 
@@ -87,14 +87,18 @@ public class VpnTest {
         // Link the two routers. Only "public" addresses should traverse the
         // link between the routers. Router 1 owns public addresses in
         // 192.168.231.0/24, and router 2 has addresses in 192.168.232.0/24.
-        link = router1.addRouterLink().setPeer(router2)
-                .setLocalPrefix("192.168.231.0").setPeerPrefix("192.168.232.0")
-                .build();
+        uplinkPort = router1.addLinkPort()
+                .setNetworkAddress("169.254.1.0").setNetworkLength(30)
+                .setPortAddress("169.254.1.1").build();
+        LogicalRouterPort router2port1 = router2.addLinkPort()
+                .setNetworkAddress("169.254.1.0").setNetworkLength(30)
+                .setPortAddress("169.254.1.2").build();
+        uplinkPort.link(router2port1, "192.168.231.0", "192.168.232.0");
 
         // Router 1 has a port that leads to 10.0.232.0/24 via a VPN
         // and gateway (router2).
         // p1 private port of the VPN
-        RouterPort p1 = router1
+        MaterializedRouterPort p1 = router1
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))
@@ -106,11 +110,12 @@ public class VpnTest {
                 .setPrivatePortId(p1.port.getId()).build();
 
         router1.addFloatingIp(IntIPv4.fromString("10.0.231.100"),
-                IntIPv4.fromString("192.168.231.100"), link.dto.getPortId());
+                IntIPv4.fromString("192.168.231.100"),
+                uplinkPort.port.getId());
 
         // Router 2 has a port that leads to 10.0.231.0/24 via a VPN
         // and gateway (router2).
-        RouterPort p2 = router2
+        MaterializedRouterPort p2 = router2
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))
@@ -120,7 +125,8 @@ public class VpnTest {
                 .setLocalIp(IntIPv4.fromString("10.0.232.99"))
                 .setLayer4Port(12333).setPrivatePortId(p2.port.getId()).build();
         router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
-                IntIPv4.fromString("192.168.232.99"), link.dto.getPeerPortId());
+                IntIPv4.fromString("192.168.232.99"), 
+                router2port1.port.getId());
 
         sleepBecause("wait for the network config to settle", 5);
     }
@@ -137,8 +143,8 @@ public class VpnTest {
         // Give some second to the controller to clean up vpns stuff
         sleepBecause("wait for midolman to clean vpn configuration up", 10);
         stopMidolman(midolman);
-        if (null != link)
-            link.delete();
+        if (null != uplinkPort)
+            uplinkPort.unlink();
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
     }
