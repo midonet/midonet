@@ -6,7 +6,6 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -72,14 +71,14 @@ public class TestPort extends JerseyTest {
         router.setName("router1");
         router.setId(UUID.randomUUID());
         uri = routerResource.createRouter(tenant.getRouters(), router);
-        router1 = routerResource.getRouter(uri, OK.getStatusCode());
+        router1 = routerResource.getRouter(uri);
 
         // Create router 2
         router = new DtoRouter();
         router.setName("router2");
         router.setId(UUID.randomUUID());
         uri = routerResource.createRouter(tenant.getRouters(), router);
-        router2 = routerResource.getRouter(uri, OK.getStatusCode());
+        router2 = routerResource.getRouter(uri);
 
         // Create a bridge.
         DtoBridge bridge = new DtoBridge();
@@ -193,12 +192,12 @@ public class TestPort extends JerseyTest {
     public void testUnlinkAndDelete() {
 
         // Unlinking multiple times should not cause an error
-        portResource.unlinkPorts(router1Port1.getUnlink());
-        portResource.unlinkPorts(router1Port2.getUnlink());
-        portResource.unlinkPorts(bridge1Port1.getUnlink());
-        portResource.unlinkPorts(bridge1Port2.getUnlink());
-        portResource.unlinkPorts(router2Port1.getUnlink());
-        portResource.unlinkPorts(router2Port2.getUnlink());
+        portResource.unlinkPorts(router1Port1.getLink());
+        portResource.unlinkPorts(router1Port2.getLink());
+        portResource.unlinkPorts(bridge1Port1.getLink());
+        portResource.unlinkPorts(bridge1Port2.getLink());
+        portResource.unlinkPorts(router2Port1.getLink());
+        portResource.unlinkPorts(router2Port2.getLink());
 
         // Delete all the ports
         portResource.deletePort(router1Port1.getUri());

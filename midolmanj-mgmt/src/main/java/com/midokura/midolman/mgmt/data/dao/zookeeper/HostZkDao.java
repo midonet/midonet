@@ -38,7 +38,7 @@ public class HostZkDao {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param zkDao
 	 *            ZkManager object to access ZK data.
 	 * @param pathBuilder

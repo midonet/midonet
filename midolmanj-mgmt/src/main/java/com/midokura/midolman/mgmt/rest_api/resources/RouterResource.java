@@ -56,7 +56,7 @@ public class RouterResource {
 
     /**
      * Handler to deleting a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param context
@@ -91,7 +91,7 @@ public class RouterResource {
 
     /**
      * Handler to getting a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param context
@@ -134,7 +134,7 @@ public class RouterResource {
 
     /**
      * Port resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
@@ -146,7 +146,7 @@ public class RouterResource {
 
     /**
      * Route resource locator for routers.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterRouteResource object to handle sub-resource requests.
@@ -158,7 +158,7 @@ public class RouterResource {
 
     /**
      * Peer port resource locator for bridges.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @returns RouterPortResource object to handle sub-resource requests.
@@ -171,7 +171,7 @@ public class RouterResource {
 
     /**
      * Handler to updating a router.
-     * 
+     *
      * @param id
      *            Router ID from the request.
      * @param router
@@ -213,7 +213,7 @@ public class RouterResource {
 
         /**
          * Constructor
-         * 
+         *
          * @param tenantId
          *            ID of a tenant.
          */
@@ -223,7 +223,7 @@ public class RouterResource {
 
         /**
          * Handler for creating a tenant router.
-         * 
+         *
          * @param router
          *            Router object.
          * @param uriInfo
@@ -263,7 +263,7 @@ public class RouterResource {
 
         /**
          * Handler to list tenant routers.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

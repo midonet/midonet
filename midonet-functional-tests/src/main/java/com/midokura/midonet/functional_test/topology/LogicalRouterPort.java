@@ -26,12 +26,12 @@ public class LogicalRouterPort {
             port.setNetworkAddress(addr);
             return this;
         }
-        
+
         public Builder setNetworkLength(int len) {
             port.setNetworkLength(len);
             return this;
         }
-        
+
         public Builder setPortAddress(String addr) {
             port.setPortAddress(addr);
             return this;
@@ -95,7 +95,8 @@ public class LogicalRouterPort {
     }
 
     public void unlink() {
-        mgmt.unlinkRouterFromPeer(port);
+        port.setPeerId(null); // Null peerId indicates unlink.
+        mgmt.linkRouterToPeer(port);
     }
 
     public void delete() {

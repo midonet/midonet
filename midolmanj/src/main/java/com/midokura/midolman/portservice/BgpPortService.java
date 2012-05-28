@@ -251,13 +251,10 @@ public class BgpPortService implements PortService {
         log.debug("configurePort: ran ip link");
 
         // Assume that materialized port config is already there.
-        PortConfig config = portMgr.get(portId).value;
-        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
-            throw new RuntimeException(
-                "Target port isn't a MaterializedRouterPortConfig.");
-        }
-        PortDirectory.MaterializedRouterPortConfig portConfig =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+        // "TODO(pino): convert this to use PortConfigCache.get"
+        PortDirectory.MaterializedRouterPortConfig portConfig = portMgr.get(
+                portId, PortDirectory.MaterializedRouterPortConfig.class);
+
         // Give the interface the address in vport configuration.
         Sudo.sudoExec(String.format(
                 "ip addr add %s/%d dev %s",
@@ -286,13 +283,11 @@ public class BgpPortService implements PortService {
         throws StateAccessException, IOException {
         UUID remotePortId = UUID.fromString(
             ovsdb.getPortExternalId(datapathId, localPortNum, portIdExtIdKey));
-        PortConfig config = portMgr.get(remotePortId).value;
-        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
-            throw new RuntimeException(
-                "Target port isn't a MaterializedRouterPortConfig.");
-        }
-        PortDirectory.MaterializedRouterPortConfig portConfig =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+
+        // "TODO(pino): convert this to use PortConfigCache.get"
+        PortDirectory.MaterializedRouterPortConfig portConfig = portMgr.get(
+                remotePortId,
+                PortDirectory.MaterializedRouterPortConfig.class);
         final int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(

@@ -43,7 +43,7 @@ public class FilteringConnTrackingTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     Tenant tenant1;
-    
+
     Bridge bridge1;
     BridgePort bPort1;
     BridgePort bPort2;

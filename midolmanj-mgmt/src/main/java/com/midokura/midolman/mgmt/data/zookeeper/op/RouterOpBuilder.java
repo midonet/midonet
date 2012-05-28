@@ -33,7 +33,7 @@ public class RouterOpBuilder {
 
     /**
      * Constructor
-     * 
+     *
      * @param zkDao
      *            ZkManager object to access ZK data.
      * @param pathBuilder
@@ -50,7 +50,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the router create Op object.
-     * 
+     *
      * @param id
      *            ID of the router.
      * @param config
@@ -71,7 +71,7 @@ public class RouterOpBuilder {
 
     /**
      * Gets a list of Op objects to create a router in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the router
      * @return List of Op objects.
@@ -94,7 +94,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the router delete Op object.
-     * 
+     *
      * @param id
      *            ID of the router.
      * @return Op for router delete.
@@ -111,7 +111,7 @@ public class RouterOpBuilder {
 
     /**
      * Gets a list of Op objects to delete a Router in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the router
      * @return List of Op objects.
@@ -131,7 +131,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the router update Op object.
-     * 
+     *
      * @param id
      *            ID of the router.
      * @param config
@@ -152,7 +152,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router create Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -172,7 +172,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router delete Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -192,7 +192,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router name create Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param name
@@ -216,7 +216,7 @@ public class RouterOpBuilder {
 
     /**
      * Get the tenant router name delete Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param name

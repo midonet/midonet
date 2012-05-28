@@ -31,7 +31,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param deviceId
@@ -43,7 +43,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param deviceId
@@ -58,7 +58,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param config
@@ -75,7 +75,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
      */
     @Override
@@ -102,7 +102,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#isLogical()
      */
     @Override
@@ -112,7 +112,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#attachmentId()
      */
     @Override
@@ -122,7 +122,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.midokura.midolman.mgmt.data.dto.Port#setAttachmentId(java.util.UUID)
      */
@@ -133,7 +133,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#toConfig()
      */
     @Override
@@ -145,7 +145,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /**
      * Convert this object to PortMgmtConfig object.
-     * 
+     *
      * @return PortMgmtConfig object.
      */
     @Override
@@ -155,7 +155,7 @@ public class MaterializedBridgePort extends BridgePort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

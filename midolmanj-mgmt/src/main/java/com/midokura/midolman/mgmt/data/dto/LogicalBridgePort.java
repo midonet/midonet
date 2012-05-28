@@ -32,7 +32,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      * @param config
      * @param mgmtConfig
@@ -45,7 +45,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.LogicalPort#getPeerId()
      */
     @Override
@@ -76,7 +76,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.LogicalPort#getLink()
      */
     @Override
@@ -90,21 +90,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
-     * @see com.midokura.midolman.mgmt.data.dto.LogicalPort#getUnlink()
-     */
-    @Override
-    public URI getUnlink() {
-        if (id != null) {
-            return ResourceUriBuilder.getPortUnlink(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
      */
     @Override
@@ -114,7 +100,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#isLogical()
      */
     @Override
@@ -124,7 +110,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#attachmentId()
      */
     @Override
@@ -134,7 +120,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.midokura.midolman.mgmt.data.dto.Port#setAttachmentId(java.util.UUID)
      */
@@ -145,7 +131,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.BridgePort#toConfig()
      */
     @Override
@@ -158,7 +144,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

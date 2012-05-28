@@ -53,9 +53,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
     @Override
     protected PortConfig load(UUID key) {
         try {
-            ZkNodeEntry<UUID, PortConfig> entry =
-                    portMgr.get(key, new PortWatcher(key));
-            return entry.value;
+            return portMgr.get(key, new PortWatcher(key));
         } catch (StateAccessException e) {
             log.error("Exception retrieving PortConfig", e);
         }
@@ -83,9 +81,8 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             } else {
                 // Update the value and re-register for ZK notifications.
                 try {
-                    ZkNodeEntry<UUID, PortConfig> entry =
-                            portMgr.get(portID, this);
-                    put(portID, entry.value);
+                    PortConfig config = portMgr.get(portID, this);
+                    put(portID, config);
                 } catch (StateAccessException e) {
                     // If the ZK lookup fails, the cache keeps the old value.
                     log.error("Exception refreshing PortConfig", e);

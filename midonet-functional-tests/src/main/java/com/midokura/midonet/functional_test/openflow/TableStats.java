@@ -31,7 +31,7 @@ public class TableStats {
      * Return the TableStats from the list whose match field is equal to the one
      * in 'this'. Assert. This is a convenience method that can be used like
      * this:
-     * 
+     *
      * <pre>
      * {
      *     List&lt;TableStats&gt; stats = controller.getTableStats();
@@ -41,7 +41,7 @@ public class TableStats {
      *     tStat.expectActive(5).expectLookups(25).expectMatches(13);
      * }
      * </pre>
-     * 
+     *
      * @return The equivalent FlowStat from the list or 'this' if none is found
      *         in the list. Assert.fail with a message if no equivalent is found
      *         in the list.

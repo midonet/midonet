@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Logical port interface
- * 
+ *
  */
 public interface LogicalPort {
 
@@ -34,8 +34,4 @@ public interface LogicalPort {
      */
     URI getLink();
 
-    /**
-     * @return URI to unlink
-     */
-    URI getUnlink();
 }

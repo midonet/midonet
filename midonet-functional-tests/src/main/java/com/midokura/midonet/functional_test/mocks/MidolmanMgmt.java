@@ -18,21 +18,19 @@ public interface MidolmanMgmt {
     void updateBridge(DtoBridge b);
 
     void linkRouterToPeer(DtoLogicalRouterPort peerPort);
-    
-    void unlinkRouterFromPeer(DtoLogicalRouterPort uri);
 
     DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
             DtoMaterializedRouterPort p);
 
     DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
             DtoLogicalRouterPort p);
-    
+
     DtoBridgePort addMaterializedBridgePort(DtoBridge b,
             DtoBridgePort p);
 
     DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
             DtoLogicalBridgePort p);
-    
+
     DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 
     DtoBgp addBGP(DtoMaterializedRouterPort p, DtoBgp b);

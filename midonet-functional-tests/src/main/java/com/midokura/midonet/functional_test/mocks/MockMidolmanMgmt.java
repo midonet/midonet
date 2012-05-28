@@ -212,21 +212,14 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             .type(MediaType.APPLICATION_JSON)
             .post(port);
     }
-  
-    @Override
-    public void unlinkRouterFromPeer(DtoLogicalRouterPort port) {
-        resource().uri(port.getUnlink())
-        .type(MediaType.APPLICATION_JSON)
-        .post();
-    }
-    
+
     @Override
     public DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
                                                    DtoMaterializedRouterPort p) {
         URI uri = post(r.getPorts(), p);
         return get(uri, DtoMaterializedRouterPort.class);
     }
-    
+
     @Override
     public DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
             DtoLogicalRouterPort p) {
@@ -240,7 +233,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         URI uri = post(b.getPorts(), p);
         return get(uri, DtoBridgePort.class);
     }
-    
+
     @Override
     public DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
             DtoLogicalBridgePort p) {

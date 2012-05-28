@@ -18,7 +18,6 @@ public class DtoLogicalRouterPort extends DtoRouterPort implements
     private UUID peerId = null;
     private URI peer = null;
     private URI link = null;
-    private URI unlink = null;
 
     @Override
     public UUID getPeerId() {
@@ -51,16 +50,6 @@ public class DtoLogicalRouterPort extends DtoRouterPort implements
     }
 
     @Override
-    public URI getUnlink() {
-        return this.unlink;
-    }
-
-    @Override
-    public void setUnlink(URI unlink) {
-        this.unlink = unlink;
-    }
-
-    @Override
     public String getType() {
         return PortType.LOGICAL_ROUTER;
     }
@@ -81,10 +70,6 @@ public class DtoLogicalRouterPort extends DtoRouterPort implements
         }
 
         if (link != null ? !link.equals(port.link) : port.link != null) {
-            return false;
-        }
-
-        if (unlink != null ? !unlink.equals(port.unlink) : port.unlink != null) {
             return false;
         }
 

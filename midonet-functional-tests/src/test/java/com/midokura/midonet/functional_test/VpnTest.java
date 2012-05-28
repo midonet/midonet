@@ -125,7 +125,7 @@ public class VpnTest {
                 .setLocalIp(IntIPv4.fromString("10.0.232.99"))
                 .setLayer4Port(12333).setPrivatePortId(p2.port.getId()).build();
         router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
-                IntIPv4.fromString("192.168.232.99"), 
+                IntIPv4.fromString("192.168.232.99"),
                 router2port1.port.getId());
 
         sleepBecause("wait for the network config to settle", 5);

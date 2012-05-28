@@ -163,10 +163,9 @@ public class TestVRNCoordinator {
                 new PortDirectory.LogicalRouterPortConfig(
                         routerIds.get(1), 0xc0a80100, 30, 0xc0a80102,
                         null, null, null);
-        ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
-                logPortConfig2);
-        UUID portOn0to1 = idPair.key;
-        UUID portOn1to0 = idPair.value;
+        UUID portOn0to1 = portMgr.create(logPortConfig1);
+        UUID portOn1to0 = portMgr.create(logPortConfig2);
+        portMgr.link(portOn0to1, logPortConfig1, portOn1to0, logPortConfig2);
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1,
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
@@ -180,9 +179,10 @@ public class TestVRNCoordinator {
                 routerIds.get(0), 0xc0a80100, 30, 0xc0a80101, null, null, null);
         logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
                 routerIds.get(2), 0xc0a80100, 30, 0xc0a80102, null, null, null);
-        idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
-        UUID portOn0to2 = idPair.key;
-        UUID portOn2to0 = idPair.value;
+        UUID portOn0to2 = portMgr.create(logPortConfig1);
+        UUID portOn2to0 = portMgr.create(logPortConfig2);
+        portMgr.link(portOn0to2, logPortConfig1, portOn2to0, logPortConfig2);
+
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2,
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);

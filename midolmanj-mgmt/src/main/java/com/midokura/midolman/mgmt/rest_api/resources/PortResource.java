@@ -60,7 +60,7 @@ public class PortResource {
 
     /**
      * Handler to deleting a port.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param context
@@ -97,7 +97,7 @@ public class PortResource {
 
     /**
      * Handler to getting a port.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param context
@@ -139,7 +139,7 @@ public class PortResource {
 
     /**
      * Handler to updating a port.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param port
@@ -173,7 +173,7 @@ public class PortResource {
 
     /**
      * Handler to linking ports.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @param peerId
@@ -196,7 +196,24 @@ public class PortResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
-        UUID peerId = UUID.fromString(input.get("peerId").toString());
+        // Make sure that peerPortId was explicitly specified.
+        // TODO: Look into Bean validation framework.
+        if (!input.containsKey("peerId")) {
+            throw new BadRequestHttpException("PeerId is required.");
+        }
+
+        // Explicitly passed in null peerId indicates 'unlink'
+        UUID peerId = null;
+        Object peerIdElem = input.get("peerId");
+        if (peerIdElem != null) {
+            try {
+                peerId = UUID.fromString(peerIdElem.toString());
+            } catch (IllegalArgumentException ex) {
+                // Invalid UUID passed in
+                throw new BadRequestHttpException("PeerId is invalid.");
+            }
+        }
+
         if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)
                 || !authorizer
                         .portAuthorized(context, AuthAction.WRITE, peerId)) {
@@ -205,49 +222,21 @@ public class PortResource {
         }
 
         PortDao dao = daoFactory.getPortDao();
-        try {
-            dao.link(id, peerId);
-        } catch (PortInUseException e) {
-            log.error("Attempted to link ports that are in use", e);
-            throw new BadRequestHttpException("Invalid rule position.");
+        if (peerId != null) {
+            try {
+                dao.link(id, peerId);
+            } catch (PortInUseException e) {
+                log.error("Attempted to link ports that are in use", e);
+                throw new BadRequestHttpException("Invalid rule position.");
+            }
+        } else {
+            dao.unlink(id);
         }
-    }
-
-    /**
-     * Handler to unlinking ports.
-     * 
-     * @param id
-     *            Port ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    @POST
-    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
-    @Path("{id}/unlink")
-    @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
-            MediaType.APPLICATION_JSON })
-    public void unlink(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
-
-        if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to unlink this port.");
-        }
-
-        PortDao dao = daoFactory.getPortDao();
-        dao.unlink(id);
     }
 
     /**
      * Port resource locator for BGP.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @returns PortBgpResource object to handle sub-resource requests.
@@ -259,7 +248,7 @@ public class PortResource {
 
     /**
      * Port resource locator for VPN.
-     * 
+     *
      * @param id
      *            Port ID from the request.
      * @returns PortVpnResource object to handle sub-resource requests.
@@ -278,7 +267,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param bridgeId
          *            UUID of a bridge.
          */
@@ -288,7 +277,7 @@ public class PortResource {
 
         /**
          * Handler to create a bridge port.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -326,7 +315,7 @@ public class PortResource {
 
         /**
          * Handler to list bridge ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -373,7 +362,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param bridgeId
          *            UUID of a bridge.
          */
@@ -383,7 +372,7 @@ public class PortResource {
 
         /**
          * Handler to list bridge peer ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -430,7 +419,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param routerId
          *            UUID of a router.
          */
@@ -440,7 +429,7 @@ public class PortResource {
 
         /**
          * Handler to create a router port.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -478,7 +467,7 @@ public class PortResource {
 
         /**
          * Handler to list router ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo
@@ -525,7 +514,7 @@ public class PortResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param routerId
          *            UUID of a router.
          */
@@ -535,7 +524,7 @@ public class PortResource {
 
         /**
          * Handler to list router peer ports.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

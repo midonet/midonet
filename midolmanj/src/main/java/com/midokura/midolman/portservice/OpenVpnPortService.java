@@ -240,13 +240,10 @@ public class OpenVpnPortService implements PortService {
     @Override
     public void configurePort(UUID portId, String portName)
             throws StateAccessException, IOException, InterruptedException {
-        PortConfig config = portMgr.get(portId).value;
-        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
-            throw new RuntimeException(
-                    "Target port isn't a MaterializedRouterPortConfig.");
-        }
-        PortDirectory.MaterializedRouterPortConfig portConfig =
-                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+
+        // "TODO(pino): convert this to use PortConfigCache.get"
+        PortDirectory.MaterializedRouterPortConfig portConfig = portMgr.get(
+                portId, PortDirectory.MaterializedRouterPortConfig.class);
 
         ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnMgr.list(portId).get(0);
         VpnConfig vpn = vpnNode.value;
@@ -342,13 +339,10 @@ public class OpenVpnPortService implements PortService {
         UUID vpnId = vpnNode.key;
         VpnConfig vpn = vpnNode.value;
 
-        PortConfig config = portMgr.get(vpn.publicPortId).value;
-        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
-            throw new RuntimeException(
-                    "Public port isn't a MaterializedRouterPortConfig.");
-        }
-        PortDirectory.MaterializedRouterPortConfig publicPort =
-                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+        PortDirectory.MaterializedRouterPortConfig publicPort = portMgr.get(
+                vpn.publicPortId,
+                PortDirectory.MaterializedRouterPortConfig.class);
+
         String publicPortAddr = Net.convertIntAddressToString(
                 publicPort.localNwAddr);
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
@@ -362,13 +356,9 @@ public class OpenVpnPortService implements PortService {
             publicPortName = portName;
         }
 
-        config = portMgr.get(vpn.privatePortId).value;
-        if (!(config instanceof PortDirectory.MaterializedRouterPortConfig)) {
-            throw new RuntimeException(
-                    "Private port isn't a MaterializedRouterPortConfig.");
-        }
-        PortDirectory.MaterializedRouterPortConfig privatePort =
-                PortDirectory.MaterializedRouterPortConfig.class.cast(config);
+        PortDirectory.MaterializedRouterPortConfig privatePort = portMgr.get(
+                vpn.privatePortId,
+                PortDirectory.MaterializedRouterPortConfig.class);
         portNames = ovsdb.getPortNamesByExternalId(
                 externalIdKey, vpn.privatePortId.toString());
         if (portNames.size() != 1) {

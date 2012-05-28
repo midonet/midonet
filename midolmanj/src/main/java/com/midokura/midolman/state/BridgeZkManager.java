@@ -209,16 +209,16 @@ public class BridgeZkManager extends ZkManager {
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         // Delete the ports.
-        List<ZkNodeEntry<UUID, PortConfig>> portEntries = portZkManager
-                .listBridgePorts(entry.key);
-        for (ZkNodeEntry<UUID, PortConfig> portEntry : portEntries) {
-            ops.addAll(portZkManager.preparePortDelete(portEntry));
+        Set<UUID> portIds = portZkManager.getBridgePortIDs(entry.key);
+        for (UUID portId : portIds) {
+            ops.addAll(portZkManager.prepareDelete(portId));
         }
-       Set<UUID> logicalPortIds = portZkManager.getBridgeLogicalPortIDs(
-               entry.key, null);
-        for (UUID portId : logicalPortIds) {
-            ops.addAll(portZkManager.preparePortDelete(portId));
+
+        portIds = portZkManager.getBridgeLogicalPortIDs(entry.key);
+        for (UUID portId : portIds) {
+            ops.addAll(portZkManager.prepareDelete(portId));
         }
+
         ops.add(
             Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
         ops.add(

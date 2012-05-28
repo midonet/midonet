@@ -6,7 +6,6 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
@@ -19,7 +18,6 @@ import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for port data.
@@ -33,7 +31,7 @@ public class PortZkDao {
 
     /**
      * Constructor
-     * 
+     *
      * @param zkDao
      *            PortZkManager object to access ZK data.
      * @param pathBuilder
@@ -50,7 +48,7 @@ public class PortZkDao {
 
     /**
      * Checks whether a port exists with the given ID.
-     * 
+     *
      * @param id
      *            Port ID
      * @return True if port exists.
@@ -69,7 +67,7 @@ public class PortZkDao {
 
     /**
      * Get the data for the given port.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @return PortConfig stored in ZK.
@@ -79,8 +77,7 @@ public class PortZkDao {
     public PortConfig getData(UUID id) throws StateAccessException {
         log.debug("PortZkDao.getData entered: id={}", id);
 
-        ZkNodeEntry<UUID, PortConfig> node = zkDao.get(id);
-        PortConfig config = node.value;
+        PortConfig config = zkDao.get(id);
 
         log.debug("PortZkDao.getData exiting");
         return config;
@@ -88,7 +85,7 @@ public class PortZkDao {
 
     /**
      * Get the data for the given port.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @return PortMgmtConfig stored in ZK.
@@ -111,7 +108,7 @@ public class PortZkDao {
 
     /**
      * Get a set of port IDs for a given router.
-     * 
+     *
      * @param routerId
      *            ID of the router.
      * @return Set of port IDs.
@@ -122,12 +119,7 @@ public class PortZkDao {
             throws StateAccessException {
         log.debug("PortZkDao.getRouterPortIds entered: routerId={}", routerId);
 
-        Set<UUID> ids = new TreeSet<UUID>();
-        List<ZkNodeEntry<UUID, PortConfig>> nodes = zkDao
-                .listRouterPorts(routerId);
-        for (ZkNodeEntry<UUID, PortConfig> node : nodes) {
-            ids.add(node.key);
-        }
+        Set<UUID> ids = zkDao.getRouterPortIDs(routerId);
 
         log.debug("PortZkDao.getRouterPortIds exiting: ids count=" + ids.size());
         return ids;
@@ -135,7 +127,7 @@ public class PortZkDao {
 
     /**
      * Get a set of port IDs for a given bridge.
-     * 
+     *
      * @param bridgeId
      *            ID of the bridge.
      * @return Set of port IDs.
@@ -146,16 +138,10 @@ public class PortZkDao {
             throws StateAccessException {
         log.debug("PortZkDao.getBridgePortIds entered: bridgeId={}", bridgeId);
 
-        Set<UUID> ids = new TreeSet<UUID>();
-        List<ZkNodeEntry<UUID, PortConfig>> nodes = zkDao
-                .listBridgePorts(bridgeId);
-        for (ZkNodeEntry<UUID, PortConfig> node : nodes) {
-            ids.add(node.key);
-        }
+        Set<UUID> ids = zkDao.getBridgePortIDs(bridgeId);
 
         // Get the logical bridge ports.
-        Set<UUID> portIds = zkDao.getBridgeLogicalPortIDs(bridgeId, null);
-        ids.addAll(portIds);
+        ids.addAll(zkDao.getBridgeLogicalPortIDs(bridgeId));
 
         log.debug("PortZkDao.getBridgePortIds exiting: ids count=" + ids.size());
         return ids;
@@ -164,7 +150,7 @@ public class PortZkDao {
     /**
      * Wrapper for multi ZK API. The paths in the Op list are expected already
      * to be created.
-     * 
+     *
      * @param ops
      * @throws StateAccessException
      */

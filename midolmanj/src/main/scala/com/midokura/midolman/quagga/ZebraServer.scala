@@ -263,11 +263,10 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                 }
                 assert(portUUID.nonEmpty)
 
-                val portNode = portMgr.synchronized {
-                    portMgr.get(UUID.fromString(portUUID))
+                val portConfig = portMgr.synchronized {
+                    portMgr.get(UUID.fromString(portUUID),
+                            classOf[MaterializedRouterPortConfig])
                 }
-                val portConfig =
-                    portNode.value.asInstanceOf[MaterializedRouterPortConfig]
 
                 // Create a map to get port uuid from route type. Note that
                 // this implementation will limit that each protocol can
@@ -379,10 +378,9 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
                         val dstPrefix = new IntIPv4(prefix).address
 
-                        val portNode = portMgr.synchronized {
+                        val port = portMgr.synchronized {
                             portMgr.get(UUID.fromString(portUUID))
                         }
-                        val port = portNode.value
                         if (port.isInstanceOf[MaterializedRouterPortConfig]) {
                             val route = new Route(
                                 0, 0, dstPrefix, prefixLen, Route.NextHop.PORT,

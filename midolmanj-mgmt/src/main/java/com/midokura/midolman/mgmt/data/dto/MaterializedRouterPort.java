@@ -36,7 +36,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param deviceId
@@ -48,7 +48,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param deviceId
@@ -63,7 +63,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param config
@@ -152,7 +152,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /**
      * Convert this object to PortConfig object.
-     * 
+     *
      * @return PortConfig object.
      */
     @Override
@@ -167,7 +167,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
      */
     @Override
@@ -177,7 +177,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#isLogical()
      */
     @Override
@@ -187,7 +187,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.dto.Port#attachmentId()
      */
     @Override
@@ -197,7 +197,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.midokura.midolman.mgmt.data.dto.Port#setAttachmentId(java.util.UUID)
      */
@@ -208,7 +208,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /**
      * Convert this object to PortMgmtConfig object.
-     * 
+     *
      * @return PortMgmtConfig object.
      */
     @Override
@@ -218,7 +218,7 @@ public class MaterializedRouterPort extends RouterPort implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

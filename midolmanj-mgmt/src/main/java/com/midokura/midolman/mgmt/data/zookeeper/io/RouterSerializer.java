@@ -21,7 +21,7 @@ public class RouterSerializer {
 
     /**
      * Constructor.
-     * 
+     *
      * @param serializer
      *            RouterMgmtConfig serializer.
      * @param nameSerializer
@@ -35,7 +35,7 @@ public class RouterSerializer {
 
     /**
      * Deserialize RouterMgmtConfig object.
-     * 
+     *
      * @param data
      *            Byte array to deserialize from.
      * @return RouterMgmtConfig object.
@@ -55,7 +55,7 @@ public class RouterSerializer {
 
     /**
      * Deserialize RouterNameMgmtConfig object.
-     * 
+     *
      * @param data
      *            Byte array to deserialize from.
      * @return RouterNameMgmtConfig object.
@@ -75,7 +75,7 @@ public class RouterSerializer {
 
     /**
      * Serialize RouterMgmtConfig object.
-     * 
+     *
      * @param config
      *            RouterMgmtConfig object.
      * @return byte array.
@@ -95,7 +95,7 @@ public class RouterSerializer {
 
     /**
      * Serialize RouterNameMgmtConfig object.
-     * 
+     *
      * @param config
      *            RouterNameMgmtConfig object.
      * @return byte array.

@@ -34,7 +34,7 @@ public class Bridge extends UriResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the bridge.
      * @param name
@@ -51,7 +51,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get bridge ID.
-     * 
+     *
      * @return Bridge ID.
      */
     public UUID getId() {
@@ -60,7 +60,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set bridge ID.
-     * 
+     *
      * @param id
      *            ID of the bridge.
      */
@@ -70,7 +70,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get bridge name.
-     * 
+     *
      * @return Bridge name.
      */
     public String getName() {
@@ -79,7 +79,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set bridge name.
-     * 
+     *
      * @param name
      *            Name of the bridge.
      */
@@ -89,7 +89,7 @@ public class Bridge extends UriResource {
 
     /**
      * Get tenant ID.
-     * 
+     *
      * @return Tenant ID.
      */
     public String getTenantId() {
@@ -98,7 +98,7 @@ public class Bridge extends UriResource {
 
     /**
      * Set tenant ID.
-     * 
+     *
      * @param tenantId
      *            Tenant ID of the bridge.
      */
@@ -180,7 +180,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert this object to BridgeConfig object
-     * 
+     *
      * @return BridgeConfig object
      */
     public BridgeConfig toConfig() {
@@ -190,7 +190,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert this object to BridgeMgmtConfig object.
-     * 
+     *
      * @return BridgeMgmtConfig object.
      */
     public BridgeMgmtConfig toMgmtConfig() {
@@ -199,7 +199,7 @@ public class Bridge extends UriResource {
 
     /**
      * Convert this object to BridgeNameMgmtConfig object.
-     * 
+     *
      * @return BridgeNameMgmtConfig object.
      */
     public BridgeNameMgmtConfig toNameMgmtConfig() {
@@ -208,7 +208,7 @@ public class Bridge extends UriResource {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

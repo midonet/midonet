@@ -209,8 +209,8 @@ public class MockPortService implements PortService {
             throw new StateAccessException();
         }
         PortDirectory.MaterializedRouterPortConfig portConfig =
-            PortDirectory.MaterializedRouterPortConfig.class.cast(
-                portMgr.get(remotePortId).value);
+                portMgr.get(remotePortId,
+                        PortDirectory.MaterializedRouterPortConfig.class);
         int localAddr = portConfig.portAddr;
 
         for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(remotePortId)) {

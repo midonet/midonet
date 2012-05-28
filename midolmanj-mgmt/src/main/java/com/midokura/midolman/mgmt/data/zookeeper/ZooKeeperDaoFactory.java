@@ -62,7 +62,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /**
      * Constructor
-     * 
+     *
      * @param config
      *            AppConfig object to initialize ZooKeeperDaoFactory.
      * @throws DaoInitializationException
@@ -84,7 +84,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /**
      * Get the Directory object. Override this method to use a mock Directory.
-     * 
+     *
      * @return Directory object.
      * @throws StateAccessException
      *             Data access error.
@@ -120,7 +120,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getAdRouteDao()
      */
     @Override
@@ -134,7 +134,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getApplicationDao()
      */
     @Override
@@ -144,7 +144,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getBgpDao()
      */
     @Override
@@ -158,7 +158,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getBridgeDao()
      */
     @Override
@@ -199,7 +199,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getChainDao()
      */
     @Override
@@ -259,7 +259,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getPortDao()
      */
     @Override
@@ -293,7 +293,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getRouteDao()
      */
     @Override
@@ -307,7 +307,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getRouterDao()
      */
     @Override
@@ -352,7 +352,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getTenantDao()
      */
     @Override
@@ -378,7 +378,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getVifDao()
      */
     @Override
@@ -407,7 +407,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.midokura.midolman.mgmt.data.DaoFactory#getVpnDao()
      */
     @Override

@@ -72,7 +72,7 @@ public class Router {
     public MaterializedRouterPort.VPNPortBuilder addVpnPort() {
         return new MaterializedRouterPort.VPNPortBuilder(mgmt, dto);
     }
-    
+
     public LogicalRouterPort.Builder addLinkPort() {
         return new LogicalRouterPort.Builder(mgmt, dto);
     }

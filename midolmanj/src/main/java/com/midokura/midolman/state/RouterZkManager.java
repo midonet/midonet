@@ -1,13 +1,13 @@
 /*
- * @(#)RouterZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -20,9 +20,6 @@ import com.midokura.midolman.layer3.Route;
 
 /**
  * Class to manage the router ZooKeeper data.
- *
- * @version 1.6 08 Sept 2011
- * @author Ryu Ishimoto
  */
 public class RouterZkManager extends ZkManager {
 
@@ -131,11 +128,11 @@ public class RouterZkManager extends ZkManager {
         ops.add(Op.delete(routesPath, -1));
 
         // Get ports delete ops
-        List<ZkNodeEntry<UUID, PortConfig>> ports = portZkManager
-                .listRouterPorts(id);
-        for (ZkNodeEntry<UUID, PortConfig> entry : ports) {
-            ops.addAll(portZkManager.preparePortDelete(entry));
+        Set<UUID> portIds = portZkManager.getRouterPortIDs(id);
+        for (UUID portId : portIds) {
+            ops.addAll(portZkManager.prepareDelete(portId));
         }
+
         String portsPath = pathManager.getRouterPortsPath(id);
         log.debug("Preparing to delete: " + portsPath);
         ops.add(Op.delete(portsPath, -1));

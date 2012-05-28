@@ -48,7 +48,7 @@ public class Bridge {
     public BridgePort.Builder addPort() {
         return new BridgePort.Builder(mgmt, dto);
     }
-    
+
     public LogicalBridgePort.Builder addLinkPort() {
         return new LogicalBridgePort.Builder(mgmt, dto);
     }
@@ -64,7 +64,7 @@ public class Bridge {
         dto.setInboundFilter(id);
         mgmt.updateBridge(dto);
     }
-    
+
     public void delete() {
         mgmt.delete(dto.getUri());
     }

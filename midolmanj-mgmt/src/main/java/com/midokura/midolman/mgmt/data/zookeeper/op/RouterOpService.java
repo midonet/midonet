@@ -33,7 +33,7 @@ public class RouterOpService {
 
     /**
      * Constructor
-     * 
+     *
      * @param opBuilder
      *            RouterOpBuilder object.
      * @param portOpService
@@ -50,7 +50,7 @@ public class RouterOpService {
 
     /**
      * Build list of Op objects to create a router
-     * 
+     *
      * @param id
      *            Router Id
      * @param mgmtConfig
@@ -82,7 +82,7 @@ public class RouterOpService {
 
     /**
      * Build list of Op objects to delete a router
-     * 
+     *
      * @param id
      *            Router ID to delete
      * @param cascade
@@ -125,7 +125,7 @@ public class RouterOpService {
 
     /**
      * Build list of Op objects to update a router
-     * 
+     *
      * @param router
      *            Router DTO
      * @return List of Op objects
@@ -168,7 +168,7 @@ public class RouterOpService {
 
     /**
      * Build operations to delete all routers for a tenant.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @return Op list

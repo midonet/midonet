@@ -225,7 +225,7 @@ public class PortWebResource {
 
     public void unlinkPorts(URI uri, int status) {
         ClientResponse response = resource.uri(uri).type(APPLICATION_PORT_JSON)
-                .post(ClientResponse.class);
+                .post(ClientResponse.class, "{\"peerId\": null}");
         assertEquals(status, response.getStatus());
     }
 
@@ -233,13 +233,11 @@ public class PortWebResource {
         assertEquals(peerPortId, port.getPeerId());
         assertNotNull(port.getPeer());
         assertNotNull(port.getLink());
-        assertNotNull(port.getUnlink());
     }
 
     public void verifyNoLink(DtoLogicalPort port) {
         assertNull(port.getPeerId());
         assertNull(port.getPeer());
         assertNotNull(port.getLink());
-        assertNotNull(port.getUnlink());
     }
 }

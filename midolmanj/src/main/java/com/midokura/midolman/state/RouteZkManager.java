@@ -1,7 +1,6 @@
 /*
- * @(#)RouteZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.state;
 
@@ -21,9 +20,6 @@ import com.midokura.midolman.layer3.Route;
 
 /**
  * Class to manage the routing ZooKeeper data.
- *
- * @version 1.6 10 Sept 2011
- * @author Ryu Ishimoto
  */
 public class RouteZkManager extends ZkManager {
 
@@ -53,17 +49,13 @@ public class RouteZkManager extends ZkManager {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk, pathManager
                     .getBasePath());
-            ZkNodeEntry<UUID, PortConfig> port = portZkManager
-                    .get(entry.value.nextHopPort);
-            if (!(port.value instanceof PortDirectory.RouterPortConfig)) {
-                // Cannot add route to bridge ports
-                throw new IllegalArgumentException(
-                        "Can only add a route to a router");
-            }
+            PortDirectory.RouterPortConfig port = portZkManager.get(
+                    entry.value.nextHopPort, PortDirectory.RouterPortConfig.class);
+
             ret.add(pathManager.getPortRoutePath(entry.value.nextHopPort,
                     entry.key));
             // If it's a logical port, add the route to the routing table.
-            if (port.value instanceof PortDirectory.LogicalRouterPortConfig)
+            if (port instanceof PortDirectory.LogicalRouterPortConfig)
                 ret.add(getRouteInRoutingTable(entry.value));
         } else {
             ret.add(pathManager.getRouterRoutePath(entry.value.routerId,

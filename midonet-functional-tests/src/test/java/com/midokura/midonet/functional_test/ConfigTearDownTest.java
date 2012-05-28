@@ -85,7 +85,7 @@ public class ConfigTearDownTest {
 
     @Test
     public void test4() {
-        
+
         Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-4").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         Router router2 = tenant1.addRouter().setName("rtr2").build();

@@ -1022,8 +1022,7 @@ public class VRNController extends AbstractController
                         PortDirectory.MaterializedRouterPortConfig.class.cast(
                                 portConfig);
                 rtrPort.setHwAddr(hwAddr);
-                portMgr.update(
-                        new ZkNodeEntry<UUID, PortConfig>(portId, portConfig));
+                portMgr.update(portId, portConfig);
                 addBgpServicePort(portId, hwAddr);
             }
 

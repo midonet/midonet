@@ -48,16 +48,6 @@ public class DtoLogicalBridgePort extends DtoBridgePort implements
     }
 
     @Override
-    public URI getUnlink() {
-        return this.unlink;
-    }
-
-    @Override
-    public void setUnlink(URI unlink) {
-        this.unlink = unlink;
-    }
-
-    @Override
     public String getType() {
         return PortType.LOGICAL_BRIDGE;
     }

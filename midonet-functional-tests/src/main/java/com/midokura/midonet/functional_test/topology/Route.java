@@ -57,6 +57,5 @@ public class Route {
     }
 
     public void delete() {
-        
     }
 }

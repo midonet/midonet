@@ -27,7 +27,7 @@ public abstract class BridgePort extends Port {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of port
      */
@@ -37,7 +37,7 @@ public abstract class BridgePort extends Port {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      * @param config
      * @param mgmtConfig
@@ -57,7 +57,7 @@ public abstract class BridgePort extends Port {
 
     /**
      * Convert this object to ZkNodeEntry object.
-     * 
+     *
      * @return ZkNodeEntry object.
      */
     @Override

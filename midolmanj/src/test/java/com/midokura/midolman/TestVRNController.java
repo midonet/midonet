@@ -275,10 +275,10 @@ public class TestVRNController {
                 new PortDirectory.LogicalRouterPortConfig(
                         routerIds.get(1), 0xc0a80100, 30, 0xc0a80102,
                         null, null, null);
-        ZkNodeEntry<UUID, UUID> idPair = portMgr.createLink(logPortConfig1,
-                logPortConfig2);
-        UUID portOn0to1 = idPair.key;
-        UUID portOn1to0 = idPair.value;
+        UUID portOn0to1 = portMgr.create(logPortConfig1);
+        UUID portOn1to0 = portMgr.create(logPortConfig2);
+        portMgr.link(portOn0to1, logPortConfig1, portOn1to0, logPortConfig2);
+
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1,
                 0xc0a80102, 2, null, routerIds.get(0));
         routeMgr.create(rt);
@@ -295,12 +295,14 @@ public class TestVRNController {
         logPortConfig2 = new PortDirectory.LogicalRouterPortConfig(
                 routerIds.get(2), 0xc0a80100, 30, rtr2LogPortNwAddr, null,
                 null, null);
-        idPair = portMgr.createLink(logPortConfig1, logPortConfig2);
-        portOn0to2 = idPair.key;
-        portOn2to0 = idPair.value;
-        RouterPortConfig pcfg = (RouterPortConfig)portMgr.get(portOn0to2).value;
+
+        portOn0to2 = portMgr.create(logPortConfig1);
+        portOn2to0 = portMgr.create(logPortConfig2);
+        portMgr.link(portOn0to2, logPortConfig1, portOn2to0, logPortConfig2);
+
+        RouterPortConfig pcfg = portMgr.get(portOn0to2, RouterPortConfig.class);
         rtr0to2LogPortMAC = pcfg.hwAddr;
-        pcfg = (RouterPortConfig)portMgr.get(portOn2to0).value;
+        pcfg = portMgr.get(portOn2to0, RouterPortConfig.class);
         rtr2LogPortMAC = pcfg.hwAddr;
         rt = new Route(0, 0, 0x0a020000, 16, NextHop.PORT, portOn0to2,
                 0xc0a80102, 2, null, routerIds.get(0));
@@ -481,8 +483,8 @@ public class TestVRNController {
         PortDirectory.BridgePortConfig bridgePortConfig =
                 new PortDirectory.BridgePortConfig(bridgeID);
         bridgePortConfig.outboundFilter = chainUuid;
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
-                           portNumToUuid.get(portNumB), bridgePortConfig));
+        portMgr.update(portNumToUuid.get(portNumB), bridgePortConfig);
+
         // Send to port A.
         vrnCtrl.onPacketIn(1, data.length, portNumA, data);
         Assert.assertEquals(2, controllerStub.addedFlows.size());
@@ -541,8 +543,7 @@ public class TestVRNController {
         PortDirectory.BridgePortConfig bridgePortConfig =
                 new PortDirectory.BridgePortConfig(bridgeID);
         bridgePortConfig.outboundFilter = chainUuid;
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
-                           portNumToUuid.get(portNumA), bridgePortConfig));
+        portMgr.update(portNumToUuid.get(portNumA), bridgePortConfig);
 
         // Send to tunnel A.
         vrnCtrl.onPacketIn(-1, data.length, tunnelPortNumA, data, bridgeGreKey);
@@ -879,8 +880,8 @@ public class TestVRNController {
         ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
         actions.add(ofDlDstAction);
         // Set the tunnel ID to indicate the output port to use.
-        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
-        int tunnelId = tunnelIdEntry.value.greKey;
+        PortConfig tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.greKey;
         NxActionSetTunnelKey32 ofTunnelIdAction =
                 new NxActionSetTunnelKey32(tunnelId);
         actions.add(ofTunnelIdAction);
@@ -943,8 +944,8 @@ public class TestVRNController {
                 new OFActionDataLayerDestination();
         ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
         actions.add(ofDlDstAction);
-        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
-        int tunnelId = tunnelIdEntry.value.greKey;
+        PortConfig tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.greKey;
         NxActionSetTunnelKey32 ofTunnelIdAction =
                 new NxActionSetTunnelKey32(tunnelId);
         actions.add(ofTunnelIdAction);
@@ -999,8 +1000,8 @@ public class TestVRNController {
         actions.add(action);
         // There should be an action setting the GRE tunnel id.
         UUID egressUuid = portNumToUuid.get((short)21);
-        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
-        int tunnelId = tunnelIdEntry.value.greKey;
+        PortConfig tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.greKey;
         NxActionSetTunnelKey32 ofTunnelIdAction =
                 new NxActionSetTunnelKey32(tunnelId);
         actions.add(ofTunnelIdAction);
@@ -1152,8 +1153,8 @@ public class TestVRNController {
         byte[] data = eth.serialize();
         // Set the GRE tunnel id to represent the destination port
         UUID egressUuid = portNumToUuid.get((short)20);
-        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
-        int tunnelId = tunnelIdEntry.value.greKey;
+        PortConfig tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.greKey;
         vrnCtrl.onPacketIn(32331, data.length, inPortNum, data, tunnelId);
         // ARP was resolved by ingress controller. So there should be a flow
         // installed and a forwarded packet.
@@ -2062,8 +2063,9 @@ public class TestVRNController {
         controllerStub.addedFlows.remove(1);
         controllerStub.addedFlows.remove(0);
 
-        int localAddr = PortDirectory.MaterializedRouterPortConfig.class
-                .cast(portMgr.get(portId).value).portAddr;
+        PortDirectory.MaterializedRouterPortConfig config = portMgr.get(portId,
+                PortDirectory.MaterializedRouterPortConfig.class);
+        int localAddr = config.portAddr;
         int remoteAddr = Net.convertStringAddressToInt(remoteAddrString);
         MidoMatch match;
         List<OFAction> actions;
@@ -2234,8 +2236,8 @@ public class TestVRNController {
         ofDlDstAction.setDataLayerAddress(dstMac.getAddress());
         actions.add(ofDlDstAction);
         // Set the tunnel ID to indicate the output port to use.
-        ZkNodeEntry<UUID, PortConfig> tunnelIdEntry = portMgr.get(egressUuid);
-        int tunnelId = tunnelIdEntry.value.greKey;
+        PortConfig tunnelIdEntry = portMgr.get(egressUuid);
+        int tunnelId = tunnelIdEntry.greKey;
         NxActionSetTunnelKey32 ofTunnelIdAction =
                 new NxActionSetTunnelKey32(tunnelId);
         actions.add(ofTunnelIdAction);
@@ -2254,19 +2256,20 @@ public class TestVRNController {
                                  actualPacket.actions.toArray());
 
         // Now add port 10 to a new PortGroup.
-        ZkNodeEntry<UUID, PortConfig> entry =
-                portMgr.get(portNumToUuid.get((short)10));
-        entry.value.portGroupIDs = new HashSet<UUID>();
+        UUID portId = portNumToUuid.get((short)10);
+        PortConfig entry = portMgr.get(portId);
+        entry.portGroupIDs = new HashSet<UUID>();
         UUID portGroupID = UUID.randomUUID();
-        entry.value.portGroupIDs.add(portGroupID);
-        portMgr.update(entry);
+        entry.portGroupIDs.add(portGroupID);
+        portMgr.update(portId, entry);
 
         // Now add a filter on port 21 that drops packets from that PortGroup.
         UUID chainId = chainMgr.create(new ChainConfig("portOutboundFilter"));
         // Set this chain as the outboundFilter of port 20's PortConfig
-        entry = portMgr.get(portNumToUuid.get((short)21));
-        entry.value.outboundFilter = chainId;
-        portMgr.update(entry);
+        portId = portNumToUuid.get((short)21);
+        entry = portMgr.get(portId);
+        entry.outboundFilter = chainId;
+        portMgr.update(portId, entry);
 
         Condition cond = new Condition();
         cond.portGroup = portGroupID;
@@ -2285,9 +2288,10 @@ public class TestVRNController {
                 new ArrayList<OFAction>());
 
         // Remove port 10 from the PortGroup and try resending the packet.
-        entry = portMgr.get(portNumToUuid.get((short)10));
-        entry.value.portGroupIDs = null;
-        portMgr.update(entry);
+        portId = portNumToUuid.get((short)10);
+        entry = portMgr.get(portId);
+        entry.portGroupIDs = null;
+        portMgr.update(portId, entry);
 
         // Resend the packet from port 20 to 21 and show it's Forwarded.
         vrnCtrl.onPacketIn(1001, data.length, phyPortIn.getPortNumber(), data);

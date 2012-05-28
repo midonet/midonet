@@ -34,7 +34,7 @@ public class BridgeOpBuilder {
 
     /**
      * Constructor
-     * 
+     *
      * @param zkDao
      *            ZkManager object to access ZK data.
      * @param pathBuilder
@@ -51,7 +51,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the bridge create Op object.
-     * 
+     *
      * @param id
      *            ID of the bridge.
      * @param config
@@ -72,7 +72,7 @@ public class BridgeOpBuilder {
 
     /**
      * Gets a list of Op objects to create a Bridge in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the bridge
      * @param bridge
@@ -97,7 +97,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the bridge delete Op object.
-     * 
+     *
      * @param id
      *            ID of the bridge.
      * @return Op for bridge delete.
@@ -114,7 +114,7 @@ public class BridgeOpBuilder {
 
     /**
      * Gets a list of Op objects to delete a Bridge in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the bridge
      * @return List of Op objects.
@@ -135,7 +135,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the bridge update Op object.
-     * 
+     *
      * @param id
      *            ID of the bridge.
      * @param config
@@ -159,7 +159,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the tenant bridge create Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -179,7 +179,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the tenant bridge delete Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param id
@@ -199,7 +199,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the tenant bridge name create Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param name
@@ -223,7 +223,7 @@ public class BridgeOpBuilder {
 
     /**
      * Get the tenant bridge name delete Op object.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @param name

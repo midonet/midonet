@@ -19,7 +19,7 @@ public class PortSerializer {
 
     /**
      * Constructor
-     * 
+     *
      * @param serializer
      *            Serializer to use for PortMgmtConfig.
      */
@@ -29,7 +29,7 @@ public class PortSerializer {
 
     /**
      * Deserialize PortMgmtConfig object.
-     * 
+     *
      * @param data
      *            Byte array to deserialize from.
      * @return PortMgmtConfig object.
@@ -49,7 +49,7 @@ public class PortSerializer {
 
     /**
      * Serialize PortMgmtConfig object.
-     * 
+     *
      * @param config
      *            PortMgmtConfig object.
      * @return Byte array.

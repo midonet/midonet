@@ -38,7 +38,7 @@ public class BridgePort {
         }
 
         public BridgePort build() {
-            return new BridgePort(mgmt, 
+            return new BridgePort(mgmt,
                     mgmt.addMaterializedBridgePort(bridge, port));
         }
     }

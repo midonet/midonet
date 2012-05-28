@@ -135,8 +135,7 @@ public class VRNCoordinator implements ForwardingElement {
 
     private PortConfig getPortConfigByUUID(UUID id)
             throws StateAccessException {
-        ZkNodeEntry<UUID, PortConfig> entry = portMgr.get(id);
-        return entry.value;
+        return portMgr.get(id);
     }
 
     @Override

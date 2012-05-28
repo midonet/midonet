@@ -21,7 +21,7 @@ public class BridgeSerializer {
 
     /**
      * Constructor.
-     * 
+     *
      * @param serializer
      *            BridgeMgmtConfig serializer.
      * @param nameSerializer
@@ -35,7 +35,7 @@ public class BridgeSerializer {
 
     /**
      * Deserialize BridgeMgmtConfig object.
-     * 
+     *
      * @param data
      *            Byte array to deserialize from.
      * @return BridgeMgmtConfig object.
@@ -55,7 +55,7 @@ public class BridgeSerializer {
 
     /**
      * Deserialize BridgeNameMgmtConfig object.
-     * 
+     *
      * @param data
      *            Byte array to deserialize from.
      * @return BridgeNameMgmtConfig object.
@@ -75,7 +75,7 @@ public class BridgeSerializer {
 
     /**
      * Serialize BridgeMgmtConfig object.
-     * 
+     *
      * @param config
      *            BridgeMgmtConfig object.
      * @return byte array.
@@ -95,7 +95,7 @@ public class BridgeSerializer {
 
     /**
      * Serialize BridgeNameMgmtConfig object.
-     * 
+     *
      * @param config
      *            BridgeNameMgmtConfig object.
      * @return byte array.

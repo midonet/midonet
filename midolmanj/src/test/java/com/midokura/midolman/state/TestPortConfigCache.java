@@ -58,7 +58,7 @@ public class TestPortConfigCache {
         config.portGroupIDs = new HashSet<UUID>();
         config.portGroupIDs.add(UUID.randomUUID());
         portID = portMgr.create(config);
-        PortConfig zkConfig = portMgr.get(portID).value;
+        PortConfig zkConfig = portMgr.get(portID);
         assertThat("The config in ZK should have the expected outboundFilter.",
                 zkConfig.outboundFilter, equalTo(config.outboundFilter));
         assertThat("The config in ZK should have the expected portGroups.",
@@ -87,8 +87,7 @@ public class TestPortConfigCache {
         reactor.incrementTime(
                 PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
-                portID, getNewConfig()));
+        portMgr.update(portID, getNewConfig());
         assertThat("The cache should no longer contain the portID as key",
                 !portCache.hasKey(portID));
     }
@@ -104,8 +103,7 @@ public class TestPortConfigCache {
         reactor.incrementTime(
                 PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
-                portID, getNewConfig()));
+        portMgr.update(portID, getNewConfig());
         assertThat("The cache should still contain the portID as key",
                 portCache.hasKey(portID));
         // Unpin the value
@@ -114,8 +112,7 @@ public class TestPortConfigCache {
         reactor.incrementTime(
                 PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
         // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(
-                portID, getNewConfig()));
+        portMgr.update(portID, getNewConfig());
         assertThat("The cache should no longer contain the portID as key",
                 !portCache.hasKey(portID));
     }
@@ -130,8 +127,8 @@ public class TestPortConfigCache {
         assertThat("The cached config should not equal the one we specified.",
                 cachedConfig, not(equalTo(config)));
         // Now update ZK.
-        portMgr.update(new ZkNodeEntry<UUID, PortConfig>(portID, config));
-        PortConfig zkConfig = portMgr.get(portID).value;
+        portMgr.update(portID, config);
+        PortConfig zkConfig = portMgr.get(portID);
         assertThat("ZK's config should be equal to the one we specified.",
                 zkConfig, equalTo(config));
         cachedConfig = portCache.get(portID);

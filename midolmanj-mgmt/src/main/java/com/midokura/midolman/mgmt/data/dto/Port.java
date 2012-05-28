@@ -65,7 +65,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            Port ID
      * @param deviceId
@@ -78,7 +78,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      * @param config
      * @param mgmtConfig
@@ -96,7 +96,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Get port ID.
-     * 
+     *
      * @return port ID.
      */
     public UUID getId() {
@@ -105,7 +105,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Set port ID.
-     * 
+     *
      * @param id
      *            ID of the port.
      */
@@ -115,7 +115,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Get device ID.
-     * 
+     *
      * @return device ID.
      */
     public UUID getDeviceId() {
@@ -129,7 +129,7 @@ public abstract class Port extends UriResource {
 
     /**
      * logical Set device ID.
-     * 
+     *
      * @param deviceId
      *            ID of the device.
      */
@@ -175,14 +175,14 @@ public abstract class Port extends UriResource {
 
     /**
      * Convert this object to PortConfig object.
-     * 
+     *
      * @return PortConfig object.
      */
     public abstract PortConfig toConfig();
 
     /**
      * Convert this object to PortMgmtConfig object.
-     * 
+     *
      * @return PortConfig object.
      */
     public PortMgmtConfig toMgmtConfig() {
@@ -191,7 +191,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Set the PortConfig fields
-     * 
+     *
      * @param config
      *            PortConfig object
      */
@@ -209,7 +209,7 @@ public abstract class Port extends UriResource {
 
     /**
      * Convert this object to ZkNodeEntry
-     * 
+     *
      * @return ZkNodeEntry
      */
     public ZkNodeEntry<UUID, PortConfig> toZkNode() {
@@ -248,7 +248,7 @@ public abstract class Port extends UriResource {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

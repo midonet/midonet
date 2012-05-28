@@ -55,7 +55,7 @@ public class BridgeResource {
 
     /**
      * Handler to deleting a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -90,7 +90,7 @@ public class BridgeResource {
 
     /**
      * Handler to getting a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param context
@@ -133,7 +133,7 @@ public class BridgeResource {
 
     /**
      * Port resource locator for bridges.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @returns BridgePortResource object to handle sub-resource requests.
@@ -145,7 +145,7 @@ public class BridgeResource {
 
     /**
      * Filtering database resource locator for bridges.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @returns BridgeFilterDbResource object to handle sub-resource requests.
@@ -158,7 +158,7 @@ public class BridgeResource {
 
     /**
      * DHCP resource locator for bridges.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @returns BridgeDhcpResource object to handle sub-resource requests.
@@ -170,7 +170,7 @@ public class BridgeResource {
 
     /**
      * Peer port resource locator for bridges.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @returns BridgePeerPortResource object to handle sub-resource requests.
@@ -183,7 +183,7 @@ public class BridgeResource {
 
     /**
      * Handler to updating a bridge.
-     * 
+     *
      * @param id
      *            Bridge ID from the request.
      * @param bridge
@@ -225,7 +225,7 @@ public class BridgeResource {
 
         /**
          * Constructor.
-         * 
+         *
          * @param tenantId
          *            UUID of a tenant.
          */
@@ -235,7 +235,7 @@ public class BridgeResource {
 
         /**
          * Handler for creating a tenant bridge.
-         * 
+         *
          * @param bridge
          *            Bridge object.
          * @param context
@@ -274,7 +274,7 @@ public class BridgeResource {
 
         /**
          * Handler to list tenant bridges.
-         * 
+         *
          * @param context
          *            Object that holds the security data.
          * @param uriInfo

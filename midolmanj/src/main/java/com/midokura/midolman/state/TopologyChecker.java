@@ -162,25 +162,26 @@ public class TopologyChecker {
         PortZkManager portMgr = new PortZkManager(zkDir, basePath);
         // Keep track of ports that are in the PortLocationMap.
         Set<UUID> portsInMap = new HashSet<UUID>();
-        List<ZkNodeEntry<UUID, PortConfig>> ports = portMgr
-                .listRouterPorts(routerId);
-        for (ZkNodeEntry<UUID, PortConfig> port : ports) {
-            System.out.println("  Port " + port.key + " " + port.value);
-            IntIPv4 loc = portLocationMap.get(port.key);
+        Set<UUID> portIds = portMgr.getRouterPortIDs(routerId);
+        for (UUID portId : portIds) {
+            PortConfig port = portMgr.get(portId);
+            System.out.println("  Port " + portId + " " + port);
+            IntIPv4 loc = portLocationMap.get(portId);
             if (null == loc) {
-                if (!(port.value instanceof LogicalRouterPortConfig))
+                if (!(port instanceof LogicalRouterPortConfig))
                     System.out.println("    Warn: not in the PortLocationMap");
             } else {
                 System.out.println("    Located at host " + loc.toString()
                         + " on the physical network.");
-                portsInMap.add(port.key);
+                portsInMap.add(portId);
             }
             System.out.println("    Routes:");
-            routes = routeMgr.listPortRoutes(port.key);
+            routes = routeMgr.listPortRoutes(portId);
             for (ZkNodeEntry<UUID, Route> route : routes) {
                 System.out.println("    " + route.key + " " + route.value);
             }
         }
+
         System.out.println();
         System.out.println("Router's routing table:");
         Directory rtableDir = routerMgr.getRoutingTableDirectory(routerId);

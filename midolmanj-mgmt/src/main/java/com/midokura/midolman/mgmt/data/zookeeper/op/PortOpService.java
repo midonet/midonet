@@ -30,7 +30,7 @@ public class PortOpService {
 
     /**
      * Constructor
-     * 
+     *
      * @param opBuilder
      *            PortOpBuilder object
      * @param zkDao
@@ -43,7 +43,7 @@ public class PortOpService {
 
     /**
      * Build list of Op objects to create a port
-     * 
+     *
      * @param id
      *            ID of the port
      * @param config
@@ -72,7 +72,7 @@ public class PortOpService {
 
     /**
      * Build list of Op objects to delete a port
-     * 
+     *
      * @param id
      *            ID of the port
      * @param cascade
@@ -102,7 +102,7 @@ public class PortOpService {
 
     /**
      * Build list of Op objects to update a port
-     * 
+     *
      * @param id
      *            ID of the port
      * @param mgmtConfig
@@ -143,7 +143,7 @@ public class PortOpService {
     /**
      * Builds operations to handle the VIF plug event for the port side. If VIF
      * ID is set to null, it means unplugging.
-     * 
+     *
      * @param id
      *            port ID
      * @param vifId
@@ -167,7 +167,7 @@ public class PortOpService {
 
     /**
      * Build Op list for bridge delete event.
-     * 
+     *
      * @param bridgeId
      *            Bridge ID
      * @return Op list
@@ -193,7 +193,7 @@ public class PortOpService {
 
     /**
      * Build Op list for router delete event.
-     * 
+     *
      * @param routerId
      *            Router ID
      * @return Op list

@@ -40,15 +40,4 @@ public interface DtoLogicalPort {
      *            URI to set
      */
     void setLink(URI link);
-
-    /**
-     * @return URI to unlink
-     */
-    URI getUnlink();
-
-    /**
-     * @param unLink
-     *            URI to set
-     */
-    void setUnlink(URI unLink);
 }

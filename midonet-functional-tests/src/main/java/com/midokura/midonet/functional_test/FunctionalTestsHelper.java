@@ -85,7 +85,6 @@ public class FunctionalTestsHelper {
                     break;
                 default:
                     zkClient = "/usr/share/zookeeper/bin/zkCli.sh";
-
             }
         }
 
@@ -145,7 +144,7 @@ public class FunctionalTestsHelper {
             port.delete();
         }
     }
-    
+
     protected void removeMidoPort(LogicalRouterPort port) {
         if (port != null) {
             port.delete();

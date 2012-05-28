@@ -41,7 +41,7 @@ public abstract class RouterPort extends Port {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      * @param config
      * @param mgmtConfig
@@ -56,7 +56,7 @@ public abstract class RouterPort extends Port {
 
     /**
      * Constructor
-     * 
+     *
      * @param id
      *            ID of the port
      * @param deviceId
@@ -125,7 +125,7 @@ public abstract class RouterPort extends Port {
 
     /**
      * Set the PortConfig fields
-     * 
+     *
      * @param config
      *            RouterPortConfig object
      */
@@ -138,7 +138,7 @@ public abstract class RouterPort extends Port {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

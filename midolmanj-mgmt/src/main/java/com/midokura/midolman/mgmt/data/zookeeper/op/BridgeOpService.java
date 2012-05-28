@@ -33,7 +33,7 @@ public class BridgeOpService {
 
     /**
      * Constructor
-     * 
+     *
      * @param opBuilder
      *            BridgeOpBuilder object.
      * @param portOpService
@@ -50,7 +50,7 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to create a bridge
-     * 
+     *
      * @param id
      *            ID of the bridge
      * @param config
@@ -90,7 +90,7 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to delete a bridge
-     * 
+     *
      * @param id
      *            ID of the port
      * @param cascade
@@ -133,7 +133,7 @@ public class BridgeOpService {
 
     /**
      * Build list of Op objects to update a bridge
-     * 
+     *
      * @param bridge
      *            BridgeConfig of the bridge to be updated.
      * @return Op list
@@ -177,7 +177,7 @@ public class BridgeOpService {
 
     /**
      * Build operations to delete all bridges for a tenant.
-     * 
+     *
      * @param tenantId
      *            ID of the tenant
      * @return Op list

@@ -36,7 +36,7 @@ public class FlowStats {
      * Return the FlowStats from the list whose match field is equal to the one
      * in 'this'. Assert. This is a convenience method that can be used like
      * this:
-     * 
+     *
      * <pre>
      * {
      *     OFMatch match; // initialize appropriately
@@ -47,7 +47,7 @@ public class FlowStats {
      *     fStat.findSameInList(stats).expectCount(5).expectOutput(1);
      * }
      * </pre>
-     * 
+     *
      * @return The equivalent FlowStat from the list or 'this' if none is found
      *         in the list. Assert.fail with a message if no equivalent is found
      *         in the list.

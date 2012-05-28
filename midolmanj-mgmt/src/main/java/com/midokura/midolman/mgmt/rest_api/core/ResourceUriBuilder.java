@@ -35,7 +35,6 @@ public class ResourceUriBuilder {
     public static final String COMMANDS = "/commands";
     public static final String METRICS = "/metrics";
     public static final String LINK = "/link";
-    public static final String UNLINK = "/unlink";
 
     private ResourceUriBuilder() {
     }
@@ -102,11 +101,6 @@ public class ResourceUriBuilder {
     public static URI getPortLink(URI baseUri, UUID portId) {
         return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
                 .path(LINK).build();
-    }
-
-    public static URI getPortUnlink(URI baseUri, UUID portId) {
-        return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
-                .path(UNLINK).build();
     }
 
     public static URI getBridgePorts(URI baseUri, UUID bridgeId) {

@@ -18,7 +18,6 @@ import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
@@ -34,7 +33,7 @@ public class PortOpBuilder {
 
     /**
      * Constructor
-     * 
+     *
      * @param zkDao
      *            ZkManager object to access ZK data.
      * @param pathBuilder
@@ -51,7 +50,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port update Op object.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @param config
@@ -73,7 +72,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port update Op object.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @param config
@@ -89,9 +88,7 @@ public class PortOpBuilder {
         List<Op> ops = new ArrayList<Op>();
 
         // If config is passed in, update this also
-        ZkNodeEntry<UUID, PortConfig> entry = new ZkNodeEntry<UUID, PortConfig>(
-                id, config);
-        ops.addAll(zkDao.preparePortUpdate(entry));
+        ops.addAll(zkDao.prepareUpdate(id, config));
 
         log.debug("PortOpBuilder.getPortSetDataOps exiting.");
         return ops;
@@ -99,7 +96,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port create Op object.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @param config
@@ -124,7 +121,7 @@ public class PortOpBuilder {
 
     /**
      * Gets a list of Op objects to create a port in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the port
      * @param config
@@ -137,7 +134,7 @@ public class PortOpBuilder {
             throws StateAccessException {
         log.debug("PortOpBuilder.getPortCreateOps entered: id=" + id);
 
-        List<Op> ops = zkDao.preparePortCreate(id, config);
+        List<Op> ops = zkDao.prepareCreate(id, config);
 
         log.debug("PortOpBuilder.getPortCreateOps exiting: ops count="
                 + ops.size());
@@ -146,7 +143,7 @@ public class PortOpBuilder {
 
     /**
      * Get the port delete Op object.
-     * 
+     *
      * @param id
      *            ID of the port.
      * @return Op for port delete.
@@ -163,7 +160,7 @@ public class PortOpBuilder {
 
     /**
      * Gets a list of Op objects to delete a Port in Midolman side.
-     * 
+     *
      * @param id
      *            ID of the port
      * @return List of Op objects.
@@ -173,7 +170,7 @@ public class PortOpBuilder {
     public List<Op> getPortDeleteOps(UUID id) throws StateAccessException {
         log.debug("PortOpBuilder.getPortDeleteOps entered: id={}", id);
 
-        List<Op> ops = zkDao.preparePortDelete(id);
+        List<Op> ops = zkDao.prepareDelete(id);
 
         log.debug("PortOpBuilder.getPortDeleteOps exiting: ops count={}",
                 ops.size());
