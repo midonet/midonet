@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Pte.Ltd.
  */
 
 package com.midokura.midolman.monitoring;
@@ -16,7 +16,6 @@ import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.monitoring.store.Store;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/25/12
  */
 public class MonitoringModule extends AbstractModule {

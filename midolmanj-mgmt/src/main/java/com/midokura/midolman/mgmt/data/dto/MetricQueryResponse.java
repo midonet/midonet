@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Pte.Ltd.
  */
 
 package com.midokura.midolman.mgmt.data.dto;
@@ -8,7 +8,6 @@ import java.util.Map;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 5/3/12
  */
 @XmlRootElement

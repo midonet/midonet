@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Pte.Ltd.
  */
 
 package com.midokura.midolman.monitoring.metrics;
@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/25/12
  */
 public class ZookeeperMetricsCollection {

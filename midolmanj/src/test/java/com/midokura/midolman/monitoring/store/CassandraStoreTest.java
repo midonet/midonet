@@ -15,7 +15,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/23/12
  */
 public class CassandraStoreTest {

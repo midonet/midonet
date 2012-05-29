@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Author: Rossella Sblendido rossella@midokura.com
  * Date: 4/26/12
  */
 public class CassandraClient {
