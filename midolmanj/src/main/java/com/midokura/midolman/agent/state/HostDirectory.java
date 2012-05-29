@@ -26,7 +26,7 @@ public class HostDirectory {
     public static class ErrorLogItem {
         Integer commandId;
         String error;
-        String intefaceName;
+        String interfaceName;
         Date time = Calendar.getInstance().getTime();
 
         public Integer getCommandId() {
@@ -45,12 +45,12 @@ public class HostDirectory {
             this.error = error;
         }
 
-        public String getIntefaceName() {
-            return intefaceName;
+        public String getInterfaceName() {
+            return interfaceName;
         }
 
-        public void setIntefaceName(String intefaceName) {
-            this.intefaceName = intefaceName;
+        public void setInterfaceName(String interfaceName) {
+            this.interfaceName = interfaceName;
         }
 
         public Date getTime() {

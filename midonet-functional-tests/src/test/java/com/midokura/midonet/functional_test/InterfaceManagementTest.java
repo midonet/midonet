@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
 import org.hamcrest.Matcher;
@@ -60,7 +61,7 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
     @After
     public void tearDown() throws Exception {
         stopMidolmanMgmt(api);
-	cleanupZooKeeperData();
+        cleanupZooKeeperData();
     }
 
     @Test
@@ -74,11 +75,14 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
         // start the agent / or midolman1
         MidolmanLauncher launcher =
             MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagementTest.testNewHostAppearsWhenTheAgentIsExecuted");
+                                   "InterfaceManagementTest.testNewHostAppears" +
+                                       "WhenTheAgentIsExecuted");
 
         try {
             hosts =
-                waitFor("a new host should come up", 10 * 1000, 500,
+                waitFor("a new host should come up",
+                        TimeUnit.SECONDS.toMillis(10),
+                        TimeUnit.MILLISECONDS.toMillis(500),
                         new Timed.Execution<DtoHost[]>() {
                             @Override
                             protected void _runOnce() throws Exception {
@@ -592,13 +596,9 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
             DtoInterface.PropertyKeys.midonet_port_id.name();
 
         TapWrapper tap = null;
-//      Use this for remote developing (mac IDE + linux)
-//        RemoteTap tap = null;
         OvsBridge ovsBridge = null;
         MidolmanLauncher launcher = null;
         try {
-//          Use this for remote developing (mac IDE + linux)
-//          tap = new RemoteTap(tapName, true);
             tap = new TapWrapper(tapName, true);
 
             ProcessHelper
@@ -608,7 +608,8 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
                 .runAndWait();
 
             launcher = MidolmanLauncher.start(With_Node_Agent,
-                                              "InterfaceManagementTest.testBindInterfaceToMidonetPort");
+                                              "InterfaceManagementTest.test" +
+                                                  "BindInterfaceToMidonetPort");
 
             OpenvSwitchDatabaseConnectionImpl ovsdb =
                 new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
@@ -652,7 +653,88 @@ public class InterfaceManagementTest extends FunctionalTestsHelper {
                        hasEntry(is(PORT_ID_KEY), is(targetPortId.toString())));
         } finally {
             stopMidolman(launcher);
-//            removeRemoteTap(tap);
+            removeTapWrapper(tap);
+            removeBridge(ovsBridge);
+        }
+    }
+
+    @Test
+    public void testUnbindInterfaceToMidonetPort() throws Exception {
+        final String tapName = newTapName();
+
+        assertThat("We were expecting no hosts to be registered",
+                   api.getHosts(), arrayWithSize(0));
+
+        final String PORT_ID_KEY =
+            DtoInterface.PropertyKeys.midonet_port_id.name();
+
+        TapWrapper tap = null;
+        OvsBridge ovsBridge = null;
+        MidolmanLauncher launcher = null;
+
+        try {
+            tap = new TapWrapper(tapName, true);
+
+            ProcessHelper
+                .newProcess(
+                    format("ip addr add 10.43.56.34/12 dev %s", tapName))
+                .withSudo()
+                .runAndWait();
+
+            launcher = MidolmanLauncher.start(With_Node_Agent,
+                                              "InterfaceManagementTest.test" +
+                                                  "UnbindInterfaceToMidonetPort");
+
+            OpenvSwitchDatabaseConnectionImpl ovsdb =
+                new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
+                                                      "127.0.0.1", 12344);
+            if (ovsdb.hasBridge("smoke-br"))
+                ovsdb.delBridge("smoke-br");
+
+            ovsBridge = new OvsBridge(ovsdb, "smoke-br");
+
+            UUID externalPortId = UUID.randomUUID();
+            ovsdb.addSystemPort("smoke-br", tapName)
+                 .externalId("midolman-vnet", externalPortId.toString())
+                 .build();
+
+            final DtoHost dtoHost = waitForHostRegistration();
+
+            final DtoInterface dtoInterface = waitForNamedInterface(dtoHost,
+                                                                    tapName);
+            assertThat(
+                "the new interface is not yet associated with a midonet port",
+                dtoInterface.getProperties(),
+                hasEntry(is(PORT_ID_KEY), is(externalPortId.toString())));
+
+            UUID targetPortId = UUID.randomUUID();
+            dtoInterface.getProperties().put(PORT_ID_KEY, "");
+
+            api.updateInterface(dtoInterface);
+
+            DtoInterface updatedDtoInterface =
+                waitFor("the interface properties should be updated",
+                        new Timed.Execution<DtoInterface>() {
+                            @Override
+                            protected void _runOnce() throws Exception {
+                                setResult(api.getHostInterface(dtoInterface));
+                                log.debug("Interface: " + getResult());
+
+                                Map<String, String> props =
+                                    getResult().getProperties();
+
+                                setCompleted(!props.containsKey(PORT_ID_KEY));
+                            }
+                        });
+
+            assertThat("the interface object is showing the proper port id",
+                       updatedDtoInterface.getProperties(),
+                       not(
+                           hasEntry(
+                               is(PORT_ID_KEY),
+                               is(targetPortId.toString()))));
+        } finally {
+            stopMidolman(launcher);
             removeTapWrapper(tap);
             removeBridge(ovsBridge);
         }

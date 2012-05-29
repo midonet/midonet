@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -20,11 +21,12 @@ import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
+import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
 public class NodeCommandWatcher {
 
     private final static Logger log = LoggerFactory.getLogger(
-            NodeCommandWatcher.class);
+        NodeCommandWatcher.class);
 
     private UUID hostId;
     protected Set<Integer> executedCommands;
@@ -83,34 +85,60 @@ public class NodeCommandWatcher {
         }
     }
 
-    private void executeCommands(HostDirectory.Command cmd, Integer commandId) {
-        List<CommandExecutor> commandExecutors;
-        try {
-            commandExecutors = commandInterpreter.interpret(cmd);
-        } catch (Exception e) {
-            log.error("Execute commands: ", e);
+    private void executeCommands(final Command cmd, Integer cmdId) {
+
+        List<CommandExecutor> commandExecutors =
+            guardedWork(
+                cmdId, cmd,
+                new Callable<List<CommandExecutor>>() {
+                    @Override
+                    public List<CommandExecutor> call() throws Exception {
+                        return commandInterpreter.interpret(cmd);
+                    }
+                });
+
+        if (commandExecutors == null)
             return;
-        }
-        for (CommandExecutor commandExecutor : commandExecutors) {
-            try {
-                commandExecutor.execute();
-            } catch (Exception e) {
-                log.warn(
-                        "Something went wrong in executing command ID: {}, on interface" +
-                                "{}",
-                        new Object[]{commandId, cmd.getInterfaceName(), e});
-                HostDirectory.ErrorLogItem errorLogItem = new HostDirectory.ErrorLogItem();
-                errorLogItem.setError(e.getMessage());
-                errorLogItem.setCommandId(commandId);
-                errorLogItem.setIntefaceName(cmd.getInterfaceName());
-                try {
-                    zkManager.setCommandErrorLogEntry(hostId, errorLogItem);
-                } catch (StateAccessException e1) {
-                    log.error("Couldn't write the error log for host ID: {}, " +
-                                      "commandID {}, interface {}",
-                              new Object[]{hostId, commandId, cmd.getInterfaceName(), e1});
+
+        for (final CommandExecutor commandExecutor : commandExecutors) {
+            guardedWork(cmdId, cmd, new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    commandExecutor.execute();
+
+                    return null;
                 }
+            });
+        }
+    }
+
+    private <T> T guardedWork(Integer cmdId, Command cmd, Callable<T> work) {
+        try {
+            return work.call();
+        } catch (Exception ex) {
+            log.warn(
+                "Something went wrong in executing command ID: {}, " +
+                    "on interface {}",
+                new Object[]{cmdId, cmd.getInterfaceName(), ex});
+
+            // try to serialize the errors to zookeeper
+            HostDirectory.ErrorLogItem errorLogItem =
+                new HostDirectory.ErrorLogItem();
+
+            errorLogItem.setError(ex.getMessage());
+            errorLogItem.setCommandId(cmdId);
+            errorLogItem.setInterfaceName(cmd.getInterfaceName());
+
+            try {
+                zkManager.setCommandErrorLogEntry(hostId, errorLogItem);
+            } catch (StateAccessException sae) {
+                log.error("Couldn't write the error log for host ID: {}, " +
+                              "commandID {}, interface {}",
+                          new Object[]{hostId, cmdId, cmd.getInterfaceName(),
+                              sae});
             }
+
+            return null;
         }
     }
 }

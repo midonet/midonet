@@ -57,13 +57,16 @@ public class CommandInterpreter {
         for (Command.AtomicCommand atomicCmd : cmdList) {
             CommandProperty property = atomicCmd.getProperty();
             String value = atomicCmd.getValue();
-            Object parameter;
-            try {
-                parameter =
-                    property.getValidator().validateAndConvert(property, value);
-            } catch (Exception e) {
-                throw new InvalidParameterException(property, value,
-                                                    e.getMessage());
+            Object parameter = null;
+
+            if (value != null && !value.trim().equals("")) {
+                try {
+                    parameter = property.getValidator()
+                                        .validateAndConvert(property, value);
+                } catch (Exception e) {
+                    throw new InvalidParameterException(property, value,
+                                                        e.getMessage());
+                }
             }
 
             CommandExecutor executor;
