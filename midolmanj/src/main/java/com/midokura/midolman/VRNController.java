@@ -97,7 +97,8 @@ public class VRNController extends AbstractController
             Reactor reactor, Cache cache, String externalIdKey, UUID vrnId,
             boolean useNxm, PortService bgpService, PortService vpnService)
                     throws StateAccessException {
-        super(zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey, vrnId, useNxm);
+        super(zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey, vrnId,
+              useNxm);
         this.reactor = reactor;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
         this.greMgr = new GreZkManager(zkDir, zkBasePath);
@@ -1127,16 +1128,15 @@ public class VRNController extends AbstractController
         vpnAgent.start();
     }
 
-    private static class OFPacketContext extends ForwardInfo {
+    static class OFPacketContext extends ForwardInfo {
         int bufferId;
         int totalLen;
         int inPortNum;
         byte[] data;
         long tunnelId;
 
-        private OFPacketContext(int bufferId, byte[] data, int inPortNum,
-                                int totalLen, long tunnelId, Cache cache,
-                                UUID ingressFE) {
+        OFPacketContext(int bufferId, byte[] data, int inPortNum, int totalLen,
+                        long tunnelId, Cache cache, UUID ingressFE) {
             super(false, cache, ingressFE);
             this.bufferId = bufferId;
             this.data = data;

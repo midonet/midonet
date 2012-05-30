@@ -34,6 +34,7 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 
+
 public class Bridge implements ForwardingElement {
 
     private final Logger log = LoggerFactory.getLogger(Bridge.class);
@@ -387,8 +388,7 @@ public class Bridge implements ForwardingElement {
                  * locally, and on a materialized port on the same bridge;
                  * they can therefore be invalidated by destination MAC.
                  */
-            }
-            else {
+            } else {
                 // TODO(pino): invalidate only flows that egress at oldPortId
                 log.debug("Mac {} moved to new port. Invalidate flows to old " +
                         "port {}", mac, oldPortId);

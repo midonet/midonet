@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import scala.actors.threadpool.Arrays;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -32,7 +33,6 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
 import org.openflow.protocol.action.*;
-import scala.actors.threadpool.Arrays;
 
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
@@ -65,6 +65,7 @@ import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 import com.midokura.midolman.VRNController.PacketContinuation;
+import com.midokura.midolman.ForwardingElement.ForwardInfo;
 
 
 public class TestVRNController {
@@ -109,6 +110,9 @@ public class TestVRNController {
     private short portNumB = 101;
     private short tunnelPortNumA = 102;
     private short tunnelPortNumB = 103;
+
+    static final String fwdKey = "10.1.2.3|123|10.9.8.7|456|6|";
+    static final String revKey = "10.9.8.7|456|10.1.2.3|123|6|";
 
     @Before
     public void setUp() throws Exception {
@@ -561,6 +565,73 @@ public class TestVRNController {
         Assert.assertArrayEquals(data, actualPacket.data);
         Assert.assertArrayEquals(expectActions.toArray(),
                                  actualPacket.actions.toArray());
+    }
+
+    @Test
+    public void testUntrackedFlow() {
+        ForwardInfo fwdInfo = createFwdInfo();
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        vrnCtrl.continueProcessing(fwdInfo);
+        reactor.incrementTime(0, TimeUnit.SECONDS);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertNull(cache.get(fwdKey + bridgeID.toString()));
+        Assert.assertNull(cache.get(revKey + bridgeID.toString()));
+    }
+
+    @Test
+    public void testTrackedFlowFwd() {
+        ForwardInfo fwdInfo = createFwdInfo();
+        Assert.assertTrue(fwdInfo.isForwardFlow());
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        vrnCtrl.continueProcessing(fwdInfo);
+        reactor.incrementTime(0, TimeUnit.SECONDS);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertNull(cache.get(fwdKey + bridgeID.toString()));
+        Assert.assertEquals("r", cache.get(revKey + bridgeID.toString()));
+    }
+
+    @Test
+    public void testTrackedFlowReturn() {
+        ForwardInfo fwdInfo = createFwdInfo();
+        cache.set(fwdKey + bridgeID.toString(), "r");
+        Assert.assertFalse(fwdInfo.isForwardFlow());
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        Assert.assertEquals(0, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        vrnCtrl.continueProcessing(fwdInfo);
+        reactor.incrementTime(0, TimeUnit.SECONDS);
+        Assert.assertEquals(1, controllerStub.sentPackets.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertNull(cache.get(revKey + bridgeID.toString()));
+        Assert.assertEquals("r", cache.get(fwdKey + bridgeID.toString()));
+    }
+
+    private ForwardInfo createFwdInfo() {
+        MidoMatch match = new MidoMatch();
+        match.setNetworkSource(0x0a010203);
+        match.setNetworkDestination(0x0a090807);
+        match.setTransportSource((short) 123);
+        match.setTransportDestination((short) 456);
+        match.setDataLayerType(IPv4.ETHERTYPE);
+        match.setNetworkProtocol((byte) 6);
+        byte[] data = "Lorem ipsum".getBytes();
+        ForwardInfo fi = new VRNController.OFPacketContext(0xf00f, data,
+                                 portNumA, data.length, -1, cache, bridgeID);
+        fi.inPortId = portNumToUuid.get(portNumA);
+        fi.outPortId = portNumToUuid.get(portNumB);
+        fi.flowMatch = match;
+        fi.matchOut = match.clone();
+        fi.action = ForwardingElement.Action.FORWARD;
+        return fi;
     }
 
     @Test
