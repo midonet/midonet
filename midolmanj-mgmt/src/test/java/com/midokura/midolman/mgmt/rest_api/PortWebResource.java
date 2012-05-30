@@ -48,6 +48,16 @@ public class PortWebResource {
         return response.getLocation();
     }
 
+    public void updatePort(URI uri, DtoPort port) {
+        updatePort(uri, port, NO_CONTENT.getStatusCode());
+    }
+
+    public void updatePort(URI uri, DtoPort port, int status) {
+        ClientResponse response = resource.uri(uri).type(APPLICATION_PORT_JSON)
+                .put(ClientResponse.class, port);
+        assertEquals(status, response.getStatus());
+    }
+
     public DtoMaterializedRouterPort getMaterializedRouterPort(URI uri) {
         return getMaterializedRouterPort(uri, OK.getStatusCode());
     }

@@ -9,6 +9,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
@@ -26,6 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -35,17 +37,22 @@ public class TestPort extends JerseyTest {
     DtoRouter router1;
     DtoRouter router2;
     DtoBridge bridge1;
+    DtoRuleChain chain1;
+    DtoRuleChain chain2;
     DtoLogicalRouterPort router1Port1;
     DtoLogicalRouterPort router1Port2;
+    DtoMaterializedRouterPort router1Port3;
     DtoLogicalRouterPort router2Port1;
     DtoLogicalRouterPort router2Port2;
     DtoLogicalBridgePort bridge1Port1;
     DtoLogicalBridgePort bridge1Port2;
+    DtoBridgePort bridge1Port3;
 
     BridgeWebResource bridgeResource;
     PortWebResource portResource;
     RouterWebResource routerResource;
     TenantWebResource tenantResource;
+    ChainWebResource chainResource;
 
     public TestPort() {
         super(FuncTest.appDesc);
@@ -59,12 +66,27 @@ public class TestPort extends JerseyTest {
         portResource = new PortWebResource(resource);
         routerResource = new RouterWebResource(resource);
         tenantResource = new TenantWebResource(resource);
+        chainResource = new ChainWebResource(resource);
 
         // Create a tenant
         DtoTenant tenant = new DtoTenant();
         tenant.setId("tenant-id");
         URI uri = tenantResource.createTenant(tenant);
         tenant = tenantResource.getTenant(uri);
+        // TODO: verify creation
+
+        // Prepare chains that can be used to set to port
+        DtoRuleChain chain = new DtoRuleChain();
+        chain.setName("chain1");
+        chain.setTenantId(tenant.getId());
+        uri = chainResource.createChain(tenant.getChains(), chain);
+        chain1 = chainResource.getChain(uri);
+
+        chain = new DtoRuleChain();
+        chain.setName("chain2");
+        chain.setTenantId(tenant.getId());
+        uri = chainResource.createChain(tenant.getChains(), chain);
+        chain2 = chainResource.getChain(uri);
 
         // Create router 1
         DtoRouter router = new DtoRouter();
@@ -104,10 +126,25 @@ public class TestPort extends JerseyTest {
         logicalRouterPort.setNetworkAddress("192.168.0.0");
         logicalRouterPort.setNetworkLength(24);
         logicalRouterPort.setPortAddress("192.168.0.1");
+
         uri = portResource.createLogicalRouterPort(router1.getPorts(),
                 logicalRouterPort);
         router1Port2 = portResource.getLogicalRouterPort(uri);
         portResource.verifyNoLink(router1Port2);
+
+        // Create a materialized port on router 1
+        DtoMaterializedRouterPort matRouterPort = new DtoMaterializedRouterPort();
+        matRouterPort.setNetworkAddress("10.0.0.0");
+        matRouterPort.setNetworkLength(24);
+        matRouterPort.setPortAddress("10.0.0.1");
+        matRouterPort.setLocalNetworkAddress("10.0.0.2");
+        matRouterPort.setLocalNetworkLength(32);
+        matRouterPort.setVifId(UUID.randomUUID());
+        matRouterPort.setInboundFilter(chain1.getId());
+        matRouterPort.setOutboundFilter(chain2.getId());
+        uri = portResource.createMaterializedRouterPort(router1.getPorts(),
+                matRouterPort);
+        router1Port3 = portResource.getMaterializedRouterPort(uri);
 
         // Create a logical port on router2
         logicalRouterPort = new DtoLogicalRouterPort();
@@ -147,6 +184,15 @@ public class TestPort extends JerseyTest {
         bridge1Port2 = portResource.getLogicalBridgePort(uri);
         portResource.verifyNoLink(bridge1Port2);
 
+        // Create a materialized port on bridge 1
+        DtoBridgePort matBridgePort = new DtoBridgePort();
+        matBridgePort.setDeviceId(bridge1.getId());
+        matBridgePort.setInboundFilter(chain1.getId());
+        matBridgePort.setOutboundFilter(chain2.getId());
+        uri = portResource.createMaterializedBridgePort(bridge1.getPorts(),
+                matBridgePort);
+        bridge1Port3 = portResource.getMaterializedBridgePort(uri);
+
         // Link router1 and router2
         portResource.linkPorts(router1Port1.getLink(), router2Port1.getId());
 
@@ -170,6 +216,81 @@ public class TestPort extends JerseyTest {
         portResource.verifyLink(router2Port2, bridge1Port2.getId());
         portResource.verifyLink(bridge1Port1, router1Port2.getId());
         portResource.verifyLink(bridge1Port2, router2Port2.getId());
+
+    }
+
+    @Test
+    public void testRemoveAndAddRouterChains() {
+
+        assertEquals(chain1.getId(), router1Port3.getInboundFilter());
+        assertEquals(chain2.getId(), router1Port3.getOutboundFilter());
+        router1Port3.setInboundFilter(null);
+        router1Port3.setOutboundFilter(null);
+        portResource.updatePort(router1Port3.getUri(), router1Port3);
+        router1Port3 = portResource.getMaterializedRouterPort(router1Port3
+                .getUri());
+        assertNull(router1Port3.getInboundFilter());
+        assertNull(router1Port3.getOutboundFilter());
+
+        router1Port3.setInboundFilter(chain2.getId());
+        router1Port3.setOutboundFilter(chain1.getId());
+        portResource.updatePort(router1Port3.getUri(), router1Port3);
+        router1Port3 = portResource.getMaterializedRouterPort(router1Port3
+                .getUri());
+        assertEquals(chain2.getId(), router1Port3.getInboundFilter());
+        assertEquals(chain1.getId(), router1Port3.getOutboundFilter());
+    }
+
+    @Test
+    public void testRemoveAndAddBridgeChains() {
+
+        assertEquals(chain1.getId(), bridge1Port3.getInboundFilter());
+        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilter());
+        bridge1Port3.setInboundFilter(null);
+        bridge1Port3.setOutboundFilter(null);
+        portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
+        bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
+                .getUri());
+        assertNull(bridge1Port3.getInboundFilter());
+        assertNull(bridge1Port3.getOutboundFilter());
+
+        bridge1Port3.setInboundFilter(chain2.getId());
+        bridge1Port3.setOutboundFilter(chain1.getId());
+        portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
+        bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
+                .getUri());
+        assertEquals(chain2.getId(), bridge1Port3.getInboundFilter());
+        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilter());
+    }
+
+    @Test
+    public void testUpdateRouterChains() {
+
+        // Right now we allow directly updating chains
+        assertEquals(chain1.getId(), router1Port3.getInboundFilter());
+        assertEquals(chain2.getId(), router1Port3.getOutboundFilter());
+        router1Port3.setInboundFilter(chain2.getId());
+        router1Port3.setOutboundFilter(chain1.getId());
+        portResource.updatePort(router1Port3.getUri(), router1Port3);
+        router1Port3 = portResource.getMaterializedRouterPort(router1Port3
+                .getUri());
+        assertEquals(chain2.getId(), router1Port3.getInboundFilter());
+        assertEquals(chain1.getId(), router1Port3.getOutboundFilter());
+    }
+
+    @Test
+    public void testUpdateBridgeChains() {
+
+        // Right now we allow directly updating chains
+        assertEquals(chain1.getId(), bridge1Port3.getInboundFilter());
+        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilter());
+        bridge1Port3.setInboundFilter(chain2.getId());
+        bridge1Port3.setOutboundFilter(chain1.getId());
+        portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
+        bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
+                .getUri());
+        assertEquals(chain2.getId(), bridge1Port3.getInboundFilter());
+        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilter());
     }
 
     @Test
@@ -234,16 +355,7 @@ public class TestPort extends JerseyTest {
     }
 
     @Test
-    public void testCreateGetListDeleteMaterializedBridgePort() {
-
-        // Create a bridge port.
-        DtoBridgePort port = new DtoBridgePort();
-        port.setDeviceId(bridge1.getId());
-        URI uri = portResource.createMaterializedBridgePort(bridge1.getPorts(),
-                port);
-
-        DtoBridgePort createdPort = portResource.getMaterializedBridgePort(uri);
-        assertEquals(bridge1.getId(), createdPort.getDeviceId());
+    public void testListDeleteMaterializedBridgePort() {
 
         // List ports
         List<DtoBridgePort> ports = portResource.getBridgePorts(bridge1
@@ -251,30 +363,18 @@ public class TestPort extends JerseyTest {
         assertEquals(3, ports.size());
 
         // Delete the port.
-        portResource.deletePort(uri);
+        portResource.deletePort(bridge1Port3.getUri());
 
         // Make sure it's no longer there
-        port = portResource.getMaterializedBridgePort(uri,
-                NOT_FOUND.getStatusCode());
+        DtoBridgePort port = portResource.getMaterializedBridgePort(
+                bridge1Port3.getUri(), NOT_FOUND.getStatusCode());
         ports = portResource.getBridgePorts(bridge1.getPorts());
         assertEquals(2, ports.size());
-        assertFalse(ports.contains(createdPort));
+        assertFalse(ports.contains(port));
     }
 
     @Test
-    public void testCreateGetListDeleteMaterializedRouterPort() {
-        // Create a router port.
-        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
-        port.setNetworkAddress("10.0.0.0");
-        port.setNetworkLength(24);
-        port.setPortAddress("10.0.0.1");
-        port.setLocalNetworkAddress("10.0.0.2");
-        port.setLocalNetworkLength(32);
-        port.setVifId(UUID.randomUUID());
-        URI uri = portResource.createMaterializedRouterPort(router1.getPorts(),
-                port);
-        DtoMaterializedRouterPort createdPort = portResource
-                .getMaterializedRouterPort(uri);
+    public void testListDeleteMaterializedRouterPort() {
 
         // List ports
         List<DtoRouterPort> ports = portResource.getRouterPorts(router1
@@ -282,13 +382,14 @@ public class TestPort extends JerseyTest {
         assertEquals(3, ports.size());
 
         // Delete the port.
-        portResource.deletePort(uri);
+        portResource.deletePort(router1Port3.getUri());
 
         // Make sure it's no longer there
-        port = portResource.getMaterializedRouterPort(uri,
-                NOT_FOUND.getStatusCode());
+        DtoMaterializedRouterPort port = portResource
+                .getMaterializedRouterPort(router1Port3.getUri(),
+                        NOT_FOUND.getStatusCode());
         ports = portResource.getRouterPorts(router1.getPorts());
         assertEquals(2, ports.size());
-        assertFalse(ports.contains(createdPort));
+        assertFalse(ports.contains(port));
     }
 }

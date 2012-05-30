@@ -248,11 +248,11 @@ public abstract class Port extends UriResource {
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "id=" + id + ", deviceId=" + deviceId;
+        return "id=" + id + ", deviceId=" + deviceId + ", inboundFilter="
+                + inboundFilter + ", outboundFilter=" + outboundFilter;
     }
 }

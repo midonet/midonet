@@ -70,7 +70,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#create(com.midokura.midolman
      * .mgmt.data.dto.Port)
@@ -94,7 +93,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#delete(java.util.UUID)
      */
     @Override
@@ -116,7 +114,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#exists(java.util.UUID)
      */
     @Override
@@ -129,7 +126,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#get(java.util.UUID)
      */
     @Override
@@ -149,7 +145,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#getByAdRoute(java.util.UUID)
      */
@@ -167,7 +162,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#getByBgp(java.util.UUID)
      */
     @Override
@@ -183,7 +177,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#getByVpn(java.util.UUID)
      */
     @Override
@@ -199,7 +192,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#link(java.util.UUID,
      * java.util.UUID)
      */
@@ -248,7 +240,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePorts(java.util
      * .UUID)
@@ -272,7 +263,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePeerPorts(java.
      * util.UUID)
@@ -294,7 +284,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#listRouterPorts(java.util
      * .UUID)
@@ -318,7 +307,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#listRouterPeerPorts(java.
      * util.UUID)
@@ -340,7 +328,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see com.midokura.midolman.mgmt.data.dao.PortDao#unlink(java.util.UUID)
      */
     @Override
@@ -384,7 +371,6 @@ public class PortDaoAdapter implements PortDao {
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.PortDao#update(com.midokura.midolman
      * .mgmt.data.dto.Port)
@@ -393,16 +379,13 @@ public class PortDaoAdapter implements PortDao {
     public void update(Port port) throws StateAccessException {
         log.debug("PortDaoAdapter.update entered: port={}", port);
 
-        // Cannot update logical port
-        if (port.isLogical()) {
-            throw new UnsupportedOperationException(
-                    "Cannot update a logical port");
-        }
-
+        PortConfig config = zkDao.getData(port.getId());
+        config.inboundFilter = port.getInboundFilter();
+        config.outboundFilter = port.getOutboundFilter();
         PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
         mgmtConfig.vifId = port.getAttachmentId(); // null means unplug
 
-        List<Op> ops = opService.buildUpdate(port.getId(), mgmtConfig);
+        List<Op> ops = opService.buildUpdate(port.getId(), mgmtConfig, config);
         zkDao.multi(ops);
 
         log.debug("PortDaoAdapter.update exiting");
