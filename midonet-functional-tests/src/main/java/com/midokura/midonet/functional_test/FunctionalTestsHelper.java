@@ -17,8 +17,8 @@ import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -139,13 +139,7 @@ public class FunctionalTestsHelper {
             .runAndWait();
     }
 
-    protected void removeMidoPort(MaterializedRouterPort port) {
-        if (port != null) {
-            port.delete();
-        }
-    }
-
-    protected void removeMidoPort(LogicalRouterPort port) {
+    protected void removeMidoPort(Port port) {
         if (port != null) {
             port.delete();
         }
