@@ -19,7 +19,6 @@ import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.JumpRule;
 import com.midokura.midolman.rules.LiteralRule;
-import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.util.Net;
@@ -84,7 +83,7 @@ public class Rule extends UriResource {
     private String type = null;
     private String jumpChainName = null;
     private String flowAction = null;
-    private DtoNatTarget[] natTargets = {};
+    private NatTarget[] natTargets = {};
     private int position = 1;
 
     /**
@@ -648,11 +647,11 @@ public class Rule extends UriResource {
         this.flowAction = flowAction;
     }
 
-    public DtoNatTarget[] getNatTargets() {
+    public NatTarget[] getNatTargets() {
         return natTargets;
     }
 
-    public void setNatTargets(DtoNatTarget[] natTargets) {
+    public void setNatTargets(NatTarget[] natTargets) {
         this.natTargets = natTargets;
     }
 
@@ -770,11 +769,11 @@ public class Rule extends UriResource {
         return c;
     }
 
-    private Set<NatTarget> makeTargetsForRule(DtoNatTarget[] natTargets) {
-        Set<NatTarget> targets = new HashSet<NatTarget>(natTargets.length);
+    private Set<com.midokura.midolman.rules.NatTarget> makeTargetsForRule(NatTarget[] natTargets) {
+        Set<com.midokura.midolman.rules.NatTarget> targets = new HashSet<com.midokura.midolman.rules.NatTarget>(natTargets.length);
 
-        for (DtoNatTarget natTarget : natTargets) {
-            NatTarget t = new NatTarget(
+        for (NatTarget natTarget : natTargets) {
+            com.midokura.midolman.rules.NatTarget t = new com.midokura.midolman.rules.NatTarget(
                 Net.convertStringAddressToInt(natTarget.addressFrom),
                 Net.convertStringAddressToInt(natTarget.addressTo),
                 (short) natTarget.portFrom,
@@ -784,14 +783,14 @@ public class Rule extends UriResource {
         return targets;
     }
 
-    private DtoNatTarget[] makeTargetsFromRule(ForwardNatRule natRule) {
-        Set<NatTarget> ruleTargets = natRule.getNatTargets();
+    private NatTarget[] makeTargetsFromRule(ForwardNatRule natRule) {
+        Set<com.midokura.midolman.rules.NatTarget> ruleTargets = natRule.getNatTargets();
 
-        List<DtoNatTarget> targets = new ArrayList<DtoNatTarget>(
+        List<NatTarget> targets = new ArrayList<NatTarget>(
             ruleTargets.size());
 
-        for (NatTarget natTarget : ruleTargets) {
-            DtoNatTarget target = new DtoNatTarget();
+        for (com.midokura.midolman.rules.NatTarget natTarget : ruleTargets) {
+            NatTarget target = new NatTarget();
 
             target.addressFrom =
                 Net.convertIntAddressToString(natTarget.nwStart);
@@ -804,7 +803,7 @@ public class Rule extends UriResource {
             targets.add(target);
         }
 
-        return targets.toArray(new DtoNatTarget[ruleTargets.size()]);
+        return targets.toArray(new NatTarget[ruleTargets.size()]);
     }
 
     public com.midokura.midolman.rules.Rule toZkRule(UUID jumpChainID) {
@@ -815,7 +814,7 @@ public class Rule extends UriResource {
         if (Arrays.asList(Rule.SimpleRuleTypes).contains(type)) {
             r = new LiteralRule(cond, action);
         } else if (Arrays.asList(Rule.NatRuleTypes).contains(type)) {
-            Set<NatTarget> targets =
+            Set<com.midokura.midolman.rules.NatTarget> targets =
                 makeTargetsForRule(this.getNatTargets());
 
             r = new ForwardNatRule(cond, getAction(this.getFlowAction()),
@@ -882,16 +881,16 @@ public class Rule extends UriResource {
         return "dto.Rule: " + toZkRule(null).toString();
     }
 
-    public static class DtoNatTarget {
+    public static class NatTarget {
         public String addressFrom, addressTo;
         public int portFrom, portTo;
 
-        public DtoNatTarget() {
+        public NatTarget() {
         }
 
         @Override
         public String toString() {
-            return "DtoNatTarget{" +
+            return "NatTarget{" +
                 "addressFrom='" + addressFrom + '\'' +
                 ", addressTo='" + addressTo + '\'' +
                 ", portFrom=" + portFrom +

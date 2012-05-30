@@ -36,8 +36,8 @@ public class Rule {
             rule.setType(DtoRule.DNAT);
             rule.setFlowAction(DtoRule.Accept);
             rule.setNatTargets(
-                new DtoRule.NatTarget[]{
-                    new DtoRule.NatTarget(dst.toString(), dst.toString(),
+                new DtoRule.DtoNatTarget[]{
+                    new DtoRule.DtoNatTarget(dst.toString(), dst.toString(),
                                           port, port)
                 });
             return this;
@@ -53,8 +53,8 @@ public class Rule {
             rule.setType(DtoRule.SNAT);
             rule.setFlowAction(DtoRule.Accept);
             rule.setNatTargets(
-                new DtoRule.NatTarget[]{
-                    new DtoRule.NatTarget(src.toString(), src.toString(),
+                new DtoRule.DtoNatTarget[]{
+                    new DtoRule.DtoNatTarget(src.toString(), src.toString(),
                                           port, port)
                 });
             return this;

@@ -29,6 +29,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midolman.packets.ARP;
 
+import static com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
@@ -62,8 +63,9 @@ public class TestRule extends JerseyTest {
 		tenant.setId(testTenantName);
 
 		resource = resource().path("tenants");
-		response = resource.type(APPLICATION_TENANT_JSON).post(
-				ClientResponse.class, tenant);
+		response = resource.type(APPLICATION_TENANT_JSON)
+                           .post(ClientResponse.class, tenant);
+
 		log.debug("status: {}", response.getStatus());
 		log.debug("location: {}", response.getLocation());
 		assertEquals(201, response.getStatus());
@@ -119,9 +121,9 @@ public class TestRule extends JerseyTest {
 		DtoRule dnatRule = new DtoRule();
 		log.debug("type rule: {}", Rule.class);
 		UUID[] inPorts = new UUID[] { UUID.randomUUID() };
-        DtoRule.NatTarget []natTargets = new DtoRule.NatTarget[] {
-            new DtoRule.NatTarget("192.168.100.1", "192.168.100.6", 80, 8080),
-            new DtoRule.NatTarget("192.168.100.7", "192.168.100.10", 8081, 8089)
+        DtoNatTarget[]natTargets = new DtoNatTarget[] {
+            new DtoNatTarget("192.168.100.1", "192.168.100.6", 80, 8080),
+            new DtoNatTarget("192.168.100.7", "192.168.100.10", 8081, 8089)
         };
 
 		dnatRule.setCondInvert(true);
