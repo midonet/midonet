@@ -32,6 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.ForwardingElement.ForwardInfo;
 
 
@@ -42,10 +44,12 @@ public class TestCondition {
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
     private ForwardInfo fwdInfo;
+    private DummyCache connCache;
 
     static {
         objectMapper.setVisibilityChecker(objectMapper.getVisibilityChecker()
-                                              .withFieldVisibility(Visibility.ANY));
+                                              .withFieldVisibility(
+                                                  Visibility.ANY));
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
@@ -55,9 +59,10 @@ public class TestCondition {
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
+        pktMatch.setDataLayerType(IPv4.ETHERTYPE);
         pktMatch.setNetworkSource(0x0a001406, 32);
         pktMatch.setNetworkDestination(0x0a000b22, 32);
-        pktMatch.setNetworkProtocol((byte) 8);
+        pktMatch.setNetworkProtocol((byte) 6);
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource((short) 4321);
         pktMatch.setTransportDestination((short) 1234);
@@ -66,7 +71,9 @@ public class TestCondition {
 
     @Before
     public void setUp() {
-        fwdInfo = new ForwardInfo(false, null, null);
+        connCache = new DummyCache();
+        fwdInfo = new ForwardInfo(false, connCache, UUID.randomUUID());
+        fwdInfo.flowMatch = pktMatch;
     }
 
     @Test
@@ -164,7 +171,7 @@ public class TestCondition {
         cond.nwProtoInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwProtoInv = false;
-        cond.nwProto = 8;
+        cond.nwProto = 6;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwProtoInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -300,6 +307,37 @@ public class TestCondition {
     }
 
     @Test
+    public void testFwdFlow() {
+        Condition cond = new Condition();
+        fwdInfo.inPortId = UUID.randomUUID();
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertFalse(fwdInfo.isConnTracked());
+        cond.matchForwardFlow = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertTrue(fwdInfo.isConnTracked());
+        cond.matchReturnFlow = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.matchForwardFlow = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testReturnFlow() {
+        Condition cond = new Condition();
+        fwdInfo.inPortId = UUID.randomUUID();
+        connCache.setStoredValue("r");
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertFalse(fwdInfo.isConnTracked());
+        cond.matchForwardFlow = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertTrue(fwdInfo.isConnTracked());
+        cond.matchReturnFlow = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.matchForwardFlow = false;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
         Set<UUID> ids = new HashSet<UUID>();
@@ -321,5 +359,15 @@ public class TestCondition {
         Condition c = jsonParser.readValueAs(Condition.class);
         in.close();
         Assert.assertTrue(cond.equals(c));
+    }
+
+    static class DummyCache implements Cache {
+        public void set(String key, String value) { }
+        public String get(String key) { return storedValue; }
+        public String getAndTouch(String key) { return storedValue; }
+        public int getExpirationSeconds() { return 0; }
+        public void setStoredValue(String value) { storedValue = value; }
+
+        private String storedValue = null;
     }
 }
