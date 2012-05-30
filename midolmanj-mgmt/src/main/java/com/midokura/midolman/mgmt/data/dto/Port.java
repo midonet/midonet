@@ -18,7 +18,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Class representing port.
@@ -208,15 +207,6 @@ public abstract class Port extends UriResource {
     }
 
     /**
-     * Convert this object to ZkNodeEntry
-     *
-     * @return ZkNodeEntry
-     */
-    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
-        return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
-    }
-
-    /**
      * @return whether this port is a logical port
      */
     @XmlTransient
@@ -227,6 +217,55 @@ public abstract class Port extends UriResource {
      */
     @XmlTransient
     public abstract UUID getAttachmentId();
+
+    /**
+     * @param port
+     *            Port to check linkability with.
+     * @return True if two ports can be linked.
+     */
+    @XmlTransient
+    public boolean isLinkable(Port port) {
+
+        if (port == null) {
+            throw new IllegalArgumentException("port cannot be null");
+        }
+
+        // Must be two logical ports
+        if (!isLogical() || !port.isLogical()) {
+            return false;
+        }
+
+        // IDs must be set
+        if (id == null || port.getId() == null) {
+            return false;
+        }
+
+        // IDs must not be the same
+        if (id == port.getId()) {
+            return false;
+        }
+
+        // Cannot link two bridges
+        if (!isRouterPort() && !port.isRouterPort()) {
+            return false;
+        }
+
+        // If two routers, must be on separate devices
+        if (isRouterPort() && port.isRouterPort()) {
+            if (deviceId == port.getDeviceId()) {
+                return false;
+            }
+        }
+
+        // Finally, both ports must be unlinked
+        return (getAttachmentId() == null && port.getAttachmentId() == null);
+    }
+
+    /**
+     * @return True if it's a router port. False if it's a bridge port.
+     */
+    @XmlTransient
+    public abstract boolean isRouterPort();
 
     /**
      * @param id
@@ -248,6 +287,7 @@ public abstract class Port extends UriResource {
 
     /*
      * (non-Javadoc)
+     *
      * @see java.lang.Object#toString()
      */
     @Override

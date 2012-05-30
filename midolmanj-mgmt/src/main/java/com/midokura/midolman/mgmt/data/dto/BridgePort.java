@@ -9,9 +9,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Class representing a bridge port.
@@ -56,16 +54,6 @@ public abstract class BridgePort extends Port {
     }
 
     /**
-     * Convert this object to ZkNodeEntry object.
-     *
-     * @return ZkNodeEntry object.
-     */
-    @Override
-    public ZkNodeEntry<UUID, PortConfig> toZkNode() {
-        return new ZkNodeEntry<UUID, PortConfig>(id, toConfig());
-    }
-
-    /**
      * @return the bridge URI
      */
     @Override
@@ -75,5 +63,10 @@ public abstract class BridgePort extends Port {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public boolean isRouterPort() {
+        return false;
     }
 }

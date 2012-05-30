@@ -136,6 +136,11 @@ public abstract class RouterPort extends Port {
         config.portAddr = Net.convertStringAddressToInt(this.portAddress);
     }
 
+    @Override
+    public boolean isRouterPort() {
+        return true;
+    }
+
     /*
      * (non-Javadoc)
      *
