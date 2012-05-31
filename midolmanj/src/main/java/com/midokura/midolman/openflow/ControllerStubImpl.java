@@ -554,7 +554,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         log.debug("sendFlowModAdd");
         if (nxm_enabled) {
             sendNxFlowModAdd(
-                    MatchTranslation.toNxMatch(match, matchingTunnelId, cookie),
+                    MatchTranslation.toNxMatch(match, matchingTunnelId, 0),
                     cookie, idleTimeoutSecs, hardTimeoutSecs, priority,
                     bufferId, sendFlowRemove, checkOverlap, emergency, actions);
             return;
