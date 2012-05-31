@@ -6,9 +6,9 @@ package com.midokura.midonet.functional_test.openflow;
 
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.openflow.protocol.statistics.OFTableStatistics;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TableStats {
 
@@ -51,22 +51,25 @@ public class TableStats {
             if (tableId == tStat.tableId)
                 return tStat;
         }
-        Assert.fail("Did not find a TableStats with the same tableId.");
+        assertThat("Did not find a TableStats with the same tableId.", false);
         return this;
     }
 
     public TableStats expectActive(int i) {
-        Assert.assertEquals(i, stat.getActiveCount());
+        assertThat("We should have the expected number of active entries",
+                   stat.getActiveCount(), is(i));
         return this;
     }
 
     public TableStats expectLookups(int i) {
-        Assert.assertEquals(i, stat.getLookupCount());
+        assertThat("We should have the expected number of lookups counts",
+                   stat.getLookupCount(), is((long)i));
         return this;
     }
 
     public TableStats expectMatches(int i) {
-        Assert.assertEquals(i, stat.getMatchedCount());
+        assertThat("We should have the expected number of matches count",
+                   stat.getMatchedCount(), is((long)i));
         return this;
     }
 

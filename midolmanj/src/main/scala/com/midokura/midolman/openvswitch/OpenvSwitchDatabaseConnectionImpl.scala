@@ -23,8 +23,6 @@ import java.math.BigInteger
 import java.net.{Socket, SocketException}
 import java.util.{UUID, Timer, TimerTask}
 
-import com.fasterxml.jackson.module.scala.ScalaModule
-import org.codehaus.jackson.{JsonNode, JsonFactory}
 import org.codehaus.jackson.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode}
 import org.codehaus.jackson.map.ObjectMapper
 import org.openflow.protocol.OFPort
@@ -34,6 +32,8 @@ import OpenvSwitchDatabaseConsts._
 import java.io._
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue, ConcurrentHashMap}
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.codehaus.jackson.{JsonParser, JsonNode, JsonFactory}
 
 /**
  * Static methods and constants for OpenvSwitchDatabaseConnection.
@@ -147,8 +147,7 @@ object OpenvSwitchDatabaseConnectionImpl {
             node <- ovsMap.get(1)
             key = node.get(0) if key != null
             value = node.get(1) if value != null
-        } yield (key.getValueAsText,
-                 value)).toMap[String, JsonNode]
+        } yield (key.asText, value)).toMap[String, JsonNode]
      }
 
     /**
@@ -176,7 +175,7 @@ object OpenvSwitchDatabaseConnectionImpl {
                                      tx: Transaction,
                                      select: (String, List[List[_]],
                                               List[String]) => JsonNode) {
-        dbt(bridgeUUID, ports, tx, select);
+        dbt(bridgeUUID, ports, tx, select)
     }
 
     // Short name to avoid "File name too long" error for .class of nested
@@ -432,7 +431,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     private var nextRequestid = 0
     private val pendingJsonRpcRequests: mutable.ConcurrentMap[Long, BlockingQueue[JsonNode]] =
         new ConcurrentHashMap[Long, BlockingQueue[JsonNode]]()
-    private val objectMapper = new ObjectMapper().withModule(new ScalaModule())
+    private val objectMapper = new ObjectMapper().withModule(new DefaultScalaModule())
     private val jsonFactory = new JsonFactory(objectMapper)
     private val factory = JsonNodeFactory.instance
     private val socket = new Socket(addr, port)
@@ -507,10 +506,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             var responseId: Int = -1
             try {
                 response = queue.take
-                if (response.get("id").getValueAsText == OVSDBConnectionLostId)
+                if (response.get("id").asText == OVSDBConnectionLostId)
                     throw new OVSDBException(
                         "The connection to OVSDB has been lost.")
-                responseId = response.get("id").getValueAsInt
+                responseId = response.get("id").asInt
             } catch {
                 case e: InterruptedException => {
                     stop
@@ -582,16 +581,21 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     override def run() {
+        jsonParser
         while (continue) {
             try {
                 val json = jsonParser.readValueAsTree
+
+                if (json == null) {
+                    throw new IOException(OVSDBConnectionLostId)
+                }
 
                 if (json.get("result") != null) {
                     val id = json.get("id")
                     assume(id != null, "Invalid JSON object.")
                     // Ignore echo response.
                     if (id.getTextValue != "echo") {
-                        val requestId = json.get("id").getValueAsInt
+                        val requestId = json.get("id").asInt
                         pendingJsonRpcRequests.get(requestId) match {
                             // Pass the JSON object to the caller, and
                             // notify it.
@@ -865,7 +869,8 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             extends GrePortBuilder {
         private var ifRow: Map[String, String] =
             Map(ColumnType -> InterfaceTypeGre, ColumnName -> portName)
-        private var portRow: Map[String, String] = Map(ColumnName -> portName)
+
+        private val portRow: Map[String, String] = Map(ColumnName -> portName)
 
         private var ifOptions: Map[String, _] = Map(ColumnRemoteIp -> remoteIp)
         private var portExternalIds = Map[String, String]()
@@ -991,7 +996,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         override def externalId(key: String, value: String) =
             { qosExternalIds = Some(qosExternalIds.get + (key -> value)); this }
         override def maxRate(maxRate: Int) = {
-            qosOtherConfig = Some(qosOtherConfig.get + (ColumnMaxRate -> maxRate));
+            qosOtherConfig = Some(qosOtherConfig.get + (ColumnMaxRate -> maxRate))
             this
         }
         override def queues(queueUUIDs:
@@ -1171,7 +1176,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                         ifOptions: Option[Map[String, _]],
                         portExternalIds: Option[Map[String, _]]) = {
         log.debug("addPort({}, {}, {}, {}, {})", Array[Object](bridgeUUID,
-                  ifRow, portRow, ifOptions, portExternalIds));
+                  ifRow, portRow, ifOptions, portExternalIds))
         val tx = new Transaction(database)
         val ifUUID: String = generateUUID
         var portRowUpdated: Map[String, Any] = portRow
@@ -1507,7 +1512,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      */
     def delAllOpenflowControllers() = {
         val controllerRows = select(TableController, List(), List(ColumnUUID))
-        var tx = new Transaction(database)
+        val tx = new Transaction(database)
         for { row <- controllerRows } {
             log.info("delAllOpenflowControllers: {}", row)
             tx.delete(TableController,
@@ -1525,7 +1530,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         val controllerRows = select(
             TableController, List(List(ColumnTarget, "==", target)),
             List(ColumnUUID))
-        var tx = new Transaction(database)
+        val tx = new Transaction(database)
         for { row <- controllerRows } {
             log.info("delTargetOpenflowControllers: {}", row)
             tx.delete(TableController,
@@ -1601,7 +1606,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     def dumpInterfaceTable(): Iterable[(String, String)] = {
-        val interfaceRows = select(TableInterface, List(), List(ColumnUUID, ColumnName));
+        val interfaceRows = select(TableInterface, List(), List(ColumnUUID, ColumnName))
 
         for {
             row <- interfaceRows
@@ -1612,7 +1617,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
 
     def dumpBridgeTable(): Iterable[(String, String, JsonNode)] = {
         val bridgeRows = select(TableBridge, List(),
-                                List(ColumnUUID, ColumnName, ColumnPorts));
+                                List(ColumnUUID, ColumnName, ColumnPorts))
         for {
             row <- bridgeRows
             jsonName = row.get(ColumnName)
@@ -1622,13 +1627,13 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     def delInterface(interfaceUuid: String) {
-        var tx = new Transaction(database)
+        val tx = new Transaction(database)
         tx.delete(TableInterface, Some(interfaceUuid))
         doJsonRpc(tx)
     }
 
     def dumpQosTable(): Iterable[(String, String, JsonNode)] = {
-        val interfaceRows = select(TableQos, List(), List(ColumnUUID, ColumnType, ColumnExternalIds));
+        val interfaceRows = select(TableQos, List(), List(ColumnUUID, ColumnType, ColumnExternalIds))
 
         for {
             row <- interfaceRows
@@ -1782,7 +1787,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         for {
             bridgeRow <- bridgeRows
             datapathId = bridgeRow.get(ColumnDatapathId) if datapathId != null
-        } return datapathId.getValueAsText
+        } return datapathId.asText
 
         ""
     }
@@ -1886,7 +1891,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
                                    whereUUIDEquals(ifUUIDVal.getTextValue),
                                    List(ColumnUUID, ColumnOfPort)).get(0)
                         if (ifRow != null
-                          && ifRow.get(ColumnOfPort).getValueAsInt == portNum) {
+                          && ifRow.get(ColumnOfPort).asInt == portNum) {
                           assume(ifRow.get(ColumnOfPort) != null,
                             "Invalid JSON object.")
                           assume(portRow.get(ColumnExternalIds) != null,
@@ -2034,7 +2039,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param qosUUID The UUID of the QoS to delete.
      */
     override def delQos(qosUUID: String) {
-        delQos(qosUUID, false)
+        delQos(qosUUID, deleteQueues = false)
     }
 
     /**
@@ -2111,7 +2116,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @param portName The name of the port to be added.
      */
     override def unsetPortQos(portName: String) {
-        clearQos(portName, false)
+        clearQos(portName, deleteQos = false)
     }
 
 
@@ -2319,7 +2324,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         if (ifRows.isEmpty)
             throw new NotFoundException("no port with id " + ifUUID)
         for (ifRow <- ifRows) {
-            val ofPort = ifRow.get(ColumnOfPort).getValueAsInt
+            val ofPort = ifRow.get(ColumnOfPort).asInt
             return ofPort.toShort
         }
 
@@ -2340,7 +2345,7 @@ extends OpenvSwitchDatabaseConnection with Runnable {
         for { portRow <- portRows
              _uuid = portRow.get(ColumnUUID) if _uuid != null
              portUUID = _uuid.get(1) if portUUID != null
-        } return portUUID.getValueAsText
+        } return portUUID.asText
 
         ""
     }
@@ -2395,12 +2400,10 @@ extends OpenvSwitchDatabaseConnection with Runnable {
             throw new NotFoundException("no qos with UUID " + qosUUID)
         for {
             qosRow <- qosRows if qosRow != null
-            val queues: Map[String, JsonNode] =
-                ovsMapToMap(qosRow.get(ColumnQueues)) if queues != null
+            val queues = ovsMapToMap(qosRow.get(ColumnQueues)) if queues != null
         } {
             // filter by the UUID and get the key which means the port number
-            return queues.filter(
-                    _._2.get(1).getValueAsText == queueUUID).head._1.toInt
+            return queues.filter(_._2.get(1).asText == queueUUID).head._1.toInt
         }
 
         -1

@@ -11,14 +11,13 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class TestSelectLoop {
@@ -62,14 +61,14 @@ public class TestSelectLoop {
     }
 
     private Thread startReactorThread() {
-        Thread reactorThread = new Thread(new Runnable() { 
-                                   public void run() { 
+        Thread reactorThread = new Thread(new Runnable() {
+                                   public void run() {
                                        log.debug("Entering reactor thread");
-                                       try { 
+                                       try {
                                            reactor.doLoop();
                                            reactorFinished.value = true;
-                                       } catch (Exception e) { 
-                                           reactorThrew.value = true; 
+                                       } catch (Exception e) {
+                                           reactorThrew.value = true;
                                        }
                                    }
                                });
@@ -78,7 +77,7 @@ public class TestSelectLoop {
     }
 
     @Test
-    public void testRegisterDuringSelect() 
+    public void testRegisterDuringSelect()
                 throws InterruptedException, IOException {
         final BooleanBox noExceptions = new BooleanBox();
         noExceptions.value = false;
@@ -115,7 +114,7 @@ public class TestSelectLoop {
     }
 
     @Test
-    public void testSubmitDuringEvent() 
+    public void testSubmitDuringEvent()
             throws IOException, InterruptedException, ClosedChannelException {
         log.debug("Entering testSubmitDuringEvent");
         final BooleanBox submitHasRun = new BooleanBox();
@@ -131,8 +130,8 @@ public class TestSelectLoop {
                         try {
                             reactor.submit(
                                 new Runnable() {
-                                    public void run() { 
-                                        submitHasRun.value = true; 
+                                    public void run() {
+                                        submitHasRun.value = true;
                                     }
                                 });
                             ByteBuffer recvbuf = ByteBuffer.allocate(8);
@@ -160,15 +159,15 @@ public class TestSelectLoop {
     }
 
     @Test
-    public void testEventDuringSubmit() 
+    public void testEventDuringSubmit()
                 throws ClosedChannelException, InterruptedException {
         final BooleanBox eventHasRun = new BooleanBox();
         final BooleanBox somethingBroke = new BooleanBox();
         eventHasRun.value = false;
         somethingBroke.value = false;
         startReactorThread();
-        
-        SelectListener listener = 
+
+        SelectListener listener =
                         new SelectListener() {
                             public void handleEvent(SelectionKey key) {
                                 try {
@@ -220,7 +219,7 @@ public class TestSelectLoop {
             public void handleEvent(SelectionKey key) {
                 try {
                     hasRun.value = true;
-                    ScatteringByteChannel channel = 
+                    ScatteringByteChannel channel =
                                 (ScatteringByteChannel) key.channel();
                     channel.read(ByteBuffer.allocate(8));
                     Thread.sleep(30);
@@ -238,7 +237,7 @@ public class TestSelectLoop {
         pipe2.sink().write(message);
         reactor.register(channel1, SelectionKey.OP_READ, listener1);
         reactor.register(channel2, SelectionKey.OP_READ, listener2);
-        
+
         startReactorThread();
         Thread.sleep(30);
         assertTrue(event1HasRun.value ^ event2HasRun.value);

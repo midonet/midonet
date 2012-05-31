@@ -64,6 +64,7 @@
                 </dependencies>
 
                 <configuration>
+                    <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
                 </configuration>
             </plugin>
@@ -94,7 +95,7 @@
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
-            <version>1.8</version>
+            <version>${versions.commons.config}</version>
         </dependency>
 
         <dependency>
@@ -124,7 +125,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
+            <version>${versions.junit}</version>
             <scope>test</scope>
         </dependency>
 
@@ -156,10 +157,15 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.1.1</version>
+            <version>${versions.testng}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
     </dependencies>
 
     <profiles>

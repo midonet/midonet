@@ -39,7 +39,7 @@ object TestDummyOVSDB {
         val socket = new Socket(localhost, portNum)
         val outStream = socket.getOutputStream
         outStream.write(request.getBytes("ASCII"))
-        var buf = new Array[Byte](100)
+        val buf = new Array[Byte](100)
         val inStream = socket.getInputStream
         val bytesRead = inStream.read(buf)
         val response = new String(buf, 0, bytesRead, "ASCII")
@@ -147,10 +147,9 @@ private class OVSDBImmediatelyDisconnects(sokket: Socket)
                 extends DummyOVSDBServerConn(sokket) {
     override def handleTransact(params: String, id: String) {
         if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
-            log.info("Closing socket")
-            socket.shutdownOutput
-            socket.shutdownInput
-            socket.close
+            socket.shutdownOutput()
+            socket.shutdownInput()
+            socket.close()
         } else {
             super.handleTransact(params, id)
         }
@@ -162,7 +161,7 @@ private class OVSDBGracefullyDisconnects(sokket: Socket)
     override def handleTransact(params: String, id: String) {
         if (params == """["Open_vSwitch",{"op":"select","table":"Bridge","where":[],"columns":["_uuid","name","ports"]}]""") {
             log.info("shutting down my half of socket")
-            socket.shutdownOutput
+            socket.shutdownOutput()
         } else {
             super.handleTransact(params, id)
         }

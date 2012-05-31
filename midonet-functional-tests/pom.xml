@@ -211,18 +211,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml</groupId>
-            <artifactId>jackson-module-scala</artifactId>
-            <version>0.5.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.openflow</groupId>
             <artifactId>openflowj</artifactId>
             <version>1.0.0</version>
@@ -235,15 +223,9 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
-            <version>1.2</version>
+            <version>${versions.commons.cli}</version>
         </dependency>
 
         <dependency>
@@ -261,26 +243,19 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.9.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>1.9.1</version>
-            <type>jar</type>
+            <version>${versions.jersey}</version>
         </dependency>
 
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-grizzly2</artifactId>
-            <version>1.9.1</version>
+            <version>${versions.jersey}</version>
         </dependency>
 
         <dependency>
             <groupId>com.sun.jersey.jersey-test-framework</groupId>
             <artifactId>jersey-test-framework-grizzly2</artifactId>
-            <version>1.9.1</version>
+            <version>${versions.jersey}</version>
             <exclusions>
                 <exclusion>
                     <groupId>junit</groupId>
@@ -328,51 +303,27 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
+            <version>${versions.junit}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.1.1</version>
+            <version>${versions.testng}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
 
 
     <profiles>
-        <!--
-            This allows proper dependency resolution between the functional tests and the classes in the midolmanj-mgmt.jar
-            when running the build like:
-
-                mvn -DjustFunctionalTests test -Dtest=XXXTest
-
-            We are actually dependent on a war file and when maven resolves the
-            jar dependency it will always look into the local repository and
-            this means we always need to run mvn install before running a
-            functional test. This allows as to fix that by forcing a proper
-            local dependency of the mgmt jar when running with this profile.
-            Note that maven3 will complain about this.
-        -->
-        <profile>
-            <id>functional-tests</id>
-            <activation>
-                <property>
-                    <name>justFunctionalTests</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.midokura</groupId>
-                    <artifactId>midolmanj-mgmt</artifactId>
-                    <version>12.06-SNAPSHOT</version>
-                    <scope>system</scope>
-                    <systemPath>${project.basedir}/../midolmanj-mgmt/target/midolmanj-mgmt-12.06-SNAPSHOT.jar</systemPath>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>skip-functional-tests</id>
             <activation>

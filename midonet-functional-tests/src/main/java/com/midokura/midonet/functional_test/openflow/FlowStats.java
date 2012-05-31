@@ -4,17 +4,19 @@
 
 package com.midokura.midonet.functional_test.openflow;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
-
-import junit.framework.Assert;
 
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.action.OFActionType;
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class FlowStats {
     OFMatch match;
@@ -57,37 +59,36 @@ public class FlowStats {
             if (match.equals(fStat.match))
                 return fStat;
         }
-        Assert.fail("Did not find a FlowStats with the same match.");
+        assertThat("Did not find a FlowStats with the same match.", false);
         return this;
     }
 
-    public FlowStats expectCount(int i) {
-        Assert.assertEquals(i, stat.getPacketCount());
+    public FlowStats expectCount(long i) {
+        assertThat(stat.getPacketCount(), is(i));
         return this;
     }
 
     public FlowStats expectOutputActions(Set<Short> portNums) {
         List<OFAction> actions = stat.getActions();
-        Assert.assertTrue(actions.size() >= portNums.size());
+        assertThat(actions.size(), greaterThanOrEqualTo(portNums.size()));
         Set<Short> actual = new HashSet<Short>();
         for (int i = 1; i <= portNums.size(); i++) {
             OFAction act = actions.get(actions.size() - i);
-            Assert.assertEquals(OFActionType.OUTPUT, act.getType());
+            assertThat(act.getType(), is(OFActionType.OUTPUT));
             OFActionOutput outAct = OFActionOutput.class.cast(act);
-            actual.add(new Short(outAct.getPort()));
+            actual.add(outAct.getPort());
         }
-        Assert.assertEquals(portNums, actual);
+        assertThat(actual, is(portNums));
         return this;
     }
 
     public FlowStats expectOutputAction(short portNum) {
         List<OFAction> actions = stat.getActions();
-        Assert.assertTrue(actions.size() > 0);
+        assertThat(actions.size(), greaterThan(0));
         OFAction act = actions.get(actions.size() - 1);
-        Assert.assertEquals(OFActionType.OUTPUT, act.getType());
+        assertThat(act.getType(), is(OFActionType.OUTPUT));
         OFActionOutput outAct = OFActionOutput.class.cast(act);
-        Assert.assertEquals(portNum, outAct.getPort());
+        assertThat(outAct.getPort(), is(portNum));
         return this;
     }
-
 }

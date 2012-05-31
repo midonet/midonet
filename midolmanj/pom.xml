@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instMidolmance"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -62,6 +62,7 @@
                         <configuration>
                             <args>
                                 <arg>-deprecation</arg>
+                                <arg>-unchecked</arg>
                                 <arg>-dependencyfile</arg>
                                 <arg>
                                     ${project.build.directory}/.scala_dependencies
@@ -282,6 +283,7 @@
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
+                    <check/>
                     <formats>
                         <format>xml</format>
                         <format>html</format>
@@ -302,6 +304,14 @@
                         </goals>
                         <configuration>
                             <excludeGroupIds>com.midokura</excludeGroupIds>
+                            <!--
+                            Use this to avoid copying libraries that are
+                            in the test scope. Normally one would do
+                                excludeScope test
+                            but this doesn't seem to work properly so we are
+                            forced to express it like this.
+                            -->
+                            <includeScope>runtime</includeScope>
                             <outputDirectory>
                                 ${project.build.directory}/dep/
                             </outputDirectory>
@@ -315,6 +325,7 @@
                         </goals>
                         <configuration>
                             <includeGroupIds>com.midokura</includeGroupIds>
+                            <includeScope>runtime</includeScope>
                             <outputDirectory>
                                 ${project.build.directory}/dep-midokura/
                             </outputDirectory>
@@ -358,6 +369,10 @@
                 <exclusion>
                     <groupId>javax.servlet</groupId>
                     <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
                 </exclusion>
           </exclusions>
         </dependency>
@@ -432,7 +447,7 @@
         <dependency>
             <groupId>com.fasterxml</groupId>
             <artifactId>jackson-module-scala</artifactId>
-            <version>0.5.0</version>
+            <version>${versions.jackson}</version>
             <exclusions>
                 <exclusion>
                     <groupId>junit</groupId>
@@ -487,7 +502,7 @@
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
-            <version>1.6</version>
+            <version>${versions.commons.config}</version>
         </dependency>
 
         <dependency>
@@ -517,7 +532,7 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.9.1-1</version>
+            <version>${versions.scala.library}</version>
         </dependency>
 
         <dependency>
@@ -535,33 +550,33 @@
         <dependency>
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>2.1.2</version>
+            <version>${versions.yammer.metrics}</version>
         </dependency>
 
         <dependency>
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-ganglia</artifactId>
-            <version>2.1.2</version>
+            <version>${versions.yammer.metrics}</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
+            <version>${versions.junit}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.1.1</version>
+            <version>${versions.testng}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>2.1.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

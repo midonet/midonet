@@ -15,10 +15,10 @@ object DummyOVSDB {
     val defaultPort = 12343
 }
 
-class DummyOVSDB(val port:Int=DummyOVSDB.defaultPort) {
+class DummyOVSDB(val port: Int = DummyOVSDB.defaultPort) {
     private val listenSocket = new ServerSocket(port)
     final val log = LoggerFactory.getLogger(classOf[DummyOVSDB])
-    
+
     def accept[T <: DummyOVSDBServerConn](clazz: Class[T]): T = {
         try {
             log.info("Waiting for connection...")
@@ -29,7 +29,7 @@ class DummyOVSDB(val port:Int=DummyOVSDB.defaultPort) {
             val connobj = constructor.newInstance(acceptSocket)
             log.info("New connection object constructed.")
             return connobj
-        } catch { 
+        } catch {
             case e: InvocationTargetException => {
                 val d = e.getCause
                 log.error("constructor threw {} {}", d.getMessage, d)
@@ -42,7 +42,9 @@ class DummyOVSDB(val port:Int=DummyOVSDB.defaultPort) {
         }
     }
 
-    def close() { listenSocket.close }
+    def close() {
+        listenSocket.close()
+    }
 }
 
 
@@ -59,28 +61,35 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
 
     def loop(): Nothing = {
         log.info("Entering loop()")
-        var buf = new Array[Byte](bufSize)
-    
+        val buf = new Array[Byte](bufSize)
+
         while (continue) {
             log.info("Waiting for data from socket...")
             val bytesRead = inStream.read(buf)
             log.info("Got {} bytes from socket.", bytesRead)
-            val message = new String(buf, 0, bytesRead, "ASCII")
 
-            log.info("Received message: {}", message)
-            message match {
-                case requestRE("echo", params, id) => 
-                        handleEcho(params, id)
-                case requestRE("transact", params, id) => 
-                        handleTransact(params, id)
-                case requestRE("die", _, _) =>  {
-                    socket.close
+            bytesRead match {
+                case -1 | 0 =>
+                    log.error("Assumming a closed socket.")
                     continue = false
-                    throw new RuntimeException("Dying by request")
-                }
                 case _ => {
-                    log.error("Unknown message type received: '{}'", message)
-                    continue = false
+                    val message = new String(buf, 0, bytesRead, "ASCII")
+                    log.info("Received message: {}", message)
+                    message match {
+                        case requestRE("echo", params, id) =>
+                            handleEcho(params, id)
+                        case requestRE("transact", params, id) =>
+                            handleTransact(params, id)
+                        case requestRE("die", _, _) => {
+                            socket.close()
+                            continue = false
+                            throw new RuntimeException("Dying by request")
+                        }
+                        case _ => {
+                            log.error("Unknown message type received: '{}'", message)
+                            continue = false
+                        }
+                    }
                 }
             }
         }
@@ -88,15 +97,15 @@ class DummyOVSDBServerConn(protected var socket: Socket) {
     }
 
     def handleEcho(params: String, id: String) {
-        outStream.write(String.format("""{"id":%s,"error":null,"result":%s}""",
-                                      id, params).getBytes("ASCII"))
+        outStream.write(String.format( """{"id":%s,"error":null,"result":%s}""",
+            id, params).getBytes("ASCII"))
     }
 
     def handleTransact(params: String, id: String) {
         val opRE = """\["Open_vSwitch",\{"op":"([a-z]+)","table":"([a-zA-Z]+)",(.*)\}\]""".r
         params match {
             case opRE("select", unusedTable, unusedCdr) =>
-                outStream.write(String.format("""{"id":%s,"error":null,"result":[{"rows":[]}]}""", id).getBytes("ASCII"))
+                outStream.write(String.format( """{"id":%s,"error":null,"result":[{"rows":[]}]}""", id).getBytes("ASCII"))
             case _ => {
                 log.error("Unknown transact type received: {}", params)
             }

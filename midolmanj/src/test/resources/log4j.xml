@@ -6,9 +6,13 @@
     <appender name="console" class="org.apache.log4j.ConsoleAppender">
         <param name="Target" value="System.out"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p %c{1} - %m%n"/>
+            <param name="ConversionPattern" value="%r - %-5p %c{1} - %m%n"/>
         </layout>
     </appender>
+
+    <logger name="com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl">
+        <level value="debug" />
+    </logger>
 
     <logger name="org.apache.cassandra">
         <level value="info"/>

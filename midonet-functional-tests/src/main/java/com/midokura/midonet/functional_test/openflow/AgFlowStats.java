@@ -4,10 +4,10 @@
 
 package com.midokura.midonet.functional_test.openflow;
 
-import junit.framework.Assert;
-
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class AgFlowStats {
     OFMatch match;
@@ -22,12 +22,12 @@ public class AgFlowStats {
     }
 
     public AgFlowStats expectFlowCount(int i) {
-        Assert.assertEquals(i, stat.getFlowCount());
+        assertThat(stat.getFlowCount(), is(i));
         return this;
     }
 
-    public AgFlowStats expectPktCount(int i) {
-        Assert.assertEquals(i, stat.getPacketCount());
+    public AgFlowStats expectPktCount(long i) {
+        assertThat(stat.getPacketCount(), is(i));
         return this;
     }
 
