@@ -115,6 +115,14 @@ public class BridgePortDeleteTest {
         stopMidolmanMgmt(mgmt);
     }
 
+    private void sendPacket(byte[] pkt, TapWrapper fromTap,
+                            TapWrapper[] toTaps) {
+        assertThat("The ARP packet was sent properly.", fromTap.send(pkt));
+        for (TapWrapper dstTap : toTaps)
+            assertThat("The received packet is the same as the one sent",
+                    dstTap.recv(), equalTo(pkt));
+    }
+
     @Test
     public void testPortDelete() throws InterruptedException {
         // Use different MAC addrs from other tests (unlearned MACs).
@@ -124,11 +132,7 @@ public class BridgePortDeleteTest {
 
         // Send broadcast from Mac1/port1.
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
-        assertThat("The ARP packet was sent properly.", tap1.send(pkt));
-        assertThat("The received packet is the same as the one sent",
-                   tap2.recv(), equalTo(pkt));
-        assertThat("The received packet is the same as the one sent",
-                   tap3.recv(), equalTo(pkt));
+        sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
 
         // There should now be one flow that outputs to ALL.
         Thread.sleep(1000);
@@ -145,11 +149,11 @@ public class BridgePortDeleteTest {
         short portNum3 =
             ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
         FlowStats flow1 = fstats.get(0);
-        Set<Short> expected = new HashSet<Short>();
+        Set<Short> expectOutputActions = new HashSet<Short>();
         // port 1 is the ingress port, so not output to.
-        expected.add(portNum2);
-        expected.add(portNum3);
-        flow1.expectCount(1).expectOutputActions(expected);
+        expectOutputActions.add(portNum2);
+        expectOutputActions.add(portNum3);
+        flow1.expectCount(1).expectOutputActions(expectOutputActions);
 
         // Send unicast from Mac2/port2 to mac1.
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
@@ -172,9 +176,16 @@ public class BridgePortDeleteTest {
         FlowStats flow2 = fstats.get(0);
         flow2.expectCount(1).expectOutputAction(portNum1);
 
-        // The first flow should not have changed.
+        // The last packet caused the bridge to learn the mapping Mac2->port2.
+        // That also triggered invalidation of flooded flows: flow1.
+        assertThat("There should be no flow match for the ARP.",
+                svcController.getFlowStats(match1), hasSize(0));
+
+        // Resend the ARP to re-install the flooded flow.
+        pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
+        sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
         flow1.findSameInList(svcController.getFlowStats(match1))
-             .expectCount(1);
+                .expectCount(1).expectOutputActions(expectOutputActions);
 
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
