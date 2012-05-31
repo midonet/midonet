@@ -71,6 +71,7 @@ public class MaterializedBridgePort extends BridgePort implements
     public MaterializedBridgePort(UUID id, BridgePortConfig config,
             PortMgmtConfig mgmtConfig) {
         super(id, config, mgmtConfig);
+        this.vifId = mgmtConfig.vifId;
     }
 
     /*

@@ -236,6 +236,19 @@ public class TestPort extends JerseyTest {
                 .getUri());
         assertNull(router1Port3.getVifId());
 
+        assertNull(bridge1Port3.getVifId());
+        vifId = UUID.randomUUID();
+        bridge1Port3.setVifId(vifId);
+        portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
+        bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
+                .getUri());
+        assertEquals(vifId, bridge1Port3.getVifId());
+
+        bridge1Port3.setVifId(null);
+        portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
+        bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
+                .getUri());
+        assertNull(bridge1Port3.getVifId());
     }
 
     @Test
