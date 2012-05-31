@@ -26,7 +26,6 @@ public class ResourceUriBuilder {
     public static final String CHAINS = "/chains";
     public static final String RULES = "/rules";
     public static final String ROUTES = "/routes";
-    public static final String VIFS = "/vifs";
     public static final String BGP = "/bgps";
     public static final String AD_ROUTES = "/ad_routes";
     public static final String VPN = "/vpns";
@@ -222,15 +221,6 @@ public class ResourceUriBuilder {
 
     public static URI getPortVpns(URI baseUri, UUID portId) {
         return UriBuilder.fromUri(getPort(baseUri, portId)).path(VPN).build();
-    }
-
-    public static URI getVifs(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(VIFS).build();
-    }
-
-    public static URI getVif(URI baseUri, UUID vifId) {
-        return UriBuilder.fromUri(getVifs(baseUri)).path(vifId.toString())
-                .build();
     }
 
     public static URI getRoutes(URI baseUri) {

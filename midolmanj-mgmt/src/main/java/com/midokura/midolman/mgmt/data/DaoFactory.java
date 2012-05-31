@@ -4,8 +4,21 @@
  */
 package com.midokura.midolman.mgmt.data;
 
-import com.midokura.midolman.mgmt.data.dao.*;
+import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
+import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
+import com.midokura.midolman.mgmt.data.dao.BgpDao;
+import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.data.dao.ChainDao;
+import com.midokura.midolman.mgmt.data.dao.DhcpDao;
+import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dao.MetricDao;
+import com.midokura.midolman.mgmt.data.dao.PortDao;
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
+import com.midokura.midolman.mgmt.data.dao.RouteDao;
+import com.midokura.midolman.mgmt.data.dao.RouterDao;
+import com.midokura.midolman.mgmt.data.dao.RuleDao;
+import com.midokura.midolman.mgmt.data.dao.TenantDao;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
@@ -111,15 +124,6 @@ public interface DaoFactory {
      *             Data access error.
      */
     TenantDao getTenantDao() throws StateAccessException;
-
-    /**
-     * Get VIF DAO
-     *
-     * @return VifDao object
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    VifDao getVifDao() throws StateAccessException;
 
     /**
      * Get VPN DAO

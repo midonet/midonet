@@ -141,31 +141,6 @@ public class PortOpService {
     }
 
     /**
-     * Builds operations to handle the VIF plug event for the port side. If VIF
-     * ID is set to null, it means unplugging.
-     *
-     * @param id
-     *            port ID
-     * @param vifId
-     *            VIF ID
-     * @return Op list
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    public List<Op> buildPlug(UUID id, UUID vifId) throws StateAccessException {
-        log.debug("PortOpService.buildPlug entered: id=" + id + ", vifId="
-                + vifId);
-
-        List<Op> ops = new ArrayList<Op>();
-        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-        mgmtConfig.vifId = vifId;
-        ops.addAll(buildUpdate(id, mgmtConfig, null));
-
-        log.debug("PortOpService.buildPlug exiting: ops count={}", ops.size());
-        return ops;
-    }
-
-    /**
      * Build Op list for bridge delete event.
      *
      * @param bridgeId

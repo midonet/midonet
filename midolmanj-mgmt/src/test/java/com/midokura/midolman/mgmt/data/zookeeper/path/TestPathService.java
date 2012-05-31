@@ -77,6 +77,5 @@ public class TestPathService {
         verify(pathBuilder).getBridgesPath();
         verify(pathBuilder).getPortsPath();
         verify(pathBuilder).getChainsPath();
-        verify(pathBuilder).getVifsPath();
     }
 }

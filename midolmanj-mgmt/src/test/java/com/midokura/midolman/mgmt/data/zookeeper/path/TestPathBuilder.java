@@ -96,16 +96,6 @@ public class TestPathBuilder {
                 + PathBuilder.BRIDGE_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 
-        // VIFs
-        result = builder.getVifsPath();
-        expected = root + "/" + PathBuilder.VIFS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // VIF
-        result = builder.getVifPath(uuid);
-        expected = root + "/" + PathBuilder.VIFS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Routers
         result = builder.getRoutersPath();
         expected = root + "/" + PathBuilder.ROUTERS_PATH;

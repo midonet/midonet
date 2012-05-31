@@ -21,7 +21,6 @@ public class PathBuilder {
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String ROUTERS_PATH = "routers";
     public static final String TENANTS_PATH = "tenants";
-    public static final String VIFS_PATH = "vifs";
     private static final Object PORT_GROUPS_PATH = "port_groups";
     private static final Object PORT_GROUP_NAMES_PATH = "port_group-names";
 
@@ -334,26 +333,6 @@ public class PathBuilder {
      */
     public String getTenantsPath() {
         return new StringBuilder(basePath).append("/").append(TENANTS_PATH)
-                .toString();
-    }
-
-    /**
-     * Get VIF path.
-     *
-     * @return /vifs/vifId
-     */
-    public String getVifPath(UUID vifId) {
-        return new StringBuilder(getVifsPath()).append("/").append(vifId)
-                .toString();
-    }
-
-    /**
-     * Get VIF path.
-     *
-     * @return /vifs
-     */
-    public String getVifsPath() {
-        return new StringBuilder(basePath).append("/").append(VIFS_PATH)
                 .toString();
     }
 }

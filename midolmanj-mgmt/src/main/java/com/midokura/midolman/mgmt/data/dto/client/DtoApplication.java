@@ -13,7 +13,6 @@ public class DtoApplication {
     private String version;
     private URI uri;
     private URI tenant;
-    private URI vifs;
     private URI hosts;
 
     public String getVersion() {
@@ -38,14 +37,6 @@ public class DtoApplication {
 
     public void setTenant(URI tenant) {
         this.tenant = tenant;
-    }
-
-    public URI getVifs() {
-        return vifs;
-    }
-
-    public void setVifs(URI vifs) {
-        this.vifs = vifs;
     }
 
     public URI getHosts() {

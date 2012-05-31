@@ -58,17 +58,6 @@ public class Application extends UriResource {
     }
 
     /**
-     * @return the VIFs URI
-     */
-    public URI getVifs() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getVifs(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * @return the hosts URI
      */
     public URI getHosts() {

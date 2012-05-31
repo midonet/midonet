@@ -220,6 +220,25 @@ public class TestPort extends JerseyTest {
     }
 
     @Test
+    public void testUpdateVif() {
+
+        assertNull(router1Port3.getVifId());
+        UUID vifId = UUID.randomUUID();
+        router1Port3.setVifId(vifId);
+        portResource.updatePort(router1Port3.getUri(), router1Port3);
+        router1Port3 = portResource.getMaterializedRouterPort(router1Port3
+                .getUri());
+        assertEquals(vifId, router1Port3.getVifId());
+
+        router1Port3.setVifId(null);
+        portResource.updatePort(router1Port3.getUri(), router1Port3);
+        router1Port3 = portResource.getMaterializedRouterPort(router1Port3
+                .getUri());
+        assertNull(router1Port3.getVifId());
+
+    }
+
+    @Test
     public void testRemoveAndAddRouterChains() {
 
         assertEquals(chain1.getId(), router1Port3.getInboundFilter());

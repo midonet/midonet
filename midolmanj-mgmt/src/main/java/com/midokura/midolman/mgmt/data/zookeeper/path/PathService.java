@@ -75,7 +75,6 @@ public class PathService {
         pathSet.add(pathBuilder.getPortsPath());
         pathSet.add(pathBuilder.getChainsPath());
         pathSet.add(pathBuilder.getPortGroupsPath());
-        pathSet.add(pathBuilder.getVifsPath());
 
         log.debug("PathService.getInitialPaths exiting: pathSet count={}",
                 pathSet.size());

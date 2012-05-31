@@ -79,6 +79,7 @@ public class MaterializedRouterPort extends RouterPort implements
         this.localNetworkAddress = Net
                 .convertIntAddressToString(config.localNwAddr);
         this.localNetworkLength = config.localNwLength;
+        this.vifId = mgmtConfig.vifId;
     }
 
     /**
