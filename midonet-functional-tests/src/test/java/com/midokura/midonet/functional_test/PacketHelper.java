@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.packets.ARP;
+import com.midokura.midolman.packets.Data;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.ICMP.UNREACH_CODE;
@@ -27,6 +28,8 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
+import com.midokura.midolman.packets.UDP;
+
 
 public class PacketHelper {
 
@@ -82,6 +85,21 @@ public class PacketHelper {
         return pkt.serialize();
     }
 
+    public static byte[] makeUDPPacket(MAC dlSrc, IntIPv4 ipSrc, MAC dlDst,
+                                       IntIPv4 ipDst, short tpSrc, short tpDst,
+                                       byte[] payload) {
+        UDP udp = new UDP();
+        udp.setSourcePort(tpSrc).setDestinationPort(tpDst)
+           .setPayload(new Data(payload));
+        IPv4 ip = new IPv4();
+        ip.setProtocol(UDP.PROTOCOL_NUMBER).setSourceAddress(ipSrc.getAddress())
+          .setDestinationAddress(ipDst.getAddress()).setPayload(udp);
+        Ethernet frame = new Ethernet();
+        frame.setSourceMACAddress(dlSrc).setDestinationMACAddress(dlDst)
+             .setEtherType(IPv4.ETHERTYPE).setPayload(ip);
+        return frame.serialize();
+    }
+
     /**
      * Check that the packet is an ARP reply from the gateway to the endpoint.
      *
@@ -110,7 +128,8 @@ public class PacketHelper {
     }
 
     public static MAC checkArpReply(byte[] recv, IntIPv4 nwSrc,
-                                    MAC dlDst, IntIPv4 nwDst) throws MalformedPacketException {
+                                    MAC dlDst, IntIPv4 nwDst)
+            throws MalformedPacketException {
         assertThat("We actually have a packet buffer", recv, notNullValue());
 
         Ethernet pkt = new Ethernet();
@@ -406,7 +425,7 @@ public class PacketHelper {
      * @param recv       is the serialization of the ICMP reply
      * @param code       is the code want to validate against
      * @param srcIp      is the source ip from which tha package was sent
-     * @param triggerPkt ?
+     * @param triggerPkt the packet triggering the error
      * @throws MalformedPacketException
      */
     public void checkIcmpError(byte[] recv, UNREACH_CODE code,

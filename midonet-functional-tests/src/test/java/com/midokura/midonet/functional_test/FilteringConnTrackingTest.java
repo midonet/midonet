@@ -126,20 +126,22 @@ public class FilteringConnTrackingTest {
                 tap.recv(), ipDst, dlSrc, ipSrc);
     }
 
-    public void icmpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
-        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
-                dlSrc, ipSrc, dlDst, ipDst);
+    public void udpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
+            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+            short tpSrc, short tpDst, byte[] payload) {
+        byte[] pkt = PacketHelper.makeUDPPacket(
+                dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
         assertThat("The packet should have been sent from the source tap.",
                 tapSrc.send(pkt));
         assertThat("The packet should have arrived at the destination tap.",
                 tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
     }
 
-    public void icmpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
-        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
-                dlSrc, ipSrc, dlDst, ipDst);
+    public void udpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
+            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+            short tpSrc, short tpDst, byte[] payload) {
+        byte[] pkt = PacketHelper.makeUDPPacket(
+                dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
         assertThat("The packet should have been sent from the source tap.",
                 tapSrc.send(pkt));
         assertThat("The packet should not have arrived at the destination tap.",
@@ -159,6 +161,11 @@ public class FilteringConnTrackingTest {
         IntIPv4 ip3 = IntIPv4.fromString("10.0.0.4");
         IntIPv4 ip4 = IntIPv4.fromString("10.0.0.5");
         IntIPv4 ip5 = IntIPv4.fromString("10.0.0.6");
+        final short port1 = 1;
+        final short port2 = 2;
+        final short port3 = 3;
+        final short port4 = 4;
+        final short port5 = 5;
 
         // Send ARPs from each edge port so that the bridge can learn MACs.
         MAC rtrMac = arpFromTapAndGetReply(tap1, mac1, ip1, rtrIp);
@@ -172,8 +179,10 @@ public class FilteringConnTrackingTest {
                 rtrMac, equalTo(arpFromTapAndGetReply(tap5, mac5, ip5, rtrIp)));
 
         // tap3 (ip3, mac3) can send packets to (ip1, mac1) and (ip2, mac2).
-        icmpFromTapArrivesAtTap(tap3, tap1, mac3, mac1, ip3, ip1);
-        icmpFromTapArrivesAtTap(tap3, tap2, mac3, mac2, ip3, ip2);
+        udpFromTapArrivesAtTap(tap3, tap1, mac3, mac1, ip3, ip1, port3, port1,
+                               "three => one".getBytes());
+        udpFromTapArrivesAtTap(tap3, tap2, mac3, mac2, ip3, ip2, port3, port2,
+                               "three => two".getBytes());
 
         // Now create a chain for the L2 virtual bridge's inbound filter.
         RuleChain brInFilter = tenant1.addChain().setName("brInFilter").build();
@@ -196,12 +205,12 @@ public class FilteringConnTrackingTest {
         sleepBecause("we need the network to process the new filter", 2);
 
         // ip4 cannot send packets to ip1
-        icmpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1, ip4, ip1);
-        icmpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2, ip4, ip1);
+        udpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1, ip4, ip1, port4, port1, "four => one".getBytes());
+        udpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2, ip4, ip1, port4, port2, "four => two (except IP#=1)".getBytes());
 
         // mac5 cannot send packets to mac2
-        icmpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2);
-        icmpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2);
+        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port5, port2, "five => two".getBytes());
+        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2, port4, port2, "four (except MAC=5) => two".getBytes());
 
         // Now remove the previous rules.
         rule1.delete();
@@ -218,12 +227,12 @@ public class FilteringConnTrackingTest {
         // ip4 can again send packets to ip1
         // NOTE: we change the IP addresses to avoid matching the previously
         // installed DROP flows - flow invalidation isn't implemented yet.
-        icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3, ip4, ip1);
+        udpFromTapArrivesAtTap(tap4, tap3, mac4, mac3, ip4, ip1, port4, port3, "four => three (except IP#=1)".getBytes());
         // mac5 can again send packets to mac2
-        icmpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip3, ip2);
+        udpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip3, ip2, port5, port2, "five (except IP#=3) => two".getBytes());
 
         // ICMPs from mac1 should now be dropped.
-        icmpFromTapDoesntArriveAtTap(tap1, tap3, mac1, mac3, ip1, ip3);
+        udpFromTapDoesntArriveAtTap(tap1, tap3, mac1, mac3, ip1, ip3, port1, port3, "one => three".getBytes());
         // ARPs from mac1 will also be dropped.
         assertThat("The ARP request should have been sent.",
                    tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
@@ -231,7 +240,7 @@ public class FilteringConnTrackingTest {
                    tap1.recv(), nullValue());
 
         // ICMPs ingressing on tap2 should now be dropped.
-        icmpFromTapDoesntArriveAtTap(tap2, tap3, mac2, mac3, ip2, ip3);
+        udpFromTapDoesntArriveAtTap(tap2, tap3, mac2, mac3, ip2, ip3, port2, port3, "two => three".getBytes());
         // But ARPs ingressing on tap2 still work.
         assertThat("Tap2 should still be able to resolve the Router's IP/MAC.",
                 rtrMac, equalTo(arpFromTapAndGetReply(tap2, mac2, ip2, rtrIp)));
@@ -241,7 +250,8 @@ public class FilteringConnTrackingTest {
         sleepBecause("we need the network to process the filter changes", 2);
 
         // ICMPs from mac1 are again delivered
-        icmpFromTapArrivesAtTap(tap1, tap4, mac1, mac4, ip1, ip4);
+        udpFromTapArrivesAtTap(tap1, tap4, mac1, mac4, ip1, ip4, port1, port4,
+                               "one => four".getBytes());
         // ARPs ingressing on tap1 are again delivered
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         assertThat("The ARP should have been sent from tap1.", tap1.send(pkt));
@@ -258,6 +268,7 @@ public class FilteringConnTrackingTest {
                    tap5.recv(), allOf(notNullValue(), equalTo(pkt)));
 
         // ICMPs ingressing on tap2 are again delivered.
-        icmpFromTapArrivesAtTap(tap2, tap4, mac2, mac4, ip2, ip4);
+        udpFromTapArrivesAtTap(tap2, tap4, mac2, mac4, ip2, ip4, port2, port4,
+                               "two => four".getBytes());
     }
 }
