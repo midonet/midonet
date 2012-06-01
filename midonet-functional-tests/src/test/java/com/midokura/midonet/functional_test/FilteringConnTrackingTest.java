@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
@@ -32,13 +31,12 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
-
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@Ignore
+
 public class FilteringConnTrackingTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
@@ -75,9 +73,9 @@ public class FilteringConnTrackingTest {
         Router rtr = tenant1.addRouter().setName("rtr1").build();
         // Link the Bridge and Router
         rPort1 = rtr.addLinkPort()
-                .setNetworkAddress("10.0.0.0")
-                .setNetworkLength(24)
-                .setPortAddress("10.0.0.1").build();
+                    .setNetworkAddress("10.0.0.0")
+                    .setNetworkLength(24)
+                    .setPortAddress("10.0.0.1").build();
         bPort6 = bridge1.addLinkPort().build();
         rPort1.link(bPort6);
 
@@ -181,17 +179,17 @@ public class FilteringConnTrackingTest {
         RuleChain brInFilter = tenant1.addChain().setName("brInFilter").build();
         // Add a rule that accepts all return packets.
         Rule rule0 = brInFilter.addRule().setPosition(1).matchReturnFlow()
-                .setSimpleType(DtoRule.Accept).build();
+                	       .setSimpleType(DtoRule.Accept).build();
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
         Rule rule1 = brInFilter.addRule().setPosition(1)
-                .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
-                .setSimpleType(DtoRule.Drop).build();
+                	       .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
+                	       .setSimpleType(DtoRule.Drop).build();
         // Add a rule that drops packets from mac5 to mac2. Because of the
         // initial conn-tracking rule, return pkts from mac5 to mac2 still pass.
         Rule rule2 = brInFilter.addRule().setPosition(2)
-                .matchDlSrc(mac5).matchDlDst(mac2)
-                .setSimpleType(DtoRule.Drop).build();
+                	       .matchDlSrc(mac5).matchDlDst(mac2)
+                               .setSimpleType(DtoRule.Drop).build();
         // Set this chain as the bridge's inbound filter.
         bridge1.setInboundFilter(brInFilter.chain.getId());
 
@@ -210,11 +208,11 @@ public class FilteringConnTrackingTest {
         rule2.delete();
         // Add a rule the drops any packet from mac1.
         brInFilter.addRule().matchDlSrc(mac1)
-                .setSimpleType(DtoRule.Drop).build();
+                  .setSimpleType(DtoRule.Drop).build();
         // add a rule that drops any IP packet that ingreses on tap2.
         brInFilter.addRule().matchInPort(bPort2.getId())
-                .matchDlType(IPv4.ETHERTYPE)
-                .setSimpleType(DtoRule.Drop).build();
+                  .matchDlType(IPv4.ETHERTYPE)
+                  .setSimpleType(DtoRule.Drop).build();
         sleepBecause("we need the network to process the rule changes", 2);
 
         // ip4 can again send packets to ip1
@@ -228,9 +226,9 @@ public class FilteringConnTrackingTest {
         icmpFromTapDoesntArriveAtTap(tap1, tap3, mac1, mac3, ip1, ip3);
         // ARPs from mac1 will also be dropped.
         assertThat("The ARP request should have been sent.",
-                tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
+                   tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
         assertThat("There should be no ARP reply.",
-                tap1.recv(), nullValue());
+                   tap1.recv(), nullValue());
 
         // ICMPs ingressing on tap2 should now be dropped.
         icmpFromTapDoesntArriveAtTap(tap2, tap3, mac2, mac3, ip2, ip3);
@@ -249,15 +247,15 @@ public class FilteringConnTrackingTest {
         assertThat("The ARP should have been sent from tap1.", tap1.send(pkt));
         // The ARP should be flooded.
         assertThat("The packet should NOT have arrived at tap1.",
-                tap1.recv(), nullValue());
+                   tap1.recv(), nullValue());
         assertThat("The packet should have arrived at tap2.",
-                tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
+                   tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
         assertThat("The packet should have arrived at tap3.",
-                tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
+                   tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
         assertThat("The packet should have arrived at tap4.",
-                tap4.recv(), allOf(notNullValue(), equalTo(pkt)));
+                   tap4.recv(), allOf(notNullValue(), equalTo(pkt)));
         assertThat("The packet should have arrived at tap5.",
-                tap5.recv(), allOf(notNullValue(), equalTo(pkt)));
+                   tap5.recv(), allOf(notNullValue(), equalTo(pkt)));
 
         // ICMPs ingressing on tap2 are again delivered.
         icmpFromTapArrivesAtTap(tap2, tap4, mac2, mac4, ip2, ip4);

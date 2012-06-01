@@ -118,6 +118,7 @@ public class BgpTest {
         // it will also configure the Quagga daemons using the information
         // provided here
         // it will also set the advertised route to 10.173.0.0/24
+	log.debug("=== Creating bpgPeerVm ===");
         bgpPeerVm = libvirtHandler
             .newBgpDomain()
             .setDomainName("bgpPeer")
@@ -126,6 +127,7 @@ public class BgpTest {
             .setLocalAS(345)
             .setPeerAS(543)
             .build();
+	log.debug("=== bpgPeerVm: {} ===", bgpPeerVm);
 
         // TODO: What are we waiting for here ?
         Thread.sleep(1000);
