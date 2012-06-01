@@ -179,16 +179,16 @@ public class FilteringConnTrackingTest {
         RuleChain brInFilter = tenant1.addChain().setName("brInFilter").build();
         // Add a rule that accepts all return packets.
         Rule rule0 = brInFilter.addRule().setPosition(1).matchReturnFlow()
-                	       .setSimpleType(DtoRule.Accept).build();
+                               .setSimpleType(DtoRule.Accept).build();
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
         Rule rule1 = brInFilter.addRule().setPosition(1)
-                	       .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
-                	       .setSimpleType(DtoRule.Drop).build();
+                               .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
+                               .setSimpleType(DtoRule.Drop).build();
         // Add a rule that drops packets from mac5 to mac2. Because of the
         // initial conn-tracking rule, return pkts from mac5 to mac2 still pass.
         Rule rule2 = brInFilter.addRule().setPosition(2)
-                	       .matchDlSrc(mac5).matchDlDst(mac2)
+                               .matchDlSrc(mac5).matchDlDst(mac2)
                                .setSimpleType(DtoRule.Drop).build();
         // Set this chain as the bridge's inbound filter.
         bridge1.setInboundFilter(brInFilter.chain.getId());
