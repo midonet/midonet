@@ -7,6 +7,7 @@ package com.midokura.midolman.monitoring.gauges;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
 
 import com.yammer.metrics.core.Gauge;
 import org.slf4j.Logger;
@@ -23,15 +24,26 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
     private MBeanServerConnection serverConnection;
     private ObjectName beanName;
     private String beanAttr;
+    private String compositeKeyName;
     private Class<T> type;
 
     public JMXRemoteBeanGauge(MBeanServerConnection serverConn, Class<T> type,
                               String beanName, String beanAttr)
         throws MalformedObjectNameException {
+        this(serverConn, type, beanName, beanAttr, null);
+    }
+
+    public JMXRemoteBeanGauge(MBeanServerConnection serverConn,
+                                    Class<T> type,
+                                    String beanName, String beanAttr,
+                                    String compositeKeyName)
+        throws MalformedObjectNameException {
         this.beanName = new ObjectName(beanName);
         this.beanAttr = beanAttr;
+        this.compositeKeyName = compositeKeyName;
         this.serverConnection = serverConn;
         this.type = type;
+
     }
 
     @Override
@@ -40,6 +52,11 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
         try {
             val = serverConnection.getAttribute(beanName,
                                                 beanAttr);
+
+            if (compositeKeyName != null) {
+                return getValueFromCompositeType(val, compositeKeyName, type);
+            }
+
             return type.cast(val);
         } catch (ClassCastException e) {
             log.error("Couldn't convert class {} got from {}, {} to {}",
@@ -51,5 +68,15 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
                       new Object[]{beanName, beanAttr, e});
         }
         return null;
+    }
+
+    private T getValueFromCompositeType(Object val, String compositeKeyName,
+                                        Class<T> type) {
+        if (!(val instanceof CompositeData))
+            return null;
+
+        CompositeData compositeData = (CompositeData) val;
+
+        return type.cast(compositeData.get(compositeKeyName));
     }
 }

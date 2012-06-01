@@ -5,6 +5,7 @@
 package com.midokura.midolman.monitoring;
 
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import static java.lang.String.format;
 
 import com.google.inject.Guice;
@@ -30,6 +31,7 @@ public class MonitoringAgent {
     private final static Logger log =
         LoggerFactory.getLogger(MonitoringAgent.class);
 
+    @Nullable
     @Inject
     private Store store;
 

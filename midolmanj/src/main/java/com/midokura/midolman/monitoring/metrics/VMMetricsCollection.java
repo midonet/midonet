@@ -51,63 +51,48 @@ public class VMMetricsCollection {
                                  "java.lang:type=Threading", "ThreadCount");
 
         addLocalJmxPoolingMetric("ProcessCPUTime", Long.class,
-                                 "java.lang:Type=OperatingSystem",
-                                 "ProcessCPUTime");
+                                 "java.lang:type=OperatingSystem",
+                                 "ProcessCpuTime");
 
         addLocalJmxPoolingMetric("FreePhysicalMemorySize", Long.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "FreePhysicalMemorySize");
 
         addLocalJmxPoolingMetric("FreeSwapSpaceSize", Long.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "FreeSwapSpaceSize");
 
         addLocalJmxPoolingMetric("TotalSwapSpaceSize", Long.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "TotalSwapSpaceSize");
 
         addLocalJmxPoolingMetric("TotalPhysicalMemorySize", Long.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "TotalPhysicalMemorySize");
 
         addLocalJmxPoolingMetric("OpenFileDescriptorCount", Long.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "OpenFileDescriptorCount");
 
         addLocalJmxPoolingMetric("AvailableProcessors", Integer.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "AvailableProcessors");
 
         addLocalJmxPoolingMetric("SystemLoadAverage", Double.class,
-                                 "java.lang:Type=OperatingSystem",
+                                 "java.lang:type=OperatingSystem",
                                  "SystemLoadAverage");
 
-        addMemoryMetric("CommittedHeapMemory",
-                        "java.lang:type=Memory", "HeapMemoryUsage",
-                        new Functor<MemoryUsage, Long>() {
-                            @Override
-                            public Long apply(MemoryUsage arg0) {
-                                return arg0.getCommitted();
-                            }
-                        });
+        addLocalJmxPoolingMetric("CommittedHeapMemory", Long.class,
+                                 "java.lang:type=Memory", "HeapMemoryUsage",
+                                 "committed");
 
-        addMemoryMetric("MaxHeapMemory",
-                        "java.lang:type=Memory", "HeapMemoryUsage",
-                        new Functor<MemoryUsage, Long>() {
-                            @Override
-                            public Long apply(MemoryUsage arg0) {
-                                return arg0.getMax();
-                            }
-                        });
+        addLocalJmxPoolingMetric("MaxHeapMemory", Long.class,
+                                 "java.lang:type=Memory", "HeapMemoryUsage",
+                                 "max");
 
-        addMemoryMetric("UsedHeapMemory",
-                        "java.lang:type=Memory", "HeapMemoryUsage",
-                        new Functor<MemoryUsage, Long>() {
-                            @Override
-                            public Long apply(MemoryUsage arg0) {
-                                return arg0.getUsed();
-                            }
-                        });
+        addLocalJmxPoolingMetric("UsedHeapMemory", Long.class,
+                                 "java.lang:type=Memory", "HeapMemoryUsage",
+                                 "used");
     }
 
     private void addMemoryMetric(String name,
@@ -133,6 +118,20 @@ public class VMMetricsCollection {
             addMetric(name,
                       new JMXRemoteBeanGauge<T>(SERVER,
                                                 type, beanName, beanAttr)
+            );
+        } catch (MalformedObjectNameException e) {
+            log.error("Could not create Jmx", e);
+        }
+    }
+
+    private <T> void addLocalJmxPoolingMetric(String name, Class<T> type,
+                                              String beanName, String beanAttr,
+                                              String compositeKeyName) {
+        try {
+            addMetric(name,
+                      new JMXRemoteBeanGauge<T>(SERVER,
+                                                type, beanName, beanAttr,
+                                                compositeKeyName)
             );
         } catch (MalformedObjectNameException e) {
             log.error("Could not create Jmx", e);
