@@ -205,83 +205,30 @@ public class FilteringConnTrackingTest {
         sleepBecause("we need the network to process the new filter", 2);
 
         // ip4 cannot send packets to ip1
-        udpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1, ip4, ip1, port4, port1, "four => one".getBytes());
-        udpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2, ip4, ip1, port4, port2, "four => two (except IP#=1)".getBytes());
+        udpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1, ip4, ip1, port4,
+                port1, "four => one".getBytes());
+        udpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2, ip4, ip1, port4,
+                port2, "four => two (except IP#=1)".getBytes());
 
         // mac5 cannot send packets to mac2
-        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port5, port2, "five => two".getBytes());
-        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2, port4, port2, "four (except MAC=5) => two".getBytes());
+        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port5,
+                port2, "five => two".getBytes());
+        udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2, port4,
+                port2, "four (except MAC=5) => two".getBytes());
 
         // Now send forward packets to set up the connection tracking based
         // peepholes in the filter.
         udpFromTapArrivesAtTap(tap1, tap4, mac1, mac4, ip1, ip4, port1, port2,
-                               "one => four (except port#=2) forward".getBytes());
+                "one => four (except port#=2) forward".getBytes());
         udpFromTapArrivesAtTap(tap2, tap5, mac2, mac5, ip2, ip5, port2, port3,
-                               "two => five (except port#=3) forward".getBytes());
+                "two => five (except port#=3) forward".getBytes());
 
         // Verify the peepholes work.
         udpFromTapArrivesAtTap(tap4, tap1, mac4, mac1, ip4, ip1, port2, port1,
-                               "four (except port#=2) => one return".getBytes());
+                "four (except port#=2) => one return".getBytes());
         udpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port3, port2,
-                               "five (except port#=3) => two return".getBytes());
+                "five (except port#=3) => two return".getBytes());
 
-        // Now remove the previous rules.
-        rule1.delete();
-        rule2.delete();
-        // Add a rule the drops any packet from mac1.
-        brInFilter.addRule().matchDlSrc(mac1)
-                  .setSimpleType(DtoRule.Drop).build();
-        // add a rule that drops any IP packet that ingreses on tap2.
-        brInFilter.addRule().matchInPort(bPort2.getId())
-                  .matchDlType(IPv4.ETHERTYPE)
-                  .setSimpleType(DtoRule.Drop).build();
-        sleepBecause("we need the network to process the rule changes", 2);
-
-        // ip4 can again send packets to ip1
-        // NOTE: we change the IP addresses to avoid matching the previously
-        // installed DROP flows - flow invalidation isn't implemented yet.
-        udpFromTapArrivesAtTap(tap4, tap3, mac4, mac3, ip4, ip1, port4, port3, "four => three (except IP#=1)".getBytes());
-        // mac5 can again send packets to mac2
-        udpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip3, ip2, port5, port2, "five (except IP#=3) => two".getBytes());
-
-        // ICMPs from mac1 should now be dropped.
-        udpFromTapDoesntArriveAtTap(tap1, tap3, mac1, mac3, ip1, ip3, port1, port3, "one => three".getBytes());
-        // ARPs from mac1 will also be dropped.
-        assertThat("The ARP request should have been sent.",
-                   tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
-        assertThat("There should be no ARP reply.",
-                   tap1.recv(), nullValue());
-
-        // ICMPs ingressing on tap2 should now be dropped.
-        udpFromTapDoesntArriveAtTap(tap2, tap3, mac2, mac3, ip2, ip3, port2, port3, "two => three".getBytes());
-        // But ARPs ingressing on tap2 still work.
-        assertThat("Tap2 should still be able to resolve the Router's IP/MAC.",
-                rtrMac, equalTo(arpFromTapAndGetReply(tap2, mac2, ip2, rtrIp)));
-
-        // Finally, remove bridge1's inboundFilter.
-        bridge1.setInboundFilter(null);
-        sleepBecause("we need the network to process the filter changes", 2);
-
-        // ICMPs from mac1 are again delivered
-        udpFromTapArrivesAtTap(tap1, tap4, mac1, mac4, ip1, ip4, port1, port4,
-                               "one => four".getBytes());
-        // ARPs ingressing on tap1 are again delivered
-        byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
-        assertThat("The ARP should have been sent from tap1.", tap1.send(pkt));
-        // The ARP should be flooded.
-        assertThat("The packet should NOT have arrived at tap1.",
-                   tap1.recv(), nullValue());
-        assertThat("The packet should have arrived at tap2.",
-                   tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
-        assertThat("The packet should have arrived at tap3.",
-                   tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
-        assertThat("The packet should have arrived at tap4.",
-                   tap4.recv(), allOf(notNullValue(), equalTo(pkt)));
-        assertThat("The packet should have arrived at tap5.",
-                   tap5.recv(), allOf(notNullValue(), equalTo(pkt)));
-
-        // ICMPs ingressing on tap2 are again delivered.
-        udpFromTapArrivesAtTap(tap2, tap4, mac2, mac4, ip2, ip4, port2, port4,
-                               "two => four".getBytes());
+        // TODO(jlm): Verify the return flow peepholes work on port filters.
     }
 }
