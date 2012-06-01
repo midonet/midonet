@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
+import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -42,6 +43,7 @@ import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.CacheFactory;
+import com.midokura.remote.RemoteHost;
 
 public class Midolman implements SelectListener, Watcher {
 
@@ -65,6 +67,7 @@ public class Midolman implements SelectListener, Watcher {
     private ServerSocketChannel listenSock;
 
     private NodeAgent nodeAgent;
+    private MonitoringAgent monitoringAgent;
 
     private SelectLoop loop;
 
@@ -159,6 +162,13 @@ public class Midolman implements SelectListener, Watcher {
                          "configuration file.");
         }
 
+        boolean startMonitoring = config.configurationAt("monitoring")
+            .getBoolean("start_monitoring", true);
+
+        if (startMonitoring) {
+            monitoringAgent = MonitoringAgent.bootstrapMonitoring(config);
+        }
+
         listenSock = ServerSocketChannel.open();
         listenSock.configureBlocking(false);
         listenSock.socket().bind(
@@ -213,10 +223,18 @@ public class Midolman implements SelectListener, Watcher {
             PortService vpnPortService = OpenVpnPortService.createVpnPortService(
                     ovsdb, externalIdKey, midonetDirectory, basePath);
 
-            controller = new VRNController(midonetDirectory, basePath,
-                    localNwAddr, ovsdb, loop, CacheFactory.create(config),
-                    externalIdKey, vrnId, useNxm, bgpPortService,
-                    vpnPortService);
+            VRNController vrnController =
+                new VRNController(midonetDirectory, basePath,
+                                  localNwAddr, ovsdb,
+                                    loop, CacheFactory.create(config),
+                                    externalIdKey, vrnId, useNxm,
+                                    bgpPortService, vpnPortService);
+
+            if (monitoringAgent != null) {
+                vrnController.addControllerObserver(monitoringAgent.createVRNObserver());
+            }
+
+            controller = vrnController;
 
             ControllerStubImpl controllerStubImpl =
                 new ControllerStubImpl(sock, loop, controller);
@@ -265,6 +283,8 @@ public class Midolman implements SelectListener, Watcher {
 
     public static void main(String[] args) {
         try {
+            RemoteHost.getSpecification();
+
             new Midolman().run(args);
         } catch (Exception e) {
             log.error("main caught", e);

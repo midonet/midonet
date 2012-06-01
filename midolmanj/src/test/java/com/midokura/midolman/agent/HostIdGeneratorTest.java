@@ -6,8 +6,8 @@
 
 package com.midokura.midolman.agent;
 
+import com.midokura.midolman.agent.config.DefaultHostAgentConfiguration;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
-import com.midokura.midolman.agent.config.IniBasedHostAgentConfiguration;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.MockDirectory;
@@ -64,7 +64,7 @@ public class HostIdGeneratorTest {
         out.flush();
         out.close();
 
-        config = new IniBasedHostAgentConfiguration(confFileName);
+        config = new DefaultHostAgentConfiguration(confFileName);
 
         confFileFake = new File(confFileNameFake);
         BufferedWriter out1 = new BufferedWriter(
@@ -74,7 +74,7 @@ public class HostIdGeneratorTest {
         out1.flush();
         out1.close();
 
-        configFake = new IniBasedHostAgentConfiguration(confFileNameFake);
+        configFake = new DefaultHostAgentConfiguration(confFileNameFake);
 
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, hostId2.toString());

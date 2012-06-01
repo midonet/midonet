@@ -7,6 +7,7 @@ package com.midokura.midolman.monitoring.store;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import me.prettyprint.hector.api.exceptions.HectorException;
 import org.slf4j.Logger;
@@ -25,10 +26,10 @@ public class CassandraStore implements Store {
     private CassandraClient client;
 
     public CassandraStore(String server, String clusterName,
-                          String keyspaceName,
-                          String columnFamily, int replicationFactor,
-                          int expirationSecs) throws HectorException {
-
+                          String keyspaceName, String columnFamily,
+                          int replicationFactor, int expirationSecs)
+        throws HectorException
+    {
         client = new CassandraClient(server, clusterName, keyspaceName,
                                      columnFamily, replicationFactor,
                                      expirationSecs);
@@ -36,11 +37,11 @@ public class CassandraStore implements Store {
 
     @Override
     public void addTSPoint(String type, String targetIdentifier,
-                           String metricName, long time,
-                           long value) {
-        String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
-                time);
+                           String metricName,
+                           long time, long value) {
+        String key = asKey(type, targetIdentifier, metricName, time);
         client.set(key, Long.toString(value), Long.toString(time));
+
         log.debug("Added value {}, for key {}, column {}",
                   new Object[]{value, key, time});
     }
@@ -48,9 +49,15 @@ public class CassandraStore implements Store {
     @Override
     public long getTSPoint(String type, String targetIdentifier,
                            String metricName, long time) {
-        String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
-                time);
+        String key = asKey(type, targetIdentifier, metricName, time);
         return Long.parseLong(client.get(key, Long.toString(time)));
+    }
+
+    private String asKey(String type, String targetIdentifier,
+                         String metricName, long time) {
+        return
+            targetIdentifier + type + metricName +
+                GMTTime.getDayMonthYear(time);
     }
 
     @Override
@@ -60,21 +67,19 @@ public class CassandraStore implements Store {
         int numberOfDays = GMTTime.getNumberOfDays(timeStart, timeEnd);
 
         if (numberOfDays == 0) {
-            String key = targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
-                    timeStart);
+            String key = asKey(type, targetIdentifier, metricName, timeStart);
 
             return client.executeSliceQuery(key, Long.toString(timeStart),
                                             Long.toString(timeEnd), Long.class,
                                             maxNumberQueryResult);
         } else {
-            long msInADay = 24 * 60 * 60 * 1000;
+            long perDayMillis = TimeUnit.DAYS.toMillis(1);
             List<String> keys = new ArrayList<String>();
             for (int i = 0; i <= numberOfDays; i++) {
                 // since we store each day using a different key, calculate
                 // the keys
-                keys.add(
-                        targetIdentifier + type + metricName + GMTTime.getDayMonthYear(
-                                timeStart + i * msInADay));
+                keys.add(asKey(type, targetIdentifier, metricName,
+                              timeStart + i * perDayMillis));
             }
 
             return client.executeSliceQuery(keys, Long.toString(timeStart),

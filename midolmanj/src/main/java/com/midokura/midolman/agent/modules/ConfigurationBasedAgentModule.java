@@ -9,8 +9,8 @@ import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.agent.config.DefaultHostAgentConfiguration;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
-import com.midokura.midolman.agent.config.IniBasedHostAgentConfiguration;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.state.Directory;
@@ -43,12 +43,12 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
         super.configure();
 
         bind(HostAgentConfiguration.class)
-            .to(IniBasedHostAgentConfiguration.class);
+            .to(DefaultHostAgentConfiguration.class);
 
         bind(String.class)
             .annotatedWith(
                 Names.named(
-                    IniBasedHostAgentConfiguration.AGENT_CONFIG_LOCATION))
+                    DefaultHostAgentConfiguration.AGENT_CONFIG_LOCATION))
             .toInstance(configFilePath);
     }
 

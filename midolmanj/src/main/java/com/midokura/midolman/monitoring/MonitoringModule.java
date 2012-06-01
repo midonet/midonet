@@ -9,9 +9,12 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import me.prettyprint.hector.api.exceptions.HectorException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.monitoring.config.DefaultMonitoringConfiguration;
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.monitoring.store.Store;
 
@@ -19,39 +22,40 @@ import com.midokura.midolman.monitoring.store.Store;
  * Date: 4/25/12
  */
 public class MonitoringModule extends AbstractModule {
+
     private final static Logger log =
             LoggerFactory.getLogger(MonitoringModule.class);
-    static String zkJMXUrl;
-    int replicationFactor;
-    int ttlInSecs;
+
+    private HierarchicalConfiguration configuration;
+
+    public MonitoringModule(HierarchicalConfiguration configuration) {
+        this.configuration = configuration;
+    }
 
     @Override
     protected void configure() {
-        //TODO(rossella) take this configuration from conf file, waiting for the
-        //Mihai's changes to be in master
-        //TODO(rossella) check if there's a local ZK
-        zkJMXUrl = "service:jmx:rmi:///jndi/rmi://localhost:12122/jmxrmi";
-        replicationFactor = 1;
-        ttlInSecs = 1000;
+        bind(MonitoringConfiguration.class)
+            .to(DefaultMonitoringConfiguration.class)
+            .asEagerSingleton();
 
-        bind(String.class)
-                .annotatedWith(
-                        Names.named(
-                                MonitoringAgent.ZKJMXPATH))
-                .toInstance(zkJMXUrl);
+        bind(HierarchicalConfiguration.class)
+            .annotatedWith(
+                Names.named(DefaultMonitoringConfiguration.MONITORING_CONFIG))
+            .toInstance(configuration);
     }
 
     @Singleton
     @Provides
-    public Store getStore() {
-        // TODO get the data from the configuration
+    public Store getStore(MonitoringConfiguration config) {
         Store store = null;
         try {
-            store = new CassandraStore("localhost:9162",
-                                       "Mido Cluster",
-                                       "MM_Monitoring",
-                                       "TestColumnFamily",
-                                       replicationFactor, ttlInSecs);
+            store = new CassandraStore(
+                config.getCassandraServers(),
+                config.getCassandraCluster(),
+                config.getMonitoringCassandraKeySpace(),
+                config.getMonitoringCassandraColumnFamily(),
+                config.getCassandraReplicationFactor(),
+                config.getCassandraExpirationTimeout());
         } catch (HectorException e) {
             log.error("Fatal error, enable to initialize CassandraStore", e);
         }

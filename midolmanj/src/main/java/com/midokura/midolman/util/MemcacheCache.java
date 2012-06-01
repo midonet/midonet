@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
 public class MemcacheCache implements Cache {
     private static final Logger log =
                          LoggerFactory.getLogger(MemcacheCache.class);
-    
+
     private MemcachedClient client;
-    
+
     private int expirationSecs;
-    
-    public MemcacheCache(String memcacheServers, int expirationSecs) 
+
+    public MemcacheCache(String memcacheServers, int expirationSecs)
                 throws IOException {
         boolean success = false;
         try {
@@ -41,7 +41,7 @@ public class MemcacheCache implements Cache {
 
             client = new MemcachedClient(new BinaryConnectionFactory(),
                                          addresses);
-        
+
             this.expirationSecs = expirationSecs;
 
             success = true;

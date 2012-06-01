@@ -25,7 +25,6 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.FiltersZkManager;
-import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Net;
 
