@@ -191,12 +191,12 @@ public class FilteringConnTrackingTest {
                                .setSimpleType(DtoRule.Accept).build();
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
-        Rule rule1 = brInFilter.addRule().setPosition(1)
+        Rule rule1 = brInFilter.addRule().setPosition(2)
                                .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
                                .setSimpleType(DtoRule.Drop).build();
         // Add a rule that drops packets from mac5 to mac2. Because of the
         // initial conn-tracking rule, return pkts from mac5 to mac2 still pass.
-        Rule rule2 = brInFilter.addRule().setPosition(2)
+        Rule rule2 = brInFilter.addRule().setPosition(3)
                                .matchDlSrc(mac5).matchDlDst(mac2)
                                .setSimpleType(DtoRule.Drop).build();
         // Set this chain as the bridge's inbound filter.
@@ -211,6 +211,19 @@ public class FilteringConnTrackingTest {
         // mac5 cannot send packets to mac2
         udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port5, port2, "five => two".getBytes());
         udpFromTapDoesntArriveAtTap(tap5, tap2, mac5, mac2, ip4, ip2, port4, port2, "four (except MAC=5) => two".getBytes());
+
+        // Now send forward packets to set up the connection tracking based
+        // peepholes in the filter.
+        udpFromTapArrivesAtTap(tap1, tap4, mac1, mac4, ip1, ip4, port1, port2,
+                               "one => four (except port#=2) forward".getBytes());
+        udpFromTapArrivesAtTap(tap2, tap5, mac2, mac5, ip2, ip5, port2, port3,
+                               "two => five (except port#=3) forward".getBytes());
+
+        // Verify the peepholes work.
+        udpFromTapArrivesAtTap(tap4, tap1, mac4, mac1, ip4, ip1, port2, port1,
+                               "four (except port#=2) => one return".getBytes());
+        udpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip5, ip2, port3, port2,
+                               "five (except port#=3) => two return".getBytes());
 
         // Now remove the previous rules.
         rule1.delete();
