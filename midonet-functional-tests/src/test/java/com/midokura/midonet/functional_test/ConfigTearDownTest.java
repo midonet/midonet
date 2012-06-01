@@ -78,6 +78,7 @@ public class ConfigTearDownTest {
         IntIPv4 privAddr = IntIPv4.fromString("192.168.55.5");
         IntIPv4 pubAddr = IntIPv4.fromString("10.0.173.5");
         MaterializedRouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
+        router1.addFilters();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
         tenant1.delete();

@@ -102,13 +102,14 @@ public class VpnTest {
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))
-                .addRoute(IntIPv4.fromString("10.0.232.0")).build();
+                .addRoute(IntIPv4.fromString("10.0.232.0", 24)).build();
         vpn1 = router1.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_CLIENT)
                 .setLocalIp(IntIPv4.fromString("10.0.231.100"))
                 .setLayer4Port(12333).setRemoteIp("192.168.232.99")
                 .setPrivatePortId(p1.port.getId()).build();
 
+        router1.addFilters();
         router1.addFloatingIp(IntIPv4.fromString("10.0.231.100"),
                 IntIPv4.fromString("192.168.231.100"),
                 uplinkPort.port.getId());
@@ -119,11 +120,12 @@ public class VpnTest {
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))
-                .addRoute(IntIPv4.fromString("10.0.231.0")).build();
+                .addRoute(IntIPv4.fromString("10.0.231.0", 24)).build();
         vpn2 = router2.addVpnPort()
                 .setVpnType(VpnType.OPENVPN_TCP_SERVER)
                 .setLocalIp(IntIPv4.fromString("10.0.232.99"))
                 .setLayer4Port(12333).setPrivatePortId(p2.port.getId()).build();
+        router2.addFilters();
         router2.addFloatingIp(IntIPv4.fromString("10.0.232.99"),
                 IntIPv4.fromString("192.168.232.99"),
                 router2port1.port.getId());

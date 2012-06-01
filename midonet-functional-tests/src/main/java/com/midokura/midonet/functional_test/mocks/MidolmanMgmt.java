@@ -17,6 +17,10 @@ public interface MidolmanMgmt {
 
     void updateBridge(DtoBridge b);
 
+    void updateRouter(DtoRouter r);
+
+    void updatePort(DtoPort p);
+
     void linkRouterToPeer(DtoLogicalRouterPort peerPort);
 
     DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,

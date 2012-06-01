@@ -158,7 +158,7 @@ public class PortResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public void update(@PathParam("id") UUID id, Port port,
+    public Response update(@PathParam("id") UUID id, Port port,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
@@ -169,6 +169,7 @@ public class PortResource {
         PortDao dao = daoFactory.getPortDao();
         port.setId(id);
         dao.update(port);
+        return Response.ok().build();
     }
 
     /**

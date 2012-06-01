@@ -14,6 +14,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class MaterializedRouterPort {
@@ -78,6 +79,11 @@ public class MaterializedRouterPort {
             routes = new ArrayList<IntIPv4>();
         }
 
+        public GWPortBuilder setLocalMac(MAC mac) {
+            port.setPortMac(mac.toString());
+            return this;
+        }
+
         public GWPortBuilder setLocalLink(IntIPv4 localIp, IntIPv4 peerIp) {
             this.peerIp = peerIp;
             port.setPortAddress(localIp.toString());
@@ -98,8 +104,8 @@ public class MaterializedRouterPort {
                     router, port);
             for (IntIPv4 dst : routes) {
                 DtoRoute rt = new DtoRoute();
-                rt.setDstNetworkAddr(dst.toString());
-                rt.setDstNetworkLength(24);
+                rt.setDstNetworkAddr(dst.toUnicastString());
+                rt.setDstNetworkLength(dst.getMaskLength());
                 rt.setSrcNetworkAddr("0.0.0.0");
                 rt.setSrcNetworkLength(0);
                 rt.setType(DtoRoute.Normal);
@@ -231,5 +237,13 @@ public class MaterializedRouterPort {
                 return new Bgp(mgmt, mgmt.addBGP(port, bgp));
             }
         };
+    }
+
+    public IntIPv4 getIpAddr() {
+        return IntIPv4.fromString(port.getPortAddress());
+    }
+
+    public MAC getMacAddr() {
+        return MAC.fromString(port.getPortMac());
     }
 }

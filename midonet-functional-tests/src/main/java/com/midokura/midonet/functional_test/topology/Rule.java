@@ -98,12 +98,14 @@ public class Rule {
         }
 
         public Builder matchInPort(UUID vportId) {
-            rule.setInPorts(new UUID[]{vportId});
+            if (null != vportId)
+                rule.setInPorts(new UUID[]{vportId});
             return this;
         }
 
         public Builder matchOutPort(UUID vportId) {
-            rule.setOutPorts(new UUID[]{vportId});
+            if (null != vportId)
+                rule.setOutPorts(new UUID[]{vportId});
             return this;
         }
 

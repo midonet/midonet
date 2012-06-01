@@ -37,7 +37,7 @@ public class DtoWebResource {
     }
 
     public URI put(URI uri, String mediaType, Object object) {
-        return put(uri, mediaType, object, NO_CONTENT.getStatusCode());
+        return put(uri, mediaType, object, OK.getStatusCode());
     }
 
     public URI put(URI uri, String mediaType, Object object, int status) {

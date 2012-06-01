@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.Net;
 
@@ -33,6 +34,11 @@ public abstract class RouterPort extends Port {
     protected String portAddress = null;
 
     /**
+     * Port MAC address
+     */
+    protected String portMac = null;
+
+    /**
      * Constructor
      */
     public RouterPort() {
@@ -52,6 +58,7 @@ public abstract class RouterPort extends Port {
         this.networkAddress = config.getNwAddr();
         this.networkLength = config.nwLength;
         this.portAddress = config.getPortAddr();
+        this.portMac = config.getHwAddr().toString();
     }
 
     /**
@@ -123,6 +130,14 @@ public abstract class RouterPort extends Port {
         this.portAddress = portAddress;
     }
 
+    public String getPortMac() {
+        return portMac;
+    }
+
+    public void setPortMac(String portMac) {
+        this.portMac = portMac;
+    }
+
     /**
      * Set the PortConfig fields
      *
@@ -134,6 +149,8 @@ public abstract class RouterPort extends Port {
         config.nwAddr = Net.convertStringAddressToInt(this.networkAddress);
         config.nwLength = this.networkLength;
         config.portAddr = Net.convertStringAddressToInt(this.portAddress);
+        if (this.portMac != null)
+            config.setHwAddr(MAC.fromString(this.portMac));
     }
 
     @Override
@@ -150,6 +167,6 @@ public abstract class RouterPort extends Port {
     public String toString() {
         return super.toString() + ", networkAddress=" + networkAddress
                 + ", networkLength=" + networkLength + ", portAddress="
-                + portAddress;
+                + portAddress + ", portMac=" + portMac;
     }
 }

@@ -1,5 +1,7 @@
 package com.midokura.midonet.functional_test.topology;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.packets.IntIPv4;
@@ -31,17 +33,8 @@ public class Router {
             if (null == router.getName() || router.getName().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "
                         + "router with a null or empty name.");
-            // Create pre- and post-filtering rule-chains for this router.
-            RuleChain.Builder rcBuilder = new RuleChain.Builder(mgmt, tenant);
-            rcBuilder.setName(router.getName() + PRE_ROUTING);
-            RuleChain inChain = rcBuilder.build();
-            router.setInboundFilterId(inChain.chain.getId());
-            rcBuilder = new RuleChain.Builder(mgmt, tenant);
-            rcBuilder.setName(router.getName() + POST_ROUTING);
-            RuleChain outChain = rcBuilder.build();
-            router.setOutboundFilterId(outChain.chain.getId());
             return new Router(
-                    mgmt, mgmt.addRouter(tenant, router), inChain, outChain);
+                    mgmt, tenant, mgmt.addRouter(tenant, router));
         }
     }
 
@@ -49,16 +42,17 @@ public class Router {
     public final static String POST_ROUTING = "post_routing";
 
     MidolmanMgmt mgmt;
+    DtoTenant tenant;
     DtoRouter dto;
     RuleChain preRoutingChain;
     RuleChain postRoutingChain;
+    Map<IntIPv4, Rule> floatingIpDnats = new HashMap<IntIPv4, Rule>();
+    Map<IntIPv4, Rule> floatingIpSnats = new HashMap<IntIPv4, Rule>();
 
-    Router(MidolmanMgmt mgmt, DtoRouter router, RuleChain preRoutingChain,
-           RuleChain postRoutingChain) {
+    Router(MidolmanMgmt mgmt, DtoTenant tenant, DtoRouter router) {
         this.mgmt = mgmt;
+        this.tenant = tenant;
         this.dto = router;
-        this.preRoutingChain = preRoutingChain;
-        this.postRoutingChain = postRoutingChain;
     }
 
     public MaterializedRouterPort.VMPortBuilder addVmPort() {
@@ -88,15 +82,46 @@ public class Router {
         postRoutingChain.delete();
     }
 
-    public void addFloatingIp(IntIPv4 privAddr, IntIPv4 pubAddr, UUID uplinkId) {
+    public void addFilters() {
+        // Create pre- and post-filtering rule-chains for this router.
+        RuleChain.Builder rcBuilder = new RuleChain.Builder(mgmt, tenant);
+        rcBuilder.setName(dto.getName() + PRE_ROUTING);
+        preRoutingChain = rcBuilder.build();
+        dto.setInboundFilterId(preRoutingChain.chain.getId());
+        rcBuilder = new RuleChain.Builder(mgmt, tenant);
+        rcBuilder.setName(dto.getName() + POST_ROUTING);
+        postRoutingChain = rcBuilder.build();
+        dto.setOutboundFilterId(postRoutingChain.chain.getId());
+        mgmt.updateRouter(dto);
+    }
+
+    public void removeFilters() {
+        dto.setInboundFilterId(null);
+        dto.setOutboundFilterId(null);
+        mgmt.updateRouter(dto);
+    }
+
+    public void removeFloatingIp(IntIPv4 floatingIP) {
+        Rule r = floatingIpDnats.get(floatingIP);
+        if (null != r)
+            r.delete();
+        r = floatingIpSnats.get(floatingIP);
+        if (null != r)
+            r.delete();
+    }
+
+    public void addFloatingIp(IntIPv4 privAddr, IntIPv4 floatingIP,
+                              UUID uplinkId) {
         // Add a DNAT to the pre-routing chain.
-        preRoutingChain.addRule().setDnat(privAddr, 0)
-                .matchNwDst(pubAddr, 32)
-                .matchInPort(uplinkId).build();
+        floatingIpDnats.put(floatingIP,
+                preRoutingChain.addRule().setDnat(privAddr, 0)
+                        .matchNwDst(floatingIP, 32)
+                        .matchInPort(uplinkId).build());
         // Add a SNAT to the post-routing chain.
-        postRoutingChain.addRule().setSnat(pubAddr, 0)
-                .matchNwSrc(privAddr, 32)
-                .matchOutPort(uplinkId).build();
+        floatingIpSnats.put(floatingIP,
+                postRoutingChain.addRule().setSnat(floatingIP, 0)
+                        .matchNwSrc(privAddr, 32)
+                        .matchOutPort(uplinkId).build());
     }
 
     public void dropTrafficTo(String addr, int length) {

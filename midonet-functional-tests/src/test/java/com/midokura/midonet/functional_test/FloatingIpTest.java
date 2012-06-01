@@ -93,6 +93,7 @@ public class FloatingIpTest {
         pubAddr = IntIPv4.fromString("10.0.173.5");
         MaterializedRouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
         ovsBridge.addInternalPort(p3.port.getId(), "flIpTestInt", privAddr, 24);
+        router1.addFilters();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
         // The host OS needs a route to 192.168.66.0/24 via the internal port,

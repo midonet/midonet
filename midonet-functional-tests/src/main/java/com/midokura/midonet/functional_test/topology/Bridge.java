@@ -32,16 +32,18 @@ public class Bridge {
             if (bridge.getName().isEmpty() || bridge.getName() == null)
                 throw new IllegalArgumentException("Cannot create a "
                         + "bridge with a null or empty name.");
-            return new Bridge(mgmt, mgmt.addBridge(tenant, bridge));
+            return new Bridge(mgmt, tenant, mgmt.addBridge(tenant, bridge));
 
         }
     }
 
     MidolmanMgmt mgmt;
+    DtoTenant tenant;
     DtoBridge dto;
 
-    Bridge(MidolmanMgmt mgmt, DtoBridge bridge) {
+    Bridge(MidolmanMgmt mgmt, DtoTenant tenant, DtoBridge bridge) {
         this.mgmt = mgmt;
+        this.tenant = tenant;
         this.dto = bridge;
     }
 
@@ -62,6 +64,20 @@ public class Bridge {
 
     public void setInboundFilter(UUID id) {
         dto.setInboundFilterId(id);
+        mgmt.updateBridge(dto);
+    }
+
+    public RuleChain addInboundFilter() {
+        RuleChain filter = (new RuleChain.Builder(mgmt, tenant))
+                .setName(dto.getName() + "_InboundFilter").build();
+        // Set this chain as the bridge's inbound filter.
+        setInboundFilter(filter.chain.getId());
+        return filter;
+    }
+
+    public void removeFilters() {
+        dto.setInboundFilterId(null);
+        dto.setOutboundFilterId(null);
         mgmt.updateBridge(dto);
     }
 

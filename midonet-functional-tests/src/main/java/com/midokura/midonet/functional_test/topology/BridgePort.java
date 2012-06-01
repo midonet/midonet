@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class BridgePort {
@@ -54,6 +55,21 @@ public class BridgePort {
     public UUID getId()
     {
         return port.getId();
+    }
+
+    public void removeFilters() {
+        port.setInboundFilterId(null);
+        port.setOutboundFilterId(null);
+        mgmt.updatePort(port);
+    }
+
+    public RuleChain addOutboundFilter(String name, DtoTenant tenant) {
+        RuleChain filter = (new RuleChain.Builder(mgmt, tenant))
+                .setName(name).build();
+        // Set this chain as the port's outbound filter.
+        port.setOutboundFilterId(filter.chain.getId());
+        mgmt.updatePort(port);
+        return filter;
     }
 
     public void delete() {

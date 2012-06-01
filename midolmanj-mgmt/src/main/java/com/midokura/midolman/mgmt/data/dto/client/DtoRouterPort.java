@@ -8,6 +8,7 @@ public abstract class DtoRouterPort extends DtoPort {
     private String networkAddress = null;
     private int networkLength;
     private String portAddress = null;
+    private String portMac = null;
 
     public String getNetworkAddress() {
         return networkAddress;
@@ -33,6 +34,14 @@ public abstract class DtoRouterPort extends DtoPort {
         this.portAddress = portAddress;
     }
 
+    public String getPortMac() {
+        return portMac;
+    }
+
+    public void setPortMac(String portMac) {
+        this.portMac = portMac;
+    }
+
     @Override
     public boolean equals(Object other) {
 
@@ -53,6 +62,11 @@ public abstract class DtoRouterPort extends DtoPort {
 
         if (portAddress != null ? !portAddress.equals(port.portAddress)
                 : port.portAddress != null) {
+            return false;
+        }
+
+        if (portMac != null ? !portMac.equals(port.portMac)
+                : port.portMac != null) {
             return false;
         }
 

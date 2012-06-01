@@ -102,7 +102,8 @@ public class Bridge implements ForwardingElement {
                                     bridgeMgr.get(bridgeId, this).value;
                             if (!myConfig.equals(config)) {
                                 myConfig = config;
-                                log.debug("Bridge {} has a new config {}",
+                                log.debug("Bridge {} has a new config {} - " +
+                                        "invalidated its flow matches.",
                                         bridgeId, myConfig);
                                 controller.invalidateFlowsByElement(bridgeId);
                             }
@@ -362,7 +363,7 @@ public class Bridge implements ForwardingElement {
 
     private class MacPortWatcher implements
             ReplicatedMap.Watcher<MAC, UUID> {
-        public void processChange(MAC key, UUID oldPortId, UUID newPortId) {
+        public void processChange(MAC mac, UUID oldPortId, UUID newPortId) {
             // If we own the new port, we already know about the change.
             if (localPorts.contains(newPortId))
                 return;
@@ -374,6 +375,8 @@ public class Bridge implements ForwardingElement {
                 // This is not needed for correctness - any flows to this mac
                 // would have been flooded and therefore would continue to reach
                 // their destination. However, a unicast flow is more efficient.
+                log.debug("Learned Mac-Port mapping: {} to {}. Invalidate " +
+                        "flooded flows.", mac, newPortId);
                 controller.invalidateFlowsByElement(floodElementID);
 
                 /* TODO(pino): Invalidate by destination mac (more precise):
@@ -387,6 +390,8 @@ public class Bridge implements ForwardingElement {
             }
             else {
                 // TODO(pino): invalidate only flows that egress at oldPortId
+                log.debug("Mac {} moved to new port. Invalidate flows to old " +
+                        "port {}", mac, oldPortId);
                 controller.invalidateFlowsByElement(oldPortId);
             }
         }
@@ -503,12 +508,16 @@ public class Bridge implements ForwardingElement {
             // invalidate by the port ID.
             UUID oldPortUuid = macPortMap.get(macAddr);
             if (!oldPortUuid.equals(portUuid)) {
+                log.debug("Mac {} moved to new port. Invalidate flows to old " +
+                        "port {}", macAddr, oldPortUuid);
                 controller.invalidateFlowsByElement(oldPortUuid);
                 writeMacPortMap = true;
             }
         } else {
             // The mac was not mapped to any port. So the flows to this mac
             // may have been flooded. We have to invalidate all flooded flows.
+            log.debug("Learned a new Mac-Port mapping: {} to {} - invalidate " +
+                    "flooded flow matches.", macAddr, portUuid);
             controller.invalidateFlowsByElement(floodElementID);
             writeMacPortMap = true;
         }

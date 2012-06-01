@@ -7,6 +7,8 @@ package com.midokura.midonet.functional_test.topology;
 import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class LogicalRouterPort {
@@ -77,7 +79,7 @@ public class LogicalRouterPort {
         rt.setType(DtoRoute.Normal);
         rt.setNextHopPort(peerPort.port.getId());
         rt.setWeight(10);
-        rt = mgmt.addRoute(peerPort.router, rt);
+        mgmt.addRoute(peerPort.router, rt);
     }
 
     public void link(LogicalBridgePort peerPort) {
@@ -101,5 +103,13 @@ public class LogicalRouterPort {
 
     public void delete() {
         mgmt.delete(port.getUri());
+    }
+
+    public IntIPv4 getIpAddr() {
+        return IntIPv4.fromString(port.getPortAddress());
+    }
+
+    public MAC getMacAddr() {
+        return MAC.fromString(port.getPortMac());
     }
 }

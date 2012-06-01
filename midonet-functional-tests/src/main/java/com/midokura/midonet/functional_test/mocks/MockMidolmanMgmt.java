@@ -207,6 +207,16 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public void updateRouter(DtoRouter r) {
+        put(r.getUri(), r);
+    }
+
+    @Override
+    public void updatePort(DtoPort p) {
+        put(p.getUri(), p);
+    }
+
+    @Override
     public void linkRouterToPeer(DtoLogicalRouterPort port) {
         resource().uri(port.getLink())
             .type(MediaType.APPLICATION_JSON)

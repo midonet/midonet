@@ -35,7 +35,7 @@ public class Tenant {
     }
 
     MidolmanMgmt mgmt;
-    DtoTenant dto;
+    public DtoTenant dto;
 
     Tenant(MidolmanMgmt mgmt, DtoTenant t) {
         this.mgmt = mgmt;

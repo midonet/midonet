@@ -57,6 +57,7 @@ public class VRNCoordinator implements ForwardingElement {
         portCache.addWatcher(new Callback1<UUID>() {
             @Override
             public void call(UUID portId) {
+                log.debug("Port {} config changed; invalidate flows.", portId);
                 controller.invalidateFlowsByElement(portId);
             }
         });
@@ -225,7 +226,8 @@ public class VRNCoordinator implements ForwardingElement {
         // Track the traversed elements (ports or FEs) to aid invalidation.
         fwdInfo.addTraversedElementID(fwdInfo.inPortId);
 
-        applyPortFilter(portCache.get(fwdInfo.inPortId) , fwdInfo, true);
+        applyPortFilter(fwdInfo.inPortId, portCache.get(fwdInfo.inPortId),
+                fwdInfo, true);
         if (fwdInfo.action != Action.FORWARD)
             return;
 
@@ -256,7 +258,7 @@ public class VRNCoordinator implements ForwardingElement {
                 fwdInfo.action = Action.DROP;
                 return;
             }
-            applyPortFilter(cfg, fwdInfo, false);
+            applyPortFilter(fwdInfo.outPortId, cfg, fwdInfo, false);
             if (fwdInfo.action != Action.FORWARD)
                 return;
             // If the port is logical, the simulation continues.
@@ -290,8 +292,8 @@ public class VRNCoordinator implements ForwardingElement {
         // 2) the action is not OUTPUT
     }
 
-    public void applyPortFilter(
-            PortConfig portCfg, ForwardInfo fwdInfo, boolean inbound)
+    public void applyPortFilter(UUID portID, PortConfig portCfg,
+                                ForwardInfo fwdInfo, boolean inbound)
             throws StateAccessException {
         fwdInfo.action = Action.FORWARD;
         // If inbound, use the before-FE-processing match.  If outbound, use
@@ -299,10 +301,12 @@ public class VRNCoordinator implements ForwardingElement {
         MidoMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
         // Ports themselves don't have ports for packets to be entering/exiting,
         // so set inputPort and outputPort to null.
+        UUID filterID = inbound ?
+                portCfg.inboundFilter : portCfg.outboundFilter;
+        log.debug("Applying {} filter on port {} - chain ID {}", new Object[] {
+                inbound ? "inbound" : "outbound", portID, filterID});
         RuleResult result = chainProcessor.applyChain(
-                inbound ? portCfg.inboundFilter : portCfg.outboundFilter,
-                fwdInfo, pktMatch,
-                inbound ? fwdInfo.inPortId : fwdInfo.outPortId, true);
+                filterID, fwdInfo, pktMatch, portID, true);
         if (result.trackConnection)
             fwdInfo.addRemovalNotification(
                     inbound ? fwdInfo.inPortId : fwdInfo.outPortId);

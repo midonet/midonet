@@ -43,7 +43,7 @@ public class MAC implements Cloneable {
     public static MAC random() {
         byte[] addr = new byte[6];
         rand.nextBytes(addr);
-        addr[0] = 0x02;
+        addr[0] &= ~0x01;
         return new MAC(addr);
     }
 

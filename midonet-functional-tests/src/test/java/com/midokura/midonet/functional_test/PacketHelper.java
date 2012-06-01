@@ -143,7 +143,7 @@ public class PacketHelper {
                                     IntIPv4 nwSrc, MAC dlDst,
                                     IntIPv4 nwDst) {
 
-        assertThat("We expected and ARP packet",
+        assertThat("We expected an ARP packet",
                    frame.getEtherType(), equalTo(ARP.ETHERTYPE));
         MAC dlSrc = frame.getSourceMACAddress();
         assertThat("The packet destination MAC is consistent with the target",
