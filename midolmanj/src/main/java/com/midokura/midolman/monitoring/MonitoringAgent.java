@@ -63,7 +63,9 @@ public class MonitoringAgent {
                 configuration.getMonitoringCassandraReporterPoolTime(),
                 TimeUnit.MILLISECONDS);
         } else {
-            log.warn("The metrics publisher to Cassandra store didn't start.");
+            log.warn("The metrics publisher to Cassandra store didn't start " +
+                         "because the store was not initialized. Most likely " +
+                         "the connection to cassandra failed.");
         }
     }
 

@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.monitoring;
 
+import javax.annotation.Nullable;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -46,6 +48,7 @@ public class MonitoringModule extends AbstractModule {
 
     @Singleton
     @Provides
+    @Nullable
     public Store getStore(MonitoringConfiguration config) {
         Store store = null;
         try {
@@ -57,7 +60,7 @@ public class MonitoringModule extends AbstractModule {
                 config.getCassandraReplicationFactor(),
                 config.getCassandraExpirationTimeout());
         } catch (HectorException e) {
-            log.error("Fatal error, enable to initialize CassandraStore", e);
+            log.error("Fatal error, unable to initialize CassandraStore", e);
         }
         return store;
     }
