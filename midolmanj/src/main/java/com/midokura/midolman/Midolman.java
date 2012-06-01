@@ -31,6 +31,7 @@ import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.midolman.monitoring.MonitoringAgent;
+import com.midokura.midolman.monitoring.NodeAgentHostIdProvider;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -166,7 +167,10 @@ public class Midolman implements SelectListener, Watcher {
             .getBoolean("start_monitoring", true);
 
         if (startMonitoring) {
-            monitoringAgent = MonitoringAgent.bootstrapMonitoring(config);
+            NodeAgentHostIdProvider hostIdProvider =
+                new NodeAgentHostIdProvider(nodeAgent);
+            monitoringAgent = MonitoringAgent.bootstrapMonitoring(config,
+                                                                  hostIdProvider);
         }
 
         listenSock = ServerSocketChannel.open();

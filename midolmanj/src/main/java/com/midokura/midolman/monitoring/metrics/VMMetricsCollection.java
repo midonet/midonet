@@ -6,17 +6,18 @@ package com.midokura.midolman.monitoring.metrics;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.util.UUID;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 
+import com.google.inject.Inject;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Gauge;
 import com.yammer.metrics.core.MetricName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.monitoring.HostIdProvider;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
 import com.midokura.midolman.monitoring.gauges.TranslatorGauge;
 import com.midokura.util.functors.Functor;
@@ -32,20 +33,20 @@ public class VMMetricsCollection {
     private static final MBeanServer SERVER =
         ManagementFactory.getPlatformMBeanServer();
 
-    private String hostName = "UNKNOWN";
+    @Inject
+    HostIdProvider hostIdProvider;
+
+    String hostName = "UNKNOWN";
 
     public VMMetricsCollection() {
-        try {
-            //TODO use a unique id, maybe hostUUID?
-            hostName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            log.error("Host unknown!", e);
-        }
+
     }
 
     public void registerMetrics() {
-        addLocalJmxPoolingMetric("ThreadCount", Integer.class,
-                                 "java.lang:type=Threading", "ThreadCount");
+
+        UUID hostId = hostIdProvider.getHostId();
+        if (hostId != null)
+            hostName = hostId.toString();
 
         addLocalJmxPoolingMetric("ThreadCount", Integer.class,
                                  "java.lang:type=Threading", "ThreadCount");
@@ -103,7 +104,8 @@ public class VMMetricsCollection {
                       new TranslatorGauge<MemoryUsage, Long>(
                           new JMXRemoteBeanGauge<MemoryUsage>(
                               SERVER,
-                              MemoryUsage.class, beanName, beanAttribute),
+                              MemoryUsage.class, beanName,
+                              beanAttribute),
                           translator
                       ));
         } catch (MalformedObjectNameException e) {
@@ -116,8 +118,8 @@ public class VMMetricsCollection {
                                               String beanAttr) {
         try {
             addMetric(name,
-                      new JMXRemoteBeanGauge<T>(SERVER,
-                                                type, beanName, beanAttr)
+                      new JMXRemoteBeanGauge<T>(SERVER, type, beanName,
+                                                beanAttr)
             );
         } catch (MalformedObjectNameException e) {
             log.error("Could not create Jmx", e);
@@ -143,4 +145,5 @@ public class VMMetricsCollection {
             new MetricName(VMMetricsCollection.class, name, hostName),
             gauge);
     }
+
 }

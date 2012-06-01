@@ -48,7 +48,7 @@ import com.midokura.midolman.state.ZkConnection;
 public final class NodeAgent {
 
     private final static Logger log =
-            LoggerFactory.getLogger(NodeAgent.class);
+        LoggerFactory.getLogger(NodeAgent.class);
     private UUID hostId;
 
     @Inject
@@ -78,7 +78,7 @@ public final class NodeAgent {
         // log git commit info
         Properties properties = new Properties();
         properties.load(NodeAgent.class.getClassLoader()
-                .getResourceAsStream("git.properties"));
+                                       .getResourceAsStream("git.properties"));
         log.info("node agent main start -------------------------");
         log.info("branch: {}", properties.get("git.branch"));
         log.info("commit.time: {}", properties.get("git.commit.time"));
@@ -94,12 +94,12 @@ public final class NodeAgent {
         CommandLine commandLine = parser.parse(options, args);
 
         String configFilePath =
-                commandLine.getOptionValue('c', "./conf/midolman-agent.conf");
+            commandLine.getOptionValue('c', "./conf/midolman-agent.conf");
 
         // bootstrap the agent configuration using data from the config file.
         NodeAgent agent =
-                _internalBootstrap(
-                        new ConfigurationBasedAgentModule(configFilePath));
+            _internalBootstrap(
+                new ConfigurationBasedAgentModule(configFilePath));
 
         // start and wait to be killed. The ZooKeeper connection will close itself
         // in a shutdownHook.
@@ -128,8 +128,8 @@ public final class NodeAgent {
                                            ZkConnection zkConnection,
                                            OpenvSwitchDatabaseConnection ovsdbConnection) {
         return _internalBootstrap(
-                new MidolmanProvidedConnectionsModule(config, zkConnection,
-                        ovsdbConnection));
+            new MidolmanProvidedConnectionsModule(config, zkConnection,
+                                                  ovsdbConnection));
     }
 
     private static NodeAgent _internalBootstrap(AbstractModule module) {
@@ -183,8 +183,8 @@ public final class NodeAgent {
     }
 
     private UUID identifyHost()
-            throws StateAccessException, PropertiesFileNotWritableException,
-                   InterruptedException {
+        throws StateAccessException, PropertiesFileNotWritableException,
+               InterruptedException {
         // Try to get the host Id
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
 
@@ -192,12 +192,12 @@ public final class NodeAgent {
         InterfaceDescription[] interfaces = scanner.scanInterfaces();
 
         List<InetAddress> listAddresses = new ArrayList<InetAddress>();
-        for(InterfaceDescription interfaceDescription : interfaces){
+        for (InterfaceDescription interfaceDescription : interfaces) {
             listAddresses.addAll(interfaceDescription.getInetAddresses());
         }
 
         metadata.setAddresses(
-                listAddresses.toArray(new InetAddress[listAddresses.size()]));
+            listAddresses.toArray(new InetAddress[listAddresses.size()]));
 
         UUID hostId = null;
         // If HostIdAlreadyInUseException is thrown it will loop forever
@@ -224,6 +224,10 @@ public final class NodeAgent {
             }
             Thread.sleep(configuration.getWaitTimeForUniqueHostId());
         }
+        return hostId;
+    }
+
+    public UUID getHostId() {
         return hostId;
     }
 }

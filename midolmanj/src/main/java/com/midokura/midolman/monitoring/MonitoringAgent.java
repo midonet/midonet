@@ -39,6 +39,9 @@ public class MonitoringAgent {
     MonitoringConfiguration configuration;
 
     @Inject
+    HostIdProvider hostIdProvider;
+
+    @Inject
     VMMetricsCollection vmMetrics;
 
     @Inject
@@ -72,8 +75,9 @@ public class MonitoringAgent {
     }
 
     public static MonitoringAgent bootstrapMonitoring(
-        HierarchicalConfiguration config) {
-        Injector injector = Guice.createInjector(new MonitoringModule(config));
+        HierarchicalConfiguration config, HostIdProvider hostIdProvider) {
+        Injector injector = Guice.createInjector(
+            new MonitoringModule(config, hostIdProvider));
 
         MonitoringAgent monitoringAgent =
             injector.getInstance(MonitoringAgent.class);

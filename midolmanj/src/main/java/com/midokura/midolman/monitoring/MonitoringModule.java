@@ -26,12 +26,15 @@ import com.midokura.midolman.monitoring.store.Store;
 public class MonitoringModule extends AbstractModule {
 
     private final static Logger log =
-            LoggerFactory.getLogger(MonitoringModule.class);
+        LoggerFactory.getLogger(MonitoringModule.class);
 
     private HierarchicalConfiguration configuration;
+    private HostIdProvider provider;
 
-    public MonitoringModule(HierarchicalConfiguration configuration) {
+    public MonitoringModule(HierarchicalConfiguration configuration,
+                            HostIdProvider hostIdProvider) {
         this.configuration = configuration;
+        this.provider = hostIdProvider;
     }
 
     @Override
@@ -44,6 +47,8 @@ public class MonitoringModule extends AbstractModule {
             .annotatedWith(
                 Names.named(DefaultMonitoringConfiguration.MONITORING_CONFIG))
             .toInstance(configuration);
+
+        bind(HostIdProvider.class).toInstance(provider);
     }
 
     @Singleton

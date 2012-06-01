@@ -4,6 +4,7 @@
 package com.midokura.util.jmx;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import javax.management.MBeanServerConnection;
@@ -78,6 +79,15 @@ public class JMXHelper {
         }
 
         return null;
+    }
+
+    public static MBeanServerConnection newJmxServerConnectionFromUrl(
+        String serverUrl) throws IOException {
+        JMXServiceURL url = new JMXServiceURL(serverUrl);
+        //Get JMX connector
+        JMXConnector jmxc = JMXConnectorFactory.connect(url);
+        //Get MBean server connection
+        return jmxc.getMBeanServerConnection();
     }
 
     public static <T> JMXAttributeAccessor.Builder<T> newAttributeAccessor(

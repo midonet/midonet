@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
     private final static Logger log =
-        LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
+            LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
 
     private MBeanServerConnection serverConnection;
     private ObjectName beanName;
@@ -29,15 +29,16 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
     public JMXRemoteBeanGauge(MBeanServerConnection serverConn, Class<T> type,
                               String beanName, String beanAttr)
-        throws MalformedObjectNameException {
+            throws MalformedObjectNameException {
         this(serverConn, type, beanName, beanAttr, null);
     }
 
     public JMXRemoteBeanGauge(MBeanServerConnection serverConn,
-                                    Class<T> type,
-                                    String beanName, String beanAttr,
-                                    String compositeKeyName)
-        throws MalformedObjectNameException {
+                              Class<T> type,
+                              String beanName, String beanAttr,
+                              String compositeKeyName)
+            throws MalformedObjectNameException {
+
         this.beanName = new ObjectName(beanName);
         this.beanAttr = beanAttr;
         this.compositeKeyName = compositeKeyName;
@@ -61,8 +62,8 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
         } catch (ClassCastException e) {
             log.error("Couldn't convert class {} got from {}, {} to {}",
                       new Object[]{
-                          val.getClass().getCanonicalName(),
-                          beanAttr, type.getCanonicalName(), e});
+                              val.getClass().getCanonicalName(),
+                              beanAttr, type.getCanonicalName(), e});
         } catch (Exception e) {
             log.error("There was a problem in retrieving {}, {}",
                       new Object[]{beanName, beanAttr, e});
