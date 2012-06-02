@@ -1,12 +1,9 @@
 /*
- * @(#)BgpZkManager        1.6 11/09/13
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
-
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +22,7 @@ public class BgpZkManager extends ZkManager {
         /*
          * The bgp is a list of BGP information dictionaries enabled on this
          * port. The keys for the dictionary are:
-         * 
+         *
          * local_port: local TCP port number for BGP, as a positive integer.
          * local_as: local AS number that belongs to, as a positive integer.
          * peer_addr: IPv4 address of the peer, as a human-readable string.
@@ -58,7 +55,7 @@ public class BgpZkManager extends ZkManager {
 
     /**
      * BgpZkManager constructor.
-     * 
+     *
      * @param zk
      *            Zookeeper object.
      * @param basePath
@@ -72,21 +69,15 @@ public class BgpZkManager extends ZkManager {
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getBgpPath(bgpNode.key),
-                    serialize(bgpNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize BgpConfig", e, BgpConfig.class);
-        }
+        ops.add(Op.create(pathManager.getBgpPath(bgpNode.key),
+                serializer.serialize(bgpNode.value), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getBgpAdRoutesPath(bgpNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops
-                .add(Op.create(pathManager.getPortBgpPath(bgpNode.value.portId,
-                        bgpNode.key), null, Ids.OPEN_ACL_UNSAFE,
-                        CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortBgpPath(bgpNode.value.portId,
+                bgpNode.key), null, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         return ops;
     }
@@ -143,14 +134,7 @@ public class BgpZkManager extends ZkManager {
     public ZkNodeEntry<UUID, BgpConfig> get(UUID id, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(pathManager.getBgpPath(id), watcher);
-        BgpConfig config = null;
-        try {
-            config = deserialize(data, BgpConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize bgp " + id + " to BgpConfig", e,
-                    BgpConfig.class);
-        }
+        BgpConfig config = serializer.deserialize(data, BgpConfig.class);
         return new ZkNodeEntry<UUID, BgpConfig>(id, config);
     }
 
@@ -161,7 +145,7 @@ public class BgpZkManager extends ZkManager {
 
     public List<ZkNodeEntry<UUID, BgpConfig>> list(UUID portId, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, BgpConfig>> result = 
+        List<ZkNodeEntry<UUID, BgpConfig>> result =
                 new ArrayList<ZkNodeEntry<UUID, BgpConfig>>();
         Set<String> bgpIds = getChildren(pathManager.getPortBgpPath(portId),
                 watcher);
@@ -179,13 +163,7 @@ public class BgpZkManager extends ZkManager {
 
     public void update(ZkNodeEntry<UUID, BgpConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        byte[] data = null;
-        try {
-            data = serialize(entry.value);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException("Could not serialize bgp "
-                    + entry.key + " to BgpConfig", e, BgpConfig.class);
-        }
+        byte[] data = serializer.serialize(entry.value);
         update(pathManager.getBgpPath(entry.key), data);
     }
 

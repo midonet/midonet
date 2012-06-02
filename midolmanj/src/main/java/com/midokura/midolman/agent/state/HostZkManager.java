@@ -44,8 +44,8 @@ public class HostZkManager extends ZkManager {
         byte[] data = get(pathManager.getHostPath(id));
         HostDirectory.Metadata metadata;
         try {
-            metadata = deserialize(data, HostDirectory.Metadata.class);
-        } catch (IOException e) {
+            metadata = serializer.deserialize(data, HostDirectory.Metadata.class);
+        } catch (ZkStateSerializationException e) {
             String dataAsString = new String(data);
             throw new ZkStateSerializationException(
                 "Could not deserialize host metadata for id: " + id +
@@ -63,7 +63,7 @@ public class HostZkManager extends ZkManager {
             List<Op> createMulti = new ArrayList<Op>();
             createMulti.add(
                 getPersistentCreateOp(pathManager.getHostPath(hostId),
-                                      serialize(metadata)));
+                                      serializer.serialize(metadata)));
             createMulti.add(
                 getPersistentCreateOp(pathManager.getHostInterfacesPath(hostId),
                                       null));
@@ -76,7 +76,7 @@ public class HostZkManager extends ZkManager {
                     null));
 
             multi(createMulti);
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not serialize host metadata for id: " + hostId,
                 e, HostDirectory.Metadata.class);
@@ -98,8 +98,9 @@ public class HostZkManager extends ZkManager {
         throws StateAccessException {
         if (metadata != null) {
             try {
-                update(pathManager.getHostPath(hostId), serialize(metadata));
-            } catch (IOException e) {
+                update(pathManager.getHostPath(hostId),
+                        serializer.serialize(metadata));
+            } catch (ZkStateSerializationException e) {
                 throw new ZkStateSerializationException(
                     "Could not serialize host metadata for id: " + hostId,
                     e, HostDirectory.Metadata.class);
@@ -142,12 +143,13 @@ public class HostZkManager extends ZkManager {
 
         try {
             String path = addPersistentSequential(
-                pathManager.getHostCommandsPath(hostId), serialize(command));
+                pathManager.getHostCommandsPath(hostId),
+                serializer.serialize(command));
 
             int idx = path.lastIndexOf('/');
             return Integer.parseInt(path.substring(idx + 1));
 
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not serialize host command for id: " + hostId, e,
                 Command.class);
@@ -167,7 +169,7 @@ public class HostZkManager extends ZkManager {
         }
         ops.add(getEphemeralCreateOp(
             pathManager.getHostInterfacePath(hostId, uuid),
-            serialize(anInterface)));
+            serializer.serialize(anInterface)));
 
         multi(ops);
 
@@ -183,9 +185,9 @@ public class HostZkManager extends ZkManager {
 
             return new ZkNodeEntry<UUID, HostDirectory.Interface>(
                 interfaceId,
-                deserialize(data, HostDirectory.Interface.class)
+                serializer.deserialize(data, HostDirectory.Interface.class)
             );
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host interface metadata for id: " +
                     hostId + " / " + interfaceId,
@@ -261,7 +263,7 @@ public class HostZkManager extends ZkManager {
                 String hostInterfacePath =
                     pathManager.getHostInterfacePath(hostId,
                                                      hostInterface.getId());
-                byte[] serializedData = serialize(hostInterface);
+                byte[] serializedData = serializer.serialize(hostInterface);
 
                 Op hostInterfaceOp;
                 if (exists(hostInterfacePath)) {
@@ -274,7 +276,7 @@ public class HostZkManager extends ZkManager {
 
                 updateInterfacesOperation.add(hostInterfaceOp);
 
-            } catch (IOException ex) {
+            } catch (ZkStateSerializationException ex) {
                 log.warn("Could not serialize interface data {}.",
                          hostInterface, ex);
             }
@@ -316,9 +318,9 @@ public class HostZkManager extends ZkManager {
 
             return new ZkNodeEntry<Integer, Command>(
                 commandId,
-                deserialize(data, Command.class)
+                serializer.deserialize(data, Command.class)
             );
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host command data id: " +
                     hostId + " / " + commandId, e, Command.class);
@@ -345,9 +347,9 @@ public class HostZkManager extends ZkManager {
         }
         try {
             // Assign to the error log the same id of the command that generated it
-            update(path, serialize(errorLog));
+            update(path, serializer.serialize(errorLog));
 
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not serialize host metadata for id: " + hostId,
                 e, HostDirectory.Metadata.class);
@@ -362,9 +364,9 @@ public class HostZkManager extends ZkManager {
                                                                      logId));
 
             return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
-                logId, deserialize(data, HostDirectory.ErrorLogItem.class)
+                logId, serializer.deserialize(data, HostDirectory.ErrorLogItem.class)
             );
-        } catch (IOException e) {
+        } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host error log data id: " +
                     hostId + " / " + logId, e,

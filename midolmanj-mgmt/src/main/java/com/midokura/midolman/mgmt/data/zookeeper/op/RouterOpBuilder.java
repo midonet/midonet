@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
@@ -27,7 +27,7 @@ public class RouterOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterOpBuilder.class);
-    private final RouterSerializer serializer;
+    private final ZkConfigSerializer serializer;
     private final PathBuilder pathBuilder;
     private final RouterZkManager zkDao;
 
@@ -39,10 +39,10 @@ public class RouterOpBuilder {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            RouterSerializer object.
+     *            ZkConfigSerializer object.
      */
     public RouterOpBuilder(RouterZkManager zkDao, PathBuilder pathBuilder,
-            RouterSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;

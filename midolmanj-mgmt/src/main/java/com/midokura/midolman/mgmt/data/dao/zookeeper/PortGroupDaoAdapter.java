@@ -17,12 +17,11 @@ import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.PortGroupSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.util.Serializer;
 
 /**
  * PortGroup ZK DAO adapter.
@@ -33,7 +32,7 @@ public class PortGroupDaoAdapter implements PortGroupDao {
             .getLogger(PortGroupDaoAdapter.class);
     private final ZkManager zkDao;
     private final PathBuilder pathBuilder;
-    private final PortGroupSerializer serializer;
+    private final ZkConfigSerializer serializer;
 
     /**
      * Constructor
@@ -46,12 +45,7 @@ public class PortGroupDaoAdapter implements PortGroupDao {
     public PortGroupDaoAdapter(ZkManager zkDao, PathBuilder pathBuilder) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
-        Serializer<PortGroupMgmtConfig> serializer =
-                new JsonJaxbSerializer<PortGroupMgmtConfig>();
-        Serializer<PortGroupNameMgmtConfig> nameSerializer =
-                new JsonJaxbSerializer<PortGroupNameMgmtConfig>();
-        this.serializer =
-                new PortGroupSerializer(serializer, nameSerializer);
+        this.serializer = new ZkConfigSerializer(new JsonJaxbSerializer());
     }
 
     @Override
@@ -67,8 +61,8 @@ public class PortGroupDaoAdapter implements PortGroupDao {
         byte[] data = serializer.serialize(group.toMgmtConfig());
         ops.add(zkDao.getPersistentCreateOp(path, data));
 
-        path = pathBuilder.getTenantPortGroupNamePath(
-                group.getTenantId(), group.getName());
+        path = pathBuilder.getTenantPortGroupNamePath(group.getTenantId(),
+                group.getName());
         data = serializer.serialize(group.toNameMgmtConfig());
         ops.add(zkDao.getPersistentCreateOp(path, data));
 
@@ -180,7 +174,7 @@ public class PortGroupDaoAdapter implements PortGroupDao {
         }
         String path = pathBuilder.getPortGroupPath(id);
         byte[] data = zkDao.get(path);
-        return serializer.deserialize(data);
+        return serializer.deserialize(data, PortGroupMgmtConfig.class);
     }
 
     /**
@@ -203,7 +197,8 @@ public class PortGroupDaoAdapter implements PortGroupDao {
 
         String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name);
         byte[] data = zkDao.get(path);
-        PortGroupNameMgmtConfig config = serializer.deserializeName(data);
+        PortGroupNameMgmtConfig config = serializer.deserialize(data,
+                PortGroupNameMgmtConfig.class);
 
         log.debug("PortGroupZkDao.getNameData exiting: path=" + path);
         return config;

@@ -4,7 +4,6 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,8 +23,8 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class BridgeZkManager extends ZkManager {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(BridgeZkManager.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(BridgeZkManager.class);
 
     public static class BridgeConfig {
 
@@ -40,25 +39,26 @@ public class BridgeZkManager extends ZkManager {
         }
 
         // TODO: Make this private with a getter.
-        public int greKey;      // Only set in prepareBridgeCreate
+        public int greKey; // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
 
             BridgeConfig that = (BridgeConfig) o;
 
-            if (greKey != that.greKey) return false;
-            if (inboundFilter != null
-                    ? !inboundFilter.equals(that.inboundFilter)
-                    : that.inboundFilter != null)
+            if (greKey != that.greKey)
                 return false;
-            if (outboundFilter != null
-                    ? !outboundFilter.equals(that.outboundFilter)
-                    : that.outboundFilter != null)
+            if (inboundFilter != null ? !inboundFilter
+                    .equals(that.inboundFilter) : that.inboundFilter != null)
+                return false;
+            if (outboundFilter != null ? !outboundFilter
+                    .equals(that.outboundFilter) : that.outboundFilter != null)
                 return false;
 
             return true;
@@ -76,11 +76,9 @@ public class BridgeZkManager extends ZkManager {
 
         @Override
         public String toString() {
-            return "BridgeConfig{" +
-                    "greKey=" + greKey +
-                    ", inboundFilter=" + inboundFilter +
-                    ", outboundFilter=" + outboundFilter +
-                    '}';
+            return "BridgeConfig{" + "greKey=" + greKey + ", inboundFilter="
+                    + inboundFilter + ", outboundFilter=" + outboundFilter
+                    + '}';
         }
     }
 
@@ -135,20 +133,16 @@ public class BridgeZkManager extends ZkManager {
         bridgeNode.value.greKey = gre.key;
 
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getBridgePath(bridgeNode.key),
-                    serialize(bridgeNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize BridgeConfig", e, BridgeConfig.class);
-        }
+        ops.add(Op.create(pathManager.getBridgePath(bridgeNode.key),
+                serializer.serialize(bridgeNode.value), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         ops.add(Op.create(pathManager.getBridgePortsPath(bridgeNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgeLogicalPortsPath(bridgeNode.key),
-                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(
+                pathManager.getBridgeLogicalPortsPath(bridgeNode.key), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         ops.add(Op.create(pathManager.getBridgeDhcpPath(bridgeNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -156,8 +150,8 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getBridgeMacPortsPath(bridgeNode.key),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager
-                .getBridgePortLocationsPath(bridgeNode.key), null,
+        ops.add(Op.create(
+                pathManager.getBridgePortLocationsPath(bridgeNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add a port-set for this bridge
@@ -172,17 +166,16 @@ public class BridgeZkManager extends ZkManager {
     }
 
     /**
-     * Construct a list of ZK operations needed to update the configuration of
-     * a bridge.
+     * Construct a list of ZK operations needed to update the configuration of a
+     * bridge.
      *
      * @param id
-     *          ID of the bridge to update
+     *            ID of the bridge to update
      * @param config
-     *         the new bridge configuration.
-     * @return
-     *          The ZK operation required to update the bridge.
-     * @throws ZkStateSerializationException if the BridgeConfig could not be
-     *          serialized.
+     *            the new bridge configuration.
+     * @return The ZK operation required to update the bridge.
+     * @throws ZkStateSerializationException
+     *             if the BridgeConfig could not be serialized.
      */
     public Op prepareUpdate(UUID id, BridgeConfig config)
             throws StateAccessException {
@@ -193,27 +186,21 @@ public class BridgeZkManager extends ZkManager {
         UUID id2 = config.inboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {
             log.debug("The inbound filter of bridge {} changed from {} to {}",
-                    new Object[] {id, id1, id2});
+                    new Object[] { id, id1, id2 });
             dataChanged = true;
         }
         id1 = oldConfig.outboundFilter;
         id2 = config.outboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {
             log.debug("The outbound filter of bridge {} changed from {} to {}",
-                    new Object[] {id, id1, id2});
+                    new Object[] { id, id1, id2 });
             dataChanged = true;
         }
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
             config.greKey = oldConfig.greKey;
-            try {
-                return Op.setData(
-                        pathManager.getBridgePath(id), serialize(config), -1);
-            } catch (IOException e) {
-                throw new ZkStateSerializationException(
-                        "Could not serialize BridgeConfig",
-                        e, BridgeConfig.class);
-            }
+            return Op.setData(pathManager.getBridgePath(id),
+                    serializer.serialize(config), -1);
         }
         return null;
     }
@@ -249,22 +236,18 @@ public class BridgeZkManager extends ZkManager {
             ops.addAll(portZkManager.prepareDelete(portId));
         }
 
-        ops.add(
-            Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
-        ops.add(
-            Op.delete(pathManager.getBridgeLogicalPortsPath(entry.key), -1));
-        ops.addAll(
-            getRecursiveDeleteOps(pathManager.getBridgeDhcpPath(entry.key)));
-        ops.add(
-            Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
-        ops.add(
-            Op.delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgePortsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgeLogicalPortsPath(entry.key), -1));
+        ops.addAll(getRecursiveDeleteOps(pathManager
+                .getBridgeDhcpPath(entry.key)));
+        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
 
         // Delete GRE
         GreKey gre = new GreKey(entry.key);
-        ops.addAll(greZkManager.prepareGreDelete(
-                        new ZkNodeEntry<Integer, GreKey>(
-                                entry.value.greKey, gre)));
+        ops.addAll(greZkManager
+                .prepareGreDelete(new ZkNodeEntry<Integer, GreKey>(
+                        entry.value.greKey, gre)));
 
         // Delete this bridge's port-set
         ops.add(portSetMap.preparePortSetDelete(entry.key));
@@ -293,13 +276,13 @@ public class BridgeZkManager extends ZkManager {
     public UUID create(BridgeConfig bridge) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode =
-                new ZkNodeEntry<UUID, BridgeConfig>(id, bridge);
+        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = new ZkNodeEntry<UUID, BridgeConfig>(
+                id, bridge);
         multi(prepareBridgeCreate(bridgeNode));
         return id;
     }
 
-    public void update(UUID id,  BridgeConfig cfg) throws StateAccessException {
+    public void update(UUID id, BridgeConfig cfg) throws StateAccessException {
         Op op = prepareUpdate(id, cfg);
         if (null != op) {
             List<Op> ops = new ArrayList<Op>();
@@ -338,14 +321,7 @@ public class BridgeZkManager extends ZkManager {
     public ZkNodeEntry<UUID, BridgeConfig> get(UUID id, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(pathManager.getBridgePath(id), watcher);
-        BridgeConfig config = null;
-        try {
-            config = deserialize(data, BridgeConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize bridge " + id + " to BridgeConfig",
-                    e, BridgeConfig.class);
-        }
+        BridgeConfig config = serializer.deserialize(data, BridgeConfig.class);
         return new ZkNodeEntry<UUID, BridgeConfig>(id, config);
     }
 

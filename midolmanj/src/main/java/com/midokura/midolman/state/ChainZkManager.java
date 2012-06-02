@@ -1,14 +1,11 @@
 /*
- * @(#)ChainZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -21,9 +18,6 @@ import com.midokura.midolman.rules.Rule;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 public class ChainZkManager extends ZkManager {
 
@@ -40,8 +34,8 @@ public class ChainZkManager extends ZkManager {
         }
     }
 
-    private final static Logger log =
-        LoggerFactory.getLogger(ChainZkManager.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(ChainZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -69,14 +63,9 @@ public class ChainZkManager extends ZkManager {
     public List<Op> prepareChainCreate(ZkNodeEntry<UUID, ChainConfig> chainEntry)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getChainPath(chainEntry.key),
-                    serialize(chainEntry.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize ChainConfig", e, ChainConfig.class);
-        }
+        ops.add(Op.create(pathManager.getChainPath(chainEntry.key),
+                serializer.serialize(chainEntry.value), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getChainRulesPath(chainEntry.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
@@ -99,8 +88,8 @@ public class ChainZkManager extends ZkManager {
     public List<Op> prepareChainDelete(ZkNodeEntry<UUID, ChainConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        RuleZkManager ruleZkManager =
-                new RuleZkManager(zk, pathManager.getBasePath());
+        RuleZkManager ruleZkManager = new RuleZkManager(zk,
+                pathManager.getBasePath());
         List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
         for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
@@ -146,14 +135,7 @@ public class ChainZkManager extends ZkManager {
     public ZkNodeEntry<UUID, ChainConfig> get(UUID id)
             throws StateAccessException {
         byte[] data = get(pathManager.getChainPath(id), null);
-        ChainConfig config = null;
-        try {
-            config = deserialize(data, ChainConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize chain " + id + " to ChainConfig", e,
-                    ChainConfig.class);
-        }
+        ChainConfig config = serializer.deserialize(data, ChainConfig.class);
         return new ZkNodeEntry<UUID, ChainConfig>(id, config);
     }
 
@@ -167,14 +149,7 @@ public class ChainZkManager extends ZkManager {
      */
     public void update(ZkNodeEntry<UUID, ChainConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        byte[] data = null;
-        try {
-            data = serialize(entry.value);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize chain " + entry.key
-                            + " to ChainConfig", e, ChainConfig.class);
-        }
+        byte[] data = serializer.serialize(entry.value);
         update(pathManager.getChainPath(entry.key), data);
     }
 

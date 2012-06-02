@@ -13,11 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 
 /**
  * Proxy class to access ZooKeeper for port data.
@@ -27,7 +27,7 @@ public class PortZkDao {
     private final static Logger log = LoggerFactory.getLogger(PortZkDao.class);
     private final PortZkManager zkDao;
     private final PathBuilder pathBuilder;
-    private final PortSerializer serializer;
+    private final ZkConfigSerializer serializer;
 
     /**
      * Constructor
@@ -37,10 +37,10 @@ public class PortZkDao {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            PortSerializer object.
+     *            ZkConfigSerializer object.
      */
     public PortZkDao(PortZkManager zkDao, PathBuilder pathBuilder,
-            PortSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
@@ -99,7 +99,7 @@ public class PortZkDao {
         byte[] data = zkDao.get(path);
         PortMgmtConfig config = null;
         if (data != null) {
-            config = serializer.deserialize(data);
+            config = serializer.deserialize(data, PortMgmtConfig.class);
         }
 
         log.debug("PortZkDao.getMgmtData exiting: path=" + path);

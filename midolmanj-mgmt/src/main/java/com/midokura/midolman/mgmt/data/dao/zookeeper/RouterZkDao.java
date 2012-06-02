@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
@@ -30,7 +30,7 @@ public class RouterZkDao {
             .getLogger(RouterZkDao.class);
     private final RouterZkManager zkDao;
     private final PathBuilder pathBuilder;
-    private final RouterSerializer serializer;
+    private final ZkConfigSerializer serializer;
 
     /**
      * Constructor
@@ -40,10 +40,10 @@ public class RouterZkDao {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            RouterSerializer object.
+     *            ZkConfigSerializer object.
      */
     public RouterZkDao(RouterZkManager zkDao, PathBuilder pathBuilder,
-            RouterSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
@@ -82,7 +82,8 @@ public class RouterZkDao {
 
         String path = pathBuilder.getRouterPath(id);
         byte[] data = zkDao.get(path);
-        RouterMgmtConfig config = serializer.deserialize(data);
+        RouterMgmtConfig config = serializer.deserialize(data,
+                RouterMgmtConfig.class);
 
         log.debug("RouterZkDao.getMgmtData exiting: path={}", path);
         return config;
@@ -122,7 +123,8 @@ public class RouterZkDao {
 
         String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
         byte[] data = zkDao.get(path);
-        RouterNameMgmtConfig config = serializer.deserializeName(data);
+        RouterNameMgmtConfig config = serializer.deserialize(data,
+                RouterNameMgmtConfig.class);
 
         log.debug("RouterZkDao.getNameData exiting: path=" + path);
         return config;

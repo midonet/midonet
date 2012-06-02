@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
@@ -30,7 +30,7 @@ public class BridgeZkDao {
             .getLogger(BridgeZkDao.class);
     private final BridgeZkManager zkDao;
     private final PathBuilder pathBuilder;
-    private final BridgeSerializer serializer;
+    private final ZkConfigSerializer serializer;
 
     /**
      * Constructor
@@ -40,10 +40,10 @@ public class BridgeZkDao {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            BridgeSerializer object.
+     *            ZkConfigSerializer object.
      */
     public BridgeZkDao(BridgeZkManager zkDao, PathBuilder pathBuilder,
-            BridgeSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
@@ -98,7 +98,8 @@ public class BridgeZkDao {
 
         String path = pathBuilder.getBridgePath(id);
         byte[] data = zkDao.get(path);
-        BridgeMgmtConfig config = serializer.deserialize(data);
+        BridgeMgmtConfig config = serializer.deserialize(data,
+                BridgeMgmtConfig.class);
 
         log.debug("BridgeZkDao.getData exiting: path={}", path);
         return config;
@@ -120,7 +121,8 @@ public class BridgeZkDao {
 
         String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
         byte[] data = zkDao.get(path);
-        BridgeNameMgmtConfig config = serializer.deserializeName(data);
+        BridgeNameMgmtConfig config = serializer.deserialize(data,
+                BridgeNameMgmtConfig.class);
 
         log.debug("BridgeZkDao.getNameData exiting: path=" + path);
         return config;

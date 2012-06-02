@@ -2,11 +2,10 @@
 
 package com.midokura.midolman;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
-import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
@@ -17,20 +16,17 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.midokura.midolman.state.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFFeaturesReply;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFFlowMod;
+import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
@@ -47,9 +43,21 @@ import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.IPv4;
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.JSONSerializer;
 
 public class TestBridge {
     Logger log = LoggerFactory.getLogger(TestBridge.class);
@@ -82,6 +90,7 @@ public class TestBridge {
     int tunnelID;
     int[] portKeys = new int[8];
     private BridgeZkManager bridgeZkManager;
+    private ZkConfigSerializer serializer;
     private ZkPathManager pathManager;
 
     // MACs:  8 normal addresses, and one multicast.
@@ -185,6 +194,7 @@ public class TestBridge {
         ovsdb = new MockOpenvSwitchDatabaseConnection();
         publicIp = IntIPv4.fromString("192.168.1.50");
         UUID vrnId = UUID.randomUUID();
+        serializer = new ZkConfigSerializer(new JSONSerializer());
 
         // Create portUuids:
         //      Seven random UUIDs, and an eighth being a dup of the seventh.
@@ -1195,7 +1205,7 @@ public class TestBridge {
 
         newBridgeConfig.greKey = bridge.getBridgeConfig().greKey;
 
-        byte[] serializedConfig = bridgeZkManager.serialize(newBridgeConfig);
+        byte[] serializedConfig = serializer.serialize(newBridgeConfig);
         String path = pathManager.getBridgePath(bridge.getId());
         bridgeZkManager.update(path, serializedConfig);
     }

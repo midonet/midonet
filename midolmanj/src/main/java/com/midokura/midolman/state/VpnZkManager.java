@@ -1,21 +1,20 @@
 /*
- * @(#)VpnZkManager        1.6 11/10/19
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import com.midokura.midolman.packets.IntIPv4;
 
 public class VpnZkManager extends ZkManager {
 
@@ -31,15 +30,17 @@ public class VpnZkManager extends ZkManager {
         public int port;
 
         public VpnConfig(UUID publicPortId, UUID privatePortId,
-                         String remoteIp, VpnType vpnType, int port) {
+                String remoteIp, VpnType vpnType, int port) {
             this.publicPortId = publicPortId;
             this.privatePortId = privatePortId;
             // check if it's a valid IP
             if (remoteIp != null)
                 IntIPv4.fromString(remoteIp);
             else {
-                if( vpnType == VpnType.OPENVPN_CLIENT || vpnType == VpnType.OPENVPN_TCP_CLIENT )
-                    throw new IllegalArgumentException("Vpn client: remote address is null!");
+                if (vpnType == VpnType.OPENVPN_CLIENT
+                        || vpnType == VpnType.OPENVPN_TCP_CLIENT)
+                    throw new IllegalArgumentException(
+                            "Vpn client: remote address is null!");
             }
             this.remoteIp = remoteIp;
             this.vpnType = vpnType;
@@ -55,8 +56,10 @@ public class VpnZkManager extends ZkManager {
     /**
      * VpnZkManager constructor.
      *
-     * @param zk       Zookeeper object.
-     * @param basePath Directory to set as the base.
+     * @param zk
+     *            Zookeeper object.
+     * @param basePath
+     *            Directory to set as the base.
      */
     public VpnZkManager(Directory zk, String basePath) {
         super(zk, basePath);
@@ -66,22 +69,16 @@ public class VpnZkManager extends ZkManager {
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getVpnPath(vpnNode.key),
-                    serialize(vpnNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize VpnConfig", e, VpnConfig.class);
-        }
-        ops.add(
-                Op.create(pathManager.getPortVpnPath(vpnNode.value.publicPortId,
-                        vpnNode.key),
-                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(
-                Op.create(pathManager.getPortVpnPath(vpnNode.value.privatePortId,
-                        vpnNode.key),
-                        null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        ops.add(Op.create(pathManager.getVpnPath(vpnNode.key),
+                serializer.serialize(vpnNode.value), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortVpnPath(
+                vpnNode.value.publicPortId, vpnNode.key), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortVpnPath(
+                vpnNode.value.privatePortId, vpnNode.key), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
@@ -96,8 +93,9 @@ public class VpnZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the port vpn entry
-        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.publicPortId,
-                entry.key), -1));
+        ops.add(Op.delete(
+                pathManager.getPortVpnPath(entry.value.publicPortId, entry.key),
+                -1));
         ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.privatePortId,
                 entry.key), -1));
 
@@ -105,12 +103,12 @@ public class VpnZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getVpnPath(entry.key), -1));
 
         // Unlock if exists
-        if (this.exists(pathManager.getAgentVpnPath(entry.key)) &&
-            this.exists(pathManager.getAgentPortPath(
-                            entry.value.privatePortId))) {
+        if (this.exists(pathManager.getAgentVpnPath(entry.key))
+                && this.exists(pathManager
+                        .getAgentPortPath(entry.value.privatePortId))) {
             ops.add(Op.delete(pathManager.getAgentVpnPath(entry.key), -1));
-            ops.add(Op.delete(pathManager.getAgentPortPath(
-                                  entry.value.privatePortId), -1));
+            ops.add(Op.delete(
+                    pathManager.getAgentPortPath(entry.value.privatePortId), -1));
         }
 
         return ops;
@@ -140,14 +138,7 @@ public class VpnZkManager extends ZkManager {
     public ZkNodeEntry<UUID, VpnConfig> get(UUID id, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(pathManager.getVpnPath(id), watcher);
-        VpnConfig config = null;
-        try {
-            config = deserialize(data, VpnConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize vpn " + id + " to VpnConfig", e,
-                    VpnConfig.class);
-        }
+        VpnConfig config = serializer.deserialize(data, VpnConfig.class);
         return new ZkNodeEntry<UUID, VpnConfig>(id, config);
     }
 
@@ -192,13 +183,7 @@ public class VpnZkManager extends ZkManager {
 
     public void update(ZkNodeEntry<UUID, VpnConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        byte[] data = null;
-        try {
-            data = serialize(entry.value);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException("Could not serialize vpn "
-                    + entry.key + " to VpnConfig", e, VpnConfig.class);
-        }
+        byte[] data = serializer.serialize(entry.value);
         update(pathManager.getVpnPath(entry.key), data);
     }
 
@@ -208,25 +193,18 @@ public class VpnZkManager extends ZkManager {
     }
 
     public List<Op> prepareVpnLock(UUID id, Long sessionId)
-        throws StateAccessException {
+            throws StateAccessException {
         ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
 
         List<Op> ops = new ArrayList<Op>();
-        byte[] data = null;
-        try {
-            data =  serialize(sessionId);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                "Could not serialize sessionId", e, Long.class);
-        }
+        byte[] data = serializer.serialize(sessionId);
 
         // Add UUID of vpn, private port as ephemeral nodes.
-        ops.add(Op.create(pathManager.getAgentVpnPath(vpnNode.key),
-                          data, Ids.OPEN_ACL_UNSAFE,
-                          CreateMode.EPHEMERAL));
-        ops.add(Op.create(pathManager.getAgentPortPath(
-                              vpnNode.value.privatePortId),
-                          data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+        ops.add(Op.create(pathManager.getAgentVpnPath(vpnNode.key), data,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
+        ops.add(Op.create(
+                pathManager.getAgentPortPath(vpnNode.value.privatePortId),
+                data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
 
         return ops;
     }
@@ -235,14 +213,13 @@ public class VpnZkManager extends ZkManager {
         multi(prepareVpnLock(id, sessionId));
     }
 
-    public List<Op> prepareVpnUnlock(UUID id)
-        throws StateAccessException {
+    public List<Op> prepareVpnUnlock(UUID id) throws StateAccessException {
         ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getAgentVpnPath(vpnNode.key), -1));
-        ops.add(Op.delete(pathManager.getAgentPortPath(
-                              vpnNode.value.privatePortId), -1));
+        ops.add(Op.delete(
+                pathManager.getAgentPortPath(vpnNode.value.privatePortId), -1));
 
         return ops;
     }

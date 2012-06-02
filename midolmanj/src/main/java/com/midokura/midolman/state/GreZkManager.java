@@ -1,11 +1,9 @@
 /*
- * @(#)GreZkManager        1.6 11/09/08
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,13 +15,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class to manage the GRE ZooKeeper data.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 public class GreZkManager extends ZkManager {
-    private final static Logger log = 
-        LoggerFactory.getLogger(GreZkManager.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(GreZkManager.class);
 
     public static class GreKey {
 
@@ -69,14 +64,8 @@ public class GreZkManager extends ZkManager {
     public List<Op> prepareGreUpdate(ZkNodeEntry<Integer, GreKey> gre)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.setData(pathManager.getGreKeyPath(gre.key),
-                    serialize(gre.value), -1));
-
-        } catch (IOException e) {
-            throw new ZkStateSerializationException("Could not serialize GRE",
-                    e, GreKey.class);
-        }
+        ops.add(Op.setData(pathManager.getGreKeyPath(gre.key),
+                serializer.serialize(gre.value), -1));
         return ops;
     }
 
@@ -85,12 +74,9 @@ public class GreZkManager extends ZkManager {
         byte[] data = get(pathManager.getGreKeyPath(key));
         GreKey gre = null;
         try {
-            gre = deserialize(data, GreKey.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize chain " + key + " to GreKey", e,
-                    GreKey.class);
+            gre = serializer.deserialize(data, GreKey.class);
         } catch (NullPointerException e) {
+            // TODO: Why is this here??
             return null;
         }
         return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);

@@ -1,11 +1,11 @@
 /*
- * @(#)ZkManager        1.6 11/09/08
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
+import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,24 +22,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.util.JSONSerializer;
-import com.midokura.midolman.util.Serializer;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 import com.midokura.util.functors.TreeNode;
-import com.midokura.util.functors.TreeNodeFunctors;
-import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
 /**
  * Abstract base class for ZkManagers.
- *
- * @version 1.6 11 Sept 2011
- * @author Ryu Ishimoto
  */
 public class ZkManager {
 
     private final static Logger log = LoggerFactory.getLogger(ZkManager.class);
     protected ZkPathManager pathManager = null;
     protected Directory zk = null;
+    protected ZkConfigSerializer serializer;
 
     /**
      * Constructor.
@@ -52,16 +47,7 @@ public class ZkManager {
     public ZkManager(Directory zk, String basePath) {
         this.pathManager = new ZkPathManager(basePath);
         this.zk = zk;
-    }
-
-    public <T> byte[] serialize(T obj) throws IOException {
-        Serializer<T> s = new JSONSerializer<T>();
-        return s.objToBytes(obj);
-    }
-
-    public <T> T deserialize(byte[] obj, Class<T> clazz) throws IOException {
-        Serializer<T> s = new JSONSerializer<T>();
-        return s.bytesToObj(obj, clazz);
+        this.serializer = new ZkConfigSerializer(new JSONSerializer());
     }
 
     public Directory getSubDirectory(String path) throws StateAccessException {
@@ -253,18 +239,17 @@ public class ZkManager {
         try {
             return this.zk.multi(ops);
         } catch (NodeExistsException e) {
-            throw new StatePathExistsException(
-                getMultiErrorMessage("ZooKeeper error occurred while " +
-                                         "executing multi ops.", ops, e),
-                e);
+            throw new StatePathExistsException(getMultiErrorMessage(
+                    "ZooKeeper error occurred while " + "executing multi ops.",
+                    ops, e), e);
         } catch (NoNodeException e) {
-            throw new NoStatePathException(
-                getMultiErrorMessage("ZooKeeper error occurred while " +
-                                         "executing multi ops.", ops, e), e);
+            throw new NoStatePathException(getMultiErrorMessage(
+                    "ZooKeeper error occurred while " + "executing multi ops.",
+                    ops, e), e);
         } catch (KeeperException e) {
-            throw new StateAccessException(
-                getMultiErrorMessage("ZooKeeper error occurred while " +
-                                         "executing multi ops.", ops, e), e);
+            throw new StateAccessException(getMultiErrorMessage(
+                    "ZooKeeper error occurred while " + "executing multi ops.",
+                    ops, e), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while executing multi ops.",
@@ -273,11 +258,10 @@ public class ZkManager {
     }
 
     private String getMultiErrorMessage(String message, List<Op> ops,
-                                        KeeperException ex)
-    {
+            KeeperException ex) {
         message += ex.getMessage();
         List<OpResult> results = ex.getResults();
-        if ( results == null ) {
+        if (results == null) {
             return message;
         }
 
@@ -285,12 +269,13 @@ public class ZkManager {
             OpResult result = results.get(i);
             Op operation = ops.get(i);
 
-            if  (result instanceof OpResult.ErrorResult) {
+            if (result instanceof OpResult.ErrorResult) {
                 OpResult.ErrorResult errorResult = (OpResult.ErrorResult) result;
 
-                if ( errorResult.getErr() != 0 ) {
+                if (errorResult.getErr() != 0) {
                     message += "\r\n\t\t" + operation.getPath()
-                        + " failed with error code: " + errorResult.getErr();
+                            + " failed with error code: "
+                            + errorResult.getErr();
                 }
             }
         }
@@ -330,7 +315,8 @@ public class ZkManager {
 
     public Op getPersistentSequentialCreateOp(String path, byte[] data) {
         log.debug("ZkManager.getPersistentSequentialCreateOp", path);
-        return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+        return Op.create(path, data, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT_SEQUENTIAL);
     }
 
     public Op getDeleteOp(String path) {
@@ -344,12 +330,11 @@ public class ZkManager {
     }
 
     protected List<Op> getRecursiveDeleteOps(String root)
-        throws StateAccessException {
+            throws StateAccessException {
 
         try {
             return recursiveBottomUpFold(new ZKTreeNode(root),
-                                         new DeleteZookeeperPathOp(),
-                                         new ArrayList<Op>());
+                    new DeleteZookeeperPathOp(), new ArrayList<Op>());
         } catch (StateAccessException ex) {
             throw ex;
         } catch (Exception e) {
@@ -373,21 +358,20 @@ public class ZkManager {
         public List<TreeNode<String>> getChildren() throws Exception {
             Set<String> childNames = ZkManager.this.getChildren(value);
 
-            LinkedList<TreeNode<String>> childTreeNodes =
-                new LinkedList<TreeNode<String>>();
+            LinkedList<TreeNode<String>> childTreeNodes = new LinkedList<TreeNode<String>>();
 
             return CollectionFunctors.adapt(childNames, childTreeNodes,
-                new Functor<String, TreeNode<String>>() {
-                    @Override
-                    public TreeNode<String> apply(String arg0) {
-                        return new ZKTreeNode(value + "/" + arg0);
-                    }
-                });
+                    new Functor<String, TreeNode<String>>() {
+                        @Override
+                        public TreeNode<String> apply(String arg0) {
+                            return new ZKTreeNode(value + "/" + arg0);
+                        }
+                    });
         }
     }
 
-    protected static class DeleteZookeeperPathOp
-        implements com.midokura.util.functors.Functor<String, Op> {
+    protected static class DeleteZookeeperPathOp implements
+            com.midokura.util.functors.Functor<String, Op> {
         @Override
         public Op apply(String arg0) {
             return Op.delete(arg0, -1);

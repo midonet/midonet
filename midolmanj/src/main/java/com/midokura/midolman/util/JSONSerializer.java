@@ -1,7 +1,6 @@
 /*
- * @(#)JSONSerializer        1.6 11/09/08
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.util;
 
@@ -24,11 +23,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Serialization utility class.
- * 
- * @version        1.6 10 Sept 2011
+ *
  * @author         Taku Fukushima
  */
-public class JSONSerializer<T> implements Serializer<T> {
+public class JSONSerializer implements Serializer {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -37,19 +35,20 @@ public class JSONSerializer<T> implements Serializer<T> {
            objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
-    
-    
-    public byte[] objToBytes(T obj) throws IOException {
+
+    @Override
+    public <T> byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =
             jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
         jsonGenerator.writeObject(obj);
-        out.close();        
+        out.close();
         return bos.toByteArray();
     }
 
-    public T bytesToObj(byte[] data, Class<T> clazz) 
+    @Override
+    public <T> T bytesToObj(byte[] data, Class<T> clazz)
                 throws JsonParseException, IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);

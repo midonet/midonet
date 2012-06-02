@@ -186,7 +186,7 @@ public class TopologyChecker {
         System.out.println("Router's routing table:");
         Directory rtableDir = routerMgr.getRoutingTableDirectory(routerId);
         Set<String> rtStrings = rtableDir.getChildren("", null);
-        JSONSerializer<Route> serializer = new JSONSerializer<Route>();
+        JSONSerializer serializer = new JSONSerializer();
         // Keep track of ports that are the target of routes.
         Set<UUID> portsInTable = new HashSet<UUID>();
         for (String str : rtStrings) {

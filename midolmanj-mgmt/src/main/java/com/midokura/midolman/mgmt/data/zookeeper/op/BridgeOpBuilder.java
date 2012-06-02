@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -28,7 +28,7 @@ public class BridgeOpBuilder {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeOpBuilder.class);
-    private final BridgeSerializer serializer;
+    private final ZkConfigSerializer serializer;
     private final PathBuilder pathBuilder;
     private final BridgeZkManager zkDao;
 
@@ -40,10 +40,10 @@ public class BridgeOpBuilder {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            BridgeSerializer object.
+     *            ZkConfigSerializer object.
      */
     public BridgeOpBuilder(BridgeZkManager zkDao, PathBuilder pathBuilder,
-            BridgeSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;

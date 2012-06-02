@@ -30,7 +30,7 @@ import com.midokura.midolman.util.Serializer;
  * @param <T>
  *            Class type to serialize.
  */
-public class JsonJaxbSerializer<T> implements Serializer<T> {
+public class JsonJaxbSerializer implements Serializer {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -44,11 +44,7 @@ public class JsonJaxbSerializer<T> implements Serializer<T> {
                 introspector);
     }
 
-    /* (non-Javadoc)
-     * @see com.midokura.midolman.util.Serializer#objToBytes(java.lang.Object)
-     */
-    @Override
-    public byte[] objToBytes(T obj) throws IOException {
+    public <T> byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator = jsonFactory
@@ -58,12 +54,8 @@ public class JsonJaxbSerializer<T> implements Serializer<T> {
         return bos.toByteArray();
     }
 
-    /* (non-Javadoc)
-     * @see com.midokura.midolman.util.Serializer#bytesToObj(byte[], java.lang.Class)
-     */
-    @Override
-    public T bytesToObj(byte[] data, Class<T> clazz) throws JsonParseException,
-            IOException {
+    public <T> T bytesToObj(byte[] data, Class<T> clazz)
+            throws JsonParseException, IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser = jsonFactory

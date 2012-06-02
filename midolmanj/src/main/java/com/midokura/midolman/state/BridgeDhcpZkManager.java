@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -173,15 +172,11 @@ public class BridgeDhcpZkManager extends ZkManager {
     public void createSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getBridgeDhcpSubnetPath(
-                    bridgeId, subnet.getSubnetAddr()),
-                    serialize(subnet), ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize dhcp subnet", e, Subnet.class);
-        }
+        ops.add(Op.create(pathManager.getBridgeDhcpSubnetPath(
+                bridgeId, subnet.getSubnetAddr()),
+                serializer.serialize(subnet), ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
+
         ops.add(Op.create(pathManager.getBridgeDhcpHostsPath(
             bridgeId, subnet.getSubnetAddr()), null,
                           ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -190,28 +185,15 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public void updateSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
-        try {
-            update(pathManager.getBridgeDhcpSubnetPath(bridgeId,
-                    subnet.getSubnetAddr()), serialize(subnet));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize dhcp subnet", e, Subnet.class);
-        }
+        update(pathManager.getBridgeDhcpSubnetPath(bridgeId,
+                subnet.getSubnetAddr()), serializer.serialize(subnet));
     }
 
     public Subnet getSubnet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
         byte[] data = get(pathManager.getBridgeDhcpSubnetPath(bridgeId,
                 subnetAddr), null);
-        Subnet subnet = null;
-        try {
-            subnet = deserialize(data, Subnet.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize dhcp subnet " + subnetAddr +
-                            " to Subnet object", e, Subnet.class);
-        }
-        return subnet;
+        return serializer.deserialize(data, Subnet.class);
     }
 
     public void deleteSubnet(UUID bridgeId, IntIPv4 subnetAddr)
@@ -253,39 +235,21 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public void addHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)
             throws StateAccessException {
-        try {
-            addPersistent(pathManager.getBridgeDhcpHostPath(
-                    bridgeId, subnetAddr, host.getMac()), serialize(host));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize dhcp host", e, Host.class);
-        }
+        addPersistent(pathManager.getBridgeDhcpHostPath(
+                bridgeId, subnetAddr, host.getMac()), serializer.serialize(host));
     }
 
     public void updateHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)
             throws StateAccessException {
-        try {
-            update(pathManager.getBridgeDhcpHostPath(
-                    bridgeId, subnetAddr, host.getMac()), serialize(host));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize dhcp host", e, Host.class);
-        }
+        update(pathManager.getBridgeDhcpHostPath(
+                bridgeId, subnetAddr, host.getMac()), serializer.serialize(host));
     }
 
     public Host getHost(UUID bridgeId, IntIPv4 subnetAddr, String mac)
             throws StateAccessException {
         byte[] data = get(pathManager.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, MAC.fromString(mac)), null);
-        Host host = null;
-        try {
-            host = deserialize(data, Host.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize dhcp host " + mac + " on subnet " +
-                            subnetAddr + " to HOST object", e, Subnet.class);
-        }
-        return host;
+        return serializer.deserialize(data, Host.class);
     }
 
     public void deleteHost(UUID bridgId, IntIPv4 subnetAddr, String mac)

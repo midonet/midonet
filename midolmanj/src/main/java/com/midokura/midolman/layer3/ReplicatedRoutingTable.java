@@ -27,7 +27,7 @@ public class ReplicatedRoutingTable {
 
     private class ReplicatedRouteSet extends ReplicatedSet<Route> {
 
-        JSONSerializer<Route> serializer = new JSONSerializer<Route>();
+        JSONSerializer serializer = new JSONSerializer();
 
         public ReplicatedRouteSet(Directory d, CreateMode mode) {
             super(d, mode);

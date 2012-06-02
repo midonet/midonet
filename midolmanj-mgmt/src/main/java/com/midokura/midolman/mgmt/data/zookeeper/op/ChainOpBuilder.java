@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
@@ -29,7 +29,7 @@ public class ChainOpBuilder {
     private final static Logger log = LoggerFactory
             .getLogger(ChainOpBuilder.class);
     private final PathBuilder pathBuilder;
-    private final ChainSerializer serializer;
+    private final ZkConfigSerializer serializer;
     private final ChainZkManager zkDao;
 
     /**
@@ -40,10 +40,10 @@ public class ChainOpBuilder {
      * @param pathBuilder
      *            PathBuilder object
      * @param serializer
-     *            ChainSerializer object
+     *            ZkConfigSerializer object
      */
     public ChainOpBuilder(ChainZkManager zkDao, PathBuilder pathBuilder,
-            ChainSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;

@@ -4,7 +4,6 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +24,8 @@ import com.midokura.midolman.state.GreZkManager.GreKey;
  */
 public class PortZkManager extends ZkManager {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(PortZkManager.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(PortZkManager.class);
     private final GreZkManager greZkManager;
     private FiltersZkManager filterZkManager;
     private BgpZkManager bgpManager;
@@ -51,22 +50,15 @@ public class PortZkManager extends ZkManager {
         this.routeZkManager = new RouteZkManager(zk, basePath);
     }
 
-    public <T extends PortConfig> T get(UUID id,
-            Class<T> clazz) throws StateAccessException {
+    public <T extends PortConfig> T get(UUID id, Class<T> clazz)
+            throws StateAccessException {
         return get(id, clazz, null);
     }
 
-    public <T extends PortConfig> T get(UUID id,
-            Class<T> clazz, Runnable watcher) throws StateAccessException {
+    public <T extends PortConfig> T get(UUID id, Class<T> clazz,
+            Runnable watcher) throws StateAccessException {
         byte[] data = get(pathManager.getPortPath(id), watcher);
-        T config = null;
-        try {
-            config = deserialize(data, clazz);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize port " + id, e, clazz);
-        }
-        return config;
+        return serializer.deserialize(data, clazz);
     }
 
     public PortConfig get(UUID id, Runnable watcher)
@@ -82,17 +74,11 @@ public class PortZkManager extends ZkManager {
             PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
-        try {
-            ops.add(Op.create(pathManager.getPortPath(id),
-                    serialize(config), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize PortConfig", e, PortConfig.class);
-        }
-        ops.add(Op.create(pathManager.getRouterPortPath(
-                config.device_id, id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortPath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getRouterPortPath(config.device_id, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getPortRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -103,7 +89,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.MaterializedRouterPortConfig config)
-                    throws StateAccessException {
+            throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
@@ -127,35 +113,28 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.LogicalRouterPortConfig config)
-                    throws StateAccessException {
+            throws StateAccessException {
 
         // Add common router port create operations
         return prepareRouterPortCreate(id, config);
     }
 
     private List<Op> prepareBridgePortCreate(UUID id,
-            PortDirectory.BridgePortConfig config)
-                    throws StateAccessException {
+            PortDirectory.BridgePortConfig config) throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
 
-        try {
-            ops.add(Op.create(pathManager.getPortPath(id),
-                    serialize(config), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize PortConfig", e, PortConfig.class);
-        }
+        ops.add(Op.create(pathManager.getPortPath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         ops.addAll(filterZkManager.prepareCreate(id));
 
         return ops;
     }
 
-    public List<Op> prepareCreate(UUID id,
-            PortDirectory.BridgePortConfig config)
-                    throws StateAccessException {
+    public List<Op> prepareCreate(UUID id, PortDirectory.BridgePortConfig config)
+            throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
         ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
@@ -165,9 +144,8 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = prepareBridgePortCreate(id, config);
 
         // Add materialized bridge port specific operations.
-        ops.add(Op.create(pathManager.getBridgePortPath(
-                config.device_id, id), null, Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getBridgePortPath(config.device_id, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
         gre.value.ownerId = id;
@@ -178,15 +156,15 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.LogicalBridgePortConfig config)
-                    throws StateAccessException {
+            throws StateAccessException {
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
 
         // Add logical bridge port specific operations.
-        ops.add(Op.create(pathManager.getBridgeLogicalPortPath(
-                config.device_id, id), null, Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(Op.create(
+                pathManager.getBridgeLogicalPortPath(config.device_id, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
@@ -203,45 +181,40 @@ public class PortZkManager extends ZkManager {
             return prepareCreate(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
         } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareCreate(id,
-                    (PortDirectory.BridgePortConfig) config);
+            return prepareCreate(id, (PortDirectory.BridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }
     }
 
     public UUID create(PortDirectory.BridgePortConfig port, UUID id)
-            throws StateAccessException,
-            ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException {
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port, UUID id)
-            throws StateAccessException,
-            ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException {
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.BridgePortConfig port)
-            throws StateAccessException,
-            ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port)
-            throws StateAccessException,
-            ZkStateSerializationException {
+            throws StateAccessException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
         multi(prepareCreate(id, port));
         return id;
     }
 
-    public UUID create(PortDirectory.MaterializedRouterPortConfig port,
-            UUID id) throws StateAccessException {
+    public UUID create(PortDirectory.MaterializedRouterPortConfig port, UUID id)
+            throws StateAccessException {
         multi(prepareCreate(id, port));
         return id;
     }
@@ -253,8 +226,8 @@ public class PortZkManager extends ZkManager {
         return id;
     }
 
-    public UUID create(PortDirectory.LogicalRouterPortConfig port,
-            UUID id) throws StateAccessException {
+    public UUID create(PortDirectory.LogicalRouterPortConfig port, UUID id)
+            throws StateAccessException {
         multi(prepareCreate(id, port));
         return id;
     }
@@ -278,26 +251,18 @@ public class PortZkManager extends ZkManager {
 
         // Currently, the peerId of logical port can be updated from our API.
         // However, there is no need to add such restriction here.
-        try {
-            ops.add(Op.setData(pathManager.getPortPath(id),
-                    serialize(config), -1));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize port " + id
-                    + " to PortConfig", e, PortConfig.class);
-        }
+        ops.add(Op.setData(pathManager.getPortPath(id),
+                serializer.serialize(config), -1));
 
         return ops;
     }
 
-    public void update(UUID id, PortConfig port)
-            throws StateAccessException {
+    public void update(UUID id, PortConfig port) throws StateAccessException {
         multi(prepareUpdate(id, port));
     }
 
     private List<Op> prepareRouterPortDelete(UUID id,
-            PortDirectory.RouterPortConfig config)
-                    throws StateAccessException {
+            PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
         List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
@@ -309,8 +274,8 @@ public class PortZkManager extends ZkManager {
         log.debug("Preparing to delete: " + portRoutesPath);
         ops.add(Op.delete(portRoutesPath, -1));
 
-        String routerPortPath = pathManager.getRouterPortPath(
-                config.device_id, id);
+        String routerPortPath = pathManager.getRouterPortPath(config.device_id,
+                id);
         log.debug("Preparing to delete: " + routerPortPath);
         ops.add(Op.delete(routerPortPath, -1));
 
@@ -323,7 +288,7 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareBridgePortDelete(UUID id)
-                    throws StateAccessException {
+            throws StateAccessException {
 
         // Common operations for deleting logical and materialized
         // bridge ports
@@ -363,8 +328,7 @@ public class PortZkManager extends ZkManager {
 
         // Get logical router port specific operations
         if (config.peerId() != null) {
-            PortDirectory.LogicalRouterPortConfig peer = get(
-                    config.peerId(),
+            PortDirectory.LogicalRouterPortConfig peer = get(config.peerId(),
                     PortDirectory.LogicalRouterPortConfig.class);
             peer.setPeerId(null);
             ops.addAll(prepareUpdate(config.peerId(), peer));
@@ -376,13 +340,12 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id,
-            PortDirectory.BridgePortConfig config)
+    public List<Op> prepareDelete(UUID id, PortDirectory.BridgePortConfig config)
             throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgePortPath(
-                config.device_id, id), -1));
+        ops.add(Op.delete(pathManager.getBridgePortPath(config.device_id, id),
+                -1));
         ops.addAll(prepareBridgePortDelete(id));
 
         // Delete the GRE key
@@ -396,8 +359,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgeLogicalPortPath(
-                config.device_id, id), -1));
+        ops.add(Op.delete(
+                pathManager.getBridgeLogicalPortPath(config.device_id, id), -1));
         ops.addAll(prepareBridgePortDelete(id));
 
         return ops;
@@ -407,14 +370,14 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         PortConfig config = get(id);
-        if(config == null) {
+        if (config == null) {
             return ops;
         }
 
-        // TODO: Find a way to not use instanceof here.  Perhaps we should
+        // TODO: Find a way to not use instanceof here. Perhaps we should
         // create an Op collection builder class for Port that PortDirectory
-        // class takes in as a member.  Then we can invoke:
-        //     portDirectory.prepareDeleteOps();
+        // class takes in as a member. Then we can invoke:
+        // portDirectory.prepareDeleteOps();
         if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
             return prepareDelete(id,
                     (PortDirectory.MaterializedRouterPortConfig) config);
@@ -425,17 +388,16 @@ public class PortZkManager extends ZkManager {
             return prepareDelete(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
         } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareDelete(id,
-                    (PortDirectory.BridgePortConfig) config);
+            return prepareDelete(id, (PortDirectory.BridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }
     }
 
     public void link(UUID localPortId,
-            PortDirectory.LogicalRouterPortConfig localPort,
-            UUID peerPortId, PortDirectory.LogicalRouterPortConfig peerPort)
-                    throws StateAccessException {
+            PortDirectory.LogicalRouterPortConfig localPort, UUID peerPortId,
+            PortDirectory.LogicalRouterPortConfig peerPort)
+            throws StateAccessException {
 
         localPort.setPeerId(peerPortId);
         peerPort.setPeerId(localPortId);
@@ -501,17 +463,17 @@ public class PortZkManager extends ZkManager {
      * Get the set of IDs of a Bridge's logical ports.
      *
      * @param bridgeId
-     *              The ID of the bridge whose logical port IDs to retrieve.
+     *            The ID of the bridge whose logical port IDs to retrieve.
      * @param watcher
-     *              The watcher to notify if the set of IDs changes.
-     * @return  A set of logical port IDs.
+     *            The watcher to notify if the set of IDs changes.
+     * @return A set of logical port IDs.
      * @throws StateAccessException
-     *              If a data error occurs while accessing ZK.
+     *             If a data error occurs while accessing ZK.
      */
     public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
-        throws StateAccessException {
-        return listPortIDs(
-                pathManager.getBridgeLogicalPortsPath(bridgeId), watcher);
+            throws StateAccessException {
+        return listPortIDs(pathManager.getBridgeLogicalPortsPath(bridgeId),
+                watcher);
     }
 
     public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId)

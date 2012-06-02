@@ -4,7 +4,6 @@
  */
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,18 +38,19 @@ public class RouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    private List<String> getSubDirectoryRoutePaths(ZkNodeEntry<UUID, Route> entry)
-            throws StateAccessException {
+    private List<String> getSubDirectoryRoutePaths(
+            ZkNodeEntry<UUID, Route> entry) throws StateAccessException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
         // routing table.
         List<String> ret = new ArrayList<String>();
         if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
             // Check what kind of port this is.
-            PortZkManager portZkManager = new PortZkManager(zk, pathManager
-                    .getBasePath());
+            PortZkManager portZkManager = new PortZkManager(zk,
+                    pathManager.getBasePath());
             PortDirectory.RouterPortConfig port = portZkManager.get(
-                    entry.value.nextHopPort, PortDirectory.RouterPortConfig.class);
+                    entry.value.nextHopPort,
+                    PortDirectory.RouterPortConfig.class);
 
             ret.add(pathManager.getPortRoutePath(entry.value.nextHopPort,
                     entry.key));
@@ -68,13 +68,7 @@ public class RouteZkManager extends ZkManager {
 
     private String getRouteInRoutingTable(Route rt)
             throws ZkStateSerializationException {
-        String rtStr;
-        try {
-            rtStr = new String(serialize(rt));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize Route data", e, Route.class);
-        }
+        String rtStr = new String(serializer.serialize(rt));
         String rtable = pathManager.getRouterRoutingTablePath(rt.routerId);
         StringBuilder sb = new StringBuilder(rtable).append("/").append(rtStr);
         return sb.toString();
@@ -91,28 +85,20 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteCreate(
-            ZkNodeEntry<UUID, Route> entry, boolean persistent)
-            throws StateAccessException {
-        CreateMode mode =
-                persistent ? CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
+    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry,
+            boolean persistent) throws StateAccessException {
+        CreateMode mode = persistent ? CreateMode.PERSISTENT
+                : CreateMode.EPHEMERAL;
         // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
         // Add to root
-        try {
-            ops.add(Op.create(
-                    pathManager.getRoutePath(entry.key), serialize(entry.value),
-                    Ids.OPEN_ACL_UNSAFE, mode));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize Route data", e, Route.class);
-        }
+        ops.add(Op.create(pathManager.getRoutePath(entry.key),
+                serializer.serialize(entry.value), Ids.OPEN_ACL_UNSAFE, mode));
 
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
         for (String path : getSubDirectoryRoutePaths(entry)) {
-            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE,
-                    mode));
+            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
         return ops;
     }
@@ -122,8 +108,7 @@ public class RouteZkManager extends ZkManager {
         return prepareRouteCreate(entry, true);
     }
 
-    public List<Op> prepareRouteDelete(UUID id)
-            throws StateAccessException {
+    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException {
         return prepareRouteDelete(get(id));
     }
 
@@ -159,7 +144,7 @@ public class RouteZkManager extends ZkManager {
      *             Serialization or data access error occurred.
      */
     public UUID create(Route route, boolean persistent)
-        throws StateAccessException {
+            throws StateAccessException {
         UUID id = UUID.randomUUID();
         ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
         multi(prepareRouteCreate(entry, persistent));
@@ -179,8 +164,7 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public ZkNodeEntry<UUID, Route> get(UUID id)
-            throws StateAccessException {
+    public ZkNodeEntry<UUID, Route> get(UUID id) throws StateAccessException {
         return get(id, null);
     }
 
@@ -200,14 +184,7 @@ public class RouteZkManager extends ZkManager {
     public ZkNodeEntry<UUID, Route> get(UUID id, Runnable watcher)
             throws StateAccessException {
         byte[] routeData = get(pathManager.getRoutePath(id), watcher);
-        Route r = null;
-        try {
-            r = deserialize(routeData, Route.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize route " + id + " to Route", e,
-                    Route.class);
-        }
+        Route r = serializer.deserialize(routeData, Route.class);
         return new ZkNodeEntry<UUID, Route>(id, r);
     }
 
@@ -227,8 +204,8 @@ public class RouteZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, Route>> listRouterRoutes(UUID routerId,
             Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        Set<String> routeIds = getChildren(pathManager
-                .getRouterRoutesPath(routerId), watcher);
+        Set<String> routeIds = getChildren(
+                pathManager.getRouterRoutesPath(routerId), watcher);
         for (String routeId : routeIds) {
             result.add(get(UUID.fromString(routeId)));
         }
@@ -255,8 +232,8 @@ public class RouteZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId,
             Runnable watcher) throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
-        Set<String> routeIds = getChildren(pathManager
-                .getPortRoutesPath(portId), watcher);
+        Set<String> routeIds = getChildren(
+                pathManager.getPortRoutesPath(portId), watcher);
         for (String routeId : routeIds) {
             result.add(get(UUID.fromString(routeId)));
         }
@@ -276,20 +253,13 @@ public class RouteZkManager extends ZkManager {
     public List<ZkNodeEntry<UUID, Route>> list(UUID routerId)
             throws StateAccessException {
         List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId, null);
-        Set<String> portIds = getChildren(pathManager
-                .getRouterPortsPath(routerId), null);
+        Set<String> portIds = getChildren(
+                pathManager.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
             // For each MaterializedRouterPort, process it. Needs optimization.
             UUID portUUID = UUID.fromString(portId);
             byte[] data = get(pathManager.getPortPath(portUUID), null);
-            PortConfig port = null;
-            try {
-                port = deserialize(data, PortConfig.class);
-            } catch (IOException e) {
-                throw new ZkStateSerializationException(
-                        "Could not deserialize port " + portUUID
-                                + " to PortConfig", e, PortConfig.class);
-            }
+            PortConfig port = serializer.deserialize(data, PortConfig.class);
             if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
             }

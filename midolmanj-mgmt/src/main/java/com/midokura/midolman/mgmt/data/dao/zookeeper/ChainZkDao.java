@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
@@ -29,7 +29,7 @@ public class ChainZkDao {
     private final static Logger log = LoggerFactory.getLogger(ChainZkDao.class);
     private final ChainZkManager zkDao;
     private final PathBuilder pathBuilder;
-    private final ChainSerializer serializer;
+    private final ZkConfigSerializer serializer;
 
     /**
      * Constructor
@@ -39,10 +39,10 @@ public class ChainZkDao {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      * @param serializer
-     *            ChainSerializer object.
+     *            ZkConfigSerializer object.
      */
     public ChainZkDao(ChainZkManager zkDao, PathBuilder pathBuilder,
-            ChainSerializer serializer) {
+            ZkConfigSerializer serializer) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = serializer;
@@ -84,7 +84,8 @@ public class ChainZkDao {
 
         String path = pathBuilder.getChainPath(id);
         byte[] data = zkDao.get(path);
-        ChainMgmtConfig config = serializer.deserialize(data);
+        ChainMgmtConfig config = serializer.deserialize(data,
+                ChainMgmtConfig.class);
 
         log.debug("ChainZkDao.getMgmtData exiting: path=" + path);
         return config;
@@ -112,7 +113,8 @@ public class ChainZkDao {
 
         String path = pathBuilder.getTenantChainNamePath(tenantId, chainName);
         byte[] data = zkDao.get(path);
-        ChainNameMgmtConfig config = serializer.deserializeName(data);
+        ChainNameMgmtConfig config = serializer.deserialize(data,
+                ChainNameMgmtConfig.class);
 
         log.debug("ChainZkDao.getNameData exiting: path=" + path);
         return config;
@@ -148,11 +150,9 @@ public class ChainZkDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    public Set<String> getIds(String tenantId)
-            throws StateAccessException {
+    public Set<String> getIds(String tenantId) throws StateAccessException {
         if (tenantId == null) {
-            throw new IllegalArgumentException(
-                    "tenantId cannot be null");
+            throw new IllegalArgumentException("tenantId cannot be null");
         }
         String path = pathBuilder.getTenantChainsPath(tenantId);
         Set<String> ids = zkDao.getChildren(path, null);
@@ -198,8 +198,7 @@ public class ChainZkDao {
      *            Name of the the chain
      * @return ChainConfig object
      */
-    public ChainMgmtConfig constructChainMgmtConfig(
-            String tenantId, String name) {
+    public ChainMgmtConfig constructChainMgmtConfig(String tenantId, String name) {
         return new ChainMgmtConfig(tenantId, name);
     }
 

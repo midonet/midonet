@@ -1,12 +1,9 @@
 /*
- * @(#)BgpZkManager        1.6 11/09/13
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
-
 package com.midokura.midolman.state;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +36,7 @@ public class AdRouteZkManager extends ZkManager {
 
     /**
      * AdRouteZkManager constructor. * @param zk Zookeeper object.
-     * 
+     *
      * @param basePath
      *            Directory to set as the base.
      */
@@ -52,14 +49,10 @@ public class AdRouteZkManager extends ZkManager {
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        try {
-            ops.add(Op.create(pathManager.getAdRoutePath(adRouteNode.key),
-                    serialize(adRouteNode.value), Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize AdRouteConfig", e, AdRouteConfig.class);
-        }
+        ops.add(Op.create(pathManager.getAdRoutePath(adRouteNode.key),
+                serializer.serialize(adRouteNode.value), Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
+
         ops.add(Op.create(pathManager.getBgpAdRoutePath(
                 adRouteNode.value.bgpId, adRouteNode.key), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -94,14 +87,8 @@ public class AdRouteZkManager extends ZkManager {
     public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id, Runnable watcher)
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(pathManager.getAdRoutePath(id), watcher);
-        AdRouteConfig config = null;
-        try {
-            config = deserialize(data, AdRouteConfig.class);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not deserialize adRoute " + id + " to AdRouteConfig",
-                    e, AdRouteConfig.class);
-        }
+        AdRouteConfig config = serializer.deserialize(data, AdRouteConfig.class);
+
         return new ZkNodeEntry<UUID, AdRouteConfig>(id, config);
     }
 
@@ -130,14 +117,7 @@ public class AdRouteZkManager extends ZkManager {
 
     public void update(ZkNodeEntry<UUID, AdRouteConfig> entry)
             throws StateAccessException, ZkStateSerializationException {
-        byte[] data = null;
-        try {
-            data = serialize(entry.value);
-        } catch (IOException e) {
-            throw new ZkStateSerializationException(
-                    "Could not serialize adRoute " + entry.key
-                            + " to AdRouteConfig", e, AdRouteConfig.class);
-        }
+        byte[] data = serializer.serialize(entry.value);
         update(pathManager.getAdRoutePath(entry.key), data);
     }
 

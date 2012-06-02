@@ -48,17 +48,6 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
-import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
-import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.io.BridgeSerializer;
-import com.midokura.midolman.mgmt.data.zookeeper.io.ChainSerializer;
-import com.midokura.midolman.mgmt.data.zookeeper.io.PortSerializer;
-import com.midokura.midolman.mgmt.data.zookeeper.io.RouterSerializer;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpBuilder;
@@ -85,10 +74,10 @@ import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Serializer;
 
 /**
  * ZooKeeper DAO factory class.
@@ -161,6 +150,10 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
         return rootMgmtPath;
     }
 
+    private ZkConfigSerializer getSerializer() {
+        return new ZkConfigSerializer(new JsonJaxbSerializer());
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -221,23 +214,17 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private BridgeZkDao getBridgeZkDao() throws StateAccessException {
         return new BridgeZkDao(getBridgeZkManager(), getPathBuilder(),
-                getBridgeSerializer());
+                getSerializer());
     }
 
     private BridgeOpBuilder getBridgeOpBuilder() throws StateAccessException {
         return new BridgeOpBuilder(getBridgeZkManager(), getPathBuilder(),
-                getBridgeSerializer());
+                getSerializer());
     }
 
     private BridgeOpService getBridgeOpService() throws StateAccessException {
         return new BridgeOpService(getBridgeOpBuilder(), getPortOpService(),
                 getBridgeZkDao());
-    }
-
-    private BridgeSerializer getBridgeSerializer() {
-        Serializer<BridgeMgmtConfig> serializer = new JsonJaxbSerializer<BridgeMgmtConfig>();
-        Serializer<BridgeNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<BridgeNameMgmtConfig>();
-        return new BridgeSerializer(serializer, nameSerializer);
     }
 
     /*
@@ -266,7 +253,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private ChainZkDao getChainZkDao() throws StateAccessException {
         return new ChainZkDao(getChainZkManager(), getPathBuilder(),
-                getChainSerializer());
+                getSerializer());
     }
 
     private ChainZkManager getChainZkManager() throws StateAccessException {
@@ -275,17 +262,11 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private ChainOpBuilder getChainOpBuilder() throws StateAccessException {
         return new ChainOpBuilder(getChainZkManager(), getPathBuilder(),
-                getChainSerializer());
+                getSerializer());
     }
 
     private ChainOpService getChainOpService() throws StateAccessException {
         return new ChainOpService(getChainOpBuilder(), getChainZkDao());
-    }
-
-    private ChainSerializer getChainSerializer() {
-        Serializer<ChainMgmtConfig> serializer = new JsonJaxbSerializer<ChainMgmtConfig>();
-        Serializer<ChainNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<ChainNameMgmtConfig>();
-        return new ChainSerializer(serializer, nameSerializer);
     }
 
     private PathBuilder getPathBuilder() {
@@ -313,21 +294,16 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private PortOpBuilder getPortOpBuilder() throws StateAccessException {
         return new PortOpBuilder(getPortZkManager(), getPathBuilder(),
-                getPortSerializer());
+                getSerializer());
     }
 
     private PortOpService getPortOpService() throws StateAccessException {
         return new PortOpService(getPortOpBuilder(), getPortZkDao());
     }
 
-    private PortSerializer getPortSerializer() {
-        Serializer<PortMgmtConfig> serializer = new JsonJaxbSerializer<PortMgmtConfig>();
-        return new PortSerializer(serializer);
-    }
-
     private PortZkDao getPortZkDao() throws StateAccessException {
         return new PortZkDao(getPortZkManager(), getPathBuilder(),
-                getPortSerializer());
+                getSerializer());
     }
 
     private PortZkManager getPortZkManager() throws StateAccessException {
@@ -365,23 +341,17 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private RouterZkDao getRouterZkDao() throws StateAccessException {
         return new RouterZkDao(getRouterZkManager(), getPathBuilder(),
-                getRouterSerializer());
+                getSerializer());
     }
 
     private RouterOpBuilder getRouterOpBuilder() throws StateAccessException {
         return new RouterOpBuilder(getRouterZkManager(), getPathBuilder(),
-                getRouterSerializer());
+                getSerializer());
     }
 
     private RouterOpService getRouterOpService() throws StateAccessException {
         return new RouterOpService(getRouterOpBuilder(), getPortOpService(),
                 getRouterZkDao());
-    }
-
-    private RouterSerializer getRouterSerializer() {
-        Serializer<RouterMgmtConfig> serializer = new JsonJaxbSerializer<RouterMgmtConfig>();
-        Serializer<RouterNameMgmtConfig> nameSerializer = new JsonJaxbSerializer<RouterNameMgmtConfig>();
-        return new RouterSerializer(serializer, nameSerializer);
     }
 
     @Override
@@ -454,10 +424,10 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private CassandraStore getCassandraStore() {
         return new CassandraStore(AppConfig.cassandraServer,
-                                  AppConfig.cassandraCluster,
-                                  AppConfig.cassandraMonitoringKeySpace,
-                                  AppConfig.cassandraMonitoringColumnFamily,
-                                  AppConfig.cassandraReplicationFactor,
-                                  AppConfig.cassandraTtlInSecs);
+                AppConfig.cassandraCluster,
+                AppConfig.cassandraMonitoringKeySpace,
+                AppConfig.cassandraMonitoringColumnFamily,
+                AppConfig.cassandraReplicationFactor,
+                AppConfig.cassandraTtlInSecs);
     }
 }
