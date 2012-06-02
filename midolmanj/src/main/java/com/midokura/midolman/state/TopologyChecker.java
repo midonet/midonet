@@ -35,7 +35,6 @@ import org.codehaus.jackson.JsonParseException;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.util.JSONSerializer;
@@ -119,9 +118,10 @@ public class TopologyChecker {
             else {
                 System.out.println(" has name " + chain.value.name +
                         " and rules: ");
-                List<ZkNodeEntry<UUID, Rule>> rules = ruleMgr.list(chain.key);
-                for (ZkNodeEntry<UUID, Rule> rule : rules) {
-                    System.out.println("    " + rule.key + " " + rule.value);
+                Set<UUID> ruleIds = ruleMgr.getRuleIds(chain.key);
+                for (UUID ruleId : ruleIds) {
+                    System.out.println(
+                            "    " + ruleId + " " + ruleMgr.get(ruleId));
                 }
             }
         }
@@ -136,9 +136,10 @@ public class TopologyChecker {
             else {
                 System.out.println(" has name " + chain.value.name +
                         " and rules: ");
-                List<ZkNodeEntry<UUID, Rule>> rules = ruleMgr.list(chain.key);
-                for (ZkNodeEntry<UUID, Rule> rule : rules) {
-                    System.out.println("    " + rule.key + " " + rule.value);
+                Set<UUID> ruleIds = ruleMgr.getRuleIds(chain.key);
+                for (UUID ruleId : ruleIds) {
+                    System.out.println(
+                            "    " + ruleId + " " + ruleMgr.get(ruleId));
                 }
             }
         }

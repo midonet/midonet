@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
@@ -14,7 +15,6 @@ import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for rules.
@@ -64,7 +64,7 @@ public class RuleZkProxy implements RuleDao {
     @Override
     public Rule get(UUID id) throws StateAccessException {
         try {
-            return new Rule(id, dataAccessor.get(id).value);
+            return new Rule(id, dataAccessor.get(id));
         } catch (NoStatePathException e) {
             return null;
         }
@@ -78,10 +78,9 @@ public class RuleZkProxy implements RuleDao {
     @Override
     public List<Rule> list(UUID chainId) throws StateAccessException {
         List<Rule> rules = new ArrayList<Rule>();
-        List<ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule>> entries = dataAccessor
-                .list(chainId);
-        for (ZkNodeEntry<UUID, com.midokura.midolman.rules.Rule> entry : entries) {
-            rules.add(new Rule(entry.key, entry.value));
+        Set<UUID> ruleIds = dataAccessor.getRuleIds(chainId);
+        for (UUID ruleId : ruleIds) {
+            rules.add(new Rule(ruleId, dataAccessor.get(ruleId)));
         }
         return rules;
     }

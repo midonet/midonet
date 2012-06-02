@@ -7,6 +7,7 @@ package com.midokura.midolman.rules;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -17,7 +18,6 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 public class Chain {
     private final static Logger log = LoggerFactory.getLogger(Chain.class);
@@ -75,18 +75,19 @@ public class Chain {
 
         List<Rule> newRules = new ArrayList<Rule>();
 
-        List<ZkNodeEntry<UUID, Rule>> entries;
+        Set<UUID> ruleIds;
         try {
-            entries = zkRuleManager.list(chainId, rulesWatcher);
+            ruleIds = zkRuleManager.getRuleIds(chainId, rulesWatcher);
+            for (UUID ruleId: ruleIds) {
+                newRules.add(zkRuleManager.get(ruleId));
+            }
         } catch (StateAccessException e) {
             log.error("updateRules failed", e);
             rules = new ArrayList<Rule>();
             ctrl.invalidateFlowsByElement(chainId);
             return;
         }
-        for (ZkNodeEntry<UUID, Rule> entry : entries) {
-            newRules.add(entry.value);
-        }
+
         // Rules are unordered in ZooKeeper, so sort by the Rule class's
         // comparator, which orders by the "position" field.
         Collections.sort(newRules);

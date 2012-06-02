@@ -6,6 +6,7 @@ package com.midokura.midolman.state;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
@@ -90,9 +91,10 @@ public class ChainZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk,
                 pathManager.getBasePath());
-        List<ZkNodeEntry<UUID, Rule>> entries = ruleZkManager.list(entry.key);
-        for (ZkNodeEntry<UUID, Rule> ruleEntry : entries) {
-            ops.addAll(ruleZkManager.prepareRuleDelete(ruleEntry));
+        Set<UUID> ruleIds = ruleZkManager.getRuleIds(entry.key);
+        for (UUID ruleId : ruleIds) {
+            Rule rule = ruleZkManager.get(ruleId);
+            ops.addAll(ruleZkManager.prepareRuleDelete(ruleId, rule));
         }
 
         String chainRulePath = pathManager.getChainRulesPath(entry.key);
