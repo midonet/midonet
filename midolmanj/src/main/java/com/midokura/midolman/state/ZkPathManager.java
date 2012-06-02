@@ -1,7 +1,6 @@
 /*
- * @(#)ZkPathManager        1.6 11/09/08
- *
- * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.state;
 
@@ -13,9 +12,6 @@ import com.midokura.midolman.packets.MAC;
 /**
  * This class was created to have all state classes share the Zk path
  * information.
- *
- * @author Ryu Ishimoto
- * @version 1.6 08 Sept 2011
  */
 public class ZkPathManager {
 
@@ -59,15 +55,13 @@ public class ZkPathManager {
      * Get GRE key path.
      *
      * @param greKeyId
-     *              is the GRE key ID
-     *
+     *            is the GRE key ID
      * @return /gre/greKey
      */
     public String getGreKeyPath(int greKeyId) {
         String formatted = String.format("%010d", greKeyId);
-        return new StringBuilder(getGrePath())
-            .append("/").append(formatted)
-            .toString();
+        return new StringBuilder(getGrePath()).append("/").append(formatted)
+                .toString();
     }
 
     /**
@@ -144,8 +138,8 @@ public class ZkPathManager {
      * @return /filters/parentId/snat_blocks
      */
     public String getFilterSnatBlocksPath(UUID id) {
-        return new StringBuilder(getFilterPath(id))
-                .append("/snat_blocks").toString();
+        return new StringBuilder(getFilterPath(id)).append("/snat_blocks")
+                .toString();
     }
 
     /**
@@ -205,8 +199,8 @@ public class ZkPathManager {
      * @return /port_sets/id
      */
     public String getPortSetPath(UUID id) {
-        return new StringBuilder(getPortSetsPath())
-                .append("/").append(id).toString();
+        return new StringBuilder(getPortSetsPath()).append("/").append(id)
+                .toString();
     }
 
     /**
@@ -255,8 +249,8 @@ public class ZkPathManager {
      * @return /bridges/bridgeId/logical-ports
      */
     public String getBridgeLogicalPortsPath(UUID bridgeId) {
-        return new StringBuilder(getBridgePath(bridgeId))
-                .append("/logical-ports").toString();
+        return new StringBuilder(getBridgePath(bridgeId)).append(
+                "/logical-ports").toString();
     }
 
     /**
@@ -307,8 +301,8 @@ public class ZkPathManager {
      * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen
      */
     public String getBridgeDhcpSubnetPath(UUID bridgeId, IntIPv4 subnetAddr) {
-        return new StringBuilder(getBridgeDhcpPath(bridgeId))
-                .append("/").append(subnetAddr.toString()).toString();
+        return new StringBuilder(getBridgeDhcpPath(bridgeId)).append("/")
+                .append(subnetAddr.toString()).toString();
     }
 
     /**
@@ -331,7 +325,7 @@ public class ZkPathManager {
      * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen/hosts/mac
      */
     public String getBridgeDhcpHostPath(UUID bridgeId, IntIPv4 subnetAddr,
-                                        MAC macAddr) {
+            MAC macAddr) {
         return new StringBuilder(getBridgeDhcpHostsPath(bridgeId, subnetAddr))
                 .append('/').append(macAddr.toString()).toString();
     }
@@ -373,9 +367,9 @@ public class ZkPathManager {
      * Get ZK router routes path.
      *
      * @param routerId
-     *              Router UUID
+     *            Router UUID
      * @param routeId
-     *              Route UUID
+     *            Route UUID
      * @return /routers/routerId/routes/routeId
      */
     public String getRouterRoutePath(UUID routerId, UUID routeId) {
@@ -405,10 +399,9 @@ public class ZkPathManager {
      * @return /ports/portId/routes/routeId
      */
     public String getPortRoutePath(UUID portId, UUID routeId) {
-        return new StringBuilder(getPortRoutesPath(portId)).append("/").append(
-                routeId).toString();
+        return new StringBuilder(getPortRoutesPath(portId)).append("/")
+                .append(routeId).toString();
     }
-
 
     /**
      * Get ZK port groups path.
@@ -418,7 +411,6 @@ public class ZkPathManager {
     public String getPortGroupsPath() {
         return new StringBuilder(basePath).append("/port_groups").toString();
     }
-
 
     /**
      * Get ZK port group path.
@@ -442,8 +434,8 @@ public class ZkPathManager {
      * @return /port_groups/groupId/portId
      */
     public String getPortInGroupPath(UUID id, String portId) {
-        return new StringBuilder(getPortGroupPath(id))
-                .append("/").append(portId).toString();
+        return new StringBuilder(getPortGroupPath(id)).append("/")
+                .append(portId).toString();
     }
 
     /**
@@ -527,8 +519,8 @@ public class ZkPathManager {
     }
 
     public String getRouterArpTablePath(UUID routerId) {
-        return new StringBuilder(getRouterPath(routerId)).append(
-                "/arp_table").toString();
+        return new StringBuilder(getRouterPath(routerId)).append("/arp_table")
+                .toString();
     }
 
     /**
@@ -574,8 +566,8 @@ public class ZkPathManager {
      * @return /ports/portId/bgps/bgpId
      */
     public String getPortBgpPath(UUID portId, UUID bgpId) {
-        return new StringBuilder(getPortBgpPath(portId)).append("/").append(
-                bgpId).toString();
+        return new StringBuilder(getPortBgpPath(portId)).append("/")
+                .append(bgpId).toString();
     }
 
     /**
@@ -621,8 +613,8 @@ public class ZkPathManager {
      * @return /bgps/bgpId/ad_routes/adRouteId
      */
     public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
-        return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/").append(
-                adRouteId).toString();
+        return new StringBuilder(getBgpAdRoutesPath(bgpId)).append("/")
+                .append(adRouteId).toString();
     }
 
     /**
@@ -679,7 +671,7 @@ public class ZkPathManager {
      */
     public String getPortVpnPath(UUID portId, UUID vpnId) {
         return new StringBuilder(getPortVpnPath(portId)).append("/")
-            .append(vpnId).toString();
+                .append(vpnId).toString();
     }
 
     /**
@@ -709,7 +701,7 @@ public class ZkPathManager {
      */
     public String getAgentPortPath(UUID portId) {
         return new StringBuilder(getAgentPortPath()).append("/").append(portId)
-            .toString();
+                .toString();
     }
 
     /**
@@ -730,7 +722,7 @@ public class ZkPathManager {
      */
     public String getAgentVpnPath(UUID vpnId) {
         return new StringBuilder(getAgentVpnPath()).append("/").append(vpnId)
-                                                   .toString();
+                .toString();
     }
 
     /**
@@ -745,95 +737,88 @@ public class ZkPathManager {
     /**
      * Get ZK router path.
      *
-     * @param id Host UUID
+     * @param id
+     *            Host UUID
      * @return /hosts/&lt;hostId&gt;
      */
     public String getHostPath(UUID id) {
-        return
-            new StringBuilder(getHostsPath())
-                .append("/")
-                .append(id)
+        return new StringBuilder(getHostsPath()).append("/").append(id)
                 .toString();
     }
 
     /**
      * Get ZK hosts path.
      *
-     * @param hostId Host UUID
+     * @param hostId
+     *            Host UUID
      * @return /hosts/&lt;hostId&gt;/interfaces
      */
     public String getHostInterfacesPath(UUID hostId) {
         return new StringBuilder(getHostPath(hostId)).append("/interfaces")
-                                                     .toString();
+                .toString();
     }
 
     /**
      * Get ZK host interface path.
      *
-     * @param hostId      Host UUID
-     * @param interfaceId Host interface UUID
+     * @param hostId
+     *            Host UUID
+     * @param interfaceId
+     *            Host interface UUID
      * @return /hosts/&lt;hostId&gt;/interfaces/&lt;interfaceId&gt;
      */
     public String getHostInterfacePath(UUID hostId, UUID interfaceId) {
-        return
-            new StringBuilder(getHostPath(hostId))
-                .append("/interfaces/")
-                .append(interfaceId.toString())
-                .toString();
+        return new StringBuilder(getHostPath(hostId)).append("/interfaces/")
+                .append(interfaceId.toString()).toString();
     }
 
     /**
      * Get ZK host commands path.
-     * @param hostId    Host UUID
      *
+     * @param hostId
+     *            Host UUID
      * @return /hosts/&lt;hostId&gt;/commands
      */
     public String getHostCommandsPath(UUID hostId) {
-        return
-            new StringBuilder(getHostPath(hostId))
-                .append("/commands")
+        return new StringBuilder(getHostPath(hostId)).append("/commands")
                 .toString();
     }
 
     /**
      * Get ZK a specific host commands path.
      *
-     * @param hostId    Host UUID
-     * @param commandId Command Id
-     *
+     * @param hostId
+     *            Host UUID
+     * @param commandId
+     *            Command Id
      * @return /hosts/&lt;hostId&gt;/commands/&lt;commandIs&gt;
      */
     public String getHostCommandPath(UUID hostId, Integer commandId) {
-        return
-            new StringBuilder(getHostCommandsPath(hostId))
-                .append("/")
-                .append(String.format("%010d", commandId))
-                .toString();
+        return new StringBuilder(getHostCommandsPath(hostId)).append("/")
+                .append(String.format("%010d", commandId)).toString();
     }
 
     /**
      * Get ZK commands error log path
+     *
      * @param hostId
      * @return /hosts/&lt;hostId&gt;/errors
      */
     public String getHostCommandErrorLogsPath(UUID hostId) {
-        return
-                new StringBuilder(getHostPath(hostId))
-                        .append("/errors")
-                        .toString();
+        return new StringBuilder(getHostPath(hostId)).append("/errors")
+                .toString();
     }
 
     /**
      * Get the error log path of a specific host
+     *
      * @param hostId
      * @param commandId
      * @return /hosts/&lt;hostId&gt;/errors/&lt;commandIs&gt;
      */
     public String getHostCommandErrorLogPath(UUID hostId, Integer commandId) {
-        return
-                new StringBuilder(getHostCommandErrorLogsPath(hostId))
-                        .append("/")
-                        .append(String.format("%010d", commandId))
-                        .toString();
+        return new StringBuilder(getHostCommandErrorLogsPath(hostId))
+                .append("/").append(String.format("%010d", commandId))
+                .toString();
     }
 }
