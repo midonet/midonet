@@ -23,12 +23,12 @@ public class BridgePort {
         }
 
         public Builder setInboundFilter(UUID chainId) {
-            port.setInboundFilter(chainId);
+            port.setInboundFilterId(chainId);
             return this;
         }
 
         public Builder setOutboundFilter(UUID chainId) {
-            port.setOutboundFilter(chainId);
+            port.setOutboundFilterId(chainId);
             return this;
         }
 

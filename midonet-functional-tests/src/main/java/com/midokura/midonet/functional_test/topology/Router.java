@@ -35,11 +35,11 @@ public class Router {
             RuleChain.Builder rcBuilder = new RuleChain.Builder(mgmt, tenant);
             rcBuilder.setName(router.getName() + PRE_ROUTING);
             RuleChain inChain = rcBuilder.build();
-            router.setInboundFilter(inChain.chain.getId());
+            router.setInboundFilterId(inChain.chain.getId());
             rcBuilder = new RuleChain.Builder(mgmt, tenant);
             rcBuilder.setName(router.getName() + POST_ROUTING);
             RuleChain outChain = rcBuilder.build();
-            router.setOutboundFilter(outChain.chain.getId());
+            router.setOutboundFilterId(outChain.chain.getId());
             return new Router(
                     mgmt, mgmt.addRouter(tenant, router), inChain, outChain);
         }

@@ -44,12 +44,12 @@ public abstract class Port extends UriResource {
     /**
      * Inbound Filter Chain ID
      */
-    protected UUID inboundFilter = null;
+    protected UUID inboundFilterId = null;
 
     /**
      * Outbound Filter Chain ID
      */
-    protected UUID outboundFilter = null;
+    protected UUID outboundFilterId = null;
 
     /**
      * List of Port Groups to which this port belongs.
@@ -85,8 +85,8 @@ public abstract class Port extends UriResource {
     public Port(UUID id, PortConfig config, PortMgmtConfig mgmtConfig) {
         this.id = id;
         this.deviceId = config.device_id;
-        this.inboundFilter = config.inboundFilter;
-        this.outboundFilter = config.outboundFilter;
+        this.inboundFilterId = config.inboundFilter;
+        this.outboundFilterId = config.outboundFilter;
         if (config.portGroupIDs != null && config.portGroupIDs.size() > 0) {
             this.portGroupIDs = config.portGroupIDs
                     .toArray(new UUID[config.portGroupIDs.size()]);
@@ -136,20 +136,36 @@ public abstract class Port extends UriResource {
         this.deviceId = deviceId;
     }
 
-    public UUID getInboundFilter() {
-        return inboundFilter;
+    public UUID getInboundFilterId() {
+        return inboundFilterId;
     }
 
-    public void setInboundFilter(UUID inboundFilter) {
-        this.inboundFilter = inboundFilter;
+    public URI getInboundFilter() {
+        if (getBaseUri() != null && inboundFilterId != null) {
+            return ResourceUriBuilder.getChain(getBaseUri(), inboundFilterId);
+        } else {
+            return null;
+        }
     }
 
-    public UUID getOutboundFilter() {
-        return outboundFilter;
+    public void setInboundFilterId(UUID inboundFilterId) {
+        this.inboundFilterId = inboundFilterId;
     }
 
-    public void setOutboundFilter(UUID outboundFilter) {
-        this.outboundFilter = outboundFilter;
+    public UUID getOutboundFilterId() {
+        return outboundFilterId;
+    }
+
+    public void setOutboundFilterId(UUID outboundFilterId) {
+        this.outboundFilterId = outboundFilterId;
+    }
+
+    public URI getOutboundFilter() {
+        if (getBaseUri() != null && outboundFilterId != null) {
+            return ResourceUriBuilder.getChain(getBaseUri(), outboundFilterId);
+        } else {
+            return null;
+        }
     }
 
     public UUID[] getPortGroupIDs() {
@@ -196,8 +212,8 @@ public abstract class Port extends UriResource {
      */
     public void setConfig(PortConfig config) {
         config.device_id = deviceId;
-        config.inboundFilter = inboundFilter;
-        config.outboundFilter = outboundFilter;
+        config.inboundFilter = inboundFilterId;
+        config.outboundFilter = outboundFilterId;
         if (this.portGroupIDs != null) {
             config.portGroupIDs = new HashSet<UUID>(
                     Arrays.asList(this.portGroupIDs));
@@ -292,7 +308,7 @@ public abstract class Port extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + ", deviceId=" + deviceId + ", inboundFilter="
-                + inboundFilter + ", outboundFilter=" + outboundFilter;
+        return "id=" + id + ", deviceId=" + deviceId + ", inboundFilterId="
+                + inboundFilterId + ", outboundFilterId=" + outboundFilterId;
     }
 }

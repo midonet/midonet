@@ -23,8 +23,8 @@ public class Bridge extends UriResource {
     private UUID id;
     private String name;
     private String tenantId;
-    private UUID inboundFilter;
-    private UUID outboundFilter;
+    private UUID inboundFilterId;
+    private UUID outboundFilterId;
 
     /**
      * Constructor.
@@ -106,20 +106,36 @@ public class Bridge extends UriResource {
         this.tenantId = tenantId;
     }
 
-    public UUID getInboundFilter() {
-        return inboundFilter;
+    public UUID getInboundFilterId() {
+        return inboundFilterId;
     }
 
-    public void setInboundFilter(UUID inboundFilter) {
-        this.inboundFilter = inboundFilter;
+    public URI getInboundFilter() {
+        if (getBaseUri() != null && inboundFilterId != null) {
+            return ResourceUriBuilder.getChain(getBaseUri(), inboundFilterId);
+        } else {
+            return null;
+        }
     }
 
-    public UUID getOutboundFilter() {
-        return outboundFilter;
+    public void setInboundFilterId(UUID inboundFilterId) {
+        this.inboundFilterId = inboundFilterId;
     }
 
-    public void setOutboundFilter(UUID outboundFilter) {
-        this.outboundFilter = outboundFilter;
+    public UUID getOutboundFilterId() {
+        return outboundFilterId;
+    }
+
+    public void setOutboundFilterId(UUID outboundFilterId) {
+        this.outboundFilterId = outboundFilterId;
+    }
+
+    public URI getOutboundFilter() {
+        if (getBaseUri() != null && outboundFilterId != null) {
+            return ResourceUriBuilder.getChain(getBaseUri(), outboundFilterId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -184,8 +200,7 @@ public class Bridge extends UriResource {
      * @return BridgeConfig object
      */
     public BridgeConfig toConfig() {
-        return new BridgeConfig(this.inboundFilter, this.outboundFilter);
-
+        return new BridgeConfig(this.inboundFilterId, this.outboundFilterId);
     }
 
     /**

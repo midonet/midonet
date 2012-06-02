@@ -24,8 +24,10 @@ import com.midokura.midolman.mgmt.data.dto.PortType;
 public abstract class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;
-    private UUID inboundFilter = null;
-    private UUID outboundFilter = null;
+    private UUID inboundFilterId = null;
+    private UUID outboundFilterId = null;
+    private URI inboundFilter = null;
+    private URI outboundFilter = null;
     private UUID[] portGroupIDs = null;
     private UUID vifId = null;
     private URI uri;
@@ -46,19 +48,35 @@ public abstract class DtoPort {
         this.deviceId = deviceId;
     }
 
-    public UUID getInboundFilter() {
+    public UUID getInboundFilterId() {
+        return inboundFilterId;
+    }
+
+    public void setInboundFilterId(UUID inboundFilterId) {
+        this.inboundFilterId = inboundFilterId;
+    }
+
+    public UUID getOutboundFilterId() {
+        return outboundFilterId;
+    }
+
+    public void setOutboundFilterId(UUID outboundFilterId) {
+        this.outboundFilterId = outboundFilterId;
+    }
+
+    public URI getInboundFilter() {
         return inboundFilter;
     }
 
-    public void setInboundFilter(UUID inboundFilter) {
+    public void setInboundFilter(URI inboundFilter) {
         this.inboundFilter = inboundFilter;
     }
 
-    public UUID getOutboundFilter() {
+    public URI getOutboundFilter() {
         return outboundFilter;
     }
 
-    public void setOutboundFilter(UUID outboundFilter) {
+    public void setOutboundFilter(URI outboundFilter) {
         this.outboundFilter = outboundFilter;
     }
 
@@ -108,13 +126,13 @@ public abstract class DtoPort {
             return false;
         }
 
-        if (inboundFilter != null ? !inboundFilter.equals(that.inboundFilter)
-                : that.inboundFilter != null) {
+        if (inboundFilterId != null ? !inboundFilterId
+                .equals(that.inboundFilterId) : that.inboundFilterId != null) {
             return false;
         }
 
-        if (outboundFilter != null ? !outboundFilter
-                .equals(that.outboundFilter) : that.outboundFilter != null) {
+        if (outboundFilterId != null ? !outboundFilterId
+                .equals(that.outboundFilterId) : that.outboundFilterId != null) {
             return false;
         }
 

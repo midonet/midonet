@@ -394,8 +394,8 @@ public class PortDaoAdapter implements PortDao {
         log.debug("PortDaoAdapter.update entered: port={}", port);
 
         PortConfig config = zkDao.getData(port.getId());
-        config.inboundFilter = port.getInboundFilter();
-        config.outboundFilter = port.getOutboundFilter();
+        config.inboundFilter = port.getInboundFilterId();
+        config.outboundFilter = port.getOutboundFilterId();
         PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
         mgmtConfig.vifId = port.getAttachmentId(); // null means unplug
 

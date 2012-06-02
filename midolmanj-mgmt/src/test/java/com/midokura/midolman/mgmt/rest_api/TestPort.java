@@ -140,8 +140,8 @@ public class TestPort extends JerseyTest {
         matRouterPort.setLocalNetworkAddress("10.0.0.2");
         matRouterPort.setLocalNetworkLength(32);
         matRouterPort.setVifId(UUID.randomUUID());
-        matRouterPort.setInboundFilter(chain1.getId());
-        matRouterPort.setOutboundFilter(chain2.getId());
+        matRouterPort.setInboundFilterId(chain1.getId());
+        matRouterPort.setOutboundFilterId(chain2.getId());
         uri = portResource.createMaterializedRouterPort(router1.getPorts(),
                 matRouterPort);
         router1Port3 = portResource.getMaterializedRouterPort(uri);
@@ -187,8 +187,8 @@ public class TestPort extends JerseyTest {
         // Create a materialized port on bridge 1
         DtoBridgePort matBridgePort = new DtoBridgePort();
         matBridgePort.setDeviceId(bridge1.getId());
-        matBridgePort.setInboundFilter(chain1.getId());
-        matBridgePort.setOutboundFilter(chain2.getId());
+        matBridgePort.setInboundFilterId(chain1.getId());
+        matBridgePort.setOutboundFilterId(chain2.getId());
         uri = portResource.createMaterializedBridgePort(bridge1.getPorts(),
                 matBridgePort);
         bridge1Port3 = portResource.getMaterializedBridgePort(uri);
@@ -254,75 +254,75 @@ public class TestPort extends JerseyTest {
     @Test
     public void testRemoveAndAddRouterChains() {
 
-        assertEquals(chain1.getId(), router1Port3.getInboundFilter());
-        assertEquals(chain2.getId(), router1Port3.getOutboundFilter());
-        router1Port3.setInboundFilter(null);
-        router1Port3.setOutboundFilter(null);
+        assertEquals(chain1.getId(), router1Port3.getInboundFilterId());
+        assertEquals(chain2.getId(), router1Port3.getOutboundFilterId());
+        router1Port3.setInboundFilterId(null);
+        router1Port3.setOutboundFilterId(null);
         portResource.updatePort(router1Port3.getUri(), router1Port3);
         router1Port3 = portResource.getMaterializedRouterPort(router1Port3
                 .getUri());
-        assertNull(router1Port3.getInboundFilter());
-        assertNull(router1Port3.getOutboundFilter());
+        assertNull(router1Port3.getInboundFilterId());
+        assertNull(router1Port3.getOutboundFilterId());
 
-        router1Port3.setInboundFilter(chain2.getId());
-        router1Port3.setOutboundFilter(chain1.getId());
+        router1Port3.setInboundFilterId(chain2.getId());
+        router1Port3.setOutboundFilterId(chain1.getId());
         portResource.updatePort(router1Port3.getUri(), router1Port3);
         router1Port3 = portResource.getMaterializedRouterPort(router1Port3
                 .getUri());
-        assertEquals(chain2.getId(), router1Port3.getInboundFilter());
-        assertEquals(chain1.getId(), router1Port3.getOutboundFilter());
+        assertEquals(chain2.getId(), router1Port3.getInboundFilterId());
+        assertEquals(chain1.getId(), router1Port3.getOutboundFilterId());
     }
 
     @Test
     public void testRemoveAndAddBridgeChains() {
 
-        assertEquals(chain1.getId(), bridge1Port3.getInboundFilter());
-        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilter());
-        bridge1Port3.setInboundFilter(null);
-        bridge1Port3.setOutboundFilter(null);
+        assertEquals(chain1.getId(), bridge1Port3.getInboundFilterId());
+        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilterId());
+        bridge1Port3.setInboundFilterId(null);
+        bridge1Port3.setOutboundFilterId(null);
         portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
         bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
                 .getUri());
-        assertNull(bridge1Port3.getInboundFilter());
-        assertNull(bridge1Port3.getOutboundFilter());
+        assertNull(bridge1Port3.getInboundFilterId());
+        assertNull(bridge1Port3.getOutboundFilterId());
 
-        bridge1Port3.setInboundFilter(chain2.getId());
-        bridge1Port3.setOutboundFilter(chain1.getId());
+        bridge1Port3.setInboundFilterId(chain2.getId());
+        bridge1Port3.setOutboundFilterId(chain1.getId());
         portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
         bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
                 .getUri());
-        assertEquals(chain2.getId(), bridge1Port3.getInboundFilter());
-        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilter());
+        assertEquals(chain2.getId(), bridge1Port3.getInboundFilterId());
+        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilterId());
     }
 
     @Test
     public void testUpdateRouterChains() {
 
         // Right now we allow directly updating chains
-        assertEquals(chain1.getId(), router1Port3.getInboundFilter());
-        assertEquals(chain2.getId(), router1Port3.getOutboundFilter());
-        router1Port3.setInboundFilter(chain2.getId());
-        router1Port3.setOutboundFilter(chain1.getId());
+        assertEquals(chain1.getId(), router1Port3.getInboundFilterId());
+        assertEquals(chain2.getId(), router1Port3.getOutboundFilterId());
+        router1Port3.setInboundFilterId(chain2.getId());
+        router1Port3.setOutboundFilterId(chain1.getId());
         portResource.updatePort(router1Port3.getUri(), router1Port3);
         router1Port3 = portResource.getMaterializedRouterPort(router1Port3
                 .getUri());
-        assertEquals(chain2.getId(), router1Port3.getInboundFilter());
-        assertEquals(chain1.getId(), router1Port3.getOutboundFilter());
+        assertEquals(chain2.getId(), router1Port3.getInboundFilterId());
+        assertEquals(chain1.getId(), router1Port3.getOutboundFilterId());
     }
 
     @Test
     public void testUpdateBridgeChains() {
 
         // Right now we allow directly updating chains
-        assertEquals(chain1.getId(), bridge1Port3.getInboundFilter());
-        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilter());
-        bridge1Port3.setInboundFilter(chain2.getId());
-        bridge1Port3.setOutboundFilter(chain1.getId());
+        assertEquals(chain1.getId(), bridge1Port3.getInboundFilterId());
+        assertEquals(chain2.getId(), bridge1Port3.getOutboundFilterId());
+        bridge1Port3.setInboundFilterId(chain2.getId());
+        bridge1Port3.setOutboundFilterId(chain1.getId());
         portResource.updatePort(bridge1Port3.getUri(), bridge1Port3);
         bridge1Port3 = portResource.getMaterializedBridgePort(bridge1Port3
                 .getUri());
-        assertEquals(chain2.getId(), bridge1Port3.getInboundFilter());
-        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilter());
+        assertEquals(chain2.getId(), bridge1Port3.getInboundFilterId());
+        assertEquals(chain1.getId(), bridge1Port3.getOutboundFilterId());
     }
 
     @Test

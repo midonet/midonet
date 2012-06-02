@@ -61,7 +61,7 @@ public class Bridge {
     }
 
     public void setInboundFilter(UUID id) {
-        dto.setInboundFilter(id);
+        dto.setInboundFilterId(id);
         mgmt.updateBridge(dto);
     }
 
