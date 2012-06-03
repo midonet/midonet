@@ -4,7 +4,8 @@
 
 package com.midokura.midolman.rules;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NatMapping;
@@ -18,6 +19,7 @@ public abstract class Rule implements Comparable<Rule> {
     public Action action;
     public UUID chainId;
     public int position;
+    private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
         this(condition, action, null, -1);
@@ -77,6 +79,15 @@ public abstract class Rule implements Comparable<Rule> {
      */
     protected abstract void apply(MidoMatch flowMatch, RuleResult res,
                                   NatMapping natMapping);
+
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
     @Override
     public int hashCode() {

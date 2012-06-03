@@ -5,6 +5,8 @@
 package com.midokura.midolman.mgmt.data.dto.client;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -60,6 +62,7 @@ public class DtoRule {
     private String flowAction;
     private DtoNatTarget[] natTargets;
     private int position;
+    private Map<String, String> properties = new HashMap<String, String>();
 
     public URI getUri() {
         return uri;
@@ -373,6 +376,14 @@ public class DtoRule {
         this.position = position;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
     public static class DtoNatTarget {
         public String addressFrom, addressTo;
         public int portFrom, portTo;
@@ -380,9 +391,8 @@ public class DtoRule {
         public DtoNatTarget() {
         }
 
-        public DtoNatTarget(String addressFrom, String addressTo,
-                            int portFrom,
-                            int portTo) {
+        public DtoNatTarget(String addressFrom, String addressTo, int portFrom,
+                int portTo) {
             this.addressFrom = addressFrom;
             this.addressTo = addressTo;
             this.portFrom = portFrom;
