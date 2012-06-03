@@ -35,7 +35,7 @@ public class ZookeeperMetricsCollection {
     @Inject
     HostIdProvider hostIdProvider;
 
-    private String hostName = "UNKNOWN";
+    private String hostName;
 
     public ZookeeperMetricsCollection() {
     }
@@ -52,9 +52,7 @@ public class ZookeeperMetricsCollection {
             return;
         }
 
-        UUID hostId = hostIdProvider.getHostId();
-        if (hostId != null)
-            hostName = hostId.toString();
+        hostName = hostIdProvider.getHostId();
 
         registerMetric(serverConn, "ZKPacketsSent", Long.class, mBeanZkService,
                        "PacketsSent");

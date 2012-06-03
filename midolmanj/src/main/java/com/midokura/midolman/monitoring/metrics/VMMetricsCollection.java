@@ -36,7 +36,7 @@ public class VMMetricsCollection {
     @Inject
     HostIdProvider hostIdProvider;
 
-    String hostName = "UNKNOWN";
+    String hostName;
 
     public VMMetricsCollection() {
 
@@ -44,9 +44,7 @@ public class VMMetricsCollection {
 
     public void registerMetrics() {
 
-        UUID hostId = hostIdProvider.getHostId();
-        if (hostId != null)
-            hostName = hostId.toString();
+        hostName = hostIdProvider.getHostId();
 
         addLocalJmxPoolingMetric("ThreadCount", Integer.class,
                                  "java.lang:type=Threading", "ThreadCount");

@@ -4,8 +4,6 @@
 
 package com.midokura.midolman.monitoring;
 
-import java.util.UUID;
-
 import com.midokura.midolman.agent.NodeAgent;
 
 /**
@@ -20,7 +18,10 @@ public class NodeAgentHostIdProvider implements HostIdProvider {
     }
 
     @Override
-    public UUID getHostId() {
-        return agent.getHostId();
+    public String getHostId() {
+        if (agent != null) {
+            return agent.getHostId().toString();
+        }
+        return "UNKNOWN";
     }
 }
