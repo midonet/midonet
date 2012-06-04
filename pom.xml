@@ -19,8 +19,9 @@
     </modules>
 
     <scm>
-        <connection>git://github.com:midokura/midonet.git</connection>
-        <url>http://github.com/midokura/midonet</url>
+        <developerConnection>scm:git:git@github.com:midokura/midonet.git</developerConnection>
+        <connection>scm:git:git@github.com:midokura/midonet.git</connection>
+        <url>scm:git:git@github.com:midokura/midonet.git</url>
     </scm>
 
     <properties>
@@ -37,6 +38,7 @@
         <versions.yammer.metrics>2.1.2</versions.yammer.metrics>
         <versions.testng>6.5.2</versions.testng>
         <versions.junit>4.10</versions.junit>
+        <versions.plugins.jdeb>0.10</versions.plugins.jdeb>
     </properties>
 
     <pluginRepositories>
@@ -93,5 +95,21 @@
         </repository>
 
     </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <goals>deploy</goals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <!--Use the following ONLY if you can't disable an SNAPSHOT dependency-->
+                    <!--<allowTimestampedSnapshots>true</allowTimestampedSnapshots>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

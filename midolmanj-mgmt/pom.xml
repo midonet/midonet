@@ -132,28 +132,28 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.4</version>
             </plugin>
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat6-maven-plugin</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <configuration>
-                    <systemProperties>
-                        <log4j.configuration>file://${basedir}/conf/log4j.xml
-                        </log4j.configuration>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <configuration>
-                    <systemProperties>
-                        <log4j.configuration>file://${basedir}/conf/log4j.xml
-                        </log4j.configuration>
-                    </systemProperties>
-                </configuration>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.tomcat.maven</groupId>-->
+                <!--<artifactId>tomcat6-maven-plugin</artifactId>-->
+                <!--<version>2.0-SNAPSHOT</version>-->
+                <!--<configuration>-->
+                    <!--<systemProperties>-->
+                        <!--<log4j.configuration>file://${basedir}/conf/log4j.xml-->
+                        <!--</log4j.configuration>-->
+                    <!--</systemProperties>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.tomcat.maven</groupId>-->
+                <!--<artifactId>tomcat7-maven-plugin</artifactId>-->
+                <!--<version>2.0-SNAPSHOT</version>-->
+                <!--<configuration>-->
+                    <!--<systemProperties>-->
+                        <!--<log4j.configuration>file://${basedir}/conf/log4j.xml-->
+                        <!--</log4j.configuration>-->
+                    <!--</systemProperties>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>tomcat-maven-plugin</artifactId>
@@ -168,7 +168,7 @@
             <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
-                <version>0.9-SNAPSHOT</version>
+                <version>${versions.plugins.jdeb}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
