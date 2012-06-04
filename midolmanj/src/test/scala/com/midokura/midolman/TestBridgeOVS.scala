@@ -39,6 +39,7 @@ import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{BridgeZkManager, MacPortMap, MockDirectory,
     PortToIntNwAddrMap, ZkPathManager}
 import com.midokura.midolman.openflow.OpenFlowError
+import com.midokura.midolman.vrn.VRNController
 
 
 class ChattySemaphore(capacity: Int) extends Semaphore(capacity) {

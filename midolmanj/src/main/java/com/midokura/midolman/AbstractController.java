@@ -141,8 +141,7 @@ public abstract class AbstractController implements Controller {
         datapathId = controllerStub.getFeatures().getDatapathId();
 
         // lookup midolman-vnet of datapath
-        String uuid = ovsdb
-                .getDatapathExternalId(datapathId, externalIdKey);
+        String uuid = ovsdb.getDatapathExternalId(datapathId, externalIdKey);
 
         if (uuid == null) {
             log.warn("onConnectionMade: datapath {} connected but has no "

@@ -44,7 +44,9 @@ import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.CacheFactory;
+import com.midokura.midolman.vrn.VRNController;
 import com.midokura.remote.RemoteHost;
+
 
 public class Midolman implements SelectListener, Watcher {
 

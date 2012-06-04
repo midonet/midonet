@@ -48,6 +48,8 @@ import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.JSONSerializer;
+import com.midokura.midolman.vrn.VRNController;
+
 
 public class TestBridge {
     Logger log = LoggerFactory.getLogger(TestBridge.class);
@@ -300,7 +302,7 @@ public class TestBridge {
         floodActionLocalOnly[1] = new OFActionOutput((short)1, (short)0);
         floodActionLocalOnly[2] = new OFActionOutput((short)2, (short)0);
 
-        bridge = (Bridge)controller.vrn.getForwardingElementByPort(portUuids[0]);
+        bridge = (Bridge)controller.getForwardingElementByPort(portUuids[0]);
     }
 
     void assertArrayEquals(Object[] a, Object[] b) {

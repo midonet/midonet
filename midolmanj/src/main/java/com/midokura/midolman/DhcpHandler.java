@@ -31,6 +31,8 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.vrn.VRNController;
+
 
 public class DhcpHandler {
 

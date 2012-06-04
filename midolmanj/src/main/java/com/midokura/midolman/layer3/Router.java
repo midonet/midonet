@@ -20,8 +20,6 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.ForwardingElement;
-import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
@@ -40,6 +38,8 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.Callback0;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.vrn.ForwardingElement;
+import com.midokura.midolman.vrn.VRNControllerIface;
 
 /**
  * This class coordinates the routing logic for a single virtual router. It

@@ -1,6 +1,6 @@
 // Copyright 2012 Midokura Inc.
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +9,14 @@ import java.util.UUID;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.packets.Ethernet;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class MockVRNController extends AbstractController
@@ -79,4 +80,6 @@ public class MockVRNController extends AbstractController
 
     @Override
     protected void initServicePorts(long datapathId) {}
+
+    void setDatapathId(long id) { datapathId = id; }
 }

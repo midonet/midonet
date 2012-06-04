@@ -13,7 +13,6 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.CookieMonster;
-import com.midokura.midolman.VRNController;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
@@ -24,6 +23,8 @@ import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.vrn.VRNController;
+
 
 public class Host {
     VRNController controller;

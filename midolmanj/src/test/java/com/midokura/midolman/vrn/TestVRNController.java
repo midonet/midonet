@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,6 +34,8 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
 import org.openflow.protocol.action.*;
 
+import com.midokura.midolman.AbstractController;
+import com.midokura.midolman.Setup;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
@@ -64,8 +66,8 @@ import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
-import com.midokura.midolman.VRNController.PacketContinuation;
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.vrn.VRNController.PacketContinuation;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class TestVRNController {
@@ -167,8 +169,8 @@ public class TestVRNController {
                 reactor, cache, "midonet", vrnId, false, bgpService,
                 vpnService);
         vrnCtrl.setControllerStub(controllerStub);
-        vrnCtrl.datapathId = datapathId;
-        vrnCtrl.portLocMap.start();
+        vrnCtrl.setDatapathId(datapathId);
+        vrnCtrl.startPortLocMap();
 
         /*
          * Create 3 routers such that:

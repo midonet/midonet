@@ -15,12 +15,12 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.VRNControllerObserver;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.monitoring.vrn.VRNMonitoringObserver;
+import com.midokura.midolman.vrn.VRNControllerObserver;
 
 /**
  * This is the main entry point to the monitoring functionality. It's called

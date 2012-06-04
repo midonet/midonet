@@ -16,9 +16,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.midokura.midolman.AbstractVrnControllerTest;
-import com.midokura.midolman.VRNController;
-import com.midokura.midolman.VRNControllerObserver;
+import com.midokura.midolman.vrn.AbstractVrnControllerTest;
+import com.midokura.midolman.vrn.VRNController;
+import com.midokura.midolman.vrn.VRNControllerObserver;
 import static com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 
 /**

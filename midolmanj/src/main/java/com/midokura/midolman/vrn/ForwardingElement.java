@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.util.Collection;
 import java.util.HashMap;

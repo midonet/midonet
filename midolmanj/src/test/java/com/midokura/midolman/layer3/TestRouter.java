@@ -25,9 +25,6 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.ForwardingElement.Action;
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
-import com.midokura.midolman.MockVRNController;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -41,21 +38,17 @@ import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.UDP;
-import com.midokura.midolman.rules.ChainProcessor;
-import com.midokura.midolman.rules.Condition;
-import com.midokura.midolman.rules.ForwardNatRule;
-import com.midokura.midolman.rules.JumpRule;
-import com.midokura.midolman.rules.LiteralRule;
-import com.midokura.midolman.rules.NatTarget;
-import com.midokura.midolman.rules.ReverseNatRule;
-import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.rules.RuleResult;
+import com.midokura.midolman.rules.*;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.vrn.ForwardingElement.Action;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.vrn.MockVRNController;
+
 
 public class TestRouter {
 

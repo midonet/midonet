@@ -22,9 +22,9 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.midokura.midolman.AbstractVrnControllerTest;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
 import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.vrn.AbstractVrnControllerTest;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>

@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,6 +15,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.Bridge;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.openflow.MidoMatch;

@@ -16,7 +16,6 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
@@ -26,7 +25,8 @@ import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
-import com.midokura.midolman.ForwardingElement.PacketContext;
+import com.midokura.midolman.vrn.ForwardingElement.PacketContext;
+import com.midokura.midolman.vrn.VRNControllerIface;
 
 
 public class ChainProcessor {

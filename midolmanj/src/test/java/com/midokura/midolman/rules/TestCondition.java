@@ -34,7 +34,7 @@ import org.junit.Test;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class TestCondition {

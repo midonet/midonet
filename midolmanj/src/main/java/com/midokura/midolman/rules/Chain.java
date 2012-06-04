@@ -13,11 +13,12 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.VRNControllerIface;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.vrn.VRNControllerIface;
+
 
 public class Chain {
     private final static Logger log = LoggerFactory.getLogger(Chain.class);

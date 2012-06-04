@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
 
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.AbstractController;
+import com.midokura.midolman.CookieMonster;
+import com.midokura.midolman.DhcpHandler;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
@@ -45,6 +47,7 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 import com.midokura.util.functors.UnaryFunctor;
 
 
@@ -59,7 +62,7 @@ public class VRNController extends AbstractController
     public static final short NO_IDLE_TIMEOUT = 0;
     public static final short TEMPORARY_DROP_SECONDS = 5;
     public static final short NORMAL_IDLE_TIMEOUT = 20;
-    static final short FLOW_PRIORITY = 10;
+    public static final short FLOW_PRIORITY = 10;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
 
     VRNCoordinator vrn;
@@ -1164,5 +1167,18 @@ public class VRNController extends AbstractController
 
     public CookieMonster getCookieMgr() {
         return cookieMgr;
+    }
+
+    void setDatapathId(long id) {
+        datapathId = id;
+    }
+
+    void startPortLocMap() {
+        portLocMap.start();
+    }
+
+    public ForwardingElement getForwardingElementByPort(UUID portID)
+            throws StateAccessException, KeeperException {
+        return vrn.getForwardingElementByPort(portID);
     }
 }

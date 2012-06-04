@@ -18,7 +18,7 @@ import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.MetricPredicate;
 import org.openflow.protocol.statistics.OFPortStatisticsReply;
 
-import com.midokura.midolman.VRNController;
+import com.midokura.midolman.vrn.VRNController;
 
 /**
  * Class that can add/delete Counters for different virtual ports on demand.

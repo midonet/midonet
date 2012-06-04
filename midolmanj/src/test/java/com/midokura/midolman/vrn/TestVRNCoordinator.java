@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -33,8 +33,7 @@ import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.ForwardingElement.Action;
-import com.midokura.midolman.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.layer3.Route;
@@ -50,6 +49,9 @@ import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
+import com.midokura.midolman.vrn.ForwardingElement.Action;
+import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
+
 
 public class TestVRNCoordinator {
 
@@ -95,7 +97,7 @@ public class TestVRNCoordinator {
         controller = new MockVRNController(dir, basePath, null,
                    IntIPv4.fromString("192.168.200.200"), "externalIdKey",
                    vrnId, false);
-        controller.datapathId = 679;
+        controller.setDatapathId(679);
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
         Cache cache = createCache();
         ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,

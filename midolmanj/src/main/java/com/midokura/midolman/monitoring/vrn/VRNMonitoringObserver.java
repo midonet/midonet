@@ -8,9 +8,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.VRNController;
-import com.midokura.midolman.VRNControllerObserver;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
+import com.midokura.midolman.vrn.VRNController;
+import com.midokura.midolman.vrn.VRNControllerObserver;
 
 /**
  * Simple observer to watch ports getting up and down on a virtual routing

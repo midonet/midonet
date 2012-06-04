@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman;
+package com.midokura.midolman.vrn;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -11,6 +11,7 @@ import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
+import com.midokura.midolman.Setup;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MockControllerStub;
