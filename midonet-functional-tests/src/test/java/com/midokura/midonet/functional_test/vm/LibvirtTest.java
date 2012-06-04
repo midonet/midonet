@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.util.process.ProcessHelper;
-import static com.midokura.tools.hamcrest.RegexMatcher.matchesRegex;
+import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 
 public class LibvirtTest extends AbstractLibvirtTest {
 
