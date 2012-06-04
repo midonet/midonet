@@ -18,7 +18,6 @@ import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
-import com.midokura.midolman.vrn.ForwardingElement.CoordinatorPacketContext;
 
 
 /* VRNController creates and partially populate an instance of
@@ -27,8 +26,7 @@ import com.midokura.midolman.vrn.ForwardingElement.CoordinatorPacketContext;
  * decisions:  the next action for the packet, the egress port,
  * the packet at egress (i.e. after possible modifications).
  */
-public class ForwardInfo
-            implements CoordinatorPacketContext, ChainPacketContext {
+public class ForwardInfo implements ChainPacketContext {
 
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
@@ -73,22 +71,18 @@ public class ForwardInfo
                ", matchOut=" + matchOut + ", depth=" + depth + "]";
     }
 
-    @Override
     public Action getAction() {
         return action;
     }
 
-    @Override
     public void setAction(Action action) {
         this.action = action;
     }
 
-    @Override
     public int getDepth() {
         return depth;
     }
 
-    @Override
     public void setDepth(int depth) {
         this.depth = depth;
     }
@@ -157,7 +151,6 @@ public class ForwardInfo
         return flowMatch;
     }
 
-    @Override
     public void addTraversedFE(UUID deviceId) {
         Integer numTraversed = traversedFEs.get(deviceId);
         if (null == numTraversed)
@@ -166,23 +159,19 @@ public class ForwardInfo
             traversedFEs.put(deviceId, numTraversed+1);
     }
 
-    @Override
     public int getTimesTraversed(UUID deviceId) {
         Integer numTraversed = traversedFEs.get(deviceId);
         return null == numTraversed ? 0 : numTraversed;
     }
 
-    @Override
     public int getNumFEsTraversed() {
         return traversedFEs.size();
     }
 
-    @Override
     public Collection<UUID> getNotifiedFEs() {
         return notifyFEs;
     }
 
-    @Override
     public void addRemovalNotification(UUID deviceId) {
         notifyFEs.add(deviceId);
     }
@@ -195,7 +184,6 @@ public class ForwardInfo
         return traversedElementIDs;
     }
 
-    @Override
     public boolean isGeneratedPacket() {
         return internallyGenerated;
     }
@@ -205,27 +193,22 @@ public class ForwardInfo
         return inPortId;
     }
 
-    @Override
     public void setInPortId(UUID inPortId) {
         this.inPortId = inPortId;
     }
 
-    @Override
     public MidoMatch getMatchIn() {
         return matchIn;
     }
 
-    @Override
     public void setMatchIn(MidoMatch matchIn) {
         this.matchIn = matchIn;
     }
 
-    @Override
     public MidoMatch getMatchOut() {
         return matchOut;
     }
 
-    @Override
     public void setMatchOut(MidoMatch matchOut) {
         this.matchOut = matchOut;
     }
@@ -235,14 +218,11 @@ public class ForwardInfo
         return outPortId;
     }
 
-    @Override
     public void setOutPortId(UUID outPortId) {
         this.outPortId = outPortId;
     }
 
-    @Override
     public Ethernet getPktIn() {
         return pktIn;
     }
 }
-

@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.vrn;
 
-import java.util.Collection;
 import java.util.UUID;
 import javax.management.JMException;
 
@@ -48,21 +47,6 @@ public interface ForwardingElement {
         void addRemovalNotification(UUID deviceId);
         void setAction(Action action);
         void setOutPortId(UUID outPortId);
-    }
-
-    // For use by VRNCoordinator.
-    public interface CoordinatorPacketContext extends PacketContext {
-        UUID getOutPortId();
-        void setInPortId(UUID inPortId);
-        void setMatchIn(MidoMatch match);
-        void setMatchOut(MidoMatch match);
-        void setDepth(int depth);
-        void addTraversedFE(UUID deviceId);
-        int getTimesTraversed(UUID deviceId);
-        int getNumFEsTraversed();
-        Collection<UUID> getNotifiedFEs();
-        int getDepth();
-        Action getAction();
     }
 
 }
