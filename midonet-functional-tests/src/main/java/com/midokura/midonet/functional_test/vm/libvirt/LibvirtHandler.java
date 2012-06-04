@@ -1,31 +1,29 @@
 /*
- * Copyright 2011 Midokura Europe SARL
+ * Copyright 2012 Midokura Europe SARL
  */
 
 package com.midokura.midonet.functional_test.vm.libvirt;
-
-import com.midokura.midonet.functional_test.vm.HypervisorType;
-import com.midokura.midonet.functional_test.vm.libvirt.builders.BgpOverlayDomainBuilder;
-import com.midokura.midonet.functional_test.vm.libvirt.builders.OverlayDomainBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midonet.functional_test.vm.HypervisorType;
+import com.midokura.midonet.functional_test.vm.libvirt.builders.BgpOverlayDomainBuilder;
+import com.midokura.midonet.functional_test.vm.libvirt.builders.OverlayDomainBuilder;
 import static com.midokura.midonet.functional_test.vm.libvirt.LibvirtUtils.uriForHypervisorType;
 
 /**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/15/11
- * Time: 5:32 PM
+ * Handler to allow easy creation of typed custom virtual machine configuration
+ * to be used in functional tests.
  */
 public class LibvirtHandler {
 
-    private final static Logger log = LoggerFactory.getLogger(LibvirtHandler.class);
-
+    private final static Logger log =
+        LoggerFactory.getLogger(LibvirtHandler.class);
 
     private String connectUri;
     private String templateName;
@@ -44,7 +42,8 @@ public class LibvirtHandler {
     }
 
     public static LibvirtHandler forHypervisor(HypervisorType hypervisorType) {
-        return new LibvirtHandler(hypervisorType, uriForHypervisorType(hypervisorType));
+        return new LibvirtHandler(hypervisorType,
+                                  uriForHypervisorType(hypervisorType));
     }
 
     public void setTemplate(String template) {
@@ -72,9 +71,9 @@ public class LibvirtHandler {
             return false;
         }
 
-        File baseImgFile = new File(baseImage);
+        File imageFile = new File(this.baseImage);
         //noinspection RedundantIfStatement
-        if (!baseImgFile.exists() || !baseImgFile.isFile() || !baseImgFile.canRead()) {
+        if (!imageFile.exists() || !imageFile.isFile() || !imageFile.canRead()) {
             return false;
         }
 
@@ -84,35 +83,45 @@ public class LibvirtHandler {
     public OverlayDomainBuilder newDomain() {
         return
             new OverlayDomainBuilder(
-                hypervisorType, connectUri, baseImage, templateName, configuration);
+                hypervisorType, connectUri, baseImage, templateName,
+                configuration);
     }
 
     public BgpOverlayDomainBuilder newBgpDomain() {
         return
             new BgpOverlayDomainBuilder(
-                hypervisorType, connectUri, baseImage, templateName, configuration);
+                hypervisorType, connectUri, baseImage, templateName,
+                configuration);
     }
 
     public class Configuration {
-        private static final String RUNTIME_ENV_PROPERTIES = "/libvirt_runtime_env.properties";
+        static final String RUNTIME_ENV_PROPS_KEY = "vm.runtime.environment";
 
-        private static final String VM_BASE_IMAGE = "libvirt.vm.base.image.file";
-        private static final String VM_IMAGES_FOLDER = "libvirt.vm.images.folder";
-        private static final String VM_WORK_FOLDER = "libvirt.vm.work.folder";
-        private static final String VM_TEMPLATES_FOLDER = "libvirt.templates.folder";
+        static final String DEFAULT_RUNTIME_ENV_PROPS =
+            "/libvirt_runtime_env.properties";
+
+        static final String VM_BASE_IMAGE = "libvirt.vm.base.image.file";
+        static final String VM_IMAGES_FOLDER = "libvirt.vm.images.folder";
+        static final String VM_WORK_FOLDER = "libvirt.vm.work.folder";
+        static final String VM_TEMPLATES_FOLDER = "libvirt.templates.folder";
 
         Properties properties;
 
         public Configuration() {
+            String configFile = System.getProperty(RUNTIME_ENV_PROPS_KEY,
+                                                   DEFAULT_RUNTIME_ENV_PROPS);
+
             Properties properties = new Properties();
             try {
-                properties.load(getClass().getResourceAsStream(RUNTIME_ENV_PROPERTIES));
-                log.info("Loaded properties from classpath resource: {}", RUNTIME_ENV_PROPERTIES);
-                this.properties = properties;
+                properties.load(getClass().getResourceAsStream(configFile));
+                log.info("Loaded properties from classpath " +
+                             "resource: {}", configFile);
 
+                this.properties = properties;
                 setTemplateImage(properties.getProperty(VM_BASE_IMAGE));
             } catch (IOException e) {
-                log.warn("Could not read properties from classpath resource: " + RUNTIME_ENV_PROPERTIES, e);
+                log.warn("Could not read properties from classpath resource: " +
+                             configFile, e);
             }
         }
 
