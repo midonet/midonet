@@ -73,12 +73,7 @@ public class GreZkManager extends ZkManager {
             throws StateAccessException, ZkStateSerializationException {
         byte[] data = get(pathManager.getGreKeyPath(key));
         GreKey gre = null;
-        try {
-            gre = serializer.deserialize(data, GreKey.class);
-        } catch (NullPointerException e) {
-            // TODO: Why is this here??
-            return null;
-        }
+        gre = serializer.deserialize(data, GreKey.class);
         return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);
     }
 

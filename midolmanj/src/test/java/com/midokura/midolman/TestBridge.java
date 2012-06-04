@@ -46,17 +46,7 @@ import com.midokura.midolman.packets.ICMP;
 import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.JSONSerializer;
 
 public class TestBridge {

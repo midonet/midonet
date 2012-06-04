@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.rules.Rule;
 
 /**
- * This class was created to handle multiple ops feature in Zookeeper.
+ * ZooKeeper DAO class for Chains.
  */
 public class ChainZkManager extends ZkManager {
 

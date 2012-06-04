@@ -13,6 +13,11 @@ import java.net.URI;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
+
+/**
+ * Wrapper class for WebResource that provides helpful HTTP methods to be used
+ * in tests.
+ */
 public class DtoWebResource {
 
     private final WebResource resource;
