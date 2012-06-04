@@ -33,6 +33,7 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.midolman.vrn.ForwardingElement;
 import com.midokura.midolman.vrn.VRNControllerIface;
 

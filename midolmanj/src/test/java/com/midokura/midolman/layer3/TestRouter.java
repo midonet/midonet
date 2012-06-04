@@ -45,8 +45,8 @@ import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 import com.midokura.midolman.vrn.MockVRNController;
 
 

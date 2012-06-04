@@ -28,7 +28,7 @@ import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.MockCache;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
+import com.midokura.midolman.vrn.ForwardInfo;
 
 
 public class TestRules {

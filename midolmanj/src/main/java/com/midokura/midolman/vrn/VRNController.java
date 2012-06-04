@@ -47,7 +47,6 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 import com.midokura.util.functors.UnaryFunctor;
 
 

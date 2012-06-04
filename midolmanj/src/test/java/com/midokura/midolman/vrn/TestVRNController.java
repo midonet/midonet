@@ -67,7 +67,6 @@ import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.ShortUUID;
 import com.midokura.midolman.vrn.VRNController.PacketContinuation;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class TestVRNController {

@@ -50,7 +50,6 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class TestVRNCoordinator {

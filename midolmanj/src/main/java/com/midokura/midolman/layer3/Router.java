@@ -38,6 +38,7 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.Callback0;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.Net;
+import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.midolman.vrn.ForwardingElement;
 import com.midokura.midolman.vrn.VRNControllerIface;
 

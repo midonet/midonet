@@ -16,7 +16,6 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.vrn.ForwardingElement.ForwardInfo;
 
 
 public class MockVRNController extends AbstractController
