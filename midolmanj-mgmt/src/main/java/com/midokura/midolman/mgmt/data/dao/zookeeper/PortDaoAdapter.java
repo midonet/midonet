@@ -5,6 +5,8 @@
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -396,6 +398,13 @@ public class PortDaoAdapter implements PortDao {
         PortConfig config = zkDao.getData(port.getId());
         config.inboundFilter = port.getInboundFilterId();
         config.outboundFilter = port.getOutboundFilterId();
+        if (port.getPortGroupIDs() != null) {
+            config.portGroupIDs = new HashSet<UUID>(Arrays.asList(port
+                    .getPortGroupIDs()));
+        } else {
+            config.portGroupIDs = null;
+        }
+
         PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
         mgmtConfig.vifId = port.getAttachmentId(); // null means unplug
 
