@@ -585,6 +585,7 @@ public class TestVRNController {
     @Test
     public void testTrackedFlowFwd() {
         ForwardInfo fwdInfo = createFwdInfo();
+        // Turn on connection tracking by querying flow direction
         Assert.assertTrue(fwdInfo.isForwardFlow());
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
@@ -595,6 +596,7 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         Assert.assertNull(cache.get(fwdKey + bridgeID.toString()));
+        // Verify the VRNController wrote the reversed flow info into Cassandra.
         Assert.assertEquals("r", cache.get(revKey + bridgeID.toString()));
     }
 
