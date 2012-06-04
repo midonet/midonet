@@ -12,6 +12,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
@@ -449,6 +450,7 @@ public class FlowInvalidationTest {
         retrySentPacket(vmEndpoints.get(0), vmEndpoints.get(3), packets0to4);
     }
 
+    @Ignore
     @Test
     public void testRoutingTableUpdate()
             throws MalformedPacketException, InterruptedException {
