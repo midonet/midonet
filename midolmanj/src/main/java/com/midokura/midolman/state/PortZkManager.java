@@ -92,8 +92,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
-        config.greKey = gre.key;
+        int greKey = greZkManager.createGreKey();
+        config.greKey = greKey;
 
         // Add common router port create operations
         List<Op> ops = prepareRouterPortCreate(id, config);
@@ -105,8 +105,8 @@ public class PortZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
-        gre.value.ownerId = id;
-        ops.addAll(greZkManager.prepareGreUpdate(gre));
+        GreKey gre = new GreKey(id);
+        ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
 
         return ops;
     }
@@ -137,8 +137,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        ZkNodeEntry<Integer, GreKey> gre = greZkManager.createGreKey();
-        config.greKey = gre.key;
+        int greKey = greZkManager.createGreKey();
+        config.greKey = greKey;
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
@@ -148,8 +148,8 @@ public class PortZkManager extends ZkManager {
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
-        gre.value.ownerId = id;
-        ops.addAll(greZkManager.prepareGreUpdate(gre));
+        GreKey gre = new GreKey(id);
+        ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
 
         return ops;
     }

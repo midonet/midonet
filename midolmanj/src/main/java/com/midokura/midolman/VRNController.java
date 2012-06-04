@@ -346,9 +346,9 @@ public class VRNController extends AbstractController
         // GreZkManager to find the owner UUID.
         UUID destPortId;
         try {
-            ZkNodeEntry<Integer, GreKey> entry = greMgr.get((int)tunnelId);
-            if (entry != null)
-                destPortId = entry.value.ownerId;
+            GreKey greKey = greMgr.get((int)tunnelId);
+            if (greKey != null)
+                destPortId = greKey.ownerId;
             else {
                 log.error("Failed to get vport ID for tunnel ID {}. " +
                         "Installing temporary DROP rule", tunnelId);

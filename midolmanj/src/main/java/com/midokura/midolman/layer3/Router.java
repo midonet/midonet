@@ -485,6 +485,8 @@ public class Router implements ForwardingElement {
                     LogicalRouterPortConfig.class.cast(outPortCfg);
             if (null == logCfg.peerId()) {
                 // Not connected to anything.  Send ICMP unreachable
+                log.warn("Packet forwarded to a dangling logical port: {}",
+                        fwdInfo.outPortId);
                 sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
                 fwdInfo.action = Action.DROP;
                 return;

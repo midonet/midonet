@@ -61,20 +61,22 @@ public class GreZkManager extends ZkManager {
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareGreUpdate(ZkNodeEntry<Integer, GreKey> gre)
+    public List<Op> prepareGreUpdate(int key, GreKey gre)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(pathManager.getGreKeyPath(gre.key),
-                serializer.serialize(gre.value), -1));
+        ops.add(Op.setData(pathManager.getGreKeyPath(key),
+                serializer.serialize(gre), -1));
         return ops;
     }
 
-    public ZkNodeEntry<Integer, GreKey> get(int key)
-            throws StateAccessException, ZkStateSerializationException {
-        byte[] data = get(pathManager.getGreKeyPath(key));
+    public GreKey get(int key)
+            throws StateAccessException {
         GreKey gre = null;
-        gre = serializer.deserialize(data, GreKey.class);
-        return new ZkNodeEntry<Integer, GreKey>(new Integer(key), gre);
+        byte[] data = get(pathManager.getGreKeyPath(key));
+        if (data != null) {
+            gre = serializer.deserialize(data, GreKey.class);
+        }
+        return gre;
     }
 
     /***
@@ -83,10 +85,6 @@ public class GreZkManager extends ZkManager {
      * @param entry
      *            ZK entry of the gre to delete.
      */
-    public List<Op> prepareGreDelete(ZkNodeEntry<Integer, GreKey> entry) {
-        return prepareGreDelete(entry.key);
-    }
-
     public List<Op> prepareGreDelete(int greKey) {
         String path = pathManager.getGreKeyPath(greKey);
         log.debug("Preparing to delete: " + path);
@@ -104,7 +102,7 @@ public class GreZkManager extends ZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public ZkNodeEntry<Integer, GreKey> createGreKey()
+    public int createGreKey()
             throws StateAccessException {
         String path = addPersistentSequential(pathManager.getGrePath(), null);
         int key = extractGreKeyFromPath(path);
@@ -114,7 +112,7 @@ public class GreZkManager extends ZkManager {
             path = addPersistentSequential(pathManager.getGrePath(), null);
             key = extractGreKeyFromPath(path);
         }
-        return new ZkNodeEntry<Integer, GreKey>(key, new GreKey());
+        return key;
     }
 
 }
