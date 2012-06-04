@@ -46,7 +46,7 @@ public class VpnTest {
 
     Tenant tenant1;
     TapWrapper tapPort1;
-    TapWrapper tapPort2;                                                  n
+    TapWrapper tapPort2;
     OpenvSwitchDatabaseConnection ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
