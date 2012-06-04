@@ -158,7 +158,7 @@ public class TestRouter extends JerseyTest {
         response = resource().uri(testRouterUri).type(APPLICATION_ROUTER_JSON)
                 .put(ClientResponse.class, router);
         log.debug("status: {}", response.getStatus());
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
         router = resource().uri(testRouterUri)
                 .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);

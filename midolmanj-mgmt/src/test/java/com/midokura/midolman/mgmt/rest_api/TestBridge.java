@@ -146,8 +146,7 @@ public class TestBridge extends JerseyTest {
         response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
                 .put(ClientResponse.class, bridge);
         log.debug("status: {}", response.getStatus());
-        log.debug("body of Bridge Update: {}", response.getEntity(String.class));
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
         response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
                 .get(ClientResponse.class);

@@ -202,7 +202,7 @@ public class BridgeResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
-    public Response update(@PathParam("id") UUID id, Bridge bridge,
+    public void update(@PathParam("id") UUID id, Bridge bridge,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
@@ -213,7 +213,6 @@ public class BridgeResource {
         BridgeDao dao = daoFactory.getBridgeDao();
         bridge.setId(id);
         dao.update(bridge);
-        return Response.ok().build();
     }
 
     /**

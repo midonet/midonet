@@ -190,7 +190,7 @@ public class RouterResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
             MediaType.APPLICATION_JSON })
-    public Response update(@PathParam("id") UUID id, Router router,
+    public void update(@PathParam("id") UUID id, Router router,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer) throws StateAccessException {
 
@@ -201,7 +201,6 @@ public class RouterResource {
         RouterDao dao = daoFactory.getRouterDao();
         router.setId(id);
         dao.update(router);
-        return Response.ok().build();
     }
 
     /**

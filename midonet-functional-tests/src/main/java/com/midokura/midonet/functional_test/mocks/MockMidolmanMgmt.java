@@ -148,12 +148,13 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             .type(MediaType.APPLICATION_JSON)
             .put(ClientResponse.class, entity);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != 204 && response.getStatus() != 200) {
             throw
                 new IllegalStateException(
                     "A PUT call to " + uri + " failed to return response " +
-                            "status of 200 OK: " + response + "\n" +
-                        response.getEntity(String.class));
+                            "status of 200 OK or 204 NO CONTENT: " +
+                            response + "\n" +
+                            response.getEntity(String.class));
         }
 
         return response.getLocation();
