@@ -22,7 +22,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouterPort;
 
-public class TestPort extends PortJerseyTest {
+public class TestPort extends MultiDeviceJerseyTest {
 
     @Test
     public void testUpdateVif() {

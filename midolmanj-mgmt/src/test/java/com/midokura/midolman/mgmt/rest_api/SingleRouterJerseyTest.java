@@ -21,14 +21,14 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-public abstract class RuleJerseyTest extends JerseyTest {
+public abstract class SingleRouterJerseyTest extends JerseyTest {
 
     protected DtoWebResource dtoResource;
     protected DtoMaterializedRouterPort router1MatPort1;
     protected DtoLogicalRouterPort router1LogPort1;
     protected DtoRuleChain chain1;
 
-    public RuleJerseyTest() {
+    public SingleRouterJerseyTest() {
         super(FuncTest.appDesc);
     }
 

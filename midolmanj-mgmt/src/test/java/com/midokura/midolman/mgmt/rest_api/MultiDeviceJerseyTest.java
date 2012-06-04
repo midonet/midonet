@@ -27,7 +27,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-public abstract class PortJerseyTest extends JerseyTest {
+public abstract class MultiDeviceJerseyTest extends JerseyTest {
 
     protected DtoWebResource dtoResource;
     protected DtoRouter router1;
@@ -44,7 +44,7 @@ public abstract class PortJerseyTest extends JerseyTest {
     protected DtoLogicalBridgePort bridge1LogPort2;
     protected DtoBridgePort bridge1MatPort1;
 
-    public PortJerseyTest() {
+    public MultiDeviceJerseyTest() {
         super(FuncTest.appDesc);
     }
 

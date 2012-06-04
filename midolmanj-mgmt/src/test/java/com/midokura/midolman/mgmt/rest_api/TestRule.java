@@ -31,7 +31,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
 import com.midokura.midolman.packets.ARP;
 
 @RunWith(Parameterized.class)
-public class TestRule extends RuleJerseyTest {
+public class TestRule extends SingleRouterJerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(TestRule.class);
 
