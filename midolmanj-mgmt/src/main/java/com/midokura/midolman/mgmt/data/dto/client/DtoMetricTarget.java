@@ -8,20 +8,21 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
+ * MetricTarget represent an object for which we can collect metrics.
  * Date: 5/25/12
  */
 
 @XmlRootElement
 public class DtoMetricTarget {
-    UUID targetUUID;
+    UUID targetIdentifier;
     String type;
 
-    public UUID getTargetUUID() {
-        return targetUUID;
+    public UUID getTargetIdentifier() {
+        return targetIdentifier;
     }
 
-    public void setTargetUUID(UUID targetUUID) {
-        this.targetUUID = targetUUID;
+    public void setTargetIdentifier(UUID targetIdentifier) {
+        this.targetIdentifier = targetIdentifier;
     }
 
     public String getType() {

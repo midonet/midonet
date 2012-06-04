@@ -4,19 +4,36 @@
 
 package com.midokura.midolman.mgmt.data.dto.client;
 
+import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
+ * This class represents a query to the monitoring system.
  * Date: 5/4/12
  */
 @XmlRootElement
 public class DtoMetricQuery {
 
+    /**
+     * the id of the object for which we collected the metric
+     */
+    UUID targetIdentifier;
+    /**
+     * name of the metric
+     */
     String metricName;
-    long startEpochTime;
-    private long endEpochTime;
-    String interfaceName;
+    /**
+     * the type of the metric
+     */
     String type;
+    /**
+     * the starting point of the time interval we are querying
+     */
+    long startEpochTime;
+    /**
+     * the end point of the time interval we are querying
+     */
+    long endEpochTime;
 
     public void setMetricName(String metricName) {
         this.metricName = metricName;
@@ -34,8 +51,8 @@ public class DtoMetricQuery {
         this.endEpochTime = endEpochTime;
     }
 
-    public void setInterfaceName(String interfaceName) {
-        this.interfaceName = interfaceName;
+    public void setTargetIdentifier(UUID targetIdentifier) {
+        this.targetIdentifier = targetIdentifier;
     }
 
     public void setType(String type) {
@@ -50,8 +67,8 @@ public class DtoMetricQuery {
         return startEpochTime;
     }
 
-    public String getInterfaceName() {
-        return interfaceName;
+    public UUID getTargetIdentifier() {
+        return targetIdentifier;
     }
 
     public String getType() {
@@ -61,11 +78,11 @@ public class DtoMetricQuery {
     @Override
     public String toString() {
         return "DtoMetricQuery{" +
-                "type=" + type +
-                "interfaceName=" + interfaceName +
-                "metricName=" + metricName +
-                "start=" + startEpochTime +
-                "end=" + endEpochTime +
-                "}";
+            "type=" + type +
+            "targetIdentifier=" + targetIdentifier +
+            "metricName=" + metricName +
+            "start=" + startEpochTime +
+            "end=" + endEpochTime +
+            "}";
     }
 }

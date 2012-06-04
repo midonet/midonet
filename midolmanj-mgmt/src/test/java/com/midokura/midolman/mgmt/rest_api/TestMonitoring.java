@@ -13,6 +13,7 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.spi.container.TestContainerException;
 import org.apache.zookeeper.KeeperException;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.json.simple.JSONValue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,9 +36,9 @@ import com.midokura.midolman.monitoring.store.CassandraStore;
  */
 public class TestMonitoring extends JerseyTest {
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
     private static CassandraStore store;
-    String targetIdentifier = "826400c0-a589-11e1-b3dd-0800200c9a66";
+    UUID targetIdentifier =
+        UUID.fromString("826400c0-a589-11e1-b3dd-0800200c9a66");
     String type = "Test";
     String metricName = "TestMetric";
     long epochNow = System.currentTimeMillis();
@@ -66,7 +67,7 @@ public class TestMonitoring extends JerseyTest {
     @Before
     public void before() throws KeeperException {
         resource().type(VendorMediaType.APPLICATION_JSON)
-                .get(ClientResponse.class);
+            .get(ClientResponse.class);
 
         // Needs to be set up everytime because the keyspace and columnfamily gets erased
         // by EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
@@ -89,34 +90,34 @@ public class TestMonitoring extends JerseyTest {
     public void testGetMetric() {
         // No metric in the store
         DtoMetricTarget target = new DtoMetricTarget();
-        target.setTargetUUID(UUID.fromString(targetIdentifier));
+        target.setTargetIdentifier(targetIdentifier);
         target.setType(type);
 
         DtoMetric[] metrics = resource().path("/metrics/filter").type(
-                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
-                .post(DtoMetric[].class, target);
+            VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+            .post(DtoMetric[].class, target);
         assertThat("The size of the array is correct, it's empty",
                    metrics.length, equalTo(0));
 
-        store.addMetric(type, targetIdentifier, metricName);
+        store.addMetric(type, targetIdentifier.toString(), metricName);
 
         metrics = resource().path("/metrics/filter").type(
-                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
-                .post(DtoMetric[].class, target);
+            VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+            .post(DtoMetric[].class, target);
         assertThat("The size of the array is correct", metrics.length,
                    equalTo(1));
         assertThat("We retrieved the metric correctly", metrics[0].getName(),
                    equalTo(metricName));
         assertThat("The metric was assigned to the right targetObject",
-                   metrics[0].getTargetIdentifier().toString(),
+                   metrics[0].getTargetIdentifier(),
                    equalTo(targetIdentifier));
 
         // add a metric
         String secondMetricName = "TestMetric2";
-        store.addMetric(type, targetIdentifier, secondMetricName);
+        store.addMetric(type, targetIdentifier.toString(), secondMetricName);
         metrics = resource().path("/metrics/filter").type(
-                VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
-                .post(DtoMetric[].class, target);
+            VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+            .post(DtoMetric[].class, target);
         assertThat("The size of the array is correct", metrics.length,
                    equalTo(2));
         assertThat("We retrieved the metric correctly", metrics[0].getName(),
@@ -125,10 +126,10 @@ public class TestMonitoring extends JerseyTest {
                    equalTo(secondMetricName));
 
         assertThat("The metric was assigned to the right targetObject",
-                   metrics[0].getTargetIdentifier().toString(),
+                   metrics[0].getTargetIdentifier(),
                    equalTo(targetIdentifier));
         assertThat("The metric was assigned to the right targetObject",
-                   metrics[1].getTargetIdentifier().toString(),
+                   metrics[1].getTargetIdentifier(),
                    equalTo(targetIdentifier));
 
     }
@@ -137,7 +138,8 @@ public class TestMonitoring extends JerseyTest {
     public void testQueryOneDay() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+            store.addTSPoint(type, targetIdentifier.toString(), metricName,
+                             epochNow + i, i
 
             );
         }
@@ -145,16 +147,16 @@ public class TestMonitoring extends JerseyTest {
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
         query.setType(type);
-        query.setInterfaceName(targetIdentifier);
+        query.setTargetIdentifier(targetIdentifier);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
         query.setEndEpochTime(epochNow + numEntries);
 
         DtoMetricQueryResponse response =
-                resource().path("/metrics/query").type(
-                        VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
-                        .post(DtoMetricQueryResponse.class, query);
-
+            resource().path("/metrics/query").type(
+                VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
+                .post(DtoMetricQueryResponse.class, query);
+        String json = JSONValue.toJSONString(response);
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numEntries));
         for (long i = 0; i < numEntries; i++) {
@@ -171,23 +173,24 @@ public class TestMonitoring extends JerseyTest {
         int numberOfSamples = 1;
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+            store.addTSPoint(type, targetIdentifier.toString(), metricName,
+                             epochNow + i, i
 
             );
         }
 
         // Create the DtoMetricQuery object, that queries from epochNow to epochNow+numberOfSamples
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(targetIdentifier);
+        query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
         query.setEndEpochTime(epochNow + numberOfSamples);
 
         DtoMetricQueryResponse response =
-                resource().path("/metrics/query").type(
-                        VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
-                        .post(DtoMetricQueryResponse.class, query);
+            resource().path("/metrics/query").type(
+                VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
+                .post(DtoMetricQueryResponse.class, query);
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numberOfSamples + 1));
@@ -202,9 +205,9 @@ public class TestMonitoring extends JerseyTest {
         query.setEndEpochTime(epochNow + numEntries);
 
         response =
-                resource().path("/metrics/query").type(
-                        VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
-                        .post(DtoMetricQueryResponse.class, query);
+            resource().path("/metrics/query").type(
+                VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
+                .post(DtoMetricQueryResponse.class, query);
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numberOfSamples + 1));
         for (long i = numEntries - numberOfSamples; i < numEntries; i++) {
@@ -219,23 +222,24 @@ public class TestMonitoring extends JerseyTest {
     public void emptyQuery() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+            store.addTSPoint(type, targetIdentifier.toString(), metricName,
+                             epochNow + i, i
 
             );
         }
 
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(targetIdentifier);
+        query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow + numEntries);
         query.setEndEpochTime(epochNow + numEntries + numEntries);
 
         DtoMetricQueryResponse response =
-                resource().path("/metrics/query").type(
-                        VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
-                        .post(DtoMetricQueryResponse.class, query);
+            resource().path("/metrics/query").type(
+                VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
+                .post(DtoMetricQueryResponse.class, query);
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(0));
@@ -245,7 +249,8 @@ public class TestMonitoring extends JerseyTest {
     public void queryBroaderThenSamples() {
         // Insert data into Cassandra
         for (long i = 0; i < numEntries; i++) {
-            store.addTSPoint(type, targetIdentifier, metricName, epochNow + i, i
+            store.addTSPoint(type, targetIdentifier.toString(), metricName,
+                             epochNow + i, i
 
             );
         }
@@ -253,16 +258,16 @@ public class TestMonitoring extends JerseyTest {
 
         // Create the DtoMetricQuery object
         DtoMetricQuery query = new DtoMetricQuery();
-        query.setInterfaceName(targetIdentifier);
+        query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
         query.setStartEpochTime(epochNow);
         query.setEndEpochTime(epochTomorrow);
 
         DtoMetricQueryResponse response =
-                resource().path("/metrics/query").type(
-                        VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
-                        .post(DtoMetricQueryResponse.class, query);
+            resource().path("/metrics/query").type(
+                VendorMediaType.APPLICATION_MONITORING_QUERY_JSON)
+                .post(DtoMetricQueryResponse.class, query);
 
         assertThat("The number of results is correct",
                    response.getResults().size(), equalTo(numEntries));

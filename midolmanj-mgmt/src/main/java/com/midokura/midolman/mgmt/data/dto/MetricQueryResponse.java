@@ -5,20 +5,40 @@
 package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.Map;
+import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
+ * This class represents the query results.
  * Date: 5/3/12
  */
 @XmlRootElement
 public class MetricQueryResponse extends UriResource {
 
-    String interfaceName;
+    /**
+     * the id of the object for which we collected the metric
+     */
+    UUID targetIdentifier;
+    /**
+     * name of the metric
+     */
     String metricName;
-    long timeStampStart;
-    long timeStampEnd;
-    Map<String, Long> results;
+    /**
+     * the type of the metric
+     */
     String type;
+    /**
+     * the starting point of the time interval we are querying
+     */
+    long timeStampStart;
+    /**
+     * the end point of the time interval we are querying
+     */
+    long timeStampEnd;
+    /**
+     * results of the query
+     */
+    Map<String, Long> results;
 
 
     public MetricQueryResponse() {
@@ -40,16 +60,16 @@ public class MetricQueryResponse extends UriResource {
         this.results = results;
     }
 
-    public void setInterfaceName(String interfaceName) {
-        this.interfaceName = interfaceName;
+    public void setTargetIdentifier(UUID targetIdentifier) {
+        this.targetIdentifier = targetIdentifier;
     }
 
     public void setType(String type) {
         this.type = type;
     }
 
-    public String getInterfaceName() {
-        return interfaceName;
+    public UUID getTargetIdentifier() {
+        return targetIdentifier;
     }
 
     public String getMetricName() {

@@ -20,12 +20,13 @@ import com.midokura.midolman.mgmt.data.dto.MetricQueryResponse;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 
 /**
+ * Dao for querying the metric data in Cassandra
  * Date: 5/4/12
  */
 public class MetricCassandraDao implements MetricDao {
 
     private final static Logger log = LoggerFactory
-            .getLogger(MetricCassandraDao.class);
+        .getLogger(MetricCassandraDao.class);
 
     private final CassandraStore store;
 
@@ -33,10 +34,15 @@ public class MetricCassandraDao implements MetricDao {
         this.store = store;
     }
 
+    /**
+     * @param query to execute
+     * @return the results of the query
+     */
     @Override
     public MetricQueryResponse executeQuery(MetricQuery query) {
         Map<String, Long> results = new HashMap<String, Long>();
-        results = store.getTSPoints(query.getType(), query.getInterfaceName(),
+        results = store.getTSPoints(query.getType(),
+                                    query.getTargetIdentifier().toString(),
                                     query.getMetricName(),
                                     query.getStartEpochTime(),
                                     query.getEndEpochTime()
@@ -44,12 +50,17 @@ public class MetricCassandraDao implements MetricDao {
         );
         MetricQueryResponse response = new MetricQueryResponse();
         response.setMetricName(query.getMetricName());
-        response.setInterfaceName(query.getInterfaceName());
+        response.setTargetIdentifier(query.getTargetIdentifier());
         response.setType(query.getType());
         response.setResults(results);
         return response;
     }
 
+    /**
+     * @param type             type of the metric
+     * @param targetIdentifier id of the object whose metrics we want to kno
+     * @return available metrics
+     */
     @Override
     public List<Metric> listMetrics(String type, UUID targetIdentifier) {
         List<String> metrics = store.getMetrics(type,

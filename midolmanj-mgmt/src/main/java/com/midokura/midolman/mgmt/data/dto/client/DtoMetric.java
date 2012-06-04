@@ -8,18 +8,26 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
+ * DtoMetric represent a query to the monitoring system.
  * Date: 5/24/12
  */
 
 @XmlRootElement
 public class DtoMetric {
 
+    /**
+     * the name of the metric
+     */
     String name;
+    /**
+     * id of the object for which we are collecting the metric
+     */
     UUID targetIdentifier;
 
     public String getName() {
         return name;
     }
+
 
     public UUID getTargetIdentifier() {
         return targetIdentifier;
@@ -36,8 +44,8 @@ public class DtoMetric {
     @Override
     public String toString() {
         return "DtoMetric{" +
-                "targetIdentifier=" + targetIdentifier.toString() +
-                "metricName=" + name +
-                "}";
+            "targetIdentifier=" + targetIdentifier.toString() +
+            "metricName=" + name +
+            "}";
     }
 }
