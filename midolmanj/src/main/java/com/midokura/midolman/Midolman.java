@@ -225,7 +225,7 @@ public class Midolman implements SelectListener, Watcher {
 
             // Create an OpenVPN VPN port service.
             PortService vpnPortService = OpenVpnPortService.createVpnPortService(
-                    ovsdb, externalIdKey, midonetDirectory, basePath);
+                ovsdb, externalIdKey, midonetDirectory, basePath);
 
             VRNController vrnController =
                 new VRNController(midonetDirectory, basePath,

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
     private final static Logger log =
-            LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
+        LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
 
     private MBeanServerConnection serverConnection;
     private ObjectName beanName;
@@ -29,7 +29,7 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
     public JMXRemoteBeanGauge(MBeanServerConnection serverConn, Class<T> type,
                               String beanName, String beanAttr)
-            throws MalformedObjectNameException {
+        throws MalformedObjectNameException {
         this(serverConn, type, beanName, beanAttr, null);
     }
 
@@ -37,7 +37,7 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
                               Class<T> type,
                               String beanName, String beanAttr,
                               String compositeKeyName)
-            throws MalformedObjectNameException {
+        throws MalformedObjectNameException {
 
         this.beanName = new ObjectName(beanName);
         this.beanAttr = beanAttr;
@@ -60,10 +60,11 @@ public class JMXRemoteBeanGauge<T> extends Gauge<T> {
 
             return type.cast(val);
         } catch (ClassCastException e) {
-            log.error("Couldn't convert class {} got from {}, {} to {}",
+            log.error("Couldn't convert {}:{} from {} to {}.",
                       new Object[]{
-                              val.getClass().getCanonicalName(),
-                              beanAttr, type.getCanonicalName(), e});
+                          beanName, beanAttr,
+                          val.getClass().getCanonicalName(),
+                          type.getCanonicalName(), e});
         } catch (Exception e) {
             log.error("There was a problem in retrieving {}, {}",
                       new Object[]{beanName, beanAttr, e});

@@ -5,8 +5,6 @@
 package com.midokura.midolman.monitoring.metrics;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryUsage;
-import java.util.UUID;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 
@@ -19,10 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.HostIdProvider;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
-import com.midokura.midolman.monitoring.gauges.TranslatorGauge;
-import com.midokura.util.functors.Functor;
 
 /**
+ * This metrics collection will create Gauges for the the interesting VM metrics
+ * available via local JMX beans.
+ *
  * Date: 4/26/12
  */
 public class VMMetricsCollection {
@@ -37,10 +36,6 @@ public class VMMetricsCollection {
     HostIdProvider hostIdProvider;
 
     String hostName;
-
-    public VMMetricsCollection() {
-
-    }
 
     public void registerMetrics() {
 
@@ -94,23 +89,6 @@ public class VMMetricsCollection {
                                  "used");
     }
 
-    private void addMemoryMetric(String name,
-                                 String beanName, String beanAttribute,
-                                 Functor<MemoryUsage, Long> translator) {
-        try {
-            addMetric(name,
-                      new TranslatorGauge<MemoryUsage, Long>(
-                          new JMXRemoteBeanGauge<MemoryUsage>(
-                              SERVER,
-                              MemoryUsage.class, beanName,
-                              beanAttribute),
-                          translator
-                      ));
-        } catch (MalformedObjectNameException e) {
-            log.error("Could not create Jmx", e);
-        }
-    }
-
     private <T> void addLocalJmxPoolingMetric(String name, Class<T> type,
                                               String beanName,
                                               String beanAttr) {
@@ -120,7 +98,7 @@ public class VMMetricsCollection {
                                                 beanAttr)
             );
         } catch (MalformedObjectNameException e) {
-            log.error("Could not create Jmx", e);
+            log.error("could not create that JMXRemoteBeanGauge", e);
         }
     }
 
@@ -134,7 +112,7 @@ public class VMMetricsCollection {
                                                 compositeKeyName)
             );
         } catch (MalformedObjectNameException e) {
-            log.error("Could not create Jmx", e);
+            log.error("could not create that JMXRemoteBeanGauge", e);
         }
     }
 
