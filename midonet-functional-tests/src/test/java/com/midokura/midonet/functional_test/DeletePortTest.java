@@ -6,10 +6,10 @@ package com.midokura.midonet.functional_test;
 
 import java.util.List;
 
-import static java.lang.String.format;
-
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
@@ -67,6 +68,18 @@ public class DeletePortTest {
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
     ServiceController svcController;
+
+    static LockHelper.Lock lock;
+
+    @BeforeClass
+    public static void checkLock() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    }
+
+    @AfterClass
+    public static void releaseLock() {
+        lock.release();
+    }
 
     @Before
     public void setUp() throws Exception {

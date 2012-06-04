@@ -17,6 +17,11 @@ import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
@@ -31,11 +36,10 @@ import com.midokura.midonet.functional_test.openflow.PrimaryController.PacketIn;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.Protocol;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
-
-
-import static org.junit.Assert.*;
+import com.midokura.util.lock.LockHelper;
 
 public class NxmTest {
+    static LockHelper.Lock lock;
     static OpenvSwitchDatabaseConnection ovsdb;
     static Protocol proto = Protocol.NXM;
     static UUID dummyID = new UUID(0, 0);
@@ -54,17 +58,27 @@ public class NxmTest {
 
     @BeforeClass
     public static void setUp() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                 "127.0.0.1", 12344);
+    }
+
+    @AfterClass
+    public static void finalTearDown() {
+        if (null != ovsdb)
+            ovsdb.close();
+
+        lock.release();
     }
 
     @After
     public void tearDown() {
         if (controller1 != null &&
-                controller1.getStub() != null)
+            controller1.getStub() != null)
             controller1.getStub().close();
         if (controller2 != null &&
-                controller2.getStub() != null)
+            controller2.getStub() != null)
             controller2.getStub().close();
         if (ovsBridge1 != null)
             ovsBridge1.remove();
@@ -76,12 +90,6 @@ public class NxmTest {
         if (tap2 != null) {
             tap2.remove();
         }
-    }
-
-    @AfterClass
-    public static void finalTearDown() {
-        if (null != ovsdb)
-            ovsdb.close();
     }
 
     @Test

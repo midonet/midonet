@@ -2,20 +2,15 @@
 
 package com.midokura.midolman.openvswitch
 
-import java.io.{File, RandomAccessFile}
-import java.nio.channels.FileLock
+import com.midokura.util.lock.LockHelper
 
-// Mutex the OVSDB Connection, using a mode 666 lockfile in /tmp
+// Mutex the OVSDB Connection, using a filesystem lock
 object OpenvSwitchDatabaseConnectionMutexer {
-    private final var lockfile = new File("/tmp/ovsdbconnection.lock")
-    private var lock: FileLock = _
+    private final val lock = LockHelper.createLock("ovsdbconnection")
 
-    def takeLock() = {
-        lockfile.setReadable(true, false)
-        lockfile.setWritable(true, false)
-        lock = new RandomAccessFile(lockfile, "rw").getChannel.lock
-    }
+    def takeLock() { lock.lock() }
 
-    def releaseLock() { lock.release }
+    def releaseLock() { lock.release() }
 }
+
 class OpenvSwitchDatabaseConnectionMutexer {}

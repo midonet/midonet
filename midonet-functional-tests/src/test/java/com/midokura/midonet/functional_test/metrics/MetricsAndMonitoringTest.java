@@ -20,6 +20,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midonet.functional_test.FunctionalTestsHelper;
 import com.midokura.midonet.functional_test.PacketHelper;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
@@ -31,6 +32,7 @@ import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.jmx.JMXAttributeAccessor;
 import com.midokura.util.jmx.JMXHelper;
+import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
@@ -65,8 +67,12 @@ public class MetricsAndMonitoringTest {
     private IntIPv4 ipTap;
     private TapWrapper metricsTap;
 
+    private static LockHelper.Lock lock;
+
     @BeforeClass
     public void setUp() throws Exception {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
         fixQuaggaFolderPermissions();
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
@@ -110,6 +116,7 @@ public class MetricsAndMonitoringTest {
         stopMidolman(midolman);
         removeTenant(tenant);
         stopMidolmanMgmt(api);
+        lock.release();
     }
 
     @Test

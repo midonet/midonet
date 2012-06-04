@@ -35,6 +35,8 @@ import static com.midokura.tools.timed.Timed.newTimedExecution;
  */
 public class FunctionalTestsHelper {
 
+    public static final String LOCK_NAME = "functional-tests";
+
     protected final static Logger log = LoggerFactory
         .getLogger(FunctionalTestsHelper.class);
 

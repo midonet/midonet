@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,14 +21,15 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.Subnet;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
+import com.midokura.midonet.functional_test.topology.Subnet;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
+import com.midokura.util.lock.LockHelper;
 import com.midokura.util.ssh.SshHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
@@ -65,8 +65,11 @@ public class BridgeDHCPTest {
 
     static VMController vm;
 
+    static LockHelper.Lock lock;
+
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1",
@@ -116,6 +119,8 @@ public class BridgeDHCPTest {
         stopMidolman(midolman);
         removeTenant(tenant);
         stopMidolmanMgmt(mgmt);
+
+        lock.release();
     }
 
     @Test

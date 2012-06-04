@@ -5,7 +5,9 @@
 package com.midokura.midonet.functional_test;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Ignore;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
@@ -63,6 +66,18 @@ public class BridgeTest {
     OvsBridge ovsBridge1;
     OvsBridge ovsBridge2;
     ServiceController svcController;
+
+    static LockHelper.Lock lock;
+
+    @BeforeClass
+    public static void checkLock() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    }
+
+    @AfterClass
+    public static void releaseLock() {
+        lock.release();
+    }
 
     @Before
     public void setUp() throws Exception {

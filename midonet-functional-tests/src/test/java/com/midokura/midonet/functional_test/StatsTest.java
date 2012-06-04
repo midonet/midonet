@@ -36,6 +36,7 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
@@ -62,9 +63,13 @@ public class StatsTest {
     static OpenFlowStats svcController;
     static OvsBridge ovsBridge;
 
+    static LockHelper.Lock lock;
+
     @BeforeClass
     public static void setUp() throws InterruptedException, IOException,
                          MalformedPacketException {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
@@ -112,6 +117,7 @@ public class StatsTest {
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
         removeBridge(ovsBridge);
+        lock.release();
     }
 
     @Test

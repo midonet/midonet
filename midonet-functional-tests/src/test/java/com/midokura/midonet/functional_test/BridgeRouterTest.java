@@ -5,12 +5,17 @@
 package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
+import static java.lang.String.format;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.packets.Ethernet;
@@ -30,12 +35,16 @@ import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-
-
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static java.lang.String.format;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import com.midokura.util.lock.LockHelper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 
 public class BridgeRouterTest {
 
@@ -62,6 +71,18 @@ public class BridgeRouterTest {
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
     ServiceController svcController;
+
+    static LockHelper.Lock lock;
+
+    @BeforeClass
+    public static void checkLock() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    }
+
+    @AfterClass
+    public static void releaseLock() {
+        lock.release();
+    }
 
     @Before
     public void setUp() throws Exception {

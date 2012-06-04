@@ -8,8 +8,15 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -28,12 +35,14 @@ import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-
-
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import com.midokura.util.lock.LockHelper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 /**
  * This class emulates a MidoNet client implementing SecurityGroups using
@@ -50,6 +59,18 @@ public class PortGroupTest {
     TapWrapper tap3;
     TapWrapper tap4;
     OvsBridge ovsBridge1;
+
+    static LockHelper.Lock lock;
+
+    @BeforeClass
+    public static void checkLock() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    }
+
+    @AfterClass
+    public static void releaseLock() {
+        lock.release();
+    }
 
     @Before
     public void setUp() throws IOException, InterruptedException {

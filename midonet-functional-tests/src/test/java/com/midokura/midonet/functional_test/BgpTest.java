@@ -11,16 +11,15 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -39,6 +38,7 @@ import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
 import com.midokura.tools.timed.Timed;
+import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
@@ -71,6 +71,18 @@ public class BgpTest {
 
     String peerAdvertisedNetworkAddr = "10.173.0.0";
     int peerAdvertisedNetworkLength = 24;
+
+    static LockHelper.Lock lock;
+
+    @BeforeClass
+    public static void checkLock() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    }
+
+    @AfterClass
+    public static void releaseLock() {
+        lock.release();
+    }
 
     @Before
     public void setUp() throws InterruptedException, IOException {

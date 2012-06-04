@@ -17,6 +17,7 @@ import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.util.lock.LockHelper;
 
 public class ConfigTearDownTest {
 
@@ -24,9 +25,11 @@ public class ConfigTearDownTest {
             .getLogger(ConfigTearDownTest.class);
 
     static MidolmanMgmt mgmt;
+    static LockHelper.Lock lock;
 
     @BeforeClass
     public static void setUp() {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
         mgmt = new MockMidolmanMgmt(true);
     }
 
@@ -34,6 +37,8 @@ public class ConfigTearDownTest {
     public static void tearDown() {
         if (null != mgmt)
             mgmt.stop();
+
+        lock.release();
     }
 
     @Test

@@ -325,6 +325,29 @@
 
     <profiles>
         <profile>
+            <id>wait-for-functional-tests-lock-on-jenkins</id>
+            <activation>
+                <property>
+                    <name>BUILD_NUMBER</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <midonet.functional-tests.wait-for-lock>
+                                    true
+                                </midonet.functional-tests.wait-for-lock>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>skip-functional-tests</id>
             <activation>
                 <property>

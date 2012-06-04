@@ -14,6 +14,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -25,14 +30,26 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.*;
+import com.midokura.midonet.functional_test.topology.Bridge;
+import com.midokura.midonet.functional_test.topology.BridgePort;
+import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
+import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.OvsBridge;
+import com.midokura.midonet.functional_test.topology.Router;
+import com.midokura.midonet.functional_test.topology.Rule;
+import com.midokura.midonet.functional_test.topology.RuleChain;
+import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-
-
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import com.midokura.util.lock.LockHelper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 public class FlowInvalidationTest {
     static MidolmanMgmt mgmt;
@@ -50,6 +67,8 @@ public class FlowInvalidationTest {
     static List<EndPoint> vmEndpoints = new ArrayList<EndPoint>();
     static IntIPv4 floatingIP0 = IntIPv4.fromString("112.0.0.10");
     static IntIPv4 floatingIP1 = IntIPv4.fromString("112.0.0.20");
+
+    static LockHelper.Lock lock;
 
     private static class EndPoint {
         TapWrapper tap;
@@ -72,6 +91,8 @@ public class FlowInvalidationTest {
 
     @BeforeClass
     public static void setUp() throws IOException, InterruptedException {
+        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
         OpenvSwitchDatabaseConnection ovsdb =
                 new OpenvSwitchDatabaseConnectionImpl(
                         "Open_vSwitch", "127.0.0.1", 12344);
@@ -138,6 +159,7 @@ public class FlowInvalidationTest {
             routerDownlink.unlink();
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
+        lock.release();
     }
 
     @After
