@@ -79,6 +79,7 @@ public class TestRouter {
     private RouterZkManager routerMgr;
     private ChainProcessor chainProcessor;
     private PortConfigCache portCache;
+    private UUID unlinkedLogPortId;
 
     @Before
     public void setUp() throws Exception {
@@ -209,6 +210,19 @@ public class TestRouter {
                 }
             } // end for-loop on j
         } // end for-loop on i
+
+        // Add one logical port that has no peer.
+        PortDirectory.LogicalRouterPortConfig logPortConfig0 =
+                new PortDirectory.LogicalRouterPortConfig(rtrId, 0xc0a80200,
+                        30, 0xc0a80201, null, null, null);
+        unlinkedLogPortId = portMgr.create(logPortConfig0);
+        rtr.addPort(unlinkedLogPortId);
+
+        // Create a route to this unlinked port for 10.3.0.0/16
+        Route rt = new Route(0, 0, 0x0a030000, 16, NextHop.PORT,
+                unlinkedLogPortId, 0xc0a80202, 2, null, rtrId);
+        routeMgr.create(rt);
+        rTable.addRoute(rt);
     }
 
     @Test
@@ -432,6 +446,21 @@ public class TestRouter {
         Assert.assertEquals(id, icmpReply.getIdentifier());
         Assert.assertEquals(seq, icmpReply.getSequenceNum());
         Assert.assertArrayEquals(data, icmpReply.getData());
+    }
+
+    @Test
+    public void testUnlinkedLogicalPort() throws Exception {
+
+        UUID port23Id = portNumToId.get(23);
+        L3DevicePort devPort23 = rtr.devicePorts.get(port23Id);
+        byte[] payload = new byte[] { (byte) 0x0a, (byte) 0x0b, (byte) 0x0c };
+        Ethernet eth = TestRouter.makeUDP(
+                MAC.fromString("02:00:11:22:00:01"),
+                devPort23.getMacAddr(),
+                0x0a000005, 0x0a030005, (short) 101, (short) 212, payload);
+
+        ForwardInfo fInfo = routePacket(port23Id, eth);
+        TestRouter.checkForwardInfo(fInfo, Action.DROP, unlinkedLogPortId, 0);
     }
 
     static public class ArpCompletedCallback implements Callback1<MAC> {

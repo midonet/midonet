@@ -480,15 +480,27 @@ public class Router implements ForwardingElement {
         }
         // Set the hwSrc and hwDst before forwarding the packet.
         fwdInfo.matchOut.setDataLayerSource(outPortCfg.getHwAddr());
-        // If sending to a logical router port, just grab the MAC from
-        // that port's PortConfig.  Else we have to ARP for the next hop's
-        // MAC, unless it's already in our ARP cache.
-        MAC peerMac = getPeerMac(outPortCfg);
-        if (peerMac != null) {
-            fwdInfo.action = Action.FORWARD;
-            fwdInfo.matchOut.setDataLayerDestination(peerMac);
-            return;
+        if (outPortCfg instanceof LogicalRouterPortConfig) {
+            LogicalRouterPortConfig logCfg =
+                    LogicalRouterPortConfig.class.cast(outPortCfg);
+            if (null == logCfg.peerId()) {
+                // Not connected to anything.  Send ICMP unreachable
+                sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
+                fwdInfo.action = Action.DROP;
+                return;
+            }
+
+            // If sending to a logical router port, just grab the MAC from
+            // that port's PortConfig.  Else we have to ARP for the next hop's
+            // MAC, unless it's already in our ARP cache.
+            MAC peerMac = getPeerMac(logCfg);
+            if (peerMac != null) {
+                fwdInfo.action = Action.FORWARD;
+                fwdInfo.matchOut.setDataLayerDestination(peerMac);
+                return;
+            }
         }
+
         fwdInfo.action = Action.PAUSED;
         int nextHopIP = rt.nextHopGateway;
         if (nextHopIP == 0 || nextHopIP == -1)
@@ -501,16 +513,13 @@ public class Router implements ForwardingElement {
     }
 
     // If the peer exists and is a RouterPortConfig, return its MAC; else null.
-    private MAC getPeerMac(RouterPortConfig rpCfg) {
-        if (!(rpCfg instanceof LogicalRouterPortConfig))
-            return null;
-        UUID peerId = LogicalRouterPortConfig.class.cast(rpCfg).peer_uuid;
+    private MAC getPeerMac(LogicalRouterPortConfig logCfg) {
         // We don't know if the peer is a bridge or router port. Use the form of
         // PortConfigCache.get that will avoid class cast exceptions in the log.
-        PortConfig peerConfig = portCache.get(peerId);
+        PortConfig peerConfig = portCache.get(logCfg.peerId());
         if (null == peerConfig) {
             log.error("No portConfig for {}'s peer port {} in ZK.",
-                IPv4.fromIPv4Address(rpCfg.portAddr), peerId);
+                IPv4.fromIPv4Address(logCfg.portAddr), logCfg.peerId());
             return null;
         }
         if (peerConfig instanceof LogicalRouterPortConfig)

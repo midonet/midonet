@@ -435,6 +435,10 @@ public class Bridge implements ForwardingElement {
                         id);
                 continue;
             }
+            // Ignore dangling ports.
+            if (null == bridgePort.peerId()) {
+                continue;
+            }
             LogicalRouterPortConfig routerPort = portCache.get(
                     bridgePort.peerId(), LogicalRouterPortConfig.class);
             if (null == routerPort) {

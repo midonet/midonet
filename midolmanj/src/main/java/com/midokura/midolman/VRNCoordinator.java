@@ -264,6 +264,14 @@ public class VRNCoordinator implements ForwardingElement {
             // If the port is logical, the simulation continues.
             if (cfg instanceof LogicalPortConfig) {
                 LogicalPortConfig lcfg = (LogicalPortConfig) cfg;
+                if (null == lcfg.peerId()) {
+                    // At this point, a null peer ID should have already
+                    // been handled.
+                    log.error("Packet forwarded to an unlinked port {}",
+                            fwdInfo.outPortId);
+                    fwdInfo.action = Action.DROP;
+                    return;
+                }
                 ForwardingElement fe = getForwardingElementByPort(lcfg.peerId());
                 log.debug("Packet exited FE on logical port to FE {}", fe);
                 int timesTraversed = fwdInfo.getTimesTraversed(fe.getId());
