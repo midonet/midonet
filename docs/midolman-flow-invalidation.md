@@ -95,11 +95,11 @@ all the devices that share a chain that has been deleted/modified.
 In order to reduce the number of invalidations, a bridge's FLOOD behavior is
 treated as a separate network element that is only traversed by flows that the
 bridge floods to all ports. When a bridge learns a MAC-Port mapping for the
-first time, it can invalidate all its flooded flow matches (rather than all
+first time, it invalidates all its flooded flow matches (rather than all
 its flow matches, indiscriminately) in order to replace floods with unicasts
 for flows to the learned MAC. Ideally, only flows to the MAC would need to be
-invalidated (but that can't be achieved when the flow traversed other virtual
-devices (routers) before reaching the bridge.
+invalidated (but that can't be achieved when the flow traversed virtual routers
+before reaching the bridge).
 
 When a bridge learns that a MAC has moved from an old Port to a new Port, it
 invalidates all flows to the old port (because some of them may be flows to the
