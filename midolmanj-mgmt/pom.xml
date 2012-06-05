@@ -280,6 +280,11 @@
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>${versions.jersey}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${versions.jersey}</version>
         </dependency>
