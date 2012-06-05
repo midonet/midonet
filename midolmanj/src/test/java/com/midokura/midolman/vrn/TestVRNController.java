@@ -112,7 +112,8 @@ public class TestVRNController {
     private short tunnelPortNumA = 102;
     private short tunnelPortNumB = 103;
 
-    static final String fwdKey = "10.1.2.3|123|10.9.8.7|456|6|";
+    // These differ to represent the result of NAT.
+    static final String fwdKey = "10.11.12.13|111|10.20.255.164|444|6|";
     static final String revKey = "10.9.8.7|456|10.1.2.3|123|6|";
 
     @Before
@@ -620,10 +621,10 @@ public class TestVRNController {
 
     private ForwardInfo createFwdInfo() {
         MidoMatch match = new MidoMatch();
-        match.setNetworkSource(0x0a010203);
-        match.setNetworkDestination(0x0a090807);
-        match.setTransportSource((short) 123);
-        match.setTransportDestination((short) 456);
+        match.setNetworkSource(0x0a0b0c0d);       // 10.11.12.13
+        match.setNetworkDestination(0x0a14ffa4);  // 10.20.255.164
+        match.setTransportSource((short) 111);
+        match.setTransportDestination((short) 444);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkProtocol((byte) 6);
         byte[] data = "Lorem ipsum".getBytes();
@@ -633,6 +634,11 @@ public class TestVRNController {
         fi.outPortId = portNumToUuid.get(portNumB);
         fi.flowMatch = match;
         fi.matchOut = match.clone();
+        // Change matchOut's addresses & ports.
+        fi.matchOut.setNetworkSource(0x0a010203);
+        fi.matchOut.setNetworkDestination(0x0a090807);
+        fi.matchOut.setTransportSource((short) 123);
+        fi.matchOut.setTransportDestination((short) 456);
         fi.action = ForwardingElement.Action.FORWARD;
         return fi;
     }
