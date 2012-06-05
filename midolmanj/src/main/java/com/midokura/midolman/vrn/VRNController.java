@@ -488,7 +488,8 @@ public class VRNController extends AbstractController
         }
 
         if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow()) {
-            installConnectionCacheEntry(fwdInfo.outPortId, fwdInfo.flowMatch);
+            installConnectionCacheEntry(fwdInfo.outPortId,
+                fwdInfo.matchOut == null ? fwdInfo.matchIn : fwdInfo.matchOut);
         }
 
         List<OFAction> actions;
