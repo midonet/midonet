@@ -124,17 +124,15 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      *             Data access error.
      */
     synchronized public Directory getDirectory() throws StateAccessException {
-        log.debug("ZooKeeperDaoFactory.getDirectory: Entered");
         if (conn == null) {
             try {
                 conn = new ZkConnection(connStr, timeout, this);
                 conn.open();
             } catch (Exception e) {
-                throw new StateAccessException("Failed to open ZK connecion", e);
+                throw new StateAccessException("Failed to open ZK connection", e);
             }
         }
 
-        log.debug("ZooKeeperDaoFactory.getDirectory: Exiting.");
         return conn.getRootDirectory();
     }
 

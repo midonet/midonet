@@ -25,7 +25,6 @@ import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;
-import com.midokura.midolman.vrn.ForwardingElement.PacketContext;
 import com.midokura.midolman.vrn.VRNControllerIface;
 
 

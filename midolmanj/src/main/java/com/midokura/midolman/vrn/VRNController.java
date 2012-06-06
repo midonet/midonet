@@ -64,7 +64,7 @@ public class VRNController extends AbstractController
     public static final short FLOW_PRIORITY = 10;
     private static final short SERVICE_FLOW_PRIORITY = FLOW_PRIORITY + 1;
 
-    VRNCoordinator vrn;
+    private VRNCoordinator vrn;
     // TODO: Should we provide a setter or constructor parameter for this?
     private short idleFlowExpireSeconds = NORMAL_IDLE_TIMEOUT;
 

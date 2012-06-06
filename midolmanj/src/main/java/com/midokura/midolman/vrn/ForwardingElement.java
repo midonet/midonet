@@ -38,7 +38,9 @@ public interface ForwardingElement {
     }
 
     // For use by Bridge and Router ForwardingElements.
-    public interface PacketContext {
+    // TODO(pino): This isn't used.  Should we just remove it?  Or should we
+    // start using this (but where)?
+    public interface xxxPacketContext {
         boolean isGeneratedPacket();
         UUID getInPortId();
         Ethernet getPktIn();
