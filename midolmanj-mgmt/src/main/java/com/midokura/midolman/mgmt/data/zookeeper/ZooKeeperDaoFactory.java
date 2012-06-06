@@ -123,13 +123,18 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
      *             Data access error.
      */
     synchronized public Directory getDirectory() throws StateAccessException {
+        log.debug("ZooKeeperDaoFactory.getDirectory: Entered");
         if (directory == null || conn == null || !conn.isConnected()) {
 
             // Reset everything if the state is inconsistent.
-            if(conn != null && conn.isConnected()) {
+            if (conn != null && conn.isConnected()) {
+                log.debug("ZooKeeperDaoFactory.getDirectory: "
+                        + "Invalid ZK state detected.  Closing ZK.");
                 conn.close();
             }
 
+            log.debug("ZooKeeperDaoFactory.getDirectory: "
+                    + "Opening ZK connection");
             try {
                 conn = new ZkConnection(connStr, timeout, null);
                 conn.open();
@@ -139,6 +144,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
             directory = conn.getRootDirectory();
         }
 
+        log.debug("ZooKeeperDaoFactory.getDirectory: Exiting.");
         return directory;
     }
 
