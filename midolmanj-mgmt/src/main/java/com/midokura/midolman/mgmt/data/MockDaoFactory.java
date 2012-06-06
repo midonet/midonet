@@ -14,6 +14,8 @@ import com.midokura.midolman.state.MockDirectory;
 // Code under src/test/java is not included in the midolmanj-mgmt jar.
 public class MockDaoFactory extends ZooKeeperDaoFactory {
 
+    private Directory directory;
+
     public MockDaoFactory(AppConfig config) throws DaoInitializationException {
         super(config);
     }

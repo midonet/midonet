@@ -4,6 +4,8 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,11 +84,10 @@ import com.midokura.midolman.state.ZkPathManager;
 /**
  * ZooKeeper DAO factory class.
  */
-public class ZooKeeperDaoFactory extends AbstractDaoFactory {
+public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZooKeeperDaoFactory.class);
-    protected Directory directory;
     protected ZkConnection conn;
     protected final String rootPath;
     protected final String rootMgmtPath;
@@ -124,28 +125,40 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
      */
     synchronized public Directory getDirectory() throws StateAccessException {
         log.debug("ZooKeeperDaoFactory.getDirectory: Entered");
-        if (directory == null || conn == null || !conn.isConnected()) {
-
-            // Reset everything if the state is inconsistent.
-            if (conn != null && conn.isConnected()) {
-                log.debug("ZooKeeperDaoFactory.getDirectory: "
-                        + "Invalid ZK state detected.  Closing ZK.");
-                conn.close();
-            }
-
-            log.debug("ZooKeeperDaoFactory.getDirectory: "
-                    + "Opening ZK connection");
+        if (conn == null) {
             try {
-                conn = new ZkConnection(connStr, timeout, null);
+                conn = new ZkConnection(connStr, timeout, this);
                 conn.open();
             } catch (Exception e) {
                 throw new StateAccessException("Failed to open ZK connecion", e);
             }
-            directory = conn.getRootDirectory();
         }
 
         log.debug("ZooKeeperDaoFactory.getDirectory: Exiting.");
-        return directory;
+        return conn.getRootDirectory();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent)
+     */
+    @Override
+    synchronized public void process(WatchedEvent event) {
+        log.debug("ZooKeeperDaoFactory.process: Entered witth event {}",
+                event.getState());
+
+        // The ZK client re-connects automatically. However, after it
+        // successfully reconnects, if the session had expired, we need to
+        // create a new session.
+        if (event.getState() == Watcher.Event.KeeperState.Expired
+                && conn != null) {
+            conn.close();
+            conn = null;
+        }
+
+        log.debug("ZooKeeperDaoFactory.process: Exiting");
     }
 
     /**

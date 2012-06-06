@@ -90,10 +90,6 @@ public class ZkConnection implements Watcher {
             watcher.process(event);
     }
 
-    public boolean isConnected() {
-        return connected;
-    }
-
     public Directory getRootDirectory() {
         return new ZkDirectory(this.zk, "", Ids.OPEN_ACL_UNSAFE, reactor);
     }
