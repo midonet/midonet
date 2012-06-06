@@ -62,8 +62,9 @@ part of a return flow.  Otherwise, it's considered part of a forward flow.
 When the VRN Controller is processing a packet which has completed the VRN
 Coordinator's processing, it checks to see if the packet is connection tracked
 and part of a forward flow.  If it is, it puts an entry in Cassandra for the
-return flow it expects:  source and destination swapped, and the egress
-forwarding element for the ingress.
+return flow it expects:  source and destination swapped from the flowmatch
+for the packet it's about to output, and the egress forwarding element for
+the ingress.
 
 Port filters can be run from the context of the egress controller, in the
 case of port sets (used for Bridge floods).  In the egress controller,
@@ -77,3 +78,9 @@ Rule Conditions have two predicates related to connection tracking:
 as they are inverses of each other.  Applying a rule conditioned on either
 results in a call to `fwdInfo.isForwardFlow()`, triggering the connection
 tracking logic.
+
+### Future Directions
+
+We'd like to create a manager class which is responsible for keeping the
+connection entry for an active flow "fresh" in Cassandra, and encapsulates the
+key & value semantics.

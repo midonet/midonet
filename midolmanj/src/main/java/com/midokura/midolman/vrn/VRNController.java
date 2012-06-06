@@ -549,7 +549,7 @@ public class VRNController extends AbstractController
             IPv4Set controllersAddrs = portSetMap.get(fwdInfo.outPortId);
             if (controllersAddrs == null)
                 log.error("forwardPacket: no hosts for portset ID {}",
-                        fwdInfo.outPortId);
+                          fwdInfo.outPortId);
             else for (String controllerAddr : controllersAddrs.getStrings()) {
                 log.debug("forwardPacket: {} within port set {}",
                           controllerAddr, fwdInfo.outPortId);

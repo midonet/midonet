@@ -113,8 +113,10 @@ public class TestVRNController {
     private short tunnelPortNumB = 103;
 
     // These differ to represent the result of NAT.
-    static final String fwdKey = "10.11.12.13|111|10.20.255.164|444|6|";
-    static final String revKey = "10.9.8.7|456|10.1.2.3|123|6|";
+    // Key format is "srcIP|srcPort|dstIP|dstPort|protocolNum|ingressUUID"
+    // The UUIDs get pasted on in the tests.
+    static final String connectionKey1 = "10.11.12.13|111|10.20.255.164|444|6|";
+    static final String connectionKey2 = "10.9.8.7|456|10.1.2.3|123|6|";
 
     @Before
     public void setUp() throws Exception {
@@ -580,8 +582,8 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertNull(cache.get(fwdKey + bridgeID.toString()));
-        Assert.assertNull(cache.get(revKey + bridgeID.toString()));
+        Assert.assertNull(cache.get(connectionKey1 + bridgeID.toString()));
+        Assert.assertNull(cache.get(connectionKey2 + bridgeID.toString()));
     }
 
     @Test
@@ -597,15 +599,15 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertNull(cache.get(fwdKey + bridgeID.toString()));
+        Assert.assertNull(cache.get(connectionKey1 + bridgeID.toString()));
         // Verify the VRNController wrote the reversed flow info into Cassandra.
-        Assert.assertEquals("r", cache.get(revKey + bridgeID.toString()));
+        Assert.assertEquals("r", cache.get(connectionKey2 + bridgeID.toString()));
     }
 
     @Test
     public void testTrackedFlowReturn() {
         ForwardInfo fwdInfo = createFwdInfo();
-        cache.set(fwdKey + bridgeID.toString(), "r");
+        cache.set(connectionKey1 + bridgeID.toString(), "r");
         Assert.assertFalse(fwdInfo.isForwardFlow());
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
@@ -615,11 +617,12 @@ public class TestVRNController {
         Assert.assertEquals(1, controllerStub.sentPackets.size());
         Assert.assertEquals(1, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
-        Assert.assertNull(cache.get(revKey + bridgeID.toString()));
-        Assert.assertEquals("r", cache.get(fwdKey + bridgeID.toString()));
+        Assert.assertNull(cache.get(connectionKey2 + bridgeID.toString()));
+        Assert.assertEquals("r", cache.get(connectionKey1 + bridgeID.toString()));
     }
 
     private ForwardInfo createFwdInfo() {
+        // Create a match which fits connectionKey1.
         MidoMatch match = new MidoMatch();
         match.setNetworkSource(0x0a0b0c0d);       // 10.11.12.13
         match.setNetworkDestination(0x0a14ffa4);  // 10.20.255.164
@@ -634,7 +637,8 @@ public class TestVRNController {
         fi.outPortId = portNumToUuid.get(portNumB);
         fi.flowMatch = match;
         fi.matchOut = match.clone();
-        // Change matchOut's addresses & ports.
+        // Change matchOut's addresses & ports so that it produces
+        // connectionKey2 when reversed into a return flow.
         fi.matchOut.setNetworkSource(0x0a010203);
         fi.matchOut.setNetworkDestination(0x0a090807);
         fi.matchOut.setTransportSource((short) 123);
