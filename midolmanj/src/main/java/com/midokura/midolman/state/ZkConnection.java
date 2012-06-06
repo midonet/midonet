@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.state;
@@ -58,7 +58,7 @@ public class ZkConnection implements Watcher {
         }
         if (!connected)
             throw new Exception("Cannot open ZooKeeper session.");
-        
+
         log.info("Connected to ZooKeeper with session {}", zk.getSessionId());
     }
 
@@ -90,10 +90,14 @@ public class ZkConnection implements Watcher {
             watcher.process(event);
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
     public Directory getRootDirectory() {
         return new ZkDirectory(this.zk, "", Ids.OPEN_ACL_UNSAFE, reactor);
     }
-    
+
     public ZooKeeper getZooKeeper() {
         return this.zk;
     }

@@ -86,7 +86,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZooKeeperDaoFactory.class);
-    protected Directory directory = null;
+    protected Directory directory;
+    protected ZkConnection conn;
     protected final String rootPath;
     protected final String rootMgmtPath;
     protected final String connStr;
@@ -122,15 +123,20 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory {
      *             Data access error.
      */
     synchronized public Directory getDirectory() throws StateAccessException {
-        if (directory == null) {
-            ZkConnection zk = null;
+        if (directory == null || conn == null || !conn.isConnected()) {
+
+            // Reset everything if the state is inconsistent.
+            if(conn != null && conn.isConnected()) {
+                conn.close();
+            }
+
             try {
-                zk = new ZkConnection(connStr, timeout, null);
-                zk.open();
+                conn = new ZkConnection(connStr, timeout, null);
+                conn.open();
             } catch (Exception e) {
                 throw new StateAccessException("Failed to open ZK connecion", e);
             }
-            directory = zk.getRootDirectory();
+            directory = conn.getRootDirectory();
         }
 
         return directory;
