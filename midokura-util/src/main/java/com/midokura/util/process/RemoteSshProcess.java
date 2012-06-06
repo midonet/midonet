@@ -3,13 +3,14 @@ package com.midokura.util.process;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.remote.RemoteHost;
-import com.midokura.util.ssh.commands.SshExecChannel;
 import com.midokura.util.ssh.SshHelper;
+import com.midokura.util.ssh.commands.SshExecChannel;
 
 /**
  * A Process class that abstracts a process executed across a ssh session.
@@ -25,19 +26,30 @@ public class RemoteSshProcess extends Process {
     SshExecChannel sshExecChannel;
     String command;
 
-    public RemoteSshProcess(RemoteHost host, String commandLine)
+    public RemoteSshProcess(RemoteHost host, String commandLine,
+                            Map<String, String> envVars)
         throws IOException {
         this.command = commandLine;
 
-        log.info("Launching command \"{}\" on remote host {}",
-                 command, host.getSafeName());
+        String vars = "NONE";
+        if (envVars != null && !envVars.isEmpty())
+            vars = envVars.toString();
+        log.info("Launching command \"{}\" on remote host {} with env vars {} ",
+                 new Object[]{command, host.getSafeName(), vars});
 
         sshExecChannel =
             SshHelper.newRemoteProcess(command)
                      .withSession(host.getSession())
+                     .setEnvVars(envVars)
                      .execute();
 
         log.debug("Command launched successfully");
+    }
+
+    public RemoteSshProcess(RemoteHost host, String commandLine)
+        throws IOException {
+
+        new RemoteSshProcess(host, commandLine, null);
     }
 
     @Override

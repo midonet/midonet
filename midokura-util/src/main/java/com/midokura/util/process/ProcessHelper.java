@@ -8,7 +8,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
@@ -52,6 +54,7 @@ public class ProcessHelper {
         return new RunnerConfiguration() {
             DrainTarget drainTarget;
             String procCommandLine = commandLine;
+            Map<String, String> envVars = new HashMap<String, String>();
 
             EnumSet<OutputStreams> streamsToLog =
                 EnumSet.allOf(OutputStreams.class);
@@ -74,6 +77,21 @@ public class ProcessHelper {
 
             public RunnerConfiguration setDrainTarget(DrainTarget drainTarget) {
                 this.drainTarget = drainTarget;
+                return this;
+            }
+
+            @Override
+            public RunnerConfiguration setEnvVariables(
+                Map<String, String> vars) {
+
+                this.envVars.putAll(vars);
+                return this;
+            }
+
+            @Override
+            public RunnerConfiguration setEnvVariable(String var,
+                                                      String value) {
+                this.envVars.put(var, value);
                 return this;
             }
 
@@ -144,14 +162,26 @@ public class ProcessHelper {
                 // if the remoteHostSpec is not valid it means that remote
                 // specification was not defined or defined poorly so we revert
                 // to the standard way of running all processes as local processes.
-                // the canBeExecutedRemote is a signal that if possbile this
+                // the canBeExecutedRemote is a signal that if possible this
                 // process will be executed remotely.
                 if (canBeExecutedRemote && remoteHostSpec.isValid()) {
-                    return
-                        new RemoteSshProcess(remoteHostSpec, procCommandLine);
+                    new RemoteSshProcess(remoteHostSpec,
+                                         procCommandLine,
+                                         envVars);
                 }
+                if (envVars.isEmpty()) {
+                    return Runtime.getRuntime().exec(procCommandLine);
+                } else {
+                    List<String> param = new ArrayList<String>();
+                    for (Map.Entry<String, String> var : envVars.entrySet()) {
+                        param.add(var.getKey() + "=" + var.getValue());
+                    }
+                    return
+                        Runtime.getRuntime()
+                               .exec(procCommandLine,
+                                     param.toArray(new String[param.size()]));
 
-                return Runtime.getRuntime().exec(procCommandLine);
+                }
             }
         };
     }
@@ -265,6 +295,11 @@ public class ProcessHelper {
         public Process run();
 
         public RunnerConfiguration withSudo();
+
+        public RunnerConfiguration setEnvVariables(Map<String, String> vars);
+
+        public RunnerConfiguration setEnvVariable(String var, String value);
+
     }
 
     public static List<String> executeLocalCommandLine(String commandLine) {

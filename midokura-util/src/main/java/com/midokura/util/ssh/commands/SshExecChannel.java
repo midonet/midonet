@@ -6,6 +6,7 @@ package com.midokura.util.ssh.commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
@@ -25,6 +26,12 @@ public class SshExecChannel {
     public SshExecChannel(ChannelExec channel, SshSession sshSession) {
         this.channel = channel;
         this.sshSession = sshSession;
+    }
+
+    public void setEnvVariables(Map<String, String> vars) {
+        for (Map.Entry<String, String> var : vars.entrySet()) {
+            channel.setEnv(var.getKey(), var.getValue());
+        }
     }
 
     public void setCommand(String command) {

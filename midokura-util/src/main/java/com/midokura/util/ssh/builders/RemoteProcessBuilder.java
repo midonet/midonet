@@ -4,12 +4,13 @@
 package com.midokura.util.ssh.builders;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.ssh.commands.SshExecChannel;
 import com.midokura.util.ssh.SshHelper;
+import com.midokura.util.ssh.commands.SshExecChannel;
 import com.midokura.util.ssh.commands.SshSession;
 
 /**
@@ -27,9 +28,15 @@ public class RemoteProcessBuilder
         .getLogger(RemoteProcessBuilder.class);
 
     private String command;
+    private Map<String, String> envVars = null;
 
     public RemoteProcessBuilder(String command) {
         this.command = command;
+    }
+
+    public RemoteProcessBuilder setEnvVars(Map<String, String> envVars) {
+        this.envVars = envVars;
+        return this;
     }
 
     @Override
@@ -64,6 +71,9 @@ public class RemoteProcessBuilder
         execChannel.setCommand(command);
         execChannel.setPty(true);
         execChannel.connect(timeout);
+        if (envVars != null) {
+            execChannel.setEnvVariables(envVars);
+        }
 
         return execChannel;
     }
