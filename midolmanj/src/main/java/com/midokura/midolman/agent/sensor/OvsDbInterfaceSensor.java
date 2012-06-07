@@ -14,6 +14,8 @@ import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Endpoint;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Type;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface.PropertyKeys;
 
 public class OvsDbInterfaceSensor implements InterfaceSensor {
@@ -50,7 +52,7 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
             }
 
             // Only update interfaces were the endpoint hasn't been already set
-            if (interfaceDescription.getEndpoint() != InterfaceDescription.Endpoint.UNKNOWN) {
+            if (interfaceDescription.getEndpoint() != Endpoint.UNKNOWN) {
                 // We already got an endpoint classification from the previous sensor
                 // Skip this interface
                 continue;
@@ -58,7 +60,8 @@ public class OvsDbInterfaceSensor implements InterfaceSensor {
 
             if (ovsdb.hasBridge(interfaceDescription.getName())) {
                 // this is a bridge interface
-                interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.BRIDGE);
+                interfaceDescription.setEndpoint(Endpoint.BRIDGE);
+                interfaceDescription.setType(Type.VIRT);
             }
         }
 

@@ -4,10 +4,10 @@
 
 package com.midokura.midolman.agent.sensor;
 
+import java.util.List;
+
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.util.process.ProcessHelper;
-
-import java.util.List;
 
 public class DmesgInterfaceSensor implements InterfaceSensor {
 
@@ -19,6 +19,7 @@ public class DmesgInterfaceSensor implements InterfaceSensor {
                 // Is this a physical interface?
                 if (isPhysical(interfaceDescription.getName())) {
                     interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.PHYSICAL);
+                    interfaceDescription.setType(InterfaceDescription.Type.PHYS);
                 }
             }
         }

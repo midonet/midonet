@@ -191,6 +191,8 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 hostInterface.setType(Interface.Type.Unknown);
                 break;
         }
+
+        hostInterface.setEndpoint(description.getEndpoint().toString());
         hostInterface.setProperties(new HashMap<String, String>());
 
         List<InetAddress> addresses = description.getInetAddresses();

@@ -4,10 +4,12 @@
 
 package com.midokura.midolman.agent.sensor;
 
+import java.util.List;
+
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.util.process.ProcessHelper;
-
-import java.util.List;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Endpoint;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Type;
 
 public class IpTuntapInterfaceSensor implements InterfaceSensor{
 
@@ -15,10 +17,11 @@ public class IpTuntapInterfaceSensor implements InterfaceSensor{
     public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces) {
         for (InterfaceDescription interfaceDescription : interfaces) {
             // Only update endpoints to those interfaces who don't already have it
-            if (interfaceDescription.getEndpoint() == InterfaceDescription.Endpoint.UNKNOWN) {
+            if (interfaceDescription.getEndpoint() == Endpoint.UNKNOWN) {
                 // Is this a Tuntap interface?
                 if (isTuntap(interfaceDescription.getName())) {
-                    interfaceDescription.setEndpoint(InterfaceDescription.Endpoint.TUNTAP);
+                    interfaceDescription.setEndpoint(Endpoint.TUNTAP);
+                    interfaceDescription.setType(Type.VIRT);
                 }
             }
         }

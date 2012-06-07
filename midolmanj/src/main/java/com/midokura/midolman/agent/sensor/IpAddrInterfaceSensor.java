@@ -4,14 +4,16 @@
 
 package com.midokura.midolman.agent.sensor;
 
-import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.util.process.ProcessHelper;
-
 import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.util.process.ProcessHelper;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Endpoint;
+import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Type;
 
 public class IpAddrInterfaceSensor implements InterfaceSensor {
 
@@ -107,8 +109,8 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
 
             // Check if it's localhost interface
             if (tokens[1].replaceAll(":", "").equals("lo")) {
-                interfaceDescription.setEndpoint(
-                    InterfaceDescription.Endpoint.LOCALHOST);
+                interfaceDescription.setEndpoint(Endpoint.LOCALHOST);
+                interfaceDescription.setType(Type.PHYS);
             }
 
         } else if (tokens[0].startsWith("link")) {
