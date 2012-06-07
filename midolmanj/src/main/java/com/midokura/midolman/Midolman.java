@@ -4,7 +4,10 @@
 
 package com.midokura.midolman;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -111,6 +114,8 @@ public class Midolman implements SelectListener, Watcher {
 
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
 
+        redirectStdOutAndErrIfRequested(cl);
+
         config = new HierarchicalINIConfiguration(configFilePath);
         Configuration midolmanConfig = config.configurationAt("midolman");
 
@@ -195,6 +200,40 @@ public class Midolman implements SelectListener, Watcher {
         }
 
         log.info("main finish");
+    }
+
+    private void redirectStdOutAndErrIfRequested(CommandLine commandLine) {
+
+        String targetStdOut = commandLine.getOptionValue("redirectStdOut");
+        if (targetStdOut != null ) {
+            try {
+                File targetStdOutFile = new File(targetStdOut);
+                if (targetStdOutFile.isFile() && targetStdOutFile.canWrite()) {
+                    PrintStream newStdOutStr = new PrintStream(targetStdOutFile);
+                    newStdOutStr.println("[Begin redirected output]");
+
+                    System.setOut(newStdOutStr);
+                }
+            } catch (FileNotFoundException e) {
+                log.error("Could not redirect stdout to {}", targetStdOut, e);
+            }
+        }
+
+        String targetStdErr = commandLine.getOptionValue("redirectStdErr");
+
+        if (targetStdErr != null ) {
+            try {
+                File targetStdErrFile = new File(targetStdErr);
+                if (targetStdErrFile.isFile() && targetStdErrFile.canWrite()) {
+                    PrintStream newStdErrStr = new PrintStream(targetStdErrFile);
+                    newStdErrStr.println("[Begin redirected output]");
+
+                    System.setErr(newStdErrStr);
+                }
+            } catch (FileNotFoundException e) {
+                log.error("Could not redirect stderr to {}", targetStdErr, e);
+            }
+        }
     }
 
     @Override
