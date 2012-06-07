@@ -201,14 +201,18 @@ public class Midolman implements SelectListener, Watcher {
     public void handleEvent(SelectionKey key) throws IOException {
         log.info("handleEvent " + key);
 
+        SocketChannel sock = listenSock.accept();
+
         // If the controller is already set, don't accept any new connection.
         if (controller != null) {
             log.warn("Midolman.handleEvent: Controller has already started.");
+            // TODO(pino): this is a hack so that the connection request is
+            // TODO:       handled and removed from the select events.
+            sock.close();
             return;
         }
 
         try {
-            SocketChannel sock = listenSock.accept();
             log.info("handleEvent accepted connection from " +
                      sock.socket().getRemoteSocketAddress());
 
