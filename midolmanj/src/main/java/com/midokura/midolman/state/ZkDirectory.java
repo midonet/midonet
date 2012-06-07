@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.state;
@@ -17,10 +17,13 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 
 public class ZkDirectory implements Directory {
+    static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
 
     public ZooKeeper zk;
     private String basePath;
@@ -48,7 +51,7 @@ public class ZkDirectory implements Directory {
         this.acl = Ids.OPEN_ACL_UNSAFE;
         this.reactor = reactor;
     }
-    
+
     @Override
     public String toString() {
         return ("ZkDirectory: base=" + basePath);
@@ -79,8 +82,10 @@ public class ZkDirectory implements Directory {
 
         @Override
         public void process(WatchedEvent arg0) {
-            if (null == reactor)
+            if (null == reactor){
+                log.warn("Reactor is null - processing ZK event in ZK thread.");
                 watcher.run();
+            }
             else
                 reactor.submit(watcher);
         }
