@@ -109,6 +109,8 @@ public class Midolman implements SelectListener, Watcher {
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
+        options.addOption("redirectStdOut", true, "will cause the stdout to be redirected");
+        options.addOption("redirectStdErr", true, "will cause the stderr to be redirected");
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
 
