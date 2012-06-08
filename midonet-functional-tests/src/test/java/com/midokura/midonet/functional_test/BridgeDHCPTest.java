@@ -6,6 +6,7 @@ package com.midokura.midonet.functional_test;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -14,7 +15,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
@@ -146,38 +147,57 @@ public class BridgeDHCPTest {
     @After
     public void shutdownVm() throws Exception {
         vm.shutdown();
-        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
+        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 50,
                 new Timed.Execution<Object>() {
                     @Override
                     protected void _runOnce() throws Exception {
-                        setCompleted(vm.isRunning());
+                        setCompleted(!vm.isRunning());
                     }
                 });
     }
 
     @Test
     public void testSampleTest() throws Exception {
-        String output =
-            SshHelper.newRemoteCommand("hostname")
-                     .onHost("192.168.231.10")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .run((int) TimeUnit.MINUTES.toMillis(2));
 
-        assertThat("We should have been able to connect and run a remote " +
-                       "command on the machine",
-                   output.trim(), equalTo(vmHostName));
+        assertThatCommandOutput("the host should have our chosen name",
+                                "hostname", is(vmHostName));
+
     }
 
     @Test
     public void testMtu() throws Exception {
-        String output =
-            SshHelper.newRemoteCommand("ip link show eth0 | grep mtu")
-                     .onHost("192.168.231.10")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .run((int) TimeUnit.SECONDS.toMillis(120));
-
-        assertThat("We should have been able to connect and run a command on " +
-                       "the remote machine",
-                   output.trim(), matchesRegex(".+mtu 1450.+"));
+        assertThatCommandOutput("displays the new MTU value",
+                                "ip link show eth0 | grep mtu",
+                                matchesRegex(".+mtu 1450.+"));
     }
+
+    protected void assertThatCommandOutput(String message,
+                                           final String command,
+                                           final Matcher<String> resultMatcher)
+        throws Exception {
+        String commandResult =
+            waitFor("successful remote execution of: " + command,
+                    TimeUnit.MINUTES.toMillis(2), 50,
+                    new Timed.Execution<String>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            try {
+                                String result =
+                                    SshHelper.newRemoteCommand(command)
+                                             .onHost("192.168.231.10")
+                                             .withCredentials(
+                                                 "ubuntu", "ubuntu")
+                                             .run((int) getRemainingTime());
+
+                                setResult(result.trim());
+                                setCompleted(resultMatcher.matches(getResult()));
+                            } catch (IOException e) {
+                                // try again later
+                            }
+                        }
+                    });
+
+        assertThat(message, commandResult, resultMatcher);
+    }
+
 }
