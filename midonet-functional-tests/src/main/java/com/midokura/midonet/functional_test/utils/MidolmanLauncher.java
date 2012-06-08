@@ -10,14 +10,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.String.format;
-
 import org.apache.commons.lang.StringUtils;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
+
+
+import static java.lang.String.format;
 
 public class MidolmanLauncher {
 
@@ -65,6 +67,12 @@ public class MidolmanLauncher {
         log.debug("Launching midolman with command line: {}", commandLine);
         log.debug("Launching midolman from folder: {}",
                   new File(".").getAbsolutePath());
+
+        try {
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        } catch (Exception e) {
+            log.error("Failed to start embedded Cassandra.", e);
+        }
 
         midolmanProcess = ProcessHelper
             .newLocalProcess(commandLine)
@@ -178,6 +186,7 @@ public class MidolmanLauncher {
     }
 
     public synchronized void stop() {
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
         if (null != midolmanProcess) {
             ProcessHelper.killProcess(midolmanProcess);
             try {
