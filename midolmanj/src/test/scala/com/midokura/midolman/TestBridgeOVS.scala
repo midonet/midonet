@@ -481,7 +481,7 @@ private class BridgeControllerTester(datapathId: Long,
         connectionSemaphore: Semaphore) extends
                 VRNController(zkDir, basePath, publicIP, ovsdb,
                         reactor, null, externalIDKey, vrnId, false, null,
-                        null) {
+                        null, 1450) {
     downPorts = new NotifyingSet(portSemaphore)
     var addedPorts = List[UUID]()
     final val log = LoggerFactory.getLogger(classOf[BridgeControllerTester])

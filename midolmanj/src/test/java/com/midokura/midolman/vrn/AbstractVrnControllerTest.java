@@ -201,7 +201,7 @@ public abstract class AbstractVrnControllerTest {
             createCache(),
             getExternalIdKey(),
             getSwitchUUID(), false,
-            createPortService(), new NullPortService());
+            createPortService(), new NullPortService(), 1450);
 
         // register the bridge metadata in ovs
         ovsDbConnection.setDatapathExternalId(getDatapathId(),

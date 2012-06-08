@@ -46,6 +46,7 @@ import com.midokura.midolman.portservice.OpenVpnPortService;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheFactory;
 import com.midokura.midolman.vrn.VRNController;
 import com.midokura.remote.RemoteHost;
@@ -55,8 +56,6 @@ public class Midolman implements SelectListener, Watcher {
 
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
 
-    private HierarchicalConfiguration config;
-
     private boolean useNxm;
     private boolean enableBgp;
     private int disconnected_ttl_seconds;
@@ -65,6 +64,8 @@ public class Midolman implements SelectListener, Watcher {
     private String basePath;
     private String externalIdKey;
     private UUID vrnId;
+    private int dhcpMtu;
+    private Cache vrnCache;
 
     private Controller controller;
     private ScheduledExecutorService executor;
@@ -109,8 +110,12 @@ public class Midolman implements SelectListener, Watcher {
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
-        options.addOption("redirectStdOut", true, "will cause the stdout to be redirected");
-        options.addOption("redirectStdErr", true, "will cause the stderr to be redirected");
+
+        // TODO(mtoader): Redirected where?
+        options.addOption("redirectStdOut", true,
+                          "will cause the stdout to be redirected");
+        options.addOption("redirectStdErr", true,
+                          "will cause the stderr to be redirected");
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
 
@@ -118,25 +123,22 @@ public class Midolman implements SelectListener, Watcher {
 
         redirectStdOutAndErrIfRequested(cl);
 
-        config = new HierarchicalINIConfiguration(configFilePath);
+        HierarchicalConfiguration config =
+                new HierarchicalINIConfiguration(configFilePath);
         Configuration midolmanConfig = config.configurationAt("midolman");
 
-
-        basePath = config.configurationAt("midolman").getString(
-                "midolman_root_key");
+        basePath = midolmanConfig.getString("midolman_root_key");
         localNwAddr = IntIPv4.fromString(config.configurationAt(
                 "openflow").getString("public_ip_address"));
         externalIdKey = config.configurationAt("openvswitch")
                 .getString("midolman_ext_id_key", "midolman-vnet");
         vrnId = UUID.fromString(
-                config.configurationAt("vrn").getString(
-                        "router_network_id"));
-        useNxm = config.configurationAt("openflow").getBoolean(
-                "use_nxm", false);
-        enableBgp = config.configurationAt("midolman").getBoolean(
-                "enable_bgp", true);
+                config.configurationAt("vrn").getString("router_network_id"));
+        useNxm = config.configurationAt("openflow").getBoolean("use_nxm", false);
+        enableBgp = midolmanConfig.getBoolean("enable_bgp", true);
         disconnected_ttl_seconds =
             midolmanConfig.getInteger("disconnected_ttl_seconds", 30);
+        dhcpMtu = midolmanConfig.getInteger("dhcp_mtu", 1450);
 
         executor = Executors.newScheduledThreadPool(1);
         loop = new SelectLoop(executor);
@@ -161,15 +163,15 @@ public class Midolman implements SelectListener, Watcher {
 
         midonetDirectory = zkConnection.getRootDirectory();
 
-        boolean startNodeAgent = config.configurationAt("midolman")
-            .getBoolean("start_host_agent", false);
+        boolean startNodeAgent = midolmanConfig.getBoolean("start_host_agent",
+                                                           false);
 
         if (startNodeAgent) {
             nodeAgent = NodeAgent.bootstrapAgent(config, zkConnection, ovsdb);
             nodeAgent.start();
         } else {
-            log.info("Not starting node agent because it was not enabled in the " +
-                         "configuration file.");
+            log.info("Not starting node agent because it was not enabled in " +
+                     "the configuration file.");
         }
 
         boolean startMonitoring = config.configurationAt("monitoring")
@@ -181,6 +183,8 @@ public class Midolman implements SelectListener, Watcher {
             monitoringAgent = MonitoringAgent.bootstrapMonitoring(config,
                                                                   hostIdProvider);
         }
+
+        vrnCache = CacheFactory.create(config);
 
         listenSock = ServerSocketChannel.open();
         listenSock.configureBlocking(false);
@@ -271,18 +275,19 @@ public class Midolman implements SelectListener, Watcher {
             }
 
             // Create an OpenVPN VPN port service.
-            PortService vpnPortService = OpenVpnPortService.createVpnPortService(
-                ovsdb, externalIdKey, midonetDirectory, basePath);
+            PortService vpnPortService =
+                OpenVpnPortService.createVpnPortService(
+                    ovsdb, externalIdKey, midonetDirectory, basePath);
 
             VRNController vrnController =
                 new VRNController(midonetDirectory, basePath,
-                                  localNwAddr, ovsdb,
-                                    loop, CacheFactory.create(config),
-                                    externalIdKey, vrnId, useNxm,
-                                    bgpPortService, vpnPortService);
+                                  localNwAddr, ovsdb, loop, vrnCache,
+                                  externalIdKey, vrnId, useNxm,
+                                  bgpPortService, vpnPortService, dhcpMtu);
 
             if (monitoringAgent != null) {
-                vrnController.addControllerObserver(monitoringAgent.createVRNObserver());
+                vrnController.addControllerObserver(
+                    monitoringAgent.createVRNObserver());
             }
 
             controller = vrnController;

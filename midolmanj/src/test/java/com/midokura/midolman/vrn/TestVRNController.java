@@ -169,7 +169,7 @@ public class TestVRNController {
         UUID vrnId = UUID.randomUUID();
         vrnCtrl = new VRNController(dir, basePath, localNwIP, ovsdb,
                 reactor, cache, "midonet", vrnId, false, bgpService,
-                vpnService);
+                vpnService, 1450);
         vrnCtrl.setControllerStub(controllerStub);
         vrnCtrl.setDatapathId(datapathId);
         vrnCtrl.startPortLocMap();

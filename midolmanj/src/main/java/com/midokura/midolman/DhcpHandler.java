@@ -42,12 +42,14 @@ public class DhcpHandler {
     private BridgeDhcpZkManager dhcpMgr;
     private VRNController controller;
     private PortConfigCache portCache;
+    private int mtu;
 
     public DhcpHandler(Directory zkDir, String zkBasePath, VRNController ctrl,
-                       PortConfigCache portCache) {
+                       PortConfigCache portCache, int mtu_) {
         this.dhcpMgr = new BridgeDhcpZkManager(zkDir, zkBasePath);
         this.controller = ctrl;
         this.portCache = portCache;
+        this.mtu = mtu_;
     }
 
     public boolean handleDhcpRequest(UUID inPortId, DHCP request,
@@ -252,7 +254,6 @@ public class DhcpHandler {
                 // This is in seconds.  One day is more than enough.
                 IPv4.toIPv4AddressBytes(86400));
         options.add(opt);
-        int mtu = 1450;
         opt = new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value(),
                              DHCPOption.Code.INTERFACE_MTU.length(),
                              new byte[] { (byte)(mtu/256), (byte)(mtu%256) });

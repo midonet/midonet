@@ -47,7 +47,7 @@ public class Host {
                 getExternalIdKey(),
                 UUID.fromString(getMidonetDatapathId()),
                 false /* useNxm */,
-                new NullPortService(), new NullPortService());
+                new NullPortService(), new NullPortService(), 1450);
 
         // set the stub
         stub = new MockControllerStub();

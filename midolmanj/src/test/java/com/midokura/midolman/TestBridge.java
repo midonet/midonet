@@ -237,7 +237,8 @@ public class TestBridge {
                 /* VRN ID */                    vrnId,
                 /* Use NXM? */                  false,
                 /* BGP service */               null,
-                /* VPN service */               null);
+                /* VPN service */               null,
+                /* DHCP MTU */                  1450);
         controller.setControllerStub(controllerStub);
 
         // Insert ports 3..8 into portLocMap and macPortMap.

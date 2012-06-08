@@ -97,8 +97,8 @@ public class VRNController extends AbstractController
     public VRNController(Directory zkDir, String zkBasePath,
             IntIPv4 localNwAddr, OpenvSwitchDatabaseConnection ovsdb,
             Reactor reactor, Cache cache, String externalIdKey, UUID vrnId,
-            boolean useNxm, PortService bgpService, PortService vpnService)
-                    throws StateAccessException {
+            boolean useNxm, PortService bgpService, PortService vpnService,
+            int mtu) throws StateAccessException {
         super(zkDir, zkBasePath, ovsdb, localNwAddr, externalIdKey, vrnId,
               useNxm);
         this.reactor = reactor;
@@ -125,7 +125,8 @@ public class VRNController extends AbstractController
         this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
         this.zkDir = zkDir;
-        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this, portCache);
+        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this, portCache,
+                                           mtu);
     }
 
     public void subscribePortSet(UUID portSetID)
