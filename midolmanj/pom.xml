@@ -109,6 +109,7 @@
                 </dependencies>
 
                 <configuration>
+                    <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
                     <systemPropertyVariables>
@@ -484,7 +485,7 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <classifier>mido</classifier>
-            <version>3.4.1</version>
+            <version>3.4.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>jline</groupId>

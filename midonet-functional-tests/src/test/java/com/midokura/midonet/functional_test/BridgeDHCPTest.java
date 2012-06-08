@@ -29,8 +29,10 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
+import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
 import com.midokura.util.ssh.SshHelper;
+import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
@@ -38,6 +40,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeT
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 
 /**
  * Test suite that exercises the DHCP options configuration across a LAN.
@@ -108,6 +111,15 @@ public class BridgeDHCPTest {
                     .setHostName(vmHostName)
                     .setNetworkDevice(tapPort.getName())
                     .build();
+
+        Subnet subnet = bridge.newDhcpSubnet()
+                              .havingSubnet("192.168.231.1", 24)
+                              .havingGateway("192.168.231.3")
+                              .build();
+
+        subnet.newHostMapping("192.168.231.10",
+                              vm.getNetworkMacAddress())
+              .build();
     }
 
     @AfterClass
@@ -125,29 +137,53 @@ public class BridgeDHCPTest {
 
     @Test
     public void testSampleTest() throws Exception {
-        Subnet subnet = bridge.newDhcpSubnet()
-                              .havingSubnet("192.168.231.1", 24)
-                              .havingGateway("192.168.231.3")
-                              .build();
-
-        subnet.newHostMapping("192.168.231.10",
-                              vm.getNetworkMacAddress())
-              .build();
-
         vm.startup();
 
-        sleepBecause("Give the machine a little bit of time to bootup", 10);
+        sleepBecause("Give the machine a little bit of time to bootup", 1);
 
         String output =
-                SshHelper.newRemoteCommand("hostname")
-                         .onHost("192.168.231.10")
-                         .withCredentials("ubuntu", "ubuntu")
-                         .run((int)TimeUnit.SECONDS.toMillis(120));
+            SshHelper.newRemoteCommand("hostname")
+                     .onHost("192.168.231.10")
+                     .withCredentials("ubuntu", "ubuntu")
+                     .run((int) TimeUnit.MINUTES.toMillis(2));
 
         assertThat("We should have been able to connect and run a remote " +
                        "command on the machine",
                    output.trim(), equalTo(vmHostName));
 
         vm.shutdown();
+        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
+                new Timed.Execution<Object>() {
+                    @Override
+                    protected void _runOnce() throws Exception {
+                        setCompleted(vm.isRunning());
+                    }
+                });
+    }
+
+    @Test
+    public void testMtu() throws Exception {
+        vm.startup();
+
+        sleepBecause("Give the machine a little bit of time to bootup", 1);
+
+        String output =
+            SshHelper.newRemoteCommand("ip link show eth0 | grep mtu")
+                     .onHost("192.168.231.10")
+                     .withCredentials("ubuntu", "ubuntu")
+                     .run((int) TimeUnit.SECONDS.toMillis(120));
+
+        assertThat("We should have been able to connect and run a command on " +
+                       "the remote machine",
+                   output.trim(), matchesRegex(".+mtu 1450.+"));
+
+        vm.shutdown();
+        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
+                new Timed.Execution<Object>() {
+                    @Override
+                    protected void _runOnce() throws Exception {
+                        setCompleted(vm.isRunning());
+                    }
+                });
     }
 }
