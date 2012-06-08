@@ -4,6 +4,7 @@
 
 package com.midokura.midolman;
 
+import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -252,7 +253,7 @@ public class DhcpHandler {
                 DHCPOption.Code.IP_LEASE_TIME.value(),
                 DHCPOption.Code.IP_LEASE_TIME.length(),
                 // This is in seconds.  One day is more than enough.
-                IPv4.toIPv4AddressBytes(86400));
+                IPv4.toIPv4AddressBytes((int) TimeUnit.DAYS.toSeconds(1)));
         options.add(opt);
         opt = new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value(),
                              DHCPOption.Code.INTERFACE_MTU.length(),
