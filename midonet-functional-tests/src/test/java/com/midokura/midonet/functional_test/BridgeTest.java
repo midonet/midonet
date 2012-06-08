@@ -9,7 +9,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertArrayEquals;
@@ -149,7 +148,6 @@ public class BridgeTest {
         stopMidolmanMgmt(mgmt);
     }
 
-    @Ignore // TODO: Fix this
     @Test
     public void testPingOverBridge() {
         byte[] pkt1to3 = helper1_3.makeIcmpEchoRequest(ip3);
