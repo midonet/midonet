@@ -36,8 +36,8 @@ import com.midokura.midolman.vrn.VRNController;
 
 public class DhcpHandler {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(DhcpHandler.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(DhcpHandler.class);
 
     private BridgeDhcpZkManager dhcpMgr;
     private VRNController controller;
@@ -88,18 +88,15 @@ public class DhcpHandler {
                 // Couldn't find a static DHCP host assignment for this mac.
                 return false;
             }
-        }
-        else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+        } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
             PortDirectory.MaterializedRouterPortConfig rtrPortConfig =
                     PortDirectory.MaterializedRouterPortConfig.class.cast(config);
             serverAddr = new IntIPv4(rtrPortConfig.portAddr);
             serverMac = rtrPortConfig.getHwAddr();
             routerAddr = serverAddr;
             yiaddr = new IntIPv4(rtrPortConfig.localNwAddr);
-            nwAddr = new IntIPv4(rtrPortConfig.nwAddr,
-                    rtrPortConfig.nwLength);
-        }
-        else {
+            nwAddr = new IntIPv4(rtrPortConfig.nwAddr, rtrPortConfig.nwLength);
+        } else {
             // Unsupported port type.
             return false;
         }
@@ -181,8 +178,7 @@ public class DhcpHandler {
             // selected."
             // TODO(pino): figure out why Linux doesn't send us the server id
             // and try re-enabling this code.
-            opt = reqOptions.get(DHCPOption.Code.SERVER_ID
-                    .value());
+            opt = reqOptions.get(DHCPOption.Code.SERVER_ID.value());
             if (null == opt) {
                 log.warn("handleDhcpRequest dropping dhcp REQUEST - no " +
                         "server id option found.");
@@ -253,8 +249,13 @@ public class DhcpHandler {
         opt = new DHCPOption(
                 DHCPOption.Code.IP_LEASE_TIME.value(),
                 DHCPOption.Code.IP_LEASE_TIME.length(),
-                // This is in seconds... is 1 day enough?
+                // This is in seconds.  One day is more than enough.
                 IPv4.toIPv4AddressBytes(86400));
+        options.add(opt);
+        int mtu = 1450;
+        opt = new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value(),
+                             DHCPOption.Code.INTERFACE_MTU.length(),
+                             new byte[] { (byte)(mtu/256), (byte)(mtu%256) });
         options.add(opt);
         if (routerAddr != null) {
             opt = new DHCPOption(

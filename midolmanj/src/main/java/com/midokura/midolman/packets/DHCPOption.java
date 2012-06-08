@@ -21,6 +21,7 @@ public class DHCPOption {
         DNS((byte) 6, (byte) 4, "DNS"),
         HOST_NAME((byte) 12, (byte) 1, "HOST NAME"),
         DOMAIN_NAME((byte) 15, (byte) 1, "DOMAIN NAME"),
+        INTERFACE_MTU((byte) 26, (byte) 2, "INTERFACE MTU"),
         BCAST_ADDR((byte) 28, (byte) 4, "BROADCAST ADDRESS"),
         NIS_DOMAIN((byte) 40, (byte) 1, "NIS DOMAIN"),
         NIS_SERVERS((byte) 41, (byte) 4, "NIS SERVERS"),
