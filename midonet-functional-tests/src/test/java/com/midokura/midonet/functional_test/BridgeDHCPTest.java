@@ -137,53 +137,57 @@ public class BridgeDHCPTest {
 
     @Test
     public void testSampleTest() throws Exception {
-        vm.startup();
+        try {
+            vm.startup();
 
-        sleepBecause("Give the machine a little bit of time to bootup", 1);
+            sleepBecause("Give the machine a little bit of time to bootup", 5);
 
-        String output =
-            SshHelper.newRemoteCommand("hostname")
-                     .onHost("192.168.231.10")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .run((int) TimeUnit.MINUTES.toMillis(2));
+            String output =
+                SshHelper.newRemoteCommand("hostname")
+                         .onHost("192.168.231.10")
+                         .withCredentials("ubuntu", "ubuntu")
+                         .run((int) TimeUnit.MINUTES.toMillis(2));
 
-        assertThat("We should have been able to connect and run a remote " +
-                       "command on the machine",
-                   output.trim(), equalTo(vmHostName));
-
-        vm.shutdown();
-        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
-                new Timed.Execution<Object>() {
-                    @Override
-                    protected void _runOnce() throws Exception {
-                        setCompleted(vm.isRunning());
-                    }
-                });
+            assertThat("We should have been able to connect and run a remote " +
+                           "command on the machine",
+                       output.trim(), equalTo(vmHostName));
+        } catch (Exception e) {
+            vm.shutdown();
+            waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
+                    new Timed.Execution<Object>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setCompleted(vm.isRunning());
+                        }
+                    });
+        }
     }
 
     @Test
     public void testMtu() throws Exception {
-        vm.startup();
+        try {
+            vm.startup();
 
-        sleepBecause("Give the machine a little bit of time to bootup", 1);
+            sleepBecause("Give the machine a little bit of time to bootup", 5);
 
-        String output =
-            SshHelper.newRemoteCommand("ip link show eth0 | grep mtu")
-                     .onHost("192.168.231.10")
-                     .withCredentials("ubuntu", "ubuntu")
-                     .run((int) TimeUnit.SECONDS.toMillis(120));
+            String output =
+                SshHelper.newRemoteCommand("ip link show eth0 | grep mtu")
+                         .onHost("192.168.231.10")
+                         .withCredentials("ubuntu", "ubuntu")
+                         .run((int) TimeUnit.SECONDS.toMillis(120));
 
-        assertThat("We should have been able to connect and run a command on " +
-                       "the remote machine",
-                   output.trim(), matchesRegex(".+mtu 1450.+"));
-
-        vm.shutdown();
-        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
-                new Timed.Execution<Object>() {
-                    @Override
-                    protected void _runOnce() throws Exception {
-                        setCompleted(vm.isRunning());
-                    }
-                });
+            assertThat("We should have been able to connect and run a command on " +
+                           "the remote machine",
+                       output.trim(), matchesRegex(".+mtu 1450.+"));
+        } catch (Exception e) {
+            vm.shutdown();
+            waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 150,
+                    new Timed.Execution<Object>() {
+                        @Override
+                        protected void _runOnce() throws Exception {
+                            setCompleted(vm.isRunning());
+                        }
+                    });
+        }
     }
 }
