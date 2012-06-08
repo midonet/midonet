@@ -412,6 +412,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 (List) queueStatsRequests, OFStatisticsType.QUEUE);
     }
 
+    @Override
     protected boolean handleMessage(OFMessage m) throws IOException {
         log.debug("handleMessage");
 

@@ -52,7 +52,7 @@ public abstract class ReplicatedSet<T> {
             for (String str : oldStrings) {
                 deletedItems.add(decode(str));
             }
-            if (addedStrings.size() > 0 || oldStrings.size() > 0) {
+            if (addedItems.size() > 0 || deletedItems.size() > 0) {
                 notifyWatchers(addedItems, deletedItems);
             }
         }
@@ -102,14 +102,20 @@ public abstract class ReplicatedSet<T> {
         try {
             dir.add(path, null, createMode);
         } catch (NodeExistsException e) {
-            // If the route already exists, we overwrite it to make sure it
-            // belongs to us. Otherwise it may disappear later.
-            if (createMode.equals(CreateMode.EPHEMERAL))
+            // If the route already exists and we need it to be ephemeral, we
+            // delete it and re-create it so that it belongs to this ZK client
+            // and will only be removed when this client's session expires.
+            if (createMode.equals(CreateMode.EPHEMERAL)) {
+                log.warn("Item {} already exists. Delete it and recreate it " +
+                        "as an Ephemeral node in order to own it.", item);
                 try {
-                    dir.update(path, null);
+                    // TODO(pino): can it be done in a multi to save a trip?
+                    dir.delete(path);
+                    dir.add(path, null, createMode);
                 } catch (InterruptedException e1) {
                     log.error("Interrupted", e1);
                 }
+            }
         } catch (InterruptedException e) {
             log.error("Interrupted should never happen.", e);
         }
