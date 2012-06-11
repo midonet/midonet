@@ -117,7 +117,7 @@ public class BridgeTestOneDatapath {
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
-        sleepBecause("we need the network to boot up", 5);
+        sleepBecause("we need the network to boot up", 10);
     }
 
     @After
