@@ -36,7 +36,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
+
 
 public class BridgeTestOneDatapath {
 
@@ -77,7 +77,8 @@ public class BridgeTestOneDatapath {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "BridgeTest-smoke_br");
+        midolman1 = MidolmanLauncher.start(Default,
+                                           "BridgeTestOneDatapath-smoke_br");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");

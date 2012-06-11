@@ -41,7 +41,8 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
 
 public class BridgeTestTwoDatapaths {
 
-    private final static Logger log = LoggerFactory.getLogger(BridgeTestTwoDatapaths.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(BridgeTestTwoDatapaths.class);
 
     Tenant tenant1;
     IntIPv4 ip1, ip2, ip3, ip4;
@@ -78,8 +79,10 @@ public class BridgeTestTwoDatapaths {
         ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "BridgeTest-smoke_br");
-        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgeTest-smoke_br2");
+        midolman1 = MidolmanLauncher.start(Default,
+                                           "BridgeTestTwoDatapaths-smoke_br1");
+        midolman2 = MidolmanLauncher.start(Without_Bgp,
+                                           "BridgeTestTwoDatapaths-smoke_br2");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
