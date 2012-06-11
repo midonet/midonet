@@ -38,19 +38,13 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
-public class BridgeTest {
+public class BridgeTestOneDatapath {
 
     private final static Logger log = LoggerFactory.getLogger(BridgeTest.class);
 
     Tenant tenant1;
-    IntIPv4 ip1;
-    IntIPv4 ip2;
-    IntIPv4 ip3;
-    IntIPv4 ip4;
-    MAC mac1;
-    MAC mac2;
-    MAC mac3;
-    MAC mac4;
+    IntIPv4 ip1, ip2, ip3;
+    MAC mac1, mac2, mac3;
     PacketHelper helper1_2;
     PacketHelper helper2_1;
     PacketHelper helper1_3;
@@ -59,17 +53,10 @@ public class BridgeTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     MidolmanLauncher midolman2;
-    BridgePort bPort1;
-    BridgePort bPort2;
-    BridgePort bPort3;
-    BridgePort bPort4;
+    BridgePort bPort1, bPort2, bPort3;
     Bridge bridge1;
-    TapWrapper tap1;
-    TapWrapper tap2;
-    TapWrapper tap3;
-    TapWrapper tap4;
+    TapWrapper tap1, tap2, tap3;
     OvsBridge ovsBridge1;
-    OvsBridge ovsBridge2;
     ServiceController svcController;
 
     static LockHelper.Lock lock;
@@ -91,27 +78,18 @@ public class BridgeTest {
                                                       "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "BridgeTest-smoke_br");
-        midolman2 = MidolmanLauncher.start(Without_Bgp, "BridgeTest-smoke_br2");
 
         if (ovsdb.hasBridge("smoke-br"))
             ovsdb.delBridge("smoke-br");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
         ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
 
         // Add a service controller to OVS bridge 1.
         ovsBridge1.addServiceController(6640);
         svcController = new ServiceController(6640);
-        waitForBridgeToConnect(svcController);
-
-        // Add a service controller to OVS bridge 2.
-        ovsBridge2.addServiceController(6641);
-        svcController = new ServiceController(6641);
         waitForBridgeToConnect(svcController);
 
         // XXX: Change these addresses to be in a testing range, not a private
@@ -132,13 +110,7 @@ public class BridgeTest {
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridge3");
-        ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
-
-        ip4 = IntIPv4.fromString("192.168.231.5");
-        mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
-        bPort4 = bridge1.addPort().build();
-        tap4 = new TapWrapper("tapBridge4");
-        ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
+        ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
 
         helper1_2 = new PacketHelper(mac1, ip1, mac2, ip2);
         helper2_1 = new PacketHelper(mac2, ip2, mac1, ip1);
@@ -155,63 +127,16 @@ public class BridgeTest {
         removeTapWrapper(tap3);
 
         removeBridge(ovsBridge1);
-        removeBridge(ovsBridge2);
 
         stopMidolman(midolman1);
-        stopMidolman(midolman2);
 
         removeTenant(tenant1);
         stopMidolmanMgmt(mgmt);
     }
 
+    //XXX: Get this working
     @Test
-    public void testPingOverTwoDatapaths() {
-        byte[] pkt1to3 = helper1_3.makeIcmpEchoRequest(ip3);
-        byte[] pkt3to1 = helper3_1.makeIcmpEchoRequest(ip1);
-
-        // First send pkt1to3 from tap1 so mac1 is learned.
-        assertPacketWasSentOnTap(tap1, pkt1to3);
-
-        // Since mac3 hasn't been learnt, the packet will be
-        // delivered to all the ports except the one that sent it.
-        assertArrayEquals(pkt1to3, tap3.recv());
-        assertArrayEquals(pkt1to3, tap2.recv());
-        assertNull("The packet should not be flooded to the inPort.",
-                tap1.recv());
-
-        // Now send pkt3to1 from tap3.
-        assertPacketWasSentOnTap(tap3, pkt3to1);
-        // Mac1 was learnt, so the message will be sent only to tap1.
-        assertArrayEquals(pkt3to1, tap1.recv());
-        assertNull(tap2.recv());
-        assertNull(tap3.recv());
-
-        // Now re-send pkt1to3 from tap1 - it should arrive only at tap3
-        // TODO(pino, jlm): re-enable this.
-        /*
-        assertPacketWasSentOnTap(tap1, pkt1to3);
-        assertArrayEquals(pkt1to3, tap3.recv());
-        assertNull(tap3.recv());
-        assertNull(tap1.recv());
-        */
-
-        // Simulate mac3 moving to tap2 by sending pkt3to1 from there.
-        assertPacketWasSentOnTap(tap2, pkt3to1);
-        assertArrayEquals("The packet should still arrive only at tap1.",
-                pkt3to1, tap1.recv());
-        assertNull(tap2.recv());
-        assertNull(tap3.recv());
-
-        // Now if we send pkt1to3 from tap1, it's forwarded only to tap2.
-        assertPacketWasSentOnTap(tap1, pkt1to3);
-        assertArrayEquals("The packet should arrive only at tap2.",
-                pkt1to3, tap2.recv());
-        assertNull(tap3.recv());
-        assertNull(tap1.recv());
-    }
-
-    @Test
-    public void testPingOverOneDatapath() {
+    public void testPing() {
         byte[] pkt1to2 = helper1_2.makeIcmpEchoRequest(ip2);
         byte[] pkt2to1 = helper2_1.makeIcmpEchoRequest(ip1);
 
@@ -220,7 +145,7 @@ public class BridgeTest {
 
         // Since mac2 hasn't been learnt, the packet will be
         // delivered to all the ports except the one that sent it.
-        assertArrayEquals(pkt1to2, tap4.recv());
+        assertArrayEquals(pkt1to2, tap3.recv());
         assertArrayEquals(pkt1to2, tap2.recv());
         assertNull("The packet should not be flooded to the inPort.",
                 tap1.recv());
@@ -230,15 +155,13 @@ public class BridgeTest {
         // Mac1 was learnt, so the message will be sent only to tap1.
         assertArrayEquals(pkt2to1, tap1.recv());
         assertNull(tap2.recv());
-        assertNull(tap4.recv());
+        assertNull(tap3.recv());
         // Now re-send pkt1to2 from tap1 - it should arrive only at tap2
-        // TODO(pino, jlm): re-enable this.
-        /*
-        assertPacketWasSentOnTap(tap1, pkt1to3);
-        assertArrayEquals(pkt1to3, tap3.recv());
+        assertPacketWasSentOnTap(tap1, pkt1to2);
+        assertArrayEquals(pkt1to2, tap2.recv());
         assertNull(tap3.recv());
         assertNull(tap1.recv());
-        */
+
         // TODO(pino, jlm): Simulate migration with a 4th tap.
         // Like the following from the two-datapaths test, but using one
         // datapath:
