@@ -250,7 +250,7 @@ public class BridgeResource {
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @RolesAllowed({ AuthRole.ADMIN })
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Bridge bridge, @Context SecurityContext context,
@@ -287,7 +287,7 @@ public class BridgeResource {
          * @return A list of Bridge objects.
          */
         @GET
-        @RolesAllowed({ AuthRole.ADMIN })
+        @PermitAll
         @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
         public List<Bridge> list(@Context SecurityContext context,
