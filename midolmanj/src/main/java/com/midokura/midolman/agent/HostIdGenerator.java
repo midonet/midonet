@@ -6,15 +6,19 @@
  */
 package com.midokura.midolman.agent;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.util.Properties;
-import java.util.UUID;
 
 /**
  * Custom exception PropertiesFileNotWritableException
@@ -45,6 +49,9 @@ class HostIdAlreadyInUseException extends Exception {
  * </ol>
  */
 public class HostIdGenerator {
+
+    private final static Logger log =
+        LoggerFactory.getLogger(HostIdGenerator.class);
     static private String uuidPropertyName = "host_uuid";
 
     /**
@@ -74,20 +81,22 @@ public class HostIdGenerator {
      */
     public static UUID getHostId(HostAgentConfiguration config,
                                  HostZkManager zkManager)
-            throws HostIdAlreadyInUseException, StateAccessException,
-                   PropertiesFileNotWritableException,
-                   InterruptedException {
+        throws HostIdAlreadyInUseException, StateAccessException,
+               PropertiesFileNotWritableException,
+               InterruptedException {
         UUID myUUID;
         myUUID = getIdFromConfigFile(config, zkManager);
 
         // if it's empty read it from local file
         if (myUUID == null) {
+            log.debug("No id from config");
             String localPropertiesFilePath = config.getPropertiesFilePath();
             myUUID = getIdFromPropertiesFile(localPropertiesFilePath,
                                              zkManager);
             // check if it's null, if so generate it
             if (myUUID == null) {
                 myUUID = generateUniqueId(zkManager);
+                log.debug("Generated id {}", myUUID);
                 // write it in the properties file
                 writeId(myUUID, localPropertiesFilePath);
                 zkManager.createHost(myUUID, null);
@@ -110,7 +119,7 @@ public class HostIdGenerator {
      */
     private static UUID getIdFromConfigFile(HostAgentConfiguration config,
                                             HostZkManager zkManager)
-            throws HostIdAlreadyInUseException, StateAccessException {
+        throws HostIdAlreadyInUseException, StateAccessException {
         UUID myUUID = null;
         String id = config.getId();
         if (!id.isEmpty()) {
@@ -120,7 +129,7 @@ public class HostIdGenerator {
             // alternatively.
             if (zkManager.isAlive(myUUID) == true) {
                 throw new HostIdAlreadyInUseException(
-                        "ID already in use: " + myUUID);
+                    "ID already in use: " + myUUID);
             }
         }
         return myUUID;
@@ -138,7 +147,7 @@ public class HostIdGenerator {
      */
     private static UUID getIdFromPropertiesFile(String localPropertiesFilePath,
                                                 HostZkManager zkManager)
-            throws HostIdAlreadyInUseException, StateAccessException {
+        throws HostIdAlreadyInUseException, StateAccessException {
         UUID myUUID = null;
         Properties properties = new Properties();
         try {
@@ -153,7 +162,7 @@ public class HostIdGenerator {
             // check if it's unique, if not throw an exception
             if (zkManager.isAlive(myUUID) == true) {
                 throw new HostIdAlreadyInUseException(
-                        "ID already in use: " + myUUID);
+                    "ID already in use: " + myUUID);
             }
         }
         return myUUID;
@@ -169,7 +178,7 @@ public class HostIdGenerator {
      * @throws InterruptedException If the thread gets interrupted by another thread
      */
     private static UUID generateUniqueId(HostZkManager zkManager)
-            throws StateAccessException, InterruptedException {
+        throws StateAccessException, InterruptedException {
         UUID id = UUID.randomUUID();
         while (zkManager.hostExists(id)) {
             id = UUID.randomUUID();
@@ -187,7 +196,7 @@ public class HostIdGenerator {
      *          If the properties file cannot be written
      */
     private static void writeId(UUID id, String localPropertiesFilePath)
-            throws PropertiesFileNotWritableException {
+        throws PropertiesFileNotWritableException {
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, id.toString());
         File f = new File(localPropertiesFilePath);
@@ -200,8 +209,8 @@ public class HostIdGenerator {
                              null);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
-                    "Properties file: " + System.getProperty(
-                            "user.dir") + "/" + localPropertiesFilePath);
+                "Properties file: " + System.getProperty(
+                    "user.dir") + "/" + localPropertiesFilePath);
         }
     }
 }

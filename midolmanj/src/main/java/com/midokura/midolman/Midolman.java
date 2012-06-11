@@ -104,6 +104,8 @@ public class Midolman implements SelectListener, Watcher {
                     zkConnection.close();
                 if (null != nodeAgent)
                     nodeAgent.stop();
+                if (null != monitoringAgent)
+                    monitoringAgent.stop();
                 log.warn("Exiting. BYE!");
             }
         });
@@ -169,6 +171,7 @@ public class Midolman implements SelectListener, Watcher {
         if (startNodeAgent) {
             nodeAgent = NodeAgent.bootstrapAgent(config, zkConnection, ovsdb);
             nodeAgent.start();
+            log.info("Starting node agent...");
         } else {
             log.info("Not starting node agent because it was not enabled in " +
                      "the configuration file.");
@@ -178,6 +181,7 @@ public class Midolman implements SelectListener, Watcher {
             .getBoolean("start_monitoring", true);
 
         if (startMonitoring) {
+            log.info("Starting monitoring...");
             NodeAgentHostIdProvider hostIdProvider =
                 new NodeAgentHostIdProvider(nodeAgent);
             monitoringAgent = MonitoringAgent.bootstrapMonitoring(config,

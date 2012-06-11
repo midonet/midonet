@@ -47,6 +47,8 @@ public class MonitoringAgent {
     @Inject
     ZookeeperMetricsCollection zookeeperMetrics;
 
+    MidoReporter reporter;
+
     public void startMonitoring() {
 
         vmMetrics.registerMetrics();
@@ -62,8 +64,7 @@ public class MonitoringAgent {
         }
 
         if (store != null) {
-            MidoReporter reporter = new MidoReporter(store,
-                                                     "MidonetMonitoring");
+            reporter = new MidoReporter(store, "MidonetMonitoring");
             reporter.start(
                 configuration.getMonitoringCassandraReporterPoolTime(),
                 TimeUnit.MILLISECONDS);
@@ -72,6 +73,12 @@ public class MonitoringAgent {
                          "because the store was not initialized. Most likely " +
                          "the connection to cassandra failed.");
         }
+    }
+
+    public void stop() {
+        log.info("Monitoring agent is shutting down");
+        if (reporter != null)
+            reporter.shutdown();
     }
 
     public static MonitoringAgent bootstrapMonitoring(

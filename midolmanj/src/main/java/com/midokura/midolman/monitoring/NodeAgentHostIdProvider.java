@@ -4,12 +4,21 @@
 
 package com.midokura.midolman.monitoring;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.agent.NodeAgent;
 
 /**
  * Date: 6/1/12
  */
 public class NodeAgentHostIdProvider implements HostIdProvider {
+
+    private final static Logger log =
+        LoggerFactory.getLogger(NodeAgentHostIdProvider.class);
 
     NodeAgent agent;
 
@@ -19,9 +28,16 @@ public class NodeAgentHostIdProvider implements HostIdProvider {
 
     @Override
     public String getHostId() {
-        if (agent != null) {
+        if (agent != null && agent.getHostId() != null) {
+            log.info("Returned Id {}", agent.getHostId());
             return agent.getHostId().toString();
         }
-        return "UNKNOWN";
+        String hostName = "UNKNOWN";
+        try {
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.error("Error when trying to get the host name", e);
+        }
+        return hostName;
     }
 }
