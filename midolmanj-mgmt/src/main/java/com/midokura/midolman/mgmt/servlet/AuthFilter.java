@@ -99,16 +99,6 @@ public final class AuthFilter implements Filter {
         log.debug("AuthFilter: entered doFilter.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
 
-        String method = req.getMethod();
-
-        // Don't check X-Auth-Token if the method is OPTIONS because
-        // preflight request is automatically done by the browser and there
-        // is no way that the client code can set the token for the request.
-        if (method.equals(HttpSupport.OPTIONS_METHOD)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         String token = req.getHeader(HttpSupport.TOKEN_HEADER);
         if (token == null) {
             // For legacy support
