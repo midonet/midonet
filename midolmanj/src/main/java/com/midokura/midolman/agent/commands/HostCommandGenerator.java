@@ -21,6 +21,7 @@ import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.address;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.iface;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.mac;
+import static com.midokura.midolman.agent.commands.executors.CommandProperty.mtu;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 import static com.midokura.midolman.agent.state.HostDirectory.Command.AtomicCommand.OperationType;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;
@@ -63,6 +64,13 @@ public class HostCommandGenerator {
             command.addAtomicCommand(
                 newCommand(mac, OperationType.SET,
                            new MAC(updated.getMac()).toString()));
+        }
+
+        if ((current == null && updated.getMtu() != 0) ||
+            (current != null &&
+                current.getMtu() != updated.getMtu())) {
+            command.addAtomicCommand(
+                newCommand(mtu, OperationType.SET, "" + updated.getMtu()));
         }
 
         // Look for addresses no longer used

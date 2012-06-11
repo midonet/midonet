@@ -19,6 +19,9 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 public class HostCommand extends UriResource {
     Integer id;
     UUID hostId;
+    String interfaceName;
+    Command[] commands;
+    LogEntry[] logEntries;
 
     public HostCommand() {
     }
@@ -48,4 +51,82 @@ public class HostCommand extends UriResource {
             return null;
         }
     }
+
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
+    }
+
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
+    public Command[] getCommands() {
+        return commands;
+    }
+
+    public void setCommands(Command[] commands) {
+        this.commands = commands;
+    }
+
+    public LogEntry[] getLogEntries() {
+        return logEntries;
+    }
+
+    public void setLogEntries(LogEntry[] logEntries) {
+        this.logEntries = logEntries;
+    }
+
+    public static class LogEntry {
+
+        long timestamp;
+        String message;
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
+
+    public static class Command {
+
+        String operation;
+        String property;
+        String value;
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String operation) {
+            this.operation = operation;
+        }
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
+
 }

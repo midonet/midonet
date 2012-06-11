@@ -25,6 +25,8 @@ import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
+import static com.midokura.midolman.agent.state.HostDirectory.Command;
+import static com.midokura.midolman.mgmt.data.dto.HostCommand.*;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
@@ -178,7 +180,7 @@ public class HostZkDao {
 
 		HostDirectory.Interface newHostInterface = toHostDirectoryInterface(newInterface);
 
-		HostDirectory.Command command = commandGenerator.createUpdateCommand(
+		Command command = commandGenerator.createUpdateCommand(
 				curHostInterface, newHostInterface);
 
 		Integer commandId = zkDao.createHostCommandId(hostId, command);
@@ -213,21 +215,61 @@ public class HostZkDao {
 		HostCommand command = null;
 
 		try {
-			zkDao.getCommandData(hostId, id);
+            ZkNodeEntry<Integer, Command> nodeEntry =
+                zkDao.getCommandData(hostId, id);
 
-			command = new HostCommand();
+            ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> errorLogItem =
+                zkDao.getErrorLogData(hostId, id);
+
+            Command hostCommand = nodeEntry.value;
+
+            command = new HostCommand();
 
 			command.setId(id);
 			command.setHostId(hostId);
+            command.setInterfaceName(hostCommand.getInterfaceName());
+            command.setCommands(translateCommands(hostCommand.getCommandList()));
+            if ( errorLogItem != null)
+                command.setLogEntries(translateErrorLog(errorLogItem.value));
 		} catch (StateAccessException e) {
 			log.warn("Could not read command with id {} from datastore "
 					+ "(for host: {})", new Object[] { id, hostId, e });
+            throw e;
 		}
 
 		return command;
 	}
 
-	public void deleteHostCommand(UUID hostId, Integer id)
+    private LogEntry[] translateErrorLog(HostDirectory.ErrorLogItem item) {
+
+        LogEntry logEntry = new LogEntry();
+
+        logEntry.setTimestamp(item.getTime().getTime());
+        logEntry.setMessage(item.getError());
+
+        return new LogEntry[] { logEntry };
+    }
+
+    private HostCommand.Command[] translateCommands(List<Command.AtomicCommand> list)
+    {
+        HostCommand.Command[] commands = new HostCommand.Command[list.size()];
+
+        int pos = 0;
+        for (Command.AtomicCommand atomicCommand : list) {
+            HostCommand.Command newCommand = new HostCommand.Command();
+
+            newCommand.setOperation(atomicCommand.getOpType().name());
+            newCommand.setProperty(atomicCommand.getProperty().getKey());
+            newCommand.setValue(atomicCommand.getValue());
+            commands[pos] = newCommand;
+
+            pos = pos + 1;
+        }
+
+        return commands;
+    }
+
+    public void deleteHostCommand(UUID hostId, Integer id)
 			throws StateAccessException {
 		zkDao.deleteHostCommand(hostId, id);
 	}

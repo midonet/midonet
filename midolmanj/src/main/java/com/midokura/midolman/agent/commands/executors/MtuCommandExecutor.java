@@ -4,10 +4,10 @@
 
 package com.midokura.midolman.agent.commands.executors;
 
-import com.midokura.midolman.util.Sudo;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.util.process.ProcessHelper;
 
 public class MtuCommandExecutor extends AbstractCommandExecutor<Integer> {
 
@@ -22,8 +22,11 @@ public class MtuCommandExecutor extends AbstractCommandExecutor<Integer> {
     public void execute() throws CommandExecutionFailedException {
         int returnValue;
         try {
-            returnValue = Sudo.sudoExec(
-                    "ifconfig " + targetName + " mtu " + param);
+            returnValue =
+                ProcessHelper
+                    .newProcess("ifconfig " + targetName + " mtu " + param)
+                    .withSudo()
+                    .runAndWait();
         } catch (Exception e) {
             throw new CommandExecutionFailedException("Cannot set MTU for " +
                                                    targetName + e.getMessage());

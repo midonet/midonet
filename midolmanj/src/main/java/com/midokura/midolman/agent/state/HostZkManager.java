@@ -360,12 +360,17 @@ public class HostZkManager extends ZkManager {
         UUID hostId,
         Integer logId) throws StateAccessException {
         try {
-            byte[] data = get(pathManager.getHostCommandErrorLogPath(hostId,
-                                                                     logId));
+            String errorItemPath =
+                pathManager.getHostCommandErrorLogPath(hostId, logId);
 
-            return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
-                logId, serializer.deserialize(data, HostDirectory.ErrorLogItem.class)
-            );
+            if ( exists(errorItemPath)) {
+                byte[] data = get(errorItemPath);
+                return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
+                    logId, serializer.deserialize(data, HostDirectory.ErrorLogItem.class)
+                );
+            }
+
+            return null;
         } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host error log data id: " +

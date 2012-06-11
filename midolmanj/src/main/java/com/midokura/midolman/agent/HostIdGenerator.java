@@ -199,18 +199,17 @@ public class HostIdGenerator {
         throws PropertiesFileNotWritableException {
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, id.toString());
-        File f = new File(localPropertiesFilePath);
+        File localPropertiesFile = new File(localPropertiesFilePath);
         try {
-            if (!f.exists())
-                f.createNewFile();
+            if (!localPropertiesFile.exists())
+                localPropertiesFile.createNewFile();
             // If the file exists we assume that no id has been written since
             // we checked before
             properties.store(new FileOutputStream(localPropertiesFilePath),
                              null);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
-                "Properties file: " + System.getProperty(
-                    "user.dir") + "/" + localPropertiesFilePath);
+                    "Properties file: " + localPropertiesFile.getAbsolutePath());
         }
     }
 }

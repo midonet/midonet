@@ -179,7 +179,8 @@ public final class NodeAgent {
         interfaceWatcher.stop();
 
         // wait for the thread to finish running
-        watcherThread.join();
+        if (watcherThread != null )
+            watcherThread.join();
     }
 
     private UUID identifyHost()
