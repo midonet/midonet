@@ -46,9 +46,13 @@ public class BridgeTest {
     IntIPv4 ip1;
     IntIPv4 ip2;
     IntIPv4 ip3;
+    IntIPv4 ip4;
     MAC mac1;
     MAC mac2;
     MAC mac3;
+    MAC mac4;
+    PacketHelper helper1_2;
+    PacketHelper helper2_1;
     PacketHelper helper1_3;
     PacketHelper helper3_1;
     OpenvSwitchDatabaseConnectionImpl ovsdb;
@@ -58,10 +62,12 @@ public class BridgeTest {
     BridgePort bPort1;
     BridgePort bPort2;
     BridgePort bPort3;
+    BridgePort bPort4;
     Bridge bridge1;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
+    TapWrapper tap4;
     OvsBridge ovsBridge1;
     OvsBridge ovsBridge2;
     ServiceController svcController;
@@ -108,6 +114,8 @@ public class BridgeTest {
         svcController = new ServiceController(6641);
         waitForBridgeToConnect(svcController);
 
+        // XXX: Change these addresses to be in a testing range, not a private
+        // use one.
         ip1 = IntIPv4.fromString("192.168.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         bPort1 = bridge1.addPort().build();
@@ -126,6 +134,14 @@ public class BridgeTest {
         tap3 = new TapWrapper("tapBridge3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
+        ip4 = IntIPv4.fromString("192.168.231.5");
+        mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
+        bPort4 = bridge1.addPort().build();
+        tap4 = new TapWrapper("tapBridge4");
+        ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
+
+        helper1_2 = new PacketHelper(mac1, ip1, mac2, ip2);
+        helper2_1 = new PacketHelper(mac2, ip2, mac1, ip1);
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
@@ -149,7 +165,7 @@ public class BridgeTest {
     }
 
     @Test
-    public void testPingOverBridge() {
+    public void testPingOverTwoDatapaths() {
         byte[] pkt1to3 = helper1_3.makeIcmpEchoRequest(ip3);
         byte[] pkt3to1 = helper3_1.makeIcmpEchoRequest(ip1);
 
@@ -192,6 +208,55 @@ public class BridgeTest {
                 pkt1to3, tap2.recv());
         assertNull(tap3.recv());
         assertNull(tap1.recv());
+    }
+
+    @Test
+    public void testPingOverOneDatapath() {
+        byte[] pkt1to2 = helper1_2.makeIcmpEchoRequest(ip2);
+        byte[] pkt2to1 = helper2_1.makeIcmpEchoRequest(ip1);
+
+        // First send pkt1to2 from tap1 so mac1 is learned.
+        assertPacketWasSentOnTap(tap1, pkt1to2);
+
+        // Since mac2 hasn't been learnt, the packet will be
+        // delivered to all the ports except the one that sent it.
+        assertArrayEquals(pkt1to2, tap4.recv());
+        assertArrayEquals(pkt1to2, tap2.recv());
+        assertNull("The packet should not be flooded to the inPort.",
+                tap1.recv());
+
+        // Now send pkt2to1 from tap2.
+        assertPacketWasSentOnTap(tap2, pkt2to1);
+        // Mac1 was learnt, so the message will be sent only to tap1.
+        assertArrayEquals(pkt2to1, tap1.recv());
+        assertNull(tap2.recv());
+        assertNull(tap4.recv());
+        // Now re-send pkt1to2 from tap1 - it should arrive only at tap2
+        // TODO(pino, jlm): re-enable this.
+        /*
+        assertPacketWasSentOnTap(tap1, pkt1to3);
+        assertArrayEquals(pkt1to3, tap3.recv());
+        assertNull(tap3.recv());
+        assertNull(tap1.recv());
+        */
+        // TODO(pino, jlm): Simulate migration with a 4th tap.
+        // Like the following from the two-datapaths test, but using one
+        // datapath:
+        /*
+        // Simulate mac3 moving to tap2 by sending pkt3to1 from there.
+        assertPacketWasSentOnTap(tap2, pkt3to1);
+        assertArrayEquals("The packet should still arrive only at tap1.",
+                pkt3to1, tap1.recv());
+        assertNull(tap2.recv());
+        assertNull(tap3.recv());
+
+        // Now if we send pkt1to3 from tap1, it's forwarded only to tap2.
+        assertPacketWasSentOnTap(tap1, pkt1to3);
+        assertArrayEquals("The packet should arrive only at tap2.",
+                pkt1to3, tap2.recv());
+        assertNull(tap3.recv());
+        assertNull(tap1.recv());
+        */
     }
 }
 

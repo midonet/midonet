@@ -21,6 +21,7 @@ import me.prettyprint.hector.api.beans.Rows;
 import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
+import me.prettyprint.hector.api.exceptions.HInvalidRequestException;
 import me.prettyprint.hector.api.exceptions.HectorException;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
@@ -33,9 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * Date: 4/26/12
- */
 public class CassandraClient {
 
     private static final Logger log =
@@ -75,7 +73,12 @@ public class CassandraClient {
                 ksDef = HFactory.createKeyspaceDefinition(
                         keyspaceName, SimpleStrategy.class.getName(),
                         replicationFactor, null);
-                cluster.addKeyspace(ksDef, true);
+                try {
+                    cluster.addKeyspace(ksDef, true);
+                } catch (HInvalidRequestException e) {
+                    log.info("Someone beat us to creating keyspace {}",
+                             keyspaceName);
+                }
                 ksDef = cluster.describeKeyspace(keyspaceName);
             }
 

@@ -21,8 +21,10 @@ public class CassandraCache implements Cache {
     public CassandraCache(String servers, String clusterName,
                           String keyspaceName, String columnFamily,
                           int replicationFactor, int expirationSecs)
-        throws HectorException {
-        client = new CassandraClient(servers, clusterName, keyspaceName, columnFamily, replicationFactor, expirationSecs);
+            throws HectorException {
+        client = new CassandraClient(servers, clusterName, keyspaceName,
+                                     columnFamily, replicationFactor,
+                                     expirationSecs);
     }
 
     @Override
