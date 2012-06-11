@@ -99,7 +99,12 @@ public class CassandraClient {
                             ComparatorType.BYTESTYPE);
             cfDef.setKeyValidationClass("BytesType");
             cfDef.setDefaultValidationClass("BytesType");
-            cluster.addColumnFamily(cfDef, true);
+            try {
+                cluster.addColumnFamily(cfDef, true);
+            } catch (HInvalidRequestException e) {
+                log.info("Someone beat us to creating column family {}",
+                         columnFamily);
+            }
 
             success = true;
         } finally {

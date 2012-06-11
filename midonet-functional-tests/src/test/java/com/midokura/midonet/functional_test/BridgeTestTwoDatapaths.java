@@ -40,7 +40,7 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
 
 public class BridgeTestTwoDatapaths {
 
-    private final static Logger log = LoggerFactory.getLogger(BridgeTest.class);
+    private final static Logger log = LoggerFactory.getLogger(BridgeTestTwoDatapaths.class);
 
     Tenant tenant1;
     IntIPv4 ip1, ip2, ip3, ip4;
