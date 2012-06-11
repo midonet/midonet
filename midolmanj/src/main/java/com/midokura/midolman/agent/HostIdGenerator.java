@@ -89,7 +89,7 @@ public class HostIdGenerator {
 
         // if it's empty read it from local file
         if (myUUID == null) {
-            log.debug("No id from config");
+            log.debug("No previous ID found in the local config");
             String localPropertiesFilePath = config.getPropertiesFilePath();
             myUUID = getIdFromPropertiesFile(localPropertiesFilePath,
                                              zkManager);
