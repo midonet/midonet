@@ -239,7 +239,6 @@ public abstract class Port extends UriResource {
      *            Port to check linkability with.
      * @return True if two ports can be linked.
      */
-    @XmlTransient
     public boolean isLinkable(Port port) {
 
         if (port == null) {

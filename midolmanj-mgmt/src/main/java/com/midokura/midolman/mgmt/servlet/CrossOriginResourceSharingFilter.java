@@ -119,6 +119,7 @@ public final class CrossOriginResourceSharingFilter implements Filter {
                     ACCESS_CONTROL_ALLOW_CREDENTIALS_VALUE);
             response.addHeader(ACCESS_CONTROL_ALLOW_HEADERS_KEY,
                     ACCESS_CONTROL_ALLOW_HEADERS_VALUE);
+            return;
         }
         filterChain.doFilter(request, response);
     }
