@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -225,7 +226,7 @@ public class TenantResource {
      * @return A Tenant object.
      */
     @GET
-    @RolesAllowed({ AuthRole.ADMIN })
+    @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
