@@ -278,9 +278,14 @@ public class VRNController extends AbstractController
 
         // The packet isn't from a tunnel port.
         UUID inPortId = portNumToUuid.get(inPort);
-        if (null == inPortId) {
-            log.warn("onPacketIn: received a packet from port {}. " +
-                    "The port is not a tunnel nor virtual.", inPort, match);
+        PortConfig portConfig = portCache.get(inPortId);
+        if (null == inPortId || null == portConfig) {
+            if (null == inPortId)
+                log.warn("Received a packet from port number {}. " +
+                        "The port is not a tunnel nor virtual.", inPort);
+            else
+                log.warn("Received a packet for port number {} and id {}. " +
+                        "Cannot find the PortConfig.", inPort, inPortId);
             // Drop all packets received on this port for a while.
             MidoMatch flowMatch = new MidoMatch();
             flowMatch.setInputPort(shortInPort);
@@ -319,7 +324,7 @@ public class VRNController extends AbstractController
         // Send the packet to the network simulation.
         fwdInfo = new OFPacketContext(
                     bufferId, data, inPort, totalLen, matchingTunnelId,
-                    connectionCache, portCache.get(inPortId).device_id);
+                    connectionCache, portConfig.device_id);
         fwdInfo.inPortId = inPortId;
         fwdInfo.flowMatch = match;
         fwdInfo.matchIn = match.clone();
@@ -413,12 +418,8 @@ public class VRNController extends AbstractController
     private void handleProcessResult(ForwardInfo fwdInfo) {
         // TODO: should we assert that fwdInfo.action != PAUSED?
 
-        OFPacketContext ofPktCtx = null;
-        GeneratedPacketContext genPktCtx = null;
-        if (fwdInfo.isGeneratedPacket())
-            genPktCtx = GeneratedPacketContext.class.cast(fwdInfo);
-        else
-            ofPktCtx = OFPacketContext.class.cast(fwdInfo);
+        OFPacketContext ofPktCtx = fwdInfo.isGeneratedPacket()
+                ? null : OFPacketContext.class.cast(fwdInfo);
 
         switch (fwdInfo.action) {
         case DROP:
@@ -1040,6 +1041,16 @@ public class VRNController extends AbstractController
     protected void addVirtualPort(final int portNum, final String name,
                                   final MAC hwAddr, final UUID portId) {
         log.info("addVirtualPort number {} bound to vport {}", portNum, portId);
+        // Verify that the port configuration exists.
+        PortConfig portConfig = portCache.get(portId);
+        if (null == portConfig) {
+            log.warn("Could not find the PortConfig for a newly added " +
+                    "virtual port: '{}' with number {}, and id {}",
+                    new Object[] { name, portNum, portId });
+            // TODO(pino): set the port down with ifconfig or 'ip link'?
+            // TODO: I'm not sure I like messing with the host interfaces.
+            return;
+        }
 
         try {
             vrn.addPort(portId);
@@ -1052,7 +1063,6 @@ public class VRNController extends AbstractController
             });
 
             // TODO(pino): check with Yoshi - services only apply to L3 ports.
-            PortConfig portConfig = portCache.get(portId);
             if (portConfig instanceof
                     PortDirectory.MaterializedRouterPortConfig) {
                 PortDirectory.MaterializedRouterPortConfig rtrPort =
@@ -1078,6 +1088,8 @@ public class VRNController extends AbstractController
                 portNum, portId);
         try {
             PortConfig portConfig = portCache.get(portId);
+            if (null == portConfig)
+                return;
 
             notifyObservers(new UnaryFunctor<VRNControllerObserver>() {
                 @Override

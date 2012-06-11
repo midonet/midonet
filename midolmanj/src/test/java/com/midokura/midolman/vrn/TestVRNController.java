@@ -406,7 +406,70 @@ public class TestVRNController {
     }
 
     @Test
+    public void testVirtualPortWithNullUUID() {
+        // Add a port with no UUID. Verify that packets arriving on the port
+        // result in a temporary drop rule.
+        OFPhysicalPort phyPort = new OFPhysicalPort();
+        short portNum = (short)34567;
+        phyPort.setPortNumber(portNum);
+        phyPort.setHardwareAddress(MAC.random().getAddress());
+            ovsdb.setPortExternalId(datapathId, portNum, "midonet", null);
+            phyPort.setName("port" + Integer.toString(portNum));
+        vrnCtrl.onPortStatus(phyPort,
+                OFPortStatus.OFPortReason.OFPPR_ADD);
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0a000005, 0x0a040005,
+                (short) 101, (short) 212, new byte[] {4, 5, 6, 7, 8});
+        byte[] data = eth.serialize();
+        // Send to a non-existent port.
+        vrnCtrl.onPacketIn(55, data.length, portNum, data);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        // Verify it's installed a drop rule.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(portNum);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, false,
+                new ArrayList<OFAction>());
+    }
+
+    @Test
+    public void testVirtualPortWithUuidNotInZK() {
+        // Add a port with a proper UUID, but one that does not correspond to
+        // any PortConfig in ZooKeeper. Verify that packets arriving on the port
+        // result in a temporary drop rule.
+        OFPhysicalPort phyPort = new OFPhysicalPort();
+        short portNum = (short)34543;
+        UUID portId = UUID.randomUUID();
+        phyPort.setPortNumber(portNum);
+        phyPort.setHardwareAddress(MAC.random().getAddress());
+        ovsdb.setPortExternalId(datapathId, portNum, "midonet",
+                portId.toString());
+        phyPort.setName("port" + Integer.toString(portNum));
+        vrnCtrl.onPortStatus(phyPort,
+                OFPortStatus.OFPortReason.OFPPR_ADD);
+        Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
+                MAC.fromString("02:00:11:22:00:01"), 0x0a000005, 0x0a040005,
+                (short) 101, (short) 212, new byte[] {4, 5, 6, 7, 8});
+        byte[] data = eth.serialize();
+        // Send to a non-existent port.
+        vrnCtrl.onPacketIn(55, data.length, portNum, data);
+        Assert.assertEquals(0, controllerStub.sentPackets.size());
+        // Verify it's installed a drop rule.
+        Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
+        Assert.assertEquals(1, controllerStub.addedFlows.size());
+        MidoMatch match = new MidoMatch();
+        match.setInputPort(portNum);
+        checkInstalledFlow(controllerStub.addedFlows.get(0), match,
+                (short)0, vrnCtrl.TEMPORARY_DROP_SECONDS, 55, false,
+                new ArrayList<OFAction>());
+    }
+
+    @Test
     public void testPacketToUnrecognizedPort() {
+        // This is similar to testVirtualPortWithNullUUID, but the the
+        // port is not added to the controller before calling onPacketIn.
         // Verify that if a packet arrives on a port that is neither a tunnel
         // nor a virtual port, the packet is dropped.
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
