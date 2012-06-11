@@ -102,27 +102,26 @@ public class BridgeTestTwoDatapaths {
         //svcController = new ServiceController(6641);
         //waitForBridgeToConnect(svcController);
 
-        // XXX: Change these addresses to be in a testing range, not a private
-        // use one.
-        ip1 = IntIPv4.fromString("192.168.231.2");
+        // Use IP addresses from the testing range 198.18.0.0/15.
+        ip1 = IntIPv4.fromString("198.18.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridge1");
         ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
-        ip2 = IntIPv4.fromString("192.168.231.3");
+        ip2 = IntIPv4.fromString("198.18.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         bPort2 = bridge1.addPort().build();
         tap2 = new TapWrapper("tapBridge2");
         ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
-        ip3 = IntIPv4.fromString("192.168.231.4");
+        ip3 = IntIPv4.fromString("198.18.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridge3");
         ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
-        ip4 = IntIPv4.fromString("192.168.231.5");
+        ip4 = IntIPv4.fromString("198.18.231.5");
         mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
         bPort4 = bridge1.addPort().build();
         tap4 = new TapWrapper("tapBridge4");
