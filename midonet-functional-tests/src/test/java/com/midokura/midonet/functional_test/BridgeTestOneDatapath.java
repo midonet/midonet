@@ -162,24 +162,19 @@ public class BridgeTestOneDatapath {
         assertNull(tap3.recv());
         assertNull(tap1.recv());
 
-        // TODO(pino, jlm): Simulate migration with a 4th tap.
-        // Like the following from the two-datapaths test, but using one
-        // datapath:
-        /*
-        // Simulate mac3 moving to tap2 by sending pkt3to1 from there.
-        assertPacketWasSentOnTap(tap2, pkt3to1);
+        // Simulate mac2 moving to tap3 by sending pkt2to1 from there.
+        assertPacketWasSentOnTap(tap3, pkt2to1);
         assertArrayEquals("The packet should still arrive only at tap1.",
-                pkt3to1, tap1.recv());
+                pkt2to1, tap1.recv());
         assertNull(tap2.recv());
         assertNull(tap3.recv());
 
-        // Now if we send pkt1to3 from tap1, it's forwarded only to tap2.
-        assertPacketWasSentOnTap(tap1, pkt1to3);
-        assertArrayEquals("The packet should arrive only at tap2.",
-                pkt1to3, tap2.recv());
-        assertNull(tap3.recv());
+        // Now if we send pkt1to2 from tap1, it's forwarded only to tap3.
+        assertPacketWasSentOnTap(tap1, pkt1to2);
+        assertArrayEquals("The packet should arrive only at tap3.",
+                pkt1to2, tap3.recv());
+        assertNull(tap2.recv());
         assertNull(tap1.recv());
-        */
     }
 }
 
