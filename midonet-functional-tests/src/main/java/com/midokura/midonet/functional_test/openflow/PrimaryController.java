@@ -275,7 +275,7 @@ public class PrimaryController implements Controller, SelectListener {
         String name = portDesc.getName();
         log.info("onPortStatus: num:{} name:{} reason:{}",
                 new Object[] { portNum & 0xffff, name, reason });
-        if (!reason.equals(OFPortStatus.OFPortReason.OFPPR_ADD))
+        if (reason.equals(OFPortStatus.OFPortReason.OFPPR_DELETE))
             return;
 
         lock.lock();

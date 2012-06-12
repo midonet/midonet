@@ -5,6 +5,8 @@
  */
 package com.midokura.midolman.openflow.nxm;
 
+import org.openflow.util.U16;
+
 public class OfEthTypeNxmEntry extends ShortNomaskNxmEntry {
 
     public OfEthTypeNxmEntry(short ethType) {
@@ -22,6 +24,6 @@ public class OfEthTypeNxmEntry extends ShortNomaskNxmEntry {
 
     @Override
     public String toString() {
-        return "OfEthTypeNxmEntry: type=0x" + Integer.toHexString(value & 0xffff);
+        return "OfEthTypeNxmEntry: type=0x" + Integer.toHexString(U16.f(value));
     }
 }

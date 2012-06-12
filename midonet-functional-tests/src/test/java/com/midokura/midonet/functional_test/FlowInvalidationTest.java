@@ -4,166 +4,30 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
-import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Rule;
 import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+
+
+import static com.midokura.midonet.functional_test.EndPoint.*;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
-public class FlowInvalidationTest {
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman1;
-    static OvsBridge ovsBridge1;
-    static Tenant tenant1;
-    static Router router1;
-    static MaterializedRouterPort routerUplink;
-    static EndPoint rtrUplinkEndpoint;
-    static LogicalRouterPort routerDownlink;
-    static Bridge bridge1;
-    static final int numBridgePorts = 5;
-    static LogicalBridgePort bridgeUplink;
-    static List<BridgePort> bports = new ArrayList<BridgePort>();
-    static List<EndPoint> vmEndpoints = new ArrayList<EndPoint>();
-    static IntIPv4 floatingIP0 = IntIPv4.fromString("112.0.0.10");
-    static IntIPv4 floatingIP1 = IntIPv4.fromString("112.0.0.20");
-
-    static LockHelper.Lock lock;
-
-    private static class EndPoint {
-        TapWrapper tap;
-        MAC mac;
-        MAC gwMac;
-        IntIPv4 gwIp;
-        IntIPv4 ip;
-        IntIPv4 floatingIp;
-
-        private EndPoint(IntIPv4 ip, MAC mac, IntIPv4 gwIp, MAC gwMac,
-                         TapWrapper tap) {
-            this.ip = ip;
-            this.mac = mac;
-            this.gwIp = gwIp;
-            this.gwMac = gwMac;
-            this.tap = tap;
-            this.floatingIp = null;
-        }
-    }
-
-    @BeforeClass
-    public static void setUp() throws IOException, InterruptedException {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-
-        OpenvSwitchDatabaseConnection ovsdb =
-                new OpenvSwitchDatabaseConnectionImpl(
-                        "Open_vSwitch", "127.0.0.1", 12344);
-        mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "FlowInvalidationTest");
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-
-        // Create a tenant with a single router and bridge.
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant-l2filtering").build();
-
-        // Create a router with an uplink.
-        router1 = tenant1.addRouter().setName("rtr1").build();
-        IntIPv4 gwIP = IntIPv4.fromString("172.16.0.2");
-        TapWrapper rtrUplinkTap = new TapWrapper("routerUplink");
-        routerUplink = router1.addGwPort()
-                .setLocalMac(rtrUplinkTap.getHwAddr())
-                .setLocalLink(IntIPv4.fromString("172.16.0.1"), gwIP)
-                .addRoute(IntIPv4.fromString("0.0.0.0", 0)).build();
-        rtrUplinkEndpoint = new EndPoint(gwIP, MAC.random(),
-                routerUplink.getIpAddr(), routerUplink.getMacAddr(),
-                rtrUplinkTap);
-        ovsBridge1.addSystemPort(
-                routerUplink.port.getId(),
-                rtrUplinkTap.getName());
-
-        // Create the bridge and link it to the router.
-        bridge1 = tenant1.addBridge().setName("br1").build();
-        routerDownlink = router1.addLinkPort()
-                .setNetworkAddress("10.0.0.0")
-                .setNetworkLength(24)
-                .setPortAddress("10.0.0.1").build();
-        bridgeUplink = bridge1.addLinkPort().build();
-        routerDownlink.link(bridgeUplink);
-
-        // Add ports to the bridge.
-        for (int i = 0; i < numBridgePorts; i++) {
-            bports.add(bridge1.addPort().build());
-            vmEndpoints.add(new EndPoint(
-                    IntIPv4.fromString("10.0.0.1" + i),
-                    MAC.fromString("02:aa:bb:cc:dd:d" + i),
-                    routerDownlink.getIpAddr(),
-                    routerDownlink.getMacAddr(),
-                    new TapWrapper("invalTap" + i)));
-            ovsBridge1.addSystemPort(
-                    bports.get(i).getId(),
-                    vmEndpoints.get(i).tap.getName());
-        }
-
-        sleepBecause("we need the network to boot up", 10);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        removeTapWrapper(rtrUplinkEndpoint.tap);
-        for (EndPoint ep : vmEndpoints)
-            removeTapWrapper(ep.tap);
-
-        removeBridge(ovsBridge1);
-        stopMidolman(midolman1);
-
-        if (null != routerDownlink)
-            routerDownlink.unlink();
-        removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
-        lock.release();
-    }
+public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
     @After
-    public void cleanVirtualDevices() throws InterruptedException {
+    public void tearDown() throws InterruptedException {
         router1.removeFilters();
         bridge1.removeFilters();
         for (BridgePort bport : bports)
@@ -171,116 +35,6 @@ public class FlowInvalidationTest {
         for (EndPoint ep : vmEndpoints)
             ep.floatingIp = null;
         sleepBecause("We need the all the chains/filters to be unloaded", 2);
-    }
-
-    private MAC exchangeArpWithGw(EndPoint ep)
-            throws MalformedPacketException {
-        assertThat("The ARP request was sent from the endpoint to the router.",
-                ep.tap.send(PacketHelper.makeArpRequest(
-                        ep.mac, ep.ip, ep.gwIp)));
-        MAC dlDst = PacketHelper.checkArpReply(
-                ep.tap.recv(), ep.gwIp, ep.mac, ep.ip);
-        assertThat("The router's MAC is what we expected.",
-                dlDst, equalTo(ep.gwMac));
-        // Send unsolicited ARP replies so the router populates its ARP cache.
-        assertThat("The unsolicited ARP reply was sent to the router.",
-                ep.tap.send(PacketHelper.makeArpReply(
-                        ep.mac, ep.ip, dlDst, ep.gwIp)));
-        return dlDst;
-    }
-
-    private void icmpDoesntArrive(EndPoint sender, EndPoint receiver,
-                                  PacketPair packets) {
-        assertThat("The packet was sent from the sender's tap.",
-                sender.tap.send(packets.sent));
-        assertThat("No packet arrives at the intended receiver.",
-                receiver.tap.recv(), nullValue());
-    }
-
-    private boolean sameSubnet(IntIPv4 ip1, IntIPv4 ip2) {
-        // Assume all subnet masks are 24bits.
-        int mask = 0xffffff00;
-        return (ip1.getAddress() & mask) == (ip2.getAddress() & mask);
-    }
-
-    private void retrySentPacket(EndPoint sender, EndPoint receiver,
-                                   PacketPair packets) {
-        assertThat("The packet was sent.",
-                sender.tap.send(packets.sent));
-        assertThat("The packet arrived.",
-                receiver.tap.recv(),
-                allOf(notNullValue(), equalTo(packets.received)));
-    }
-
-    private PacketPair icmpTestOverBridge(EndPoint sender, EndPoint receiver)
-            throws MalformedPacketException {
-        return icmpTest(sender, receiver.ip, receiver, false);
-    }
-
-    private PacketPair icmpTest(EndPoint sender, IntIPv4 dstIp, EndPoint receiver,
-                          boolean dstIpTranslated)
-            throws MalformedPacketException {
-        if (null == dstIp) {
-            dstIp = receiver.ip;
-            dstIpTranslated = false;
-        }
-
-        // Choose the dstMac based on whether dstIp is in the sender's subnet.
-        boolean sameSubnet = sameSubnet(sender.ip, dstIp);
-        byte[] sent = PacketHelper.makeIcmpEchoRequest(
-                sender.mac, sender.ip,
-                sameSubnet? receiver.mac : sender.gwMac, dstIp);
-        assertThat("The packet should have been sent from the source tap.",
-                sender.tap.send(sent));
-        byte[] received = receiver.tap.recv();
-        assertThat("The packet should have arrived at the destination tap.",
-                received, notNullValue());
-        Ethernet ethPkt = new Ethernet();
-        ethPkt.deserialize(ByteBuffer.wrap(received));
-        // The srcMac depends on whether dstIp is in the sender's subnet.
-        assertThat("The received pkt's src Mac",
-                ethPkt.getSourceMACAddress(),
-                equalTo(sameSubnet? sender.mac : receiver.gwMac));
-        assertThat("The received pkt's dst Mac should be the dst endpoint's",
-                ethPkt.getDestinationMACAddress(), equalTo(receiver.mac));
-        assertThat("It's an IP pkt.", ethPkt.getEtherType(),
-                equalTo(IPv4.ETHERTYPE));
-        IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
-        // The pkt's srcIp depends on whether the dstIp is in the sender's
-        // subnet and whether the sender has a floatingIP.
-        IntIPv4 srcIP = sameSubnet
-                ? sender.ip
-                : (sender.floatingIp != null)? sender.floatingIp : sender.ip;
-        assertThat("The src IP", ipPkt.getSourceAddress(),
-                equalTo(srcIP.getAddress()));
-        // The pkt's nwDst depends on whether the dstIp is translated.
-        assertThat("The dst IP is the dst endpoint's",
-                ipPkt.getDestinationAddress(),
-                equalTo(dstIpTranslated ?
-                        receiver.ip.getAddress() : dstIp.getAddress()));
-
-        // If we reset the fields that were translated, the packets should be
-        // identical.
-        ipPkt.setSourceAddress(sender.ip.getAddress());
-        ipPkt.setDestinationAddress(dstIp.getAddress());
-        // Reset the IPv4 pkt's checksum so that it's recomputed.
-        ipPkt.setChecksum((short)0);
-        ethPkt.setSourceMACAddress(sender.mac);
-        ethPkt.setDestinationMACAddress(
-                sameSubnet? receiver.mac : sender.gwMac);
-        assertThat("The sent and received packet should now be identical.",
-                ethPkt.serialize(), equalTo(sent));
-        return new PacketPair(sent, received);
-    }
-
-    private static class PacketPair {
-        byte[] sent;
-        byte[] received;
-
-        private PacketPair(byte[] sent, byte[] received) {
-            this.sent = sent;
-            this.received = received;
-        }
     }
 
     @Test

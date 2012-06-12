@@ -6,8 +6,13 @@ package com.midokura.midolman.packets;
 
 import java.nio.ByteBuffer;
 
+import org.openflow.util.U16;
+
 public class GRE extends BasePacket {
     public static final byte PROTOCOL_NUMBER = 47;
+
+    public static final short PTYPE_BRIDGING = 0x6558;
+    public static final short PTYPE_IP = IPv4.ETHERTYPE;
 
     static final int CKSUM_PRESENT = 0x80;
     static final int KEY_PRESENT = 0x20;
@@ -21,6 +26,14 @@ public class GRE extends BasePacket {
     int seqNum;
     int version;
     short protocol;
+
+    public short getProtocol() {
+        return protocol;
+    }
+
+    public int getKey() {
+        return key;
+    }
 
     @Override
     public byte[] serialize() {
@@ -80,7 +93,6 @@ public class GRE extends BasePacket {
             seqNum = bb.getInt();
 
         IPacket payload = new Ethernet();
-        payload.deserialize(bb);
         this.payload = payload.deserialize(bb.slice());
         this.payload.setParent(this);
         return this;
@@ -90,7 +102,7 @@ public class GRE extends BasePacket {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("GRE [version=").append(version & 0x7);
-        sb.append(", protocol=").append(Integer.toHexString(protocol));
+        sb.append(", protocol=0x").append(Integer.toHexString(U16.f(protocol)));
         sb.append(", hasCksum=").append(hasCksum);
         if (hasCksum)
             sb.append(", cksum=").append(cksum);
