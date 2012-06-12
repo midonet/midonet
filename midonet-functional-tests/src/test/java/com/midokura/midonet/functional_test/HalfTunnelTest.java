@@ -101,9 +101,8 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
 
     @After
     public void tearDown() throws InterruptedException {
-        if (controller != null &&
-                controller.getStub() != null)
-            controller.getStub().close();
+        if (controller != null)
+            controller.stop();
         removeBridge(greBridge);
 
         stopMidolman(midolman2);

@@ -74,12 +74,10 @@ public class NxmTest {
 
     @After
     public void tearDown() {
-        if (controller1 != null &&
-            controller1.getStub() != null)
-            controller1.getStub().close();
-        if (controller2 != null &&
-            controller2.getStub() != null)
-            controller2.getStub().close();
+        if (controller1 != null)
+            controller1.stop();
+        if (controller2 != null)
+            controller2.stop();
         if (ovsBridge1 != null)
             ovsBridge1.remove();
         if (ovsBridge2 != null)
@@ -149,11 +147,11 @@ public class NxmTest {
             ovsdb.delBridge("nxm-br2");
 
         // Create two Controllers.
-        controller1 = new PrimaryController(8889, proto);
-        controller2 = new PrimaryController(8890, proto);
+        controller1 = new PrimaryController(8888, proto);
+        controller2 = new PrimaryController(8889, proto);
         // Create two OVS bridges
-        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", "tcp:127.0.0.1:8889");
-        ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", "tcp:127.0.0.1:8890");
+        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", "tcp:127.0.0.1:8888");
+        ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", "tcp:127.0.0.1:8889");
 
         // Create one port on each bridge.
         tap1 = new TapWrapper("nxmtap1");

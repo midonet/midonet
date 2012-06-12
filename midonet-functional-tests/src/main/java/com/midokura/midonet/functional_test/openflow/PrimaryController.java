@@ -90,6 +90,19 @@ public class PrimaryController implements Controller, SelectListener {
         myThread.start();
     }
 
+    public void stop() {
+        lock.lock();
+        try {
+            loop.shutdown();
+            listenSock.close();
+            controllerStub.close();
+        } catch (IOException e) {
+            log.error("Error closing listening socket.", e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public class PacketIn {
         public byte[] packet;
         public int bufferId;
