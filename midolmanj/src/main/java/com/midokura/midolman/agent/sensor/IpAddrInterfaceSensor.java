@@ -4,8 +4,11 @@
 
 package com.midokura.midolman.agent.sensor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +19,23 @@ import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Endpoi
 import static com.midokura.midolman.agent.interfaces.InterfaceDescription.Type;
 
 public class IpAddrInterfaceSensor implements InterfaceSensor {
+
+    // 18839: invalTap0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 500
+    public static final Pattern START_INTERFACE =
+        Pattern.compile("^\\d+: ([^:]+): <([^>]+)>.*mtu (\\d+).*state ([A-Z]+).*$");
+
+    //     link/ether aa:4b:d7:1d:24:66 brd ff:ff:ff:ff:ff:ff
+    public static final Pattern LINK_ADDR_PATTERN =
+        Pattern.compile("^\\s*link/(loopback|ether) ([0-9a-f]{2}(?::[0-9a-f]{2}){5}) brd [0-9a-f]{2}(?::[0-9a-f]{2}){5}$");
+
+    //      inet6 fe80::b02a:88ff:feab:9b54/64 scope link
+    public static final Pattern INET6_ADDR_PATTERN =
+        Pattern.compile("^\\s*inet6 ([0-9a-f:]+)/(\\d+) .*$");
+
+    //      inet 172.16.16.16/16 brd 172.16.255.255 scope global eth0:1
+    public static final Pattern INET4_ADDR_PATTERN =
+        Pattern.compile("^\\s*inet ([0-9]+(?:\\.[0-9]+){3})/(\\d+) .*$");
+
 
     private final static Logger log =
         LoggerFactory.getLogger(IpAddrInterfaceSensor.class);
@@ -29,13 +49,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             return Collections.emptyList();
         }
 
-        // Remove old entries
-        interfaces.clear();
-
-        List<String> interfacesOutput = getInterfacesOutput();
-        parseInterfaces(interfacesOutput, interfaces);
-
-        return interfaces;
+        return parseInterfaces(getInterfacesOutput());
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -48,58 +62,46 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     ///////////////////////////////////////////////////////////////////////////
     // Private methods
     ///////////////////////////////////////////////////////////////////////////
-    private void parseInterfaces(List<String> interfacesOutput, List<InterfaceDescription> interfaces) {
+    private List<InterfaceDescription> parseInterfaces(List<String> interfacesOutput) {
+
+        List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
+
+        InterfaceDescription currentInterface = null;
         for (String line : interfacesOutput) {
-            parseInterfaceLine(line, interfaces);
+            InterfaceDescription newInterface;
+
+            newInterface = tryNewInterface(line);
+
+            if (newInterface != null) {
+                currentInterface = newInterface;
+                interfaces.add(currentInterface);
+            } else {
+                parseInterfaceLine(line, currentInterface);
+            }
         }
+
+        return interfaces;
     }
 
-    private void parseInterfaceLine(String line, List<InterfaceDescription> interfaces) {
-        String[] tokens = line.trim().split(" ");
+    private InterfaceDescription tryNewInterface(String line) {
 
-        // Sanity check
-        if (tokens.length < 2) {
-            return;
-        }
+        Matcher newInterfaceMatcher = START_INTERFACE.matcher(line);
+        if ( newInterfaceMatcher.matches() ) {
+            String name = newInterfaceMatcher.group(1);
+            String[] statusFlags = newInterfaceMatcher.group(2).split(",");
+            String mtu = newInterfaceMatcher.group(3);
+            String state = newInterfaceMatcher.group(4);
 
-        if (tokens[1].endsWith(":")) {
-            // This output line contains the interface name
-            // Create an interfaceDescription with that name
-            InterfaceDescription interfaceDescription = new InterfaceDescription(tokens[1].replaceAll(":$", ""));
-            parseInterfaceLine(line, interfaceDescription);
-            interfaces.add(interfaceDescription);
-        } else {
-            parseInterfaceLine(line, interfaces.get(interfaces.size()-1));
-        }
-    }
+            InterfaceDescription interfaceDescription = new InterfaceDescription(name);
 
-    private void parseInterfaceLine(String line, InterfaceDescription interfaceDescription) {
-        if (interfaceDescription == null) {
-            return;
-        }
+            interfaceDescription.setMtu(Integer.parseInt(mtu));
 
-        String[] tokens = line.trim().split(" ");
-        if (tokens.length <= 0) {
-            return;
-        }
-
-        if (tokens[0].endsWith(":")) {
-            // this is the first line of the interface output
-            // sample:
-            // 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
-
-            // sanity check
-            if (tokens.length < 9) {
-                return;
+            if (interfaceDescription.getName().equals("lo") ) {
+                interfaceDescription.setEndpoint(Endpoint.LOCALHOST);
+                interfaceDescription.setType(Type.PHYS);
             }
 
-            // Get MTU
-            int mtu = Integer.parseInt(tokens[4]);
-            interfaceDescription.setMtu(mtu);
-
-            // Get status
-            boolean isUp = hasUp(tokens[2]);
-            if (tokens[8].matches("UP") || isUp) {
+            if (state.equals("UP") || hasUp(statusFlags)) {
                 interfaceDescription.setUp(true);
                 interfaceDescription.setHasLink(true);
             } else {
@@ -107,63 +109,43 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
                 interfaceDescription.setHasLink(false);
             }
 
-            // Check if it's localhost interface
-            if (tokens[1].replaceAll(":", "").equals("lo")) {
+            return interfaceDescription;
+        }
+
+        return null;
+    }
+
+    private void parseInterfaceLine(String line, InterfaceDescription interfaceDescription) {
+        if (interfaceDescription == null) {
+            return;
+        }
+
+        Matcher matcher;
+
+        matcher = LINK_ADDR_PATTERN.matcher(line);
+        if ( matcher.matches() ) {
+            interfaceDescription.setMac(matcher.group(2));
+            if ( matcher.group(1).equals("loopback")) {
                 interfaceDescription.setEndpoint(Endpoint.LOCALHOST);
                 interfaceDescription.setType(Type.PHYS);
             }
-
-        } else if (tokens[0].startsWith("link")) {
-            // this line contains L2 address (MAC)
-            // sample:
-            // link/ether 08:00:27:c8:c1:f3 brd ff:ff:ff:ff:ff:ff
-
-
-            // sanity check
-            if (tokens.length < 4) {
-                return;
-            }
-
-            // Get MAC
-            interfaceDescription.setMac(tokens[1]);
-
-        } else if (tokens[0].equals("inet6")) {
-            // this line contains IPv6 info
-            // sample:
-            // inet6 fe80::a00:27ff:fec8:c1f3/64 scope link
-
-            // sanity check
-            if (tokens.length < 4) {
-                return;
-            }
-
-            // IPv6 address
-            String[] ipv6address = tokens[1].split("/");
-            interfaceDescription.setInetAddress(ipv6address[0]);
-
-        } else if (tokens[0].equals("inet")) {
-            // this line contains IPv4 info
-            // sample:
-            // inet 172.16.16.16/16 brd 172.16.255.255 scope global eth0:1
-
-            // sanity check
-            if (tokens.length < 2) {
-                return;
-            }
-
-            // IPv4 address
-            String[] ipv4address = tokens[1].split("/");
-            interfaceDescription.setInetAddress(ipv4address[0]);
-
-        } else {
-            // line not recognized, skipping
+            return;
         }
 
+        matcher = INET6_ADDR_PATTERN.matcher(line);
+        if ( matcher.matches() ) {
+            interfaceDescription.setInetAddress(matcher.group(1));
+            return;
+        }
+
+        matcher = INET4_ADDR_PATTERN.matcher(line);
+        if ( matcher.matches() ) {
+            interfaceDescription.setInetAddress(matcher.group(1));
+        }
     }
 
-    private boolean hasUp (String status) {
-        String[] tokens = status.trim().split("[,<>]");
-        for (String token : tokens) {
+    private boolean hasUp (String[] statusFlags) {
+        for (String token : statusFlags) {
              if (token.matches("UP")) {
                  return true;
              }

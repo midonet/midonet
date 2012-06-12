@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +105,10 @@ public class ProcessHelper {
                 try {
                     if (p != null) {
                         p.waitFor();
+
+                        IOUtils.closeQuietly(p.getInputStream());
+                        IOUtils.closeQuietly(p.getErrorStream());
+                        IOUtils.closeQuietly(p.getOutputStream());
 
                         log.debug("Process \"{}\" exited with code: {}",
                                   processName, p.exitValue());
@@ -234,6 +239,10 @@ public class ProcessHelper {
                 log.debug("Process exit status: {}", processExited);
             }
         }
+
+        IOUtils.closeQuietly(process.getInputStream());
+        IOUtils.closeQuietly(process.getErrorStream());
+        IOUtils.closeQuietly(process.getOutputStream());
     }
 
     private static boolean checkForProcessExit(final Process process) {
