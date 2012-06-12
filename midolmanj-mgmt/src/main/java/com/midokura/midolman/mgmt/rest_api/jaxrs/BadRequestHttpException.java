@@ -30,4 +30,17 @@ public class BadRequestHttpException extends WebApplicationException {
         super(ResponseUtils.buildErrorResponse(
                 Response.Status.BAD_REQUEST.getStatusCode(), message));
     }
+
+    /**
+     * Create a BadRequestHttpException object with a message.
+     *
+     * @param e
+     *            Throwable object
+     * @param message
+     *            Error message.
+     */
+    public BadRequestHttpException(Throwable e, String message) {
+        super(e, ResponseUtils.buildErrorResponse(
+                Response.Status.BAD_REQUEST.getStatusCode(), message));
+    }
 }

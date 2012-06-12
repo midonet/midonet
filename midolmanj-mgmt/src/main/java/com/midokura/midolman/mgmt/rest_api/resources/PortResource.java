@@ -90,8 +90,8 @@ public class PortResource {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
         } catch (PortInUseException e) {
-            log.error("Attempted to delete a port that is in use", e);
-            throw new BadRequestHttpException("Invalid rule position.");
+            throw new BadRequestHttpException(e,
+                    "Attempted to delete a port that is in use");
         }
     }
 
