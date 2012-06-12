@@ -1,175 +1,271 @@
 /*
- * @(#)TestBridge        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.net.URI;
-import java.util.UUID;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.Assert;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 
-public class TestBridge extends JerseyTest {
+@RunWith(Enclosed.class)
+public class TestBridge {
 
-    private final static Logger log = LoggerFactory.getLogger(TestBridge.class);
-    private final String testTenantName = "TEST-TENANT";
-    private final String testBridgeName = "TEST-BRIDGE";
+    public static class TestBridgeCrud extends JerseyTest {
 
-    private WebResource resource;
-    private ClientResponse response;
-    private URI testBridgeUri;
-    DtoBridge bridge = new DtoBridge();
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
-    public TestBridge() {
-        super(FuncTest.appDesc);
-    }
+        public TestBridgeCrud() {
+            super(FuncTest.appDesc);
+        }
 
-    @Before
-    public void before() {
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
+        @Before
+        public void setUp() {
 
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON)
-                .accept(APPLICATION_TENANT_JSON)
-                .post(ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString()
-                .endsWith("tenants/" + testTenantName));
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
 
-        bridge.setName(testBridgeName);
-        resource = resource().path("tenants/" + testTenantName + "/bridges");
-        response = resource.type(APPLICATION_BRIDGE_JSON).post(
-                ClientResponse.class, bridge);
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
 
-        log.debug("bridge location: {}", response.getLocation());
-        testBridgeUri = response.getLocation();
-    }
+            // Prepare chains that can be used to set to port
+            DtoRuleChain chain1 = new DtoRuleChain();
+            chain1.setName("chain1");
 
-    @Test
-    public void testCreateWithEmptyBody() {
-        resource = resource().path("tenants/" + testTenantName + "/bridges");
-        response = resource.type(APPLICATION_BRIDGE_JSON).post(
-                ClientResponse.class, "{}");
-        String body = response.getEntity(String.class);
+            // Prepare another chain
+            DtoRuleChain chain2 = new DtoRuleChain();
+            chain2.setName("chain2");
 
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        log.debug("body: {}", body);
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .create("tenant1", "chain1", chain1)
+                    .create("tenant1", "chain2", chain2).build();
+        }
 
-        String idString = response.getLocation().toString();
-        idString = idString.substring(idString.lastIndexOf("/") + 1,
-                idString.length());
-        log.debug("idString: {}", idString);
-        try {
-            UUID.fromString(idString);
-        } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}"
-                    + e);
+        @Test
+        public void testCrud() throws Exception {
+
+            DtoTenant tenant1 = topology.getTenant("tenant1");
+            DtoRuleChain chain1 = topology.getChain("chain1");
+            DtoRuleChain chain2 = topology.getChain("chain2");
+
+            // Verify that there is nothing
+            assertNotNull(tenant1);
+            URI bridgesUri = tenant1.getBridges();
+            assertNotNull(bridgesUri);
+            DtoBridge[] bridges = dtoResource.getAndVerifyOk(bridgesUri,
+                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+            assertEquals(0, bridges.length);
+
+            // Add a bridge
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("bridge1");
+            bridge.setTenantId(tenant1.getId());
+            bridge.setInboundFilterId(chain1.getId());
+            bridge.setOutboundFilterId(chain2.getId());
+
+            DtoBridge resBridge = dtoResource.postAndVerifyCreated(bridgesUri,
+                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+            assertNotNull(resBridge.getId());
+            assertNotNull(resBridge.getUri());
+            // TODO: Implement 'equals' for DtoBridge
+            assertEquals(bridge.getTenantId(), resBridge.getTenantId());
+            assertEquals(bridge.getInboundFilterId(),
+                    resBridge.getInboundFilterId());
+            assertEquals(bridge.getOutboundFilterId(),
+                    resBridge.getOutboundFilterId());
+            URI bridgeUri = resBridge.getUri();
+
+            // List the bridge
+            bridges = dtoResource.getAndVerifyOk(bridgesUri,
+                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+            assertEquals(1, bridges.length);
+            assertEquals(resBridge.getId(), bridges[0].getId());
+
+            // Update the bridge
+            resBridge.setName("bridge1-modified");
+            resBridge.setInboundFilterId(chain2.getId());
+            resBridge.setOutboundFilterId(chain1.getId());
+            DtoBridge updatedBridge = dtoResource.putAndVerifyNoContent(
+                    bridgeUri, APPLICATION_BRIDGE_JSON, resBridge,
+                    DtoBridge.class);
+            assertNotNull(updatedBridge.getId());
+            assertEquals(resBridge.getTenantId(), updatedBridge.getTenantId());
+            assertEquals(resBridge.getInboundFilterId(),
+                    updatedBridge.getInboundFilterId());
+            assertEquals(resBridge.getOutboundFilterId(),
+                    updatedBridge.getOutboundFilterId());
+
+            // Delete the bridge
+            dtoResource.deleteAndVerifyNoContent(bridgeUri,
+                    APPLICATION_BRIDGE_JSON);
+
+            // Verify that it's gone
+            dtoResource
+                    .getAndVerifyNotFound(bridgeUri, APPLICATION_BRIDGE_JSON);
+
+            // List should return an empty array
+            bridges = dtoResource.getAndVerifyOk(bridgesUri,
+                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+            assertEquals(0, bridges.length);
         }
     }
 
-    @Test
-    public void testCreateWithGivenIdAndNameAndGet() {
-        UUID id = UUID.randomUUID();
-        bridge.setName("TEST-CREATE-BRIDGE");
-        bridge.setId(id);
+    @RunWith(Parameterized.class)
+    public static class TestCreateBridgeBadRequest extends JerseyTest {
 
-        resource = resource().path("tenants/" + testTenantName + "/bridges");
-        response = resource.type(APPLICATION_BRIDGE_JSON).post(
-                ClientResponse.class, bridge);
-        String body = response.getEntity(String.class);
-        URI bridgeUri = response.getLocation();
+        private Topology topology;
+        private DtoWebResource dtoResource;
+        private final DtoBridge bridge;
+        private final String property;
 
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", bridgeUri);
-        log.debug("body: {}", body);
-
-        String idString = response.getLocation().toString();
-        idString = idString.substring(idString.lastIndexOf("/") + 1,
-                idString.length());
-        log.debug("idString: {}", idString);
-        try {
-            UUID.fromString(idString);
-        } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form. {}"
-                    + e);
+        public TestCreateBridgeBadRequest(DtoBridge bridge, String property) {
+            super(FuncTest.appDesc);
+            this.bridge = bridge;
+            this.property = property;
         }
 
-        bridge = resource().uri(bridgeUri).type(APPLICATION_BRIDGE_JSON)
-                .get(DtoBridge.class);
-        assertEquals("TEST-CREATE-BRIDGE", bridge.getName());
-        assertEquals(id, bridge.getId());
-        log.debug("bridge port: {}", bridge.getPorts());
-        log.debug("bridge uri: {}", bridge.getUri());
+        @Before
+        public void setUp() {
+
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .build();
+        }
+
+        @Parameters
+        public static Collection<Object[]> data() {
+
+            List<Object[]> params = new ArrayList<Object[]>();
+
+            // Null name
+            DtoBridge nullNameBridge = new DtoBridge();
+            params.add(new Object[] { nullNameBridge, "name" });
+
+            // Blank name
+            DtoBridge blankNameBridge = new DtoBridge();
+            blankNameBridge.setName("");
+            params.add(new Object[] { blankNameBridge, "name" });
+
+            // Long name
+            StringBuilder longName = new StringBuilder(256);
+            for (int i = 0; i < 256; i++) {
+                longName.append("a");
+            }
+            DtoBridge longNameBridge = new DtoBridge();
+            blankNameBridge.setName(longName.toString());
+            params.add(new Object[] { longNameBridge, "name" });
+
+            return params;
+        }
+
+        @Test
+        public void testBadInputCreate() {
+            DtoTenant t = topology.getTenant("tenant1");
+
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    t.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
+            List<Map<String, String>> violations = error.getViolations();
+            assertEquals(1, violations.size());
+            assertEquals(property, violations.get(0).get("property"));
+        }
     }
 
-    @Test
-    public void testGet() {
-        bridge = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
-                .get(DtoBridge.class);
-        log.debug("testGet {}", bridge.getName());
-        log.debug("testGet {}", bridge.getId());
-        log.debug("testGet {}", bridge.getTenantId());
-        log.debug("testGet {}", bridge.getPorts());
-        log.debug("testGet {}", bridge.getUri());
+    @RunWith(Parameterized.class)
+    public static class TestUpdateBridgeBadRequest extends JerseyTest {
 
-        assertEquals(testBridgeName, bridge.getName());
-        assertEquals(testBridgeUri, bridge.getUri());
-        assertEquals(testTenantName, bridge.getTenantId());
-    }
+        private final DtoBridge testBridge;
+        private final String property;
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
-    @Test
-    public void testUpdate() {
-        final String newName = "NEW-BRIDGE-NAME";
+        public TestUpdateBridgeBadRequest(DtoBridge testBridge, String property) {
+            super(FuncTest.appDesc);
+            this.testBridge = testBridge;
+            this.property = property;
+        }
 
-        bridge = new DtoBridge();
-        bridge.setName(newName);
+        @Before
+        public void setUp() {
 
-        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
-                .put(ClientResponse.class, bridge);
-        log.debug("status: {}", response.getStatus());
-        assertEquals(204, response.getStatus());
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
 
-        response = resource().uri(testBridgeUri).type(APPLICATION_BRIDGE_JSON)
-                .get(ClientResponse.class);
-        bridge = response.getEntity(DtoBridge.class);
-        log.debug("name: {}", bridge.getName());
-        assertEquals(200, response.getStatus());
-        assertEquals(newName, bridge.getName());
-    }
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
 
-    @Test
-    public void testDelete() {
-        response = resource().uri(testBridgeUri).delete(ClientResponse.class);
-        log.debug("status: {}", response.getStatus());
-        assertEquals(204, response.getStatus());
-    }
+            // Create a bridge
+            DtoBridge b = new DtoBridge();
+            b.setName("bridge1-name");
 
-    @Test
-    public void testList() {
-        response = resource().uri(testBridgeUri).get(ClientResponse.class);
-        String body = response.getEntity(String.class);
-        log.debug("status: {}", response.getStatus());
-        log.debug("body: {}", body);
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .create("tenant1", "bridge1", b).build();
+        }
 
-        assertEquals(200, response.getStatus());
+        @Parameters
+        public static Collection<Object[]> data() {
+
+            List<Object[]> params = new ArrayList<Object[]>();
+
+            // Null name
+            DtoBridge nullNameBridge = new DtoBridge();
+            params.add(new Object[] { nullNameBridge, "name" });
+
+            // Blank name
+            DtoBridge blankNameBridge = new DtoBridge();
+            blankNameBridge.setName("");
+            params.add(new Object[] { blankNameBridge, "name" });
+
+            // Long name
+            StringBuilder longName = new StringBuilder(256);
+            for (int i = 0; i < 256; i++) {
+                longName.append("a");
+            }
+            DtoBridge longNameBridge = new DtoBridge();
+            blankNameBridge.setName(longName.toString());
+            params.add(new Object[] { longNameBridge, "name" });
+
+            return params;
+        }
+
+        @Test
+        public void testBadInput() {
+            // Get the bridge
+            DtoBridge bridge = topology.getBridge("bridge1");
+
+            DtoError error = dtoResource.putAndVerifyBadRequest(
+                    bridge.getUri(), APPLICATION_BRIDGE_JSON, testBridge);
+            List<Map<String, String>> violations = error.getViolations();
+            assertEquals(1, violations.size());
+            assertEquals(property, violations.get(0).get("property"));
+        }
     }
 }

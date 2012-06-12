@@ -7,11 +7,17 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.validation.AllowedValue;
 import com.midokura.midolman.util.Net;
+import com.midokura.util.StringUtil;
 
 /**
  * Class representing route.
@@ -23,17 +29,34 @@ public class Route extends UriResource {
     public static final String BlackHole = "BlackHole";
     public static final String Reject = "Reject";
 
-    private UUID id = null;
-    private UUID routerId = null;
-    private String srcNetworkAddr = null;
-    private int srcNetworkLength;
-    private String dstNetworkAddr = null;
-    private int dstNetworkLength;
-    private UUID nextHopPort = null;
-    private String nextHopGateway = null;
-    private int weight;
+    private UUID id;
+    private UUID routerId;
+    private UUID nextHopPort;
     private String attributes;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    private String dstNetworkAddr;
+
+    @Min(0)
+    @Max(32)
+    private int dstNetworkLength;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    private String nextHopGateway;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    private String srcNetworkAddr;
+
+    @Min(0)
+    @Max(32)
+    private int srcNetworkLength;
+
+    @NotNull
+    @AllowedValue(values = { Normal, BlackHole, Reject })
     private String type;
+
+    @Min(0)
+    private int weight;
 
     /**
      * Constructor

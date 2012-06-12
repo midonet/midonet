@@ -5,10 +5,13 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -35,6 +38,7 @@ import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPeerPortResource;
@@ -192,7 +196,14 @@ public class RouterResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer, @Context Validator validator)
+            throws StateAccessException {
+
+        Set<ConstraintViolation<Router>> violations = validator
+                .validate(router);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
 
         if (!authorizer.routerAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -243,8 +254,14 @@ public class RouterResource {
                 MediaType.APPLICATION_JSON })
         public Response create(Router router, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-                throws StateAccessException {
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
+                @Context Validator validator) throws StateAccessException {
+
+            Set<ConstraintViolation<Router>> violations = validator
+                    .validate(router);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
 
             if (!authorizer
                     .tenantAuthorized(context, AuthAction.READ, tenantId)) {

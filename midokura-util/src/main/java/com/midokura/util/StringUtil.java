@@ -1,7 +1,6 @@
 /*
- * @(#)StringUtil        1.6 11/12/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.util;
 
@@ -9,13 +8,13 @@ import java.util.Iterator;
 
 /**
  * Helper class for String operations. Only static methods should exist.
- *
- * @version 1.6 15 Dec 2011
- * @author Ryu Ishimoto
  */
 public class StringUtil {
 
     public final static String EMPTY_STRING = "";
+    public final static String IP_ADDRESS_REGEX_PATTERN =
+            "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
+                    + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 
     /**
      * Joins the elements of the provided array into a single String containing
@@ -59,10 +58,10 @@ public class StringUtil {
         }
 
         StringBuilder builder = new StringBuilder();
-        for (Iterator<T> iterator = items.iterator(); iterator.hasNext(); ) {
+        for (Iterator<T> iterator = items.iterator(); iterator.hasNext();) {
             T item = iterator.next();
             builder.append(item);
-            if (iterator.hasNext() ){
+            if (iterator.hasNext()) {
                 builder.append(separator);
             }
         }

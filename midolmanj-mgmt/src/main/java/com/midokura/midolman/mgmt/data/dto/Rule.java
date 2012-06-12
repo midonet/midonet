@@ -13,9 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.validation.AllowedValue;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -24,12 +30,14 @@ import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.util.Net;
+import com.midokura.util.StringUtil;
 
 /**
  * Class representing rule.
  */
 @XmlRootElement
 public class Rule extends UriResource {
+
     public static final String Accept = "accept";
     public static final String Continue = "continue";
     public static final String Drop = "drop";
@@ -70,11 +78,7 @@ public class Rule extends UriResource {
     private boolean invNwTos = false;
     private int nwProto;
     private boolean invNwProto = false;
-    private String nwSrcAddress = null;
-    private int nwSrcLength;
     private boolean invNwSrc = false;
-    private String nwDstAddress = null;
-    private int nwDstLength;
     private boolean invNwDst = false;
     private short tpSrcStart;
     private short tpSrcEnd;
@@ -82,12 +86,30 @@ public class Rule extends UriResource {
     private short tpDstStart;
     private short tpDstEnd;
     private boolean invTpDst = false;
-    private String type = null;
     private String jumpChainName = null;
     private String flowAction = null;
     private NatTarget[] natTargets = {};
     private int position = 1;
     Map<String, String> properties = new HashMap<String, String>();
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message = "is an invalid IP format")
+    private String nwDstAddress = null;
+
+    @Min(0)
+    @Max(32)
+    private int nwDstLength;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message = "is an invalid IP format")
+    private String nwSrcAddress = null;
+
+    @Min(0)
+    @Max(32)
+    private int nwSrcLength;
+
+    @NotNull
+    @AllowedValue(values = { Accept, DNAT, Drop, Jump, Reject, Return, RevDNAT,
+            RevSNAT, SNAT })
+    private String type = null;
 
     /**
      * Default constructor
@@ -747,7 +769,7 @@ public class Rule extends UriResource {
         }
     }
 
-    private static Action getAction(String type) {
+    public static Action getAction(String type) {
         // ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN
         if (type.equals(Rule.Accept)) {
             return Action.ACCEPT;

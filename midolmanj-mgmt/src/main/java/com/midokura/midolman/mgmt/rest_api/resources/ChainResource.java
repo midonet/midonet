@@ -5,10 +5,13 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,6 +37,7 @@ import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource.ChainRuleResource;
@@ -63,7 +67,7 @@ public class ChainResource {
      *             Data access error.
      */
     @DELETE
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -173,14 +177,22 @@ public class ChainResource {
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_CHAIN_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Chain chain, @Context UriInfo uriInfo,
-                @Context SecurityContext context, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+                @Context SecurityContext context,
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
+                @Context Validator validator) throws StateAccessException {
 
-            if (!authorizer.tenantAuthorized(context, AuthAction.WRITE, tenantId)) {
+            Set<ConstraintViolation<Chain>> violations = validator
+                    .validate(chain);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
+
+            if (!authorizer.tenantAuthorized(context, AuthAction.WRITE,
+                    tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add chain to this tenant.");
             }
@@ -189,7 +201,8 @@ public class ChainResource {
             chain.setTenantId(tenantId);
             UUID id = dao.create(chain);
             return Response.created(
-                    ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id)).build();
+                    ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id))
+                    .build();
         }
 
         /**
@@ -215,7 +228,8 @@ public class ChainResource {
                 @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                 @Context Authorizer authorizer) throws StateAccessException {
 
-            if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
+            if (!authorizer
+                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these chains.");
             }
@@ -253,11 +267,12 @@ public class ChainResource {
         @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
                 MediaType.APPLICATION_JSON })
         public Chain get(@PathParam("name") String name,
-                         @Context SecurityContext context, @Context UriInfo uriInfo,
-                         @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+                @Context SecurityContext context, @Context UriInfo uriInfo,
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
                 throws StateAccessException {
 
-            if (!authorizer.tenantAuthorized(context, AuthAction.READ, tenantId)) {
+            if (!authorizer
+                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view chain of this tenant.");
             }

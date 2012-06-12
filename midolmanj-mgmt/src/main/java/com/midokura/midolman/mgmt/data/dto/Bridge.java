@@ -7,6 +7,8 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
@@ -20,11 +22,17 @@ import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 @XmlRootElement
 public class Bridge extends UriResource {
 
+    public static final int MIN_BRIDGE_NAME_LEN = 1;
+    public static final int MAX_BRIDGE_NAME_LEN = 255;
+
     private UUID id;
-    private String name;
-    private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+    private String tenantId;
+
+    @NotNull
+    @Size(min = MIN_BRIDGE_NAME_LEN, max = MAX_BRIDGE_NAME_LEN)
+    private String name;
 
     /**
      * Constructor.

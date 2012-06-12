@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
@@ -19,6 +20,7 @@ import com.midokura.midolman.mgmt.rest_api.jaxrs.AuthInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ConfigInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.DataStoreInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.ThrowableMapper;
+import com.midokura.midolman.mgmt.rest_api.jaxrs.ValidatorInjectableProvider;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WebApplicationExceptionMapper;
 import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
@@ -110,6 +112,7 @@ public class RestApplication extends Application {
         singletons.add(configProvider);
         singletons.add(dataStoreProvider);
         singletons.add(authProvider);
+        singletons.add(new ValidatorInjectableProvider());
         singletons.add(new WildCardJacksonJaxbJsonProvider());
 
         return singletons;

@@ -5,10 +5,13 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -160,7 +163,13 @@ public class PortResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Port port,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer, @Context Validator validator)
+            throws StateAccessException {
+
+        Set<ConstraintViolation<Port>> violations = validator.validate(port);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
 
         if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -197,7 +206,6 @@ public class PortResource {
             @Context Authorizer authorizer) throws StateAccessException {
 
         // Make sure that peerPortId was explicitly specified.
-        // TODO: Look into Bean validation framework.
         if (!input.containsKey("peerId")) {
             throw new BadRequestHttpException("PeerId is required.");
         }
@@ -296,8 +304,14 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public Response create(BridgePort port, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-                throws StateAccessException {
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
+                @Context Validator validator) throws StateAccessException {
+
+            Set<ConstraintViolation<BridgePort>> violations = validator
+                    .validate(port);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
 
             if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,
                     bridgeId)) {
@@ -448,8 +462,14 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public Response create(RouterPort port, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-                throws StateAccessException {
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
+                @Context Validator validator) throws StateAccessException {
+
+            Set<ConstraintViolation<RouterPort>> violations = validator
+                    .validate(port);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
 
             if (!authorizer.routerAuthorized(context, AuthAction.WRITE,
                     routerId)) {

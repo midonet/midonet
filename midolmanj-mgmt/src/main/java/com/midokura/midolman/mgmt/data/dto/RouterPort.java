@@ -7,11 +7,16 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.util.Net;
+import com.midokura.util.StringUtil;
 
 /**
  * Data transfer class for router port.
@@ -21,16 +26,22 @@ public abstract class RouterPort extends Port {
     /**
      * Network IP address
      */
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
     protected String networkAddress = null;
 
     /**
      * Network IP address length
      */
+    @Min(0)
+    @Max(32)
     protected int networkLength;
 
     /**
      * Port IP address
      */
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
     protected String portAddress = null;
 
     /**

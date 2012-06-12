@@ -1,186 +1,273 @@
 /*
- * Copyright 2012 Midokura KK
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-public class TestRouter extends JerseyTest {
+@RunWith(Enclosed.class)
+public class TestRouter {
 
-    private final static Logger log = LoggerFactory.getLogger(TestRouter.class);
-    private final String testTenantName = "TEST-TENANT";
-    private final String testRouterName = "TEST-ROUTER";
-    private final String anotherRouterName = "ANOTHER-ROUTER";
+    public static class TestRouterCrud extends JerseyTest {
 
-    private WebResource resource;
-    private ClientResponse response;
-    private URI testRouterUri;
-    private URI anotherRouterUri;
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
-    public TestRouter() {
-        super(FuncTest.appDesc);
-    }
+        public TestRouterCrud() {
+            super(FuncTest.appDesc);
+        }
 
-    // This one also tests Create with given tenant ID string
-    @Before
-    public void before() {
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
+        @Before
+        public void setUp() {
 
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString()
-                .endsWith("tenants/" + testTenantName));
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
 
-        DtoRouter router = new DtoRouter();
-        router.setName(testRouterName);
-        resource = resource().path("tenants/" + testTenantName + "/routers");
-        response = resource.type(APPLICATION_ROUTER_JSON).post(
-                ClientResponse.class, router);
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
 
-        log.debug("router location: {}", response.getLocation());
-        testRouterUri = response.getLocation();
+            // Prepare chains that can be used to set to port
+            DtoRuleChain chain1 = new DtoRuleChain();
+            chain1.setName("chain1");
 
-        // create another router here for testing link related APIs
-        router = new DtoRouter();
-        router.setName(anotherRouterName);
-        response = resource().path("tenants/" + testTenantName + "/routers")
-                .type(APPLICATION_ROUTER_JSON)
-                .post(ClientResponse.class, router);
-        anotherRouterUri = response.getLocation();
-        log.debug("location {}", anotherRouterUri);
-    }
+            // Prepare another chain
+            DtoRuleChain chain2 = new DtoRuleChain();
+            chain2.setName("chain2");
 
-    @Test
-    public void testCreateWithEmptyBody() {
-        resource = resource().path("tenants/" + testTenantName + "/routers");
-        response = resource.type(APPLICATION_ROUTER_JSON).post(
-                ClientResponse.class, "{}");
-        String body = response.getEntity(String.class);
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .create("tenant1", "chain1", chain1)
+                    .create("tenant1", "chain2", chain2).build();
+        }
 
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        log.debug("body: {}", body);
+        @Test
+        public void testCrud() throws Exception {
 
-        String idString = response.getLocation().toString();
-        idString = idString.substring(
-                idString.lastIndexOf("/") + 1, idString.length());
-        log.debug("idString: {}", idString);
-        try {
-            UUID.fromString(idString);
-        } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID " +
-                    "form. {}" + e);
+            DtoTenant tenant1 = topology.getTenant("tenant1");
+            DtoRuleChain chain1 = topology.getChain("chain1");
+            DtoRuleChain chain2 = topology.getChain("chain2");
+
+            // Verify that there is nothing
+            assertNotNull(tenant1);
+            URI routersUri = tenant1.getRouters();
+            assertNotNull(routersUri);
+            DtoRouter[] routers = dtoResource.getAndVerifyOk(routersUri,
+                    APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
+            assertEquals(0, routers.length);
+
+            // Add a router
+            DtoRouter router = new DtoRouter();
+            router.setName("router1");
+            router.setTenantId(tenant1.getId());
+            router.setInboundFilterId(chain1.getId());
+            router.setOutboundFilterId(chain2.getId());
+
+            DtoRouter resRouter = dtoResource.postAndVerifyCreated(routersUri,
+                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+            assertNotNull(resRouter.getId());
+            assertNotNull(resRouter.getUri());
+            // TODO: Implement 'equals' for DtoRouter
+            assertEquals(router.getTenantId(), resRouter.getTenantId());
+            assertEquals(router.getInboundFilterId(),
+                    resRouter.getInboundFilterId());
+            assertEquals(router.getOutboundFilterId(),
+                    resRouter.getOutboundFilterId());
+            URI routerUri = resRouter.getUri();
+
+            // List the router
+            routers = dtoResource.getAndVerifyOk(routersUri,
+                    APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
+            assertEquals(1, routers.length);
+            assertEquals(resRouter.getId(), routers[0].getId());
+
+            // Update the router
+            resRouter.setName("router1-modified");
+            resRouter.setInboundFilterId(chain2.getId());
+            resRouter.setOutboundFilterId(chain1.getId());
+            DtoRouter updatedRouter = dtoResource.putAndVerifyNoContent(
+                    routerUri, APPLICATION_ROUTER_JSON, resRouter,
+                    DtoRouter.class);
+            assertNotNull(updatedRouter.getId());
+            assertEquals(resRouter.getTenantId(), updatedRouter.getTenantId());
+            assertEquals(resRouter.getInboundFilterId(),
+                    updatedRouter.getInboundFilterId());
+            assertEquals(resRouter.getOutboundFilterId(),
+                    updatedRouter.getOutboundFilterId());
+
+            // Delete the router
+            dtoResource.deleteAndVerifyNoContent(routerUri,
+                    APPLICATION_ROUTER_JSON);
+
+            // Verify that it's gone
+            dtoResource
+                    .getAndVerifyNotFound(routerUri, APPLICATION_ROUTER_JSON);
+
+            // List should return an empty array
+            routers = dtoResource.getAndVerifyOk(routersUri,
+                    APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
+            assertEquals(0, routers.length);
         }
     }
 
-    @Test
-    public void testCreateWithGivenIdAndNameAndGet() {
-        UUID id = UUID.randomUUID();
-        DtoRouter router = new DtoRouter();
-        router.setName("TEST-CREATE-ROUTER");
-        router.setId(id);
+    @RunWith(Parameterized.class)
+    public static class TestCreateRouterBadRequest extends JerseyTest {
 
-        resource = resource().path("tenants/" + testTenantName + "/routers");
-        response = resource.type(APPLICATION_ROUTER_JSON).post(
-                ClientResponse.class, router);
-        String body = response.getEntity(String.class);
-        URI routerUri = response.getLocation();
+        private Topology topology;
+        private DtoWebResource dtoResource;
+        private final DtoRouter router;
+        private final String property;
 
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", routerUri);
-        log.debug("body: {}", body);
-
-        String idString = response.getLocation().toString();
-        idString = idString.substring(
-                idString.lastIndexOf("/") + 1, idString.length());
-        log.debug("idString: {}", idString);
-        try {
-            UUID.fromString(idString);
-        } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID " +
-                    "form. {}" + e);
+        public TestCreateRouterBadRequest(DtoRouter router, String property) {
+            super(FuncTest.appDesc);
+            this.router = router;
+            this.property = property;
         }
 
-        router = resource().uri(routerUri)
-                .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
-        assertEquals("TEST-CREATE-ROUTER", router.getName());
-        assertEquals(id, router.getId());
-        log.debug("bridge port: {}", router.getPorts());
-        log.debug("bridge uri: {}", router.getUri());
+        @Before
+        public void setUp() {
+
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .build();
+        }
+
+        @Parameters
+        public static Collection<Object[]> data() {
+
+            List<Object[]> params = new ArrayList<Object[]>();
+
+            // Null name
+            DtoRouter nullNameRouter = new DtoRouter();
+            params.add(new Object[] { nullNameRouter, "name" });
+
+            // Blank name
+            DtoRouter blankNameRouter = new DtoRouter();
+            blankNameRouter.setName("");
+            params.add(new Object[] { blankNameRouter, "name" });
+
+            // Long name
+            StringBuilder longName = new StringBuilder(
+                    Router.MAX_ROUTER_NAME_LEN + 1);
+            for (int i = 0; i < Router.MAX_ROUTER_NAME_LEN + 1; i++) {
+                longName.append("a");
+            }
+            DtoRouter longNameRouter = new DtoRouter();
+            longNameRouter.setName(longName.toString());
+            params.add(new Object[] { longNameRouter, "name" });
+
+            return params;
+        }
+
+        @Test
+        public void testBadInputCreate() {
+            DtoTenant t = topology.getTenant("tenant1");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    t.getRouters(), APPLICATION_ROUTER_JSON, router);
+            List<Map<String, String>> violations = error.getViolations();
+            assertEquals(1, violations.size());
+            assertEquals(property, violations.get(0).get("property"));
+        }
     }
 
-    @Test
-    public void testGet() {
-        DtoRouter router = resource().uri(testRouterUri)
-                .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
-        log.debug("testGet name:  {}", router.getName());
-        log.debug("testGet id:  {}", router.getId());
-        log.debug("testGet tenantId: {}", router.getTenantId());
-        log.debug("testGet ports: {}", router.getPorts());
-        log.debug("testGet chains: {}", router.getUri());
-        log.debug("testGet peerPorts: {}", router.getPeerPorts());
-        log.debug("testGet uri: {}", router.getUri());
+    @RunWith(Parameterized.class)
+    public static class TestUpdateRouterBadRequest extends JerseyTest {
 
-        assertEquals(testRouterName, router.getName());
-        assertEquals(testRouterUri, router.getUri());
-        assertEquals(testTenantName, router.getTenantId());
-    }
+        private final DtoRouter testRouter;
+        private final String property;
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
-    @Test
-    public void testUpdate() {
-        final String newName = "NEW-ROUTER-NAME";
-        DtoRouter router = new DtoRouter();
-        router.setName(newName);
+        public TestUpdateRouterBadRequest(DtoRouter testRouter, String property) {
+            super(FuncTest.appDesc);
+            this.testRouter = testRouter;
+            this.property = property;
+        }
 
-        response = resource().uri(testRouterUri).type(APPLICATION_ROUTER_JSON)
-                .put(ClientResponse.class, router);
-        log.debug("status: {}", response.getStatus());
-        assertEquals(204, response.getStatus());
+        @Before
+        public void setUp() {
 
-        router = resource().uri(testRouterUri)
-                .type(APPLICATION_ROUTER_JSON).get(DtoRouter.class);
-        log.debug("name: {}", router.getName());
-        assertEquals(newName, router.getName());
-    }
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
 
-    @Test
-    public void testDelete() {
-        response = resource().uri(testRouterUri).delete(ClientResponse.class);
-        log.debug("status: {}", response.getStatus());
-        assertEquals(204, response.getStatus());
-    }
+            // Create a tenant
+            DtoTenant t = new DtoTenant();
+            t.setId("tenant1-id");
 
-    @Test
-    public void testList() {
-        response = resource().path("tenants/" + testTenantName + "/routers")
-                .get(ClientResponse.class);
-        String body = response.getEntity(String.class);
-        log.debug("status: {}", response.getStatus());
-        log.debug("body: {}", body);
+            // Create a router
+            DtoRouter r = new DtoRouter();
+            r.setName("router1-name");
 
-        assertEquals(200, response.getStatus());
+            topology = new Topology.Builder(dtoResource).create("tenant1", t)
+                    .create("tenant1", "router1", r).build();
+        }
+
+        @Parameters
+        public static Collection<Object[]> data() {
+
+            List<Object[]> params = new ArrayList<Object[]>();
+
+            // Null name
+            DtoRouter nullNameRouter = new DtoRouter();
+            params.add(new Object[] { nullNameRouter, "name" });
+
+            // Blank name
+            DtoRouter blankNameRouter = new DtoRouter();
+            blankNameRouter.setName("");
+            params.add(new Object[] { blankNameRouter, "name" });
+
+            // Long name
+            StringBuilder longName = new StringBuilder(
+                    Router.MAX_ROUTER_NAME_LEN + 1);
+            for (int i = 0; i < Router.MAX_ROUTER_NAME_LEN + 1; i++) {
+                longName.append("a");
+            }
+            DtoRouter longNameRouter = new DtoRouter();
+            longNameRouter.setName(longName.toString());
+            params.add(new Object[] { longNameRouter, "name" });
+
+            return params;
+        }
+
+        @Test
+        public void testBadInput() {
+            // Get the router
+            DtoRouter router = topology.getRouter("router1");
+
+            DtoError error = dtoResource.putAndVerifyBadRequest(
+                    router.getUri(), APPLICATION_ROUTER_JSON, testRouter);
+            List<Map<String, String>> violations = error.getViolations();
+            assertEquals(1, violations.size());
+            assertEquals(property, violations.get(0).get("property"));
+        }
     }
 }

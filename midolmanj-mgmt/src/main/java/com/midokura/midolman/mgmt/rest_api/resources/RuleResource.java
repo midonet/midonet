@@ -5,10 +5,13 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -66,7 +69,7 @@ public class RuleResource {
      *             Data access error.
      */
     @DELETE
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
@@ -163,12 +166,19 @@ public class RuleResource {
          * @returns Response object with 201 status code set if successful.
          */
         @POST
-        @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_RULE_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Rule rule, @Context UriInfo uriInfo,
-                @Context SecurityContext context, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+                @Context SecurityContext context,
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
+                @Context Validator validator) throws StateAccessException {
+
+            Set<ConstraintViolation<Rule>> violations = validator
+                    .validate(rule);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
 
             if (!authorizer.chainAuthorized(context, AuthAction.WRITE, chainId)) {
                 throw new ForbiddenHttpException(
@@ -182,8 +192,8 @@ public class RuleResource {
             if (rule.getJumpChainName() != null) {
                 ChainDao chainDao = daoFactory.getChainDao();
                 Chain chain = chainDao.get(chainId);
-                Chain jumpChain =
-                        chainDao.get(chain.getTenantId(), rule.getJumpChainName());
+                Chain jumpChain = chainDao.get(chain.getTenantId(),
+                        rule.getJumpChainName());
                 jumpChainID = jumpChain.getId();
             }
             UUID id = null;
@@ -193,7 +203,8 @@ public class RuleResource {
                 throw new BadRequestHttpException("Invalid rule position.");
             }
             return Response.created(
-                    ResourceUriBuilder.getRule(uriInfo.getBaseUri(), id)).build();
+                    ResourceUriBuilder.getRule(uriInfo.getBaseUri(), id))
+                    .build();
         }
 
         /**

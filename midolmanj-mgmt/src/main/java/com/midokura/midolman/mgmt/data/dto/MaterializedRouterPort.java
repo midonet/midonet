@@ -7,12 +7,17 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.util.Net;
+import com.midokura.util.StringUtil;
 
 /**
  * Data transfer class for materialized router port.
@@ -24,7 +29,13 @@ public class MaterializedRouterPort extends RouterPort implements
      * VIF ID
      */
     private UUID vifId;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
     private String localNetworkAddress;
+
+    @Min(0)
+    @Max(32)
     private int localNetworkLength;
 
     /**

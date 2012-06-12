@@ -1,0 +1,421 @@
+/*
+ * Copyright 2012 Midokura PTE LTD.
+ */
+package com.midokura.midolman.mgmt.rest_api;
+
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+
+public class Topology {
+
+    private final Builder builder;
+
+    public static class Builder {
+
+        private final DtoWebResource resource;
+
+        private final Map<String, DtoTenant> tenants;
+        private final Map<String, DtoRouter> routers;
+        private final Map<String, DtoBridge> bridges;
+        private final Map<String, DtoRuleChain> chains;
+        private final Map<String, DtoMaterializedRouterPort> matRouterPorts;
+        private final Map<String, DtoLogicalRouterPort> logRouterPorts;
+        private final Map<String, DtoBridgePort> matBridgePorts;
+        private final Map<String, DtoLogicalBridgePort> logBridgePorts;
+
+        private final Map<String, String> tagToTenants;
+        private final Map<String, String> tagToInChains;
+        private final Map<String, String> tagToOutChains;
+        private final Map<String, String> tagToRouters;
+        private final Map<String, String> tagToBridges;
+        private final Map<String, String> links;
+
+        public Builder(DtoWebResource resource) {
+            this.resource = resource;
+            this.tenants = new HashMap<String, DtoTenant>();
+            this.routers = new HashMap<String, DtoRouter>();
+            this.bridges = new HashMap<String, DtoBridge>();
+            this.chains = new HashMap<String, DtoRuleChain>();
+            this.matRouterPorts = new HashMap<String, DtoMaterializedRouterPort>();
+            this.logRouterPorts = new HashMap<String, DtoLogicalRouterPort>();
+            this.matBridgePorts = new HashMap<String, DtoBridgePort>();
+            this.logBridgePorts = new HashMap<String, DtoLogicalBridgePort>();
+
+            this.links = new HashMap<String, String>();
+            this.tagToTenants = new HashMap<String, String>();
+            this.tagToInChains = new HashMap<String, String>();
+            this.tagToOutChains = new HashMap<String, String>();
+            this.tagToRouters = new HashMap<String, String>();
+            this.tagToBridges = new HashMap<String, String>();
+        }
+
+        public DtoWebResource getResource() {
+            return this.resource;
+        }
+
+        public Builder create(String tag, DtoTenant obj) {
+            this.tenants.put(tag, obj);
+            return this;
+        }
+
+        public Builder create(String tenantTag, String tag, DtoRouter obj) {
+            this.routers.put(tag, obj);
+            this.tagToTenants.put(tag, tenantTag);
+            return this;
+        }
+
+        public Builder create(String tenantTag, String tag, DtoBridge obj) {
+            this.bridges.put(tag, obj);
+            this.tagToTenants.put(tag, tenantTag);
+            return this;
+        }
+
+        public Builder create(String tenantTag, String tag, DtoRuleChain obj) {
+            this.chains.put(tag, obj);
+            this.tagToTenants.put(tag, tenantTag);
+            return this;
+        }
+
+        public Builder create(String routerTag, String tag,
+                DtoMaterializedRouterPort obj) {
+            this.matRouterPorts.put(tag, obj);
+            this.tagToRouters.put(tag, routerTag);
+            return this;
+        }
+
+        public Builder create(String routerTag, String tag,
+                DtoLogicalRouterPort obj) {
+            this.logRouterPorts.put(tag, obj);
+            this.tagToRouters.put(tag, routerTag);
+            return this;
+        }
+
+        public Builder create(String bridgeTag, String tag, DtoBridgePort obj) {
+            this.matBridgePorts.put(tag, obj);
+            this.tagToBridges.put(tag, bridgeTag);
+            return this;
+        }
+
+        public Builder create(String bridgeTag, String tag,
+                DtoLogicalBridgePort obj) {
+            this.logBridgePorts.put(tag, obj);
+            this.tagToBridges.put(tag, bridgeTag);
+            return this;
+        }
+
+        public Builder link(String portTag1, String portTag2) {
+
+            if (!this.logRouterPorts.containsKey(portTag1)
+                    && !this.logBridgePorts.containsKey(portTag1)) {
+                throw new IllegalArgumentException(
+                        "portTag1 is not a valid logical port");
+            }
+
+            if (!this.logRouterPorts.containsKey(portTag2)
+                    && !this.logBridgePorts.containsKey(portTag2)) {
+                throw new IllegalArgumentException(
+                        "portTag2 is not a valid logical port");
+            }
+
+            this.links.put(portTag1, portTag2);
+            return this;
+        }
+
+        public Builder applyInChain(String tag, String chainTag) {
+            this.tagToInChains.put(tag, chainTag);
+            return this;
+        }
+
+        public Builder applyOutChain(String tag, String chainTag) {
+            this.tagToOutChains.put(tag, chainTag);
+            return this;
+        }
+
+        private DtoLogicalPort findLogicalPort(String tag) {
+            if (logRouterPorts.containsKey(tag)) {
+                return logRouterPorts.get(tag);
+            } else {
+                return logBridgePorts.get(tag);
+            }
+        }
+
+        private DtoPort findPort(String tag) {
+            if (logRouterPorts.containsKey(tag)) {
+                return logRouterPorts.get(tag);
+            } else if (logBridgePorts.containsKey(tag)) {
+                return logBridgePorts.get(tag);
+            } else if (matRouterPorts.containsKey(tag)) {
+                return matRouterPorts.get(tag);
+            } else {
+                return matBridgePorts.get(tag);
+            }
+        }
+
+        public Topology build() {
+
+            for (Map.Entry<String, DtoTenant> entry : tenants.entrySet()) {
+                URI tenantUri = resource.getWebResource().path("tenants")
+                        .getURI();
+                DtoTenant obj = resource.postAndVerifyCreated(tenantUri,
+                        APPLICATION_TENANT_JSON, entry.getValue(),
+                        DtoTenant.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoRuleChain> entry : chains.entrySet()) {
+                // Set the tenant ID
+                String tenantTag = tagToTenants.get(entry.getKey());
+                DtoTenant t = tenants.get(tenantTag);
+                DtoRuleChain obj = entry.getValue();
+                obj.setTenantId(t.getId());
+                obj = resource.postAndVerifyCreated(t.getChains(),
+                        APPLICATION_CHAIN_JSON, obj, DtoRuleChain.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoRouter> entry : routers.entrySet()) {
+
+                DtoRouter obj = entry.getValue();
+
+                // Set the tenant ID
+                String tag = tagToTenants.get(entry.getKey());
+                DtoTenant t = tenants.get(tag);
+                obj.setTenantId(t.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+
+                obj = resource.postAndVerifyCreated(t.getRouters(),
+                        APPLICATION_ROUTER_JSON, obj, DtoRouter.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoBridge> entry : bridges.entrySet()) {
+
+                DtoBridge obj = entry.getValue();
+
+                // Set the tenant ID
+                String tag = tagToTenants.get(entry.getKey());
+                DtoTenant t = tenants.get(tag);
+                obj.setTenantId(t.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+                obj = resource.postAndVerifyCreated(t.getBridges(),
+                        APPLICATION_BRIDGE_JSON, obj, DtoBridge.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoMaterializedRouterPort> entry : matRouterPorts
+                    .entrySet()) {
+
+                DtoMaterializedRouterPort obj = entry.getValue();
+
+                // Set the router ID
+                String tag = tagToRouters.get(entry.getKey());
+                DtoRouter r = routers.get(tag);
+                obj.setDeviceId(r.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+
+                obj = resource.postAndVerifyCreated(r.getPorts(),
+                        APPLICATION_PORT_JSON, entry.getValue(),
+                        DtoMaterializedRouterPort.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoBridgePort> entry : matBridgePorts
+                    .entrySet()) {
+
+                DtoBridgePort obj = entry.getValue();
+
+                // Set the bridge ID
+                String tag = tagToBridges.get(entry.getKey());
+                DtoBridge b = bridges.get(tag);
+                obj.setDeviceId(b.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+
+                obj = resource.postAndVerifyCreated(b.getPorts(),
+                        APPLICATION_PORT_JSON, entry.getValue(),
+                        DtoBridgePort.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoLogicalRouterPort> entry : logRouterPorts
+                    .entrySet()) {
+
+                DtoLogicalRouterPort obj = entry.getValue();
+
+                // Set the router ID
+                String tag = tagToRouters.get(entry.getKey());
+                DtoRouter r = routers.get(tag);
+                obj.setDeviceId(r.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+
+                obj = resource.postAndVerifyCreated(r.getPorts(),
+                        APPLICATION_PORT_JSON, entry.getValue(),
+                        DtoLogicalRouterPort.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoLogicalBridgePort> entry : logBridgePorts
+                    .entrySet()) {
+
+                DtoLogicalBridgePort obj = entry.getValue();
+
+                // Set the router ID
+                String tag = tagToBridges.get(entry.getKey());
+                DtoBridge b = bridges.get(tag);
+                obj.setDeviceId(b.getId());
+
+                // Set the inbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setInboundFilterId(c.getId());
+                }
+
+                // Set the outbound chain ID
+                tag = tagToInChains.get(entry.getKey());
+                if (tag != null) {
+                    DtoRuleChain c = chains.get(tag);
+                    obj.setOutboundFilterId(c.getId());
+                }
+
+                obj = resource.postAndVerifyCreated(b.getPorts(),
+                        APPLICATION_PORT_JSON, entry.getValue(),
+                        DtoLogicalBridgePort.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, String> entry : links.entrySet()) {
+                // Get the logical ports
+                DtoLogicalPort port1 = findLogicalPort(entry.getKey());
+                DtoPort port2 = findPort(entry.getValue());
+
+                resource.postAndVerifyStatus(port1.getLink(),
+                        APPLICATION_PORT_JSON,
+                        "{\"peerId\": \"" + port2.getId() + "\"}",
+                        Response.Status.NO_CONTENT.getStatusCode());
+            }
+
+            return new Topology(this);
+        }
+    }
+
+    private Topology(Builder builder) {
+        this.builder = builder;
+    }
+
+    public DtoTenant getTenant(String tag) {
+        return this.builder.tenants.get(tag);
+    }
+
+    public DtoRouter getRouter(String tag) {
+        return this.builder.routers.get(tag);
+    }
+
+    public DtoBridge getBridge(String tag) {
+        return this.builder.bridges.get(tag);
+    }
+
+    public DtoRuleChain getChain(String tag) {
+        return this.builder.chains.get(tag);
+    }
+
+    public DtoMaterializedRouterPort getMatRouterPort(String tag) {
+        return this.builder.matRouterPorts.get(tag);
+    }
+
+    public DtoBridgePort getMatBridgePort(String tag) {
+        return this.builder.matBridgePorts.get(tag);
+    }
+
+    public DtoLogicalRouterPort getLogRouterPort(String tag) {
+        return this.builder.logRouterPorts.get(tag);
+    }
+
+    public DtoLogicalBridgePort getLogBridgePort(String tag) {
+        return this.builder.logBridgePorts.get(tag);
+    }
+}

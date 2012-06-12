@@ -3,6 +3,9 @@
  */
 package com.midokura.midolman.mgmt.rest_api.jaxrs;
 
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -42,5 +45,9 @@ public class BadRequestHttpException extends WebApplicationException {
     public BadRequestHttpException(Throwable e, String message) {
         super(e, ResponseUtils.buildErrorResponse(
                 Response.Status.BAD_REQUEST.getStatusCode(), message));
+    }
+
+    public <T> BadRequestHttpException(Set<ConstraintViolation<T>> violations) {
+        super(ResponseUtils.buildValidationErrorResponse(violations));
     }
 }
