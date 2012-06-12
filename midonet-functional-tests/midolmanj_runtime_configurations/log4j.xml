@@ -21,5 +21,13 @@
     <appender-ref ref="console" />
     <appender-ref ref="file" />
   </root>
+
+    <logger name="com.midokura.midolman.agent">
+        <level value="trace"/>
+    </logger>
+
+    <logger name="com.midokura.midolman.monitoring">
+        <level value="trace"/>
+    </logger>
   
 </log4j:configuration>

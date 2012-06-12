@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static java.lang.String.format;
 
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -17,9 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
-
-
-import static java.lang.String.format;
 
 public class MidolmanLauncher {
 
@@ -45,7 +43,7 @@ public class MidolmanLauncher {
     }
 
     public enum ConfigType {
-        Default, Without_Bgp, With_Bgp, With_Node_Agent
+        Default, Without_Bgp, With_Bgp, With_Node_Agent, Monitoring
     }
 
     public static MidolmanLauncher start(String logPostFix) throws IOException {
@@ -94,14 +92,18 @@ public class MidolmanLauncher {
     }
 
     private String createCommandLine(String configType, String logPostfix) {
+        String debugData = "-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:5005," +
+                "suspend=n";
+
         return
             format(
-                "java -cp %s -Dmidolman.log.file=%s " +
+                "java %s -cp %s -Dmidolman.log.file=%s " +
                     "com.midokura.midolman.Midolman " +
                     "-c %s",
+                debugData,
                 getClassPath(), getLogFilePath(configType, logPostfix),
                 format(
-                    "midolmanj_runtime_configurations/midolman-%s.conf",
+                    "./midonet-functional-tests/midolmanj_runtime_configurations/midolman-%s.conf",
                     configType));
     }
 
@@ -123,8 +125,9 @@ public class MidolmanLauncher {
     }
 
     private String getClassPath() {
-        String midonetLocation =
-            System.getProperty(MIDONET_PROJECT_LOCATION, "");
+//        String midonetLocation =
+//            System.getProperty(MIDONET_PROJECT_LOCATION, "");
+        String midonetLocation = new File(".").getAbsolutePath();
 
         File midonetFolder = new File(midonetLocation);
         if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {

@@ -5,7 +5,6 @@
 package com.midokura.midolman.monitoring.metrics;
 
 import java.io.IOException;
-import java.util.UUID;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 
@@ -31,6 +30,7 @@ public class ZookeeperMetricsCollection {
         "org.apache.ZooKeeperService:name0=StandaloneServer_port-1";
     private static final String mBeanMemoryDataTree =
         mBeanZkService + "," + "name1=InMemoryDataTree";
+
 
     @Inject
     HostIdProvider hostIdProvider;
@@ -84,6 +84,7 @@ public class ZookeeperMetricsCollection {
                                hostName),
                 new JMXRemoteBeanGauge<T>(serverConn,
                                           type, beanName, beanAttr));
+
         } catch (MalformedObjectNameException e) {
             log.debug(
                 "Malformed Exception while trying to add a JMXRemoteBeanGauge",

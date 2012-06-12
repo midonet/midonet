@@ -32,6 +32,7 @@ public class VMMetricsCollection {
     private static final MBeanServer SERVER =
         ManagementFactory.getPlatformMBeanServer();
 
+
     @Inject
     HostIdProvider hostIdProvider;
 
@@ -120,6 +121,7 @@ public class VMMetricsCollection {
         Metrics.newGauge(
             new MetricName(VMMetricsCollection.class, name, hostName),
             gauge);
+
     }
 
 }

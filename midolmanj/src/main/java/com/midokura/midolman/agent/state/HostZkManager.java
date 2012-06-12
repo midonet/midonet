@@ -4,7 +4,6 @@
 package com.midokura.midolman.agent.state;
 
 import java.io.IOException;
-import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,7 +57,7 @@ public class HostZkManager extends ZkManager {
 
     public void createHost(UUID hostId, HostDirectory.Metadata metadata)
         throws StateAccessException {
-
+        log.debug("Creating host folders for hostid {}", hostId);
         try {
             List<Op> createMulti = new ArrayList<Op>();
             createMulti.add(
