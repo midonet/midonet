@@ -127,8 +127,7 @@ public class PrimaryController implements Controller, SelectListener {
             if (!connected)
                 connection_made.await(2, TimeUnit.SECONDS);
                 return connected;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -146,8 +145,7 @@ public class PrimaryController implements Controller, SelectListener {
             }
             c.await(2, TimeUnit.SECONDS);
             return portNameToNum.containsKey(portName);
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -163,8 +161,7 @@ public class PrimaryController implements Controller, SelectListener {
             if (null == num)
                 return -1;
             return num;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -173,8 +170,7 @@ public class PrimaryController implements Controller, SelectListener {
         lock.lock();
         try {
             return controllerStub;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -206,8 +202,7 @@ public class PrimaryController implements Controller, SelectListener {
             controllerStubImpl.start();
         } catch (Exception e) {
             log.warn("handleEvent", e);
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -221,8 +216,7 @@ public class PrimaryController implements Controller, SelectListener {
         lock.lock();
         try {
             this.controllerStub = controllerStub;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -241,8 +235,7 @@ public class PrimaryController implements Controller, SelectListener {
         try {
             connected = true;
             connection_made.signalAll();
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -297,8 +290,7 @@ public class PrimaryController implements Controller, SelectListener {
             Condition c = portToCondition.get(name);
             if (null != c)
                 c.signalAll();
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
