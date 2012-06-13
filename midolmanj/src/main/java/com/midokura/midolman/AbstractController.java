@@ -492,7 +492,7 @@ public abstract class AbstractController implements Controller {
     }
 
     public String makeGREPortName(IntIPv4 address) {
-        return String.format("tn%08x", address.address);
+        return String.format("tn%08x", address.addressAsInt());
     }
 
     private boolean portLocMapContainsPeer(IntIPv4 peerAddress) {

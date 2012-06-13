@@ -376,7 +376,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     // Add to router port's route if there is
                     // mapping. Ignored if not.
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
-                        val dstPrefix = new IntIPv4(prefix).address
+                        val dstPrefix: Int = new IntIPv4(prefix).addressAsInt
 
                         val port = portMgr.synchronized {
                             portMgr.get(UUID.fromString(portUUID))

@@ -4,9 +4,16 @@ import com.midokura.midolman.util.Net;
 
 // TODO(pino): this class should be renamed IPv4 and moved to MidokuraUtil.
 public class IntIPv4 implements Cloneable {
-    // TODO(pino): URGENT - make these private and provide getters.
-    public int address;
-    public int maskLength;
+    private int address;
+    private int maskLength;
+
+    public int addressAsInt() {
+        return address;
+    }
+
+    public int prefixLen() {
+        return maskLength;
+    }
 
     /* Default constructor for deserialization. */
     public IntIPv4() {

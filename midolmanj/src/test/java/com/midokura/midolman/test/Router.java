@@ -60,14 +60,14 @@ public class Router {
         IntIPv4 localPortAddr = IntIPv4.fromString("10.100.0.1");
         IntIPv4 peerPortAddr = IntIPv4.fromString("10.100.0.2");
         LogicalRouterPortConfig localPortConfig = new LogicalRouterPortConfig(
-                        routerID, localPortAddr.address, 30,
-                        localPortAddr.address, null, null, null);
+                        routerID, localPortAddr.addressAsInt(), 30,
+                        localPortAddr.addressAsInt(), null, null, null);
         UUID localPortID = network.getPortManager().create(localPortConfig);
         localPortConfig = network.getPortManager().get(
                 localPortID, LogicalRouterPortConfig.class);
         LogicalRouterPortConfig peerPortConfig = new LogicalRouterPortConfig(
-                        peerRouter.routerID, peerPortAddr.address, 30,
-                        peerPortAddr.address, null, null, null);
+                        peerRouter.routerID, peerPortAddr.addressAsInt(), 30,
+                        peerPortAddr.addressAsInt(), null, null, null);
         UUID peerPortID = network.getPortManager().create(peerPortConfig);
         peerPortConfig = network.getPortManager().get(
                 peerPortID, LogicalRouterPortConfig.class);
@@ -89,8 +89,8 @@ public class Router {
                            int bridgePortIndex) throws StateAccessException {
         IntIPv4 localPortAddr = IntIPv4.fromString(localPortAddress);
         LogicalRouterPortConfig localPortConfig = new LogicalRouterPortConfig(
-                        routerID, localPortAddr.address, 24,
-                        localPortAddr.address, null, null, null);
+                        routerID, localPortAddr.addressAsInt(), 24,
+                        localPortAddr.addressAsInt(), null, null, null);
         UUID localPortID = network.getPortManager().create(localPortConfig);
         localPortConfig = network.getPortManager().get(
                 localPortID, LogicalRouterPortConfig.class);

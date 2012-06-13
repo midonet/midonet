@@ -726,13 +726,15 @@ public class Router implements ForwardingElement {
                 cb.call(sha);
     }
 
-    private class ArpWatcher implements ReplicatedMap.Watcher<IntIPv4, ArpCacheEntry> {
-        public void processChange(IntIPv4 ipAddr, ArpCacheEntry old, ArpCacheEntry new_) {
+    private class ArpWatcher implements
+            ReplicatedMap.Watcher<IntIPv4, ArpCacheEntry> {
+        public void processChange(IntIPv4 ipAddr, ArpCacheEntry old,
+                                  ArpCacheEntry new_) {
             if (new_ == null || new_.macAddr == null) {
                 // Entry was deleted or added as "pending".
                 return;
             }
-            Integer ipInt = new Integer(ipAddr.address);
+            Integer ipInt = new Integer(ipAddr.addressAsInt());
             // Scan arpCallbackLists for ipAddr.
             for (Map.Entry<UUID, Map<Integer, List<Callback1<MAC>>>> entry :
                          arpCallbackLists.entrySet()) {

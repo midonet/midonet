@@ -33,9 +33,9 @@ public class RouterPort {
             IntIPv4 portAddr, int nwLength) throws StateAccessException {
         MaterializedRouterPortConfig portConfig =
                 new MaterializedRouterPortConfig(
-                        router.routerID, portAddr.address, nwLength,
-                        portAddr.address, MAC.random(), null,
-                        portAddr.address, nwLength, null);
+                        router.routerID, portAddr.addressAsInt(), nwLength,
+                        portAddr.addressAsInt(), MAC.random(), null,
+                        portAddr.addressAsInt(), nwLength, null);
         UUID portID = router.network.getPortManager().create(portConfig);
         return new RouterPort(portID, router);
     }

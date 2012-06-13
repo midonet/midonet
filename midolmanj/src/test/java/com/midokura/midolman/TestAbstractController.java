@@ -448,7 +448,7 @@ public class TestAbstractController {
     @Test
     public void testPeerIpOfGrePortName() {
         assertEquals(0xff0011aa,
-                controller.peerIpOfGrePortName("tnff0011aa").address);
+                controller.peerIpOfGrePortName("tnff0011aa").addressAsInt());
     }
 
     @Test
@@ -482,7 +482,7 @@ public class TestAbstractController {
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
                             "43", "tnff0011aa", "255.0.17.170")).equals(
                    ovsdb.addedGrePorts.get(0)));
-        assertEquals(0xff0011aa, portLocMap.get(portUuid).address);
+        assertEquals(0xff0011aa, portLocMap.get(portUuid).addressAsInt());
         assertEquals(0, ovsdb.deletedPorts.size());
 
         // Port moves.  Verify old tunnel rm'd, new tunnel made.
@@ -493,7 +493,7 @@ public class TestAbstractController {
         assertTrue((new MockOpenvSwitchDatabaseConnection.GrePort(
                             "43", "tnff0011ac", "255.0.17.172")).equals(
                    ovsdb.addedGrePorts.get(1)));
-        assertEquals(0xff0011ac, portLocMap.get(portUuid).address);
+        assertEquals(0xff0011ac, portLocMap.get(portUuid).addressAsInt());
         assertEquals(1, ovsdb.deletedPorts.size());
         assertEquals("tnff0011aa", ovsdb.deletedPorts.get(0));
 
