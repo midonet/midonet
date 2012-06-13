@@ -115,7 +115,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
     	}
     	
     	try {
-			write(msg);
+			stream.write(msg);
 		} catch (IOException e) {
 			log.warn("write", e);
 			disconnectSwitch();
