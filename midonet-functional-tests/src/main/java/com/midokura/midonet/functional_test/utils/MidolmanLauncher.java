@@ -75,7 +75,6 @@ public class MidolmanLauncher {
         midolmanProcess = ProcessHelper
             .newLocalProcess(commandLine)
             .setDrainTarget(DrainTargets.noneTarget())
-//            .setDrainTarget(DrainTargets.slf4jTarget(log, "<midolman>"))
             .run();
 
         midolmanProcessShutdownHook = new Thread() {
@@ -92,8 +91,10 @@ public class MidolmanLauncher {
     }
 
     private String createCommandLine(String configType, String logPostfix) {
-        String debugData = "-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:5005," +
-                "suspend=n";
+//        String debugData = "-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:5005," +
+//                "suspend=n";
+
+        String debugData = "";
 
         return
             format(

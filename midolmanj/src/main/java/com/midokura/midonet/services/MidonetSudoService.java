@@ -49,7 +49,7 @@ public class MidonetSudoService {
             // fail. So we wait a little here before trying to connect. This is
             // a hack but it beats looking into the jsch sources for the root
             // cause.
-            Thread.sleep(50);
+            Thread.sleep(100);
 
             Timed.ExecutionResult<MidonetPrivSepServer.Client> clientResult =
                 Timed.newTimedExecution()

@@ -42,7 +42,7 @@ public class CassandraStore implements Store {
         String key = asKey(type, targetIdentifier, metricName, time);
         client.set(key, Long.toString(value), Long.toString(time));
 
-        log.debug("Added value {}, for key {}, column {}",
+        log.trace("Added value {}, for key {}, column {}",
                   new Object[]{value, key, time});
     }
 

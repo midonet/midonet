@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
 
 /**
@@ -22,7 +23,9 @@ public class ZKLauncher {
     private final static Logger log = LoggerFactory
             .getLogger(ZKLauncher.class);
 
-    public static final String ZK_SERVER_FILE_PATH = "/usr/sbin/zkServer.sh";
+    public static final String ZK_SERVER_PATH_LINUX = "/usr/sbin/zkServer.sh";
+    public static final String ZK_SERVER_PATH_MACOS = "/usr/local/bin/zkServer";
+
     static final String ZK_JMX_VARIABLES = "JVMFLAGS";
     static final String ZK_JMX_LOCAL = "JMXLOCALONLY";
     static final String CONF_FILE_DIR = "midonet-functional-tests/midolmanj_runtime_configurations";
@@ -40,6 +43,16 @@ public class ZKLauncher {
         return ProcessHelper.getProcessPid(zkProcess);
     }
 
+    public String getZkBinaryByOs() {
+        switch (SystemHelper.getOsType()) {
+            case Mac:
+                return ZK_SERVER_PATH_MACOS;
+
+            default:
+                return ZK_SERVER_PATH_LINUX;
+        }
+    }
+
     public enum ConfigType {
         Default, Jmx_Enabled
     }
@@ -47,11 +60,11 @@ public class ZKLauncher {
     public static ZKLauncher start(ConfigType configType, String JmxPort)
             throws IOException, InterruptedException {
 
-        if(!(new File(ZK_SERVER_FILE_PATH).exists()))
-        {
-            log.error("Unable to find {}", ZK_SERVER_FILE_PATH);
-            throw new RuntimeException("Unable to start Zookeeper!");
-        }
+//        if(!(new File(ZK_SERVER_FILE_PATH).exists()))
+//        {
+//            log.error("Unable to find {}", ZK_SERVER_FILE_PATH);
+//            throw new RuntimeException("Unable to start Zookeeper!");
+//        }
 
         ZKLauncher launcher = new ZKLauncher();
 
@@ -63,7 +76,15 @@ public class ZKLauncher {
     private void startZk(String configType, String JmxPort)
             throws IOException, InterruptedException {
 
-        String cmdLine = ZK_SERVER_FILE_PATH + " start " + CONF_FILE_DIR + "/" + CONF_FILE_NAME;
+        File confFile = new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME);
+
+        String cmdLine =
+            String.format("%s %s %s",
+                          getZkBinaryByOs(),
+//                          "start-foreground",
+                          "start",
+                          confFile.getAbsolutePath());
+
         Map<String, String> envVars = new HashMap<String, String>();
         if(configType.equals(ConfigType.Jmx_Enabled.name())){
             // enable JMX locally only
@@ -77,12 +98,15 @@ public class ZKLauncher {
         zkProcess = ProcessHelper
                 .newLocalProcess(cmdLine)
                 .setEnvVariables(envVars)
+                .logOutput(log, "<zookeeper>", ProcessHelper.OutputStreams.StdError)
                 .run();
 
         zkProcessShutdownHook = new Thread() {
             @Override
             public void run() {
                 synchronized (ZKLauncher.this) {
+                    // TODO: this
+                    System.out.println("Shutdown hook called ");
                     ZKLauncher.this.zkProcessShutdownHook = null;
                     ZKLauncher.this.stop();
                 }
@@ -95,10 +119,15 @@ public class ZKLauncher {
 
     public synchronized void stop() {
         if (null != zkProcess) {
-            String cmdLineStop = ZK_SERVER_FILE_PATH + " stop " + CONF_FILE_DIR + "/" + CONF_FILE_NAME;
+            // TODO: fix this
+            String stopCommand =
+                String.format("%s stop %s", getZkBinaryByOs(), new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME).getAbsolutePath());
+
             ProcessHelper
-                .newLocalProcess(cmdLineStop)
+                .newLocalProcess(stopCommand)
+                .logOutput(log, "<zookeeper-stop>", ProcessHelper.OutputStreams.StdError)
                 .runAndWait();
+
             zkProcess = null;
         }
     }

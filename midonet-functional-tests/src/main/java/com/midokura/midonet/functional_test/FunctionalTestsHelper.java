@@ -13,11 +13,10 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
-import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -94,12 +93,15 @@ public class FunctionalTestsHelper {
         //TODO:     ZK. If it fails, stop/start/remove, to force the remove,
         //TODO      then throw an error to identify the bad test.
 
+/*
         int exitCode = ProcessHelper
             .newLocalProcess(
                 zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
             .logOutput(log, "cleaning_zk")
             .runAndWait();
+*/
 
+/*
         if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
             // Restart ZK to get around the bug where a directory cannot be deleted.
             Sudo.sudoExec("service zookeeper stop");
@@ -112,6 +114,7 @@ public class FunctionalTestsHelper {
                 .logOutput(log, "cleaning_zk")
                 .runAndWait();
         }
+*/
     }
 
     public static void removeRemoteTap(RemoteTap tap) {

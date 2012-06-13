@@ -28,13 +28,14 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.RemoteTap;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
+import com.midokura.remote.RemoteHost;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanupZooKeeperData;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeRemoteTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -61,7 +62,7 @@ public class MonitoringTest {
     private PacketHelper helperTap_int;
     private IntIPv4 ipInt;
     private IntIPv4 ipTap;
-    private TapWrapper metricsTap;
+    private RemoteTap metricsTap;
 
     private static LockHelper.Lock lock;
     private static long startTime;
@@ -71,10 +72,16 @@ public class MonitoringTest {
     private HierarchicalConfiguration config;
 
     NodeAgent agent;
+
     @Before
     public void setUp() throws Exception {
+        RemoteHost.getSpecification();
 
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
+        midolman = MidolmanLauncher.start(
+            MidolmanLauncher.ConfigType.Monitoring,
+            "MonitoringTest");
 
         //config = new HierarchicalINIConfiguration(configFilePath);
         launcher = ZKLauncher.start(ZKLauncher.ConfigType.Jmx_Enabled, "12222");
@@ -86,9 +93,6 @@ public class MonitoringTest {
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
             "Open_vSwitch", "127.0.0.1", 12344);
-
-        midolman = MidolmanLauncher.start( MidolmanLauncher.ConfigType.Monitoring,
-                                          "MonitoringTest");
 
         sleepBecause("Give ten seconds to midolman to startup", 10);
 
@@ -110,8 +114,10 @@ public class MonitoringTest {
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
+
         tapBridgePort = bridge.addPort().build();
-        metricsTap = new TapWrapper("metricsTap");
+//        metricsTap = new TapWrapper("metricsTap");
+        metricsTap = new RemoteTap("metricsTap");
         ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
@@ -119,7 +125,7 @@ public class MonitoringTest {
         sleepBecause("Give ten seconds to midolman to startup", 30);
 
         store = new CassandraStore("localhost:9171",
-                                   "midolman",
+                                   "midonet",
                                    "midonet_monitoring_keyspace",
                                    "midonet_monitoring_column_family",
                                    replicationFactor, ttlInSecs);
@@ -129,7 +135,7 @@ public class MonitoringTest {
     @After
     public void tearDown() throws IOException, InterruptedException {
         EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-        removeTapWrapper(metricsTap);
+        removeRemoteTap(metricsTap);
         //removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
@@ -143,28 +149,41 @@ public class MonitoringTest {
     public void test() throws Exception {
         startTime = System.currentTimeMillis();
         sleepBecause("Let's collect metrics", 5);
-        List<String> zkMetrics = store.getMetrics(ZookeeperMetricsCollection.class.getSimpleName(), hostId);
-        assertThat("We initialized some metric for ZooKeeper", zkMetrics.size(), greaterThan(
-            0));
+        List<String> zkMetrics =
+            store.getMetrics(ZookeeperMetricsCollection.class.getSimpleName(),
+                             hostId);
 
-        List<String> vmMetrics = store.getMetrics(VMMetricsCollection.class.getSimpleName(), hostId);
-        assertThat("We initialized some metric for the vm", vmMetrics.size(), greaterThan(
-            0));
+        assertThat("We initialized some metric for ZooKeeper",
+                   zkMetrics.size(), greaterThan(0));
 
-        for (String metric : zkMetrics){
-            Map<String, Long> res = store.getTSPoints(ZookeeperMetricsCollection.class.getSimpleName(), hostId, metric, startTime, System.currentTimeMillis());
-            assertThat("The ts points for Zk metrics are > 0", res.size(), greaterThan(
-                0));
-
+        for (String metric : zkMetrics) {
+            Map<String, Long> res = store.getTSPoints(
+                ZookeeperMetricsCollection.class.getSimpleName(),
+                hostId, metric, startTime, System.currentTimeMillis());
+            assertThat("The ts points for Zk metrics are > 0",
+                       res.size(), greaterThan(0));
         }
 
-        for (String metric : vmMetrics){
-            Map<String, Long> res = store.getTSPoints(VMMetricsCollection.class.getSimpleName(), hostId, metric, startTime, System.currentTimeMillis());
-            assertThat("The ts points for vm metrics are > 0", res.size(), greaterThan(0));
+        List<String> vmMetrics =
+            store.getMetrics(VMMetricsCollection.class.getSimpleName(), hostId);
+
+        assertThat("We initialized some metric for the vm",
+                   vmMetrics.size(), greaterThan(0));
+
+        for (String metric : vmMetrics) {
+            Map<String, Long> res =
+                store.getTSPoints(VMMetricsCollection.class.getSimpleName(),
+                                  hostId, metric, startTime,
+                                  System.currentTimeMillis());
+
+            assertThat("The ts points for vm metrics are > 0", res.size(),
+                       greaterThan(0));
         }
 
-        List<String> vifMetrics = store.getMetrics(VifMetrics.class.getSimpleName(), tapBridgePort.getId().toString());
-        assertThat("We initialized some metric for this vif", vifMetrics.size(), greaterThan(
-            0));
+        List<String> vifMetrics = store.getMetrics(
+            VifMetrics.class.getSimpleName(), tapBridgePort.getId().toString());
+
+        assertThat("We initialized some metric for this vif",
+                   vifMetrics.size(), greaterThan(0));
     }
 }
