@@ -5,7 +5,6 @@
 package com.midokura.midolman.openflow;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +34,6 @@ import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
-import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsReply;
@@ -92,7 +90,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     }
 
     public void start() throws IOException {
-        stream.write(factory.getMessage(OFType.HELLO));
+        write(factory.getMessage(OFType.HELLO));
 
         log.debug("start: start sending ECHO requests");
         sendEchoRequest();
@@ -106,14 +104,14 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
     }
 
     public void doBarrierAsync(SuccessHandler successHandler, TimeoutHandler timeoutHandler,
-            long timeoutMillis) {
+            long timeoutMillis) throws IOException {
         log.debug("doBarrierAsync");
 
         OFBarrierRequest msg = (OFBarrierRequest) factory.getMessage(OFType.BARRIER_REQUEST);
         msg.setXid(initiateOperation(successHandler, timeoutHandler, timeoutMillis,
                 OFType.BARRIER_REQUEST));
 
-        stream.write(msg);
+        write(msg);
     }
 
     private boolean isValidStatsType(OFStatisticsType type) {
@@ -166,12 +164,12 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
 
-    protected void deleteAllFlows() {
+    protected void deleteAllFlows() throws IOException {
         OFMatch match = new OFMatch().setWildcards(OFMatch.OFPFW_ALL);
         OFMessage fm = ((OFFlowMod) factory.getMessage(OFType.FLOW_MOD))
               .setMatch(match).setCommand(OFFlowMod.OFPFC_DELETE)
               .setOutPort(OFPort.OFPP_NONE).setLength(U16.t(OFFlowMod.MINIMUM_LENGTH));
-        stream.write(fm);
+        write(fm);
     }
 
     protected void sendFeaturesRequest() {
@@ -200,7 +198,11 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             }
         }, Long.valueOf(500), OFType.FEATURES_REQUEST));
 
-        stream.write(m);
+        try {
+			write(m);
+		} catch (IOException e) {
+			log.warn("sendFeaturesRequest", e);
+		}
     }
 
     protected void sendConfigRequest() {
@@ -231,7 +233,11 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             }
         }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
 
-        stream.write(m);
+        try {
+			write(m);
+		} catch (IOException e) {
+			log.warn("sendConfigRequest", e);
+		}
     }
 
     private boolean isValidStatsRequestLength(
@@ -321,9 +327,9 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         if (!isValidStatsRequestLength(request, statsRequests.size()))
              throw new OpenFlowError("OFPT_STATS_REQUEST message has invalid" +
                      " length: " + String.valueOf(request.getLengthU()));
-        stream.write(request);
+
         try {
-            stream.flush();
+        	write(request);
         } catch (IOException e) {
             log.warn("sendStatsRequest", e);
         }
@@ -598,14 +604,15 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         // Wildcard the TOS as a quick workaround.
         int wc = match.getWildcards();
         match.setWildcards(wc | OFMatch.OFPFW_NW_TOS);
-        stream.write(fm);
-        // Not sure we need to do this... undo our change.
-        match.setWildcards(wc);
+
         try {
-            stream.flush();
+            write(fm);
         } catch (IOException e) {
             log.warn("sendFlowModAdd", e);
         }
+        
+        // Not sure we need to do this... undo our change.
+        match.setWildcards(wc);
     }
 
     @Override
@@ -645,8 +652,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         log.debug("sendNxFlowModAdd: about to send {}", fm);
 
         try {
-            stream.write(fm);
-            stream.flush();
+            write(fm);
         } catch (IOException e) {
             log.warn("sendNxFlowModAdd", e);
         }
@@ -682,8 +688,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.setMatch(match).setPriority(priority).setOutPort(outPort);
 
         try {
-            stream.write(fm);
-            stream.flush();
+            write(fm);
         } catch (IOException e) {
             log.warn("sendFlowModDelete", e);
         }
@@ -698,8 +703,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         fm.prepareSerialize();
 
         try {
-            stream.write(fm);
-            stream.flush();
+            write(fm);
         } catch (IOException e) {
             log.warn("sendPacketOut", e);
         }
@@ -724,8 +728,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 (null == data? 0 : data.length));
 
         try {
-            stream.write(po);
-            stream.flush();
+            write(po);
         } catch (IOException e) {
             log.warn("sendPacketOut", e);
         }
@@ -737,8 +740,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         NxSetFlowFormat sff = new NxSetFlowFormat(nxm);
 
         try {
-            stream.write(sff);
-            stream.flush();
+            write(sff);
         } catch (IOException e) {
             log.warn("setNxmFlowFormat", e);
         }
@@ -750,8 +752,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         NxSetPacketInFormat spif = new NxSetPacketInFormat(nxm);
 
         try {
-            stream.write(spif);
-            stream.flush();
+            write(spif);
         } catch (IOException e) {
             log.warn("setNxPacketInFormat", e);
         }

@@ -19,7 +19,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.openflow.io.OFMessageAsyncStream;
 import org.openflow.protocol.OFEchoReply;
 import org.openflow.protocol.OFEchoRequest;
 import org.openflow.protocol.OFError;
@@ -32,7 +31,6 @@ import org.openflow.protocol.OFError.OFPortModFailedCode;
 import org.openflow.protocol.OFError.OFQueueOpFailedCode;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
-import org.openflow.protocol.OFVendor;
 import org.openflow.protocol.factory.BasicFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.openflow.nxm.NxError;
-import com.midokura.midolman.openflow.nxm.NxMessage;
 
 /**
  * An implementation of the OpenFlow 1.0 protocol to abstract operations.
@@ -64,10 +61,10 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
     private final static Logger log = LoggerFactory.getLogger(BaseProtocolImpl.class);
 
-    protected SelectionKey key;
+    private SelectionKey key;
 
     protected BasicFactory factory;
-    protected OFMessageAsyncStream stream;
+    private OFMessageAsyncStream stream;
 
     protected class PendingOperation {
         SuccessHandler successHandler;
@@ -87,6 +84,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected Date connectedSince;
     protected SocketChannel socketChannel;
     protected AtomicInteger transactionIdSource;
+    
+    protected boolean connected;
 
     protected long defaultOperationTimeoutMillis = 3000;
     protected long echoPeriodMillis = 5000;
@@ -101,10 +100,26 @@ public abstract class BaseProtocolImpl implements SelectListener {
         this.reactor = reactor;
 
         this.connectedSince = new Date();
+        this.connected = true;
+        
         this.transactionIdSource = new AtomicInteger();
 
         factory = new BasicFactory();
         stream = new OFMessageAsyncStream(sock, factory);
+    }
+    
+    protected void write(OFMessage msg) throws IOException {
+    	if (!connected) {
+    		log.warn("write: tried to write to disconnected socket");
+    		return;
+    	}
+    	
+    	try {
+			write(msg);
+		} catch (IOException e) {
+			log.warn("write", e);
+			disconnectSwitch();
+		}
     }
 
     protected int initiateOperation(SuccessHandler successHandler,
@@ -216,6 +231,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected abstract void onConnectionLost();
 
     protected void disconnectSwitch() {
+    	this.connected = false;
+    	
         key.cancel();
         onConnectionLost();
         try {
@@ -241,7 +258,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             OFEchoReply reply = (OFEchoReply) stream.getMessageFactory().getMessage(
                     OFType.ECHO_REPLY);
             reply.setXid(m.getXid());
-            stream.write(reply);
+            write(reply);
             return true;
         case ECHO_REPLY:
             log.debug("handleMessage: ECHO_REPLY");
@@ -336,7 +353,12 @@ public abstract class BaseProtocolImpl implements SelectListener {
                 disconnectSwitch();
             }
         }, null, OFType.ECHO_REQUEST));
-        stream.write(m);
+        
+        try {
+			write(m);
+		} catch (IOException e) {
+			log.warn("sendEchoRequest", e);
+		}
     }
 
     @Override
