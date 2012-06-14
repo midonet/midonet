@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.mgmt.rest_api.jaxrs;
+package com.midokura.midolman.mgmt.jaxrs;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

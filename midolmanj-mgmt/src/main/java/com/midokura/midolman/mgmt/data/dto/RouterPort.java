@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
@@ -26,9 +27,10 @@ public abstract class RouterPort extends Port {
     /**
      * Network IP address
      */
+    @NotNull
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
             message = "is an invalid IP format")
-    protected String networkAddress = null;
+    protected String networkAddress;
 
     /**
      * Network IP address length
@@ -40,14 +42,15 @@ public abstract class RouterPort extends Port {
     /**
      * Port IP address
      */
+    @NotNull
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
             message = "is an invalid IP format")
-    protected String portAddress = null;
+    protected String portAddress;
 
     /**
      * Port MAC address
      */
-    protected String portMac = null;
+    protected String portMac;
 
     /**
      * Constructor

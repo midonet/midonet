@@ -26,6 +26,32 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
+/**
+ * Class to assist creating a network topology in unit tests.
+ * An example usage:
+ *
+ * <pre>
+ * {@code
+ *    Topology t;
+ *
+ *    @Before
+ *    void setup() {
+ *      t = new Topology.builder()
+ *            .create("tenant1", tenant1)
+ *            .create("tenant1", "router1", router1)   // Tag each object
+ *            .build();  // This actually creates the objects in the server,
+ *                       // and verifies that the POST operations succeeded.
+ *     }
+ *
+ *    @Test
+ *    void testPortCreate() {
+ *       // Get the tagged object
+ *       DtoRouter router1 = t.getRouter("router1");
+ *       // Run this test in the setup created.
+ *    }
+ *  }
+ *  </pre>
+ */
 public class Topology {
 
     private final Builder builder;

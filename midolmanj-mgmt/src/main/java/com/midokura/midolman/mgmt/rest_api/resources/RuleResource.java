@@ -39,9 +39,9 @@ import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
@@ -174,6 +174,11 @@ public class RuleResource {
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator) throws StateAccessException {
 
+            rule.setChainId(chainId);
+            if (rule.getPosition() == 0) {
+                rule.setPosition(1);
+            }
+
             Set<ConstraintViolation<Rule>> violations = validator
                     .validate(rule);
             if (!violations.isEmpty()) {
@@ -186,8 +191,6 @@ public class RuleResource {
             }
 
             RuleDao dao = daoFactory.getRuleDao();
-
-            rule.setChainId(chainId);
             UUID jumpChainID = null;
             if (rule.getJumpChainName() != null) {
                 ChainDao chainDao = daoFactory.getChainDao();

@@ -21,7 +21,7 @@ import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.validation.AllowedValue;
+import com.midokura.midolman.mgmt.jaxrs.validation.AllowedValue;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -89,17 +89,22 @@ public class Rule extends UriResource {
     private String jumpChainName = null;
     private String flowAction = null;
     private NatTarget[] natTargets = {};
-    private int position = 1;
+
     Map<String, String> properties = new HashMap<String, String>();
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message = "is an invalid IP format")
+    @Min(1)
+    private int position = 1;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
     private String nwDstAddress = null;
 
     @Min(0)
     @Max(32)
     private int nwDstLength;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message = "is an invalid IP format")
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
     private String nwSrcAddress = null;
 
     @Min(0)

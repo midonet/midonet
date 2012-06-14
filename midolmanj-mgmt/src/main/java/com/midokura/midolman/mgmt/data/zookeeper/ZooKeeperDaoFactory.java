@@ -62,7 +62,7 @@ import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.JsonJaxbSerializer;
+import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;

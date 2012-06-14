@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.mgmt.rest_api.jaxrs;
+package com.midokura.midolman.mgmt.jaxrs;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;

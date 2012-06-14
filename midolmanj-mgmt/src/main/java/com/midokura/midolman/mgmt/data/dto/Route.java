@@ -14,8 +14,8 @@ import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.layer3.Route.NextHop;
+import com.midokura.midolman.mgmt.jaxrs.validation.AllowedValue;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.validation.AllowedValue;
 import com.midokura.midolman.util.Net;
 import com.midokura.util.StringUtil;
 
@@ -34,6 +34,7 @@ public class Route extends UriResource {
     private UUID nextHopPort;
     private String attributes;
 
+    @NotNull
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
     private String dstNetworkAddr;
 
@@ -44,6 +45,7 @@ public class Route extends UriResource {
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
     private String nextHopGateway;
 
+    @NotNull
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
     private String srcNetworkAddr;
 

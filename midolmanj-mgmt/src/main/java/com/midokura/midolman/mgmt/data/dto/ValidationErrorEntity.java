@@ -11,7 +11,11 @@ import java.util.Map;
  * Class representing validation error.
  */
 public class ValidationErrorEntity extends ErrorEntity {
-    private List<Map<String, String>> violations = new ArrayList<Map<String, String>>();
+
+    // List of Map containing the violated constraint property and its error
+    // message.
+    private List<Map<String, String>> violations =
+            new ArrayList<Map<String, String>>();
 
     /**
      * @return the errors

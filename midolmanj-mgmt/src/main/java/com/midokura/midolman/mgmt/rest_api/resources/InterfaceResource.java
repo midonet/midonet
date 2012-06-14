@@ -33,9 +33,9 @@ import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.BadRequestHttpException;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
-import com.midokura.midolman.mgmt.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.servlet.AuthFilter;
 import com.midokura.midolman.mgmt.servlet.CrossOriginResourceSharingFilter;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;

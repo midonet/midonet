@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.mgmt.rest_api.jaxrs.validation;
+package com.midokura.midolman.mgmt.jaxrs.validation;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;

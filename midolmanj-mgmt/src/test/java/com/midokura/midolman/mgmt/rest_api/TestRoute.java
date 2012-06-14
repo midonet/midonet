@@ -265,11 +265,11 @@ public class TestRoute {
             // Invalid type
             DtoRoute invalidType = new DtoRoute();
             invalidType.setType("badType");
-            nullType.setDstNetworkAddr("10.0.0.1");
-            nullType.setDstNetworkLength(24);
-            nullType.setSrcNetworkAddr("192.168.1.1");
-            nullType.setSrcNetworkLength(24);
-            nullType.setWeight(100);
+            invalidType.setDstNetworkAddr("10.0.0.1");
+            invalidType.setDstNetworkLength(24);
+            invalidType.setSrcNetworkAddr("192.168.1.1");
+            invalidType.setSrcNetworkLength(24);
+            invalidType.setWeight(100);
             params.add(new Object[] { invalidType, "type" });
 
             return params;

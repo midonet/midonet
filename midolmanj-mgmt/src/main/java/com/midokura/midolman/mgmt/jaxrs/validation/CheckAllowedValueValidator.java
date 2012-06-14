@@ -1,12 +1,10 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.mgmt.rest_api.jaxrs.validation;
+package com.midokura.midolman.mgmt.jaxrs.validation;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-
-import scala.actors.threadpool.Arrays;
 
 public class CheckAllowedValueValidator implements
         ConstraintValidator<AllowedValue, String> {
@@ -25,6 +23,13 @@ public class CheckAllowedValueValidator implements
             return true;
         }
 
-        return Arrays.asList(allowedValues).contains(object);
+        // Do case-insensitive matching
+        for(String val : allowedValues) {
+            if(val.equalsIgnoreCase(object)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
