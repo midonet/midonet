@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
+ */
 package com.midokura.midolman.state;
 
 import java.net.InetAddress;

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
+ */
 package com.midokura.midolman.state;
 
 import java.io.ByteArrayInputStream;
@@ -27,7 +31,7 @@ public class DeviceToGreKeyMap {
         dir.add("/" + deviceId.toString(), bos.toByteArray(),
                 CreateMode.PERSISTENT);
     }
-    
+
     public boolean exists(UUID deviceId) throws KeeperException, InterruptedException {
         return dir.has("/" + deviceId.toString());
     }

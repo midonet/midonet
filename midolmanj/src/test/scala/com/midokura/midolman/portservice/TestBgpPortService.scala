@@ -28,7 +28,7 @@ import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
                                     PortZkManager, RouteZkManager,
                                     RouterZkManager, ZkPathManager}
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
-import com.midokura.midolman.util.{Net, ShortUUID, Sudo}
+import com.midokura.midolman.util.{Net, Sudo}
 import com.midokura.midolman.{TestHelpers, Setup}
 import org.hamcrest.Matchers._
 

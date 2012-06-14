@@ -1,5 +1,6 @@
 /*
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 
 package com.midokura.midolman.vrn;
@@ -9,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,12 +19,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import scala.actors.threadpool.Arrays;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.JsonParseException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +65,6 @@ import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.util.ShortUUID;
 import com.midokura.midolman.vrn.VRNController.PacketContinuation;
 
 
@@ -1429,7 +1428,7 @@ public class TestVRNController {
     private void addUplink() throws StateAccessException,
             ZkStateSerializationException {
         // Add an uplink to router0.
-        uplinkId = ShortUUID.intTo32BitUUID(26473345);
+        uplinkId = UUID.randomUUID();
         int p2pUplinkNwAddr = 0xc0a80004;
         uplinkGatewayAddr = p2pUplinkNwAddr + 1;
         uplinkPortAddr = p2pUplinkNwAddr + 2;
