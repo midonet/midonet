@@ -34,28 +34,28 @@
   </context-param>
   <context-param>
   	 <param-name>cassandra_servers</param-name>
-  	 < param-value>localhost:2181</param-value>
+  	 <param-value>localhost:2181</param-value>
   </context-param>
   <!-- The following parameters should match the ones in midolman.conf
   <context-param>
-  	 <param-name>cassandra_cluster</param-name>
-  	 < param-value>midonet</param-value>
+     <param-name>cassandra_cluster</param-name>
+     <param-value>midonet</param-value>
   </context-param>
   <context-param>
-  	 <param-name>monitoring_cassandra_keyspace</param-name>
-  	 < param-value>midonet_monitoring_keyspace</param-value>
+     <param-name>monitoring_cassandra_keyspace</param-name>
+     <param-value>midonet_monitoring_keyspace</param-value>
   </context-param>
   <context-param>
-  	 <param-name>monitoring_cassandra_column_family</param-name>
-  	 < param-value>midonet_monitoring_column_family</param-value>
+     <param-name>monitoring_cassandra_column_family</param-name>
+     <param-value>midonet_monitoring_column_family</param-value>
   </context-param>
   <context-param>
-  	 <param-name>monitoring_cassandra_replication_factor</param-name>
-  	 < param-value>2</param-value>
+     <param-name>monitoring_cassandra_replication_factor</param-name>
+     <param-value>2</param-value>
   </context-param>
   <context-param>
-  	 <param-name>monitoring_cassandra_expiration_timeout</param-name>
-  	 < param-value>525600</param-value>
+     <param-name>monitoring_cassandra_expiration_timeout</param-name>
+     <param-value>525600</param-value>
   </context-param>
   -->
   <filter>
