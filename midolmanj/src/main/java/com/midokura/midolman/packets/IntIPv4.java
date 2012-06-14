@@ -1,3 +1,6 @@
+/*
+ * Copyright 2011 Midokura KK
+ */
 package com.midokura.midolman.packets;
 
 import com.midokura.midolman.util.Net;
