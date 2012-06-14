@@ -151,14 +151,14 @@ public class StatsTest {
         // Aggregate stats for flows whose destination ip is tap1.
         AgFlowStats flowsTo1 =
             svcController.getAgFlowStats(
-                new MidoMatch().setNetworkDestination(tapIp1.address, 32));
+                new MidoMatch().setNetworkDestination(tapIp1.addressAsInt(), 32));
         flowsTo1.expectFlowCount(0);
 
         // Individual flows from tap1 to peerPort and back.
         MidoMatch match1ToPeer =
             new MidoMatch()
-                .setNetworkSource(tapIp1.address, 32)
-                .setNetworkDestination(peerIp.address, 32);
+                .setNetworkSource(tapIp1.addressAsInt(), 32)
+                .setNetworkDestination(peerIp.addressAsInt(), 32);
 
         List<FlowStats> fstats = svcController.getFlowStats(match1ToPeer);
         assertThat("No FlowStats are available from tap to peer port",
@@ -166,8 +166,8 @@ public class StatsTest {
 
         MidoMatch matchPeerTo1 =
             new MidoMatch()
-                .setNetworkSource(peerIp.address, 32)
-                .setNetworkDestination(tapIp1.address, 32);
+                .setNetworkSource(peerIp.addressAsInt(), 32)
+                .setNetworkDestination(tapIp1.addressAsInt(), 32);
         fstats = svcController.getFlowStats(matchPeerTo1);
         assertThat("No FlowStats are available from peer to tap port",
                    fstats, hasSize(0));
@@ -242,8 +242,8 @@ public class StatsTest {
         // There's a new flow from tap 2 to 1.
         fstats = svcController.getFlowStats(
             new MidoMatch()
-                .setNetworkSource(tapIp2.address, 32)
-                .setNetworkDestination(tapIp1.address, 32));
+                .setNetworkSource(tapIp2.addressAsInt(), 32)
+                .setNetworkDestination(tapIp1.addressAsInt(), 32));
         assertThat(
             format("There is only one stats object from %s to %s",
                    tapIp2.toString(), tapIp1.toString()),

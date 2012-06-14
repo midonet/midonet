@@ -118,7 +118,7 @@ public class BridgeRouterTest {
                 .setNetworkAddress(subnetAddr1.toUnicastString())
                 .setNetworkLength(subnetAddr1.getMaskLength())
                 .setPortAddress(
-                        new IntIPv4(subnetAddr1.address + 1)
+                        new IntIPv4(subnetAddr1.addressAsInt() + 1)
                             .toUnicastString()).build();
         bridge1Port = bridge1.addLinkPort().build();
         routerPort1.link(bridge1Port);
@@ -134,7 +134,7 @@ public class BridgeRouterTest {
                 .setNetworkAddress(subnetAddr2.toUnicastString())
                 .setNetworkLength(subnetAddr2.getMaskLength())
                 .setPortAddress(
-                        new IntIPv4(subnetAddr2.address + 1)
+                        new IntIPv4(subnetAddr2.addressAsInt() + 1)
                             .toUnicastString()).build();
         bridge2Port = bridge2.addLinkPort().build();
         routerPort2.link(bridge2Port);

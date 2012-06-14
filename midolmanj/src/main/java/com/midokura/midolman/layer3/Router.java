@@ -313,6 +313,9 @@ public class Router implements ForwardingElement {
                     ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
             reactor.schedule(new ArpExpiration(nwAddr, portId),
                     ARP_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } else {
+            log.debug("Not ARP'ing for {} because an ARP is already " +
+                      "outstanding.", nwAddr);
         }
         cbList.add(cb);
     }
@@ -412,7 +415,8 @@ public class Router implements ForwardingElement {
             throw new RuntimeException("Pre-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
 
-        log.debug("{} send to forwarding table {}", this, fwdInfo);
+        log.debug("Packet context {} passed pre-routing in router {}",
+                  fwdInfo, this);
         // Do a routing table lookup.
         Route rt = loadBalancer.lookup(res.match);
         if (null == rt) {

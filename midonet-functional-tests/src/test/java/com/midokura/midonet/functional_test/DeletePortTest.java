@@ -215,8 +215,8 @@ public class DeletePortTest {
         // Verify that there are flows: 1->3, 3->1, 2->3, 3->2.
         fstats =
             svcController.getFlowStats(
-                new MidoMatch().setNetworkSource(ip1.address)
-                               .setNetworkDestination(ip3.address));
+                new MidoMatch().setNetworkSource(ip1.addressAsInt())
+                               .setNetworkDestination(ip3.addressAsInt()));
 
         assertThat("Only one FlowStats object should be visible",
                    fstats, hasSize(1));
@@ -225,24 +225,24 @@ public class DeletePortTest {
         flow1_3.expectCount(1).expectOutputAction(num3);
 
         fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip3.address)
-                           .setNetworkDestination(ip1.address));
+            new MidoMatch().setNetworkSource(ip3.addressAsInt())
+                           .setNetworkDestination(ip1.addressAsInt()));
         assertThat("Only one FlowStats object should be visible.",
                    fstats, hasSize(1));
         FlowStats flow3_1 = fstats.get(0);
         flow3_1.expectCount(1).expectOutputAction(num1);
 
         fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip2.address)
-                           .setNetworkDestination(ip3.address));
+            new MidoMatch().setNetworkSource(ip2.addressAsInt())
+                           .setNetworkDestination(ip3.addressAsInt()));
         assertThat("One one FlowStats object should be visible.",
                    fstats, hasSize(1));
         FlowStats flow2_3 = fstats.get(0);
         flow2_3.expectCount(1).expectOutputAction(num3);
 
         fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip3.address)
-                           .setNetworkDestination(ip2.address));
+            new MidoMatch().setNetworkSource(ip3.addressAsInt())
+                           .setNetworkDestination(ip2.addressAsInt()));
         assertThat("Only one FlowStats object should be visible.",
                    fstats, hasSize(1));
         FlowStats flow3_2 = fstats.get(0);

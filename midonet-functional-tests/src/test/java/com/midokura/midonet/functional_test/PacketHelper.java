@@ -74,9 +74,9 @@ public class PacketHelper {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REPLY);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.address));
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()));
         arp.setTargetHardwareAddress(dlDst);
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.address));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addressAsInt()));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(dlSrc);
@@ -173,12 +173,12 @@ public class PacketHelper {
                        hasProperty("senderHardwareAddress", equalTo(dlSrc)),
                        hasProperty("senderProtocolAddress",
                                    equalTo(
-                                       IPv4.toIPv4AddressBytes(nwSrc.address))),
+                                       IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()))),
                        hasProperty("targetHardwareAddress",
                                    equalTo(dlDst)),
                        hasProperty("targetProtocolAddress",
                                    equalTo(
-                                       IPv4.toIPv4AddressBytes(nwDst.address)))
+                                       IPv4.toIPv4AddressBytes(nwDst.addressAsInt())))
                    ));
         return dlSrc;
     }
@@ -201,9 +201,9 @@ public class PacketHelper {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.address));
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()));
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"));
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.address));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addressAsInt()));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(dlSrc);
@@ -280,14 +280,14 @@ public class PacketHelper {
                    arp.getSenderHardwareAddress(), equalTo(dlSrc));
         assertThat("the ARP sender protocol address is set to the source IP",
                    arp.getSenderProtocolAddress(),
-                   equalTo(IPv4.toIPv4AddressBytes(nwSrc.address)));
+                   equalTo(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt())));
         assertThat("the ARP target hardware address is set to the empty MAC",
                    arp.getTargetHardwareAddress(),
                    equalTo(MAC.fromString("00:00:00:00:00:00")));
         assertThat(
             "the ARP target protocol address is set to the destination IP",
             arp.getTargetProtocolAddress(),
-            equalTo(IPv4.toIPv4AddressBytes(nwDst.address)));
+            equalTo(IPv4.toIPv4AddressBytes(nwDst.addressAsInt())));
     }
 
     /**
@@ -336,7 +336,7 @@ public class PacketHelper {
             assertEquals(ipRequest.getDestinationAddress(),
                          ipReply.getSourceAddress());
         else
-            assertEquals(srcIp.address,
+            assertEquals(srcIp.addressAsInt(),
                          ipReply.getSourceAddress());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipRequest.getProtocol());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipReply.getProtocol());
@@ -375,8 +375,8 @@ public class PacketHelper {
         ip.setTtl((byte)12);
         ip.setPayload(icmp);
         ip.setProtocol(ICMP.PROTOCOL_NUMBER);
-        ip.setSourceAddress(nwSrc.address);
-        ip.setDestinationAddress(nwDst.address);
+        ip.setSourceAddress(nwSrc.addressAsInt());
+        ip.setDestinationAddress(nwDst.addressAsInt());
         Ethernet pkt = new Ethernet();
         pkt.setPayload(ip);
         pkt.setEtherType(IPv4.ETHERTYPE);
@@ -445,8 +445,8 @@ public class PacketHelper {
         assertEquals(dlDst, pkt.getDestinationMACAddress());
         assertEquals(IPv4.ETHERTYPE, pkt.getEtherType());
         IPv4 ip = IPv4.class.cast(pkt.getPayload());
-        assertEquals(nwSrc.address, ip.getSourceAddress());
-        assertEquals(nwDst.address, ip.getDestinationAddress());
+        assertEquals(nwSrc.addressAsInt(), ip.getSourceAddress());
+        assertEquals(nwDst.addressAsInt(), ip.getDestinationAddress());
         assertEquals(ICMP.PROTOCOL_NUMBER, ip.getProtocol());
         ICMP icmp = ICMP.class.cast(ip.getPayload());
         assertTrue(icmp.isError());

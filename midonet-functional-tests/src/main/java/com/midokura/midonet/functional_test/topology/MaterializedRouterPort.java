@@ -34,11 +34,11 @@ public class MaterializedRouterPort {
 
         public VMPortBuilder setVMAddress(IntIPv4 addr) {
             int mask = ~0 << 8;
-            IntIPv4 netAddr = new IntIPv4(addr.address & mask);
+            IntIPv4 netAddr = new IntIPv4(addr.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
             port.setLocalNetworkAddress(addr.toString());
             // The router port's address is 1 + the network address.
-            IntIPv4 portAddr = new IntIPv4(1 + netAddr.address);
+            IntIPv4 portAddr = new IntIPv4(1 + netAddr.addressAsInt());
             port.setPortAddress(portAddr.toString());
             return this;
         }
@@ -88,7 +88,7 @@ public class MaterializedRouterPort {
             this.peerIp = peerIp;
             port.setPortAddress(localIp.toString());
             int mask = ~0 << 8;
-            IntIPv4 netAddr = new IntIPv4(localIp.address & mask);
+            IntIPv4 netAddr = new IntIPv4(localIp.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
             port.setLocalNetworkAddress(netAddr.toString());
             return this;
@@ -138,13 +138,13 @@ public class MaterializedRouterPort {
 
         public VPNPortBuilder setLocalIp(IntIPv4 addr) {
             int mask = ~0 << 8;
-            IntIPv4 netAddr = new IntIPv4(addr.address & mask);
+            IntIPv4 netAddr = new IntIPv4(addr.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
             port.setNetworkLength(24);
             port.setLocalNetworkAddress(addr.toString());
             port.setLocalNetworkLength(24);
             // The router port's address is 1 + the network address.
-            IntIPv4 portAddr = new IntIPv4(1 + netAddr.address);
+            IntIPv4 portAddr = new IntIPv4(1 + netAddr.addressAsInt());
             port.setPortAddress(portAddr.toString());
             return this;
         }
