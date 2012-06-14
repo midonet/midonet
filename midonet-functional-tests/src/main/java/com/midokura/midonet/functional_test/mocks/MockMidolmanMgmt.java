@@ -183,7 +183,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public DtoTenant addTenant(DtoTenant t) {
-        URI uri = post(app.getTenant(), t);
+        URI uri = post(app.getTenants(), t);
         return get(uri, DtoTenant.class);
     }
 
@@ -268,7 +268,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     public DtoTenant[] getTenants() {
-        return get(app.getTenant(), DtoTenant[].class);
+        return get(app.getTenants(), DtoTenant[].class);
     }
 
     public DtoHost[] getHosts() {
@@ -328,7 +328,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public void deleteTenant(String name) {
-        delete(UriBuilder.fromUri(app.getTenant()).path(name).build());
+        delete(UriBuilder.fromUri(app.getTenants()).path(name).build());
     }
 
     @Override

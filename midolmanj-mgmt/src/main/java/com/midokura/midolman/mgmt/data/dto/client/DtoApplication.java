@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoApplication {
     private String version;
     private URI uri;
-    private URI tenant;
+    private URI tenants;
     private URI hosts;
 
     public String getVersion() {
@@ -31,12 +31,12 @@ public class DtoApplication {
         this.uri = uri;
     }
 
-    public URI getTenant() {
-        return tenant;
+    public URI getTenants() {
+        return tenants;
     }
 
-    public void setTenant(URI tenant) {
-        this.tenant = tenant;
+    public void setTenants(URI tenants) {
+        this.tenants = tenants;
     }
 
     public URI getHosts() {

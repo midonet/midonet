@@ -124,7 +124,7 @@ public class TestChain {
 
             tenant1 = new DtoTenant();
             tenant1.setId("ChainTenant1");
-            response = resource().uri(app.getTenant())
+            response = resource().uri(app.getTenants())
                     .type(APPLICATION_TENANT_JSON)
                     .post(ClientResponse.class, tenant1);
             assertEquals("The tenant was created.", 201, response.getStatus());
@@ -133,7 +133,7 @@ public class TestChain {
 
             tenant2 = new DtoTenant();
             tenant2.setId("ChainTenant2");
-            response = resource().uri(app.getTenant())
+            response = resource().uri(app.getTenants())
                     .type(APPLICATION_TENANT_JSON)
                     .post(ClientResponse.class, tenant2);
             assertEquals("The tenant was created.", 201, response.getStatus());

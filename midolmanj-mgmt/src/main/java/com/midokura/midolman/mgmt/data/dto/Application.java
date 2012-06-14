@@ -49,7 +49,7 @@ public class Application extends UriResource {
     /**
      * @return the tenants URI
      */
-    public URI getTenant() {
+    public URI getTenants() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getTenants(getBaseUri());
         } else {

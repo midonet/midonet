@@ -52,7 +52,7 @@ public class TestPortGroup extends JerseyTest {
 
         tenant1 = new DtoTenant();
         tenant1.setId("GroupTenant1");
-        response = resource().uri(app.getTenant())
+        response = resource().uri(app.getTenants())
                 .type(APPLICATION_TENANT_JSON)
                 .post(ClientResponse.class, tenant1);
         assertEquals("The tenant was created.", 201, response.getStatus());
@@ -62,7 +62,7 @@ public class TestPortGroup extends JerseyTest {
 
         tenant2 = new DtoTenant();
         tenant2.setId("GroupTenant2");
-        response = resource().uri(app.getTenant())
+        response = resource().uri(app.getTenants())
                 .type(APPLICATION_TENANT_JSON)
                 .post(ClientResponse.class, tenant2);
         assertEquals("The tenant was created.", 201, response.getStatus());
