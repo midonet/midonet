@@ -13,13 +13,17 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.spi.container.TestContainerException;
 import org.apache.zookeeper.KeeperException;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.hamcrest.Matchers;
 import org.json.simple.JSONValue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
@@ -30,6 +34,12 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoMetricTarget;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.monitoring.store.CassandraStore;
+import static com.midokura.midolman.mgmt.config.AppConfig.CASSANDRA_CLUSTER;
+import static com.midokura.midolman.mgmt.config.AppConfig.CASSANDRA_SERVERS;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_KEYSPACE;
+import static com.midokura.midolman.mgmt.config.AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR;
 
 /**
  * Date: 5/4/12
@@ -37,6 +47,9 @@ import com.midokura.midolman.monitoring.store.CassandraStore;
 public class TestMonitoring extends JerseyTest {
 
     private static CassandraStore store;
+    public static final String cassandraCluster = "midonet";
+    public static final String monitoringCassandraKeyspace = "midonet_monitoring_keyspace";
+    public static final String monitoringCassandraColumnFamily = "midonet_monitoring_column_family";
     UUID targetIdentifier =
         UUID.fromString("826400c0-a589-11e1-b3dd-0800200c9a66");
     String type = "Test";
@@ -45,6 +58,8 @@ public class TestMonitoring extends JerseyTest {
     static int replicationFactor = 1;
     static int ttlInSecs = 1000;
     int numEntries = 10;
+
+    final static String cassandraServers = "127.0.0.1:9171";
 
 
     static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
@@ -55,8 +70,20 @@ public class TestMonitoring extends JerseyTest {
     }
 
     public TestMonitoring() throws TestContainerException {
-        super(FuncTest.appDesc);
-
+        super(
+            FuncTest
+                .getBuilder()
+                .contextParam(CASSANDRA_SERVERS, cassandraServers)
+                .contextParam(CASSANDRA_CLUSTER, cassandraCluster)
+                .contextParam(MONITORING_CASSANDRA_KEYSPACE,
+                              monitoringCassandraKeyspace)
+                .contextParam(MONITORING_CASSANDRA_COLUMN_FAMILY,
+                              monitoringCassandraColumnFamily)
+                .contextParam(MONITORING_CASSANDRA_REPLICATION_FACTOR,
+                              "" + replicationFactor)
+                .contextParam(MONITORING_CASSANDRA_EXPIRATION_TIMEOUT,
+                              "" + ttlInSecs)
+                .build());
     }
 
     @BeforeClass
@@ -71,10 +98,10 @@ public class TestMonitoring extends JerseyTest {
 
         // Needs to be set up everytime because the keyspace and columnfamily gets erased
         // by EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-        store = new CassandraStore("localhost:9171",
-                                   "Mido Cluster",
-                                   "MM_Monitoring",
-                                   "Monitoring",
+        store = new CassandraStore(cassandraServers,
+                                   cassandraCluster,
+                                   monitoringCassandraKeyspace,
+                                   monitoringCassandraColumnFamily,
                                    replicationFactor, ttlInSecs);
 
     }
@@ -83,13 +110,13 @@ public class TestMonitoring extends JerseyTest {
     public void resetDirectory() throws Exception {
         StaticMockDaoFactory.clearFactoryInstance();
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-
     }
 
     @Test
     public void testGetMetric() {
         // No metric in the store
         DtoMetricTarget target = new DtoMetricTarget();
+
         target.setTargetIdentifier(targetIdentifier);
         target.setType(type);
 
@@ -101,16 +128,20 @@ public class TestMonitoring extends JerseyTest {
 
         store.addMetric(type, targetIdentifier.toString(), metricName);
 
-        metrics = resource().path("/metrics/filter").type(
-            VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
+        metrics = resource().path("/metrics/filter")
+            .type(VendorMediaType.APPLICATION_METRIC_TARGET_JSON)
             .post(DtoMetric[].class, target);
-        assertThat("The size of the array is correct", metrics.length,
-                   equalTo(1));
-        assertThat("We retrieved the metric correctly", metrics[0].getName(),
-                   equalTo(metricName));
-        assertThat("The metric was assigned to the right targetObject",
-                   metrics[0].getTargetIdentifier(),
-                   equalTo(targetIdentifier));
+
+        assertThat("We have only one element returned",
+                   metrics, arrayWithSize(1));
+
+        assertThat("We received the proper element in return",
+                   metrics[0],
+                   allOf(
+                       Matchers.<DtoMetric>hasProperty(
+                           "name", is(metricName)),
+                       Matchers.<DtoMetric>hasProperty(
+                           "targetIdentifier", is(targetIdentifier))));
 
         // add a metric
         String secondMetricName = "TestMetric2";

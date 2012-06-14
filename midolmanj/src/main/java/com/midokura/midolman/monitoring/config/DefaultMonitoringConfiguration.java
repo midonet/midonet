@@ -51,7 +51,7 @@ public class DefaultMonitoringConfiguration
     }
 
     @Override
-    public String getMonitoringCassandraKeySpace() {
+    public String getMonitoringCassandraKeyspace() {
         return safeGetString("monitoring",
                              "cassandra_key_space", "midonet_monitoring_keyspace");
     }
@@ -63,12 +63,12 @@ public class DefaultMonitoringConfiguration
     }
 
     @Override
-    public int getCassandraReplicationFactor() {
+    public int getMonitoringCassandraReplicationFactor() {
         return safeGetInt("cassandra", "replication_factor", 3);
     }
 
     @Override
-    public int getCassandraExpirationTimeout() {
+    public int getMonitoringCassandraExpirationTimeout() {
         return safeGetInt("cassandra", "expiration_timeout",
                            (int)TimeUnit.DAYS.toSeconds(365)); // 1 year default
     }

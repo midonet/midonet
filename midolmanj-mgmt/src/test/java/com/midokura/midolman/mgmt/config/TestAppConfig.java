@@ -4,18 +4,17 @@
  */
 package com.midokura.midolman.mgmt.config;
 
-import static org.mockito.Mockito.doReturn;
-
 import javax.servlet.ServletContext;
 
 import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestAppConfig {
@@ -169,4 +168,58 @@ public class TestAppConfig {
 
 		Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
 	}
+
+    @Test
+    public void testGetCassandraServers() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.CASSANDRA_SERVERS);
+        assertEquals("default", testObject.getCassandraServers("default"));
+
+        doReturn("value").when(context).getInitParameter(AppConfig.CASSANDRA_SERVERS);
+        assertEquals("value", testObject.getCassandraServers("default"));
+    }
+
+    @Test
+    public void testGetCassandraClusterServers() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.CASSANDRA_CLUSTER);
+        assertEquals("default", testObject.getCassandraCluster("default"));
+
+        doReturn("value").when(context).getInitParameter(AppConfig.CASSANDRA_CLUSTER);
+        assertEquals("value", testObject.getCassandraCluster("default"));
+    }
+
+    @Test
+    public void testGetMonitoringCassandraKeyspace() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_KEYSPACE);
+        assertEquals("default", testObject.getMonitoringCassandraKeyspace("default"));
+
+        doReturn("value").when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_KEYSPACE);
+        assertEquals("value", testObject.getMonitoringCassandraKeyspace("default"));
+    }
+
+    @Test
+    public void testGetMonitoringCassandraColumnFamily() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY);
+        assertEquals("default", testObject.getMonitoringCassandraColumnFamily("default"));
+
+        doReturn("value").when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_COLUMN_FAMILY);
+        assertEquals("value", testObject.getMonitoringCassandraColumnFamily("default"));
+    }
+
+    @Test
+    public void testGetMonitoringCassandraReplicationFactor() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR);
+        assertEquals(8069, testObject.getMonitoringCassandraReplicationFactor(8069));
+
+        doReturn("" + 3001).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_REPLICATION_FACTOR);
+        assertEquals(3001, testObject.getMonitoringCassandraReplicationFactor(8069));
+    }
+
+    @Test
+    public void testGetMonitoringCassandraExpirationTimeout() throws Exception {
+        doReturn(null).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
+        assertEquals(8069, testObject.getMonitoringCassandraExpirationTimeout(8069));
+
+        doReturn("" + 3001).when(context).getInitParameter(AppConfig.MONITORING_CASSANDRA_EXPIRATION_TIMEOUT);
+        assertEquals(3001, testObject.getMonitoringCassandraExpirationTimeout(8069));
+    }
 }

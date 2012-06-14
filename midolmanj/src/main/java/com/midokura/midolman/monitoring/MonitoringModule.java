@@ -60,10 +60,10 @@ public class MonitoringModule extends AbstractModule {
             store = new CassandraStore(
                 config.getCassandraServers(),
                 config.getCassandraCluster(),
-                config.getMonitoringCassandraKeySpace(),
+                config.getMonitoringCassandraKeyspace(),
                 config.getMonitoringCassandraColumnFamily(),
-                config.getCassandraReplicationFactor(),
-                config.getCassandraExpirationTimeout());
+                config.getMonitoringCassandraReplicationFactor(),
+                config.getMonitoringCassandraExpirationTimeout());
         } catch (HectorException e) {
             log.error("Fatal error, unable to initialize CassandraStore", e);
         }

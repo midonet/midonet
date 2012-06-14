@@ -25,7 +25,7 @@ public interface MonitoringConfiguration {
     /**
      * @return the cassandra key space we want to use for the monitoring data.
      */
-    String getMonitoringCassandraKeySpace();
+    String getMonitoringCassandraKeyspace();
 
     /**
      * @return the cassandra column family we want to use for the monitoring data.
@@ -35,12 +35,12 @@ public interface MonitoringConfiguration {
     /**
      * @return the cassandra replication factor to use.
      */
-    int getCassandraReplicationFactor();
+    int getMonitoringCassandraReplicationFactor();
 
     /**
      * @return the cassandra expiration timeout (in seconds).
      */
-    int getCassandraExpirationTimeout();
+    int getMonitoringCassandraExpirationTimeout();
 
     /**
      * @return the pooling time between two metric gathering data entries.

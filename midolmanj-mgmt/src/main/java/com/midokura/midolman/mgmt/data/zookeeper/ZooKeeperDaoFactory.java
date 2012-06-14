@@ -4,6 +4,8 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -63,6 +65,7 @@ import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
@@ -105,7 +108,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     public ZooKeeperDaoFactory(AppConfig config)
             throws DaoInitializationException {
         super(config);
-        log.debug("ZooKeeperDaoFactory: Initailizing ZooKeeperDaoFactory");
+        log.debug("ZooKeeperDaoFactory: Initializing ZooKeeperDaoFactory");
+
         this.rootPath = config.getZkRootPath();
         this.rootMgmtPath = config.getZkMgmtRootPath();
         this.connStr = config.getZkConnectionString();
@@ -446,11 +450,65 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private CassandraStore getCassandraStore() {
-        return new CassandraStore(AppConfig.cassandraServer,
-                AppConfig.cassandraCluster,
-                AppConfig.cassandraMonitoringKeySpace,
-                AppConfig.cassandraMonitoringColumnFamily,
-                AppConfig.cassandraReplicationFactor,
-                AppConfig.cassandraTtlInSecs);
+        MonitoringConfiguration configuration = getMonitoringConfiguration();
+        return new CassandraStore(
+            configuration.getCassandraServers(),
+            configuration.getCassandraCluster(),
+            configuration.getMonitoringCassandraKeyspace(),
+            configuration.getMonitoringCassandraColumnFamily(),
+            configuration.getMonitoringCassandraReplicationFactor(),
+            configuration.getMonitoringCassandraExpirationTimeout()
+        );
+    }
+
+    private MonitoringConfiguration getMonitoringConfiguration() {
+        return new MonitoringConfiguration() {
+            @Override
+            public String getCassandraServers() {
+                return config.getCassandraServers("127.0.0.1:9171");
+            }
+
+            @Override
+            public String getCassandraCluster() {
+                return config.getCassandraCluster("midonet");
+            }
+
+            @Override
+            public String getMonitoringCassandraKeyspace() {
+                return config.getMonitoringCassandraKeyspace(
+                    "midonet_monitoring_keyspace");
+            }
+
+            @Override
+            public String getMonitoringCassandraColumnFamily() {
+                return config.getMonitoringCassandraColumnFamily(
+                    "midonet_monitoring_column_family");
+            }
+
+            @Override
+            public int getMonitoringCassandraReplicationFactor() {
+                return config.getMonitoringCassandraReplicationFactor(2);
+            }
+
+            @Override
+            public int getMonitoringCassandraExpirationTimeout() {
+                return config.getMonitoringCassandraExpirationTimeout(
+                    (int) TimeUnit.DAYS.toSeconds(365));
+            }
+
+            @Override
+            public int getMonitoringCassandraReporterPoolTime() {
+                throw new IllegalArgumentException(
+                    "This method should not be called from inside the " +
+                        "Midonet REST Api application.");
+            }
+
+            @Override
+            public int getZookeeperJMXPort() {
+                throw new IllegalArgumentException(
+                    "This method should not be called from inside the " +
+                        "Midonet REST Api application.");
+            }
+        };
     }
 }
