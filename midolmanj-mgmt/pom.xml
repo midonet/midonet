@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>12.06.0</version>
+        <version>12.12-SNAPSHOT</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>12.06.0</version>
+    <version>12.12-SNAPSHOT</version>
     <artifactId>midolmanj-mgmt</artifactId>
     <packaging>war</packaging>
 
@@ -367,7 +367,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
-            <version>12.06.0</version>
+            <version>12.12-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun</groupId>
@@ -378,7 +378,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midolmanj</artifactId>
-            <version>12.06.0</version>
+            <version>12.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>
