@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>12.06-SNAPSHOT</version>
+        <version>12.06.0</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>12.06-SNAPSHOT</version>
+    <version>12.06.0</version>
     <artifactId>midolmanj-mgmt</artifactId>
     <packaging>war</packaging>
 
@@ -37,14 +35,12 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml"/>
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml.sample"/>
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml"/>
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.sample"/>
-                                <copy file="src/main/webapp/WEB-INF/web.xml.sample"
-                                      tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml"/>
-                                <copy file="conf/log4j.xml.sample"
-                                      tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml"/>
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml.sample" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.sample" />
+                                <copy file="src/main/webapp/WEB-INF/web.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
+                                <copy file="conf/log4j.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml" />
                             </tasks>
                         </configuration>
                         <goals>
@@ -371,7 +367,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
-            <version>12.06-SNAPSHOT</version>
+            <version>12.06.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun</groupId>
@@ -382,7 +378,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midolmanj</artifactId>
-            <version>12.06-SNAPSHOT</version>
+            <version>12.06.0</version>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>

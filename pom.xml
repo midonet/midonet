@@ -1,14 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.midokura</groupId>
     <artifactId>midonet-parent</artifactId>
     <packaging>pom</packaging>
-    <version>12.06-SNAPSHOT</version>
+    <version>12.06.0</version>
     <name>Midokura MidoNet aggregator project</name>
 
     <modules>
@@ -22,7 +19,8 @@
         <developerConnection>scm:git:git@github.com:midokura/midonet.git</developerConnection>
         <connection>scm:git:git@github.com:midokura/midonet.git</connection>
         <url>scm:git:git@github.com:midokura/midonet.git</url>
-    </scm>
+      <tag>babuza-12.06.0</tag>
+  </scm>
 
     <properties>
         <versions.jackson>1.9.3</versions.jackson>
