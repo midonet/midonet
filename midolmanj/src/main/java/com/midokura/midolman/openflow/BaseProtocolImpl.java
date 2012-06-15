@@ -109,17 +109,23 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
     
     protected void write(OFMessage msg) throws IOException {
-    	if (!connected) {
-    		log.warn("write: tried to write to disconnected socket");
-    		return;
-    	}
-    	
-    	try {
-			stream.write(msg);
-		} catch (IOException e) {
-			log.warn("write", e);
-			disconnectSwitch();
-		}
+        if (!connected) {
+            log.warn("write: tried to write to disconnected socket");
+            return;
+        }
+
+        try {
+            stream.write(msg);
+        } catch (IOException e) {
+            log.warn("write", e);
+            
+            reactor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    disconnectSwitch();
+                }
+            });
+        }
     }
 
     protected int initiateOperation(SuccessHandler successHandler,
@@ -231,8 +237,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected abstract void onConnectionLost();
 
     protected void disconnectSwitch() {
-    	this.connected = false;
-    	
+        this.connected = false;
+        
         key.cancel();
         onConnectionLost();
         try {
@@ -355,10 +361,10 @@ public abstract class BaseProtocolImpl implements SelectListener {
         }, null, OFType.ECHO_REQUEST));
         
         try {
-			write(m);
-		} catch (IOException e) {
-			log.warn("sendEchoRequest", e);
-		}
+            write(m);
+        } catch (IOException e) {
+            log.warn("sendEchoRequest", e);
+        }
     }
 
     @Override

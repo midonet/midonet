@@ -199,10 +199,10 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }, Long.valueOf(500), OFType.FEATURES_REQUEST));
 
         try {
-			write(m);
-		} catch (IOException e) {
-			log.warn("sendFeaturesRequest", e);
-		}
+            write(m);
+        } catch (IOException e) {
+            log.warn("sendFeaturesRequest", e);
+        }
     }
 
     protected void sendConfigRequest() {
@@ -234,10 +234,10 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
 
         try {
-			write(m);
-		} catch (IOException e) {
-			log.warn("sendConfigRequest", e);
-		}
+            write(m);
+        } catch (IOException e) {
+            log.warn("sendConfigRequest", e);
+        }
     }
 
     private boolean isValidStatsRequestLength(
@@ -329,7 +329,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                      " length: " + String.valueOf(request.getLengthU()));
 
         try {
-        	write(request);
+            write(request);
         } catch (IOException e) {
             log.warn("sendStatsRequest", e);
         }
