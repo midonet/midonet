@@ -149,6 +149,7 @@ public class Rule extends UriResource {
             this.type = natRule.dnat ? Rule.RevDNAT : Rule.RevSNAT;
         } else {
             this.jumpChainName = ((JumpRule) zkRule).jumpToChainName;
+            this.type = Rule.Jump;
         }
         this.id = id;
         this.position = zkRule.position;
