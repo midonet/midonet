@@ -31,27 +31,36 @@ def copy(**kwargs):
            package=p, target=target, repo_host=kwargs['repo_host'])
         ftp.put(p, target)
 
+def _exec_cmd(cmd):
+    ssh = get_ssh(kwargs['repo_host'])
+    in_, out, err = ssh.exec_command(cmd)
+    in_.write(kwargs['passphrase'] + '\n')
+    in_.write(kwargs['passphrase'] + '\n')
+    in_.flush()
+    print "---stdout---"
+    print out.read()
+    print "---stderr---"
+    print err.read()
+    print "------------"
 
 # put packages in the apt repository
 def put_on_apt(**kwargs):
     ssh = get_ssh(kwargs['repo_host'])
     for p in kwargs['packages']:
         pname = os.path.basename(p)
+        if kwargs['force']:
+            import re
+            pname_prefix = re.sub('_.*.deb$','', pname)
+            cmd = 'cd {repo} && reprepro remove {codename} '\
+              ' {package}'.format(repo=kwargs['repo_path'],
+               codename=kwargs['codename'], package=pname_prefix)
+            _exec_cmd(cmd)
+
         cmd = 'cd {repo} && reprepro includedeb {codename} '\
               ' ./archive/{package}'.format(repo=kwargs['repo_path'],
                codename=kwargs['codename'], package=pname)
 
-        print "executing command: ", cmd
-        in_, out, err = ssh.exec_command(cmd)
-        in_.write(kwargs['passphrase'] + '\n')
-        in_.write(kwargs['passphrase'] + '\n')
-        in_.flush()
-        print "---stdout---"
-        print out.read()
-        print "---stderr---"
-        print err.read()
-        print "------------"
-
+        _exec_cmd(cmd)
 
 def main(**kwargs):
     copy(**kwargs)
@@ -67,10 +76,13 @@ if __name__ == '__main__':
                         help='Ubuntu codename of underlying platform')
     parser.add_argument('-p', metavar='passphrase', help='GPG passphrase',
                          required=True)
+    parser.add_argument('-f', action='store_true', help='override package')
+
     args = parser.parse_args()
 
     repo_host = args.r.split(':')[0]
     repo_path = args.r.split(':')[1]
-    kwargs = {'repo_host': repo_host, 'repo_path': repo_path, 'codename': args.c,
-               'passphrase' : args.p, 'packages': args.packages}
+    kwargs = {'repo_host': repo_host, 'repo_path': repo_path,
+              'codename': args.c, 'passphrase' : args.p,
+              'packages': args.packages, 'force':args.f}
     main(**kwargs)
