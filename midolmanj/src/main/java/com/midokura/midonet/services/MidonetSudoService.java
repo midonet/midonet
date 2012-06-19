@@ -35,10 +35,10 @@ public class MidonetSudoService {
     private static String midonetHelperServiceBinary = "midonet-privsep";
 
     private static final Logger log = LoggerFactory
-        .getLogger(MidonetSudoService.class);
+            .getLogger(MidonetSudoService.class);
 
     public static synchronized MidonetPrivSepServer.Iface getClient()
-        throws Exception {
+            throws Exception {
 
         if (sudoHelperProcess == null || clientInterface == null) {
             startHelperService();
@@ -49,43 +49,43 @@ public class MidonetSudoService {
             // fail. So we wait a little here before trying to connect. This is
             // a hack but it beats looking into the jsch sources for the root
             // cause.
-            Thread.sleep(100);
+            Thread.sleep(50);
 
             Timed.ExecutionResult<MidonetPrivSepServer.Client> clientResult =
-                Timed.newTimedExecution()
-                     .until(TimeUnit.SECONDS.toMillis(20))
-                     .waiting(TimeUnit.MILLISECONDS.toMillis(250))
-                     .execute(
-                         new Timed.Execution<MidonetPrivSepServer.Client>() {
-                             @Override
-                             protected void _runOnce() throws Exception {
-                                 try {
-                                     log.debug("Pinging privilege separation ");
+                    Timed.newTimedExecution()
+                            .until(TimeUnit.SECONDS.toMillis(20))
+                            .waiting(TimeUnit.MILLISECONDS.toMillis(250))
+                            .execute(
+                                    new Timed.Execution<MidonetPrivSepServer.Client>() {
+                                        @Override
+                                        protected void _runOnce() throws Exception {
+                                            try {
+                                                log.debug("Pinging privilege separation ");
 
-                                     TTransport transport =
-                                         new TSocket("localhost", 9090);
+                                                TTransport transport =
+                                                        new TSocket("localhost", 9090);
 
-                                     transport.open();
+                                                transport.open();
 
-                                     TProtocol proto = new TBinaryProtocol(
-                                         transport);
+                                                TProtocol proto = new TBinaryProtocol(
+                                                        transport);
 
-                                     MidonetPrivSepServer.Client client =
-                                         new MidonetPrivSepServer.Client(proto);
+                                                MidonetPrivSepServer.Client client =
+                                                        new MidonetPrivSepServer.Client(proto);
 
-                                     String pingResult = client.ping("test");
+                                                String pingResult = client.ping("test");
 
-                                     setResult(client);
-                                     setCompleted("test".equals(pingResult));
-                                 } catch (TTransportException e) {
-                                     // catch exceptions so we can try again later.
-                                 }
-                             }
-                         });
+                                                setResult(client);
+                                                setCompleted("test".equals(pingResult));
+                                            } catch (TTransportException e) {
+                                                // catch exceptions so we can try again later.
+                                            }
+                                        }
+                                    });
 
             if (!clientResult.completed()) {
                 throw new IOException("midonet privilege separation " +
-                                          "daemon didn't launch properly.");
+                        "daemon didn't launch properly.");
             }
 
             clientInterface = clientResult.result();
@@ -99,17 +99,17 @@ public class MidonetSudoService {
 
         if (remoteHostSpec.isValid()) {
             midonetHelperServiceBinary =
-                remoteHostSpec.getMidonetHelperPath(midonetHelperServiceBinary);
+                    remoteHostSpec.getMidonetHelperPath(midonetHelperServiceBinary);
         }
 
         ProcessHelper.RunnerConfiguration daemonRunConfig =
-            ProcessHelper.newDemonProcess(midonetHelperServiceBinary)
-                         .withSudo();
+                ProcessHelper.newDemonProcess(midonetHelperServiceBinary)
+                        .withSudo();
 
         if (log.isDebugEnabled()) {
             daemonRunConfig.logOutput(log, "<midonet-privsep>",
-                                      ProcessHelper.OutputStreams.StdError,
-                                      ProcessHelper.OutputStreams.StdOutput);
+                    ProcessHelper.OutputStreams.StdError,
+                    ProcessHelper.OutputStreams.StdOutput);
         }
 
         sudoHelperProcess = daemonRunConfig.run();

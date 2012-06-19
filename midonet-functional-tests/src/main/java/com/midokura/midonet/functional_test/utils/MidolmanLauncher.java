@@ -9,7 +9,6 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import static java.lang.String.format;
 
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -19,16 +18,19 @@ import org.slf4j.LoggerFactory;
 import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
 
+
+import static java.lang.String.format;
+
 public class MidolmanLauncher {
 
     private final static Logger log = LoggerFactory
-        .getLogger(MidolmanLauncher.class);
+            .getLogger(MidolmanLauncher.class);
 
     public static final String MIDONET_PROJECT_LOCATION =
-        "midonet.functional.tests.current_midonet_project";
+            "midonet.functional.tests.current_midonet_project";
 
     public static final String MIDONET_MIDOLMAN_USE_JARS =
-        "midonet.functional.tests.use_midolman_jars";
+            "midonet.functional.tests.use_midolman_jars";
 
     private Process midolmanProcess;
     private Thread midolmanProcessShutdownHook;
@@ -51,7 +53,7 @@ public class MidolmanLauncher {
     }
 
     public static MidolmanLauncher start(ConfigType configType, String logMark)
-        throws IOException {
+            throws IOException {
 
         MidolmanLauncher launcher = new MidolmanLauncher();
 
@@ -64,7 +66,7 @@ public class MidolmanLauncher {
         String commandLine = createCommandLine(configType, logFilePostfix);
         log.debug("Launching midolman with command line: {}", commandLine);
         log.debug("Launching midolman from folder: {}",
-                  new File(".").getAbsolutePath());
+                new File(".").getAbsolutePath());
 
         try {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra();
@@ -73,9 +75,10 @@ public class MidolmanLauncher {
         }
 
         midolmanProcess = ProcessHelper
-            .newLocalProcess(commandLine)
-            .setDrainTarget(DrainTargets.noneTarget())
-            .run();
+                .newLocalProcess(commandLine)
+                .setDrainTarget(DrainTargets.noneTarget())
+//            .setDrainTarget(DrainTargets.slf4jTarget(log, "<midolman>"))
+                .run();
 
         midolmanProcessShutdownHook = new Thread() {
             @Override
@@ -91,31 +94,26 @@ public class MidolmanLauncher {
     }
 
     private String createCommandLine(String configType, String logPostfix) {
-//        String debugData = "-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:5005," +
-//                "suspend=n";
-
-        String debugData = "";
 
         return
-            format(
-                "java %s -cp %s -Dmidolman.log.file=%s " +
-                    "com.midokura.midolman.Midolman " +
-                    "-c %s",
-                debugData,
-                getClassPath(), getLogFilePath(configType, logPostfix),
                 format(
-                    "./midonet-functional-tests/midolmanj_runtime_configurations/midolman-%s.conf",
-                    configType));
+                        "java -cp %s -Dmidolman.log.file=%s " +
+                                "com.midokura.midolman.Midolman " +
+                                "-c %s",
+                        getClassPath(), getLogFilePath(configType, logPostfix),
+                        format(
+                                "midolmanj_runtime_configurations/midolman-%s.conf",
+                                configType));
     }
 
     private String getLogFilePath(String configType, String postfix) {
         String fileName =
-            format("midolman-%s%s.log",
-                   configType,
-                   postfix != null ? "-" + postfix : "");
+                format("midolman-%s%s.log",
+                        configType,
+                        postfix != null ? "-" + postfix : "");
 
         String midonetLocation =
-            System.getProperty(MIDONET_PROJECT_LOCATION, "");
+                System.getProperty(MIDONET_PROJECT_LOCATION, "");
 
         File midonetFolder = new File(midonetLocation);
         if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {
@@ -126,9 +124,8 @@ public class MidolmanLauncher {
     }
 
     private String getClassPath() {
-//        String midonetLocation =
-//            System.getProperty(MIDONET_PROJECT_LOCATION, "");
-        String midonetLocation = new File(".").getAbsolutePath();
+        String midonetLocation =
+                System.getProperty(MIDONET_PROJECT_LOCATION, "");
 
         File midonetFolder = new File(midonetLocation);
         if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {
@@ -139,40 +136,40 @@ public class MidolmanLauncher {
 
         // add the log.xml file location first in the class path
         addEntry(classPathEntries,
-                 new File(midonetLocation,
-                          "midonet-functional-tests/midolmanj_runtime_configurations"));
+                new File(midonetLocation,
+                        "midonet-functional-tests/midolmanj_runtime_configurations"));
 
         // add either the classes or the built jars of the project dependencies
         if (!Boolean.getBoolean(MIDONET_MIDOLMAN_USE_JARS)) {
             addEntry(classPathEntries,
-                     new File(midonetLocation, "midolmanj/target/classes"));
+                    new File(midonetLocation, "midolmanj/target/classes"));
 
             addEntry(classPathEntries,
-                     new File(midonetLocation, "midokura-util/target/classes"));
+                    new File(midonetLocation, "midokura-util/target/classes"));
         } else {
             // TODO: (mtoader@midokura.com) Fix this by locating the current
             // version from a file dumped by maven at the build time.
             addEntry(classPathEntries,
-                     new File(midonetLocation,
-                              "midolmanj/target/midolmanj-12.06-SNAPSHOT.jar"));
+                    new File(midonetLocation,
+                            "midolmanj/target/midolmanj-12.06-SNAPSHOT.jar"));
 
             addEntry(classPathEntries,
-                     new File(midonetLocation,
-                              "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar"));
+                    new File(midonetLocation,
+                            "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar"));
         }
 
         // add all the midolmanj dependencies that we find inside the
         // target/dependencies folder (check the midolmanj/pom.xml to see how
         // they are copied in there)
         File[] midolmanJars =
-            new File(midonetFolder, "midolmanj/target/dep").listFiles(
-                new FileFilter() {
-                    @Override
-                    public boolean accept(File pathName) {
-                        return pathName.isFile() && pathName.getName()
-                                                            .endsWith("jar");
-                    }
-                });
+                new File(midonetFolder, "midolmanj/target/dep").listFiles(
+                        new FileFilter() {
+                            @Override
+                            public boolean accept(File pathName) {
+                                return pathName.isFile() && pathName.getName()
+                                        .endsWith("jar");
+                            }
+                        });
 
         for (File midolmanJar : midolmanJars) {
             addEntry(classPathEntries, midolmanJar);
@@ -203,7 +200,7 @@ public class MidolmanLauncher {
 
         if (null != midolmanProcessShutdownHook) {
             Runtime.getRuntime()
-                   .removeShutdownHook(midolmanProcessShutdownHook);
+                    .removeShutdownHook(midolmanProcessShutdownHook);
             midolmanProcessShutdownHook = null;
         }
     }

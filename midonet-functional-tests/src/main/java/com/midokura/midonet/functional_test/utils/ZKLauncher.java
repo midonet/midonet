@@ -4,16 +4,15 @@
 
 package com.midokura.midonet.functional_test.utils;
 
+import com.midokura.util.SystemHelper;
+import com.midokura.util.process.ProcessHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.util.SystemHelper;
-import com.midokura.util.process.ProcessHelper;
 
 /**
  * Date: 5/31/12
@@ -28,20 +27,8 @@ public class ZKLauncher {
 
     static final String ZK_JMX_VARIABLES = "JVMFLAGS";
     static final String ZK_JMX_LOCAL = "JMXLOCALONLY";
-    static final String CONF_FILE_DIR = "midonet-functional-tests/midolmanj_runtime_configurations";
+    static final String CONF_FILE_DIR = "midolmanj_runtime_configurations";
     static final String CONF_FILE_NAME = "zookeeper.conf";
-    private Process zkProcess;
-    private Thread zkProcessShutdownHook;
-
-
-    /**
-     * This will try to return the pid of the process managed by this instance.
-     *
-     * @return the pid of the process or -1 if there is no process
-     */
-    public int getPid() {
-        return ProcessHelper.getProcessPid(zkProcess);
-    }
 
     public String getZkBinaryByOs() {
         switch (SystemHelper.getOsType()) {
@@ -60,12 +47,6 @@ public class ZKLauncher {
     public static ZKLauncher start(ConfigType configType, String JmxPort)
             throws IOException, InterruptedException {
 
-//        if(!(new File(ZK_SERVER_FILE_PATH).exists()))
-//        {
-//            log.error("Unable to find {}", ZK_SERVER_FILE_PATH);
-//            throw new RuntimeException("Unable to start Zookeeper!");
-//        }
-
         ZKLauncher launcher = new ZKLauncher();
 
         launcher.startZk(configType.name(), JmxPort);
@@ -79,56 +60,39 @@ public class ZKLauncher {
         File confFile = new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME);
 
         String cmdLine =
-            String.format("%s %s %s",
-                          getZkBinaryByOs(),
-//                          "start-foreground",
-                          "start",
-                          confFile.getAbsolutePath());
+                String.format("%s %s %s",
+                        getZkBinaryByOs(),
+                        "start",
+                        confFile.getAbsolutePath());
 
         Map<String, String> envVars = new HashMap<String, String>();
-        if(configType.equals(ConfigType.Jmx_Enabled.name())){
+        if (configType.equals(ConfigType.Jmx_Enabled.name())) {
             // enable JMX locally only
             envVars.put(ZK_JMX_LOCAL, "true");
             String jmxParam = " -Dcom.sun.management.jmxremote.port=";
             jmxParam += JmxPort;
-            jmxParam +=" -Dcom.sun.management.jmxremote.authenticate=false" +
-                " -Dcom.sun.management.jmxremote.ssl=false'";
+            jmxParam += " -Dcom.sun.management.jmxremote.authenticate=false" +
+                    " -Dcom.sun.management.jmxremote.ssl=false'";
             envVars.put(ZK_JMX_VARIABLES, jmxParam);
         }
-        zkProcess = ProcessHelper
+        int retcode = ProcessHelper
                 .newLocalProcess(cmdLine)
                 .setEnvVariables(envVars)
                 .logOutput(log, "<zookeeper>", ProcessHelper.OutputStreams.StdError)
-                .run();
-
-        zkProcessShutdownHook = new Thread() {
-            @Override
-            public void run() {
-                synchronized (ZKLauncher.this) {
-                    // TODO: this
-                    System.out.println("Shutdown hook called ");
-                    ZKLauncher.this.zkProcessShutdownHook = null;
-                    ZKLauncher.this.stop();
-                }
-            }
-        };
-
-        Runtime.getRuntime().addShutdownHook(zkProcessShutdownHook);
-    }
-
-
-    public synchronized void stop() {
-        if (null != zkProcess) {
-            // TODO: fix this
-            String stopCommand =
-                String.format("%s stop %s", getZkBinaryByOs(), new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME).getAbsolutePath());
-
-            ProcessHelper
-                .newLocalProcess(stopCommand)
-                .logOutput(log, "<zookeeper-stop>", ProcessHelper.OutputStreams.StdError)
                 .runAndWait();
-
-            zkProcess = null;
+        if (retcode != 0){
+            throw new RuntimeException("Zookeeper didn't start!");
         }
     }
-}
+
+    public synchronized void stop() {
+
+            String stopCommand =
+                    String.format("%s stop %s", getZkBinaryByOs(), new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME).getAbsolutePath());
+
+            ProcessHelper
+                    .newLocalProcess(stopCommand)
+                    .logOutput(log, "<zookeeper-stop>", ProcessHelper.OutputStreams.StdError)
+                    .runAndWait();
+        }
+    }

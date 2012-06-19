@@ -24,13 +24,12 @@ import com.midokura.util.jmx.JMXHelper;
 public class ZookeeperMetricsCollection {
 
     private final static Logger log =
-        LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
+            LoggerFactory.getLogger(JMXRemoteBeanGauge.class);
 
     private static final String mBeanZkService =
-        "org.apache.ZooKeeperService:name0=StandaloneServer_port-1";
+            "org.apache.ZooKeeperService:name0=StandaloneServer_port-1";
     private static final String mBeanMemoryDataTree =
-        mBeanZkService + "," + "name1=InMemoryDataTree";
-
+            mBeanZkService + "," + "name1=InMemoryDataTree";
 
     @Inject
     HostIdProvider hostIdProvider;
@@ -45,32 +44,32 @@ public class ZookeeperMetricsCollection {
         MBeanServerConnection serverConn;
         try {
             serverConn =
-                JMXHelper.newJmxServerConnectionFromUrl(jmxServerPath);
+                    JMXHelper.newJmxServerConnectionFromUrl(jmxServerPath);
         } catch (IOException e) {
             log.error("Couldn't connect to the JMX server {}", jmxServerPath,
-                      e);
+                    e);
             return;
         }
 
         hostName = hostIdProvider.getHostId();
 
         registerMetric(serverConn, "ZKPacketsSent", Long.class, mBeanZkService,
-                       "PacketsSent");
+                "PacketsSent");
 
         registerMetric(serverConn, "ZKPacketsReceived", Long.class,
-                       mBeanZkService, "PacketsReceived");
+                mBeanZkService, "PacketsReceived");
 
         registerMetric(serverConn, "ZKAvgRequestLatency", Long.class,
-                       mBeanZkService,
-                       "AvgRequestLatency");
+                mBeanZkService,
+                "AvgRequestLatency");
 
         registerMetric(serverConn, "ZKNodeCount", Integer.class,
-                       mBeanMemoryDataTree,
-                       "NodeCount");
+                mBeanMemoryDataTree,
+                "NodeCount");
 
         registerMetric(serverConn, "ZKWatchCount", Integer.class,
-                       mBeanMemoryDataTree,
-                       "WatchCount");
+                mBeanMemoryDataTree,
+                "WatchCount");
 
     }
 
@@ -80,15 +79,14 @@ public class ZookeeperMetricsCollection {
 
         try {
             Metrics.newGauge(
-                new MetricName(ZookeeperMetricsCollection.class, name,
-                               hostName),
-                new JMXRemoteBeanGauge<T>(serverConn,
-                                          type, beanName, beanAttr));
-
+                    new MetricName(ZookeeperMetricsCollection.class, name,
+                            hostName),
+                    new JMXRemoteBeanGauge<T>(serverConn,
+                            type, beanName, beanAttr));
         } catch (MalformedObjectNameException e) {
             log.debug(
-                "Malformed Exception while trying to add a JMXRemoteBeanGauge",
-                e);
+                    "Malformed Exception while trying to add a JMXRemoteBeanGauge",
+                    e);
         }
 
     }
