@@ -192,11 +192,13 @@
                                     </mapper>
                                 </data>
                                 <data>
-                                    <src>${project.basedir}/lib-native</src>
-                                    <type>directory</type>
+                                    <src>
+                                        ${project.basedir}/lib-native/libjunixsocket-linux-1.5-amd64.so
+                                    </src>
+                                    <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib64</prefix>
+                                        <prefix>/usr/lib</prefix>
                                     </mapper>
                                 </data>
                                 <data>

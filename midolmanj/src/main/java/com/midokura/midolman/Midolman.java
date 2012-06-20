@@ -302,8 +302,8 @@ public class Midolman implements SelectListener, Watcher {
             loop.wakeup();
 
             controllerStubImpl.start();
-        } catch (Exception e) {
-            log.warn("handleEvent", e);
+        } catch (Throwable e) {
+            log.warn("handleEvent resulted in Throwable!", e);
         }
     }
 
