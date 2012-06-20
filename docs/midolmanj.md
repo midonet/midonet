@@ -11,3 +11,9 @@ discussed below
 
 This component handles the collection and export of the metrics gathered by the
 system. It is explained at length inside the [Metrics & Monitoring document](monitoring.md).
+
+### PortService
+
+This component provides sets of interfaces that can be also used for
+supporting various network services.  It is explained at length inside the
+[PortService document](midolman-portservice.md).
