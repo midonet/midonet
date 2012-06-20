@@ -1,5 +1,6 @@
 /*
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura Europe SARL
  */
 
 package com.midokura.midolman.openflow;
@@ -84,10 +85,9 @@ public abstract class BaseProtocolImpl implements SelectListener {
     protected Date connectedSince;
     protected SocketChannel socketChannel;
     protected AtomicInteger transactionIdSource;
-    
+
     protected boolean connected;
 
-    protected long defaultOperationTimeoutMillis = 3000;
     protected long echoPeriodMillis = 5000;
 
     protected Random rand = new Random();
@@ -101,13 +101,13 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         this.connectedSince = new Date();
         this.connected = true;
-        
+
         this.transactionIdSource = new AtomicInteger();
 
         factory = new BasicFactory();
         stream = new OFMessageAsyncStream(sock, factory);
     }
-    
+
     protected void write(OFMessage msg) throws IOException {
         if (!connected) {
             log.warn("write: tried to write to disconnected socket");
@@ -118,7 +118,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             stream.write(msg);
         } catch (IOException e) {
             log.warn("write", e);
-            
+
             reactor.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -129,7 +129,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
 
     protected int initiateOperation(SuccessHandler successHandler,
-            final TimeoutHandler timeoutHandler, Long timeoutMillis, Object cookie) {
+            final TimeoutHandler timeoutHandler, Long timeoutMillis,
+            Object cookie) {
         log.debug("initiateOperation");
 
         int xid = transactionIdSource.getAndIncrement();
@@ -138,8 +139,9 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         final int nextXid = xid;
 
+        ScheduledFuture future = null;
         if (timeoutMillis != null) {
-            ScheduledFuture future = reactor.schedule(new Runnable() {
+            future = reactor.schedule(new Runnable() {
 
                 @Override
                 public void run() {
@@ -154,7 +156,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
             }, timeoutMillis, TimeUnit.MILLISECONDS);
         }
 
-        pendingOperations.put(nextXid, new PendingOperation(successHandler, cookie, null));
+        pendingOperations.put(
+                nextXid, new PendingOperation(successHandler, cookie, future));
 
         return nextXid;
     }
@@ -238,7 +241,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
     protected void disconnectSwitch() {
         this.connected = false;
-        
+
         key.cancel();
         onConnectionLost();
         try {
@@ -358,8 +361,12 @@ public abstract class BaseProtocolImpl implements SelectListener {
                 log.error("echo timeout");
                 disconnectSwitch();
             }
-        }, null, OFType.ECHO_REQUEST));
-        
+        },
+
+        // TODO(pino): do we really care that the switch respond to echo?
+        echoPeriodMillis / 2,
+        OFType.ECHO_REQUEST));
+
         try {
             write(m);
         } catch (IOException e) {
