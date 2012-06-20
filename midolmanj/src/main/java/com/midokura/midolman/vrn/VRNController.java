@@ -278,7 +278,9 @@ public class VRNController extends AbstractController
 
         // The packet isn't from a tunnel port.
         UUID inPortId = portNumToUuid.get(inPort);
-        PortConfig portConfig = portCache.get(inPortId);
+        PortConfig portConfig = null;
+        if (null != inPortId)
+            portConfig = portCache.get(inPortId);
         if (null == inPortId || null == portConfig) {
             if (null == inPortId)
                 log.warn("Received a packet from port number {}. " +
