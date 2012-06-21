@@ -16,17 +16,34 @@ import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
 import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestContainerFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpHost;
+import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpSubnet;
+import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
+import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.servlet.AuthFilter;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
@@ -34,8 +51,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         LoggerFactory.getLogger(MockMidolmanMgmt.class);
 
     DtoApplication app;
-    MidolmanLauncher launcher;
-
     private static AtomicInteger portSeed = new AtomicInteger(3181);
     private int currentPort;
 
@@ -47,10 +62,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                                  NoAuthClient.class.getName());
     }
 
-    private static WebAppDescriptor makeAppDescriptor(boolean mockZK) {
-        ClientConfig config = new DefaultClientConfig();
-        config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
-        WebAppDescriptor ad = new WebAppDescriptor.Builder()
+    public static WebAppDescriptor.Builder getAppDescriptorBuilder(boolean mockZK) {
+        ClientConfig clientConfig = new DefaultClientConfig();
+        clientConfig.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+
+        return new WebAppDescriptor.Builder()
             .addFilter(AuthFilter.class, "auth", authFilterInitParams)
             .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
             .initParam(
@@ -75,15 +91,16 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             .contextParam("zk_timeout", "10000")
             .contextParam("zk_root", "/smoketest/midolman")
             .contextParam("zk_mgmt_root", "/smoketest/midolman-mgmt")
-            .contextPath("/test").clientConfig(config).build();
-        ad.getClientConfig()
-          .getSingletons()
-          .add(new WildCardJacksonJaxbJsonProvider());
-        return ad;
+            .contextPath("/test")
+            .clientConfig(clientConfig);
     }
 
     public MockMidolmanMgmt(boolean mockZK) {
-        super(makeAppDescriptor(mockZK));
+        this(getAppDescriptorBuilder(mockZK).build());
+    }
+
+    public MockMidolmanMgmt(WebAppDescriptor webAppDescriptor) {
+        super(webAppDescriptor);
         app = get("", DtoApplication.class);
     }
 

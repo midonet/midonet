@@ -3,6 +3,7 @@
  */
 package com.midokura.midonet.functional_test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,8 +17,8 @@ import static org.hamcrest.Matchers.nullValue;
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -28,7 +29,6 @@ import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
 import static com.midokura.tools.timed.Timed.newTimedExecution;
-import java.io.File;
 
 /**
  * @author Mihai Claudiu Toader  <mtoader@midokura.com>
@@ -37,8 +37,6 @@ import java.io.File;
 public class FunctionalTestsHelper {
 
     public static final String LOCK_NAME = "functional-tests";
-
-    public static Boolean ZK_SERVICE = true;
 
     private static String zkClient = getZkClient();
 
@@ -62,14 +60,19 @@ public class FunctionalTestsHelper {
     }
 
     protected static void cleanupZooKeeperData()
+        throws IOException, InterruptedException {
+        cleanupZooKeeperData(false);
+    }
+
+    protected static void cleanupZooKeeperData(boolean service)
             throws IOException, InterruptedException {
 
-        if (ZK_SERVICE) {
+        if (!service) {
             cleanupZooKeeperServiceData();
         } else {
             ProcessHelper
                     .newLocalProcess(
-                            zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+                            zkClient + " -server 127.0.0.1:2182 rmr /smoketest")
                     .logOutput(log, "cleaning_zk")
                     .runAndWait();
 

@@ -4,15 +4,18 @@
 
 package com.midokura.midonet.functional_test.utils;
 
-import com.midokura.util.SystemHelper;
-import com.midokura.util.process.ProcessHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.lang.String.format;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.util.SystemHelper;
+import com.midokura.util.process.ProcessHelper;
 
 /**
  * Date: 5/31/12
@@ -20,7 +23,7 @@ import java.util.Map;
 public class ZKLauncher {
 
     private final static Logger log = LoggerFactory
-            .getLogger(ZKLauncher.class);
+        .getLogger(ZKLauncher.class);
 
     public static final String ZK_SERVER_PATH_LINUX = "/usr/sbin/zkServer.sh";
     public static final String ZK_SERVER_PATH_MACOS = "/usr/local/bin/zkServer";
@@ -44,55 +47,60 @@ public class ZKLauncher {
         Default, Jmx_Enabled
     }
 
-    public static ZKLauncher start(ConfigType configType, String JmxPort)
-            throws IOException, InterruptedException {
+    public static ZKLauncher start(ConfigType configType, int JmxPort)
+        throws IOException, InterruptedException {
 
         ZKLauncher launcher = new ZKLauncher();
 
-        launcher.startZk(configType.name(), JmxPort);
+        launcher.startZk(configType, JmxPort);
 
         return launcher;
     }
 
-    private void startZk(String configType, String JmxPort)
-            throws IOException, InterruptedException {
+    private void startZk(ConfigType configType, int JmxPort)
+        throws IOException, InterruptedException {
 
         File confFile = new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME);
 
         String cmdLine =
-                String.format("%s %s %s",
-                        getZkBinaryByOs(),
-                        "start",
-                        confFile.getAbsolutePath());
+            format("%s %s %s",
+                   getZkBinaryByOs(),
+                   "start",
+                   confFile.getAbsolutePath());
 
         Map<String, String> envVars = new HashMap<String, String>();
-        if (configType.equals(ConfigType.Jmx_Enabled.name())) {
+        if (configType == ConfigType.Jmx_Enabled) {
             // enable JMX locally only
             envVars.put(ZK_JMX_LOCAL, "true");
-            String jmxParam = " -Dcom.sun.management.jmxremote.port=";
-            jmxParam += JmxPort;
-            jmxParam += " -Dcom.sun.management.jmxremote.authenticate=false" +
-                    " -Dcom.sun.management.jmxremote.ssl=false'";
-            envVars.put(ZK_JMX_VARIABLES, jmxParam);
+            envVars.put(
+                ZK_JMX_VARIABLES,
+                format("-Dcom.sun.management.jmxremote.port=%d" +
+                           " -Dcom.sun.management.jmxremote.authenticate=false" +
+                           " -Dcom.sun.management.jmxremote.ssl=false",
+                       JmxPort));
         }
+
         int retcode = ProcessHelper
-                .newLocalProcess(cmdLine)
-                .setEnvVariables(envVars)
-                .logOutput(log, "<zookeeper>", ProcessHelper.OutputStreams.StdError)
-                .runAndWait();
-        if (retcode != 0){
+            .newLocalProcess(cmdLine)
+            .setEnvVariables(envVars)
+            .logOutput(log, "<zookeeper>", ProcessHelper.OutputStreams.StdError)
+            .runAndWait();
+
+        if (retcode != 0) {
             throw new RuntimeException("Zookeeper didn't start!");
         }
     }
 
     public synchronized void stop() {
 
-            String stopCommand =
-                    String.format("%s stop %s", getZkBinaryByOs(), new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME).getAbsolutePath());
+        String stopCommand =
+            format("%s stop %s", getZkBinaryByOs(), new File(
+                CONF_FILE_DIR + "/" + CONF_FILE_NAME).getAbsolutePath());
 
-            ProcessHelper
-                    .newLocalProcess(stopCommand)
-                    .logOutput(log, "<zookeeper-stop>", ProcessHelper.OutputStreams.StdError)
-                    .runAndWait();
-        }
+        ProcessHelper
+            .newLocalProcess(stopCommand)
+            .logOutput(log, "<zookeeper-stop>",
+                       ProcessHelper.OutputStreams.StdError)
+            .runAndWait();
     }
+}

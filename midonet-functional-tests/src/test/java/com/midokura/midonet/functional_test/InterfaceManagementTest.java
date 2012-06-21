@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
+import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -42,6 +43,7 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
 import com.midokura.util.process.ProcessHelper;
@@ -50,6 +52,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 
@@ -65,6 +68,7 @@ public class InterfaceManagementTest {
         .getLogger(InterfaceManagementTest.class);
 
     MidolmanMgmt api;
+    ZKLauncher zookeeper;
 
     static LockHelper.Lock lock;
 
@@ -80,14 +84,18 @@ public class InterfaceManagementTest {
 
     @Before
     public void setUp() throws Exception {
-        cleanupZooKeeperData();
-        api = new MockMidolmanMgmt(false);
+        cleanupZooKeeperData(true);
+        zookeeper = ZKLauncher.start(ZKLauncher.ConfigType.Default, 0);
+        WebAppDescriptor.Builder builder = MockMidolmanMgmt.getAppDescriptorBuilder(false);
+        builder.contextParam("zk_conn_string", "127.0.0.1:2182");
+        api = new MockMidolmanMgmt(builder.build());
     }
 
     @After
     public void tearDown() throws Exception {
         stopMidolmanMgmt(api);
-        cleanupZooKeeperData();
+        cleanupZooKeeperData(true);
+        stopZookeeperService();
     }
 
     @Test
@@ -527,7 +535,9 @@ public class InterfaceManagementTest {
             api.updateInterface(dtoInterface);
 
             // wait to see the change
-            waitFor("the interface MAC address to change",
+            waitFor("the interface address to change",
+                    TimeUnit.SECONDS.toMillis(20),
+                    TimeUnit.MILLISECONDS.toMillis(50),
                     new Timed.Execution<java.lang.Object>() {
                         @Override
                         protected void _runOnce() throws Exception {
@@ -661,6 +671,8 @@ public class InterfaceManagementTest {
 
             DtoInterface updatedDtoInterface =
                 waitFor("the interface properties should be updated",
+                        TimeUnit.SECONDS.toMillis(20),
+                        TimeUnit.MILLISECONDS.toMillis(50),
                         new Timed.Execution<DtoInterface>() {
                             @Override
                             protected void _runOnce() throws Exception {

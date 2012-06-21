@@ -3,9 +3,8 @@
  */
 package com.midokura.midolman.agent.midolman;
 
-import javax.inject.Named;
-
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
@@ -47,17 +46,19 @@ public class MidolmanProvidedConnectionsModule extends AbstractAgentModule {
     }
 
     @Provides
-    @Named()
-    @Override
+    @Singleton
     public HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider config) {
         return config.getConfig(MidolmanBasedHostAgentConfiguration.class);
     }
 
+    @Provides
+    @Singleton
     Directory buildRootDirectory() {
         return zkConnection.getRootDirectory();
     }
 
     @Provides
+    @Singleton
     OpenvSwitchDatabaseConnection buildOvsDatabaseConnection() {
         return ovsdbConnection;
     }

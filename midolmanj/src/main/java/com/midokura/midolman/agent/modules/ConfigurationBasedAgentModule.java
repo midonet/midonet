@@ -35,7 +35,6 @@ public class ConfigurationBasedAgentModule extends AbstractAgentModule {
         this.configFilePath = configFilePath;
     }
 
-    @Override
     @Provides
     @Singleton
     public HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider config) {
