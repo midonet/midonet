@@ -79,6 +79,11 @@ public class DefaultInterfaceDataUpdaterTest {
             }
 
             @Provides
+            HostAgentConfiguration buildConfiguration(ConfigProvider configProvider) {
+                return configProvider.getConfig(HostAgentConfiguration.class);
+            }
+
+            @Provides
             Directory buildRootDirectory() {
                 return cleanDirectory;
             }

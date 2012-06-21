@@ -18,6 +18,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
@@ -53,6 +54,11 @@ public class TestOvsDbInterfaceSensor {
                 bind(ConfigProvider.class)
                     .toInstance(
                         ConfigProvider.providerForIniConfig(configuration));
+            }
+
+            @Provides
+            HostAgentConfiguration buildHostAgentConfiguration(ConfigProvider configProvider) {
+                return configProvider.getConfig(HostAgentConfiguration.class);
             }
 
             @Provides
