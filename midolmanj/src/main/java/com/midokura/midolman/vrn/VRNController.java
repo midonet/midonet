@@ -470,13 +470,19 @@ public class VRNController extends AbstractController
 
     private void installConnectionCacheEntry(UUID outPortID,
                                              MidoMatch flowMatch) {
-        UUID fe = portCache.get(outPortID).device_id;
+        PortConfig portConfig = portCache.get(outPortID);
+        if (null == portConfig) {
+            log.error("Connection-tracking failed! Could not retrieve " +
+                    "PortConfig for {}", outPortID);
+            return;
+        }
         String key = ForwardInfo.connectionKey(
                          flowMatch.getNetworkDestination(),
                          flowMatch.getTransportDestination(),
                          flowMatch.getNetworkSource(),
                          flowMatch.getTransportSource(),
-                         flowMatch.getNetworkProtocol(), fe);
+                         flowMatch.getNetworkProtocol(),
+                         portConfig.device_id);
         connectionCache.set(key, "r");
     }
 
@@ -491,7 +497,9 @@ public class VRNController extends AbstractController
             inPortNum = ofPktCtx.inPortNum;
         }
 
-        if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow()) {
+        // Track the connection if needed, but not for PortSets.
+        if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow()
+                && !portSetMap.containsKey(fwdInfo.outPortId)) {
             installConnectionCacheEntry(fwdInfo.outPortId,
                 fwdInfo.matchOut == null ? fwdInfo.matchIn : fwdInfo.matchOut);
         }
