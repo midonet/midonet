@@ -240,14 +240,16 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getBridgeLogicalPortsPath(entry.key), -1));
         ops.addAll(getRecursiveDeleteOps(pathManager
                 .getBridgeDhcpPath(entry.key)));
-        ops.add(Op.delete(pathManager.getBridgeMacPortsPath(entry.key), -1));
+        ops.addAll(getRecursiveDeleteOps(pathManager
+                .getBridgeMacPortsPath(entry.key)));
         ops.add(Op.delete(pathManager.getBridgePortLocationsPath(entry.key), -1));
 
         // Delete GRE
         ops.addAll(greZkManager.prepareGreDelete(entry.value.greKey));
 
         // Delete this bridge's port-set
-        ops.add(portSetMap.preparePortSetDelete(entry.key));
+        ops.addAll(
+                getRecursiveDeleteOps(pathManager.getPortSetPath(entry.key)));
 
         // Delete the bridge
         ops.add(Op.delete(pathManager.getBridgePath(entry.key), -1));
