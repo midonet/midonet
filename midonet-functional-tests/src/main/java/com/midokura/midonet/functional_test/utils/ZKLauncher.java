@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,13 @@ public class ZKLauncher {
 
     static final String ZK_JMX_VARIABLES = "JVMFLAGS";
     static final String ZK_JMX_LOCAL = "JMXLOCALONLY";
+    // for this to work the /etc/zookeeper/zookeeper-env.sh
+    // need to have the line:
+    //      export ZOO_LOG_DIR=/var/log/zookeeper
+    // changed into:
+    //      export ZOO_LOG_DIR=${ZOO_LOG_DIR:-/var/log/zookeeper}
+    static final String ZK_LOG_DIR = "ZOO_LOG_DIR";
+
     static final String CONF_FILE_DIR = "midolmanj_runtime_configurations";
     static final String CONF_FILE_NAME = "zookeeper.conf";
 
@@ -44,20 +52,36 @@ public class ZKLauncher {
     }
 
     public enum ConfigType {
-        Default, Jmx_Enabled
+        Default(2182, -1), Jmx_Enabled(2182, 12222);
+
+        int port;
+        int jmxPort;
+
+        private ConfigType(int port, int jmxPort) {
+            this.port = port;
+            this.jmxPort = jmxPort;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public int getJmxPort() {
+            return jmxPort;
+        }
     }
 
-    public static ZKLauncher start(ConfigType configType, int JmxPort)
+    public static ZKLauncher start(ConfigType configType)
         throws IOException, InterruptedException {
 
         ZKLauncher launcher = new ZKLauncher();
 
-        launcher.startZk(configType, JmxPort);
+        launcher.launch(configType);
 
         return launcher;
     }
 
-    private void startZk(ConfigType configType, int JmxPort)
+    private void launch(ConfigType configType)
         throws IOException, InterruptedException {
 
         File confFile = new File(CONF_FILE_DIR + "/" + CONF_FILE_NAME);
@@ -68,21 +92,26 @@ public class ZKLauncher {
                    "start",
                    confFile.getAbsolutePath());
 
-        Map<String, String> envVars = new HashMap<String, String>();
-        if (configType == ConfigType.Jmx_Enabled) {
+        Map<String, String> env = new HashMap<String, String>();
+        env.put(ZK_LOG_DIR, "/tmp/zk/log");
+
+        if (configType.getJmxPort() != -1) {
             // enable JMX locally only
-            envVars.put(ZK_JMX_LOCAL, "true");
-            envVars.put(
-                ZK_JMX_VARIABLES,
-                format("-Dcom.sun.management.jmxremote.port=%d" +
-                           " -Dcom.sun.management.jmxremote.authenticate=false" +
-                           " -Dcom.sun.management.jmxremote.ssl=false",
-                       JmxPort));
+            env.put(ZK_JMX_LOCAL, "true");
+            env.put(ZK_JMX_VARIABLES,
+                        format("-Dcom.sun.management.jmxremote.port=%d" +
+                                   " -Dcom.sun.management.jmxremote.authenticate=false" +
+                                   " -Dcom.sun.management.jmxremote.ssl=false",
+                               configType.getJmxPort()));
+        }
+
+        if ( new File("/tmp/zk/log/").mkdirs() ) {
+            log.error("Error creating temporary zookeeper store directories");
         }
 
         int retcode = ProcessHelper
             .newLocalProcess(cmdLine)
-            .setEnvVariables(envVars)
+            .setEnvVariables(env)
             .logOutput(log, "<zookeeper>", ProcessHelper.OutputStreams.StdError)
             .runAndWait();
 
@@ -102,5 +131,11 @@ public class ZKLauncher {
             .logOutput(log, "<zookeeper-stop>",
                        ProcessHelper.OutputStreams.StdError)
             .runAndWait();
+
+        try {
+            FileUtils.deleteDirectory(new File("/tmp/zk"));
+        } catch (IOException e) {
+            log.error("Failed to remove zookeeper temporary folder.", e);
+        }
     }
 }

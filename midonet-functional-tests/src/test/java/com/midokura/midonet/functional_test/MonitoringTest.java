@@ -15,6 +15,7 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import static org.cassandraunit.utils.EmbeddedCassandraServerHelper.stopEmbeddedCassandra;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
@@ -79,7 +80,7 @@ public class MonitoringTest {
 
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        zkLauncher = ZKLauncher.start(Jmx_Enabled, 12222);
+        zkLauncher = ZKLauncher.start(Jmx_Enabled);
 
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         WebAppDescriptor webAppDescriptor =
@@ -137,14 +138,10 @@ public class MonitoringTest {
         stopMidolman(midolman);
         removeTenant(tenant);
         stopMidolmanMgmt(api);
-        zkLauncher.stop();
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+        FunctionalTestsHelper.stopZookeeperService(zkLauncher);
+        stopEmbeddedCassandra();
         removeCassandraFolder();
         lock.release();
-
-        FunctionalTestsHelper.cleanupZooKeeperData(true);
-        // Restart Zookeeper service
-        FunctionalTestsHelper.stopZookeeperService();
     }
 
     @Test

@@ -3,6 +3,7 @@
  */
 package com.midokura.midonet.functional_test;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
 import com.midokura.util.process.ProcessHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanupZooKeeperData;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanupZooKeeperServiceData;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -55,6 +56,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
+import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Default;
 
 /**
  * Test Suite that will exercise the interface management subsystem.
@@ -68,24 +70,32 @@ public class InterfaceManagementTest {
         .getLogger(InterfaceManagementTest.class);
 
     MidolmanMgmt api;
-    ZKLauncher zookeeper;
+    static ZKLauncher zookeeper;
 
     static LockHelper.Lock lock;
 
     @BeforeClass
-    public static void checkLock() {
+    public static void checkLock() throws IOException, InterruptedException {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+
+        try {
+            zookeeper = ZKLauncher.start(Default);
+        } catch (Exception e) {
+            log.error("error while starting new zookeeper", e);
+        }
     }
 
     @AfterClass
-    public static void releaseLock() {
-        lock.release();
+    public static void releaseLock() throws IOException, InterruptedException {
+        try {
+            stopZookeeperService(zookeeper);
+        } finally {
+            lock.release();
+        }
     }
 
     @Before
     public void setUp() throws Exception {
-        cleanupZooKeeperData(true);
-        zookeeper = ZKLauncher.start(ZKLauncher.ConfigType.Default, 0);
         WebAppDescriptor.Builder builder = MockMidolmanMgmt.getAppDescriptorBuilder(false);
         builder.contextParam("zk_conn_string", "127.0.0.1:2182");
         api = new MockMidolmanMgmt(builder.build());
@@ -94,8 +104,7 @@ public class InterfaceManagementTest {
     @After
     public void tearDown() throws Exception {
         stopMidolmanMgmt(api);
-        cleanupZooKeeperData(true);
-        stopZookeeperService();
+        cleanupZooKeeperServiceData(ZKLauncher.ConfigType.Default);
     }
 
     @Test
@@ -380,8 +389,8 @@ public class InterfaceManagementTest {
 
             tapWrapper = new TapWrapper(tapInterfaceName, false);
         } finally {
-            launcher.stop();
             removeTapWrapper(tapWrapper);
+            launcher.stop();
         }
     }
 

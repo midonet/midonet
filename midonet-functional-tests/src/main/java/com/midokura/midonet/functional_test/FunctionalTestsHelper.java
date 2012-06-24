@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
-import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
@@ -24,6 +24,7 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.RemoteTap;
+import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
@@ -61,39 +62,19 @@ public class FunctionalTestsHelper {
 
     protected static void cleanupZooKeeperData()
         throws IOException, InterruptedException {
-        cleanupZooKeeperData(false);
+        startZookeeperService();
     }
 
-    protected static void cleanupZooKeeperData(boolean service)
+    protected static void stopZookeeperService(ZKLauncher zkLauncher)
             throws IOException, InterruptedException {
-
-        if (!service) {
-            cleanupZooKeeperServiceData();
-        } else {
-            ProcessHelper
-                    .newLocalProcess(
-                            zkClient + " -server 127.0.0.1:2182 rmr /smoketest")
-                    .logOutput(log, "cleaning_zk")
-                    .runAndWait();
-
-            String cmd = String.format("rm -r /tmp/zk");
-            ProcessHelper
-                    .newLocalProcess(cmd)
-                    .withSudo()
-                    .runAndWait();
+        if ( zkLauncher != null ) {
+           zkLauncher.stop();
         }
-
     }
 
     protected static void removeCassandraFolder() throws IOException, InterruptedException {
-        String cassandraFolder = "/target/embeddedCassandra";
-        String absolutePath = new File(".").getAbsolutePath() + cassandraFolder;
-        String cmd = "rm -r " + absolutePath;
-
-        ProcessHelper
-                .newLocalProcess(cmd)
-                .withSudo()
-                .runAndWait();
+        File cassandraFolder = new File("target/cassandra");
+        FileUtils.deleteDirectory(cassandraFolder);
     }
 
     protected static void stopZookeeperService() throws IOException, InterruptedException {
@@ -140,7 +121,17 @@ public class FunctionalTestsHelper {
     }
 
     protected static void cleanupZooKeeperServiceData()
+        throws IOException, InterruptedException {
+        cleanupZooKeeperServiceData(null);
+    }
+
+    protected static void cleanupZooKeeperServiceData(ZKLauncher.ConfigType configType)
             throws IOException, InterruptedException {
+
+        int port = 2181;
+        if (configType != null) {
+            port = configType.getPort();
+        }
 
         //TODO(pino, mtoader): try removing the ZK directory without restarting
         //TODO:     ZK. If it fails, stop/start/remove, to force the remove,
@@ -148,19 +139,22 @@ public class FunctionalTestsHelper {
 
         int exitCode = ProcessHelper
                 .newLocalProcess(
-                        zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+                    String.format("%s -server 127.0.0.1:%d rmr /smoketest",
+                                  zkClient, port))
                 .logOutput(log, "cleaning_zk")
                 .runAndWait();
 
         if (exitCode != 0 && SystemHelper.getOsType() == SystemHelper.OsType.Linux) {
             // Restart ZK to get around the bug where a directory cannot be deleted.
-            Sudo.sudoExec("service zookeeper stop");
-            Sudo.sudoExec("service zookeeper start");
+            stopZookeeperService();
+            startZookeeperService();
 
             // Now delete the functional test ZK directory.
             ProcessHelper
                     .newLocalProcess(
-                            zkClient + " -server 127.0.0.1:2181 rmr /smoketest")
+                        String.format(
+                            "%s -server 127.0.0.1:%d rmr /smoketest",
+                            zkClient, port))
                     .logOutput(log, "cleaning_zk")
                     .runAndWait();
         }

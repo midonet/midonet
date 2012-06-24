@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static java.lang.String.format;
 
 import org.apache.commons.lang.StringUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -17,9 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
-
-
-import static java.lang.String.format;
 
 public class MidolmanLauncher {
 
@@ -97,13 +95,26 @@ public class MidolmanLauncher {
 
         return
                 format(
-                        "java -cp %s -Dmidolman.log.file=%s " +
+                        "java -Djava.library.path=%s -cp %s -Dmidolman.log.file=%s " +
                                 "com.midokura.midolman.Midolman " +
                                 "-c %s",
-                        getClassPath(), getLogFilePath(configType, logPostfix),
+                        getLibraryPath(),
+                        getClassPath(),
+                        getLogFilePath(configType, logPostfix),
                         format(
                                 "midolmanj_runtime_configurations/midolman-%s.conf",
                                 configType));
+    }
+
+    private String getLibraryPath() {
+        String libraryPath = System.getProperty("java.library.path");
+        String midonetLocation =
+            System.getProperty(MIDONET_PROJECT_LOCATION, "");
+
+        if (!midonetLocation.equals(""))
+            return String.format("%s:%s/midolmanj/lib-native", libraryPath, midonetLocation);
+        else
+            return libraryPath;
     }
 
     private String getLogFilePath(String configType, String postfix) {

@@ -46,8 +46,8 @@ public class ZkConnection implements Watcher {
 
     public synchronized void open() throws Exception {
         if (null == zk) {
-            zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
             connecting = true;
+            zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
         }
         while (connecting) {
             try {
