@@ -107,8 +107,8 @@ public class Bridge implements ForwardingElement {
                             if (!myConfig.equals(config)) {
                                 myConfig = config;
                                 log.debug("Bridge {} has a new config {} - " +
-                                        "invalidated its flow matches.",
-                                        bridgeId, myConfig);
+                                          "invalidated its flow matches.",
+                                          bridgeId, myConfig);
                                 controller.invalidateFlowsByElement(bridgeId);
                             }
                         } catch (StateAccessException e) {
@@ -380,7 +380,7 @@ public class Bridge implements ForwardingElement {
                 // would have been flooded and therefore would continue to reach
                 // their destination. However, a unicast flow is more efficient.
                 log.debug("Learned Mac-Port mapping: {} to {}. Invalidate " +
-                        "flooded flows.", mac, newPortId);
+                          "flooded flows.", mac, newPortId);
                 controller.invalidateFlowsByElement(floodElementID);
 
                 /* TODO(pino): Invalidate by destination mac (more precise):
@@ -408,7 +408,7 @@ public class Bridge implements ForwardingElement {
             logicalPortIDs = new HashSet<UUID>(newLogicalPortIDs);
         } catch (StateAccessException e) {
             log.error("Failed to retrieve the logical port IDs for bridge {}",
-                    bridgeId);
+                      bridgeId);
             return;
         }
         // TODO(pino): should we invalidate all the bridge's flows if the
@@ -422,8 +422,8 @@ public class Bridge implements ForwardingElement {
             MAC rtrPortMAC = rtrIpToMac.remove(rtrPortIp);
             rtrMacToLogicalPortId.remove(rtrPortMAC);
             log.debug("updateLogicalPorts: removed bridge port {} " +
-                    "connected to router port with MAC:{} and IP:{}",
-                    new Object[]{id, rtrPortMAC, rtrPortIp});
+                      "connected to router port with MAC:{} and IP:{}",
+                      new Object[]{id, rtrPortMAC, rtrPortIp});
 
         }
         // Now find all the newly added ports
@@ -506,8 +506,8 @@ public class Bridge implements ForwardingElement {
             flowCount.put(flowcountKey, new Integer(count+1));
         }
 
-        log.info("Increased flow count for source MAC {} from port {} to {}",
-                 new Object[] { macAddr, portUuid, count });
+        log.debug("Increased flow count for source MAC {} from port {} to {}",
+                  new Object[] { macAddr, portUuid, count });
         boolean writeMacPortMap = false;
         if (macPortMap.containsKey(macAddr)) {
             // Since mac was mapped to another port, flows to the mac would
@@ -516,7 +516,7 @@ public class Bridge implements ForwardingElement {
             UUID oldPortUuid = macPortMap.get(macAddr);
             if (!oldPortUuid.equals(portUuid)) {
                 log.debug("Mac {} moved to new port. Invalidate flows to old " +
-                        "port {}", macAddr, oldPortUuid);
+                          "port {}", macAddr, oldPortUuid);
                 controller.invalidateFlowsByElement(oldPortUuid);
                 writeMacPortMap = true;
             }
