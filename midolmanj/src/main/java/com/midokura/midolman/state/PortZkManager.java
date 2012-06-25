@@ -16,7 +16,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
@@ -265,10 +264,9 @@ public class PortZkManager extends ZkManager {
             PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
-        List<ZkNodeEntry<UUID, Route>> routes = routeZkManager.listPortRoutes(
-                id, null);
-        for (ZkNodeEntry<UUID, Route> route : routes) {
-            ops.addAll(routeZkManager.prepareRouteDelete(route));
+        List<UUID> routeIds = routeZkManager.listPortRoutes(id, null);
+        for (UUID routeId : routeIds) {
+            ops.addAll(routeZkManager.prepareRouteDelete(routeId));
         }
         String portRoutesPath = pathManager.getPortRoutesPath(id);
         log.debug("Preparing to delete: " + portRoutesPath);

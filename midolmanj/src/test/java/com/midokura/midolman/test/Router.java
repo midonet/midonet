@@ -26,7 +26,6 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 public class Router {
     UUID routerID;
@@ -39,7 +38,7 @@ public class Router {
             throws StateAccessException {
         this.network = network;
         this.routerID = this.network.getRouterManager().create();
-        this.config = this.network.getRouterManager().get(routerID).value;
+        this.config = this.network.getRouterManager().get(routerID);
         config.inboundFilter = this.network.getChainManager().create(
                 new ChainZkManager.ChainConfig("PREROUTING"));
         config.outboundFilter = this.network.getChainManager().create(

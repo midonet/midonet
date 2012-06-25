@@ -38,30 +38,27 @@ public class RouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    private List<String> getSubDirectoryRoutePaths(
-            ZkNodeEntry<UUID, Route> entry) throws StateAccessException {
+    private List<String> getSubDirectoryRoutePaths(UUID id, Route config)
+            throws StateAccessException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
         // routing table.
         List<String> ret = new ArrayList<String>();
-        if (entry.value.nextHop.equals(Route.NextHop.PORT)) {
+        if (config.nextHop.equals(Route.NextHop.PORT)) {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk,
                     pathManager.getBasePath());
             PortDirectory.RouterPortConfig port = portZkManager.get(
-                    entry.value.nextHopPort,
-                    PortDirectory.RouterPortConfig.class);
+                    config.nextHopPort, PortDirectory.RouterPortConfig.class);
 
-            ret.add(pathManager.getPortRoutePath(entry.value.nextHopPort,
-                    entry.key));
+            ret.add(pathManager.getPortRoutePath(config.nextHopPort, id));
             // If it's a logical port, add the route to the routing table.
             if (port instanceof PortDirectory.LogicalRouterPortConfig)
-                ret.add(getRouteInRoutingTable(entry.value));
+                ret.add(getRouteInRoutingTable(config));
         } else {
-            ret.add(pathManager.getRouterRoutePath(entry.value.routerId,
-                    entry.key));
+            ret.add(pathManager.getRouterRoutePath(config.routerId, id));
             // Add the route to the routing table.
-            ret.add(getRouteInRoutingTable(entry.value));
+            ret.add(getRouteInRoutingTable(config));
         }
         return ret;
     }
@@ -78,56 +75,53 @@ public class RouteZkManager extends ZkManager {
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new route.
      *
-     * @param entry
-     *            ZooKeeper node representing a key-value entry of Route UUID
-     *            and Route object.
+     * @param id
+     *            Route ID
+     * @param config
+     *            Route ZK config object.
      * @return A list of Op objects to represent the operations to perform.
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry,
-            boolean persistent) throws StateAccessException {
+    public List<Op> prepareRouteCreate(UUID id, Route config, boolean persistent)
+            throws StateAccessException {
         CreateMode mode = persistent ? CreateMode.PERSISTENT
                 : CreateMode.EPHEMERAL;
         // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
         // Add to root
-        ops.add(Op.create(pathManager.getRoutePath(entry.key),
-                serializer.serialize(entry.value), Ids.OPEN_ACL_UNSAFE, mode));
+        ops.add(Op.create(pathManager.getRoutePath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE, mode));
 
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
-        for (String path : getSubDirectoryRoutePaths(entry)) {
+        for (String path : getSubDirectoryRoutePaths(id, config)) {
             ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
         return ops;
     }
 
-    public List<Op> prepareRouteCreate(ZkNodeEntry<UUID, Route> entry)
+    public List<Op> prepareRouteCreate(UUID id, Route config)
             throws StateAccessException {
-        return prepareRouteCreate(entry, true);
-    }
-
-    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException {
-        return prepareRouteDelete(get(id));
+        return prepareRouteCreate(id, config, true);
     }
 
     /**
      * Constructs a list of operations to perform in a route deletion.
      *
-     * @param entry
-     *            Route ZooKeeper entry to delete.
+     * @param id
+     *            Route ID
      * @return A list of Op objects representing the operations to perform.
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteDelete(ZkNodeEntry<UUID, Route> entry)
-            throws StateAccessException {
+    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        String routePath = pathManager.getRoutePath(entry.key);
+        String routePath = pathManager.getRoutePath(id);
         log.debug("Preparing to delete: " + routePath);
         ops.add(Op.delete(routePath, -1));
-        for (String path : getSubDirectoryRoutePaths(entry)) {
+        Route config = get(id);
+        for (String path : getSubDirectoryRoutePaths(id, config)) {
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
         }
@@ -146,8 +140,7 @@ public class RouteZkManager extends ZkManager {
     public UUID create(Route route, boolean persistent)
             throws StateAccessException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, Route> entry = new ZkNodeEntry<UUID, Route>(id, route);
-        multi(prepareRouteCreate(entry, persistent));
+        multi(prepareRouteCreate(id, route, persistent));
         return id;
     }
 
@@ -164,7 +157,7 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public ZkNodeEntry<UUID, Route> get(UUID id) throws StateAccessException {
+    public Route get(UUID id) throws StateAccessException {
         return get(id, null);
     }
 
@@ -181,11 +174,9 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public ZkNodeEntry<UUID, Route> get(UUID id, Runnable watcher)
-            throws StateAccessException {
+    public Route get(UUID id, Runnable watcher) throws StateAccessException {
         byte[] routeData = get(pathManager.getRoutePath(id), watcher);
-        Route r = serializer.deserialize(routeData, Route.class);
-        return new ZkNodeEntry<UUID, Route>(id, r);
+        return serializer.deserialize(routeData, Route.class);
     }
 
     /**
@@ -197,23 +188,22 @@ public class RouteZkManager extends ZkManager {
      * @param watcher
      *            The watcher to set on the changes to the routes for this
      *            router.
-     * @return A list of ZooKeeper route nodes.
+     * @return A list of route IDs.
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<ZkNodeEntry<UUID, Route>> listRouterRoutes(UUID routerId,
-            Runnable watcher) throws StateAccessException {
-        List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
+    public List<UUID> listRouterRoutes(UUID routerId, Runnable watcher)
+            throws StateAccessException {
+        List<UUID> result = new ArrayList<UUID>();
         Set<String> routeIds = getChildren(
                 pathManager.getRouterRoutesPath(routerId), watcher);
         for (String routeId : routeIds) {
-            result.add(get(UUID.fromString(routeId)));
+            result.add(UUID.fromString(routeId));
         }
         return result;
     }
 
-    public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId)
-            throws StateAccessException {
+    public List<UUID> listPortRoutes(UUID portId) throws StateAccessException {
         return listPortRoutes(portId, null);
     }
 
@@ -225,17 +215,17 @@ public class RouteZkManager extends ZkManager {
      *            The ID of the port to find the routes of.
      * @param watcher
      *            The watcher to set on the changes to the routes for this port.
-     * @return A list of ZooKeeper route nodes.
+     * @return A list of route IDs.
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<ZkNodeEntry<UUID, Route>> listPortRoutes(UUID portId,
-            Runnable watcher) throws StateAccessException {
-        List<ZkNodeEntry<UUID, Route>> result = new ArrayList<ZkNodeEntry<UUID, Route>>();
+    public List<UUID> listPortRoutes(UUID portId, Runnable watcher)
+            throws StateAccessException {
+        List<UUID> result = new ArrayList<UUID>();
         Set<String> routeIds = getChildren(
                 pathManager.getPortRoutesPath(portId), watcher);
         for (String routeId : routeIds) {
-            result.add(get(UUID.fromString(routeId)));
+            result.add(UUID.fromString(routeId));
         }
         return result;
     }
@@ -246,13 +236,12 @@ public class RouteZkManager extends ZkManager {
      *
      * @param routerId
      *            The ID of the router to find the routes of.
-     * @return A list of ZooKeeper route nodes.
+     * @return A list of route IDs.
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<ZkNodeEntry<UUID, Route>> list(UUID routerId)
-            throws StateAccessException {
-        List<ZkNodeEntry<UUID, Route>> routes = listRouterRoutes(routerId, null);
+    public List<UUID> list(UUID routerId) throws StateAccessException {
+        List<UUID> routes = listRouterRoutes(routerId, null);
         Set<String> portIds = getChildren(
                 pathManager.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
@@ -264,7 +253,7 @@ public class RouteZkManager extends ZkManager {
                 continue;
             }
 
-            List<ZkNodeEntry<UUID, Route>> portRoutes = listPortRoutes(portUUID);
+            List<UUID> portRoutes = listPortRoutes(portUUID);
             routes.addAll(portRoutes);
         }
         return routes;

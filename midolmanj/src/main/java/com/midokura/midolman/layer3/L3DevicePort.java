@@ -19,7 +19,6 @@ import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 public class L3DevicePort {
 
@@ -62,7 +61,7 @@ public class L3DevicePort {
     private void updateRoutes() throws StateAccessException {
         log.debug("updateRoutes");
 
-        List<ZkNodeEntry<UUID, Route>> entries = Collections.emptyList();
+        List<UUID> entries = Collections.emptyList();
 
         try {
             entries = routeMgr.listPortRoutes(portId, routesWatcher);
@@ -73,8 +72,8 @@ public class L3DevicePort {
         }
 
         Set<Route> newRoutes = new HashSet<Route>();
-        for (ZkNodeEntry<UUID, Route> entry : entries)
-            newRoutes.add(entry.value);
+        for (UUID entry : entries)
+            newRoutes.add(routeMgr.get(entry));
         if (newRoutes.equals(routes))
             return;
         Set<Route> removedRoutes = new HashSet<Route>(routes);

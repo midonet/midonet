@@ -4,7 +4,6 @@
 
 package com.midokura.midolman.layer3;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -146,7 +145,7 @@ public class Router implements ForwardingElement {
                     public void run() {
                         try {
                             RouterZkManager.RouterConfig config =
-                                    routerMgr.get(routerId, this).value;
+                                    routerMgr.get(routerId, this);
                             if (!myConfig.equals(config)) {
                                 myConfig = config;
                                 controller.invalidateFlowsByElement(routerId);
@@ -155,7 +154,7 @@ public class Router implements ForwardingElement {
                             log.error("Failed to update router config", e);
                         }
                     }
-                }).value;
+                });
         arpTable = new ArpTable(routerMgr.getArpTableDirectory(routerId));
         arpTable.start();
         devicePorts = new HashMap<UUID, L3DevicePort>();

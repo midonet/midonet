@@ -260,7 +260,7 @@ class TestZebraServer {
             // Check whether the route is in ZK.
             var routes = routeMgr.listPortRoutes(portId)
             assertEquals(1, routes.size)
-            var route = routes(0).value
+            var route = routeMgr.get(routes(0))
             assertEquals(prefix, route.dstNetworkAddr)
             assertEquals(prefixLen, route.dstNetworkLength)
             assertEquals(Net.convertStringAddressToInt(peerAddr),

@@ -19,7 +19,6 @@ import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for router data.
@@ -99,10 +98,7 @@ public class RouterZkDao {
      *             Data access error.
      */
     public RouterConfig getData(UUID id) throws StateAccessException {
-        ZkNodeEntry<UUID, RouterConfig> node = zkDao.get(id);
-        RouterConfig config = node.value;
-        return config;
-
+        return zkDao.get(id);
     }
 
     /**

@@ -106,7 +106,7 @@ public class TopologyChecker {
         RouterZkManager routerMgr = new RouterZkManager(zkDir, basePath);
         ChainZkManager chainMgr = new ChainZkManager(zkDir, basePath);
         RuleZkManager ruleMgr = new RuleZkManager(zkDir, basePath);
-        RouterZkManager.RouterConfig rtrConfig = routerMgr.get(routerId).value;
+        RouterZkManager.RouterConfig rtrConfig = routerMgr.get(routerId);
         System.out.println("Router's inbound filter:");
         if (null == rtrConfig.inboundFilter)
             System.out.println("  is null.");
@@ -147,10 +147,10 @@ public class TopologyChecker {
         System.out.println();
         System.out.println("Router's routes:");
         RouteZkManager routeMgr = new RouteZkManager(zkDir, basePath);
-        List<ZkNodeEntry<UUID, Route>> routes = routeMgr.listRouterRoutes(
+        List<UUID> routeIds = routeMgr.listRouterRoutes(
                 routerId, null);
-        for (ZkNodeEntry<UUID, Route> route : routes) {
-            System.out.println("  " + route.key + " " + route.value);
+        for (UUID routeId : routeIds) {
+            System.out.println("  " + routeId + " " + routeMgr.get(routeId));
         }
         System.out.println();
         System.out.println("Router's ports (and their routes):");
@@ -177,9 +177,9 @@ public class TopologyChecker {
                 portsInMap.add(portId);
             }
             System.out.println("    Routes:");
-            routes = routeMgr.listPortRoutes(portId);
-            for (ZkNodeEntry<UUID, Route> route : routes) {
-                System.out.println("    " + route.key + " " + route.value);
+            routeIds = routeMgr.listPortRoutes(portId);
+            for (UUID routeId : routeIds) {
+                System.out.println("    " + routeId + " " + routeMgr.get(routeId));
             }
         }
 
