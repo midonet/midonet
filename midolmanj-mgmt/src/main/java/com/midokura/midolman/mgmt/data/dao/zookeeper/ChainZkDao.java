@@ -19,7 +19,6 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for chain data.
@@ -133,12 +132,7 @@ public class ChainZkDao {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
-        log.debug("ChainZkDao.getData entered: id=" + id);
-
-        ZkNodeEntry<UUID, ChainConfig> config = zkDao.get(id);
-
-        log.debug("ChainZkDao.getData exiting");
-        return config.value;
+        return zkDao.get(id);
     }
 
     /**

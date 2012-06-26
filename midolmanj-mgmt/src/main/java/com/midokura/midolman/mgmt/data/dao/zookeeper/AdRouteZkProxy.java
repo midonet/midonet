@@ -12,10 +12,8 @@ import java.util.UUID;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for advertising route.
@@ -56,7 +54,7 @@ public class AdRouteZkProxy implements AdRouteDao {
     @Override
     public AdRoute get(UUID id) throws StateAccessException {
         try {
-            return new AdRoute(id, dataAccessor.get(id).value);
+            return new AdRoute(id, dataAccessor.get(id));
         } catch (NoStatePathException e) {
             return null;
         }
@@ -70,10 +68,9 @@ public class AdRouteZkProxy implements AdRouteDao {
     @Override
     public List<AdRoute> list(UUID bgpId) throws StateAccessException {
         List<AdRoute> adRoutes = new ArrayList<AdRoute>();
-        List<ZkNodeEntry<UUID, AdRouteConfig>> entries = null;
-        entries = dataAccessor.list(bgpId);
-        for (ZkNodeEntry<UUID, AdRouteConfig> entry : entries) {
-            adRoutes.add(new AdRoute(entry.key, entry.value));
+        List<UUID> ids = dataAccessor.list(bgpId);
+        for (UUID id : ids) {
+            adRoutes.add(new AdRoute(id, dataAccessor.get(id)));
         }
         return adRoutes;
     }

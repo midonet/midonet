@@ -33,7 +33,6 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
 
@@ -170,9 +169,9 @@ public class OpenVpnPortService implements PortService {
                 new Object[]{SERVICE_EXT_ID, portName, datapathId});
 
         // Using the vpn configs at the head is sufficient to setup ports.
-        List<ZkNodeEntry<UUID, VpnConfig>> vpnNodes = vpnMgr.list(portId);
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnNodes.get(0);
-        VpnConfig vpn = vpnNode.value;
+        List<UUID> vpnNodes = vpnMgr.list(portId);
+        UUID vpnId = vpnNodes.get(0);
+        VpnConfig vpn = vpnMgr.get(vpnId);
 
         PortBuilder portBuilder;
         if (vpn.publicPortId.equals(portId)) {
@@ -191,7 +190,7 @@ public class OpenVpnPortService implements PortService {
         } else {
             throw new RuntimeException(
                     "Invalid port " + portId.toString() + "for vpn " +
-                            vpnNode.key.toString());
+                            vpnId.toString());
         }
         // All the vpn ports are usual materialized router ports with
         // midolman-vnet.
@@ -245,8 +244,8 @@ public class OpenVpnPortService implements PortService {
         PortDirectory.MaterializedRouterPortConfig portConfig = portMgr.get(
                 portId, PortDirectory.MaterializedRouterPortConfig.class);
 
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnMgr.list(portId).get(0);
-        VpnConfig vpn = vpnNode.value;
+        UUID vpnId = vpnMgr.list(portId).get(0);
+        VpnConfig vpn = vpnMgr.get(vpnId);
         if (vpn.publicPortId.equals(portId)) {
             // Set IP address of the port.
             Sudo.sudoExec(String.format(
@@ -335,9 +334,8 @@ public class OpenVpnPortService implements PortService {
     @Override
     public void start(UUID serviceId)
             throws StateAccessException, IOException {
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = vpnMgr.get(serviceId);
-        UUID vpnId = vpnNode.key;
-        VpnConfig vpn = vpnNode.value;
+        VpnConfig vpn = vpnMgr.get(serviceId);
+        UUID vpnId = serviceId;
 
         PortDirectory.MaterializedRouterPortConfig publicPort = portMgr.get(
                 vpn.publicPortId,

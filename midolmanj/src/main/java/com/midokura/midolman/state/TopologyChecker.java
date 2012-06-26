@@ -111,14 +111,14 @@ public class TopologyChecker {
         if (null == rtrConfig.inboundFilter)
             System.out.println("  is null.");
         else {
-            ZkNodeEntry<UUID, ChainConfig> chain =
-                    chainMgr.get(rtrConfig.inboundFilter);
+            ChainConfig chain = chainMgr.get(rtrConfig.inboundFilter);
             if (null == chain)
-                System.out.println(" has UUID " + chain.key + " but no data.");
+                System.out.println(" has UUID " + rtrConfig.inboundFilter
+                        + " but no data.");
             else {
-                System.out.println(" has name " + chain.value.name +
-                        " and rules: ");
-                Set<UUID> ruleIds = ruleMgr.getRuleIds(chain.key);
+                System.out.println(" has name " + chain.name + " and rules: ");
+                Set<UUID> ruleIds = ruleMgr.getRuleIds(
+                        rtrConfig.inboundFilter);
                 for (UUID ruleId : ruleIds) {
                     System.out.println(
                             "    " + ruleId + " " + ruleMgr.get(ruleId));
@@ -129,14 +129,14 @@ public class TopologyChecker {
         if (null == rtrConfig.outboundFilter)
             System.out.println("  is null.");
         else {
-            ZkNodeEntry<UUID, ChainConfig> chain =
-                    chainMgr.get(rtrConfig.outboundFilter);
+            ChainConfig chain = chainMgr.get(rtrConfig.outboundFilter);
             if (null == chain)
-                System.out.println(" has UUID " + chain.key + " but no data.");
+                System.out.println(" has UUID " + rtrConfig.outboundFilter
+                        + " but no data.");
             else {
-                System.out.println(" has name " + chain.value.name +
-                        " and rules: ");
-                Set<UUID> ruleIds = ruleMgr.getRuleIds(chain.key);
+                System.out.println(" has name " + chain.name + " and rules: ");
+                Set<UUID> ruleIds = ruleMgr.getRuleIds(
+                        rtrConfig.outboundFilter);
                 for (UUID ruleId : ruleIds) {
                     System.out.println(
                             "    " + ruleId + " " + ruleMgr.get(ruleId));

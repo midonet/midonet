@@ -65,145 +65,128 @@ public class VpnZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public List<Op> prepareVpnCreate(ZkNodeEntry<UUID, VpnConfig> vpnNode)
+    public List<Op> prepareVpnCreate(UUID id, VpnConfig config)
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
-        ops.add(Op.create(pathManager.getVpnPath(vpnNode.key),
-                serializer.serialize(vpnNode.value), Ids.OPEN_ACL_UNSAFE,
+        ops.add(Op.create(pathManager.getVpnPath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortVpnPath(
-                vpnNode.value.publicPortId, vpnNode.key), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortVpnPath(
-                vpnNode.value.privatePortId, vpnNode.key), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortVpnPath(config.publicPortId, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortVpnPath(config.privatePortId, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
 
-    public List<Op> prepareVpnDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        return prepareVpnDelete(get(id));
+    public List<Op> prepareVpnDelete(UUID id) throws StateAccessException {
+        return prepareVpnDelete(id, get(id));
     }
 
-    public List<Op> prepareVpnDelete(ZkNodeEntry<UUID, VpnConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<Op> prepareVpnDelete(UUID id, VpnConfig config)
+            throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the port vpn entry
-        ops.add(Op.delete(
-                pathManager.getPortVpnPath(entry.value.publicPortId, entry.key),
+        ops.add(Op.delete(pathManager.getPortVpnPath(config.publicPortId, id),
                 -1));
-        ops.add(Op.delete(pathManager.getPortVpnPath(entry.value.privatePortId,
-                entry.key), -1));
+        ops.add(Op.delete(pathManager.getPortVpnPath(config.privatePortId, id),
+                -1));
 
         // Delete the vpn
-        ops.add(Op.delete(pathManager.getVpnPath(entry.key), -1));
+        ops.add(Op.delete(pathManager.getVpnPath(id), -1));
 
         // Unlock if exists
-        if (this.exists(pathManager.getAgentVpnPath(entry.key))
+        if (this.exists(pathManager.getAgentVpnPath(id))
                 && this.exists(pathManager
-                        .getAgentPortPath(entry.value.privatePortId))) {
-            ops.add(Op.delete(pathManager.getAgentVpnPath(entry.key), -1));
+                        .getAgentPortPath(config.privatePortId))) {
+            ops.add(Op.delete(pathManager.getAgentVpnPath(id), -1));
             ops.add(Op.delete(
-                    pathManager.getAgentPortPath(entry.value.privatePortId), -1));
+                    pathManager.getAgentPortPath(config.privatePortId), -1));
         }
 
         return ops;
     }
 
-    public List<Op> preparePortDelete(UUID portId) throws StateAccessException,
-            ZkStateSerializationException {
+    public List<Op> preparePortDelete(UUID portId) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
-        List<ZkNodeEntry<UUID, VpnConfig>> vpnList = list(portId);
-        for (ZkNodeEntry<UUID, VpnConfig> vpn : vpnList) {
+        List<UUID> vpnList = list(portId);
+        for (UUID vpn : vpnList) {
             ops.addAll(prepareVpnDelete(vpn));
         }
 
         return ops;
     }
 
-    public UUID create(VpnConfig vpn) throws StateAccessException,
-            ZkStateSerializationException {
+    public UUID create(VpnConfig vpn) throws StateAccessException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = new ZkNodeEntry<UUID, VpnConfig>(
-                id, vpn);
-        multi(prepareVpnCreate(vpnNode));
+        multi(prepareVpnCreate(id, vpn));
         return id;
     }
 
-    public ZkNodeEntry<UUID, VpnConfig> get(UUID id, Runnable watcher)
-            throws StateAccessException, ZkStateSerializationException {
+    public VpnConfig get(UUID id, Runnable watcher) throws StateAccessException {
         byte[] data = get(pathManager.getVpnPath(id), watcher);
-        VpnConfig config = serializer.deserialize(data, VpnConfig.class);
-        return new ZkNodeEntry<UUID, VpnConfig>(id, config);
+        return serializer.deserialize(data, VpnConfig.class);
     }
 
-    public ZkNodeEntry<UUID, VpnConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+    public VpnConfig get(UUID id) throws StateAccessException {
         return get(id, null);
     }
 
     // List all vpns.
-    public List<ZkNodeEntry<UUID, VpnConfig>> listAll(Runnable watcher)
-            throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, VpnConfig>> result = new ArrayList<ZkNodeEntry<UUID, VpnConfig>>();
+    public List<UUID> listAll(Runnable watcher) throws StateAccessException {
+        List<UUID> result = new ArrayList<UUID>();
         Set<String> vpnIds = getChildren(pathManager.getVpnPath(), watcher);
         for (String vpnId : vpnIds) {
             // For now, get each one.
-            result.add(get(UUID.fromString(vpnId)));
+            result.add(UUID.fromString(vpnId));
         }
         return result;
     }
 
-    public List<ZkNodeEntry<UUID, VpnConfig>> listAll()
-            throws StateAccessException, ZkStateSerializationException {
+    public List<UUID> listAll() throws StateAccessException {
         return listAll(null);
     }
 
-    public List<ZkNodeEntry<UUID, VpnConfig>> list(UUID portId, Runnable watcher)
-            throws StateAccessException, ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, VpnConfig>> result = new ArrayList<ZkNodeEntry<UUID, VpnConfig>>();
+    public List<UUID> list(UUID portId, Runnable watcher)
+            throws StateAccessException {
+        List<UUID> result = new ArrayList<UUID>();
         Set<String> vpnIds = getChildren(pathManager.getPortVpnPath(portId),
                 watcher);
         for (String vpnId : vpnIds) {
             // For now, get each one.
-            result.add(get(UUID.fromString(vpnId)));
+            result.add(UUID.fromString(vpnId));
         }
         return result;
     }
 
-    public List<ZkNodeEntry<UUID, VpnConfig>> list(UUID portId)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<UUID> list(UUID portId) throws StateAccessException {
         return list(portId, null);
     }
 
-    public void update(ZkNodeEntry<UUID, VpnConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
-        byte[] data = serializer.serialize(entry.value);
-        update(pathManager.getVpnPath(entry.key), data);
+    public void update(UUID id, VpnConfig config) throws StateAccessException {
+        byte[] data = serializer.serialize(config);
+        update(pathManager.getVpnPath(id), data);
     }
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareVpnDelete(id));
     }
 
     public List<Op> prepareVpnLock(UUID id, Long sessionId)
             throws StateAccessException {
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
+        VpnConfig vpnNode = get(id);
 
         List<Op> ops = new ArrayList<Op>();
         byte[] data = serializer.serialize(sessionId);
 
         // Add UUID of vpn, private port as ephemeral nodes.
-        ops.add(Op.create(pathManager.getAgentVpnPath(vpnNode.key), data,
+        ops.add(Op.create(pathManager.getAgentVpnPath(id), data,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
-        ops.add(Op.create(
-                pathManager.getAgentPortPath(vpnNode.value.privatePortId),
+        ops.add(Op.create(pathManager.getAgentPortPath(vpnNode.privatePortId),
                 data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL));
 
         return ops;
@@ -214,12 +197,12 @@ public class VpnZkManager extends ZkManager {
     }
 
     public List<Op> prepareVpnUnlock(UUID id) throws StateAccessException {
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
+        VpnConfig vpnNode = get(id);
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getAgentVpnPath(vpnNode.key), -1));
-        ops.add(Op.delete(
-                pathManager.getAgentPortPath(vpnNode.value.privatePortId), -1));
+        ops.add(Op.delete(pathManager.getAgentVpnPath(id), -1));
+        ops.add(Op.delete(pathManager.getAgentPortPath(vpnNode.privatePortId),
+                -1));
 
         return ops;
     }
@@ -229,7 +212,6 @@ public class VpnZkManager extends ZkManager {
     }
 
     public void wait(UUID id, Runnable watcher) throws StateAccessException {
-        ZkNodeEntry<UUID, VpnConfig> vpnNode = get(id);
-        get(pathManager.getAgentVpnPath(vpnNode.key), watcher);
+        get(pathManager.getAgentVpnPath(id), watcher);
     }
 }

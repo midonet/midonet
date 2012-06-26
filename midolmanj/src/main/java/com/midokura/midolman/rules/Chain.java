@@ -46,7 +46,7 @@ public class Chain {
             throws StateAccessException {
         this.chainId = chainId;
         ChainZkManager chainMgr = new ChainZkManager(zkDirectory, zkBasePath);
-        this.chainName = chainMgr.get(chainId).value.name;
+        this.chainName = chainMgr.get(chainId).name;
         this.zkRuleManager = new RuleZkManager(zkDirectory, zkBasePath);
         this.ctrl = ctrl;
         updateRules();

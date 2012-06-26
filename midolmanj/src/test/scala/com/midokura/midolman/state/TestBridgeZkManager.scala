@@ -55,13 +55,13 @@ class TestBridgeZkManager {
         // Create three bridges, check that their identifying GRE keys (tunnel
         // IDs) are 1, 2, 3, in order.
         bridgeId = bridgeMgr.create(new BridgeConfig())
-        bridgeConfig = bridgeMgr.get(bridgeId).value
+        bridgeConfig = bridgeMgr.get(bridgeId)
         assertEquals(1, bridgeConfig.greKey)
         bridgeId = bridgeMgr.create(new BridgeConfig())
-        bridgeConfig = bridgeMgr.get(bridgeId).value
+        bridgeConfig = bridgeMgr.get(bridgeId)
         assertEquals(2, bridgeConfig.greKey)
         bridgeId = bridgeMgr.create(new BridgeConfig())
-        bridgeConfig = bridgeMgr.get(bridgeId).value
+        bridgeConfig = bridgeMgr.get(bridgeId)
         assertEquals(3, bridgeConfig.greKey)
     }
 }

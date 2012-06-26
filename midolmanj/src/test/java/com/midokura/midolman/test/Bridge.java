@@ -29,7 +29,7 @@ public class Bridge {
         this.network = network;
         this.bridgeID =
                 this.network.getBridgeManager().create(new BridgeConfig());
-        this.config = this.network.getBridgeManager().get(bridgeID).value;
+        this.config = this.network.getBridgeManager().get(bridgeID);
         config.inboundFilter = this.network.getChainManager().create(
                 new ChainZkManager.ChainConfig("prebridging"));
         config.outboundFilter = this.network.getChainManager().create(

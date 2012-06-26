@@ -44,85 +44,74 @@ public class AdRouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public List<Op> prepareAdRouteCreate(
-            ZkNodeEntry<UUID, AdRouteConfig> adRouteNode)
+    public List<Op> prepareAdRouteCreate(UUID id, AdRouteConfig config)
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getAdRoutePath(adRouteNode.key),
-                serializer.serialize(adRouteNode.value), Ids.OPEN_ACL_UNSAFE,
+        ops.add(Op.create(pathManager.getAdRoutePath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBgpAdRoutePath(
-                adRouteNode.value.bgpId, adRouteNode.key), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getBgpAdRoutePath(config.bgpId, id),
+                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
 
     public List<Op> prepareAdRouteDelete(UUID id) throws StateAccessException,
             ZkStateSerializationException {
-        return prepareAdRouteDelete(get(id));
+        return prepareAdRouteDelete(id, get(id));
     }
 
-    public List<Op> prepareAdRouteDelete(ZkNodeEntry<UUID, AdRouteConfig> entry)
+    public List<Op> prepareAdRouteDelete(UUID id, AdRouteConfig config)
             throws ZkStateSerializationException {
         // Delete the advertising route
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getAdRoutePath(entry.key), -1));
-        ops.add(Op.delete(pathManager.getBgpAdRoutePath(entry.value.bgpId,
-                entry.key), -1));
+        ops.add(Op.delete(pathManager.getAdRoutePath(id), -1));
+        ops.add(Op.delete(pathManager.getBgpAdRoutePath(config.bgpId, id), -1));
         return ops;
     }
 
     public UUID create(AdRouteConfig adRoute) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, AdRouteConfig> adRouteNode = new ZkNodeEntry<UUID, AdRouteConfig>(
-                id, adRoute);
-        multi(prepareAdRouteCreate(adRouteNode));
+        multi(prepareAdRouteCreate(id, adRoute));
         return id;
     }
 
-    public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id, Runnable watcher)
-            throws StateAccessException, ZkStateSerializationException {
+    public AdRouteConfig get(UUID id, Runnable watcher)
+            throws StateAccessException {
         byte[] data = get(pathManager.getAdRoutePath(id), watcher);
-        AdRouteConfig config = serializer.deserialize(data, AdRouteConfig.class);
-
-        return new ZkNodeEntry<UUID, AdRouteConfig>(id, config);
+        return serializer.deserialize(data, AdRouteConfig.class);
     }
 
-    public ZkNodeEntry<UUID, AdRouteConfig> get(UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+    public AdRouteConfig get(UUID id) throws StateAccessException {
         return this.get(id, null);
     }
 
-    public List<ZkNodeEntry<UUID, AdRouteConfig>> list(UUID bgpId,
-            Runnable watcher) throws StateAccessException,
-            ZkStateSerializationException {
-        List<ZkNodeEntry<UUID, AdRouteConfig>> result = new ArrayList<ZkNodeEntry<UUID, AdRouteConfig>>();
-        Set<String> adRouteIds = getChildren(pathManager
-                .getBgpAdRoutesPath(bgpId), watcher);
+    public List<UUID> list(UUID bgpId, Runnable watcher)
+            throws StateAccessException {
+        List<UUID> result = new ArrayList<UUID>();
+        Set<String> adRouteIds = getChildren(
+                pathManager.getBgpAdRoutesPath(bgpId), watcher);
         for (String adRouteId : adRouteIds) {
             // For now, get each one.
-            result.add(get(UUID.fromString(adRouteId)));
+            result.add(UUID.fromString(adRouteId));
         }
         return result;
     }
 
-    public List<ZkNodeEntry<UUID, AdRouteConfig>> list(UUID bgpId)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<UUID> list(UUID bgpId) throws StateAccessException {
         return this.list(bgpId, null);
     }
 
-    public void update(ZkNodeEntry<UUID, AdRouteConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
-        byte[] data = serializer.serialize(entry.value);
-        update(pathManager.getAdRoutePath(entry.key), data);
+    public void update(UUID id, AdRouteConfig config)
+            throws StateAccessException {
+        byte[] data = serializer.serialize(config);
+        update(pathManager.getAdRoutePath(id), data);
     }
 
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareAdRouteDelete(id));
     }
 }

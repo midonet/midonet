@@ -14,8 +14,6 @@ import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midolman.state.VpnZkManager.VpnConfig;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for VPN.
@@ -68,7 +66,7 @@ public class VpnZkProxy implements VpnDao {
     @Override
     public Vpn get(UUID id) throws StateAccessException {
         try {
-            return new Vpn(id, dataAccessor.get(id).value);
+            return new Vpn(id, dataAccessor.get(id));
         } catch (NoStatePathException e) {
             return null;
         }
@@ -82,9 +80,9 @@ public class VpnZkProxy implements VpnDao {
     @Override
     public List<Vpn> list(UUID portId) throws StateAccessException {
         List<Vpn> vpns = new ArrayList<Vpn>();
-        List<ZkNodeEntry<UUID, VpnConfig>> entries = dataAccessor.list(portId);
-        for (ZkNodeEntry<UUID, VpnConfig> entry : entries) {
-            vpns.add(new Vpn(entry.key, entry.value));
+        List<UUID> ids = dataAccessor.list(portId);
+        for (UUID id : ids) {
+            vpns.add(new Vpn(id, dataAccessor.get(id)));
         }
         return vpns;
     }

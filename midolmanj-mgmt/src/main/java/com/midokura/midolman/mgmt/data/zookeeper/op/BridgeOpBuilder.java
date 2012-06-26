@@ -18,7 +18,6 @@ import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
@@ -125,8 +124,8 @@ public class BridgeOpBuilder {
         log.debug("BridgeOpBuilder.getBridgeDeleteOps entered: id={}", id);
 
         BridgeZkManager bridgeZkDao = zkDao;
-        ZkNodeEntry<UUID, BridgeConfig> bridgeNode = bridgeZkDao.get(id);
-        List<Op> ops = bridgeZkDao.prepareBridgeDelete(bridgeNode);
+        BridgeConfig bridgeNode = bridgeZkDao.get(id);
+        List<Op> ops = bridgeZkDao.prepareBridgeDelete(id, bridgeNode);
 
         log.debug("BridgeOpBuilder.getBridgeDeleteOps exiting: ops count={}",
                 ops.size());

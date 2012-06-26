@@ -201,9 +201,8 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                     deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
                                   oldConfig.prefixLength)
                     try {
-                        val newNode = adRouteZk.get(adRouteUUID, this)
-                        if (newNode != null) {
-                            val adRoute = newNode.value
+                        val adRoute = adRouteZk.get(adRouteUUID, this)
+                        if (adRoute != null) {
                             setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
                                        adRoute.prefixLength)
                         }
@@ -224,11 +223,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                     // adRoute events when routes are added.
                     try {
                         if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
-                            val newNode = bgpZk.get(bgpUUID, this)
-                            if (newNode != null) {
-                                val bgpUUID = newNode.key
-                                val bgp = newNode.value
-                                this.bgpUUID = newNode.key
+                            val bgp = bgpZk.get(bgpUUID, this)
+                            if (bgp != null) {
+                                this.bgpUUID = bgpUUID
                                 this.oldConfig = bgp
                                 create(localAddr, bgpUUID, bgp)
                             }
@@ -421,9 +418,8 @@ extends VtyConnection(addr, port, password) with BgpConnection {
         val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp, adRoutes,
                                         bgpZk, adRouteZk)
 
-        for (adRouteNode <- adRouteZk.list(bgpUUID, bgpWatcher)) {
-            val adRouteUUID = adRouteNode.key
-            val adRoute = adRouteNode.value
+        for (adRouteUUID <- adRouteZk.list(bgpUUID, bgpWatcher)) {
+            val adRoute = adRouteZk.get(adRouteUUID)
             setNetwork(bgp.localAS, adRoute.nwPrefix.getHostAddress,
                        adRoute.prefixLength)
             adRoutes.add(adRouteUUID)

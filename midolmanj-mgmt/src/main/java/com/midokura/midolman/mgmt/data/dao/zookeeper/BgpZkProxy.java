@@ -16,10 +16,8 @@ import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Data access class for BGP.
@@ -76,7 +74,7 @@ public class BgpZkProxy implements BgpDao {
     @Override
     public Bgp get(UUID id) throws StateAccessException {
         try {
-            return new Bgp(id, dataAccessor.get(id).value);
+            return new Bgp(id, dataAccessor.get(id));
         } catch (NoStatePathException e) {
             return null;
         }
@@ -108,9 +106,9 @@ public class BgpZkProxy implements BgpDao {
     @Override
     public List<Bgp> list(UUID portId) throws StateAccessException {
         List<Bgp> bgps = new ArrayList<Bgp>();
-        List<ZkNodeEntry<UUID, BgpConfig>> entries = dataAccessor.list(portId);
-        for (ZkNodeEntry<UUID, BgpConfig> entry : entries) {
-            bgps.add(new Bgp(entry.key, entry.value));
+        List<UUID> ids = dataAccessor.list(portId);
+        for (UUID id : ids) {
+            bgps.add(new Bgp(id, dataAccessor.get(id)));
         }
         return bgps;
     }

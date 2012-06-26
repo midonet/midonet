@@ -39,7 +39,6 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
 
@@ -166,7 +165,7 @@ public class BgpPortService implements PortService {
     public void addPort(final long datapathId, final UUID portId,
                         final MAC mac) throws StateAccessException {
         // Check service attributes in port configurations.
-        List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(
+        List<UUID> bgpNodes = bgpMgr.list(
             portId, new Runnable() {
                 public void run() {
                     try {
@@ -185,7 +184,7 @@ public class BgpPortService implements PortService {
                 }
             });
 
-        for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpNodes) {
+        for (UUID bgpNode : bgpNodes) {
             // TODO(yoshi): consider delete and recreate.
             String portName = String.format(BGP_PORT_NAME + "%d", bgpPortIdx);
             // The length of interface names are limited to 16 bytes.
@@ -290,7 +289,7 @@ public class BgpPortService implements PortService {
                 PortDirectory.MaterializedRouterPortConfig.class);
         final int localAddr = portConfig.portAddr;
 
-        for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(
+        for (final UUID bgpId : bgpMgr.list(
                  remotePortId, new Runnable() {
                      @Override
                      public void run() {
@@ -301,8 +300,7 @@ public class BgpPortService implements PortService {
                          }
                      }
                  })) {
-            final UUID bgpId = bgpNode.key;
-            final BgpConfig bgpConfig = bgpNode.value;
+            final BgpConfig bgpConfig = bgpMgr.get(bgpId);
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
             log.info("Port service flows: local {} remote {} " +
                                    "localAddr {} remoteAddr {} " +

@@ -10,11 +10,9 @@ import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 public class RouterPort {
     UUID portID;

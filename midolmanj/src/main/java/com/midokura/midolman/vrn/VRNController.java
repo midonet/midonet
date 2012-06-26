@@ -581,9 +581,8 @@ public class VRNController extends AbstractController
             try {
                 // TODO: Shouldn't this be fetching from a PortSet datastore,
                 // not bridgeMgr?
-                ZkNodeEntry<UUID, BridgeConfig> entry =
-                        bridgeMgr.get(fwdInfo.outPortId);
-                greKey = entry.value.greKey;
+                BridgeConfig entry = bridgeMgr.get(fwdInfo.outPortId);
+                greKey = entry.greKey;
             } catch (StateAccessException e) {
                 // TODO(pino): drop this flow.
                 log.error("Got error mapping the port set to a GRE key.", e);

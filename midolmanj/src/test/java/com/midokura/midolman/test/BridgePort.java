@@ -26,7 +26,6 @@ import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 public class BridgePort {
 

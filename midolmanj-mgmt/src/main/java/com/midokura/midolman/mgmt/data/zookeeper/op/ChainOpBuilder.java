@@ -18,7 +18,6 @@ import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 
 /**
@@ -93,10 +92,7 @@ public class ChainOpBuilder {
         if (id == null || config == null) {
             throw new IllegalArgumentException("ID and config cannot be null");
         }
-        ZkNodeEntry<UUID, ChainConfig> chainNode =
-                new ZkNodeEntry<UUID, ChainConfig>(id, config);
-        List<Op> ops = zkDao.prepareChainCreate(chainNode);
-        return ops;
+        return zkDao.prepareChainCreate(id, config);
     }
 
     /**
@@ -183,8 +179,7 @@ public class ChainOpBuilder {
      * @return Op for tenant chain name create.
      */
     public Op getTenantChainNameCreateOp(String tenantId, String chainName,
-                                         ChainNameMgmtConfig config)
-            throws ZkStateSerializationException {
+            ChainNameMgmtConfig config) throws ZkStateSerializationException {
         if (tenantId == null || chainName == null || config == null) {
             throw new IllegalArgumentException(
                     "tenantId, config, and chainName cannot be null");

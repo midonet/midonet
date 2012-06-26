@@ -54,54 +54,48 @@ public class ChainZkManager extends ZkManager {
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new chain.
      *
-     * @param chainEntry
-     *            ZooKeeper node representing a key-value entry of chain UUID
-     *            and ChainConfig object.
+     * @param id
+     *            ID of the chain.
+     * @param config
+     *            ChainConfig object.
      * @return A list of Op objects to represent the operations to perform.
      * @throws ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareChainCreate(ZkNodeEntry<UUID, ChainConfig> chainEntry)
+    public List<Op> prepareChainCreate(UUID id, ChainConfig config)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getChainPath(chainEntry.key),
-                serializer.serialize(chainEntry.value), Ids.OPEN_ACL_UNSAFE,
+        ops.add(Op.create(pathManager.getChainPath(id),
+                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getChainRulesPath(chainEntry.key), null,
+        ops.add(Op.create(pathManager.getChainRulesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
-    }
-
-    public List<Op> prepareChainDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        return prepareChainDelete(get(id));
     }
 
     /**
      * Constructs a list of operations to perform in a chain deletion.
      *
-     * @param entry
-     *            Chain ZooKeeper entry to delete.
+     * @param id
+     *            Chain ID
      * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
+     * @throws StateAccessException
      */
-    public List<Op> prepareChainDelete(ZkNodeEntry<UUID, ChainConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
+    public List<Op> prepareChainDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk,
                 pathManager.getBasePath());
-        Set<UUID> ruleIds = ruleZkManager.getRuleIds(entry.key);
+        Set<UUID> ruleIds = ruleZkManager.getRuleIds(id);
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleId, rule));
         }
 
-        String chainRulePath = pathManager.getChainRulesPath(entry.key);
+        String chainRulePath = pathManager.getChainRulesPath(id);
         log.debug("Preparing to delete: " + chainRulePath);
         ops.add(Op.delete(chainRulePath, -1));
 
-        String chainPath = pathManager.getChainPath(entry.key);
+        String chainPath = pathManager.getChainPath(id);
         log.debug("Preparing to delete: " + chainPath);
         ops.add(Op.delete(chainPath, -1));
         return ops;
@@ -119,9 +113,7 @@ public class ChainZkManager extends ZkManager {
     public UUID create(ChainConfig chain) throws StateAccessException,
             ZkStateSerializationException {
         UUID id = UUID.randomUUID();
-        ZkNodeEntry<UUID, ChainConfig> chainNode = new ZkNodeEntry<UUID, ChainConfig>(
-                id, chain);
-        multi(prepareChainCreate(chainNode));
+        multi(prepareChainCreate(id, chain));
         return id;
     }
 
@@ -131,14 +123,11 @@ public class ChainZkManager extends ZkManager {
      * @param id
      *            The ID of the chain.
      * @return ChainConfig object found.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
+     * @throws StateAccessException
      */
-    public ZkNodeEntry<UUID, ChainConfig> get(UUID id)
-            throws StateAccessException {
+    public ChainConfig get(UUID id) throws StateAccessException {
         byte[] data = get(pathManager.getChainPath(id), null);
-        ChainConfig config = serializer.deserialize(data, ChainConfig.class);
-        return new ZkNodeEntry<UUID, ChainConfig>(id, config);
+        return serializer.deserialize(data, ChainConfig.class);
     }
 
     /**
@@ -146,13 +135,11 @@ public class ChainZkManager extends ZkManager {
      *
      * @param entry
      *            ChainConfig object to save.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
+     * @throws StateAccessException
      */
-    public void update(ZkNodeEntry<UUID, ChainConfig> entry)
-            throws StateAccessException, ZkStateSerializationException {
-        byte[] data = serializer.serialize(entry.value);
-        update(pathManager.getChainPath(entry.key), data);
+    public void update(UUID id, ChainConfig config) throws StateAccessException {
+        byte[] data = serializer.serialize(config);
+        update(pathManager.getChainPath(id), data);
     }
 
     /***

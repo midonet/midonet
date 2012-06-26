@@ -19,7 +19,7 @@ import com.midokura.midolman.Setup
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
                                     MockDirectory, PortDirectory,
                                     PortZkManager, RouterZkManager,
-                                    ZkNodeEntry, ZkPathManager}
+                                    ZkPathManager}
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.util.{Net, Sudo}
@@ -196,7 +196,7 @@ class TestBgpVtyConnection {
             val prefixLen:Byte = 24
             var updateAdRoute = new AdRouteConfig(
                 bgpId, InetAddress.getByName(nwAddr), prefixLen)
-            adRouteMgr.update(new ZkNodeEntry(adRouteId, updateAdRoute))
+            adRouteMgr.update(adRouteId, updateAdRoute)
             // Need to wait until bgpd's config changes.
             Thread.sleep(1000)
             val networks = vtyConn.getNetwork

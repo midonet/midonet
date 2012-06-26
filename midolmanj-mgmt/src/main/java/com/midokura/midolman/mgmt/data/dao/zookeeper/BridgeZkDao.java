@@ -19,7 +19,6 @@ import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkNodeEntry;
 
 /**
  * Proxy class to access ZooKeeper for bridge data.
@@ -78,10 +77,7 @@ public class BridgeZkDao {
      *             Data access error.
      */
     public BridgeConfig getData(UUID id) throws StateAccessException {
-        ZkNodeEntry<UUID, BridgeConfig> node = zkDao.get(id);
-        BridgeConfig config = node.value;
-        return config;
-
+        return zkDao.get(id);
     }
 
     /**

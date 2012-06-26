@@ -30,7 +30,6 @@ import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnConfig;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 
@@ -137,8 +136,8 @@ public class MockPortService implements PortService {
         }
         // Check service attributes in port configurations.
         if (bgpMgr != null) {
-            List<ZkNodeEntry<UUID, BgpConfig>> bgpNodes = bgpMgr.list(portId);
-            for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpNodes) {
+            List<UUID> bgpNodes = bgpMgr.list(portId);
+            for (UUID bgpNode : bgpNodes) {
                 log.debug("Add {}{} port {} num {} UUID {} to datapath {}",
                           new Object[] {BGP_PORT_NAME, bgpPortIdx,
                                         BGP_SERVICE_EXT_ID, bgpPortNum, portId,
@@ -148,8 +147,8 @@ public class MockPortService implements PortService {
                 bgpPortIdx += 1;
             }
         } else if (vpnMgr != null) {
-            List<ZkNodeEntry<UUID, VpnConfig>> bgpNodes = vpnMgr.list(portId);
-            for (ZkNodeEntry<UUID, VpnConfig> bgpNode : bgpNodes) {
+            List<UUID> vpnNodes = vpnMgr.list(portId);
+            for (UUID vpnNode : vpnNodes) {
                 log.debug("Add {}{} port {} num {} UUID {} to datapath {}",
                           new Object[] {BGP_PORT_NAME, bgpPortIdx,
                                         BGP_SERVICE_EXT_ID, bgpPortNum, portId,
@@ -213,8 +212,8 @@ public class MockPortService implements PortService {
                         PortDirectory.MaterializedRouterPortConfig.class);
         int localAddr = portConfig.portAddr;
 
-        for (ZkNodeEntry<UUID, BgpConfig> bgpNode : bgpMgr.list(remotePortId)) {
-            BgpConfig bgpConfig = bgpNode.value;
+        for (UUID bgpNode : bgpMgr.list(remotePortId)) {
+            BgpConfig bgpConfig = bgpMgr.get(bgpNode);
             int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
             log.debug("Port service flows: local {} remote {} "
                     + "localAddr {} remoteAddr {} "

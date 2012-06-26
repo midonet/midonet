@@ -103,7 +103,7 @@ public class Bridge implements ForwardingElement {
                     public void run() {
                         try {
                             BridgeConfig config =
-                                    bridgeMgr.get(bridgeId, this).value;
+                                    bridgeMgr.get(bridgeId, this);
                             if (!myConfig.equals(config)) {
                                 myConfig = config;
                                 log.debug("Bridge {} has a new config {} - " +
@@ -115,7 +115,7 @@ public class Bridge implements ForwardingElement {
                             log.error("Failed to update bridge config", e);
                         }
                     }
-                }).value;
+                });
     }
 
     public static UUID bridgeIdToFloodId(UUID bridgeId) {

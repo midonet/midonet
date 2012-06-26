@@ -10,7 +10,7 @@ package com.midokura.midolman.portservice
 
 import com.midokura.midolman.state.{StateAccessException,
                                     StatePathExistsException, VpnZkManager,
-                                    ZkManager, ZkNodeEntry}
+                                    ZkManager}
 import com.midokura.midolman.state.VpnZkManager.{VpnConfig, VpnType}
 
 import scala.collection.JavaConversions._
@@ -175,7 +175,7 @@ class VpnPortAgent(val sessionId: Long, val datapathId: Long,
         }
     }
 
-    private def watchVpn(): Iterator[ZkNodeEntry[UUID, VpnConfig]] = {
+    private def watchVpn(): Iterator[UUID] = {
         log.debug("watchVpn")
 
         val vpnNodes = vpnMgr.listAll(new Runnable {
@@ -184,7 +184,7 @@ class VpnPortAgent(val sessionId: Long, val datapathId: Long,
             }
         }).toIterator
 
-        val vpnMap = (for (vpn <- vpnNodes) yield (vpn.key, vpn.value)).toMap
+        val vpnMap = (for (vpnId <- vpnNodes) yield (vpnId, vpnMgr.get(vpnId))).toMap
         handleVpn(vpnMap)
 
         return vpnNodes
