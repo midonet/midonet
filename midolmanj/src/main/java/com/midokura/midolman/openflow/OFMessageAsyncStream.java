@@ -44,14 +44,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Asynchronous OpenFlow message marshalling and unmarshalling stream wrapped
  * around an NIO SocketChannel
- * 
+ *
  * @author Rob Sherwood (rob.sherwood@stanford.edu)
  * @author David Erickson (daviderickson@cs.stanford.edu)
- * 
+ *
  */
 public class OFMessageAsyncStream {
-	private final static Logger log = LoggerFactory.getLogger(OFMessageAsyncStream.class);
-	
+    private final static Logger log = LoggerFactory.getLogger(OFMessageAsyncStream.class);
+
     static public int defaultBufferSize = 65536;
 
     protected ByteBuffer inBuf, outBuf;
@@ -88,8 +88,8 @@ public class OFMessageAsyncStream {
     protected void appendMessageToOutBuf(OFMessage m) throws IOException {
         int msglen = m.getLengthU();
         if (outBuf.remaining() < msglen) {
-        	int newSize = outBuf.capacity() * 2;
-        	log.warn("appendMessageToOutBuf: increasing outBuf size to {}", newSize);
+            int newSize = outBuf.capacity() * 2;
+            log.warn("appendMessageToOutBuf: increasing outBuf size to {}", newSize);
             ByteBuffer newOutBuf = ByteBuffer.allocateDirect(newSize);
             outBuf.flip();
             newOutBuf.put(outBuf);
@@ -102,13 +102,13 @@ public class OFMessageAsyncStream {
      * Sends or Buffers a single outgoing openflow message
      */
     public void write(OFMessage m) throws IOException {
-    	boolean alreadyNeededFlush = needsFlush();
-    	
+        boolean alreadyNeededFlush = needsFlush();
+
         appendMessageToOutBuf(m);
-        
+
         // if we already needed flush, let the eventloop do it later.
         if (!alreadyNeededFlush) {
-        	flush();
+            flush();
         }
     }
 
@@ -144,5 +144,4 @@ public class OFMessageAsyncStream {
     public void setMessageFactory(OFMessageFactory messageFactory) {
         this.messageFactory = messageFactory;
     }
-
 }

@@ -17,6 +17,8 @@ import com.yammer.metrics.core.Metric;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.MetricPredicate;
 import org.openflow.protocol.statistics.OFPortStatisticsReply;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.vrn.VRNController;
 
@@ -28,6 +30,9 @@ import com.midokura.midolman.vrn.VRNController;
  */
 public class VifMetrics {
 
+    private static final Logger log = LoggerFactory
+        .getLogger(VifMetrics.class);
+
     static Map<UUID, Runnable> map = new HashMap<UUID, Runnable>();
 
     static ScheduledThreadPoolExecutor executorService =
@@ -37,7 +42,7 @@ public class VifMetrics {
         return VifMetrics.class.getPackage().getName();
     }
 
-    public static void enableVirtualPortMetrics(VRNController controller,
+    public static void enableVirtualPortMetrics(final VRNController controller,
                                                 short portNum,
                                                 final UUID portId,
                                                 String portName) {
@@ -56,29 +61,66 @@ public class VifMetrics {
         Runnable command = new Runnable() {
             @Override
             public void run() {
-                List<OFPortStatisticsReply> portStatistics =
-                    counters.controller.getPortStats(counters.portNum);
+                try {
+                    log.debug("Starting statistics collection for port {}.",
+                              counters.portNum);
 
-                int rxPackets = 0;
-                int txPackets = 0;
-                int rxBytes = 0;
-                int txBytes = 0;
+                    final int xid[] = new int[1];
 
-                for (OFPortStatisticsReply portStatistic : portStatistics) {
-                    rxPackets += portStatistic.getReceievePackets();
-                    txPackets += portStatistic.getTransmitPackets();
-                    rxBytes += portStatistic.getReceiveBytes();
-                    txBytes += portStatistic.getTransmitBytes();
+                    // schedule the request and make sure we wait until it's
+                    // executed by the midolman event loop thread.
+                    controller.getReactor().submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            VRNController myController = counters.controller;
+
+                            xid[0] = myController.sendPortStatsRequest(
+                                counters.portNum);
+                        }
+                    }).get();
+
+                    // this is blocking the current thread and waits for the
+                    // the reply to be posted by the midolman event loop when
+                    // it's received from the ovs daemon.
+                    List<OFPortStatisticsReply> portStatistics =
+                        counters.controller.getPortStatsReply(xid[0]);
+
+                    if (portStatistics == null) {
+                        log.error("We got an empty statistics reply");
+                        return;
+                    }
+
+                    int rxPackets = 0;
+                    int txPackets = 0;
+                    int rxBytes = 0;
+                    int txBytes = 0;
+
+                    for (OFPortStatisticsReply portStatistic : portStatistics) {
+                        rxPackets += portStatistic.getReceievePackets();
+                        txPackets += portStatistic.getTransmitPackets();
+                        rxBytes += portStatistic.getReceiveBytes();
+                        txBytes += portStatistic.getTransmitBytes();
+                    }
+
+                    updateCounter(counters.rxPackets, rxPackets);
+                    updateCounter(counters.txPackets, txPackets);
+                    updateCounter(counters.rxBytes, rxBytes);
+                    updateCounter(counters.txBytes, txBytes);
+                } catch (Throwable tx) {
+                    log.error(
+                        "Got a Throwable while collecting statistics for port {}",
+                        counters.portNum, tx);
+                } finally {
+                    log.debug("Statistics collection done for port {}.",
+                              counters.portNum);
                 }
-
-                updateCounter(counters.rxPackets, rxPackets);
-                updateCounter(counters.txPackets, txPackets);
-                updateCounter(counters.rxBytes, rxBytes);
-                updateCounter(counters.txBytes, txBytes);
             }
         };
 
-        executorService.scheduleAtFixedRate(command, 200, 950, TimeUnit.MILLISECONDS);
+        log.debug("Adding periodic scheduled job to service: {}, {}",
+                  executorService);
+        executorService.scheduleAtFixedRate(command, 200, 950,
+                                            TimeUnit.MILLISECONDS);
 
         map.put(portId, command);
     }

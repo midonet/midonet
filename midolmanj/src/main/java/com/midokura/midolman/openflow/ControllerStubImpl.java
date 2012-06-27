@@ -66,9 +66,9 @@ import com.midokura.midolman.openflow.nxm.OfNxTunIdNxmEntry;
 public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
     private final static Logger log = LoggerFactory.getLogger(ControllerStubImpl.class);
+    public final static int POLLING_DEADLINE_MSEC = 300;
     private final static int FLOW_REQUEST_BODY_LENGTH = 44;
     private final static int PORT_QUEUE_REQUEST_BODY_LENGTH = 8;
-    private final static int POLLING_DEADLINE_MSEC = 300;
 
     protected Controller controller;
 
@@ -312,7 +312,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 new TimeoutHandler() {
                     @Override
                     public void onTimeout() {
-                        log.warn("Retrievineg statistics timed out.");
+                        log.warn("Retrieving statistics timed out.");
                         if (socketChannel.isConnected())
                             sendStatsRequest(statsRequests, statsType);
                     }
@@ -610,7 +610,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         } catch (IOException e) {
             log.warn("sendFlowModAdd", e);
         }
-        
+
         // Not sure we need to do this... undo our change.
         match.setWildcards(wc);
     }

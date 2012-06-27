@@ -1203,4 +1203,8 @@ public class VRNController extends AbstractController
             throws StateAccessException, KeeperException {
         return vrn.getForwardingElementByPort(portID);
     }
+
+    public Reactor getReactor() {
+        return reactor;
+    }
 }
