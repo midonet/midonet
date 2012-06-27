@@ -46,7 +46,6 @@ import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -420,10 +419,8 @@ public class TestHostCommand extends JerseyTest {
 
         DtoHostCommand hostCommand = response.getEntity(DtoHostCommand.class);
 
-        ZkNodeEntry<Integer, HostDirectory.Command> commandDataPair =
+        HostDirectory.Command commandData =
             hostManager.getCommandData(host.getId(), hostCommand.getId());
-
-        HostDirectory.Command commandData = commandDataPair.value;
 
         assertThat("The command has the proper size",
                    commandData.getCommandList(), hasSize(1));
@@ -488,10 +485,8 @@ public class TestHostCommand extends JerseyTest {
 
         DtoHostCommand hostCommand = response.getEntity(DtoHostCommand.class);
 
-        ZkNodeEntry<Integer, HostDirectory.Command> commandDataPair =
+        HostDirectory.Command commandData =
             hostManager.getCommandData(host.getId(), hostCommand.getId());
-
-        HostDirectory.Command commandData = commandDataPair.value;
 
         assertThat("The generated command has the proper size",
                    commandData.getCommandList(), hasSize(1));

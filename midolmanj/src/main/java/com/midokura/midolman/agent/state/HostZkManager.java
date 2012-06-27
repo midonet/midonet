@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
@@ -38,7 +37,7 @@ public class HostZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public ZkNodeEntry<UUID, HostDirectory.Metadata> getHostMetadata(UUID id)
+    public HostDirectory.Metadata getHostMetadata(UUID id)
         throws StateAccessException {
         byte[] data = get(pathManager.getHostPath(id));
         HostDirectory.Metadata metadata;
@@ -52,7 +51,7 @@ public class HostZkManager extends ZkManager {
                 e,
                 HostDirectory.Metadata.class);
         }
-        return new ZkNodeEntry<UUID, HostDirectory.Metadata>(id, metadata);
+        return metadata;
     }
 
     public void createHost(UUID hostId, HostDirectory.Metadata metadata)
@@ -175,17 +174,15 @@ public class HostZkManager extends ZkManager {
         return uuid;
     }
 
-    public ZkNodeEntry<UUID, HostDirectory.Interface> getInterfaceData(
-        UUID hostId, UUID interfaceId) throws StateAccessException {
+    public HostDirectory.Interface getInterfaceData(UUID hostId,
+                                                    UUID interfaceId)
+        throws StateAccessException {
 
         try {
             byte[] data = get(
                 pathManager.getHostInterfacePath(hostId, interfaceId));
 
-            return new ZkNodeEntry<UUID, HostDirectory.Interface>(
-                interfaceId,
-                serializer.deserialize(data, HostDirectory.Interface.class)
-            );
+            return serializer.deserialize(data, HostDirectory.Interface.class);
         } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host interface metadata for id: " +
@@ -194,17 +191,15 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public List<ZkNodeEntry<Integer, HostDirectory.Command>> listCommands(
-        UUID hostId, Runnable watcher) throws StateAccessException {
-        List<ZkNodeEntry<Integer, HostDirectory.Command>> result =
-            new ArrayList<ZkNodeEntry<Integer, HostDirectory.Command>>();
+    public List<Integer> listCommandIds(UUID hostId, Runnable watcher)
+        throws StateAccessException {
+        List<Integer> result = new ArrayList<Integer>();
 
         String hostCommandsPath = pathManager.getHostCommandsPath(hostId);
         Set<String> commands = getChildren(hostCommandsPath, watcher);
         for (String commandId : commands) {
-            // For now, get each one.
             try {
-                result.add(getCommandData(hostId, Integer.parseInt(commandId)));
+                result.add(Integer.parseInt(commandId));
             } catch (NumberFormatException e) {
                 log.warn("HostCommand id is not a number: {} (for host: {}",
                          commandId, hostId);
@@ -307,18 +302,14 @@ public class HostZkManager extends ZkManager {
         return commandIds;
     }
 
-    public ZkNodeEntry<Integer, Command> getCommandData(UUID hostId,
-                                                        Integer commandId)
+    public Command getCommandData(UUID hostId, Integer commandId)
         throws StateAccessException {
 
         try {
             byte[] data = get(
                 pathManager.getHostCommandPath(hostId, commandId));
 
-            return new ZkNodeEntry<Integer, Command>(
-                commandId,
-                serializer.deserialize(data, Command.class)
-            );
+            return serializer.deserialize(data, Command.class);
         } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host command data id: " +
@@ -355,18 +346,16 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> getErrorLogData(
-        UUID hostId,
-        Integer logId) throws StateAccessException {
+    public HostDirectory.ErrorLogItem getErrorLogData(UUID hostId, Integer logId)
+        throws StateAccessException {
         try {
             String errorItemPath =
                 pathManager.getHostCommandErrorLogPath(hostId, logId);
 
             if ( exists(errorItemPath)) {
                 byte[] data = get(errorItemPath);
-                return new ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>(
-                    logId, serializer.deserialize(data, HostDirectory.ErrorLogItem.class)
-                );
+                return serializer.deserialize(data,
+                        HostDirectory.ErrorLogItem.class);
             }
 
             return null;
@@ -378,17 +367,15 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>
-    listErrorLogs(UUID hostId) throws StateAccessException {
-        List<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>> result =
-            new ArrayList<ZkNodeEntry<Integer, HostDirectory.ErrorLogItem>>();
-
+    public List<Integer> listErrorLogIds(UUID hostId)
+        throws StateAccessException {
+        List<Integer> result = new ArrayList<Integer>();
         String hostLogsPath = pathManager.getHostCommandErrorLogsPath(hostId);
         Set<String> logs = getChildren(hostLogsPath, null);
         for (String logId : logs) {
             // For now, get each one.
             try {
-                result.add(getErrorLogData(hostId, Integer.parseInt(logId)));
+                result.add(Integer.parseInt(logId));
             } catch (NumberFormatException e) {
                 log.warn("ErrorLog id is not a number: {} (for host: {}",
                          logId, hostId);

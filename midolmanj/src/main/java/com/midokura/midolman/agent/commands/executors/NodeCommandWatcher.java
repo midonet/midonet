@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.agent.state.HostDirectory;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import static com.midokura.midolman.agent.state.HostDirectory.Command;
 
 public class NodeCommandWatcher {
@@ -59,18 +58,23 @@ public class NodeCommandWatcher {
 
     private void updateCommands() {
         log.debug("Checking the current commands");
-        Collection<ZkNodeEntry<Integer, HostDirectory.Command>> entryList = null;
+        Collection<Integer> commandIds = null;
         try {
-            entryList = zkManager.listCommands(hostId, watcher);
+            commandIds = zkManager.listCommandIds(hostId, watcher);
         } catch (StateAccessException e) {
             log.warn("Cannot list the Commands.", e);
             return;
         }
 
-        log.debug("We have {} commands to execute.", entryList.size());
+        log.debug("We have {} commands to execute.", commandIds.size());
         Map<Integer, HostDirectory.Command> currentCommands = new HashMap<Integer, HostDirectory.Command>();
-        for (ZkNodeEntry<Integer, HostDirectory.Command> entry : entryList) {
-            currentCommands.put(entry.key, entry.value);
+        for(Integer commandId : commandIds) {
+            try {
+                currentCommands.put(commandId, zkManager.getCommandData(hostId, commandId));
+            } catch (StateAccessException e) {
+                log.warn("Cannot retrieve the Command.", e);
+                return;
+            }
         }
 
         Set<Integer> newCommands = new HashSet<Integer>(currentCommands.keySet());

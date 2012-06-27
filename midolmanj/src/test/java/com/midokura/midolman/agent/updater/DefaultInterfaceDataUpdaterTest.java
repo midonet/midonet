@@ -37,7 +37,6 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
 import static com.midokura.midolman.agent.state.HostDirectory.Interface;
 
@@ -257,10 +256,8 @@ public class DefaultInterfaceDataUpdaterTest {
             new HashMap<String, Interface>();
 
         for (UUID interfaceID : interfaceIDs) {
-            ZkNodeEntry<UUID, HostDirectory.Interface> hostInterfaceNode =
+            Interface hostInterface =
                 hostManager.getInterfaceData(hostID, interfaceID);
-
-            Interface hostInterface = hostInterfaceNode.value;
 
             assertThat("The interface object is not a null value",
                        hostInterface, notNullValue());

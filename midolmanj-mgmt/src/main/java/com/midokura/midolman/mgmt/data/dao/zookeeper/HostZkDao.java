@@ -17,16 +17,15 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.agent.commands.HostCommandGenerator;
 import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.state.HostDirectory.Command;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
+import com.midokura.midolman.mgmt.data.dto.HostCommand.LogEntry;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkNodeEntry;
 import com.midokura.midolman.state.ZkPathManager;
-import static com.midokura.midolman.agent.state.HostDirectory.Command;
-import static com.midokura.midolman.mgmt.data.dto.HostCommand.*;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
@@ -70,11 +69,10 @@ public class HostZkDao {
 
 	public Host get(UUID id) throws StateAccessException {
 
-		ZkNodeEntry<UUID, HostDirectory.Metadata> metadataZkNodeEntry = zkDao
+		HostDirectory.Metadata hostMetadata = zkDao
 				.getHostMetadata(id);
 
 		Host host = new Host(id);
-		HostDirectory.Metadata hostMetadata = metadataZkNodeEntry.value;
 
 		host.setName(hostMetadata.getName());
 		List<String> addresses = new ArrayList<String>();
@@ -101,10 +99,8 @@ public class HostZkDao {
 
 	public Interface getInterface(UUID hostId, UUID interfaceId)
 			throws StateAccessException {
-		ZkNodeEntry<UUID, HostDirectory.Interface> metadataZkNodeEntry = zkDao
+		HostDirectory.Interface interfaceData = zkDao
 				.getInterfaceData(hostId, interfaceId);
-
-		HostDirectory.Interface interfaceData = metadataZkNodeEntry.value;
 
 		return toDtoInterfaceObject(hostId, interfaceId, interfaceData);
 	}
@@ -172,10 +168,7 @@ public class HostZkDao {
 		HostDirectory.Interface curHostInterface = null;
 
 		if (curInterfaceId != null) {
-			ZkNodeEntry<UUID, HostDirectory.Interface> curInterfacePair = zkDao
-					.getInterfaceData(hostId, curInterfaceId);
-
-			curHostInterface = curInterfacePair.value;
+			curHostInterface = zkDao.getInterfaceData(hostId, curInterfaceId);
 		}
 
 		HostDirectory.Interface newHostInterface = toHostDirectoryInterface(newInterface);
@@ -215,13 +208,10 @@ public class HostZkDao {
 		HostCommand command = null;
 
 		try {
-            ZkNodeEntry<Integer, Command> nodeEntry =
-                zkDao.getCommandData(hostId, id);
+		    Command hostCommand  = zkDao.getCommandData(hostId, id);
 
-            ZkNodeEntry<Integer, HostDirectory.ErrorLogItem> errorLogItem =
+            HostDirectory.ErrorLogItem errorLogItem =
                 zkDao.getErrorLogData(hostId, id);
-
-            Command hostCommand = nodeEntry.value;
 
             command = new HostCommand();
 
@@ -230,7 +220,7 @@ public class HostZkDao {
             command.setInterfaceName(hostCommand.getInterfaceName());
             command.setCommands(translateCommands(hostCommand.getCommandList()));
             if ( errorLogItem != null)
-                command.setLogEntries(translateErrorLog(errorLogItem.value));
+                command.setLogEntries(translateErrorLog(errorLogItem));
 		} catch (StateAccessException e) {
 			log.warn("Could not read command with id {} from datastore "
 					+ "(for host: {})", new Object[] { id, hostId, e });
