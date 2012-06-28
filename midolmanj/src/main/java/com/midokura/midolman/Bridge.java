@@ -34,6 +34,7 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.midolman.vrn.ForwardingElement;
 import com.midokura.midolman.vrn.VRNControllerIface;
@@ -246,21 +247,25 @@ public class Bridge implements ForwardingElement {
     }
 
     @Override
-    public void removePort(UUID portId) throws StateAccessException {
+    public void removePort(final UUID portId) throws StateAccessException {
         // No invalidation needed: controller invalidates on Port-Loc changes.
         localPorts.remove(portId);
         controller.removeLocalPortFromSet(bridgeId, portId);
         if (localPorts.size() == 0)
             controller.unsubscribePortSet(bridgeId);
         log.info("removePort - expire MAC-port entries for port {}", portId);
-        Iterable<MAC> macList = bridgeState.macsOfPort(portId);
-        for (MAC mac : macList) {
-            log.info("Removing mapping from MAC {} to port {}", mac, portId);
-            flowCount.remove(new MacPort(mac, portId));
-            // Only schedule the mac-port mapping for expiration. We want it
-            // to be remembered for a short time in case the port is migrating.
-            expireMacPortEntry(mac, portId);
-        }
+        bridgeState.callForAllMacsOfPort(portId, 
+            new Callback1<MAC>() {
+                public void call(MAC mac) {
+                    log.info("Removing mapping from MAC {} to port {}",
+                             mac, portId);
+                    flowCount.remove(new MacPort(mac, portId));
+                    // Only schedule the mac-port mapping for expiration.  We
+                    // want it to be remembered for a short time in case the
+                    // port is migrating.
+                    expireMacPortEntry(mac, portId);
+                }
+        });
     }
 
     @Override
