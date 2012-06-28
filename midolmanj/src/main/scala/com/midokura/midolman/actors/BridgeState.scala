@@ -56,19 +56,16 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
         loop {
             react {
                 case (PortOfMac, mac: MAC, actor: Actor) =>
-                     // macPortMap.get(mac) !: actor
-                     actor ! macPortMap.get(mac)
+                    macPortMap.get(mac) !: actor
                 case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC],
                       actor: Actor) =>
                     for (mac <- macPortMap.getByValue(portID))
                         cb.call(mac)
-                    actor ! CallsDone
+                    CallsDone !: actor
                 case (IsKnownMac, mac: MAC, actor: Actor) =>
-                    actor ! macPortMap.containsKey(mac)
+                    macPortMap.containsKey(mac) !: actor
                 case msg => println("got unknown message " + msg)
             }
         }
     }
-
-    def !: (msg: Any) = this ! msg
 }
