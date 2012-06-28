@@ -7,7 +7,6 @@ import scala.collection.JavaConversions._
 import java.lang.Iterable  // shadow Scala's Iterable
 import java.util.UUID
 import org.apache.zookeeper.KeeperException
-import com.midokura.midolman.actors.ChanneledActor._
 import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.state.{Directory, MacPortMap}
 import com.midokura.midolman.util.Callback1
@@ -25,23 +24,35 @@ class BridgeStateHelper(macPortDir: Directory) {
     import BridgeStateOperation._
 
     private val actor = new BridgeStateActor(macPortDir)
+    final val shortTimeout = 20    // milliseconds
+    final val longTimeout = 2000   // milliseconds
+
 
     //XXX: Watcher
 
 
-    def portOfMac(mac: MAC) = {
-        (PortOfMac, mac, Actor.self) !: actor
-        Actor.self.receive { case x: UUID => x }
+    def portOfMac(mac: MAC): UUID = {
+        actor !? (shortTimeout, (PortOfMac, mac)) match {
+            case Some(x: UUID) => x
+            case None => null  /* timeout */
+            case Some(_) => null  /* type error */
+        }
     }
 
     def callForAllMacsOfPort(portID: UUID, cb: Callback1[MAC]) {
-        actor ! ((CallForAllMacsOfPort, portID, cb, Actor.self))
-        Actor.self.receive { case CallsDone => }
+        actor !? (longTimeout, (CallForAllMacsOfPort, portID, cb)) match {
+            case Some(CallsDone) => /* normal */
+            case None => /* timeout */
+            case Some(_) => /* type error */
+        }
     }
 
-    def isKnownMac(mac: MAC) = {
-        actor ! ((IsKnownMac, mac, Actor.self))
-        Actor.self.receive { case x: Boolean => x }
+    def isKnownMac(mac: MAC): Boolean = {
+        actor !? (shortTimeout, (IsKnownMac, mac)) match {
+            case Some(x: Boolean) => x
+            case None => false  /* timeout */
+            case Some(_) => false  /* type error */
+        }
     }
 
 }
@@ -55,15 +66,14 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
     def act() {
         loop {
             react {
-                case (PortOfMac, mac: MAC, actor: Actor) =>
-                    macPortMap.get(mac) !: actor
-                case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC],
-                      actor: Actor) =>
+                case (PortOfMac, mac: MAC) =>
+                    reply(macPortMap.get(mac))
+                case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC]) =>
                     for (mac <- macPortMap.getByValue(portID))
                         cb.call(mac)
-                    CallsDone !: actor
-                case (IsKnownMac, mac: MAC, actor: Actor) =>
-                    macPortMap.containsKey(mac) !: actor
+                    reply(CallsDone)
+                case (IsKnownMac, mac: MAC) =>
+                    reply(macPortMap.containsKey(mac))
                 case msg => println("got unknown message " + msg)
             }
         }
