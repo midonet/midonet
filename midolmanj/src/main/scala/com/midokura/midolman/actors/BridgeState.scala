@@ -6,7 +6,10 @@ import scala.actors.Actor
 import scala.collection.JavaConversions._
 import java.lang.Iterable  // shadow Scala's Iterable
 import java.util.UUID
+
 import org.apache.zookeeper.KeeperException
+import org.slf4j.LoggerFactory
+
 import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.state.{Directory, MacPortMap}
 import com.midokura.midolman.util.Callback1
@@ -27,15 +30,20 @@ class BridgeStateHelper(macPortDir: Directory) {
     final val shortTimeout = 20    // milliseconds
     final val longTimeout = 2000   // milliseconds
 
+    private final val log = LoggerFactory.getLogger(this.getClass)
 
     //XXX: Watcher
 
 
     def portOfMac(mac: MAC): UUID = {
         actor !? (shortTimeout, (PortOfMac, mac)) match {
-            case Some(x: UUID) => x
-            case None => null  /* timeout */
-            case Some(_) => null  /* type error */
+            case Some(x: UUID) => return x
+            case None =>  /* timeout */
+                log.warn("portOfMac: timeout {} exceeded", shortTimeout)
+                return null
+            case Some(x) =>  /* type error */
+                log.error("portOfMac: reply {} isn't UUID", x)
+                return null
         }
     }
 
@@ -43,15 +51,22 @@ class BridgeStateHelper(macPortDir: Directory) {
         actor !? (longTimeout, (CallForAllMacsOfPort, portID, cb)) match {
             case Some(CallsDone) => /* normal */
             case None => /* timeout */
-            case Some(_) => /* type error */
+                log.warn("callForAllMacsOfPort: timeout {} exceeded",
+                            longTimeout)
+            case Some(x) => /* type error */
+                log.error("callForAllMacsOfPort: reply {} isn't CallsDone", x)
         }
     }
 
     def isKnownMac(mac: MAC): Boolean = {
         actor !? (shortTimeout, (IsKnownMac, mac)) match {
-            case Some(x: Boolean) => x
-            case None => false  /* timeout */
-            case Some(_) => false  /* type error */
+            case Some(x: Boolean) => return x
+            case None =>  /* timeout */
+                log.warn("isKnownMac: timeout {} exceeded", shortTimeout)
+                return false
+            case Some(x) =>  /* type error */
+                log.error("isKnownMac: reply {} isn't Boolean", x)
+                return false
         }
     }
 
@@ -62,6 +77,7 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
     import BridgeStateOperation._
 
     private final val macPortMap = new MacPortMap(macPortDir)
+    private final val log = LoggerFactory.getLogger(this.getClass)
 
     def act() {
         loop {
@@ -74,7 +90,7 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
                     reply(CallsDone)
                 case (IsKnownMac, mac: MAC) =>
                     reply(macPortMap.containsKey(mac))
-                case msg => println("got unknown message " + msg)
+                case msg => log.error("got unknown message " + msg)
             }
         }
     }
