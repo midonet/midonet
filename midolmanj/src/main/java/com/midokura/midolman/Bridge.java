@@ -254,7 +254,7 @@ public class Bridge implements ForwardingElement {
         if (localPorts.size() == 0)
             controller.unsubscribePortSet(bridgeId);
         log.info("removePort - expire MAC-port entries for port {}", portId);
-        bridgeState.callForAllMacsOfPort(portId, 
+        bridgeState.callForAllMacsOfPort(portId,
             new Callback1<MAC>() {
                 public void call(MAC mac) {
                     log.info("Removing mapping from MAC {} to port {}",
@@ -321,13 +321,13 @@ public class Bridge implements ForwardingElement {
             pF.future.cancel(false);
         delayedDeletes.clear();
         for (MacPort mp : flowCount.keySet()) {
-            try {
+            /*try {
                 //XXX macPortMap.removeIfOwner(mp.mac);
             } catch (KeeperException e) {
                 log.error("Error while destroying", e);
             } catch (InterruptedException e) {
                 log.error("Error while destroying", e);
-            }
+            }*/
         }
         flowCount.clear();
         //XXX macPortMap.removeWatcher(macToPortWatcher);
@@ -536,7 +536,7 @@ public class Bridge implements ForwardingElement {
         // We need to write to the MacPortMap if the mac wasn't mapped or the
         // mapping needs to change, or if we're not the owner of the map entry.
         if (writeMacPortMap /*XXX || !macPortMap.isKeyOwner(macAddr) */) {
-            try {
+            /*try {
                 //XXX macPortMap.put(macAddr, portUuid);
             } catch (KeeperException e) {
                 log.error("ZooKeeper threw exception {}", e);
@@ -544,7 +544,7 @@ public class Bridge implements ForwardingElement {
             } catch (InterruptedException e) {
                 log.error("MacPortMap threw InterruptedException {}", e);
                 // TODO: What should we do about this?
-            }
+            }*/
         }
     }
 
