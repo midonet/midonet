@@ -2,9 +2,15 @@
 
 package com.midokura.midolman.actors
 
-import scala.actors.Actor
+import akka.actor.Actor
+import akka.actor.ActorSystem
+import akka.actor.Props
+import akka.actor.Status
+import akka.dispatch.Await
+import akka.pattern.ask
+import akka.util.duration._
+import akka.util.Timeout
 import scala.collection.JavaConversions._
-import java.lang.Iterable  // shadow Scala's Iterable
 import java.util.UUID
 
 import org.apache.zookeeper.KeeperException
@@ -20,15 +26,18 @@ object BridgeStateOperation extends Enumeration {
     val CallForAllMacsOfPort = Value
     val IsKnownMac = Value
     val CallsDone = Value
+    val UnknownMessageError = Value
 }
 
 
 class BridgeStateHelper(macPortDir: Directory) {
     import BridgeStateOperation._
 
-    private val actor = new BridgeStateActor(macPortDir)
-    final val shortTimeout = 20    // milliseconds
-    final val longTimeout = 2000   // milliseconds
+    private val system = ActorSystem("BridgeStateHelper")  //XXX
+    private val actor = system.actorOf(Props(new BridgeStateActor(macPortDir)),
+                                       name="BridgeStateActor")
+    final val shortTimeout = 20 milliseconds
+    final val longTimeout = 2000 milliseconds
 
     private final val log = LoggerFactory.getLogger(this.getClass)
 
@@ -36,40 +45,31 @@ class BridgeStateHelper(macPortDir: Directory) {
 
 
     def portOfMac(mac: MAC): UUID = {
-        actor !? (shortTimeout, (PortOfMac, mac)) match {
-            case Some(x: UUID) => return x
-            case None =>  /* timeout */
-                log.warn("portOfMac: timeout {} exceeded", shortTimeout)
-                return null
-            case Some(x) =>  /* type error */
-                log.error("portOfMac: reply {} isn't UUID", x)
-                return null
+        val f = actor.ask((PortOfMac, mac))(shortTimeout) recover {
+            case e => log.error("portOfMac: call failed", e)
         }
+        Await.result(f.mapTo[UUID], shortTimeout)
+        // TODO(jlm): How to specify the timeout once?
     }
 
     def callForAllMacsOfPort(portID: UUID, cb: Callback1[MAC]) {
-        actor !? (longTimeout, (CallForAllMacsOfPort, portID, cb)) match {
-            case Some(CallsDone) => /* normal */
-            case None => /* timeout */
-                log.warn("callForAllMacsOfPort: timeout {} exceeded",
-                            longTimeout)
-            case Some(x) => /* type error */
+        val f = actor.ask((CallForAllMacsOfPort, portID, 
+                           cb))(longTimeout) recover {
+            case e => log.error("callForAllMacsOfPort: call failed", e)
+        }
+        Await.result(f, longTimeout) match {
+            case CallsDone => /* success */
+            case x =>
                 log.error("callForAllMacsOfPort: reply {} isn't CallsDone", x)
         }
     }
 
     def isKnownMac(mac: MAC): Boolean = {
-        actor !? (shortTimeout, (IsKnownMac, mac)) match {
-            case Some(x: Boolean) => return x
-            case None =>  /* timeout */
-                log.warn("isKnownMac: timeout {} exceeded", shortTimeout)
-                return false
-            case Some(x) =>  /* type error */
-                log.error("isKnownMac: reply {} isn't Boolean", x)
-                return false
+        val f = actor.ask((PortOfMac, mac))(shortTimeout) recover {
+            case e => log.error("isKnownMac: call failed", e)
         }
+        Await.result(f.mapTo[Boolean], shortTimeout)
     }
-
 }
 
 
@@ -79,9 +79,7 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
     private final val macPortMap = new MacPortMap(macPortDir)
     private final val log = LoggerFactory.getLogger(this.getClass)
 
-    def act() {
-        loop {
-            react {
+    def receive = {
                 case (PortOfMac, mac: MAC) =>
                     reply(macPortMap.get(mac))
                 case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC]) =>
@@ -90,8 +88,10 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
                     reply(CallsDone)
                 case (IsKnownMac, mac: MAC) =>
                     reply(macPortMap.containsKey(mac))
-                case msg => log.error("got unknown message " + msg)
-            }
-        }
+                case msg => 
+                    log.error("got unknown message {}", msg)
+                    reply(Status.Failure)
     }
+
+    def reply(x: Any) = sender ! x
 }
