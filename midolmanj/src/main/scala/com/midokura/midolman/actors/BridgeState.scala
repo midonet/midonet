@@ -79,7 +79,9 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
     private final val macPortMap = new MacPortMap(macPortDir)
     private final val log = LoggerFactory.getLogger(this.getClass)
 
-    def receive = {
+    def receive(msg: Any) = {
+        try {
+            msg match {
                 case (PortOfMac, mac: MAC) =>
                     reply(macPortMap.get(mac))
                 case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC]) =>
@@ -88,9 +90,12 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
                     reply(CallsDone)
                 case (IsKnownMac, mac: MAC) =>
                     reply(macPortMap.containsKey(mac))
-                case msg => 
-                    log.error("got unknown message {}", msg)
-                    reply(Status.Failure)
+            }
+        } catch {
+            case e: Exception =>
+                reply(Status.Failure(e))
+                throw e
+        }
     }
 
     def reply(x: Any) = sender ! x
