@@ -32,7 +32,7 @@ public class AgFlowStats {
     }
 
     public AgFlowStats refresh() {
-        stat = controller.getAgReply(match);
+        stat = controller.getAggregateStats(match);
         return this;
     }
 }

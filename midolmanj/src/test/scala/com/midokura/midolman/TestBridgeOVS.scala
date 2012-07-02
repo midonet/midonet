@@ -26,7 +26,7 @@ import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
-import com.midokura.midolman.openflow.ControllerStubImpl
+import openflow.{SuccessHandler, ControllerStubImpl, OpenFlowError}
 import com.midokura.midolman.openvswitch.{
 OpenvSwitchDatabaseConnectionImpl,
 OpenvSwitchDatabaseConnectionBridgeConnector}
@@ -34,9 +34,8 @@ import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.packets.IntIPv4
 import com.midokura.midolman.state.{BridgeZkManager, MacPortMap, MockDirectory,
 PortToIntNwAddrMap, ZkPathManager}
-import com.midokura.midolman.openflow.OpenFlowError
 import com.midokura.midolman.vrn.VRNController
-
+import java.util.{List => JdkList}
 
 class ChattySemaphore(capacity: Int) extends Semaphore(capacity) {
     final val log = LoggerFactory.getLogger(classOf[ChattySemaphore])
@@ -253,6 +252,7 @@ with SelectListener {
 
 class TestBridgeOVS {
     // import all the statics.
+
     import TestBridgeOVS._
 
     @Test def testConnectionMade() {
@@ -296,14 +296,18 @@ class TestBridgeOVS {
     @Test(timeout = 1000) def testGetDescStats() {
         log.info("testGetDescStats")
         try {
-            val response = controller.getDescStatsReply(controller.sendDescStatsRequest())
-            log.info("Controller got the response: {}", response)
-            for (reply: OFDescriptionStatistics <- response) {
-                assertEquals(reply.getManufacturerDescription,
-                    "Nicira Networks, Inc.")
-                assertEquals(reply.getHardwareDescription,
-                    "Open vSwitch")
-            }
+            controller.sendDescStatsRequest(
+                new SuccessHandler[JdkList[OFDescriptionStatistics]] {
+                    def onSuccess(response: JdkList[OFDescriptionStatistics]) {
+                        log.info("Controller got the response: {}", response)
+                        for (reply: OFDescriptionStatistics <- response) {
+                            assertEquals(reply.getManufacturerDescription,
+                                "Nicira Networks, Inc.")
+                            assertEquals(reply.getHardwareDescription,
+                                "Open vSwitch")
+                        }
+                    }
+                }, 1200, null)
         } catch {
             case e: OpenFlowError => throw e
         } finally {
@@ -318,22 +322,25 @@ class TestBridgeOVS {
         try {
             val ofMatch = new OFMatch()
             val ofActionEnqueue = new OFActionEnqueue
-            val portNum = ovsdb.getPortNumsByPortName(
-                portName).filter(_ > 0).head
+            val portNum = ovsdb.getPortNumsByPortName(portName).filter(_ > 0).head
+
             ofActionEnqueue.setPort(portNum)
-            ofActionEnqueue.setQueueId(ovsdb.getQueueNumByQueueUUID(
-                qosUUID, queueUUID))
+            ofActionEnqueue.setQueueId(
+                ovsdb.getQueueNumByQueueUUID(qosUUID, queueUUID))
+
             // val ofActions = List(ofActionEnqueue)
             // Add flow such as...
             // controller.addFlow(ofmatch, 0,
             //     1000, 1000, 0,
             //     0, true, true, false, ofActions)
-            val reply = controller.getFlowStatsReply(
-                controller.sendFlowStatsRequest(ofMatch, 0xff.toByte, OFPort.OFPP_NONE.getValue)
-            )
-            log.info("Controller got the response: {}", reply)
-            for (response: OFFlowStatisticsReply <- reply)
-                assertNotSame(0, response.getDurationNanoseconds)
+            controller.sendFlowStatsRequest(ofMatch, 0xff.toByte,
+                OFPort.OFPP_NONE.getValue, new SuccessHandler[JdkList[OFFlowStatisticsReply]] {
+                    def onSuccess(reply: JdkList[OFFlowStatisticsReply]) {
+                        log.info("Controller got the response: {}", reply)
+                        for (response: OFFlowStatisticsReply <- reply)
+                            assertNotSame(0, response.getDurationNanoseconds)
+                    }
+                }, 1200, null)
         } catch {
             case e: OpenFlowError => throw e
         } finally {
@@ -345,12 +352,16 @@ class TestBridgeOVS {
         log.info("testAggregateStats")
         try {
             val ofMatch = new OFMatch()
-            val response = controller.getAggregateStatsReply(
-                controller.sendAggregateStatsRequest(ofMatch, 0xff.toByte,
-                    ovsdb.getPortNumByUUID(ovsdb.getPortUUID(portName))))
-            log.info("Controller got the response: {}", response)
-            for (reply: OFAggregateStatisticsReply <- response)
-                assertEquals(0, reply.getFlowCount)
+            controller.sendAggregateStatsRequest(ofMatch, 0xff.toByte,
+                ovsdb.getPortNumByUUID(ovsdb.getPortUUID(portName)),
+                new SuccessHandler[JdkList[OFAggregateStatisticsReply]] {
+                    def onSuccess(data: JdkList[OFAggregateStatisticsReply]) {
+                        log.info("Controller got the response: {}", data)
+                        for (reply: OFAggregateStatisticsReply <- data)
+                            assertEquals(0, reply.getFlowCount)
+                    }
+                }, 1200, null)
+
         } catch {
             case e: OpenFlowError => throw e
         } finally {
@@ -362,14 +373,15 @@ class TestBridgeOVS {
     @Test(timeout = 1000) def testTableStats() {
         log.info("testTableStats")
         try {
-            val response = controller.getTableStatsReply(
-                controller.sendTableStatsRequest()
-            )
-            log.info("Controlelr got the response {}", response)
-            for (reply: OFTableStatistics <- response) {
-                assertEquals(reply.getTableId, 1)
-                assertNotSame(reply.getActiveCount, 0)
-            }
+            controller.sendTableStatsRequest(new SuccessHandler[JdkList[OFTableStatistics]] {
+                def onSuccess(response: JdkList[OFTableStatistics]) {
+                    log.info("Controller got the response {}", response)
+                    for (reply: OFTableStatistics <- response) {
+                        assertEquals(reply.getTableId, 1)
+                        assertNotSame(reply.getActiveCount, 0)
+                    }
+                }
+            }, 1200, null)
         } catch {
             case e: OpenFlowError => throw e
         } finally {
@@ -380,16 +392,19 @@ class TestBridgeOVS {
     @Test(timeout = 1000) def testGetPortStats() {
         log.info("testGetPortStats")
         try {
-            val portNum = ovsdb.getPortNumsByPortName(
-                portName).filter(_ > 0).head
-            val reply =
-                controller.getPortStatsReply(
-                    controller.sendPortStatsRequest(portNum))
-            for (response: OFPortStatisticsReply <- reply) {
-                log.info("Controller got the response: {}",
-                    response.getPortNumber)
-                assertEquals(response.getPortNumber, portNum)
-            }
+            val portNum = ovsdb.getPortNumsByPortName(portName)
+                .filter(_ > 0).head
+
+            controller.sendPortStatsRequest(portNum,
+                new SuccessHandler[JdkList[OFPortStatisticsReply]] {
+                    def onSuccess(response: JdkList[OFPortStatisticsReply]) {
+                        for (response: OFPortStatisticsReply <- response) {
+                            log.info("Controller got the response: {}",
+                                response.getPortNumber)
+                            assertEquals(response.getPortNumber, portNum)
+                        }
+                    }
+                }, 1200, null)
         } catch {
             case e: OpenFlowError => throw e
         } finally {
@@ -400,16 +415,20 @@ class TestBridgeOVS {
     @Test(timeout = 1000) def testGetQueueStats() {
         log.info("testGetQueueStats")
         try {
-            val portNum = ovsdb.getPortNumsByPortName(
-                portName).filter(_ > 0).head
-            val reply = controller.getQueueStatsReply(
-                controller.sendQueueStatsRequest(portNum,
-                    ovsdb.getQueueNumByQueueUUID(qosUUID, queueUUID)))
-            for (response: OFQueueStatisticsReply <- reply) {
-                log.info("Controller got the response: {}",
-                    response.getQueueId)
-                assertEquals(response.getPortNumber, portNum)
-            }
+            val portNum = ovsdb.getPortNumsByPortName(portName).filter(_ > 0).head
+
+            controller.sendQueueStatsRequest(
+                portNum, ovsdb.getQueueNumByQueueUUID(qosUUID, queueUUID),
+                new SuccessHandler[JdkList[OFQueueStatisticsReply]] {
+                    def onSuccess(reply: JdkList[OFQueueStatisticsReply]) {
+                        for (response: OFQueueStatisticsReply <- reply) {
+                            log.info("Controller got the response: {}",
+                                response.getQueueId)
+                            assertEquals(response.getPortNumber, portNum)
+                        }
+                    }
+                }, 1200, null)
+
         } catch {
             case e: OpenFlowError => throw e
         } finally {

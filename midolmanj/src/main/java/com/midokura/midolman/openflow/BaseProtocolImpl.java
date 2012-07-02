@@ -80,8 +80,6 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
 
     protected Map<Integer, PendingOperation> pendingOperations = new ConcurrentHashMap<Integer, PendingOperation>();
-    protected AtomicInteger xidSeq = new AtomicInteger();
-
     protected Date connectedSince;
     protected SocketChannel socketChannel;
     protected AtomicInteger transactionIdSource;
@@ -129,8 +127,8 @@ public abstract class BaseProtocolImpl implements SelectListener {
     }
 
     protected int initiateOperation(SuccessHandler successHandler,
-            final TimeoutHandler timeoutHandler, Long timeoutMillis,
-            Object cookie) {
+                                    final TimeoutHandler timeoutHandler,
+                                    Long timeoutMillis, Object cookie) {
         log.debug("initiateOperation");
 
         int xid = transactionIdSource.getAndIncrement();
@@ -232,7 +230,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             log.warn("handleEvent", e);
             disconnectSwitch();
         } catch (CancelledKeyException e) {
-            // can occur if we alraedy disconnected and this handler is called
+            // can occur if we already disconnected and this handler is called
             log.warn("handleEvent, must have already disconnected", e);
         }
     }
@@ -274,6 +272,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             OFEchoReply r = (OFEchoReply) m;
             SuccessHandler successHandler = terminateOperation(m.getXid(), OFType.ECHO_REQUEST);
             if (successHandler != null) {
+                //noinspection unchecked
                 successHandler.onSuccess(r.getPayload());
             }
             return true;
@@ -337,11 +336,13 @@ public abstract class BaseProtocolImpl implements SelectListener {
         OFEchoRequest m = (OFEchoRequest) factory.getMessage(OFType.ECHO_REQUEST);
         m.setPayload(randPayload);
         m.setLengthU(OFEchoRequest.MINIMUM_LENGTH + randPayload.length);
-        m.setXid(initiateOperation(new SuccessHandler() {
+        m.setXid(initiateOperation(new SuccessHandler<Object>() {
             @Override
             public void onSuccess(Object data) {
+                // TODO: temporarily turn off this check, as OVS doesn't seem to echo back the payload
 //                if (!data.equals(randPayload)) {
-                if (false) { //TODO: temporarily turn off this check, as OVS doesn't seem to echo back the payload
+                //noinspection ConstantIfStatement
+                if (false) {
                     log.error("echo reply with invalid data");
                     disconnectSwitch();
                 } else {
@@ -363,7 +364,7 @@ public abstract class BaseProtocolImpl implements SelectListener {
             }
         },
 
-        // TODO(pino): do we really care that the switch respond to echo?
+        // TODO (pino): do we really care that the switch respond to echo?
         echoPeriodMillis / 2,
         OFType.ECHO_REQUEST));
 

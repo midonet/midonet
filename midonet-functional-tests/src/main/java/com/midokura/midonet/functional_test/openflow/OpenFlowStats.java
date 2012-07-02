@@ -4,11 +4,11 @@
 
 package com.midokura.midonet.functional_test.openflow;
 
+import java.util.List;
+
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 import org.openflow.protocol.statistics.OFPortStatisticsReply;
-
-import java.util.List;
 
 public interface OpenFlowStats {
     OFPortStatisticsReply getPortReply(short portNum);
@@ -19,7 +19,7 @@ public interface OpenFlowStats {
 
     List<FlowStats> getFlowStats(OFMatch match);
 
-    OFAggregateStatisticsReply getAgReply(OFMatch match);
+    OFAggregateStatisticsReply getAggregateStats(OFMatch match);
 
     AgFlowStats getAgFlowStats(OFMatch match);
 

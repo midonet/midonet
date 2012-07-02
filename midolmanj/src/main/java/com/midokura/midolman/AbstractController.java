@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import javax.annotation.Nullable;
 
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -21,15 +20,12 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPhysicalPort.OFPortConfig;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
-import org.openflow.protocol.OFStatisticsReply;
-import org.openflow.protocol.OFType;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 import org.openflow.protocol.statistics.OFDescriptionStatistics;
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFPortStatisticsReply;
 import org.openflow.protocol.statistics.OFQueueStatisticsReply;
-import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFTableStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.openflow.SuccessHandler;
+import com.midokura.midolman.openflow.TimeoutHandler;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.packets.ARP;
 import com.midokura.midolman.packets.Ethernet;
@@ -642,170 +640,60 @@ public abstract class AbstractController implements Controller {
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendDescStatsRequest() {
-        return controllerStub.sendDescStatsRequest();
-    }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFDescriptionStatistics> getDescStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFDescriptionStatistics.class);
+    public void sendDescStatsRequest(SuccessHandler<List<OFDescriptionStatistics>> onSuccess,
+                                     long timeout,
+                                     TimeoutHandler onTimeout) {
+        controllerStub.sendDescStatsRequest(onSuccess, timeout, onTimeout);
     }
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendFlowStatsRequest(OFMatch match, byte tableId, short outPort) {
-        return controllerStub.sendFlowStatsRequest(match, tableId, outPort);
-    }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFFlowStatisticsReply> getFlowStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFFlowStatisticsReply.class);
+    public void sendFlowStatsRequest(OFMatch match, byte tableId, short outPort,
+                                     SuccessHandler<List<OFFlowStatisticsReply>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout) {
+        controllerStub.sendFlowStatsRequest(match, tableId, outPort,
+                                            onSuccess, timeout, onTimeout);
     }
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendAggregateStatsRequest(OFMatch match, byte tableId, short outPort) {
-        return controllerStub.sendAggregateStatsRequest(match, tableId, outPort);
-    }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFAggregateStatisticsReply> getAggregateStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFAggregateStatisticsReply.class);
+    public void sendAggregateStatsRequest(OFMatch match, byte tableId,
+                                          short outPort,
+                                          SuccessHandler<List<OFAggregateStatisticsReply>> onSuccess,
+                                          long timeout,
+                                          TimeoutHandler onTimeout) {
+        controllerStub.sendAggregateStatsRequest(match, tableId, outPort,
+                                                 onSuccess, timeout, onTimeout);
     }
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendTableStatsRequest() {
-        return controllerStub.sendTableStatsRequest();
-    }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFTableStatistics> getTableStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFTableStatistics.class);
+    public void sendTableStatsRequest(SuccessHandler<List<OFTableStatistics>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
+        controllerStub.sendTableStatsRequest(onSuccess, timeout, onTimeout);
     }
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendPortStatsRequest(short portNum) {
-        return controllerStub.sendPortStatsRequest(portNum);
-    }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFPortStatisticsReply> getPortStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFPortStatisticsReply.class);
+    public void sendPortStatsRequest(short portNum,
+                                     SuccessHandler<List<OFPortStatisticsReply>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout) {
+        controllerStub.sendPortStatsRequest(portNum, onSuccess, timeout, onTimeout);
     }
 
     /**
      * This method should run inside midolman event loop.
-     *
-     * @return the request transaction id
      */
-    public int sendQueueStatsRequest(short portNum, int queueNum) {
-        return controllerStub.sendQueueStatsRequest(portNum, queueNum);
+    public void sendQueueStatsRequest(short portNum, int queueNum,
+                                      SuccessHandler<List<OFQueueStatisticsReply>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
+        controllerStub.sendQueueStatsRequest(portNum, queueNum, onSuccess, timeout, onTimeout);
     }
-
-    /**
-     * This method is safe to call from any thread (except the midolman event
-     * thread) as it will block for at most
-     * {@link com.midokura.midolman.openflow.ControllerStubImpl#POLLING_DEADLINE_MSEC}
-     * waiting for the reply to be posted by event thread loop.
-     *
-     * @param xid the transaction id we want to get the response
-     * @return the response (if retrieved successfully)
-     */
-    @Nullable
-    public List<OFQueueStatisticsReply> getQueueStatsReply(int xid) {
-        return getStatsList(controllerStub.getStatisticsReply(xid),
-                            OFQueueStatisticsReply.class);
-    }
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    private <S extends OFStatistics> List<S> getStatsList(OFStatisticsReply reply,
-                                                          Class<S> statsTypeClass) {
-        if (reply == null) {
-            log.debug("Can't get list from null OFStatisticsReply.");
-            return null;
-        }
-
-        if (statsTypeClass.isAssignableFrom(
-            reply.getStatisticType().toClass(OFType.STATS_REPLY))) {
-            return (List<S>) reply.getStatistics();
-        }
-
-        log.error(
-            "Invalid statistics reply of type: {} but we expected types " +
-                "of {}. Reply was dropped.",
-            reply.getStatisticType(), statsTypeClass);
-
-        return null;
-    }
-
 
     protected void freeBuffer(int bufferId) {
         // If it's unbuffered, nothing to do.

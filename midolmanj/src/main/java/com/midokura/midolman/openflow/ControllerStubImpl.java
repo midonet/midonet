@@ -7,17 +7,15 @@ package com.midokura.midolman.openflow;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import static java.lang.String.format;
 
 import org.openflow.protocol.OFBarrierReply;
 import org.openflow.protocol.OFBarrierRequest;
@@ -35,18 +33,23 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
-import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.OFStatisticsRequest;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFVendor;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 import org.openflow.protocol.statistics.OFAggregateStatisticsRequest;
+import org.openflow.protocol.statistics.OFDescriptionStatistics;
+import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFFlowStatisticsRequest;
+import org.openflow.protocol.statistics.OFPortStatisticsReply;
 import org.openflow.protocol.statistics.OFPortStatisticsRequest;
+import org.openflow.protocol.statistics.OFQueueStatisticsReply;
 import org.openflow.protocol.statistics.OFQueueStatisticsRequest;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
+import org.openflow.protocol.statistics.OFTableStatistics;
 import org.openflow.util.HexString;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
@@ -66,19 +69,14 @@ import com.midokura.midolman.openflow.nxm.OfNxTunIdNxmEntry;
 public class ControllerStubImpl extends BaseProtocolImpl implements ControllerStub {
 
     private final static Logger log = LoggerFactory.getLogger(ControllerStubImpl.class);
-    public final static int POLLING_DEADLINE_MSEC = 300;
     private final static int FLOW_REQUEST_BODY_LENGTH = 44;
     private final static int PORT_QUEUE_REQUEST_BODY_LENGTH = 8;
 
     protected Controller controller;
 
     protected ConcurrentMap<Object, Object> attributes;
-    protected Date connectedSince;
     protected OFFeaturesReply featuresReply;
     protected OFGetConfigReply configReply;
-    private ConcurrentHashMap<Integer,
-        BlockingQueue<OFStatisticsReply>> statsReplies =
-            new ConcurrentHashMap<Integer, BlockingQueue<OFStatisticsReply>>();
     protected HashMap<Short, OFPhysicalPort> ports = new HashMap<Short, OFPhysicalPort>();
     private boolean nxm_enabled = false;
 
@@ -122,37 +120,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             return false;
     }
 
-    private boolean isValidStatsMessage(OFStatisticsMessageBase stats) {
-        if (isValidStatsType(stats.getStatisticType()))
-            return  true;
-        else
-            return false;
-    }
-
-   @SuppressWarnings("unchecked")
-   public OFStatisticsReply getStatisticsReply(int xid) {
-       OFStatisticsReply reply = null;
-       try {
-           log.debug("getStatisticsReply");
-           log.debug("statsReplies: {}", statsReplies.toString());
-           BlockingQueue<OFStatisticsReply> replyQueue = statsReplies.get(xid);
-           log.debug("Waiting for the response...");
-           reply = replyQueue.poll(
-                   POLLING_DEADLINE_MSEC, TimeUnit.MILLISECONDS);
-           log.debug("reply: {}", reply);
-           if (reply != null) {
-               statsReplies.remove(xid);
-               log.debug("Succeeded to retrieve statistics data.");
-           }
-           return reply;
-       } catch (InterruptedException e) {
-           log.error("Error on getStatisticsReply: {}", e);
-           Thread.currentThread().interrupt();
-       }
-       log.warn("Failed to convert statistics data due to its invalid type.");
-       return reply;
-   }
-
     public OFFeaturesReply getFeatures() {
         return featuresReply;
     }
@@ -182,7 +149,6 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                 log.debug("received features reply");
 
                 featuresReply = data;
-
                 sendConfigRequest();
             }
         },
@@ -196,7 +162,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     sendFeaturesRequest();
                 }
             }
-        }, Long.valueOf(500), OFType.FEATURES_REQUEST));
+        }, 500l, OFType.FEATURES_REQUEST));
 
         try {
             write(m);
@@ -231,7 +197,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
                     sendConfigRequest();
                 }
             }
-        }, Long.valueOf(500), OFType.GET_CONFIG_REQUEST));
+        }, 500l, OFType.GET_CONFIG_REQUEST));
 
         try {
             write(m);
@@ -259,163 +225,195 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         }
     }
 
-    private int sendStatsRequest(final OFStatistics statsRequest,
-                                 final OFStatisticsType statsType) {
-        List<OFStatistics> statsRequests = new ArrayList<OFStatistics>();
-
-        if (statsType != OFStatisticsType.DESC
-                && statsType != OFStatisticsType.TABLE)
-            statsRequests.add(statsRequest);
-        return sendStatsRequest(statsRequests, statsType);
-    }
-
-    private int sendStatsRequest(final List<OFStatistics> statsRequests,
-                                 final OFStatisticsType statsType) {
+    private <StatsReply extends OFStatistics> void sendStatsRequest(
+        final List<OFStatistics> requests, final OFStatisticsType type,
+        final SuccessHandler<List<StatsReply>> onSuccess,
+        long timeout, TimeoutHandler onTimeout)
+    {
         log.debug("sendStatsRequest");
 
-        if (!isValidStatsType(statsType))
+        if (!isValidStatsType(type))
             throw new OpenFlowError("invalid Openflow statistic type request");
+
         final OFStatisticsRequest request = new OFStatisticsRequest();
 
-        if (statsType != OFStatisticsType.DESC
-                && statsType != OFStatisticsType.TABLE) {
-            request.setStatistics(statsRequests);
-            for (OFStatistics statsRequest: statsRequests)
-                request.setLengthU(
-                        request.getLengthU() + statsRequest.getLength());
+        request.setStatisticType(type);
+        request.setStatistics(requests);
+        for (OFStatistics statsRequest : requests) {
+            request.setLengthU(
+                request.getLengthU() + statsRequest.getLength());
         }
 
-        request.setStatisticType(statsType);
         if (request.getLengthU() < OFStatisticsRequest.MINIMUM_LENGTH)
-            throw new OpenFlowError("OFPT_STATS_REQUEST message is too short" +
-                    " with length: " + String.valueOf(request.getLengthU()));
-        int xid = initiateOperation(
-                new SuccessHandler<OFStatisticsReply>() {
-                    @Override
-                    public void onSuccess(OFStatisticsReply reply) {
-                        if (reply.getStatistics().isEmpty())
-                            log.debug("No response");
-                        BlockingQueue<OFStatisticsReply> replyQueue =
-                                        statsReplies.get(reply.getXid());
-                        try {
-                            replyQueue.put(reply);
-                            log.debug("received statistics reply: {}", reply);
-                            log.debug("replyQueue: {}, size: {}",
-                                    replyQueue, replyQueue.size());
-                            log.debug("statsReplies: {}", statsReplies);
-                        } catch (InterruptedException e) {
-                            log.error("Failed to enqueue statistics reply.");
-                            Thread.currentThread().interrupt();
-                        }
+            throw
+                new OpenFlowError(
+                    format("OFPT_STATS_REQUEST message is too short (len: %d)",
+                           request.getLengthU()));
+
+        @SuppressWarnings("unchecked")
+        final Class<StatsReply> replyClass =
+            (Class<StatsReply>) type.toClass(OFType.STATS_REPLY);
+
+        final int xid = initiateOperation(
+            new SuccessHandler<OFStatisticsReply>() {
+                @Override
+                public void onSuccess(OFStatisticsReply reply) {
+
+                    if (reply.getStatistics().isEmpty())
+                        log.debug("No response");
+
+                    if (onSuccess != null) {
+                        onSuccess.onSuccess(
+                            extractStatsList(reply, replyClass));
                     }
-                },
-                new TimeoutHandler() {
-                    @Override
-                    public void onTimeout() {
-                        log.warn("Retrieving statistics timed out.");
-                        if (socketChannel.isConnected())
-                            sendStatsRequest(statsRequests, statsType);
-                    }
-                }, 3500L, OFType.STATS_REQUEST);
+                }
+            }, onTimeout, timeout, OFType.STATS_REQUEST);
+
         request.setXid(xid);
-        // Initialize the response queue which behaves in the producer-consumer
-        // pattern with xid.
-        statsReplies.put(xid,
-                new ArrayBlockingQueue<OFStatisticsReply>(1));
-        log.debug("initiated statistics operation with id: {}",
-                request.getXid());
-        if (!isValidStatsRequestLength(request, statsRequests.size()))
-             throw new OpenFlowError("OFPT_STATS_REQUEST message has invalid" +
-                     " length: " + String.valueOf(request.getLengthU()));
+        log.debug("Initiated stats operation with id: {}", request.getXid());
+        if (!isValidStatsRequestLength(request, requests.size()))
+            throw
+                new OpenFlowError(
+                    format("OFPT_STATS_REQUEST message has invalid length: %d",
+                           request.getLengthU()));
 
         try {
             write(request);
         } catch (IOException e) {
             log.warn("sendStatsRequest", e);
         }
+
         log.debug("sent OFPT_STATS_REQUEST message with length {}.",
-                request.getLengthU());
-        return xid;
+                  request.getLengthU());
     }
 
-    public int sendDescStatsRequest() {
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private <S extends OFStatistics>
+    List<S> extractStatsList(OFStatisticsReply reply, Class<S> statsTypeClass) {
+        if (reply == null) {
+            log.debug("Can't get list from null OFStatisticsReply.");
+            return null;
+        }
+
+        if (statsTypeClass.isAssignableFrom(
+            reply.getStatisticType().toClass(OFType.STATS_REPLY))) {
+            return (List<S>) reply.getStatistics();
+        }
+
+        log.error(
+            "Invalid statistics reply of type: {} but we expected types " +
+                "of {}. Reply was dropped.",
+            reply.getStatisticType(), statsTypeClass);
+
+        return null;
+    }
+
+
+    public void sendDescStatsRequest(SuccessHandler<List<OFDescriptionStatistics>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout) {
         log.debug("OFPT_STATS_REQUEST / OFPST_DESC");
-        return sendStatsRequest(new ArrayList<OFStatistics>(),
-                OFStatisticsType.DESC);
+
+        sendStatsRequest(new ArrayList<OFStatistics>(), OFStatisticsType.DESC,
+                         onSuccess, timeout, onTimeout);
     }
 
-    public int sendFlowStatsRequest(OFMatch match, byte tableId,
-                                    short outPort) {
-        log.debug("OFPT_STATS_REQUEST / OFPST_FLOW");
-        OFFlowStatisticsRequest flowStatsRequest =
-                new OFFlowStatisticsRequest();
-        flowStatsRequest.setMatch(match);
-        flowStatsRequest.setTableId(tableId);
-        flowStatsRequest.setOutPort(outPort);
-        return sendStatsRequest(flowStatsRequest, OFStatisticsType.FLOW);
-    }
-
-    public int sendAggregateStatsRequest(OFMatch match, byte tableId,
-                                         short outPort) {
-        log.debug("OFPT_STATS_REQUEST / OFPST_AGGREGATE: match={}, " +
-                "tableId={], outPort={}",
-                new Object[]{match, tableId, outPort});
-        OFAggregateStatisticsRequest aggregateStatsRequest =
-                new OFAggregateStatisticsRequest();
-
-        aggregateStatsRequest.setMatch(match);
-        aggregateStatsRequest.setTableId(tableId);
-        aggregateStatsRequest.setOutPort(outPort);
-        return sendStatsRequest(
-                aggregateStatsRequest, OFStatisticsType.AGGREGATE);
-    }
-
-    public int sendTableStatsRequest() {
+    public void sendTableStatsRequest(SuccessHandler<List<OFTableStatistics>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
         log.debug("OFPT_STATS_REQUEST / OFPST_TABLE");
-        return sendStatsRequest(new ArrayList<OFStatistics>(),
-                OFStatisticsType.TABLE);
+
+        sendStatsRequest(new ArrayList<OFStatistics>(), OFStatisticsType.TABLE,
+                         onSuccess, timeout, onTimeout);
     }
 
-    public int sendPortStatsRequest(short portNo) {
+    public void sendFlowStatsRequest(OFMatch match, byte tableId, short outPort,
+                                     SuccessHandler<List<OFFlowStatisticsReply>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_FLOW");
+
+        OFFlowStatisticsRequest request = new OFFlowStatisticsRequest();
+        request.setMatch(match);
+        request.setTableId(tableId);
+        request.setOutPort(outPort);
+
+        sendStatsRequest(Arrays.asList((OFStatistics)request), OFStatisticsType.FLOW,
+                         onSuccess, timeout, onTimeout);
+    }
+
+    public void sendAggregateStatsRequest(OFMatch match, byte tableId, short outPort,
+                                          SuccessHandler<List<OFAggregateStatisticsReply>> onSuccess,
+                                          long timeout, TimeoutHandler onTimeout) {
+        log.debug("OFPT_STATS_REQUEST / OFPST_AGGREGATE: match={}, " +
+                      "tableId={], outPort={}",
+                  new Object[]{match, tableId, outPort});
+
+        OFAggregateStatisticsRequest request = new OFAggregateStatisticsRequest();
+
+        request.setMatch(match);
+        request.setTableId(tableId);
+        request.setOutPort(outPort);
+
+        sendStatsRequest(
+            Arrays.asList((OFStatistics)request), OFStatisticsType.AGGREGATE,
+            onSuccess, timeout, onTimeout);
+    }
+
+    public void sendPortStatsRequest(short portNo,
+                                     SuccessHandler<List<OFPortStatisticsReply>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout)
+    {
         log.debug("OFPT_STATS_REQUEST / OFPST_PORT: portNo={}", portNo);
-        OFPortStatisticsRequest portStatsRequest =
-                new OFPortStatisticsRequest();
 
-        portStatsRequest.setPortNumber(portNo);
-        return sendStatsRequest(portStatsRequest, OFStatisticsType.PORT);
+        OFPortStatisticsRequest request = new OFPortStatisticsRequest();
+        request.setPortNumber(portNo);
+
+        sendStatsRequest(
+            Arrays.asList((OFStatistics)request),
+            OFStatisticsType.PORT, onSuccess, timeout, onTimeout);
     }
 
-    public int sendQueueStatsRequest(short portNo, int queueId) {
+    public void sendQueueStatsRequest(short portNo, int queueId,
+                                      SuccessHandler<List<OFQueueStatisticsReply>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout)
+    {
         log.debug("OFPT_STATS_REQUEST / OFPST_QUEUE: portNo={}, queueId={}",
                 portNo, queueId);
+
         OFQueueStatisticsRequest queueStatsRequest =
                 new OFQueueStatisticsRequest();
 
         queueStatsRequest.setPortNumber(portNo);
         queueStatsRequest.setQueueId(queueId);
-        return sendStatsRequest(queueStatsRequest, OFStatisticsType.QUEUE);
+
+        sendStatsRequest(Arrays.asList((OFStatistics)queueStatsRequest),
+                         OFStatisticsType.QUEUE,
+                         onSuccess, timeout, onTimeout);
     }
 
     @SuppressWarnings("unchecked")
-    public int sendQueueStatsRequest(Map<Short, Set<Integer>> queueRequests) {
+    public void sendQueueStatsRequest(Map<Short, Set<Integer>> queueRequests,
+                                      SuccessHandler<List<OFQueueStatisticsReply>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
         String debugString = "";
         for (short portNum : queueRequests.keySet())
             debugString += new StringBuilder().append(" portNo=").append(
                     queueRequests.get(portNum)).append(", queueIds=").append(
                     queueRequests.values());
         log.debug("OFPT_STATS_REQUEST / OFPST_QUEUE: {}", debugString);
-        List<OFQueueStatisticsRequest> queueStatsRequests =
-                new ArrayList<OFQueueStatisticsRequest>(queueRequests.size());
+        List<OFStatistics> queueStatsRequests =
+                new ArrayList<OFStatistics>(queueRequests.size());
         for (short portNum: queueRequests.keySet())
             for (int queueNum: queueRequests.get(portNum)) {
                 OFQueueStatisticsRequest queueStatsRequest =
                     new OFQueueStatisticsRequest();
                 queueStatsRequest.setPortNumber(portNum);
                 queueStatsRequest.setQueueId(queueNum);
+
                 queueStatsRequests.add(queueStatsRequest);
             }
-        return sendStatsRequest(
-                (List) queueStatsRequests, OFStatisticsType.QUEUE);
+
+        sendStatsRequest(queueStatsRequests, OFStatisticsType.QUEUE,
+                         onSuccess, timeout, onTimeout);
     }
 
     @Override
@@ -426,7 +424,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
             return true;
         }
 
-        SuccessHandler successHandler = null;
+        SuccessHandler successHandler;
 
         switch (m.getType()) {
         case HELLO:
@@ -479,8 +477,7 @@ public class ControllerStubImpl extends BaseProtocolImpl implements ControllerSt
         case STATS_REPLY:
             log.debug("handleMessage: STATS_REPLY / OFPST_{}",
                     ((OFStatisticsReply) m).getStatisticType());
-            successHandler = terminateOperation(
-                    m.getXid(), OFType.STATS_REQUEST);
+            successHandler = terminateOperation(m.getXid(), OFType.STATS_REQUEST);
             if (successHandler != null)
                 successHandler.onSuccess(m);
             return true;

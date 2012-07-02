@@ -19,10 +19,14 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 import org.openflow.protocol.statistics.OFAggregateStatisticsRequest;
 import org.openflow.protocol.statistics.OFDescriptionStatistics;
+import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFFlowStatisticsRequest;
+import org.openflow.protocol.statistics.OFPortStatisticsReply;
 import org.openflow.protocol.statistics.OFPortStatisticsRequest;
+import org.openflow.protocol.statistics.OFQueueStatisticsReply;
 import org.openflow.protocol.statistics.OFQueueStatisticsRequest;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFTableStatistics;
@@ -171,15 +175,6 @@ public class MockControllerStub implements ControllerStub {
         return features;
     }
 
-    public void setStatistics(OFStatisticsReply statisticsReply) {
-        this.statisticsReply = statisticsReply;
-    }
-
-    @Override
-    public OFStatisticsReply getStatisticsReply(int xid) {
-        return statisticsReply;
-    }
-
     @Override
     public void sendFlowModAdd(OFMatch match, long cookie,
             short idleTimeoutSecs, short hardTimoutSecs, short priority,
@@ -242,68 +237,76 @@ public class MockControllerStub implements ControllerStub {
     }
 
     @Override
-    public int sendDescStatsRequest() {
+    public void sendDescStatsRequest(
+        SuccessHandler<List<OFDescriptionStatistics>> onSuccess, long timeout,
+        TimeoutHandler onTimeout) {
         OFDescriptionStatistics descStatsREquest = new OFDescriptionStatistics();
         sentStatsRequest.add(descStatsREquest);
-        return 0;
     }
 
     @Override
-    public int sendFlowStatsRequest(OFMatch match, byte tableId,
-                                    short outPort) {
+    public void sendFlowStatsRequest(OFMatch match, byte tableId,
+                                     short outPort,
+                                     SuccessHandler<List<OFFlowStatisticsReply>> onSuccess,
+                                     long timeout, TimeoutHandler onTimeout) {
         OFFlowStatisticsRequest flowStatsRequest =
                 new OFFlowStatisticsRequest();
         flowStatsRequest.setMatch(match);
         flowStatsRequest.setTableId(tableId);
         flowStatsRequest.setOutPort(outPort);
         sentStatsRequest.add(flowStatsRequest);
-        return 0;
     }
 
     @Override
-    public int sendAggregateStatsRequest(OFMatch match, byte tableId,
-                                         short outPort) {
+    public void sendAggregateStatsRequest(OFMatch match, byte tableId, short outPort,
+                                          SuccessHandler<List<OFAggregateStatisticsReply>> onSuccess,
+                                          long timeout, TimeoutHandler onTimeout) {
         OFAggregateStatisticsRequest aggregateStatsRequest =
-                new OFAggregateStatisticsRequest();
+            new OFAggregateStatisticsRequest();
 
         aggregateStatsRequest.setMatch(match);
         aggregateStatsRequest.setTableId(tableId);
         aggregateStatsRequest.setOutPort(outPort);
         sentStatsRequest.add(aggregateStatsRequest);
-        return 0;
     }
 
     @Override
-    public int sendTableStatsRequest() {
+    public void sendTableStatsRequest(SuccessHandler<List<OFTableStatistics>> onSuccess,
+                                      long timeout,
+                                      TimeoutHandler onTimeout) {
         OFTableStatistics tableStatsRequest = new OFTableStatistics();
 
         sentStatsRequest.add(tableStatsRequest);
-        return 0;
     }
 
     @Override
-    public int sendPortStatsRequest(short portNo) {
+    public void sendPortStatsRequest(short portNo,
+                                    SuccessHandler<List<OFPortStatisticsReply>> onSuccess,
+                                    long timeout, TimeoutHandler onTimeout) {
         OFPortStatisticsRequest portStatsRequest =
                 new OFPortStatisticsRequest();
 
         portStatsRequest.setPortNumber(portNo);
         sentStatsRequest.add(portStatsRequest);
-        return 0;
     }
 
     @Override
-    public int sendQueueStatsRequest(short portNo, int queueId) {
+    public void sendQueueStatsRequest(short portNo, int queueId,
+                                      SuccessHandler<List<OFQueueStatisticsReply>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
         Map <Short, Set<Integer>> queueRequests =
-                new HashMap<Short, Set<Integer>>();
+            new HashMap<Short, Set<Integer>>();
         Set<Integer> queueIds = new HashSet<Integer>();
 
         queueIds.add(queueId);
         queueRequests.put(portNo, queueIds);
-        return sendQueueStatsRequest(queueRequests);
+        sendQueueStatsRequest(queueRequests, onSuccess, timeout, onTimeout);
     }
 
     @Override
-    public int sendQueueStatsRequest(Map<Short, Set<Integer>> requests) {
+    public void sendQueueStatsRequest(Map<Short, Set<Integer>> requests,
+                                      SuccessHandler<List<OFQueueStatisticsReply>> onSuccess,
+                                      long timeout, TimeoutHandler onTimeout) {
         for (Map.Entry<Short, Set<Integer>> request: requests.entrySet()) {
             for (Integer queueId: request.getValue()) {
                 OFQueueStatisticsRequest queueStatsRequest =
@@ -314,7 +317,6 @@ public class MockControllerStub implements ControllerStub {
                 sentStatsRequest.add(queueStatsRequest);
             }
         }
-        return 0;
     }
 
     @Override

@@ -37,9 +37,6 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -63,7 +60,7 @@ public class SelectLoop implements Reactor {
     // The timeout value in milliseconds that select will be called with
     // (currently zero, may be settable in the future).
     protected long timeout;
-    protected Object registerLock = new Object();
+    protected final Object registerLock = new Object();
 
     protected ScheduledExecutorService executor;
 
