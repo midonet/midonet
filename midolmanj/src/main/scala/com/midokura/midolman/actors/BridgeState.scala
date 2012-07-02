@@ -12,6 +12,7 @@ import akka.util.duration._
 import scala.collection.JavaConversions._
 import java.util.UUID
 
+// TODO(jlm): Use the Akka logger.
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.packets.MAC
@@ -19,18 +20,14 @@ import com.midokura.midolman.state.{Directory, MacPortMap}
 import com.midokura.midolman.util.Callback1
 
 
-object BridgeStateOperation extends Enumeration {
-    val PortOfMac = Value
-    val CallForAllMacsOfPort = Value
-    val IsKnownMac = Value
-    val CallsDone = Value
-    val UnknownMessageError = Value
-}
+abstract class BridgeStateRequest
+case class PortOfMac(mac: MAC) extends BridgeStateRequest
+case class CallForAllMacsOfPort(portID: UUID, cb: Callback1[MAC]) 
+        extends BridgeStateRequest
+case class IsKnownMac(mac: MAC) extends BridgeStateRequest
 
 
 class BridgeStateHelper(macPortDir: Directory) {
-    import BridgeStateOperation._
-
     private val system = ActorSystem("BridgeStateHelper")  //XXX
     private val actor = system.actorOf(Props(new BridgeStateActor(macPortDir)),
                                        name="BridgeStateActor")
@@ -43,7 +40,7 @@ class BridgeStateHelper(macPortDir: Directory) {
 
 
     def portOfMac(mac: MAC): UUID = {
-        val f = actor.ask((PortOfMac, mac))(shortTimeout) recover {
+        val f = actor.ask(PortOfMac(mac))(shortTimeout) recover {
             case e => log.error("portOfMac: call failed", e)
         }
         Await.result(f.mapTo[UUID], shortTimeout)
@@ -51,19 +48,19 @@ class BridgeStateHelper(macPortDir: Directory) {
     }
 
     def callForAllMacsOfPort(portID: UUID, cb: Callback1[MAC]) {
-        val f = actor.ask((CallForAllMacsOfPort, portID,
-                           cb))(longTimeout) recover {
+        val f = actor.ask(
+                CallForAllMacsOfPort(portID, cb))(longTimeout) recover {
             case e => log.error("callForAllMacsOfPort: call failed", e)
         }
         Await.result(f, longTimeout) match {
-            case CallsDone => /* success */
+            case () => /* success */
             case x =>
-                log.error("callForAllMacsOfPort: reply {} isn't CallsDone", x)
+                log.error("callForAllMacsOfPort: reply {} isn't ()", x)
         }
     }
 
     def isKnownMac(mac: MAC): Boolean = {
-        val f = actor.ask((PortOfMac, mac))(shortTimeout) recover {
+        val f = actor.ask(PortOfMac(mac))(shortTimeout) recover {
             case e => log.error("isKnownMac: call failed", e)
         }
         Await.result(f.mapTo[Boolean], shortTimeout)
@@ -72,21 +69,19 @@ class BridgeStateHelper(macPortDir: Directory) {
 
 
 class BridgeStateActor(macPortDir: Directory) extends Actor {
-    import BridgeStateOperation._
-
     private final val macPortMap = new MacPortMap(macPortDir)
     private final val log = LoggerFactory.getLogger(this.getClass)
 
     def receive = new Receive {
         def apply(msg: Any) { try {
             msg match {
-                case (PortOfMac, mac: MAC) =>
+                case PortOfMac(mac) =>
                     reply(macPortMap.get(mac))
-                case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[_]) =>
+                case CallForAllMacsOfPort(portID, cb) =>
                     for (mac <- macPortMap.getByValue(portID))
-                        cb.asInstanceOf[Callback1[MAC]].call(mac)
-                    reply(CallsDone)
-                case (IsKnownMac, mac: MAC) =>
+                        cb.call(mac)
+                    reply(())
+                case IsKnownMac(mac) =>
                     reply(macPortMap.containsKey(mac))
             }
         } catch {
@@ -94,14 +89,7 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
                 reply(Status.Failure(e))
         }}
 
-        def isDefinedAt(msg: Any) = {
-            msg match {
-                case (PortOfMac, mac: MAC) => true
-                case (CallForAllMacsOfPort, _: UUID, _: Callback1[_]) => true
-                case (IsKnownMac, mac: MAC) => true
-                case _ => false
-            }
-        }
+        def isDefinedAt(msg: Any) = msg.isInstanceOf[BridgeStateRequest]
     }
 
     def reply(x: Any) = sender ! x
