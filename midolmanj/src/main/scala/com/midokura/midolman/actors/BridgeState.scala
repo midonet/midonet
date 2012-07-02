@@ -2,18 +2,13 @@
 
 package com.midokura.midolman.actors
 
-import akka.actor.Actor
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.actor.Status
+import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.dispatch.Await
+import akka.event.Logging
 import akka.pattern.ask
 import akka.util.duration._
 import scala.collection.JavaConversions._
 import java.util.UUID
-
-// TODO(jlm): Use the Akka logger.
-import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.packets.MAC
 import com.midokura.midolman.state.{Directory, MacPortMap}
@@ -34,7 +29,7 @@ class BridgeStateHelper(macPortDir: Directory) {
     final val shortTimeout = 20 milliseconds
     final val longTimeout = 2000 milliseconds
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
+    private final val log = Logging(system, getClass)
 
     //XXX: Watcher
 
@@ -70,7 +65,6 @@ class BridgeStateHelper(macPortDir: Directory) {
 
 class BridgeStateActor(macPortDir: Directory) extends Actor {
     private final val macPortMap = new MacPortMap(macPortDir)
-    private final val log = LoggerFactory.getLogger(this.getClass)
 
     def receive = new Receive {
         def apply(msg: Any) { try {
