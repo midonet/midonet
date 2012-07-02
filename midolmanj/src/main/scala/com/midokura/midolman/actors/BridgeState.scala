@@ -9,11 +9,9 @@ import akka.actor.Status
 import akka.dispatch.Await
 import akka.pattern.ask
 import akka.util.duration._
-import akka.util.Timeout
 import scala.collection.JavaConversions._
 import java.util.UUID
 
-import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.packets.MAC
@@ -53,7 +51,7 @@ class BridgeStateHelper(macPortDir: Directory) {
     }
 
     def callForAllMacsOfPort(portID: UUID, cb: Callback1[MAC]) {
-        val f = actor.ask((CallForAllMacsOfPort, portID, 
+        val f = actor.ask((CallForAllMacsOfPort, portID,
                            cb))(longTimeout) recover {
             case e => log.error("callForAllMacsOfPort: call failed", e)
         }
@@ -79,14 +77,14 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
     private final val macPortMap = new MacPortMap(macPortDir)
     private final val log = LoggerFactory.getLogger(this.getClass)
 
-    def receive(msg: Any) = {
-        try {
+    def receive = new Receive {
+        def apply(msg: Any) { try {
             msg match {
                 case (PortOfMac, mac: MAC) =>
                     reply(macPortMap.get(mac))
-                case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[MAC]) =>
+                case (CallForAllMacsOfPort, portID: UUID, cb: Callback1[_]) =>
                     for (mac <- macPortMap.getByValue(portID))
-                        cb.call(mac)
+                        cb.asInstanceOf[Callback1[MAC]].call(mac)
                     reply(CallsDone)
                 case (IsKnownMac, mac: MAC) =>
                     reply(macPortMap.containsKey(mac))
@@ -94,7 +92,15 @@ class BridgeStateActor(macPortDir: Directory) extends Actor {
         } catch {
             case e: Exception =>
                 reply(Status.Failure(e))
-                throw e
+        }}
+
+        def isDefinedAt(msg: Any) = {
+            msg match {
+                case (PortOfMac, mac: MAC) => true
+                case (CallForAllMacsOfPort, _: UUID, _: Callback1[_]) => true
+                case (IsKnownMac, mac: MAC) => true
+                case _ => false
+            }
         }
     }
 

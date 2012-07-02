@@ -8,5 +8,5 @@ import akka.actor.{Actor, Props}
 import akka.event.Logging
 
 class SimulationActor extends Actor {
-
+    def receive = { case _ => /* XXX */ }
 }
