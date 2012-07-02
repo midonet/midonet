@@ -13,6 +13,7 @@
         <module>midolmanj-mgmt</module>
         <module>midokura-util</module>
         <module>midonet-functional-tests</module>
+        <module>midokura-jdk-bootstrap</module>
     </modules>
 
     <scm>

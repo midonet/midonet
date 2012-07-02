@@ -69,6 +69,25 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>create-bootclasspath-patch</id>
+                        <phase>package</phase>
+                        <goals><goal>jar</goal></goals>
+                        <configuration>
+                            <classifier>bootclasspath</classifier>
+                            <includes>
+                                <include>sun/nio/ch/*Impl.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.4</version>
             </plugin>
@@ -79,15 +98,40 @@
                 <version>2.4</version>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <compilerArguments>
+                        <verbose />
+                        <bootclasspath>${project.basedir}/../midokura-jdk-bootstrap-12.06-SNAPSHOT.jar:${java.home}/lib/rt.jar</bootclasspath>
+                    </compilerArguments>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
         <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
             <version>0.1.45</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>midokura-jdk-bootstrap</artifactId>
+            <version>12.06-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -194,6 +238,12 @@
             <artifactId>jna</artifactId>
             <version>3.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>r08</version>
+        </dependency>
+
     </dependencies>
 
 
