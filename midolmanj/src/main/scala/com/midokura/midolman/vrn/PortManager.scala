@@ -8,8 +8,7 @@ import com.midokura.midolman.state.{PortConfig, PortZkManager}
 
 case object Refresh
 
-class PortManager(id: UUID, val mgr: PortZkManager)
-    extends DeviceManager(id) {
+class PortManager(id: UUID, val mgr: PortZkManager) extends DeviceManager(id) {
     private var cfg: PortConfig = null;
 
     override def sendDeviceUpdate() = {

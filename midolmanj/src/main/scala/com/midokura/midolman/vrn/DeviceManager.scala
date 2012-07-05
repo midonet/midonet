@@ -7,6 +7,9 @@ import java.util.UUID
 import akka.actor.Actor
 
 abstract class DeviceManager(val id: UUID) extends Actor {
+    // Kick off the first attempt to construct the device.
+    updateConfig();
+
     val cb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.
