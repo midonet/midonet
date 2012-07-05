@@ -15,10 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * // TODO: Explain yourself.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/27/12
+ * A {@link SelectorProvider} service implementation that can create
+ * NetlinkChannel objects.
  */
 public class NetlinkSelectorProvider extends SelectorProvider {
 
@@ -64,88 +62,7 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return underlyingSelector.openSocketChannel();
     }
 
-    public NetlinkChannel openNetlinkSocketChannel(
-        Netlink.Protocol protocol) {
-        try {
-            final Class y = Class.forName("sun.nio.ch.SelChImpl");
-            final Class z = Class.forName(
-                "com.midokura.util.netlink.NetlinkChannel");
-
-            ClassLoader x = new ClassLoader(getClass().getClassLoader()) {
-                @Override
-                public Class<?> loadClass(String name)
-                    throws ClassNotFoundException {
-                    if (name.equals("sun.nio.ch.SelChImpl")) {
-                        return y;
-                    }
-
-                    if (name.equals(
-                        "com.midokura.util.netlink.NetlinkChannel")) {
-                        return z;
-                    }
-
-                    return super.loadClass(name);
-                }
-
-                @Override
-                protected synchronized Class<?> loadClass(String name,
-                                                          boolean resolve)
-                    throws ClassNotFoundException {
-                    return super.loadClass(name,
-                                           resolve);    //To change body of overridden methods use File | Settings | File Templates.
-                }
-
-                @Override
-                protected Class<?> findClass(String name)
-                    throws ClassNotFoundException {
-
-                    if (name.equals("sun.nio.ch.SelChImpl")) {
-                        return y;
-                    }
-
-                    if (name.equals(
-                        "com.midokura.util.netlink.NetlinkChannel")) {
-                        return z;
-                    }
-
-                    return super.findClass(name);
-                }
-            };
-
-            final NetlinkChannelImpl channel = new NetlinkChannelImpl(this,
-                                                                          protocol);
-//            final NetlinkChannelImpl2 impl =
-//                (NetlinkChannelImpl2) Class.forName(
-//                    "com.midokura.util.netlink.NetlinkChannelImpl")
-//                                          .getConstructor(
-//                                              SelectorProvider.class, Netlink.Protocol.class)
-//                                          .newInstance(this,
-//                                                       protocol);
-//            Class.forName("com.midokura.util.netlink.NetlinkChannel");
-
-//            Object proxy = Proxy.newProxyInstance(
-//                ClassLoader.getSystemClassLoader(),
-//                new Class[]{NetlinkChImpl.class},
-//                new InvocationHandler() {
-//                    @Override
-//                    public Object invoke(Object proxy, Method method,
-//                                         Object[] args)
-//                        throws Throwable {
-//                        try {
-//                            return method.invoke(channel, args);
-//                        } catch (InvocationTargetException e) {
-//                            throw e.getTargetException();
-//                        }
-//                    }
-//                });
-//
-//            return (NetlinkChannel) proxy;
-            return channel;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-
-        return null;
-//        return new NetlinkChannelImpl(this, protocol);
+    public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol protocol) {
+        return new NetlinkTracingChannelImpl(this, protocol);
     }
 }

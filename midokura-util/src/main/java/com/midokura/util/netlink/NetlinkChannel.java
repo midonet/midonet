@@ -13,8 +13,8 @@ import java.nio.channels.spi.AbstractSelectableChannel;
 import java.nio.channels.spi.SelectorProvider;
 
 /**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/28/12
+ * Abstracts a netlink channel. The implementation will make a native netlink
+ * socket connection to the local machine.
  */
 public abstract class NetlinkChannel extends AbstractSelectableChannel
     implements ByteChannel, ScatteringByteChannel,

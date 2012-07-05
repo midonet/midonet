@@ -5,9 +5,6 @@ package com.midokura.util.netlink;
 
 /**
  * Netlink API interface.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/27/12
  */
 public interface Netlink {
 
@@ -88,7 +85,10 @@ public interface Netlink {
         NLMSG_NOOP(0x0001),
         NLMSG_ERROR(0x0002),
         NLMSG_DONE(0x0003),
-        NLMSG_OVERRUN(0x0004);
+        NLMSG_OVERRUN(0x0004),
+
+        NLMSG_CUSTOM(Short.MAX_VALUE);
+
 
         short value;
 
@@ -106,9 +106,9 @@ public interface Netlink {
                     return NLMSG_DONE;
                 case 4:
                     return NLMSG_OVERRUN;
+                default:
+                    return NLMSG_CUSTOM;
             }
-
-            return null;
         }
     }
 
@@ -131,7 +131,7 @@ public interface Netlink {
 
     public static class CommandFamily<
         Cmd extends Enum<Cmd> & ByteConstant,
-        Attr extends Enum<Attr> & ShortConstant>
+        Attr extends NetlinkMessage.Attr>
     {
         private short familyId;
         private byte version;

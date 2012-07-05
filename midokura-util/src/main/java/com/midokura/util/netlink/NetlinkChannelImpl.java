@@ -17,13 +17,12 @@ import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.nio.ch.IOStatus;
 import sun.nio.ch.SelChImpl;
 import sun.nio.ch.SelectionKeyImpl;
 
 import com.midokura.util.netlink.clib.cLibrary;
-
 import com.midokura.util.netlink.hacks.IOUtil;
+import com.midokura.util.netlink.hacks.IOStatus;
 import com.midokura.util.netlink.hacks.NativeDispatcher;
 import com.midokura.util.netlink.hacks.NativeThread;
 import com.midokura.util.netlink.hacks.PollArrayWrapper;
@@ -32,9 +31,6 @@ import com.midokura.util.netlink.hacks.SelectorCaller;
 
 /**
  * Implementation of a NetlinkChannel.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/27/12
  */
 public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
 
@@ -53,8 +49,6 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
     // Lock held by any thread that modifies the state fields declared below
     // DO NOT invoke a blocking I/O operation while holding this lock!
     private final Object stateLock = new Object();
-
-    static cLibrary cLib = (cLibrary) Native.loadLibrary("c", cLibrary.class);
 
     // fd value needed for dev/poll. This value will remain valid
     // even after the value in the file descriptor object has been set to -1
@@ -85,12 +79,12 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
         this.protocol = protocol;
         this.state = ST_UNCONNECTED;
 
-        int socket = cLib.socket(cLibrary.AF_NETLINK, cLibrary.SOCK_RAW,
-                                 protocol.getValue());
+        int socket = cLibrary.lib.socket(cLibrary.AF_NETLINK, cLibrary.SOCK_RAW,
+                                         protocol.getValue());
 
         if (socket == -1) {
             log.error("Could not create netlink socket: {}",
-                      cLib.strerror(Native.getLastError()));
+                      cLibrary.lib.strerror(Native.getLastError()));
         }
 
         fd = IOUtil.newFD(socket);
@@ -110,30 +104,32 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
                     remote.nl_family = cLibrary.AF_NETLINK;
                     remote.nl_pid = address.getPid();
 
-                    if (cLib.connect(fdVal, remote, remote.size()) < 0) {
+                    if (cLibrary.lib
+                                .connect(fdVal, remote, remote.size()) < 0) {
                         throw
                             new IOException("failed to connect to socket: " +
-                                                cLib.strerror(
+                                                cLibrary.lib.strerror(
                                                     Native.getLastError()));
                     }
 
                     cLibrary.NetlinkSockAddress local = new cLibrary.NetlinkSockAddress();
                     IntByReference localSize = new IntByReference(local.size());
 
-                    if (cLib.getsockname(fdVal, local, localSize) < 0) {
+                    if (cLibrary.lib.getsockname(fdVal, local, localSize) < 0) {
                         throw
                             new IOException("failed to connect to socket: " +
-                                                cLib.strerror(
+                                                cLibrary.lib.strerror(
                                                     Native.getLastError()));
                     }
 
-                    log.debug("Netlink connection returned pid: {}.", local.nl_pid);
+                    log.debug("Netlink connection returned pid: {}.",
+                              local.nl_pid);
                     localAddress = new Netlink.Address(local.nl_pid);
 
-                    if (cLib.bind(fdVal, local, local.size()) < 0) {
+                    if (cLibrary.lib.bind(fdVal, local, local.size()) < 0) {
                         throw
                             new IOException("failed to connect to socket: " +
-                                                cLib.strerror(
+                                                cLibrary.lib.strerror(
                                                     Native.getLastError()));
                     }
 
@@ -146,7 +142,7 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
     }
 
     public boolean isConnected() {
-        synchronized(stateLock) {
+        synchronized (stateLock) {
             return (state == ST_CONNECTED);
         }
     }
@@ -171,7 +167,7 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
         if ((offset < 0) || (length < 0) || (offset > buffers.length - length))
             throw new IndexOutOfBoundsException();
 
-        ByteBuffer []wBuffers = buffers;
+        ByteBuffer[] wBuffers = buffers;
         if ((offset != 0) || (length != buffers.length)) {
             wBuffers = new ByteBuffer[length];
             System.arraycopy(buffers, offset, wBuffers, 0, length);
@@ -243,7 +239,7 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
         if ((offset < 0) || (length < 0) || (offset > buffers.length - length))
             throw new IndexOutOfBoundsException();
 
-        ByteBuffer []rBuffers = buffers;
+        ByteBuffer[] rBuffers = buffers;
         if ((offset != 0) || (length != rBuffers.length)) {
             rBuffers = new ByteBuffer[length];
             System.arraycopy(buffers, offset, rBuffers, 0, length);
@@ -368,7 +364,8 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
     }
 
     public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
-        return translateReadyOps(ops, SelectionKeyImplCaller.nioReadyOps(sk), sk);
+        return translateReadyOps(ops, SelectionKeyImplCaller.nioReadyOps(sk),
+                                 sk);
     }
 
     public boolean translateAndSetReadyOps(int ops, SelectionKeyImpl sk) {
@@ -398,7 +395,7 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
                 return;
             }
             assert !isOpen() && !isRegistered();
-           // nd.close(fd);
+            // nd.close(fd);
             state = ST_KILLED;
         }
     }

@@ -6,16 +6,16 @@ package com.midokura.util.netlink.clib;
 import java.nio.ByteBuffer;
 
 import com.sun.jna.Library;
+import com.sun.jna.Native;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
 
 /**
-* // TODO: Explain yourself.
-*
-* @author Mihai Claudiu Toader <mtoader@midokura.com>
-*         Date: 7/2/12
+* JNA based library wrapper for a bunch of function calls inside the C library.
 */
 public interface cLibrary extends Library {
+
+    public static cLibrary lib = (cLibrary) Native.loadLibrary("c", cLibrary.class);
 
     public static class NetlinkSockAddress extends Structure {
         public short nl_family;
@@ -26,6 +26,9 @@ public interface cLibrary extends Library {
 
     public static final int AF_NETLINK = 16;
     public static final int SOCK_RAW = 3;
+
+    // this is the default page size for an amd64 linux kernel
+    public static int PAGE_SIZE = 0x1000;
 
     static final int SOL_NETLINK = 270;
 
@@ -45,6 +48,8 @@ public interface cLibrary extends Library {
     int send(int fd, ByteBuffer buf, int len, int flags);
 
     int recv(int fd, ByteBuffer buf, int len, int flags);
+
+    int getpagesize();
 
     String strerror(int errno);
 }

@@ -26,7 +26,6 @@ package sun.nio.ch;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.ClosedChannelException;
@@ -51,30 +50,30 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
 	    public int nl_pid;
 	    public int nl_groups;
 	}
-	
+
 	interface Libc extends Library {
 	    public static final int AF_NETLINK = 16;
 	    public static final int SOCK_RAW = 3;
-	    
+
 	    static final int SOL_NETLINK = 270;
-	    
+
 	    static final int NETLINK_ADD_MEMBERSHIP = 1;
 	    static final int NETLINK_DROP_MEMBERSHIP = 2;
-		
+
 		int socket(int domain, int type, int protocol);
 		int connect(int fd, SockAddrNetlink addr, int size);
 		int bind(int fd, SockAddrNetlink addr, int size);
 		int getsockname(int fd, SockAddrNetlink addr, IntByReference size);
 		int setsockopt(int fd, int level, int optname, ByteBuffer buf, IntByReference optlen);
-		
+
 		int send(int fd, ByteBuffer buf, int len, int flags);
 		int recv(int fd, ByteBuffer buf, int len, int flags);
 	}
-	
+
 	static Libc libc = (Libc) Native.loadLibrary("c", Libc.class);
-	
+
 	static AtomicInteger pidSeq = new AtomicInteger(1);
-	
+
     // Used to make native read and write calls
     private static NativeDispatcher nd = new DatagramDispatcher();
 
@@ -109,55 +108,55 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
     private static final int ST_UNCONNECTED = 0;
     private static final int ST_CONNECTED = 1;
     private static final int ST_KILLED = 2;
-    
+
     private int state = ST_UNINITIALIZED;
-    
+
     private int localPid;
-	
+
 	public NetlinkChannelImpl(SelectorProvider sp, int protocol) throws IOException {
 		super(sp);
-		
+
 		this.protocol = protocol;
-		
+
 		fd = IOUtil.newFD(libc.socket(Libc.AF_NETLINK, Libc.SOCK_RAW, protocol));
 		fdVal = IOUtil.fdVal(fd);
-		
+
 		this.state = ST_UNCONNECTED;
 	}
 
 	public NetlinkChannelImpl connect(int pid) throws IOException {
-		
+
 		synchronized(readLock) {
             synchronized(writeLock) {
                 synchronized (stateLock) {
                     ensureOpenAndUnconnected();
-                    
+
                     SockAddrNetlink remote = new SockAddrNetlink();
             		remote.nl_family = Libc.AF_NETLINK;
             		remote.nl_pid = pid;
-            		
+
             		if (libc.connect(fdVal, remote, remote.size()) < 0) {
             			throw new IOException();
             		}
 
             		SockAddrNetlink local = new SockAddrNetlink();
             		IntByReference localSize = new IntByReference(local.size());
-            		
+
             		if (libc.getsockname(fdVal, local, localSize) < 0) {
             			throw new IOException();
             		}
 
             		localPid = local.nl_pid;
-            		
+
             		if (libc.bind(fdVal, local, local.size()) < 0) {
             			throw new IOException();
             		}
-            		
+
             		state = ST_CONNECTED;
                 }
             }
         }
-		
+
         return this;
 	}
 
@@ -207,7 +206,7 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
         sk.nioReadyOps(newOps);
         return (newOps & ~oldOps) != 0;
     }
-	
+
 	public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
 		return translateReadyOps(ops, sk.nioReadyOps(), sk);
 	}
@@ -247,7 +246,7 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
 			return (state == ST_CONNECTED);
 		}
 	}
-	
+
 	void ensureOpenAndUnconnected() throws IOException { // package-private
         synchronized (stateLock) {
             if (!isOpen())
@@ -258,7 +257,7 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
     }
 
 	public int read(ByteBuffer buf) throws IOException {
-		
+
 //		return libc.recv(fdVal, buf, buf.remaining(), 0);
 
 		if (buf == null)
@@ -316,7 +315,7 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
 	}
 
 	public int write(ByteBuffer buf) throws IOException {
-		
+
 //		return libc.send(fdVal, buf, buf.remaining(), 0);
 
 		if (buf == null)
@@ -411,6 +410,7 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
 		return (SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 	}
 
+/*
 	public void setSendBufferSize(int size) throws IOException {
         // size 0 valid for SocketChannel, invalid for Socket
         if (size <= 0)
@@ -438,21 +438,22 @@ public class NetlinkChannelImpl extends AbstractSelectableChannel implements Byt
     	buf.putInt(group);
 
     	IntByReference optLen = new IntByReference(4);
-    	
+
     	if (libc.setsockopt(fdVal, Libc.SOL_NETLINK, Libc.NETLINK_ADD_MEMBERSHIP, buf, optLen) < 0) {
     		throw new IOException("could not add membership");
     	}
     }
-    
+
     public void dropMembership(int group) throws IOException {
     	ByteBuffer buf = ByteBuffer.allocateDirect(4);
     	buf.putInt(group);
 
     	IntByReference optLen = new IntByReference(4);
-    	
+
     	if (libc.setsockopt(fdVal, Libc.SOL_NETLINK, Libc.NETLINK_DROP_MEMBERSHIP, buf, optLen) < 0) {
     		throw new IOException("could not drop membership");
     	}
     }
+*/
 
 }

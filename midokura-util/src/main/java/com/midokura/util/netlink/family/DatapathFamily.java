@@ -4,9 +4,10 @@
 package com.midokura.util.netlink.family;
 
 import com.midokura.util.netlink.Netlink;
+import com.midokura.util.netlink.NetlinkMessage;
 
 /**
- * OVS Datapath netlink protocol.
+ * Abstraction for the NETLINK OvsDatapath family of commands and attributes.
  */
 public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, DatapathFamily.Attr>{
 
@@ -27,19 +28,18 @@ public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, Da
         }
     }
 
-    public enum Attr implements Netlink.ShortConstant {
-        NAME(1), UPCALL_PID(2), STATS(3)
-        ;
+    public static class Attr<T> extends NetlinkMessage.Attr<T> {
 
-        private Attr(int value) {
-            this.value = (short)value;
+        public static final Attr<String> NAME = attr(1);
+        public static final Attr<Integer> UPCALL_PID = attr(2);
+        public static final Attr<Object> STATS = attr(3);
+
+        public Attr(int id) {
+            super(id);
         }
 
-        short value;
-
-        @Override
-        public short getValue() {
-            return value;
+        static <T> Attr<T> attr(int id) {
+            return new Attr<T>(id);
         }
     }
 

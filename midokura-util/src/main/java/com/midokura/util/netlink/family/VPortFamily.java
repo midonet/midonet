@@ -4,9 +4,11 @@
 package com.midokura.util.netlink.family;
 
 import com.midokura.util.netlink.Netlink;
+import com.midokura.util.netlink.NetlinkMessage;
+import com.midokura.util.netlink.dp.Port;
 
 /**
- * // TODO: Explain yourself.
+ * Abstraction for the NETLINK OvsVPort family of commands and attributes.
  */
 public class VPortFamily
     extends Netlink.CommandFamily<VPortFamily.Cmd, VPortFamily.Attr>{
@@ -28,32 +30,36 @@ public class VPortFamily
         }
     }
 
-    public enum Attr implements Netlink.ShortConstant {
-        /* u32 port number within datapath */
-        OVS_VPORT_ATTR_PORT_NO(1),
-        /* u32 OVS_VPORT_TYPE_* constant. */
-        OVS_VPORT_ATTR_TYPE(2),
-        /* string name, up to IFNAMSIZ bytes long */
-        OVS_VPORT_ATTR_NAME(3),
-        /* nested attributes, varies by vport type */
-        OVS_VPORT_ATTR_OPTIONS(4),
-        /* u32 Netlink PID to receive upcalls */
-        OVS_VPORT_ATTR_UPCALL_PID(5),
-        /* struct ovs_vport_stats */
-        OVS_VPORT_ATTR_STATS(6),
-        /* hardware address */
-        OVS_VPORT_ATTR_ADDRESS(100)
-        ;
+    public static class Attr<T> extends NetlinkMessage.Attr<T> {
 
-        private Attr(int value) {
-            this.value = (short)value;
+        /* u32 port number within datapath */
+        public static final Attr<Integer> PORT_NO = attr(1);
+
+        /* u32 OVS_VPORT_TYPE_* constant. */
+        public static final Attr<Integer> PORT_TYPE = attr(2);
+
+        /* string name, up to IFNAMSIZ bytes long */
+        public static final Attr<String> NAME = attr(3);
+
+        /* nested attributes, varies by vport type */
+        public static final Attr<? extends Port.Options> OPTIONS = attr(4);
+
+        /* u32 Netlink PID to receive upcalls */
+        public static final Attr<Integer> UPCALL_PID = attr(5);
+
+        /* struct ovs_vport_stats */
+        public static final Attr<Object> STATS = attr(6);
+
+        /* hardware address */
+        public static final Attr<byte[]> ADDRESS = attr(100);
+
+
+        public Attr(int id) {
+            super(id);
         }
 
-        short value;
-
-        @Override
-        public short getValue() {
-            return value;
+        static <T> Attr<T> attr(int id) {
+            return new Attr<T>(id);
         }
     }
 

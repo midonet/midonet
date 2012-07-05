@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class SelectLoop implements Reactor {
+
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
 
     protected boolean dontStop;
