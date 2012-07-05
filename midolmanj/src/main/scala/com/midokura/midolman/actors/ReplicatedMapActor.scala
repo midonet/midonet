@@ -37,8 +37,11 @@ abstract class ReplicatedMap[K, V](zkDir: Directory) {
     protected def decodeValue(str: String): V           // abstract
 
 
-    private var newMapCallback =
-        new Callback1[Map[K,V]] { def call(m: Map[K, V]) { } }
+    private var newMapCallback = new Callback1[Map[K,V]] {
+        def call(m: Map[K, V]) {
+            log.error("newMapCallback called without a callback registered")
+        }
+    }
 
     private class DirectoryWatcher extends Runnable {
         def run() {
@@ -48,7 +51,7 @@ abstract class ReplicatedMap[K, V](zkDir: Directory) {
                 val paths = zkDir.getChildren("/", this)
                 val newMap = paths map ((x: String) =>
                                  decodePath(x).key -> decodePath(x).value)
- 
+
                 newMapCallback.call(newMap.toMap)
             } catch {
                 case e: KeeperException =>
