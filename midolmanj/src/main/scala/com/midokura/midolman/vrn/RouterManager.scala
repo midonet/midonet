@@ -16,20 +16,14 @@ class RouterManager(id: UUID, val mgr: RouterZkManager)
     }
 
     override def refreshConfig() = {
-        //cfg = mgr.get(id, cb)
-    }
-
-    override def getOutFilterID() = {
-        if (null == cfg)
-            null;
-        else
-            cfg.outboundFilter
+        cfg = mgr.get(id, cb)
     }
 
     override def getInFilterID() = {
-        if (null == cfg)
-            null;
-        else
-            cfg.inboundFilter
+        cfg match { case null => null; case _ => cfg.inboundFilter }
+    }
+
+    override def getOutFilterID() = {
+        cfg match { case null => null; case _ => cfg.outboundFilter }
     }
 }

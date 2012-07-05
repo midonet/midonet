@@ -4,7 +4,8 @@
 package com.midokura.midolman.vrn
 
 import java.util.UUID
+import com.midokura.midolman.rules.Rule
 
-class Chain(val id: UUID) {
+class Chain(val id: UUID, val rules: List[Rule]) {
 
 }

@@ -10,6 +10,7 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     // Kick off the first attempt to construct the device.
     updateConfig();
 
+    case object Refresh
     val cb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.

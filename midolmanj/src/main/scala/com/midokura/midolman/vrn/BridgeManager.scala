@@ -12,24 +12,18 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     private var cfg: BridgeConfig = null;
 
     override def sendDeviceUpdate() = {
-        context.actorFor("..").tell(new Bridge(id, cfg, inFilter, outFilter));
+        context.actorFor("..").tell(new Bridge(id, cfg, inFilter, outFilter))
     }
 
     override def refreshConfig() = {
-        //cfg = mgr.get(id, cb)
-    }
-
-    override def getOutFilterID() = {
-        if (null == cfg)
-            null;
-        else
-            cfg.outboundFilter
+        cfg = mgr.get(id, cb)
     }
 
     override def getInFilterID() = {
-        if (null == cfg)
-            null;
-        else
-            cfg.inboundFilter
+        cfg match { case null => null; case _ => cfg.inboundFilter }
+    }
+
+    override def getOutFilterID() = {
+        cfg match { case null => null; case _ => cfg.outboundFilter }
     }
 }

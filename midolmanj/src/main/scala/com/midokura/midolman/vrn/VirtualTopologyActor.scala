@@ -39,6 +39,7 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
     private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
     private val portStateMgr = new PortZkManager(dir, zkBasePath)
     private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
+    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
 
     private def addDeviceClient(map: mutable.Map[UUID, mutable.Set[ActorRef]],
                         id: UUID, client: ActorRef): Unit = {
@@ -89,7 +90,8 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
                 (x: UUID) => new BridgeManager(x, bridgeStateMgr), update)
         case ChainRequest(id, update) =>
             getDevice(id, idToChain,
-                (x: UUID) => new ChainManager(x, chainStateMgr), update)
+                (x: UUID) =>
+                    new ChainManager(x, chainStateMgr, ruleStateMgr), update)
         case PortRequest(id, update) =>
             getDevice(id, idToPort,
                 (x: UUID) => new PortManager(x, portStateMgr), update)
