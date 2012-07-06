@@ -26,23 +26,58 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
         }
     }
 
+    // Store the chains that these rules jump to.
+    private val idToChain = mutable.Map[UUID, Chain]()
+    // Store the number of rules that jump to each chain.
+    private val idToRefCount = mutable.Map[UUID, Int]()
+    // Keep track of how many chains are missing from the map.
+    private var waitingForChains: Int = 0
+
+    private def incrChainRefCount(ruleId: UUID): Unit = {
+        if (idToRefCount.contains(ruleId)) {
+            idToRefCount.put(ruleId, idToRefCount(ruleId) + 1)
+        } else {
+            // Subscribe to this new chain
+            context.actorFor("..").tell(ChainRequest(ruleId, true))
+            idToRefCount.put(ruleId, 1)
+            waitingForChains += 1
+        }
+    }
+
+    private def decrChainRefCount(ruleId: UUID): Unit = {
+        if (idToRefCount.contains(ruleId)) {
+            val refCount = idToRefCount(ruleId)
+            if (refCount > 1)
+                idToRefCount.put(ruleId, refCount - 1)
+            else {
+                context.actorFor("..").tell(ChainUnsubscribe(ruleId))
+                idToRefCount.remove(ruleId)
+                idToChain.remove(ruleId) match {
+                    case None => waitingForChains -= 1
+                    case Some(chain) => ; // do nothing
+                }
+            }
+        }
+        // Else we have some serious bug...
+    }
+
     var idToRule = mutable.Map[UUID, Rule]()
+    var rules: mutable.MutableList[Rule] = null
+
     private def updateRules(): Unit = {
         val ruleIds = ruleMgr.getRuleIds(id, cb);
-        var rules = mutable.MutableList[Rule]()
-        var i = 0
+        rules = mutable.MutableList[Rule]()
         for (ruleIds <- ruleIds) {
-            rules(i) = idToRule.get(ruleIds) match {
+            rules += (idToRule.get(ruleIds) match {
                     case None =>
                         val r = ruleMgr.get(ruleIds)
                         idToRule.put(ruleIds, r)
                         if (r.isInstanceOf[JumpRule])
-                            context.actorFor("..").tell(ChainRequest(
-                                r.asInstanceOf[JumpRule].jumpToChainID, true))
+                            incrChainRefCount(
+                                r.asInstanceOf[JumpRule].jumpToChainID)
                         r // return the rule
                     case Some(rule) => rule
-            }
-            i += 1
+            })
         }
         // Sort the rule array
         rules.sortWith( (l: Rule, r: Rule) => l.compareTo(r) < 0 )
@@ -54,19 +89,32 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
         // Unsubscribe from any chains we used to jump to.
         for (kv <- removedRules) {
             if (kv._2.isInstanceOf[JumpRule]) {
-                context.actorFor("..").tell(ChainUnsubscribe(
-                    kv._2.asInstanceOf[JumpRule].jumpToChainID))
+                decrChainRefCount(kv._2.asInstanceOf[JumpRule].jumpToChainID)
             }
         }
         // Finally, send the VirtualTopologyActor an updated chain.
-        context.actorFor("..").tell(new Chain(id, rules.toList))
+        if (0 == waitingForChains)
+            context.actorFor("..").tell(
+                new Chain(id, rules.toList, idToChain.toMap))
+    }
+
+    private def chainUpdate(chain: Chain): Unit = {
+        idToRefCount.get(chain.id) match {
+            case None => ; // we don't care about this chain anymore
+            case Some(count) =>
+                idToRule.put(chain.id, chain) match {
+                    case None =>
+                        waitingForChains -= 1
+                        if (0 == waitingForChains)
+                            context.actorFor("..").tell(
+                                new Chain(id, rules.toList, idToChain.toMap))
+                    case _ => ; // Nothing else to do.
+                }
+        }
     }
 
     def receive = {
         case Refresh => updateRules()
-        case chain: Chain =>
-            ; // Do nothing. We subscribe to 'jumpTo' chains just to force
-            // pre-loading and to keep them loaded.
-
+        case chain: Chain => chainUpdate(chain)
     }
 }
