@@ -7,6 +7,6 @@ import java.util.UUID
 import com.midokura.midolman.state.PortConfig
 
 class Port(val id: UUID, val cfg: PortConfig,
-           val inFilter: Chain, val outFilter: Chain) {
+           val inFilter: Chain, val outFilter: Chain, val local: Boolean) {
 
 }

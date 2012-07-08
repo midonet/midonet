@@ -3,12 +3,13 @@
  */
 package com.midokura.midolman.vrn
 
-import akka.actor.{ActorRef, Props, Actor}
+import akka.actor.{Props, ActorRef, Actor}
 import java.util.UUID
 import collection.mutable
 import scala.Some
 
 import com.midokura.midolman.state._
+import com.midokura.midolman.packets.IntIPv4
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -26,6 +27,11 @@ case class ChainUnsubscribe(id: UUID) extends Unsubscribe
 case class PortUnsubscribe(id: UUID) extends Unsubscribe
 case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
+case class SetPortLocal(id: UUID, local: Boolean, ipAddr: IntIPv4)
+// These types are used to inform the device that a port is local
+case class SetBridgePortLocal(devId: UUID, portId: UUID, local: Boolean)
+case class SetRouterPortLocal(devId: UUID, portId: UUID, local: Boolean)
+
 class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
     private val idToBridge = mutable.Map[UUID, Bridge]()
     private val idToChain = mutable.Map[UUID, Chain]()
@@ -34,6 +40,8 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
     private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val idToUnansweredClients = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val managed = mutable.Set[UUID]()
+    private val localPorts = mutable.Set[UUID]()
+
 
     private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
     private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
@@ -41,26 +49,23 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
     private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
     private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
 
-    private def addDeviceClient(map: mutable.Map[UUID, mutable.Set[ActorRef]],
-                        id: UUID, client: ActorRef): Unit = {
-        map.get(id) match {
-            case Some(actorSet) => actorSet.add(sender)
-            case None => map.put(id, mutable.Set[ActorRef]()+sender)
+    private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
+        if (!managed(id)) {
+            context.actorOf(Props(ctr(id)), name = id.toString())
+            managed.add(id)
+            idToUnansweredClients.put(id, mutable.Set[ActorRef]())
+            idToSubscribers.put(id, mutable.Set[ActorRef]())
         }
     }
 
-    private def getDevice[T](id: UUID, idToDevice: mutable.Map[UUID, T],
-                     ctr: UUID => Actor, update: Boolean): Unit = {
-        if ( !managed(id)) {
-            context.actorOf(Props(ctr(id)), name = "manager")
-            managed.add(id)
-        }
+    private def deviceRequested[T](id: UUID, idToDevice: mutable.Map[UUID, T],
+                                   update: Boolean): Unit = {
         if (idToDevice.contains(id))
-            self.tell(idToDevice(id))
+            sender.tell(idToDevice(id))
         else
-            addDeviceClient(idToUnansweredClients, id, sender)
+            idToUnansweredClients(id).add(sender)
         if (update)
-            addDeviceClient(idToSubscribers, id, sender)
+            idToSubscribers(id).add(sender)
     }
 
     private def updated[T](id: UUID, device: T,
@@ -86,18 +91,18 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
 
     def receive = {
         case BridgeRequest(id, update) =>
-            getDevice(id, idToBridge,
-                (x: UUID) => new BridgeManager(x, bridgeStateMgr), update)
+            manageDevice(id, (x: UUID) => new BridgeManager(x, bridgeStateMgr))
+            deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
-            getDevice(id, idToChain,
-                (x: UUID) =>
-                    new ChainManager(x, chainStateMgr, ruleStateMgr), update)
+            manageDevice(id, (x: UUID) =>
+                new ChainManager(x, chainStateMgr, ruleStateMgr))
+            deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
-            getDevice(id, idToPort,
-                (x: UUID) => new PortManager(x, portStateMgr), update)
+            manageDevice(id, (x: UUID) => new PortManager(x, portStateMgr))
+            deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
-            getDevice(id, idToRouter,
-                (x: UUID) => new RouterManager(x, routerStateMgr), update)
+            manageDevice(id, (x: UUID) => new RouterManager(x, routerStateMgr))
+            deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)
@@ -106,5 +111,20 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String) extends Actor {
         case chain: Chain => updated(chain.id, chain, idToChain)
         case port: Port => updated(port.id, port, idToPort)
         case router: Router => updated(router.id, router, idToRouter)
+        case portLocalMsg: SetPortLocal =>
+            manageDevice(
+                portLocalMsg.id, (x: UUID) => new PortManager(x, portStateMgr))
+            context.actorFor("./" + portLocalMsg.id.toString())
+                .forward(portLocalMsg)
+        case brPortLocalMsg: SetBridgePortLocal =>
+            manageDevice(brPortLocalMsg.devId,
+                (x: UUID) => new BridgeManager(x, bridgeStateMgr))
+            context.actorFor("./" + brPortLocalMsg.devId.toString())
+                .forward(brPortLocalMsg)
+        case rtrPortLocalMsg: SetRouterPortLocal =>
+            manageDevice(rtrPortLocalMsg.devId,
+                (x: UUID) => new RouterManager(x, routerStateMgr))
+            context.actorFor("./" + rtrPortLocalMsg.devId.toString())
+                .forward(rtrPortLocalMsg)
     }
 }

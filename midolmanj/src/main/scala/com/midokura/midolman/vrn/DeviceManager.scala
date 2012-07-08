@@ -46,8 +46,7 @@ abstract class DeviceManager(val id: UUID) extends Actor {
             waitingForChains = true
         }
 
-        // Send a Port update if we're not waiting for chains
-        if (!waitingForChains) sendDeviceUpdate()
+        if (!waitingForChains) chainsUpdated()
     }
 
     private def updateChain(chain: Chain): Unit = {
@@ -55,22 +54,29 @@ abstract class DeviceManager(val id: UUID) extends Actor {
             inFilter = chain
             // Send a Port update if we're not waiting for the outFilter
             if (getOutFilterID() != null && outFilter != null)
-                sendDeviceUpdate()
+                chainsUpdated()
         } else if (chain.id.equals(getOutFilterID())) {
             outFilter = chain
             // Send a Port update if we're not waiting for the inFilter
             if (getInFilterID() != null && inFilter != null)
-                sendDeviceUpdate()
+                chainsUpdated()
         }
         // Else it's a Chain we no longer care about.
     }
 
-    def sendDeviceUpdate(): Unit
+    def chainsReady(): Boolean = {
+        // Each chain must correspond to its respective filter IDs,
+        // or be null if the filters ID is null.
+        (getOutFilterID() == null || outFilter != null) &&
+            (getInFilterID() == null || inFilter != null)
+    }
+
+    def chainsUpdated(): Unit
     def getInFilterID(): UUID
     def getOutFilterID(): UUID
     def refreshConfig(): Unit
 
-    def receive = {
+    override def receive = {
         case Refresh => updateConfig()
         case chain: Chain => updateChain(chain)
     }

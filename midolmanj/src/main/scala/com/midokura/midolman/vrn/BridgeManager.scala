@@ -11,7 +11,7 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     extends DeviceManager(id) {
     private var cfg: BridgeConfig = null;
 
-    override def sendDeviceUpdate() = {
+    override def chainsUpdated() = {
         context.actorFor("..").tell(new Bridge(id, cfg, inFilter, outFilter))
     }
 
@@ -25,5 +25,9 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
 
     override def getOutFilterID() = {
         cfg match { case null => null; case _ => cfg.outboundFilter }
+    }
+
+    override def receive() = super.receive orElse {
+        case SetBridgePortLocal(_, portId, local) => ; // TODO
     }
 }
