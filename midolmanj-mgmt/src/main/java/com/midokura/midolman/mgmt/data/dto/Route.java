@@ -7,14 +7,19 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.mgmt.jaxrs.validation.AllowedValue;
+import com.midokura.midolman.mgmt.data.dto.Route.RouteExtended;
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.AllowedValue;
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.NextHopPortNotNull;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.util.Net;
 import com.midokura.util.StringUtil;
@@ -22,6 +27,7 @@ import com.midokura.util.StringUtil;
 /**
  * Class representing route.
  */
+@NextHopPortNotNull(groups = RouteExtended.class)
 @XmlRootElement
 public class Route extends UriResource {
 
@@ -285,6 +291,15 @@ public class Route extends UriResource {
         }
     }
 
+    @XmlTransient
+    public boolean isNormal() {
+        if (this.type == null) {
+            return false;
+        }
+
+        return this.type.equalsIgnoreCase(Route.Normal);
+    }
+
     public com.midokura.midolman.layer3.Route toZkRoute() {
         NextHop nextHop = null;
         String type = this.getType();
@@ -322,5 +337,19 @@ public class Route extends UriResource {
                 + ", dstNetworkLength=" + dstNetworkLength + ", nextHopPort="
                 + nextHopPort + ", nextHopGateway=" + nextHopGateway
                 + ", weight=" + weight + ", attributes=" + attributes;
+    }
+
+    /**
+     * Interface used for a Validation group. This group gets triggered after
+     * the default validations.
+     */
+    public interface RouteExtended {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups.
+     */
+    @GroupSequence({ Default.class, RouteExtended.class })
+    public interface RouteGroupSequence {
     }
 }

@@ -121,6 +121,32 @@ public class RouterDaoAdapter implements RouterDao {
     /*
      * (non-Javadoc)
      *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByName(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public Router getByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("RouterDaoAdapter.getByName entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        List<Router> routers = list(tenantId);
+        Router match = null;
+        for (Router router : routers) {
+            if (router.getName().equals(name)) {
+                match = router;
+                break;
+            }
+        }
+
+        log.debug("RouterDaoAdapter.getByName exiting: router={}", match);
+        return match;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.midokura.midolman.mgmt.data.dao.RouterDao#list(java.lang.String,
      * boolean)
      */

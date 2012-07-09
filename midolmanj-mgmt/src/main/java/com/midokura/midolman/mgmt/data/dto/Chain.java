@@ -7,18 +7,23 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.Chain.ChainExtended;
 import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueChainName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 
 /**
  * Class representing chain.
  */
+@IsUniqueChainName(groups = ChainExtended.class)
 @XmlRootElement
 public class Chain extends UriResource {
 
@@ -159,4 +164,17 @@ public class Chain extends UriResource {
         return "id=" + id + " tenantId=" + tenantId + ", name=" + name;
     }
 
+    /**
+     * Interface used for a Validation group. This group gets triggered after
+     * the default validations.
+     */
+    public interface ChainExtended {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups.
+     */
+    @GroupSequence({ Default.class, ChainExtended.class })
+    public interface ChainGroupSequence {
+    }
 }

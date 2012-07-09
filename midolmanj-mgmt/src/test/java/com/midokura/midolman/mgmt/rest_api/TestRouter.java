@@ -157,8 +157,13 @@ public class TestRouter {
             // Create a tenant
             DtoTenant t = new DtoTenant();
             t.setId("tenant1-id");
+
+            // Create a router - useful for checking duplicate name error
+            DtoRouter r = new DtoRouter();
+            r.setName("router1-name");
+
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .build();
+                    .create("tenant1", "router1", r).build();
         }
 
         @Parameters
@@ -184,6 +189,11 @@ public class TestRouter {
             DtoRouter longNameRouter = new DtoRouter();
             longNameRouter.setName(longName.toString());
             params.add(new Object[] { longNameRouter, "name" });
+
+            // Router name already exists
+            DtoRouter dupNameRouter = new DtoRouter();
+            dupNameRouter.setName("router1-name");
+            params.add(new Object[] { dupNameRouter, "name" });
 
             return params;
         }
@@ -224,11 +234,16 @@ public class TestRouter {
             t.setId("tenant1-id");
 
             // Create a router
-            DtoRouter r = new DtoRouter();
-            r.setName("router1-name");
+            DtoRouter r1 = new DtoRouter();
+            r1.setName("router1-name");
+
+            // Create another router - useful for checking duplicate name error
+            DtoRouter r2 = new DtoRouter();
+            r2.setName("router2-name");
 
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "router1", r).build();
+                    .create("tenant1", "router1", r1)
+                    .create("tenant1", "router2", r2).build();
         }
 
         @Parameters
@@ -254,6 +269,11 @@ public class TestRouter {
             DtoRouter longNameRouter = new DtoRouter();
             longNameRouter.setName(longName.toString());
             params.add(new Object[] { longNameRouter, "name" });
+
+            // Router name already exists
+            DtoRouter dupNameRouter = new DtoRouter();
+            dupNameRouter.setName("router2-name");
+            params.add(new Object[] { dupNameRouter, "name" });
 
             return params;
         }

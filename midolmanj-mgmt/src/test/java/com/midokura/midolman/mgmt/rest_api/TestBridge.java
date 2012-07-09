@@ -156,8 +156,13 @@ public class TestBridge {
             // Create a tenant
             DtoTenant t = new DtoTenant();
             t.setId("tenant1-id");
+
+            // Create a bridge - useful for checking duplicate name error
+            DtoBridge b = new DtoBridge();
+            b.setName("bridge1-name");
+
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .build();
+                    .create("tenant1", "bridge1", b).build();
         }
 
         @Parameters
@@ -182,6 +187,11 @@ public class TestBridge {
             DtoBridge longNameBridge = new DtoBridge();
             blankNameBridge.setName(longName.toString());
             params.add(new Object[] { longNameBridge, "name" });
+
+            // Bridge name already exists
+            DtoBridge dupNameBridge = new DtoBridge();
+            dupNameBridge.setName("bridge1-name");
+            params.add(new Object[] { dupNameBridge, "name" });
 
             return params;
         }
@@ -223,11 +233,16 @@ public class TestBridge {
             t.setId("tenant1-id");
 
             // Create a bridge
-            DtoBridge b = new DtoBridge();
-            b.setName("bridge1-name");
+            DtoBridge b1 = new DtoBridge();
+            b1.setName("bridge1-name");
+
+            // Create another bridge - useful for checking duplicate name error
+            DtoBridge b2 = new DtoBridge();
+            b2.setName("bridge2-name");
 
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "bridge1", b).build();
+                    .create("tenant1", "bridge1", b1)
+                    .create("tenant1", "bridge2", b2).build();
         }
 
         @Parameters
@@ -252,6 +267,11 @@ public class TestBridge {
             DtoBridge longNameBridge = new DtoBridge();
             blankNameBridge.setName(longName.toString());
             params.add(new Object[] { longNameBridge, "name" });
+
+            // Bridge name already exists
+            DtoBridge dupNameBridge = new DtoBridge();
+            dupNameBridge.setName("bridge2-name");
+            params.add(new Object[] { dupNameBridge, "name" });
 
             return params;
         }

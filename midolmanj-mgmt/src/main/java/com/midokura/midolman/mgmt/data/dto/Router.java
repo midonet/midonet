@@ -7,18 +7,23 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.Router.RouterExtended;
 import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueRouterName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
 
 /**
  * Class representing Virtual Router.
  */
+@IsUniqueRouterName(groups = RouterExtended.class)
 @XmlRootElement
 public class Router extends UriResource {
 
@@ -227,6 +232,20 @@ public class Router extends UriResource {
     @Override
     public String toString() {
         return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
+    }
+
+    /**
+     * Interface used for a Validation group.  This group gets triggered
+     * after the default validations.
+     */
+    public interface RouterExtended {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups.
+     */
+    @GroupSequence({ Default.class, RouterExtended.class })
+    public interface RouterGroupSequence {
     }
 
 }

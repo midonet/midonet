@@ -35,12 +35,13 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.data.dto.Router.RouterGroupSequence;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPeerPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.RouterPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouteResource.RouterRouteResource;
@@ -196,11 +197,14 @@ public class RouterResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer, @Context Validator validator)
+            @Context Authorizer authorizer,
+            @Context Validator validator)
             throws StateAccessException {
 
-        Set<ConstraintViolation<Router>> violations = validator
-                .validate(router);
+        router.setId(id);
+
+        Set<ConstraintViolation<Router>> violations = validator.validate(
+                router, RouterGroupSequence.class);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
         }
@@ -210,7 +214,6 @@ public class RouterResource {
                     "Not authorized to update this router.");
         }
         RouterDao dao = daoFactory.getRouterDao();
-        router.setId(id);
         dao.update(router);
     }
 
@@ -255,10 +258,13 @@ public class RouterResource {
         public Response create(Router router, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException {
 
-            Set<ConstraintViolation<Router>> violations = validator
-                    .validate(router);
+            router.setTenantId(tenantId);
+
+            Set<ConstraintViolation<Router>> violations = validator.validate(
+                    router, RouterGroupSequence.class);
             if (!violations.isEmpty()) {
                 throw new BadRequestHttpException(violations);
             }
@@ -270,7 +276,6 @@ public class RouterResource {
             }
 
             RouterDao dao = daoFactory.getRouterDao();
-            router.setTenantId(tenantId);
             UUID id = dao.create(router);
             return Response.created(
                     ResourceUriBuilder.getRouter(uriInfo.getBaseUri(), id))

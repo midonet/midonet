@@ -34,12 +34,13 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.Chain.ChainGroupSequence;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.RuleResource.ChainRuleResource;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -183,10 +184,13 @@ public class ChainResource {
         public Response create(Chain chain, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException {
 
-            Set<ConstraintViolation<Chain>> violations = validator
-                    .validate(chain);
+            chain.setTenantId(tenantId);
+
+            Set<ConstraintViolation<Chain>> violations = validator.validate(
+                    chain, ChainGroupSequence.class);
             if (!violations.isEmpty()) {
                 throw new BadRequestHttpException(violations);
             }
@@ -198,7 +202,6 @@ public class ChainResource {
             }
 
             ChainDao dao = daoFactory.getChainDao();
-            chain.setTenantId(tenantId);
             UUID id = dao.create(chain);
             return Response.created(
                     ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id))

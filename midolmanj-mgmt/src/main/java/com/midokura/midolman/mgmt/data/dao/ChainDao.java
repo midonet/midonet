@@ -54,8 +54,18 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Chain get(String tenantId, String name)
-            throws StateAccessException;
+    Chain get(String tenantId, String name) throws StateAccessException;
+
+    /**
+     * Get a chain by tenant ID and chain name.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            chain name
+     * @return Chain DTO
+     */
+    Chain getByName(String tenantId, String name) throws StateAccessException;
 
     /**
      * Get Chain by rule ID.
@@ -75,6 +85,5 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Chain> list(String tenantId)
-            throws StateAccessException;
+    List<Chain> list(String tenantId) throws StateAccessException;
 }

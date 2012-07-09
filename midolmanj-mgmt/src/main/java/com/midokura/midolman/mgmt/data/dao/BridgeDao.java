@@ -48,6 +48,17 @@ public interface BridgeDao {
     Bridge get(UUID id) throws StateAccessException;
 
     /**
+     * Get a bridge by tenant ID and bridge name.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            bridge name
+     * @return Bridge DTO
+     */
+    Bridge getByName(String tenantId, String name) throws StateAccessException;
+
+    /**
      * Get brige by port.
      *
      * @param portId
@@ -67,8 +78,7 @@ public interface BridgeDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Bridge> list(String tenantId)
-            throws StateAccessException;
+    List<Bridge> list(String tenantId) throws StateAccessException;
 
     /**
      * Update a bridge.

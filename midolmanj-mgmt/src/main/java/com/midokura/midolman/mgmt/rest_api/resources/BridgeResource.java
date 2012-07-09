@@ -35,12 +35,13 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
+import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeGroupSequence;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePeerPortResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
 import com.midokura.midolman.state.NoStatePathException;
@@ -211,8 +212,10 @@ public class BridgeResource {
             @Context Authorizer authorizer, @Context Validator validator)
             throws StateAccessException {
 
-        Set<ConstraintViolation<Bridge>> violations = validator
-                .validate(bridge);
+        bridge.setId(id);
+
+        Set<ConstraintViolation<Bridge>> violations = validator.validate(
+                bridge, BridgeGroupSequence.class);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
         }
@@ -222,7 +225,6 @@ public class BridgeResource {
                     "Not authorized to update this bridge.");
         }
         BridgeDao dao = daoFactory.getBridgeDao();
-        bridge.setId(id);
         dao.update(bridge);
     }
 
@@ -269,8 +271,10 @@ public class BridgeResource {
                 @Context Authorizer authorizer, @Context Validator validator)
                 throws StateAccessException {
 
-            Set<ConstraintViolation<Bridge>> violations = validator
-                    .validate(bridge);
+            bridge.setTenantId(tenantId);
+
+            Set<ConstraintViolation<Bridge>> violations = validator.validate(
+                    bridge, BridgeGroupSequence.class);
             if (!violations.isEmpty()) {
                 throw new BadRequestHttpException(violations);
             }
@@ -282,7 +286,6 @@ public class BridgeResource {
             }
 
             BridgeDao dao = daoFactory.getBridgeDao();
-            bridge.setTenantId(tenantId);
             UUID id = dao.create(bridge);
             return Response.created(
                     ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))

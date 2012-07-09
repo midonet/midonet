@@ -112,12 +112,37 @@ public class ChainDaoAdapter implements ChainDao {
     /*
      * (non-Javadoc)
      *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.ChainDao#getByName(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public Chain getByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("ChainDaoAdapter.getByName entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        List<Chain> chains = list(tenantId);
+        Chain match = null;
+        for (Chain chain : chains) {
+            if (chain.getName().equals(name)) {
+                match = chain;
+                break;
+            }
+        }
+
+        log.debug("ChainDaoAdapter.getByName exiting: chain={}", match);
+        return match;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.midokura.midolman.mgmt.data.dao.ChainDao#get(java.util.UUID,
      * java.lang.String)
      */
     @Override
-    public Chain get(String tenantId, String name)
-            throws StateAccessException {
+    public Chain get(String tenantId, String name) throws StateAccessException {
         log.debug("ChainDaoAdapter.get entered: tenantId=" + tenantId
                 + ", name=" + name);
 

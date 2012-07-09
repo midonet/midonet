@@ -40,11 +40,11 @@ import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.NoStatePathException;
@@ -166,6 +166,8 @@ public class PortResource {
             @Context Authorizer authorizer, @Context Validator validator)
             throws StateAccessException {
 
+        port.setId(id);
+
         Set<ConstraintViolation<Port>> violations = validator.validate(port);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
@@ -176,7 +178,6 @@ public class PortResource {
                     "Not authorized to update this port.");
         }
         PortDao dao = daoFactory.getPortDao();
-        port.setId(id);
         dao.update(port);
     }
 
@@ -307,6 +308,8 @@ public class PortResource {
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator) throws StateAccessException {
 
+            port.setDeviceId(bridgeId);
+
             Set<ConstraintViolation<BridgePort>> violations = validator
                     .validate(port);
             if (!violations.isEmpty()) {
@@ -320,7 +323,6 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            port.setDeviceId(bridgeId);
             UUID id = dao.create(port);
             return Response.created(
                     ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
@@ -465,6 +467,8 @@ public class PortResource {
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator) throws StateAccessException {
 
+            port.setDeviceId(routerId);
+
             Set<ConstraintViolation<RouterPort>> violations = validator
                     .validate(port);
             if (!violations.isEmpty()) {
@@ -478,7 +482,6 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            port.setDeviceId(routerId);
             UUID id = dao.create(port);
             return Response.created(
                     ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))

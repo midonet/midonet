@@ -62,8 +62,12 @@ public class TestChain {
             DtoTenant t = new DtoTenant();
             t.setId("tenant1-id");
 
+            // Create a chain - useful for checking duplicate name error
+            DtoRuleChain c = new DtoRuleChain();
+            c.setName("chain1-name");
+
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .build();
+                    .create("tenant1", "chain1", c).build();
         }
 
         @Parameters
@@ -89,6 +93,11 @@ public class TestChain {
             DtoRuleChain longName = new DtoRuleChain();
             blankName.setName(longNameStr.toString());
             params.add(new Object[] { longName, "name" });
+
+            // Chain name already exists
+            DtoRuleChain dupNameChain = new DtoRuleChain();
+            dupNameChain.setName("chain1-name");
+            params.add(new Object[] { dupNameChain, "name" });
 
             return params;
         }
@@ -151,7 +160,7 @@ public class TestChain {
             response = resource().uri(tenant1.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain1);
-            assertEquals("The bridge was created.", 201, response.getStatus());
+            assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain1 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain1", ruleChain1.getName());
@@ -163,7 +172,7 @@ public class TestChain {
             response = resource().uri(tenant1.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain2);
-            assertEquals("The bridge was created.", 201, response.getStatus());
+            assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain2 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain2", ruleChain2.getName());
@@ -175,7 +184,7 @@ public class TestChain {
             response = resource().uri(tenant2.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain3);
-            assertEquals("The bridge was created.", 201, response.getStatus());
+            assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain3 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain3", ruleChain3.getName());

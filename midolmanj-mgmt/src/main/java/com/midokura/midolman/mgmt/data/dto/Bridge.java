@@ -7,18 +7,23 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeExtended;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueBridgeName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 
 /**
  * Class representing Virtual Bridge.
  */
+@IsUniqueBridgeName(groups = BridgeExtended.class)
 @XmlRootElement
 public class Bridge extends UriResource {
 
@@ -237,5 +242,19 @@ public class Bridge extends UriResource {
     @Override
     public String toString() {
         return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
+    }
+
+    /**
+     * Interface used for a Validation group.  This group gets triggered
+     * after the default validations.
+     */
+    public interface BridgeExtended {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups.
+     */
+    @GroupSequence({ Default.class, BridgeExtended.class })
+    public interface BridgeGroupSequence {
     }
 }

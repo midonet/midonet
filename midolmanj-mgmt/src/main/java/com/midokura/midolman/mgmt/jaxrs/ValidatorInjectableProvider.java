@@ -6,12 +6,15 @@ package com.midokura.midolman.mgmt.jaxrs;
 
 import java.lang.reflect.Type;
 
+import javax.validation.Configuration;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
+import com.midokura.midolman.mgmt.data.DaoFactory;
+import com.midokura.midolman.mgmt.jaxrs.validation.CustomConstraintValidatorFactory;
 import com.sun.jersey.core.spi.component.ComponentContext;
 import com.sun.jersey.core.spi.component.ComponentScope;
 import com.sun.jersey.spi.inject.Injectable;
@@ -24,7 +27,12 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 public class ValidatorInjectableProvider implements
         InjectableProvider<Context, Type>, Injectable<Validator> {
 
-    private Validator validator = null;
+    private Validator validator;
+    private final DaoFactory daoFactory;
+
+    public ValidatorInjectableProvider(DaoFactory daoFactory) {
+        this.daoFactory = daoFactory;
+    }
 
     /*
      * (non-Javadoc)
@@ -61,10 +69,14 @@ public class ValidatorInjectableProvider implements
     @Override
     public Validator getValue() {
         if (validator == null) {
-            // In the future, we would want to specify the validator but for
-            // now just use the default.
-            ValidatorFactory factory = Validation
-                    .buildDefaultValidatorFactory();
+            // Create a custom validator and make it available for the
+            // resources.
+            Configuration<?> configuration = Validation.byDefaultProvider()
+                    .configure();
+            ValidatorFactory factory = configuration
+                    .constraintValidatorFactory(
+                            new CustomConstraintValidatorFactory(daoFactory))
+                    .buildValidatorFactory();
             validator = factory.getValidator();
         }
         return validator;

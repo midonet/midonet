@@ -29,6 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.client.DtoError;
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
@@ -271,6 +272,16 @@ public class TestRoute {
             invalidType.setSrcNetworkLength(24);
             invalidType.setWeight(100);
             params.add(new Object[] { invalidType, "type" });
+
+            // Normal type but no next hop port
+            DtoRoute noNextHop = new DtoRoute();
+            noNextHop.setType(Route.Normal);
+            noNextHop.setDstNetworkAddr("10.0.0.1");
+            noNextHop.setDstNetworkLength(24);
+            noNextHop.setSrcNetworkAddr("192.168.1.1");
+            noNextHop.setSrcNetworkLength(24);
+            noNextHop.setWeight(100);
+            params.add(new Object[] { noNextHop, "nextHopPort" });
 
             return params;
         }

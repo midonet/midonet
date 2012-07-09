@@ -151,6 +151,32 @@ public class BridgeDaoAdapter implements BridgeDao {
     /*
      * (non-Javadoc)
      *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.BridgeDao#getByName(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public Bridge getByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("BridgeDaoAdapter.getByName entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        List<Bridge> bridges = list(tenantId);
+        Bridge match = null;
+        for (Bridge bridge : bridges) {
+            if (bridge.getName().equals(name)) {
+                match = bridge;
+                break;
+            }
+        }
+
+        log.debug("BridgeDaoAdapter.getByName exiting: bridge={}", match);
+        return match;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.midokura.midolman.mgmt.data.dao.BridgeDao#list(java.lang.String)
      */
     @Override

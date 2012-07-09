@@ -48,6 +48,17 @@ public interface RouterDao {
     Router get(UUID id) throws StateAccessException;
 
     /**
+     * Get a Router by tenant ID and router name.
+     *
+     * @param tenantId
+     *            ID of the tenant
+     * @param name
+     *            Router name
+     * @return Router DTO
+     */
+    Router getByName(String tenantId, String name) throws StateAccessException;
+
+    /**
      * Get the Router that owns the given Advertised Route ID.
      *
      * @param adRouteId
@@ -99,14 +110,13 @@ public interface RouterDao {
      * @throws StateAccessException
      *             Data Access error.
      */
-    List<Router> list(String tenantId)
-            throws StateAccessException;
+    List<Router> list(String tenantId) throws StateAccessException;
 
     /**
      * Update the Router whose ID is specified in the Router DTO.
      *
      * @param router
-     *          New Router configuration.
+     *            New Router configuration.
      * @throws StateAccessException
      */
     void update(Router router) throws StateAccessException;

@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.mgmt.jaxrs.validation;
+package com.midokura.midolman.mgmt.jaxrs.validation.annotation;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -15,13 +15,16 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
+import com.midokura.midolman.mgmt.jaxrs.validation.MessageProperty;
+import com.midokura.midolman.mgmt.jaxrs.validation.constraint.AllowedValueConstraintValidator;
+
 @Target({ METHOD, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
-@Constraint(validatedBy = CheckAllowedValueValidator.class)
+@Constraint(validatedBy = AllowedValueConstraintValidator.class)
 @Documented
 public @interface AllowedValue {
 
-    String message() default "is an invalid value";
+    String message() default MessageProperty.ALLOWED_VALUES;
 
     Class<?>[] groups() default {};
 

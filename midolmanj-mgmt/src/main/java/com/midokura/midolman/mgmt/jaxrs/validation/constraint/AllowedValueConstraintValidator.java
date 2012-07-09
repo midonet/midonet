@@ -1,12 +1,14 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.mgmt.jaxrs.validation;
+package com.midokura.midolman.mgmt.jaxrs.validation.constraint;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-public class CheckAllowedValueValidator implements
+import com.midokura.midolman.mgmt.jaxrs.validation.annotation.AllowedValue;
+
+public class AllowedValueConstraintValidator implements
         ConstraintValidator<AllowedValue, String> {
 
     private String[] allowedValues;

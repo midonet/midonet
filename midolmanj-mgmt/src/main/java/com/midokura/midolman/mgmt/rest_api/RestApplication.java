@@ -112,7 +112,7 @@ public class RestApplication extends Application {
         singletons.add(configProvider);
         singletons.add(dataStoreProvider);
         singletons.add(authProvider);
-        singletons.add(new ValidatorInjectableProvider());
+        singletons.add(new ValidatorInjectableProvider(daoFactory));
         singletons.add(new WildCardJacksonJaxbJsonProvider());
 
         return singletons;

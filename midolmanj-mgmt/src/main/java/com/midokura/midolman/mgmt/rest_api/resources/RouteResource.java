@@ -34,12 +34,13 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.mgmt.data.dto.Route.RouteGroupSequence;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -175,8 +176,10 @@ public class RouteResource {
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator) throws StateAccessException {
 
-            Set<ConstraintViolation<Route>> violations = validator
-                    .validate(route);
+            route.setRouterId(routerId);
+
+            Set<ConstraintViolation<Route>> violations = validator.validate(
+                    route, RouteGroupSequence.class);
             if (!violations.isEmpty()) {
                 throw new BadRequestHttpException(violations);
             }
@@ -188,7 +191,6 @@ public class RouteResource {
             }
 
             RouteDao dao = daoFactory.getRouteDao();
-            route.setRouterId(routerId);
             UUID id = dao.create(route);
             return Response.created(
                     ResourceUriBuilder.getRoute(uriInfo.getBaseUri(), id))
