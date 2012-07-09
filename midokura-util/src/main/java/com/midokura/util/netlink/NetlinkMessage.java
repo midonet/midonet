@@ -5,7 +5,7 @@ package com.midokura.util.netlink;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Stack;
+import javax.annotation.Nullable;
 
 import com.midokura.util.netlink.clib.cLibrary;
 
@@ -17,7 +17,10 @@ import com.midokura.util.netlink.clib.cLibrary;
 public class NetlinkMessage {
 
     public interface BuilderAware {
-        public void processWithBuilder(Builder builder);
+
+        public void serialize(Builder builder);
+
+        public boolean deserialize(NetlinkMessage message);
     }
 
     public static class Attr<Type>{
@@ -37,8 +40,6 @@ public class NetlinkMessage {
     static final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
 
     public ByteBuffer buf;
-    Stack<Integer> starts = new Stack<Integer>();
-    Stack<ByteBuffer> slices = new Stack<ByteBuffer>();
 
     public NetlinkMessage(int size) {
         buf = ByteBuffer.allocateDirect(size);
@@ -53,16 +54,28 @@ public class NetlinkMessage {
         return buf.getInt();
     }
 
+    public long getLong() {
+        return buf.getLong();
+    }
+
     public boolean hasRemaining() {
         return buf.hasRemaining();
     }
 
-    public short getAttrValue(Attr<Short> attr) {
+    public Byte getAttrValue(Attr<Byte> attr) {
+        return findByteValue(buf, attr.getId());
+    }
+
+    public Short getAttrValue(Attr<Short> attr) {
         return findShortValue(buf, attr.getId());
     }
 
     public int getAttrValue(Attr<Integer> attr) {
         return findIntValue(buf, attr.getId());
+    }
+
+    public Long getAttrValue(Attr<Long> attr) {
+        return findLongValue(buf, attr.getId());
     }
 
     public String getAttrValue(Attr<String> attr) {
@@ -75,6 +88,25 @@ public class NetlinkMessage {
 
     public NetlinkMessage getAttrValue(Attr<NetlinkMessage> attr) {
         return findNestedMessageValue(buf, attr.getId());
+    }
+
+    /**
+     * It will tell the instance to deserialize from the current object.
+     *
+     * @param attr the attribute name
+     * @param instance the instance that will have to deserialize itself.
+     * @param <T> the attribute type
+     *
+     * @return the updated instance if deserialization was successful of null if not
+     */
+    @Nullable
+    public <T extends BuilderAware> T getAttrValue(Attr<? extends T> attr, T instance) {
+        NetlinkMessage message = findNestedMessageValue(buf, attr.getId());
+        if (message != null && instance.deserialize(message)) {
+            return instance;
+        }
+
+        return null;
     }
 
     private static void setAttrHeader(ByteBuffer buffer, short id, int len) {
@@ -141,7 +173,7 @@ public class NetlinkMessage {
     }
 
 
-    static int findIntValue(ByteBuffer buf, short type) {
+    static Integer findIntValue(ByteBuffer buf, short type) {
         buf.mark();
 
         try {
@@ -156,13 +188,34 @@ public class NetlinkMessage {
                 buf.position(buf.position() + paddedLen - 4);
             }
 
-            return -1;
+            return null;
         } finally {
             buf.reset();
         }
     }
 
-    static short findShortValue(ByteBuffer buf, short type) {
+    static Long findLongValue(ByteBuffer buf, short type) {
+        buf.mark();
+
+        try {
+            while (buf.hasRemaining()) {
+                short len = buf.getShort();
+                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
+                if (t == type) {
+                    return buf.getLong();
+                }
+
+                int paddedLen = (int) (Math.ceil(len / 4.0) * 4);
+                buf.position(buf.position() + paddedLen - 4);
+            }
+
+            return null;
+        } finally {
+            buf.reset();
+        }
+    }
+
+    static Short findShortValue(ByteBuffer buf, short type) {
         buf.mark();
 
         try {
@@ -177,7 +230,28 @@ public class NetlinkMessage {
                 buf.position(buf.position() + paddedLen - 4);
             }
 
-            return -1;
+            return null;
+        } finally {
+            buf.reset();
+        }
+    }
+
+    static Byte findByteValue(ByteBuffer buf, short type) {
+        buf.mark();
+
+        try {
+            while (buf.hasRemaining()) {
+                short len = buf.getShort();
+                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
+                if (t == type) {
+                    return buf.get();
+                }
+
+                int paddedLen = (int) (Math.ceil(len / 4.0) * 4);
+                buf.position(buf.position() + paddedLen - 4);
+            }
+
+            return null;
         } finally {
             buf.reset();
         }
@@ -323,7 +397,7 @@ public class NetlinkMessage {
             // put a nl_attr header (with zero length)
             setAttrHeader(buffer, attr.getId(), 0);
 
-            value.processWithBuilder(this);
+            value.serialize(this);
 
             buffer.putShort(start, (short) (buffer.position() - start));
 
@@ -335,8 +409,13 @@ public class NetlinkMessage {
             return this;
         }
 
-        public Builder addIntValue(int value) {
+        public Builder addValue(int value) {
             buffer.putInt(value);
+            return this;
+        }
+
+        public Builder addValue(long value) {
+            buffer.putLong(value);
             return this;
         }
 

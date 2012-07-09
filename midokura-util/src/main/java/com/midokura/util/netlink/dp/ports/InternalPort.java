@@ -17,11 +17,15 @@ public class InternalPort extends Port<InternalPort.Options, InternalPort> {
     }
 
     @Override
+    public Options newOptions() {
+        return new Options();
+    }
+
+    @Override
     protected InternalPort self() {
         return this;
     }
 
     public class Options extends AbstractPortOptions {
-
     }
 }

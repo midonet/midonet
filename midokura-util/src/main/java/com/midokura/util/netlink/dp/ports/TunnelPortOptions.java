@@ -3,6 +3,8 @@
 */
 package com.midokura.util.netlink.dp.ports;
 
+import java.util.Arrays;
+
 import com.midokura.util.netlink.NetlinkMessage;
 
 /**
@@ -134,7 +136,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     }
 
     @Override
-    public void processWithBuilder(NetlinkMessage.Builder builder) {
+    public void serialize(NetlinkMessage.Builder builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4);
 
@@ -153,6 +155,79 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         if (this.ttl != null) {
             builder.addAttr(Attr.OVS_TUNNEL_ATTR_TTL, ttl);
         }
+    }
+
+    @Override
+    public boolean deserialize(NetlinkMessage message) {
+        try {
+            Integer flags = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_FLAGS);
+
+            if (flags != null) {
+                this.flags = flags;
+            }
+
+            dstIPv4 = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_DST_IPV4);
+            srcIPv4 = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_SRC_IPV4);
+            outKey = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_OUT_KEY);
+            inKey = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_IN_KEY);
+            tos = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_TOS);
+            ttl = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_TTL);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TunnelPortOptions that = (TunnelPortOptions) o;
+
+        if (flags != that.flags) return false;
+        if (!Arrays.equals(dstIPv4, that.dstIPv4)) return false;
+        if (inKey != null ? !inKey.equals(that.inKey) : that.inKey != null)
+            return false;
+        if (name != null ? !name.equals(that.name) : that.name != null)
+            return false;
+        if (outKey != null ? !outKey.equals(that.outKey) : that.outKey != null)
+            return false;
+        if (!Arrays.equals(srcIPv4, that.srcIPv4)) return false;
+        if (tos != null ? !tos.equals(that.tos) : that.tos != null)
+            return false;
+        if (ttl != null ? !ttl.equals(that.ttl) : that.ttl != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = flags;
+        result = 31 * result + (dstIPv4 != null ? Arrays.hashCode(dstIPv4) : 0);
+        result = 31 * result + (srcIPv4 != null ? Arrays.hashCode(srcIPv4) : 0);
+        result = 31 * result + (outKey != null ? outKey.hashCode() : 0);
+        result = 31 * result + (inKey != null ? inKey.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (tos != null ? tos.hashCode() : 0);
+        result = 31 * result + (ttl != null ? ttl.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TunnelPortOptions{" +
+            "flags=" + flags +
+            ", dstIPv4=" + Arrays.toString(dstIPv4) +
+            ", srcIPv4=" + Arrays.toString(dstIPv4) +
+            ", outKey=" + outKey +
+            ", inKey=" + inKey +
+            ", name='" + name + '\'' +
+            ", tos=" + tos +
+            ", ttl=" + ttl +
+            '}';
     }
 }
 

@@ -21,6 +21,11 @@ public class GreTunnelPort extends Port<GreTunnelPort.Options, GreTunnelPort> {
         return this;
     }
 
+    @Override
+    public Options newOptions() {
+        return new Options();
+    }
+
     public class Options extends TunnelPortOptions<Options> {
         @Override
         protected Options self() {

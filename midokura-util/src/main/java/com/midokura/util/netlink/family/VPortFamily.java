@@ -48,7 +48,7 @@ public class VPortFamily
         public static final Attr<Integer> UPCALL_PID = attr(5);
 
         /* struct ovs_vport_stats */
-        public static final Attr<Object> STATS = attr(6);
+        public static final Attr<Port.Stats> STATS = attr(6);
 
         /* hardware address */
         public static final Attr<byte[]> ADDRESS = attr(100);

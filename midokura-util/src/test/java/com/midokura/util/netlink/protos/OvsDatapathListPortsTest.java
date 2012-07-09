@@ -6,16 +6,17 @@ package com.midokura.util.netlink.protos;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Port;
+import com.midokura.util.netlink.dp.Ports;
 import com.midokura.util.netlink.dp.ports.InternalPort;
 
 /**
@@ -73,20 +74,30 @@ public class OvsDatapathListPortsTest
         Set<Port> response = portsFuture.get();
 
         log.info("response {}", response);
+        InternalPort zzzPort =
+            Ports.newInternalPort("zzz")
+                 .setPortNo(0)
+                 .setAddress(new byte[]{
+                     (byte) 0xc6, (byte) 0xa7, (byte) 0xe6,
+                     (byte) 0x20, (byte) 0xaf, (byte) 0x40});
+
+        zzzPort.setStats(zzzPort.new Stats());
+        zzzPort.setOptions(zzzPort.newOptions());
+
+        InternalPort tauPort =
+            Ports.newInternalPort("tau")
+                 .setPortNo(3)
+                 .setAddress(new byte[]{
+                     (byte) 0xb2, (byte) 0xba, (byte) 0x36,
+                     (byte) 0xb4, (byte) 0x55, (byte) 0xbf});
+
+        tauPort.setStats(tauPort.new Stats());
+        tauPort.setOptions(tauPort.newOptions());
+
         assertThat("We parsed the proper port information",
                    response,
-                   hasItems(
-                       (Port) new InternalPort("zzz")
-                           .setPortNo(0)
-                           .setAddress(new byte[]{
-                               (byte) 0xc6, (byte) 0xa7, (byte) 0xe6,
-                               (byte) 0x20, (byte) 0xaf, (byte) 0x40}),
-                       (Port) new InternalPort("tau")
-                           .setPortNo(3)
-                           .setAddress(new byte[]{
-                               (byte) 0xb2, (byte) 0xba, (byte) 0x36,
-                               (byte) 0xb4, (byte) 0x55, (byte) 0xbf})
-                   ));
+                   Matchers.<Port>containsInAnyOrder(zzzPort, tauPort));
+
     }
 
     final byte[][] responses = {

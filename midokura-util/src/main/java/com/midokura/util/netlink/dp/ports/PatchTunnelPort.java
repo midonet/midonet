@@ -9,12 +9,17 @@ import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Port;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Description of a "patch" tunnel datapath port.
  */
 public class PatchTunnelPort extends Port<PatchTunnelPort.Options, PatchTunnelPort> {
 
     public PatchTunnelPort(@Nonnull String name) {
         super(name, Type.Patch);
+    }
+
+    @Override
+    public Options newOptions() {
+        return new Options();
     }
 
     @Override
@@ -32,10 +37,42 @@ public class PatchTunnelPort extends Port<PatchTunnelPort.Options, PatchTunnelPo
         }
 
         @Override
-        public void processWithBuilder(NetlinkMessage.Builder builder) {
+        public void serialize(NetlinkMessage.Builder builder) {
             if ( peer != null ) {
                 builder.addAttr(Attr.OVS_PATCH_ATTR_PEER, peer);
             }
+        }
+
+        @Override
+        public boolean deserialize(NetlinkMessage message) {
+            peer = message.getAttrValue(Attr.OVS_PATCH_ATTR_PEER);
+            return true;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Options options = (Options) o;
+
+            if (peer != null ? !peer.equals(
+                options.peer) : options.peer != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return peer != null ? peer.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            return "Options{" +
+                "peer='" + peer + '\'' +
+                '}';
         }
     }
 

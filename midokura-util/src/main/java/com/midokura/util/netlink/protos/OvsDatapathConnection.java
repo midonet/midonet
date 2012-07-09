@@ -101,7 +101,7 @@ public class OvsDatapathConnection extends NetlinkConnection {
 
         NetlinkMessage message =
             newMessage(64)
-                .addIntValue(0)
+                .addValue(0)
                 .build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.GET)
@@ -119,14 +119,10 @@ public class OvsDatapathConnection extends NetlinkConnection {
                         Set<Datapath> datapaths = new HashSet<Datapath>();
 
                         for (ByteBuffer buffer : input) {
-                            NetlinkMessage msg =
-                                new NetlinkMessage(buffer);
+                            Datapath datapath = deserializeDatapath(buffer);
 
-                            datapaths.add(
-                                new Datapath(
-                                    msg.getInt(),
-                                    msg.getAttrValue(DatapathFamily.Attr.NAME)
-                                ));
+                            if ( datapath != null )
+                                datapaths.add(datapath);
                         }
 
                         return datapaths;
@@ -152,14 +148,13 @@ public class OvsDatapathConnection extends NetlinkConnection {
         }
     }
 
-    public void getDatapath(String name, Callback<Integer> callback)
+    public void getDatapath(String name, Callback<Datapath> callback)
         throws Exception {
 
         validateState(callback);
 
         NetlinkMessage message =
-            newMessage(64)
-                .addIntValue(0)
+            newMessage()
                 .addAttr(DatapathFamily.Attr.NAME, name)
                 .build();
 
@@ -168,13 +163,15 @@ public class OvsDatapathConnection extends NetlinkConnection {
             .withPayload(message.buf)
             .withCallback(
                 callback,
-                new Function<List<ByteBuffer>, Integer>() {
+                new Function<List<ByteBuffer>, Datapath>() {
                     @Override
-                    public Integer apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null)
+                    public Datapath apply(@Nullable List<ByteBuffer> input) {
+
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
                             return null;
 
-                        return input.get(0).getInt();
+                        return deserializeDatapath(input.get(0));
                     }
                 })
             .send();
@@ -190,9 +187,11 @@ public class OvsDatapathConnection extends NetlinkConnection {
 
         validateState(callback);
 
+        int localPid = getChannel().getLocalAddress().getPid();
+
         NetlinkMessage message =
             newMessage(64)
-                .addIntValue(0)
+                .addValue(0)
                 .addAttr(DatapathFamily.Attr.NAME, name)
                 .addAttr(DatapathFamily.Attr.UPCALL_PID, 0)
                 .build();
@@ -216,6 +215,71 @@ public class OvsDatapathConnection extends NetlinkConnection {
             .send();
     }
 
+    public Future<Port> getPort(final @Nonnull Datapath datapath,
+                                final @Nonnull Port port) {
+
+        ValueFuture<Port> future = ValueFuture.create();
+
+        getPort(datapath, port, wrapFuture(future), DEF_REPLY_TIMEOUT);
+
+        return future;
+    }
+
+    public void getPort(final @Nonnull Datapath datapath,
+                        final @Nonnull Port port,
+                        Callback<Port> callback) {
+        getPort(datapath, port, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void getPort(final @Nonnull Datapath datapath,
+                        final @Nonnull Port port,
+                        Callback<Port> callback, final long timeoutMillis) {
+
+        validateState(callback);
+
+        int localPid = getChannel().getLocalAddress().getPid();
+
+        NetlinkMessage.Builder builder = newMessage()
+            .addValue(datapath.getIndex())
+            .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+
+        if (port.getPortNo() != null)
+            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
+
+        if (port.getType() != null)
+            builder.addAttr(VPortFamily.Attr.PORT_TYPE,
+                            portTypeToValue(port.getType()));
+
+        if (port.getName() != null)
+            builder.addAttr(VPortFamily.Attr.NAME, port.getName());
+
+        if (port.getAddress() != null)
+            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
+
+        if (port.getOptions() != null)
+            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
+
+        if (port.getStats() != null)
+            builder.addAttr(VPortFamily.Attr.STATS, port.getStats());
+
+        NetlinkMessage message = builder.build();
+
+        newRequest(vPortFamily, VPortFamily.Cmd.GET)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(message.buf)
+            .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
+                @Override
+                public Port apply(@Nullable List<ByteBuffer> input) {
+                    if (input == null || input.size() == 0 ||
+                        input.get(0) == null)
+                        return null;
+
+                    return deserializePort(input.get(0), datapath.getIndex());
+                }
+            })
+            .withTimeout(timeoutMillis);
+    }
+
     public Future<Set<Port>> enumeratePorts(int datapathIndex) {
         ValueFuture<Set<Port>> valueFuture = ValueFuture.create();
         enumeratePorts(datapathIndex, wrapFuture(valueFuture));
@@ -231,7 +295,7 @@ public class OvsDatapathConnection extends NetlinkConnection {
         validateState(callback);
 
         NetlinkMessage message = newMessage()
-            .addIntValue(dpIndex)
+            .addValue(dpIndex)
             .build();
 
         newRequest(vPortFamily, VPortFamily.Cmd.GET)
@@ -250,28 +314,10 @@ public class OvsDatapathConnection extends NetlinkConnection {
                         Set<Port> ports = new HashSet<Port>();
 
                         for (ByteBuffer buffer : input) {
-                            NetlinkMessage msg = new NetlinkMessage(
-                                buffer);
+                            Port port = deserializePort(buffer, dpIndex);
 
-                            // read the datapath id;
-                            int actualDpIndex = msg.getInt();
-                            if (actualDpIndex != dpIndex)
+                            if (port == null)
                                 continue;
-
-                            String name =
-                                msg.getAttrValue(VPortFamily.Attr.NAME);
-                            Integer type =
-                                msg.getAttrValue(VPortFamily.Attr.PORT_TYPE);
-
-                            Port port = Ports.newPortByType(
-                                portTypeToEnumValue(type), name);
-
-                            port.setAddress(
-                                msg.getAttrValue(VPortFamily.Attr.ADDRESS)
-                            );
-                            port.setPortNo(
-                                msg.getAttrValue(VPortFamily.Attr.PORT_NO)
-                            );
 
                             ports.add(port);
                         }
@@ -302,9 +348,9 @@ public class OvsDatapathConnection extends NetlinkConnection {
         int localPid = getChannel().getLocalAddress().getPid();
 
         NetlinkMessage.Builder builder = newMessage()
-            .addIntValue(dpIndex)
+            .addValue(dpIndex)
             .addAttr(VPortFamily.Attr.PORT_TYPE,
-                     portTypeToEnumValue(port.getType()))
+                     portTypeToValue(port.getType()))
             .addAttr(VPortFamily.Attr.NAME, port.getName())
             .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
 
@@ -333,7 +379,7 @@ public class OvsDatapathConnection extends NetlinkConnection {
             .send();
     }
 
-    private int portTypeToEnumValue(Port.Type portType) {
+    private int portTypeToValue(Port.Type portType) {
 
 //        enum ovs_vport_type {
 //            OVS_VPORT_TYPE_UNSPEC,
@@ -373,7 +419,7 @@ public class OvsDatapathConnection extends NetlinkConnection {
 //            __OVS_VPORT_TYPE_MAX
 //        };
 
-        if ( portType == null )
+        if (portType == null)
             return null;
 
         switch (portType) {
@@ -408,5 +454,44 @@ public class OvsDatapathConnection extends NetlinkConnection {
         public void onError(int error, String errorMessage) {
             state = State.ErrorInInitialization;
         }
+    }
+
+    private Datapath deserializeDatapath(ByteBuffer buffer) {
+
+        NetlinkMessage msg = new NetlinkMessage(buffer);
+
+        Datapath datapath = new Datapath(
+            msg.getInt(),
+            msg.getAttrValue(DatapathFamily.Attr.NAME)
+        );
+
+        datapath.setStats(msg.getAttrValue(DatapathFamily.Attr.STATS, datapath.new Stats()));
+
+        return datapath;
+    }
+
+    private Port deserializePort(ByteBuffer buffer, int dpIndex) {
+
+        NetlinkMessage msg = new NetlinkMessage(buffer);
+
+        // read the datapath id;
+        int actualDpIndex = msg.getInt();
+        if (actualDpIndex != dpIndex)
+            return null;
+
+        String name = msg.getAttrValue(VPortFamily.Attr.NAME);
+        Integer type = msg.getAttrValue(VPortFamily.Attr.PORT_TYPE);
+
+        Port port = Ports.newPortByType(portTypeToEnumValue(type), name);
+
+        port.setAddress(msg.getAttrValue(VPortFamily.Attr.ADDRESS));
+        port.setPortNo(msg.getAttrValue(VPortFamily.Attr.PORT_NO));
+
+        port.setStats(msg.getAttrValue(VPortFamily.Attr.STATS, port.new Stats()));
+
+        //noinspection unchecked
+        port.setOptions(msg.getAttrValue(VPortFamily.Attr.OPTIONS, port.newOptions()));
+
+        return port;
     }
 }

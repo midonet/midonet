@@ -5,6 +5,7 @@ package com.midokura.util.netlink.family;
 
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkMessage;
+import com.midokura.util.netlink.dp.Datapath;
 
 /**
  * Abstraction for the NETLINK OvsDatapath family of commands and attributes.
@@ -32,7 +33,7 @@ public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, Da
 
         public static final Attr<String> NAME = attr(1);
         public static final Attr<Integer> UPCALL_PID = attr(2);
-        public static final Attr<Object> STATS = attr(3);
+        public static final Attr<Datapath.Stats> STATS = attr(3);
 
         public Attr(int id) {
             super(id);

@@ -9,7 +9,24 @@ import com.midokura.util.netlink.dp.Port;
 public abstract class AbstractPortOptions implements Port.Options {
 
     @Override
-    public void processWithBuilder(NetlinkMessage.Builder builder) {
+    public void serialize(NetlinkMessage.Builder builder) {
 
+    }
+
+    @Override
+    public boolean deserialize(NetlinkMessage message) {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        return true;
+    }
+
+    public String toString() {
+        return getClass().getName() + "{}";
     }
 }

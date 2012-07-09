@@ -17,6 +17,11 @@ public class NetDevPort extends Port<NetDevPort.Options, NetDevPort> {
     }
 
     @Override
+    public Options newOptions() {
+        return new Options();
+    }
+
+    @Override
     protected NetDevPort self() {
         return this;
     }
