@@ -23,14 +23,14 @@ import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 
 public class BridgePort {
 
     static Random rnd = new Random();
-    BridgePortConfig config;
+    MaterializedBridgePortConfig config;
     OFPhysicalPort ovsPort;
     Host host;
     final UUID portID;
@@ -45,7 +45,7 @@ public class BridgePort {
         this.portID = portID;
         this.bridge = bridge;
         this.config = bridge.network.getPortManager().get(
-                portID, BridgePortConfig.class);
+                portID, MaterializedBridgePortConfig.class);
         this.hwAddr = MAC.random();
         this.nwAddr = nwAddr;
     }
@@ -53,12 +53,13 @@ public class BridgePort {
     public static BridgePort makeMaterialized(Bridge bridge, int index,
                                               IntIPv4 ip)
             throws StateAccessException {
-        BridgePortConfig cfg = new BridgePortConfig(bridge.getId());
+        MaterializedBridgePortConfig cfg = new MaterializedBridgePortConfig(
+                bridge.getId());
         UUID portID = bridge.network.getPortManager().create(cfg);
         return new BridgePort(portID, bridge, ip);
     }
 
-    public BridgePortConfig getConfig() {
+    public MaterializedBridgePortConfig getConfig() {
         return config;
     }
 

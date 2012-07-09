@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import com.midokura.midolman.Setup;
 import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,7 +53,7 @@ public class TestPortConfigCache {
 
     @Test
     public void testExistingPortID() throws StateAccessException {
-        PortConfig config = new BridgePortConfig(bridgeID);
+        PortConfig config = new MaterializedBridgePortConfig(bridgeID);
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
         config.portGroupIDs.add(UUID.randomUUID());
@@ -68,8 +68,9 @@ public class TestPortConfigCache {
                 cachedConfig, equalTo(zkConfig));
     }
 
-    private BridgePortConfig getNewConfig() {
-        BridgePortConfig config = new BridgePortConfig(bridgeID);
+    private MaterializedBridgePortConfig getNewConfig() {
+        MaterializedBridgePortConfig config =
+                new MaterializedBridgePortConfig(bridgeID);
         config.greKey = 0;
         config.inboundFilter = UUID.randomUUID();
         config.outboundFilter = UUID.randomUUID();

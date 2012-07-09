@@ -16,7 +16,7 @@ import com.midokura.midolman.util.Net;
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
 
-    public static class BridgePortConfig extends PortConfig {
+    public static abstract class BridgePortConfig extends PortConfig {
         public BridgePortConfig(UUID device_id) {
             super(device_id);
         }
@@ -202,6 +202,27 @@ public class PortDirectory {
             sb.append(", peerId=").append(peer_uuid);
             sb.append("]");
             return sb.toString();
+        }
+    }
+
+    public static class MaterializedBridgePortConfig extends BridgePortConfig {
+
+        public MaterializedBridgePortConfig(UUID device_id) {
+            super(device_id);
+        }
+
+        // Default constructor for the Jackson deserialization
+        public MaterializedBridgePortConfig() { super(); }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof MaterializedBridgePortConfig))
+                return false;
+            return super.equals(other);
         }
     }
 

@@ -119,7 +119,8 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareBridgePortCreate(UUID id,
-            PortDirectory.BridgePortConfig config) throws StateAccessException {
+            PortDirectory.BridgePortConfig config)
+                    throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -132,7 +133,8 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareCreate(UUID id, PortDirectory.BridgePortConfig config)
+    public List<Op> prepareCreate(UUID id,
+            PortDirectory.MaterializedBridgePortConfig config)
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
@@ -179,14 +181,17 @@ public class PortZkManager extends ZkManager {
         } else if (config instanceof PortDirectory.LogicalBridgePortConfig) {
             return prepareCreate(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
-        } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareCreate(id, (PortDirectory.BridgePortConfig) config);
+        } else if (config instanceof
+                PortDirectory.MaterializedBridgePortConfig) {
+            return prepareCreate(id,
+                    (PortDirectory.MaterializedBridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }
     }
 
-    public UUID create(PortDirectory.BridgePortConfig port, UUID id)
+    public UUID create(PortDirectory.MaterializedBridgePortConfig port,
+            UUID id)
             throws StateAccessException, ZkStateSerializationException {
         multi(prepareCreate(id, port));
         return id;
@@ -198,7 +203,7 @@ public class PortZkManager extends ZkManager {
         return id;
     }
 
-    public UUID create(PortDirectory.BridgePortConfig port)
+    public UUID create(PortDirectory.MaterializedBridgePortConfig port)
             throws StateAccessException, ZkStateSerializationException {
         UUID id = UUID.randomUUID();
         multi(prepareCreate(id, port));
@@ -338,7 +343,8 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id, PortDirectory.BridgePortConfig config)
+    public List<Op> prepareDelete(UUID id,
+            PortDirectory.MaterializedBridgePortConfig config)
             throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
@@ -385,8 +391,10 @@ public class PortZkManager extends ZkManager {
         } else if (config instanceof PortDirectory.LogicalBridgePortConfig) {
             return prepareDelete(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
-        } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareDelete(id, (PortDirectory.BridgePortConfig) config);
+        } else if (config instanceof
+                PortDirectory.MaterializedBridgePortConfig) {
+            return prepareDelete(id,
+                    (PortDirectory.MaterializedBridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }

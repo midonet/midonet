@@ -139,7 +139,8 @@ public class MaterializedBridgePort extends BridgePort implements
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.BridgePortConfig config = new PortDirectory.BridgePortConfig();
+        PortDirectory.BridgePortConfig config =
+                new PortDirectory.MaterializedBridgePortConfig();
         super.setConfig(config);
         return config;
     }

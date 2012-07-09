@@ -8,9 +8,9 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 
 public class PortFactory {
@@ -27,9 +27,9 @@ public class PortFactory {
         } else if (config instanceof MaterializedRouterPortConfig) {
             return new MaterializedRouterPort(id,
                     (MaterializedRouterPortConfig) config, mgmtConfig);
-        } else if (config instanceof BridgePortConfig) {
-            return new MaterializedBridgePort(id, (BridgePortConfig) config,
-                    mgmtConfig);
+        } else if (config instanceof MaterializedBridgePortConfig) {
+            return new MaterializedBridgePort(id,
+                    (MaterializedBridgePortConfig) config, mgmtConfig);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

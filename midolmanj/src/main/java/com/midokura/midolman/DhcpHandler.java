@@ -64,7 +64,7 @@ public class DhcpHandler {
         IntIPv4 nwAddr = null;
         // Get the port configuration.
         PortConfig config = portCache.get(inPortId);
-        if (config instanceof PortDirectory.BridgePortConfig) {
+        if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
             UUID bridgeId = config.device_id;
             List<BridgeDhcpZkManager.Subnet> subnets =
                     dhcpMgr.getSubnets(bridgeId);

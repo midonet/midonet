@@ -333,8 +333,8 @@ public class TestVRNController {
         bridgeID = bridgeMgr.create(brcfg);
         bridgeGreKey = brcfg.greKey;
         Assert.assertTrue(bridgeGreKey > 0);
-        PortDirectory.BridgePortConfig bridgePortConfig =
-                new PortDirectory.BridgePortConfig(bridgeID);
+        PortDirectory.MaterializedBridgePortConfig bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         UUID portID = portMgr.create(bridgePortConfig);
         OFPhysicalPort phyPort = new OFPhysicalPort();
         phyPort.setPortNumber(portNumA);
@@ -345,7 +345,8 @@ public class TestVRNController {
         phyPort.setName("bridge_port_a");
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
 
-        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         portID = portMgr.create(bridgePortConfig);
         phyPort = new OFPhysicalPort();
         phyPort.setPortNumber(portNumB);
@@ -359,7 +360,8 @@ public class TestVRNController {
 
         // Now two remote ports.
         IntIPv4 addr = IntIPv4.fromString("192.168.2.100");
-        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         portID = portMgr.create(bridgePortConfig);
         portLocMap.put(portID, addr);
         // Normally, the remote controller would add the port to the bridge's
@@ -373,7 +375,8 @@ public class TestVRNController {
         vrnCtrl.onPortStatus(phyPort, OFPortStatus.OFPortReason.OFPPR_ADD);
 
         addr = IntIPv4.fromString("192.168.2.110");
-        bridgePortConfig = new PortDirectory.BridgePortConfig(bridgeID);
+        bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         portID = portMgr.create(bridgePortConfig);
         portLocMap.put(portID, addr);
         portSetMap.addIPv4Addr(bridgeID, addr);
@@ -550,8 +553,8 @@ public class TestVRNController {
         Rule dropRule = new LiteralRule(new Condition(), Action.DROP, chainUuid,
                                         1);
         ruleMgr.create(dropRule);
-        PortDirectory.BridgePortConfig bridgePortConfig =
-                new PortDirectory.BridgePortConfig(bridgeID);
+        PortDirectory.MaterializedBridgePortConfig bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         bridgePortConfig.outboundFilter = chainUuid;
         portMgr.update(portNumToUuid.get(portNumB), bridgePortConfig);
 
@@ -610,8 +613,8 @@ public class TestVRNController {
         Rule dropRule = new LiteralRule(new Condition(), Action.DROP, chainUuid,
                                         1);
         ruleMgr.create(dropRule);
-        PortDirectory.BridgePortConfig bridgePortConfig =
-                new PortDirectory.BridgePortConfig(bridgeID);
+        PortDirectory.MaterializedBridgePortConfig bridgePortConfig =
+                new PortDirectory.MaterializedBridgePortConfig(bridgeID);
         bridgePortConfig.outboundFilter = chainUuid;
         portMgr.update(portNumToUuid.get(portNumA), bridgePortConfig);
 

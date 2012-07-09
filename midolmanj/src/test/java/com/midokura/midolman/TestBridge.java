@@ -268,8 +268,9 @@ public class TestBridge {
             phyPorts[i].setName(i < 3 ? "port" + Integer.toString(i)
                                       : controller.makeGREPortName(peerIP));
             if (i < 7) {
-                PortDirectory.BridgePortConfig bpc =
-                        new PortDirectory.BridgePortConfig(bridgeUUID);
+                PortDirectory.MaterializedBridgePortConfig bpc =
+                        new PortDirectory.MaterializedBridgePortConfig(
+                                bridgeUUID);
                 portMgr.create(bpc, portUuids[i]);
                 portKeys[i] = bpc.greKey;
             }
@@ -624,8 +625,8 @@ public class TestBridge {
         MAC srcMac = MAC.fromString("00:AA:AA:AA:AA:00");
         MAC dstMac = MAC.fromString("00:AA:AA:AA:AA:01");
         UUID dstUuid = UUID.fromString("251cbfb6-9ca1-4685-9320-c7203c4ffff2");
-        PortDirectory.BridgePortConfig bpc =
-                new PortDirectory.BridgePortConfig(bridge.getId());
+        PortDirectory.MaterializedBridgePortConfig bpc =
+                new PortDirectory.MaterializedBridgePortConfig(bridge.getId());
         portMgr.create(bpc, dstUuid);
         macPortMap.put(dstMac, dstUuid);
         portLocMap.put(dstUuid, publicIp);
