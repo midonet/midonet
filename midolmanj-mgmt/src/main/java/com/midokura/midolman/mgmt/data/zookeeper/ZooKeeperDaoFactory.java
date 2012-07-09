@@ -42,7 +42,6 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.HostZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
@@ -54,8 +53,6 @@ import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
@@ -87,8 +84,8 @@ import com.midokura.midolman.state.ZkPathManager;
  */
 public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(ZooKeeperDaoFactory.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(ZooKeeperDaoFactory.class);
 
     protected ZkConnection conn;
     protected final String rootPath;
@@ -133,7 +130,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
                 conn = new ZkConnection(connStr, timeout, this);
                 conn.open();
             } catch (Exception e) {
-                throw new StateAccessException("Failed to open ZK connection", e);
+                throw new StateAccessException("Failed to open ZK connection",
+                        e);
             }
         }
 
@@ -250,8 +248,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private BridgeOpService getBridgeOpService() throws StateAccessException {
-        return new BridgeOpService(getBridgeOpBuilder(), getPortOpService(),
-                getBridgeZkDao());
+        return new BridgeOpService(getBridgeOpBuilder(), getBridgeZkDao());
     }
 
     /*
@@ -315,22 +312,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public PortDao getPortDao() throws StateAccessException {
-        return new PortDaoAdapter(getPortZkDao(), getPortOpService(),
-                getBgpDao(), getVpnDao());
-    }
-
-    private PortOpBuilder getPortOpBuilder() throws StateAccessException {
-        return new PortOpBuilder(getPortZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private PortOpService getPortOpService() throws StateAccessException {
-        return new PortOpService(getPortOpBuilder(), getPortZkDao());
-    }
-
-    private PortZkDao getPortZkDao() throws StateAccessException {
-        return new PortZkDao(getPortZkManager(), getPathBuilder(),
-                getSerializer());
+        return new PortDaoAdapter(getPortZkManager(), getBgpDao(), getVpnDao());
     }
 
     private PortZkManager getPortZkManager() throws StateAccessException {
@@ -377,8 +359,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private RouterOpService getRouterOpService() throws StateAccessException {
-        return new RouterOpService(getRouterOpBuilder(), getPortOpService(),
-                getRouterZkDao());
+        return new RouterOpService(getRouterOpBuilder(), getRouterZkDao());
     }
 
     @Override
@@ -450,16 +431,14 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private CassandraStore getCassandraStore() {
-        MonitoringConfiguration configuration =
-            getAppConfig().getConfigProvider().getConfig(MonitoringConfiguration.class);
+        MonitoringConfiguration configuration = getAppConfig()
+                .getConfigProvider().getConfig(MonitoringConfiguration.class);
 
-        return new CassandraStore(
-            configuration.getCassandraServers(),
-            configuration.getCassandraCluster(),
-            configuration.getMonitoringCassandraKeyspace(),
-            configuration.getMonitoringCassandraColumnFamily(),
-            configuration.getMonitoringCassandraReplicationFactor(),
-            configuration.getMonitoringCassandraExpirationTimeout()
-        );
+        return new CassandraStore(configuration.getCassandraServers(),
+                configuration.getCassandraCluster(),
+                configuration.getMonitoringCassandraKeyspace(),
+                configuration.getMonitoringCassandraColumnFamily(),
+                configuration.getMonitoringCassandraReplicationFactor(),
+                configuration.getMonitoringCassandraExpirationTimeout());
     }
 }

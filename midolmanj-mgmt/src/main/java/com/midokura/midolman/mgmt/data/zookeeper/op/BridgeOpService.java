@@ -28,7 +28,6 @@ public class BridgeOpService {
     private final static Logger log = LoggerFactory
             .getLogger(BridgeOpService.class);
     private final BridgeOpBuilder opBuilder;
-    private final PortOpService portOpService;
     private final BridgeZkDao zkDao;
 
     /**
@@ -36,15 +35,11 @@ public class BridgeOpService {
      *
      * @param opBuilder
      *            BridgeOpBuilder object.
-     * @param portOpService
-     *            PortOpService object.
      * @param zkDao
      *            BridgeZkDao object.
      */
-    public BridgeOpService(BridgeOpBuilder opBuilder,
-            PortOpService portOpService, BridgeZkDao zkDao) {
+    public BridgeOpService(BridgeOpBuilder opBuilder, BridgeZkDao zkDao) {
         this.opBuilder = opBuilder;
-        this.portOpService = portOpService;
         this.zkDao = zkDao;
     }
 
@@ -112,9 +107,6 @@ public class BridgeOpService {
         if (cascade) {
             ops.addAll(opBuilder.getBridgeDeleteOps(id));
         }
-
-        // Delete the ports
-        ops.addAll(portOpService.buildBridgePortsDelete(id));
 
         // Delete the tenant bridge name
         ops.add(opBuilder.getTenantBridgeNameDeleteOp(mgmtConfig.tenantId,

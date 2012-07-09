@@ -38,12 +38,9 @@ public class TestBridgeOpService {
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private BridgeZkDao zkDao;
 
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private PortOpService portOpService;
-
     @Before
     public void setUp() {
-        testObject = new BridgeOpService(opBuilder, portOpService, zkDao);
+        testObject = new BridgeOpService(opBuilder, zkDao);
     }
 
     @Test
@@ -73,7 +70,7 @@ public class TestBridgeOpService {
 
         // Setup
         UUID id = UUID.randomUUID();
-        InOrder inOrder = inOrder(opBuilder, portOpService);
+        InOrder inOrder = inOrder(opBuilder);
 
         // Execute
         List<Op> ops = testObject.buildDelete(id, true);
@@ -81,7 +78,6 @@ public class TestBridgeOpService {
         // Verify the order of execution
         Assert.assertTrue(ops.size() > 0);
         inOrder.verify(opBuilder).getBridgeDeleteOps(id);
-        inOrder.verify(portOpService).buildBridgePortsDelete(id);
         inOrder.verify(opBuilder).getBridgeDeleteOp(id);
     }
 

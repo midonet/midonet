@@ -7,6 +7,7 @@ package com.midokura.midolman.state;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -67,6 +68,10 @@ public class PortZkManager extends ZkManager {
 
     public PortConfig get(UUID id) throws StateAccessException {
         return get(id, PortConfig.class, null);
+    }
+
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getPortPath(id));
     }
 
     private List<Op> prepareRouterPortCreate(UUID id,
@@ -263,6 +268,16 @@ public class PortZkManager extends ZkManager {
 
     public void update(UUID id, PortConfig port) throws StateAccessException {
         multi(prepareUpdate(id, port));
+    }
+
+    public void update(Map<UUID, PortConfig> ports)
+            throws StateAccessException {
+
+        List<Op> ops = new ArrayList<Op>();
+        for(Map.Entry<UUID, PortConfig> port : ports.entrySet()) {
+            ops.addAll(prepareUpdate(port.getKey(), port.getValue()));
+        }
+        multi(ops);
     }
 
     private List<Op> prepareRouterPortDelete(UUID id,

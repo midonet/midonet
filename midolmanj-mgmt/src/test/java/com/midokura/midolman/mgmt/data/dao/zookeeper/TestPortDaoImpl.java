@@ -23,18 +23,15 @@ import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
+import com.midokura.midolman.state.PortZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestPortDaoAdapter {
+public class TestPortDaoImpl {
 
-    private PortDaoAdapter testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private PortZkDao dao;
+    private PortDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private PortOpService opService;
+    private PortZkManager dao;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private BgpDao bgpDao;
@@ -70,7 +67,7 @@ public class TestPortDaoAdapter {
 
     @Before
     public void setUp() throws Exception {
-        testObject = spy(new PortDaoAdapter(dao, opService, bgpDao, vpnDao));
+        testObject = spy(new PortDaoImpl(dao, bgpDao, vpnDao));
     }
 
     @Test

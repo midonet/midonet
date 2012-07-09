@@ -17,7 +17,6 @@ public class PathBuilder {
     public static final String BRIDGES_PATH = "bridges";
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String CHAINS_PATH = "chains";
-    public static final String PORTS_PATH = "ports";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String ROUTERS_PATH = "routers";
     public static final String TENANTS_PATH = "tenants";
@@ -103,28 +102,6 @@ public class PathBuilder {
      */
     public String getPortGroupsPath() {
         return new StringBuilder(basePath).append("/").append(PORT_GROUPS_PATH)
-                .toString();
-    }
-
-    /**
-     * Get ZK port path.
-     *
-     * @param id
-     *            Port ID.
-     * @return /ports/portId
-     */
-    public String getPortPath(UUID id) {
-        return new StringBuilder(getPortsPath()).append("/").append(id)
-                .toString();
-    }
-
-    /**
-     * Get ZK port path.
-     *
-     * @return /ports
-     */
-    public String getPortsPath() {
-        return new StringBuilder(basePath).append("/").append(PORTS_PATH)
                 .toString();
     }
 

@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -38,11 +37,9 @@ public class LogicalRouterPort extends RouterPort implements LogicalPort {
      *
      * @param id
      * @param config
-     * @param mgmtConfig
      */
-    public LogicalRouterPort(UUID id, LogicalRouterPortConfig config,
-            PortMgmtConfig mgmtConfig) {
-        super(id, config, mgmtConfig);
+    public LogicalRouterPort(UUID id, LogicalRouterPortConfig config) {
+        super(id, config);
         this.peerId = config.peerId();
     }
 

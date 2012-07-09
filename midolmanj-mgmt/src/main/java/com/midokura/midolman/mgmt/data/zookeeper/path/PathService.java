@@ -72,7 +72,6 @@ public class PathService {
         pathSet.add(pathBuilder.getTenantsPath());
         pathSet.add(pathBuilder.getRoutersPath());
         pathSet.add(pathBuilder.getBridgesPath());
-        pathSet.add(pathBuilder.getPortsPath());
         pathSet.add(pathBuilder.getChainsPath());
         pathSet.add(pathBuilder.getPortGroupsPath());
 

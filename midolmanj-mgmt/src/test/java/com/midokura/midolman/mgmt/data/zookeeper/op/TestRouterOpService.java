@@ -33,9 +33,6 @@ public class TestRouterOpService {
     private RouterOpBuilder opBuilder;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    PortOpService portOpService;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     BridgeOpBuilder bridgeOpBuilder;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -43,7 +40,7 @@ public class TestRouterOpService {
 
     @Before
     public void setUp() {
-        testObject = new RouterOpService(opBuilder, portOpService, zkDao);
+        testObject = new RouterOpService(opBuilder, zkDao);
     }
 
     @Test

@@ -140,16 +140,6 @@ public class TestPathBuilder {
         expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
-        // Ports
-        result = builder.getPortsPath();
-        expected = root + "/" + PathBuilder.PORTS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Port
-        result = builder.getPortPath(uuid);
-        expected = root + "/" + PathBuilder.PORTS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Chains
         result = builder.getChainsPath();
         expected = root + "/" + PathBuilder.CHAINS_PATH;

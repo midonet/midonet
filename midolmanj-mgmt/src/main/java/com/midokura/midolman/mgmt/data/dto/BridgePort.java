@@ -7,7 +7,6 @@ package com.midokura.midolman.mgmt.data.dto;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
 
@@ -38,11 +37,9 @@ public abstract class BridgePort extends Port {
      *
      * @param id
      * @param config
-     * @param mgmtConfig
      */
-    public BridgePort(UUID id, BridgePortConfig config,
-            PortMgmtConfig mgmtConfig) {
-        super(id, config, mgmtConfig);
+    public BridgePort(UUID id, BridgePortConfig config) {
+        super(id, config);
     }
 
     /**

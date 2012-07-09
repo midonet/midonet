@@ -12,7 +12,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.packets.MAC;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
@@ -66,9 +65,8 @@ public abstract class RouterPort extends Port {
      * @param config
      * @param mgmtConfig
      */
-    public RouterPort(UUID id, RouterPortConfig config,
-            PortMgmtConfig mgmtConfig) {
-        super(id, config, mgmtConfig);
+    public RouterPort(UUID id, RouterPortConfig config) {
+        super(id, config);
         this.networkAddress = config.getNwAddr();
         this.networkLength = config.nwLength;
         this.portAddress = config.getPortAddr();

@@ -28,7 +28,6 @@ public class RouterOpService {
     private final static Logger log = LoggerFactory
             .getLogger(RouterOpService.class);
     private final RouterOpBuilder opBuilder;
-    private final PortOpService portOpService;
     private final RouterZkDao zkDao;
 
     /**
@@ -36,15 +35,11 @@ public class RouterOpService {
      *
      * @param opBuilder
      *            RouterOpBuilder object.
-     * @param portOpService
-     *            PortOpService object.
      * @param zkDao
      *            RouterZkDao object.
      */
-    public RouterOpService(RouterOpBuilder opBuilder,
-            PortOpService portOpService, RouterZkDao zkDao) {
+    public RouterOpService(RouterOpBuilder opBuilder, RouterZkDao zkDao) {
         this.opBuilder = opBuilder;
-        this.portOpService = portOpService;
         this.zkDao = zkDao;
     }
 
@@ -104,9 +99,6 @@ public class RouterOpService {
         if (cascade) {
             ops.addAll(opBuilder.getRouterDeleteOps(id));
         }
-
-        // Ports
-        ops.addAll(portOpService.buildRouterPortsDelete(id));
 
         // name
         ops.add(opBuilder.getTenantRouterNameDeleteOp(mgmtConfig.tenantId,

@@ -6,12 +6,13 @@ package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,23 +20,22 @@ import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
+import com.midokura.midolman.mgmt.data.dto.ConfigProperty;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.PortFactory;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.op.PortOpService;
 import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Port ZK DAO adapter.
  */
-public class PortDaoAdapter implements PortDao {
+public class PortDaoImpl implements PortDao {
 
     private final static Logger log = LoggerFactory
-            .getLogger(PortDaoAdapter.class);
-    private final PortZkDao zkDao;
-    private final PortOpService opService;
+            .getLogger(PortDaoImpl.class);
+    private final PortZkManager zkDao;
     private final BgpDao bgpDao;
     private final VpnDao vpnDao;
 
@@ -50,22 +50,26 @@ public class PortDaoAdapter implements PortDao {
         return logicalPorts;
     }
 
+    private void updateLinkPorts(UUID id, PortConfig config, UUID peerId,
+            PortConfig peerConfig) throws StateAccessException {
+        Map<UUID, PortConfig> ports = new HashMap<UUID, PortConfig>(2);
+        ports.put(id, config);
+        ports.put(peerId, peerConfig);
+        zkDao.update(ports);
+    }
+
     /**
      * Constructor
      *
      * @param zkDao
-     *            PortZkDao object.
-     * @param opService
-     *            PortOpService object.
+     *            PortZkManager object.
      * @param bgpDao
      *            BgpDao object.
      * @param vpnDao
      *            VpnDao object.
      */
-    public PortDaoAdapter(PortZkDao zkDao, PortOpService opService,
-            BgpDao bgpDao, VpnDao vpnDao) {
+    public PortDaoImpl(PortZkManager zkDao, BgpDao bgpDao, VpnDao vpnDao) {
         this.zkDao = zkDao;
-        this.opService = opService;
         this.bgpDao = bgpDao;
         this.vpnDao = vpnDao;
     }
@@ -79,19 +83,14 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public UUID create(Port port) throws StateAccessException {
-        log.debug("PortDaoAdapter.create entered: port={}", port);
+        log.debug("PortDaoImpl.create entered: port={}", port);
 
         // Don't create a port with any attachment
         port.setAttachmentId(null);
+        UUID id = zkDao.create(port.toConfig());
 
-        UUID id = UUID.randomUUID();
-        port.setId(id);
-        List<Op> ops = opService.buildCreate(port.getId(), port.toConfig(),
-                port.toMgmtConfig());
-        zkDao.multi(ops);
-
-        log.debug("PortDaoAdapter.create exiting: port={}", port);
-        return port.getId();
+        log.debug("PortDaoImpl.create exiting: id={}", id);
+        return id;
     }
 
     /*
@@ -101,7 +100,7 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public void delete(UUID id) throws StateAccessException, PortInUseException {
-        log.debug("PortDaoAdapter.delete entered: id={}", id);
+        log.debug("PortDaoImpl.delete entered: id={}", id);
 
         Port port = get(id);
 
@@ -110,10 +109,9 @@ public class PortDaoAdapter implements PortDao {
             throw new PortInUseException("Cannot delete a port being used.");
         }
 
-        List<Op> ops = opService.buildDelete(port.getId(), true);
-        zkDao.multi(ops);
+        zkDao.delete(port.getId());
 
-        log.debug("PortDaoAdapter.delete exiting.");
+        log.debug("PortDaoImpl.delete exiting.");
     }
 
     /*
@@ -123,9 +121,11 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public boolean exists(UUID id) throws StateAccessException {
-        log.debug("PortDaoAdapter.exists entered: id={}", id);
+        log.debug("PortDaoImpl.exists entered: id={}", id);
+
         boolean exists = zkDao.exists(id);
-        log.debug("PortDaoAdapter.exists exiting: exists={}", exists);
+
+        log.debug("PortDaoImpl.exists exiting: exists={}", exists);
         return exists;
     }
 
@@ -136,16 +136,15 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public Port get(UUID id) throws StateAccessException {
-        log.debug("PortDaoAdapter.get entered: id={}", id);
+        log.debug("PortDaoImpl.get entered: id={}", id);
 
         Port port = null;
         if (zkDao.exists(id)) {
-            PortConfig config = zkDao.getData(id);
-            PortMgmtConfig mgmtConfig = zkDao.getMgmtData(id);
-            port = PortFactory.createPort(id, config, mgmtConfig);
+            PortConfig config = zkDao.get(id);
+            port = PortFactory.createPort(id, config);
         }
 
-        log.debug("PortDaoAdapter.get existing: port={}", port);
+        log.debug("PortDaoImpl.get existing: port={}", port);
         return port;
     }
 
@@ -157,13 +156,13 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public Port getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("PortDaoAdapter.getByAdRoute entered: adRouteId={}",
+        log.debug("PortDaoImpl.getByAdRoute entered: adRouteId={}",
                 adRouteId);
 
         Bgp bgp = bgpDao.getByAdRoute(adRouteId);
         Port port = get(bgp.getPortId());
 
-        log.debug("PortDaoAdapter.getByAdRoute exiting: port={}", port);
+        log.debug("PortDaoImpl.getByAdRoute exiting: port={}", port);
         return port;
     }
 
@@ -174,12 +173,12 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public Port getByBgp(UUID bgpId) throws StateAccessException {
-        log.debug("PortDaoAdapter.getByBgp entered: bgpId={}", bgpId);
+        log.debug("PortDaoImpl.getByBgp entered: bgpId={}", bgpId);
 
         Bgp bgp = bgpDao.get(bgpId);
         Port port = get(bgp.getPortId());
 
-        log.debug("PortDaoAdapter.getByBgp exiting: port={}", port);
+        log.debug("PortDaoImpl.getByBgp exiting: port={}", port);
         return port;
     }
 
@@ -190,12 +189,12 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public Port getByVpn(UUID vpnId) throws StateAccessException {
-        log.debug("PortDaoAdapter.getByVpn entered: vpnId={}", vpnId);
+        log.debug("PortDaoImpl.getByVpn entered: vpnId={}", vpnId);
 
         Vpn vpn = vpnDao.get(vpnId);
         Port port = get(vpn.getPublicPortId());
 
-        log.debug("PortDaoAdapter.getByVpn exiting: port={}", port);
+        log.debug("PortDaoImpl.getByVpn exiting: port={}", port);
         return port;
     }
 
@@ -208,7 +207,7 @@ public class PortDaoAdapter implements PortDao {
     @Override
     public void link(UUID id, UUID peerId) throws StateAccessException,
             PortInUseException {
-        log.debug("PortDaoAdapter.link entered: id=" + id + ", peerId="
+        log.debug("PortDaoImpl.link entered: id=" + id + ", peerId="
                 + peerId);
 
         if (id == null || peerId == null) {
@@ -241,11 +240,9 @@ public class PortDaoAdapter implements PortDao {
         peerPort.setAttachmentId(id);
 
         // Get the multi operations to link
-        List<Op> ops = opService.buildUpdate(id, port.toConfig());
-        ops.addAll(opService.buildUpdate(peerId, peerPort.toConfig()));
-        zkDao.multi(ops);
+        updateLinkPorts(id, port.toConfig(), peerId, peerPort.toConfig());
 
-        log.debug("PortDaoAdapter.link exiting");
+        log.debug("PortDaoImpl.link exiting");
     }
 
     /*
@@ -258,16 +255,21 @@ public class PortDaoAdapter implements PortDao {
     @Override
     public List<Port> listBridgePorts(UUID bridgeId)
             throws StateAccessException {
-        log.debug("PortDaoAdapter.listBridgePorts entered: bridgeId={}",
+        log.debug("PortDaoImpl.listBridgePorts entered: bridgeId={}",
                 bridgeId);
 
-        Set<UUID> ids = zkDao.getBridgePortIds(bridgeId);
+        Set<UUID> ids = zkDao.getBridgePortIDs(bridgeId);
         List<Port> ports = new ArrayList<Port>();
         for (UUID id : ids) {
             ports.add(get(id));
         }
 
-        log.debug("PortDaoAdapter.listBridgePorts exiting: port count={}",
+        ids = zkDao.getBridgeLogicalPortIDs(bridgeId);
+        for (UUID id : ids) {
+            ports.add(get(id));
+        }
+
+        log.debug("PortDaoImpl.listBridgePorts exiting: port count={}",
                 ports.size());
         return ports;
     }
@@ -282,14 +284,18 @@ public class PortDaoAdapter implements PortDao {
     @Override
     public List<Port> listBridgePeerPorts(UUID bridgeId)
             throws StateAccessException {
-        log.debug("PortDaoAdapter.listBridgePeerPorts entered: bridgeId={}",
+        log.debug("PortDaoImpl.listBridgePeerPorts entered: bridgeId={}",
                 bridgeId);
 
-        // TODO: Find more efficient way to do this.
-        List<Port> ports = listBridgePorts(bridgeId);
+        Set<UUID> ids = zkDao.getBridgeLogicalPortIDs(bridgeId);
+        List<Port> ports = new ArrayList<Port>();
+        for (UUID id : ids) {
+            ports.add(get(id));
+        }
+
         List<Port> logicalPorts = getPeerLogicalPorts(ports);
 
-        log.debug("PortDaoAdapter.listBridgePeerPorts exiting: port count={}",
+        log.debug("PortDaoImpl.listBridgePeerPorts exiting: port count={}",
                 logicalPorts.size());
         return logicalPorts;
     }
@@ -304,16 +310,16 @@ public class PortDaoAdapter implements PortDao {
     @Override
     public List<Port> listRouterPorts(UUID routerId)
             throws StateAccessException {
-        log.debug("PortDaoAdapter.listRouterPorts entered: routerId={}",
+        log.debug("PortDaoImpl.listRouterPorts entered: routerId={}",
                 routerId);
 
-        Set<UUID> ids = zkDao.getRouterPortIds(routerId);
+        Set<UUID> ids = zkDao.getRouterPortIDs(routerId);
         List<Port> ports = new ArrayList<Port>();
         for (UUID id : ids) {
             ports.add(get(id));
         }
 
-        log.debug("PortDaoAdapter.listRouterPorts exiting: port count={}",
+        log.debug("PortDaoImpl.listRouterPorts exiting: port count={}",
                 ports.size());
         return ports;
     }
@@ -328,14 +334,14 @@ public class PortDaoAdapter implements PortDao {
     @Override
     public List<Port> listRouterPeerPorts(UUID routerId)
             throws StateAccessException {
-        log.debug("PortDaoAdapter.listRouterPeerPorts entered: routerId={}",
+        log.debug("PortDaoImpl.listRouterPeerPorts entered: routerId={}",
                 routerId);
 
         // TODO: Find more efficient way to do this.
         List<Port> ports = listRouterPorts(routerId);
         List<Port> logicalPorts = getPeerLogicalPorts(ports);
 
-        log.debug("PortDaoAdapter.listRouterPeerPorts exiting: port count={}",
+        log.debug("PortDaoImpl.listRouterPeerPorts exiting: port count={}",
                 logicalPorts.size());
         return logicalPorts;
     }
@@ -347,7 +353,7 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public void unlink(UUID id) throws StateAccessException {
-        log.debug("PortDaoAdapter.unlink entered: id={}", id);
+        log.debug("PortDaoImpl.unlink entered: id={}", id);
 
         if (id == null) {
             throw new IllegalArgumentException("Null ID passed in");
@@ -377,11 +383,10 @@ public class PortDaoAdapter implements PortDao {
         peerPort.setAttachmentId(null);
 
         // Get unlink ops
-        List<Op> ops = opService.buildUpdate(id, port.toConfig());
-        ops.addAll(opService.buildUpdate(peerPort.getId(), peerPort.toConfig()));
-        zkDao.multi(ops);
+        updateLinkPorts(id, port.toConfig(), peerPort.getId(),
+                peerPort.toConfig());
 
-        log.debug("PortDaoAdapter.unlink exiting");
+        log.debug("PortDaoImpl.unlink exiting");
     }
 
     /*
@@ -393,9 +398,9 @@ public class PortDaoAdapter implements PortDao {
      */
     @Override
     public void update(Port port) throws StateAccessException {
-        log.debug("PortDaoAdapter.update entered: port={}", port);
+        log.debug("PortDaoImpl.update entered: port={}", port);
 
-        PortConfig config = zkDao.getData(port.getId());
+        PortConfig config = zkDao.get(port.getId());
         config.inboundFilter = port.getInboundFilterId();
         config.outboundFilter = port.getOutboundFilterId();
         if (port.getPortGroupIDs() != null) {
@@ -405,13 +410,17 @@ public class PortDaoAdapter implements PortDao {
             config.portGroupIDs = null;
         }
 
-        PortMgmtConfig mgmtConfig = zkDao.getMgmtData(port.getId());
-        mgmtConfig.vifId = port.getAttachmentId(); // null means unplug
+        if (port.getAttachmentId() != null) {
+            config.properties.put(ConfigProperty.VIF_ID, port.getAttachmentId()
+                    .toString());
+        } else {
+            // Unplug
+            config.properties.remove(ConfigProperty.VIF_ID);
+        }
 
-        List<Op> ops = opService.buildUpdate(port.getId(), mgmtConfig, config);
-        zkDao.multi(ops);
+        zkDao.update(port.getId(), config);
 
-        log.debug("PortDaoAdapter.update exiting");
+        log.debug("PortDaoImpl.update exiting");
     }
 
 }

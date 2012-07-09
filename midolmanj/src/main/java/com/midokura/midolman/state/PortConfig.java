@@ -2,6 +2,8 @@
 
 package com.midokura.midolman.state;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ public abstract class PortConfig {
     public UUID outboundFilter;
     public Set<UUID> portGroupIDs;
     public int greKey;
+    public Map<String, String> properties = new HashMap<String, String>();
 
     @Override
     public boolean equals(Object o) {

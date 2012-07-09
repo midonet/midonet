@@ -15,7 +15,6 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 
@@ -80,9 +79,8 @@ public abstract class Port extends UriResource {
      *
      * @param id
      * @param config
-     * @param mgmtConfig
      */
-    public Port(UUID id, PortConfig config, PortMgmtConfig mgmtConfig) {
+    public Port(UUID id, PortConfig config) {
         this.id = id;
         this.deviceId = config.device_id;
         this.inboundFilterId = config.inboundFilter;
@@ -194,15 +192,6 @@ public abstract class Port extends UriResource {
      * @return PortConfig object.
      */
     public abstract PortConfig toConfig();
-
-    /**
-     * Convert this object to PortMgmtConfig object.
-     *
-     * @return PortConfig object.
-     */
-    public PortMgmtConfig toMgmtConfig() {
-        return null;
-    }
 
     /**
      * Set the PortConfig fields

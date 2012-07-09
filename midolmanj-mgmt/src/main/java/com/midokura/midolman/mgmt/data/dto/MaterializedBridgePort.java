@@ -6,10 +6,9 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortDirectory.BridgePortConfig;
+import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 
 /**
  * DTO for materialized bridge port
@@ -63,15 +62,15 @@ public class MaterializedBridgePort extends BridgePort implements
      *            ID of the port
      * @param config
      *            BrigePortConfig object
-     * @param mgmtConfig
-     *            PortMgmtConfig object
      * @param config
-     *            MaterializedRouterPortConfig object
+     *            MaterializedBridgePortConfig object
      */
-    public MaterializedBridgePort(UUID id, BridgePortConfig config,
-            PortMgmtConfig mgmtConfig) {
-        super(id, config, mgmtConfig);
-        this.vifId = mgmtConfig.vifId;
+    public MaterializedBridgePort(UUID id, MaterializedBridgePortConfig config) {
+        super(id, config);
+        if (config.properties.containsKey(PortProperty.VIF_ID)) {
+            this.vifId = UUID.fromString(config.properties
+                    .get(PortProperty.VIF_ID));
+        }
     }
 
     /*
@@ -139,20 +138,12 @@ public class MaterializedBridgePort extends BridgePort implements
      */
     @Override
     public PortConfig toConfig() {
-        PortDirectory.BridgePortConfig config =
-                new PortDirectory.MaterializedBridgePortConfig();
+        PortDirectory.MaterializedBridgePortConfig config = new PortDirectory.MaterializedBridgePortConfig();
         super.setConfig(config);
+        if (vifId != null) {
+            config.properties.put(PortProperty.VIF_ID, vifId.toString());
+        }
         return config;
-    }
-
-    /**
-     * Convert this object to PortMgmtConfig object.
-     *
-     * @return PortMgmtConfig object.
-     */
-    @Override
-    public PortMgmtConfig toMgmtConfig() {
-        return new PortMgmtConfig(this.getVifId());
     }
 
     /*

@@ -11,7 +11,6 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory;
@@ -30,8 +29,7 @@ public class MaterializedRouterPort extends RouterPort implements
      */
     private UUID vifId;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
-            message = "is an invalid IP format")
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message = "is an invalid IP format")
     private String localNetworkAddress;
 
     @Min(0)
@@ -79,18 +77,18 @@ public class MaterializedRouterPort extends RouterPort implements
      *            ID of the port
      * @param config
      *            MaterializedRouterPortConfig object
-     * @param mgmtConfig
-     *            PortMgmtConfig object
      * @param config
      *            MaterializedRouterPortConfig object
      */
-    public MaterializedRouterPort(UUID id, MaterializedRouterPortConfig config,
-            PortMgmtConfig mgmtConfig) {
-        super(id, config, mgmtConfig);
+    public MaterializedRouterPort(UUID id, MaterializedRouterPortConfig config) {
+        super(id, config);
         this.localNetworkAddress = Net
                 .convertIntAddressToString(config.localNwAddr);
         this.localNetworkLength = config.localNwLength;
-        this.vifId = mgmtConfig.vifId;
+        if (config.properties.containsKey(PortProperty.VIF_ID)) {
+            this.vifId = UUID.fromString(config.properties
+                    .get(PortProperty.VIF_ID));
+        }
     }
 
     /**
@@ -174,6 +172,9 @@ public class MaterializedRouterPort extends RouterPort implements
         config.localNwAddr = Net
                 .convertStringAddressToInt(this.localNetworkAddress);
         config.localNwLength = this.localNetworkLength;
+        if (this.vifId != null) {
+            config.properties.put(PortProperty.VIF_ID, this.vifId.toString());
+        }
         return config;
     }
 
@@ -216,16 +217,6 @@ public class MaterializedRouterPort extends RouterPort implements
     @Override
     public void setAttachmentId(UUID id) {
         this.vifId = id;
-    }
-
-    /**
-     * Convert this object to PortMgmtConfig object.
-     *
-     * @return PortMgmtConfig object.
-     */
-    @Override
-    public PortMgmtConfig toMgmtConfig() {
-        return new PortMgmtConfig(this.getVifId());
     }
 
     /*
