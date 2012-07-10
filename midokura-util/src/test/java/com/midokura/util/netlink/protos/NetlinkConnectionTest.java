@@ -3,7 +3,6 @@
 */
 package com.midokura.util.netlink.protos;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -22,6 +21,7 @@ import static org.hamcrest.Matchers.is;
 
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
+import com.midokura.util.netlink.exceptions.NetlinkException;
 import com.midokura.util.reactor.Reactor;
 
 /**
@@ -166,7 +166,11 @@ public class NetlinkConnectionTest {
             assertThat("An exception should have been thrown", false);
         } catch (ExecutionException e) {
             assertThat("Cause is an IOException",
-                       e.getCause(), instanceOf(IOException.class));
+                       e.getCause(), instanceOf(NetlinkException.class));
+
+            NetlinkException netlinkException = (NetlinkException) e.getCause();
+            assertThat("The error code should be parser properly",
+                       netlinkException.getErrorCode(), is(22));
         }
     }
 }

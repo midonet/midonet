@@ -22,17 +22,17 @@ import com.midokura.util.netlink.dp.ports.InternalPort;
 /**
  * // TODO: Explain yourself.
  */
-public class OvsDatapathListPortsTest
+public class OvsPortsEnumerateTest
     extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsDatapathListPortsTest.class);
+        .getLogger(OvsPortsEnumerateTest.class);
 
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
 
-        connection = new OvsDatapathConnection(channel, reactor);
+        connection = OvsDatapathConnection.create(channel, reactor);
     }
 
     @Test
@@ -46,7 +46,7 @@ public class OvsDatapathListPortsTest
         // fire reply
         fireNewReply();
 
-        Future<Set<Datapath>> dpFuture = connection.enumerateDatapaths();
+        Future<Set<Datapath>> dpFuture = connection.datapathsEnumerate();
 
         // fire the second received message
         fireNewReply();
@@ -54,9 +54,8 @@ public class OvsDatapathListPortsTest
         // fire the second received message
         fireNewReply();
 
-        dpFuture.get();
-
-        Future<Set<Port>> portsFuture = connection.enumeratePorts(8);
+        Future<Set<Port>> portsFuture = connection.portsEnumerate(
+            dpFuture.get().iterator().next());
 
         // fire the second received message
         fireNewReply();

@@ -3,495 +3,400 @@
 */
 package com.midokura.util.netlink.protos;
 
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
 
 import com.midokura.util.netlink.NetlinkChannel;
-import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
-import com.midokura.util.netlink.family.DatapathFamily;
-import com.midokura.util.netlink.family.VPortFamily;
 import com.midokura.util.reactor.Reactor;
-import static com.midokura.util.netlink.Netlink.Flag;
 
 /**
  * OvsDatapath protocol implementation.
  */
-public class OvsDatapathConnection extends NetlinkConnection {
+public abstract class OvsDatapathConnection extends NetlinkConnection {
 
-    DatapathFamily datapathFamily;
-    VPortFamily vPortFamily;
+    public abstract void initialize() throws Exception;
 
-//    CommandFamily<FlowCommands> ovsFlowFamily;
-//    CommandFamily<PacketCommands> ovsPacketFamily;
+    public abstract boolean isInitialized();
 
-    int ovsVportMulticastGroup;
-
-    public boolean isInitialized() {
-        return state == State.Initialized;
-    }
-
-    enum State {
-        Initializing, ErrorInInitialization, Initialized
-    }
-
-    State state;
-    String initializationErrorCause;
-
-    public OvsDatapathConnection(NetlinkChannel channel, Reactor reactor)
+    protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor)
         throws Exception {
         super(channel, reactor);
     }
 
-    public void initialize() throws Exception {
-
-        state = State.Initializing;
-
-        final Callback<Short> vPortFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                vPortFamily = new VPortFamily(data);
-                state = State.Initialized;
-            }
-        };
-
-        final Callback<Short> dataPathFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                datapathFamily = new DatapathFamily(data);
-                getFamilyId("ovs_vport", vPortFamilyBuilder);
-            }
-        };
-
-        getFamilyId("ovs_datapath", dataPathFamilyBuilder);
-
-//        ovsFlowFamily = new Family<Cmd>(getFamilyId("ovs_flow"), 1);
-//        ovsPacketFamily = new Family<Cmd>(getFamilyId("ovs_packet"), 1);
-
-//        ovsVportMulticastGroup = getMulticastGroup("ovs_vport",
-//                                                   "ovs_vport").get();
-
-        // TODO: create a connection socket and subscribe to ovs_vport group
+    public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor)
+        throws Exception {
+        return new OvsDatapathConnectionImpl(channel, reactor);
     }
 
-    public Future<Set<Datapath>> enumerateDatapaths() {
+    /**
+     * Future based api for enumerating datapaths.
+     *
+     * @return A future that hold the set of enumerated datapaths.
+     */
+    public Future<Set<Datapath>> datapathsEnumerate() {
         ValueFuture<Set<Datapath>> future = ValueFuture.create();
-        enumerateDatapaths(wrapFuture(future));
+        datapathsEnumerate(wrapFuture(future));
         return future;
     }
 
-    public void enumerateDatapaths(Callback<Set<Datapath>> callback) {
-        enumerateDatapaths(callback, DEF_REPLY_TIMEOUT);
+    /**
+     * Callback based api for enumerating datapaths.
+     *
+     * @param callback the callback which will receive the results.
+     *
+     * @see Callback
+     */
+    public void datapathsEnumerate(Callback<Set<Datapath>> callback) {
+        datapathsEnumerate(callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void enumerateDatapaths(Callback<Set<Datapath>> callback, long timeoutMillis) {
-
-        validateState(callback);
-
-        NetlinkMessage message =
-            newMessage(64)
-                .addValue(0)
-                .build();
-
-        newRequest(datapathFamily, DatapathFamily.Cmd.GET)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP)
-            .withPayload(message.buf)
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Set<Datapath>>() {
-                    @Override
-                    public Set<Datapath> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null) {
-                            return Collections.emptySet();
-                        }
-
-                        Set<Datapath> datapaths = new HashSet<Datapath>();
-
-                        for (ByteBuffer buffer : input) {
-                            Datapath datapath = deserializeDatapath(buffer);
-
-                            if ( datapath != null )
-                                datapaths.add(datapath);
-                        }
-
-                        return datapaths;
-                    }
-                }
-            )
-            .withTimeout(timeoutMillis)
-            .send();
+    /**
+     * Callback based api for enumerating datapaths.
+     *
+     * @param callback the callback which will receive the results.
+     * @param timeoutMillis the timeout we need to wait for the results.
+     *
+     * @see Callback
+     */
+    public void datapathsEnumerate(Callback<Set<Datapath>> callback, long timeoutMillis) {
+        _doDatapathsEnumerate(callback, timeoutMillis);
     }
 
-    private void validateState(Callback callback) {
-        switch (state) {
-            case Initialized:
-                return;
-            case ErrorInInitialization:
-                callback.onError(-1,
-                                 "datapath connection had errors in initialization");
-                break;
-            case Initializing:
-                callback.onError(-2,
-                                 "Datapath connection is not initialized yet.");
-                break;
-        }
-    }
+    protected abstract void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
+                                                  long timeoutMillis);
 
-    public void getDatapath(String name, Callback<Datapath> callback)
+    /**
+     * Future based api for creating a datapath by name.
+     *
+     * @param name the name of the datapath.
+     *
+     * @return A future that hold the created datapath object
+     *
+     * @see Future
+     */
+    public Future<Datapath> datapathsCreate(@Nonnull String name)
         throws Exception {
-
-        validateState(callback);
-
-        NetlinkMessage message =
-            newMessage()
-                .addAttr(DatapathFamily.Attr.NAME, name)
-                .build();
-
-        newRequest(datapathFamily, DatapathFamily.Cmd.GET)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP)
-            .withPayload(message.buf)
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Datapath>() {
-                    @Override
-                    public Datapath apply(@Nullable List<ByteBuffer> input) {
-
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeDatapath(input.get(0));
-                    }
-                })
-            .send();
+        ValueFuture<Datapath> future = ValueFuture.create();
+        datapathsCreate(name, wrapFuture(future));
+        return future;
     }
 
-    public void createDatapath(String name, Callback<Integer> callback)
+    /**
+     * Callback based api for creating a datapath by name (with default timeout).
+     *
+     * @param name     the name of the datapath.
+     * @param callback the callback that will be provided the operation result.
+     *
+     * @see Callback
+     */
+    public void datapathsCreate(@Nonnull String name,
+                                @Nonnull Callback<Datapath> callback) {
+        datapathsCreate(name, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for creating a datapath by name (with custom timeout).
+     *
+     * @param name          the name of the datapath.
+     * @param callback      the callback that will be provided the operation result.
+     * @param timeoutMillis the timeout we are prepared to wait for completion.
+     */
+    public void datapathsCreate(@Nonnull String name,
+                                @Nonnull Callback<Datapath> callback,
+                                long timeoutMillis) {
+        _doDatapathsCreate(name, callback, timeoutMillis);
+    }
+
+    protected abstract void _doDatapathsCreate(@Nonnull String name,
+                                               @Nonnull Callback<Datapath> callback,
+                                               long timeoutMillis);
+
+    /**
+     * Future based api for deleting a datapath by id.
+     *
+     * @param datapathId the id of the datapath.
+     *
+     * @return A future that hold the delete datapath object
+     *
+     * @see Future
+     */
+    public Future<Datapath> datapathsDelete(int datapathId)
         throws Exception {
-        createDatapath(name, callback, DEF_REPLY_TIMEOUT);
+        ValueFuture<Datapath> future = ValueFuture.create();
+        datapathsDelete(datapathId, wrapFuture(future));
+        return future;
     }
 
-    public void createDatapath(String name, Callback<Integer> callback, long timeoutMillis)
+    /**
+     * Callback based api for creating a datapath by name (with default timeout).
+     *
+     * @param datapathId the id of the datapath
+     * @param callback the callback that will be provided the operation result.
+     *
+     * @see Callback
+     */
+    public void datapathsDelete(int datapathId,
+                                @Nonnull Callback<Datapath> callback) {
+        datapathsDelete(datapathId, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for creating a datapath by name (with custom timeout).
+     *
+     * @param datapathId    the id of the datapath.
+     * @param callback      the callback that will be provided the operation result.
+     * @param timeoutMillis the timeout we are prepared to wait for completion.
+     */
+    public void datapathsDelete(int datapathId,
+                                @Nonnull Callback<Datapath> callback,
+                                long timeoutMillis) {
+        _doDatapathsDelete(datapathId, null, callback, timeoutMillis);
+    }
+
+    /**
+     * Future based api for creating a datapath by name.
+     *
+     * @param name the name of the datapath.
+     *
+     * @return A future that hold the created datapath object
+     *
+     * @see Future
+     */
+    public Future<Datapath> datapathsDelete(@Nonnull String name)
         throws Exception {
-
-        validateState(callback);
-
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        NetlinkMessage message =
-            newMessage(64)
-                .addValue(0)
-                .addAttr(DatapathFamily.Attr.NAME, name)
-                .addAttr(DatapathFamily.Attr.UPCALL_PID, 0)
-                .build();
-
-        newRequest(datapathFamily, DatapathFamily.Cmd.NEW)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Integer>() {
-                    @Override
-                    public Integer apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null) {
-                            return null;
-                        }
-
-                        return input.get(0).getInt();
-                    }
-                })
-            .withTimeout(timeoutMillis)
-            .send();
+        ValueFuture<Datapath> future = ValueFuture.create();
+        datapathsDelete(name, wrapFuture(future));
+        return future;
     }
 
-    public Future<Port> getPort(final @Nonnull Datapath datapath,
-                                final @Nonnull Port port) {
+    /**
+     * Callback based api for creating a datapath by name (with default timeout).
+     *
+     * @param name     the name of the datapath.
+     * @param callback the callback that will be provided the operation result.
+     *
+     * @see Callback
+     */
+    public void datapathsDelete(@Nonnull String name,
+                                @Nonnull Callback<Datapath> callback) {
+        datapathsDelete(name, callback, DEF_REPLY_TIMEOUT);
+    }
 
+    /**
+     * Callback based api for creating a datapath by name (with custom timeout).
+     *
+     * @param name          the name of the datapath.
+     * @param callback      the callback that will be provided the operation result.
+     * @param timeoutMillis the timeout we are prepared to wait for completion.
+     */
+    public void datapathsDelete(@Nonnull String name,
+                                @Nonnull Callback<Datapath> callback,
+                                long timeoutMillis) {
+        _doDatapathsDelete(null, name, callback, timeoutMillis);
+    }
+
+    protected abstract void _doDatapathsDelete(Integer datapathId, String name,
+                                               @Nonnull Callback<Datapath> callback,
+                                               long timeoutMillis);
+
+    /**
+     * Future based api to retrieve port information.
+     *
+     * @param datapath the datapath which holds the port
+     * @param port the port we want to retrieve information for
+     * @return a future
+     */
+    public Future<Port> portsGet(final @Nonnull Datapath datapath,
+                                 final @Nonnull Port port) {
         ValueFuture<Port> future = ValueFuture.create();
-
-        getPort(datapath, port, wrapFuture(future), DEF_REPLY_TIMEOUT);
-
+        portsGet(datapath, port, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
 
-    public void getPort(final @Nonnull Datapath datapath,
-                        final @Nonnull Port port,
-                        Callback<Port> callback) {
-        getPort(datapath, port, callback, DEF_REPLY_TIMEOUT);
+    public void portsGet(final @Nonnull Datapath datapath,
+                         final @Nonnull Port port,
+                         Callback<Port> callback) {
+        portsGet(datapath, port, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void getPort(final @Nonnull Datapath datapath,
-                        final @Nonnull Port port,
-                        Callback<Port> callback, final long timeoutMillis) {
-
-        validateState(callback);
-
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        NetlinkMessage.Builder builder = newMessage()
-            .addValue(datapath.getIndex())
-            .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
-
-        if (port.getPortNo() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
-
-        if (port.getType() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_TYPE,
-                            portTypeToValue(port.getType()));
-
-        if (port.getName() != null)
-            builder.addAttr(VPortFamily.Attr.NAME, port.getName());
-
-        if (port.getAddress() != null)
-            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
-
-        if (port.getOptions() != null)
-            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
-
-        if (port.getStats() != null)
-            builder.addAttr(VPortFamily.Attr.STATS, port.getStats());
-
-        NetlinkMessage message = builder.build();
-
-        newRequest(vPortFamily, VPortFamily.Cmd.GET)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
-            .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
-                @Override
-                public Port apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null || input.size() == 0 ||
-                        input.get(0) == null)
-                        return null;
-
-                    return deserializePort(input.get(0), datapath.getIndex());
-                }
-            })
-            .withTimeout(timeoutMillis);
+    public void portsGet(final @Nonnull Datapath datapath, final @Nonnull Port port,
+                         final @Nonnull Callback<Port> callback,
+                         final long timeoutMillis) {
+        _doPortGet(datapath, port, callback, timeoutMillis);
     }
 
-    public Future<Set<Port>> enumeratePorts(int datapathIndex) {
+    protected abstract void _doPortGet(final @Nonnull Datapath datapath,
+                                       final @Nonnull Port port,
+                                       final @Nonnull Callback<Port> callback,
+                                       final long timeoutMillis);
+
+    /**
+     * Future based api for listing ports of a datapath.
+     *
+     * @param datapath is the datapath we want to list ports from.
+     * @return A future that holds the set of ports visible on the path
+     * @see Future
+     */
+    public Future<Set<Port>> portsEnumerate(@Nonnull Datapath datapath) {
         ValueFuture<Set<Port>> valueFuture = ValueFuture.create();
-        enumeratePorts(datapathIndex, wrapFuture(valueFuture));
+        portsEnumerate(datapath, wrapFuture(valueFuture));
         return valueFuture;
     }
 
-    public void enumeratePorts(int datapathIndex, Callback<Set<Port>> callback) {
-        enumeratePorts(datapathIndex, callback, DEF_REPLY_TIMEOUT);
+    /**
+     * Callback based api for listing ports of a datapath.
+     *
+     * @param datapath is the datapath we want to list ports from.
+     * @param callback is the callback that will be notified by the reply
+     * @see Callback
+     */
+    public void portsEnumerate(@Nonnull Datapath datapath,
+                               @Nonnull Callback<Set<Port>> callback) {
+        portsEnumerate(datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void enumeratePorts(final int dpIndex, Callback<Set<Port>> callback, final long timeoutMillis) {
-
-        validateState(callback);
-
-        NetlinkMessage message = newMessage()
-            .addValue(dpIndex)
-            .build();
-
-        newRequest(vPortFamily, VPortFamily.Cmd.GET)
-            .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
-                       Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.buf)
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Set<Port>>() {
-                    @Override
-                    public Set<Port> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null) {
-                            return Collections.emptySet();
-                        }
-
-                        Set<Port> ports = new HashSet<Port>();
-
-                        for (ByteBuffer buffer : input) {
-                            Port port = deserializePort(buffer, dpIndex);
-
-                            if (port == null)
-                                continue;
-
-                            ports.add(port);
-                        }
-
-                        return ports;
-                    }
-                })
-            .withTimeout(timeoutMillis)
-            .send();
+    /**
+     * Callback based api for listing ports of a datapath.
+     *
+     * @param datapath      the datapath we want to list ports from.
+     * @param callback      the callback that will be notified by the reply
+     * @param timeoutMillis the timeout we are prepared to wait for completion.
+     * @see Callback
+     */
+    public void portsEnumerate(@Nonnull Datapath datapath,
+                               @Nonnull Callback<Set<Port>> callback,
+                               final long timeoutMillis) {
+        _doPortsEnumerate(datapath, callback, timeoutMillis);
     }
 
-    public Future<Port> addPort(int datapathIndex, @Nonnull Port port) {
+    protected abstract void _doPortsEnumerate(Datapath datapath, Callback<Set<Port>> callback, long timeoutMillis);
 
+    /**
+     * Future based api for adding a new port to a datapath.
+     *
+     * @param datapath the datapath we want to list ports from.
+     * @param port     the specification of the port we want to create.
+     * @return A future that holds the newly create port.
+     * @see Future
+     * @see Ports
+     */
+    public Future<Port> portsCreate(@Nonnull Datapath datapath, @Nonnull Port port) {
         ValueFuture<Port> valueFuture = ValueFuture.create();
-
-        addPort(datapathIndex, port, wrapFuture(valueFuture));
-
+        portsCreate(datapath, port, wrapFuture(valueFuture));
         return valueFuture;
     }
 
-    public void addPort(int dpIndex, @Nonnull Port port, Callback<Port> callback) {
-        addPort(dpIndex, port, callback, DEF_REPLY_TIMEOUT);
+    /**
+     * Callback based api for adding a new port to a datapath.
+     *
+     * @param datapath the datapath we want to list ports from.
+     * @param port     the specification of the port we want to create.
+     * @param callback the callback that will be notified by the reply.
+     * @see Future
+     * @see Ports
+     */
+    public void portsCreate(@Nonnull Datapath datapath, @Nonnull Port port,
+                            @Nonnull Callback<Port> callback) {
+        portsCreate(datapath, port, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void addPort(int dpIndex, @Nonnull Port port,
-                        @Nonnull Callback<Port> callback, long timeoutMillis) {
+    /**
+     * Callback based api for adding a new port to a datapath.
+     *
+     * @param datapath      the datapath we want to list ports from.
+     * @param port          the specification of the port we want to create.
+     * @param callback      the callback that will be notified by the reply.
+     * @param timeoutMillis the timeout we are prepared to wait for the reply.
+     * @see Future
+     * @see Ports
+     */
+    public void portsCreate(@Nonnull Datapath datapath, @Nonnull Port port,
+                            @Nonnull Callback<Port> callback, long timeoutMillis) {
 
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        NetlinkMessage.Builder builder = newMessage()
-            .addValue(dpIndex)
-            .addAttr(VPortFamily.Attr.PORT_TYPE,
-                     portTypeToValue(port.getType()))
-            .addAttr(VPortFamily.Attr.NAME, port.getName())
-            .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
-
-        if (port.getPortNo() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
-
-        if (port.getAddress() != null)
-            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
-
-        if (port.getOptions() != null) {
-            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
-        }
-
-        NetlinkMessage message = builder.build();
-
-        newRequest(vPortFamily, VPortFamily.Cmd.NEW)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
-            .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
-                @Override
-                public Port apply(@Nullable List<ByteBuffer> input) {
-                    return null;
-                }
-            })
-            .withTimeout(timeoutMillis)
-            .send();
+        _doPortsCreate(datapath, port, callback, timeoutMillis);
     }
 
-    private int portTypeToValue(Port.Type portType) {
+    protected abstract void _doPortsCreate(@Nonnull Datapath datapath,
+                                           @Nonnull Port port,
+                                           @Nonnull Callback<Port> callback,
+                                           long timeoutMillis);
 
-//        enum ovs_vport_type {
-//            OVS_VPORT_TYPE_UNSPEC,
-//            OVS_VPORT_TYPE_NETDEV,   /* network device */
-//            OVS_VPORT_TYPE_INTERNAL, /* network device implemented by datapath */
-//            OVS_VPORT_TYPE_PATCH = 100, /* virtual tunnel connecting two vports */
-//            OVS_VPORT_TYPE_GRE,      /* GRE tunnel */
-//            OVS_VPORT_TYPE_CAPWAP,   /* CAPWAP tunnel */
-//            __OVS_VPORT_TYPE_MAX
-//        };
-
-        switch (portType) {
-            case NetDev:
-                return 1;
-            case Internal:
-                return 2;
-            case Patch:
-                return 100;
-            case Gre:
-                return 101;
-            case CapWap:
-                return 102;
-        }
-
-        return 0;
+    /**
+     * Future based api for retrieving datapath information.
+     *
+     * @param name the name of the datapath we want information for.
+     * @return a future that has the required information about the datapath.
+     */
+    public Future<Datapath> datapathsGet(@Nonnull String name) {
+        ValueFuture<Datapath> future = ValueFuture.create();
+        datapathsGet(name, wrapFuture(future));
+        return future;
     }
 
-    private Port.Type portTypeToEnumValue(Integer portType) {
-
-//        enum ovs_vport_type {
-//            OVS_VPORT_TYPE_UNSPEC,
-//            OVS_VPORT_TYPE_NETDEV,   /* network device */
-//            OVS_VPORT_TYPE_INTERNAL, /* network device implemented by datapath */
-//            OVS_VPORT_TYPE_PATCH = 100, /* virtual tunnel connecting two vports */
-//            OVS_VPORT_TYPE_GRE,      /* GRE tunnel */
-//            OVS_VPORT_TYPE_CAPWAP,   /* CAPWAP tunnel */
-//            __OVS_VPORT_TYPE_MAX
-//        };
-
-        if (portType == null)
-            return null;
-
-        switch (portType) {
-            case 1:
-                return Port.Type.NetDev;
-            case 2:
-                return Port.Type.Internal;
-            case 100:
-                return Port.Type.Patch;
-            case 101:
-                return Port.Type.Gre;
-            case 102:
-                return Port.Type.CapWap;
-            default:
-                return null;
-        }
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name     the name of the datapath
+     * @param callback the callback that will receive information.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback) {
+        datapathsGet(name, callback, DEF_REPLY_TIMEOUT);
     }
 
-    private class StateAwareCallback<T> extends Callback<T> {
-
-        @Override
-        public void onSuccess(T data) {
-            super.onSuccess(data);
-        }
-
-        @Override
-        public void onTimeout() {
-            state = State.ErrorInInitialization;
-        }
-
-        @Override
-        public void onError(int error, String errorMessage) {
-            state = State.ErrorInInitialization;
-        }
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name          the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback, long timeoutMillis) {
+        _doDatapathsGet(null, name, callback, DEF_REPLY_TIMEOUT);
     }
 
-    private Datapath deserializeDatapath(ByteBuffer buffer) {
-
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        Datapath datapath = new Datapath(
-            msg.getInt(),
-            msg.getAttrValue(DatapathFamily.Attr.NAME)
-        );
-
-        datapath.setStats(msg.getAttrValue(DatapathFamily.Attr.STATS, datapath.new Stats()));
-
-        return datapath;
+    /**
+     * Future based callback for retrieving datapath information
+     *
+     * @param datapathId the id of the datapath we want information for.
+     * @return a future that has the required information about the datapath.
+     */
+    public Future<Datapath> datapathsGet(int datapathId) {
+        ValueFuture<Datapath> future = ValueFuture.create();
+        datapathsGet(datapathId, wrapFuture(future));
+        return future;
     }
 
-    private Port deserializePort(ByteBuffer buffer, int dpIndex) {
-
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        // read the datapath id;
-        int actualDpIndex = msg.getInt();
-        if (actualDpIndex != dpIndex)
-            return null;
-
-        String name = msg.getAttrValue(VPortFamily.Attr.NAME);
-        Integer type = msg.getAttrValue(VPortFamily.Attr.PORT_TYPE);
-
-        Port port = Ports.newPortByType(portTypeToEnumValue(type), name);
-
-        port.setAddress(msg.getAttrValue(VPortFamily.Attr.ADDRESS));
-        port.setPortNo(msg.getAttrValue(VPortFamily.Attr.PORT_NO));
-
-        port.setStats(msg.getAttrValue(VPortFamily.Attr.STATS, port.new Stats()));
-
-        //noinspection unchecked
-        port.setOptions(msg.getAttrValue(VPortFamily.Attr.OPTIONS, port.newOptions()));
-
-        return port;
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId the name of the datapath
+     * @param callback   the callback that will receive information.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback) {
+        datapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
     }
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId    the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback,
+                             long timeoutMillis) {
+        _doDatapathsGet(datapathId, null, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    protected abstract void _doDatapathsGet(final Integer datapathId,
+                                            final String name,
+                                            final Callback<Datapath> callback,
+                                            final long defReplyTimeout);
+
 }

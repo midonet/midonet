@@ -102,6 +102,40 @@ public class Datapath {
                 return false;
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Stats stats = (Stats) o;
+
+            if (flows != stats.flows) return false;
+            if (hits != stats.hits) return false;
+            if (lost != stats.lost) return false;
+            if (misses != stats.misses) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (hits ^ (hits >>> 32));
+            result = 31 * result + (int) (misses ^ (misses >>> 32));
+            result = 31 * result + (int) (lost ^ (lost >>> 32));
+            result = 31 * result + (int) (flows ^ (flows >>> 32));
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Stats{" +
+                "hits=" + hits +
+                ", misses=" + misses +
+                ", lost=" + lost +
+                ", flows=" + flows +
+                '}';
+        }
     }
 
     @Override
@@ -122,5 +156,14 @@ public class Datapath {
         int result = index;
         result = 31 * result + name.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Datapath{" +
+            "index=" + index +
+            ", name='" + name + '\'' +
+            ", stats=" + stats +
+            '}';
     }
 }

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -38,20 +39,18 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
         super(channel, reactor);
     }
 
-    public Future<Short> getFamilyId(String familyName) {
-
+    public Future<Short> getFamilyId(@Nonnull String familyName) {
         ValueFuture<Short> future = ValueFuture.create();
-
         getFamilyId(familyName, wrapFuture(future));
-
         return future;
     }
 
-    public void getFamilyId(String familyName, Callback<Short> callback) {
+    public void getFamilyId(@Nonnull String familyName, Callback<Short> callback) {
         getFamilyId(familyName, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void getFamilyId(String familyName, Callback<Short> callback, long timeoutMillis) {
+    public void getFamilyId(@Nonnull String familyName,
+                            @Nonnull Callback<Short> callback, long timeoutMillis) {
 
         NetlinkMessage message =
             newMessage(64)
@@ -64,7 +63,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
             .withCallback(callback, new Function<List<ByteBuffer>, Short>() {
                 @Override
                 public Short apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null)
+                    if (input == null || input.size() == 0 || input.get(0) == null)
                         return 0;
 
                     NetlinkMessage message = new NetlinkMessage(input.get(0));
@@ -120,4 +119,5 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
             .withTimeout(timeoutMillis)
             .send();
     }
+
 }

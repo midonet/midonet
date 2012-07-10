@@ -21,6 +21,11 @@ public class CapWapTunnelPort extends Port<CapWapTunnelPort.Options, CapWapTunne
         return this;
     }
 
+    @Override
+    public Options newOptions() {
+        return new Options();
+    }
+
     public class Options extends TunnelPortOptions<Options> {
         @Override
         protected Options self() {

@@ -15,12 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.util.netlink.clib.cLibrary;
+import com.midokura.util.netlink.exceptions.NetlinkException;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Flag;
 
@@ -95,8 +98,8 @@ public abstract class AbstractNetlinkConnection {
                 }
 
                 @Override
-                public void onError(int error, String errorMessage) {
-                    callback.onError(error, errorMessage);
+                public void onError(NetlinkException e) {
+                    callback.onError(e);
                 }
             };
 
@@ -161,7 +164,7 @@ public abstract class AbstractNetlinkConnection {
                 });
 
         } catch (IOException e) {
-            netlinkRequest.callback.onError(-1, e.getMessage());
+            netlinkRequest.callback.onError(new NetlinkException(NetlinkException.ERROR_SENDING_REQUEST, e));
         }
     }
 
@@ -204,6 +207,9 @@ public abstract class AbstractNetlinkConnection {
             if (request == null) {
                 log.warn("Reply handlers for netlink request with id {} not found.",
                          seq);
+                reply.limit(finalLimit);
+                reply.position(position + len);
+
                 continue;
             }
 
@@ -213,7 +219,9 @@ public abstract class AbstractNetlinkConnection {
 
             if (messageType == null) {
                 log.error("Got unknown message with type: {}", type);
-                return;
+                reply.limit(finalLimit);
+                reply.position(position + len);
+                continue;
             }
 
             switch (messageType) {
@@ -236,7 +244,7 @@ public abstract class AbstractNetlinkConnection {
                     NetlinkRequest errRequest = pendingRequests.remove(seq);
 
                     if (errRequest != null) {
-                        errRequest.callback.onError(error, errorMessage);
+                        errRequest.callback.onError(new NetlinkException(-error, errorMessage));
                     }
 
                     break;
@@ -298,17 +306,19 @@ public abstract class AbstractNetlinkConnection {
     }
 
     public static abstract class Callback<T> {
+
         public void onSuccess(T data) {
         }
 
         public void onTimeout() {
         }
 
-        public void onError(int error, String errorMessage) {
+        public void onError(NetlinkException e) {
 
         }
     }
 
+    @Nonnull
     protected <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
         return new Callback<T>() {
             @Override
@@ -322,9 +332,8 @@ public abstract class AbstractNetlinkConnection {
             }
 
             @Override
-            public void onError(int error, String errorMessage) {
-//                future.cancel(true);
-                future.setException(new IOException("Error: " + errorMessage));
+            public void onError(NetlinkException e) {
+                future.setException(e);
             }
         };
     }

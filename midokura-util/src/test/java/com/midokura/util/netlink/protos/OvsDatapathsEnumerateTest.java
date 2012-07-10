@@ -15,15 +15,15 @@ import static org.hamcrest.Matchers.is;
 import com.midokura.util.netlink.dp.Datapath;
 
 /**
- * Tests the enumerateDatapaths code path.
+ * Tests the datapathsEnumerate code path.
  */
-public class OvsDatapathEnumerateDatapathsTest extends AbstractNetlinkProtocolTest<OvsDatapathConnection>{
+public class OvsDatapathsEnumerateTest extends AbstractNetlinkProtocolTest<OvsDatapathConnection>{
 
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
 
-        connection = new OvsDatapathConnection(channel, reactor);
+        connection = OvsDatapathConnection.create(channel, reactor);
     }
 
     @Test
@@ -35,7 +35,7 @@ public class OvsDatapathEnumerateDatapathsTest extends AbstractNetlinkProtocolTe
 
         fireNewReply();
 
-        Future<Set<Datapath>> future = connection.enumerateDatapaths();
+        Future<Set<Datapath>> future = connection.datapathsEnumerate();
 
         // fire the second received message
         fireNewReply();
