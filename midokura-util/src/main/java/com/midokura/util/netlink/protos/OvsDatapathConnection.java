@@ -6,6 +6,7 @@ package com.midokura.util.netlink.protos;
 import java.util.Set;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
 
@@ -212,28 +213,58 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param port the port we want to retrieve information for
      * @return a future
      */
-    public Future<Port> portsGet(final @Nonnull Datapath datapath,
-                                 final @Nonnull Port port) {
+    public Future<Port> portsGet(final @Nonnull String name,
+                                 final @Nullable Datapath datapath) {
         ValueFuture<Port> future = ValueFuture.create();
-        portsGet(datapath, port, wrapFuture(future), DEF_REPLY_TIMEOUT);
+        portsGet(name, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
 
-    public void portsGet(final @Nonnull Datapath datapath, final @Nonnull Port port,
+    public void portsGet(final @Nonnull String portName,
+                         final @Nullable Datapath datapath,
                          final @Nonnull Callback<Port> callback) {
-        portsGet(datapath, port, callback, DEF_REPLY_TIMEOUT);
+        portsGet(portName, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void portsGet(final @Nonnull Datapath datapath, final @Nonnull Port port,
+    public void portsGet(final @Nonnull String name,
+                         final @Nullable Datapath datapath,
                          final @Nonnull Callback<Port> callback,
                          final long timeoutMillis) {
-        _doPortGet(datapath, port, callback, timeoutMillis);
+        _doPortsGet(name, null, datapath, callback, timeoutMillis);
     }
 
-    protected abstract void _doPortGet(final @Nonnull Datapath datapath,
-                                       final @Nonnull Port port,
-                                       final @Nonnull Callback<Port> callback,
-                                       final long timeoutMillis);
+    /**
+     * Future based api to retrieve port information.
+     *
+     * @param datapath the datapath which holds the port
+     * @param port the port we want to retrieve information for
+     * @return a future
+     */
+    public Future<Port> portsGet(final int portId,
+                                 final @Nonnull Datapath datapath) {
+        ValueFuture<Port> future = ValueFuture.create();
+        portsGet(portId, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
+        return future;
+    }
+
+    public void portsGet(final int portId,
+                         final @Nonnull Datapath datapath,
+                         final @Nonnull Callback<Port> callback) {
+        portsGet(portId, datapath, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void portsGet(final int portId,
+                         final @Nonnull Datapath datapath,
+                         final @Nonnull Callback<Port> callback,
+                         final long timeoutMillis) {
+        _doPortsGet(null, portId, datapath, callback, timeoutMillis);
+    }
+
+    protected abstract void _doPortsGet(final @Nullable String name,
+                                        final @Nullable Integer portId,
+                                        final @Nullable Datapath datapath,
+                                        final @Nonnull Callback<Port> callback,
+                                        final long timeoutMillis);
 
     /**
      * Future based api for listing ports of a datapath.

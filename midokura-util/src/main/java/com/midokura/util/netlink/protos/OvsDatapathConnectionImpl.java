@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
 
-import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
@@ -23,6 +22,7 @@ import com.midokura.util.netlink.exceptions.NetlinkException;
 import com.midokura.util.netlink.family.DatapathFamily;
 import com.midokura.util.netlink.family.VPortFamily;
 import com.midokura.util.reactor.Reactor;
+import static com.midokura.util.netlink.Netlink.Flag;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
@@ -53,7 +53,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.GET)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO, Netlink.Flag.NLM_F_DUMP)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO,
+                       Flag.NLM_F_DUMP)
             .withPayload(message.buf)
             .withCallback(
                 callback,
@@ -69,7 +70,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                         for (ByteBuffer buffer : input) {
                             Datapath datapath = deserializeDatapath(buffer);
 
-                            if ( datapath != null )
+                            if (datapath != null)
                                 datapaths.add(datapath);
                         }
 
@@ -98,14 +99,15 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.NEW)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.buf)
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Datapath>() {
                     @Override
                     public Datapath apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 || input.get(0) == null) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null) {
                             return null;
                         }
 
@@ -123,8 +125,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                       long timeoutMillis) {
         validateState(callback);
 
-        if ( datapathId == null && name == null) {
-            callback.onError(new OvsDatapathInvalidParametersException("Either a datapath id or a datapath name should be provided"));
+        if (datapathId == null && name == null) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "Either a datapath id or a datapath name should be provided"));
             return;
         }
 
@@ -139,7 +142,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = builder.build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.DEL)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.buf)
             .withCallback(
                 callback,
@@ -157,52 +160,64 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
+
     @Override
-    protected void _doPortGet(@Nonnull final Datapath datapath, @Nonnull Port port,
-                              @Nonnull Callback<Port> callback, long timeoutMillis) {
+    protected void _doPortsGet(final @Nullable String name,
+                               final @Nullable Integer portId,
+                               final @Nullable Datapath datapath,
+                               final @Nonnull Callback<Port> callback,
+                               final long timeoutMillis) {
+
         validateState(callback);
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        NetlinkMessage.Builder builder = newMessage()
-            .addValue(datapath.getIndex())
-            .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+        if (name == null && portId == null) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "To get a port data you need to provide either a name " +
+                        "or a port id value"));
+            return;
+        }
 
-        if (port.getPortNo() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
+        if (name == null && datapath == null) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "When looking at a port by port id you also need to " +
+                        "provide a valid datapath object"));
+            return;
+        }
 
-        if (port.getType() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_TYPE,
-                            OvsPortType.getOvsPortTypeId(port.getType()));
+        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
+        NetlinkMessage.Builder builder = newMessage();
+        builder.addValue(datapathIndex);
+        builder.addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
 
-        if (port.getName() != null)
-            builder.addAttr(VPortFamily.Attr.NAME, port.getName());
+        if (portId != null)
+            builder.addAttr(VPortFamily.Attr.PORT_NO, portId);
 
-        if (port.getAddress() != null)
-            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
-
-        if (port.getOptions() != null)
-            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
-
-        if (port.getStats() != null)
-            builder.addAttr(VPortFamily.Attr.STATS, port.getStats());
+        if (name != null)
+            builder.addAttr(VPortFamily.Attr.NAME, name);
 
         NetlinkMessage message = builder.build();
 
         newRequest(vPortFamily, VPortFamily.Cmd.GET)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.buf)
-            .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
-                @Override
-                public Port apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null || input.size() == 0 ||
-                        input.get(0) == null)
-                        return null;
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Port>() {
+                    @Override
+                    public Port apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
 
-                    return deserializePort(input.get(0), datapath.getIndex());
-                }
-            })
-            .withTimeout(timeoutMillis);
+                        return deserializePort(input.get(0), datapathIndex);
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
     }
 
     @Override
@@ -216,8 +231,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .build();
 
         newRequest(vPortFamily, VPortFamily.Cmd.GET)
-            .withFlags(Netlink.Flag.NLM_F_DUMP, Netlink.Flag.NLM_F_ECHO,
-                       Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ACK)
+            .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
+                       Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.buf)
             .withCallback(
                 callback,
@@ -231,7 +246,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                         Set<Port> ports = new HashSet<Port>();
 
                         for (ByteBuffer buffer : input) {
-                            Port port = deserializePort(buffer, datapath.getIndex());
+                            Port port = deserializePort(buffer,
+                                                        datapath.getIndex());
 
                             if (port == null)
                                 continue;
@@ -267,7 +283,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (Port.Type.Tunnels.contains(port.getType()) && port.getOptions() == null ){
+        if (Port.Type
+            .Tunnels
+            .contains(port.getType()) && port.getOptions() == null) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "A tunnel port needs to have it's options set"));
@@ -296,12 +314,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = builder.build();
 
         newRequest(vPortFamily, VPortFamily.Cmd.NEW)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.buf)
             .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
                 @Override
                 public Port apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null || input.size() == 0 || input.get(0) == null)
+                    if (input == null || input.size() == 0 || input.get(
+                        0) == null)
                         return null;
 
                     return deserializePort(input.get(0), datapath.getIndex());
@@ -318,8 +337,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                    long defReplyTimeout) {
         validateState(callback);
 
-        if ( datapathId == null && name == null) {
-            callback.onError(new OvsDatapathInvalidParametersException("Either a datapath id or a datapath name should be provided"));
+        if (datapathId == null && name == null) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "Either a datapath id or a datapath name should be provided"));
             return;
         }
 
@@ -334,7 +354,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = builder.build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.GET)
-            .withFlags(Netlink.Flag.NLM_F_REQUEST, Netlink.Flag.NLM_F_ECHO)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.buf)
             .withCallback(
                 callback,
@@ -357,7 +377,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         // read the datapath id;
         int actualDpIndex = msg.getInt();
-        if (actualDpIndex != dpIndex)
+        if (dpIndex != 0 && actualDpIndex != dpIndex)
             return null;
 
         String name = msg.getAttrValue(VPortFamily.Attr.NAME);
@@ -372,7 +392,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         port.setAddress(msg.getAttrValue(VPortFamily.Attr.ADDRESS));
         port.setPortNo(msg.getAttrValue(VPortFamily.Attr.PORT_NO));
 
-        port.setStats(msg.getAttrValue(VPortFamily.Attr.STATS, port.new Stats()));
+        port.setStats(
+            msg.getAttrValue(VPortFamily.Attr.STATS, port.new Stats()));
 
         //noinspection unchecked
         port.setOptions(msg.getAttrValue(VPortFamily.Attr.OPTIONS,

@@ -21,10 +21,6 @@ import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
 import com.midokura.util.netlink.dp.Datapath;
-import com.midokura.util.netlink.dp.Ports;
-import com.midokura.util.netlink.dp.ports.CapWapTunnelPort;
-import com.midokura.util.netlink.dp.ports.GreTunnelPort;
-import com.midokura.util.netlink.dp.ports.PatchTunnelPort;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
@@ -134,46 +130,16 @@ public class Client {
         Datapath datapath = ovsConnection.datapathsGet("test").get();
         log.info("Got datapath: {}.", datapath);
 
-        log.info("Creating an internal port:");
-        log.info("Created {}",
-                 ovsConnection.portsCreate(
-                     datapath,
-                     Ports.newInternalPort("internalPort")).get());
+        log.info("Get the internal port by name:");
+        log.info("Got {}", ovsConnection.portsGet("internalPort", null).get());
 
-        log.info("Creating an netdev port:");
-        log.info("Created {}",
-                 ovsConnection.portsCreate(
-                     datapath,
-                     Ports.newNetDevPort("netdevPort")).get());
+        log.info("Get the internal port by id:");
+        log.info("Got {}", ovsConnection.portsGet(1, datapath).get());
 
-        log.info("Creating an patch tunnel port:");
+        log.info("Get the gre tunnel port by name:");
+        log.info("Got {}", ovsConnection.portsGet("tunGrePort", null).get());
 
-        PatchTunnelPort tunPatchPort = Ports.newPatchTunnelPort("tunPatchPort");
-        tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
-        log.info("Created {}",
-                 ovsConnection.portsCreate(datapath, tunPatchPort).get());
-
-        log.info("Creating a gre tunnel port:");
-        GreTunnelPort greTunnelPort = Ports.newGreTunnelPort("tunGrePort");
-        greTunnelPort.setOptions(
-            Ports.newPortOptions(
-                greTunnelPort,
-                new byte[]{(byte) 192, (byte) 168, (byte) 100, (byte) 1}));
-
-        log.info("Created {}",
-                 ovsConnection.portsCreate(datapath, greTunnelPort).get());
-
-        log.info("Creating an capwap tunnel port:");
-        CapWapTunnelPort capwapPort =
-            Ports.newCapwapTunnelPort("tunCapwapPort");
-
-        capwapPort.setOptions(
-            Ports.newPortOptions(capwapPort,
-                                 new byte[]{(byte) 192, (byte) 168, (byte) 100, (byte) 1}));
-        log.info("Created {}",
-                 ovsConnection.portsCreate(datapath, capwapPort).get());
-
-        log.info("List all ports: {}.",
-                 ovsConnection.portsEnumerate(datapath).get());
+        log.info("Get the gre tunnel port by id:");
+        log.info("Got {}", ovsConnection.portsGet(4, datapath).get());
     }
 }

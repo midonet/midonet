@@ -24,9 +24,6 @@ import com.midokura.util.netlink.dp.ports.InternalPort;
 import com.midokura.util.netlink.dp.ports.NetDevPort;
 import com.midokura.util.netlink.dp.ports.PatchTunnelPort;
 
-/**
- * // TODO: Explain yourself.
- */
 public class OvsPortsCreateTest
     extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
 
@@ -114,16 +111,20 @@ public class OvsPortsCreateTest
         expectedPorts.add(expectedPort);
 
         log.info("Creating an capwap tunnel port.");
-        CapWapTunnelPort tunCapwapPort = Ports.newCapwapTunnelPort(
-            "tunCapwapPort");
-        tunCapwapPort.setOptions(
-            Ports.newPortOptions(tunCapwapPort,
-                                 new byte[]{
-                                     (byte) 0xc0, (byte) 0xa8,
-                                     (byte) 0x64, (byte) 0x01}));
+        CapWapTunnelPort tunCapwapPort =
+            Ports.newCapwapTunnelPort("tunCapwapPort");
 
-        Future<Port> tunCapwapPortFuture = connection.portsCreate(datapath,
-                                                                  tunCapwapPort);
+        tunCapwapPort.setOptions(
+            Ports.newPortOptions(
+                tunCapwapPort,
+                new byte[]{
+                    (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
+                }
+            )
+        );
+
+        Future<Port> tunCapwapPortFuture =
+            connection.portsCreate(datapath, tunCapwapPort);
         fireNewReply();
 
         expectedPort = expectedCapwapTunnelPort();
