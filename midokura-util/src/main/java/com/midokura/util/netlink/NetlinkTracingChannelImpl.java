@@ -62,7 +62,7 @@ public class NetlinkTracingChannelImpl extends NetlinkChannelImpl {
         if (dumpFile != null && dumpFile.isFile() && dumpFile.canWrite() ){
             String data = DataDumper.dumpAsByteArrayDeclaration(dst.array(), 0, read);
             FileUtils.writeStringToFile(dumpFile,
-                                        "// read - time: " +
+                                        "\n\t// read - time: " +
                                             System.currentTimeMillis() +
                                             "\n    " + data + ",\n", true);
         }

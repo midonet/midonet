@@ -20,6 +20,11 @@ import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
+import com.midokura.util.netlink.dp.Datapath;
+import com.midokura.util.netlink.dp.Ports;
+import com.midokura.util.netlink.dp.ports.CapWapTunnelPort;
+import com.midokura.util.netlink.dp.ports.GreTunnelPort;
+import com.midokura.util.netlink.dp.ports.PatchTunnelPort;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
@@ -61,7 +66,7 @@ public class Client {
                 @Override
                 public <V> Future<V> submit(final Callable<V> work) {
                     //noinspection unchecked
-                    return (Future<V>)loop.submit(new Runnable() {
+                    return (Future<V>) loop.submit(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -76,7 +81,7 @@ public class Client {
                 @Override
                 public <V> ScheduledFuture<V> schedule(long delay, TimeUnit unit, final Callable<V> work) {
                     //noinspection unchecked
-                    return (ScheduledFuture<V>)loop.schedule(new Runnable() {
+                    return (ScheduledFuture<V>) loop.schedule(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -121,14 +126,54 @@ public class Client {
         log.info("Initializing ovs connection");
         ovsConnection.initialize();
 
-        while ( ! ovsConnection.isInitialized() ) {
+        while (!ovsConnection.isInitialized()) {
             Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
         }
 
-        log.info("Getting datapath by name");
-        log.info("Got datapath: {}.", ovsConnection.datapathsGet("test").get());
+        log.info("Getting test datapath:");
+        Datapath datapath = ovsConnection.datapathsGet("test").get();
+        log.info("Got datapath: {}.", datapath);
 
-        log.info("Getting datapath by index");
-        log.info("Got datapath: {}.", ovsConnection.datapathsGet(13).get());
+        log.info("Creating an internal port:");
+        log.info("Created {}",
+                 ovsConnection.portsCreate(
+                     datapath,
+                     Ports.newInternalPort("internalPort")).get());
+
+        log.info("Creating an netdev port:");
+        log.info("Created {}",
+                 ovsConnection.portsCreate(
+                     datapath,
+                     Ports.newNetDevPort("netdevPort")).get());
+
+        log.info("Creating an patch tunnel port:");
+
+        PatchTunnelPort tunPatchPort = Ports.newPatchTunnelPort("tunPatchPort");
+        tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
+        log.info("Created {}",
+                 ovsConnection.portsCreate(datapath, tunPatchPort).get());
+
+        log.info("Creating a gre tunnel port:");
+        GreTunnelPort greTunnelPort = Ports.newGreTunnelPort("tunGrePort");
+        greTunnelPort.setOptions(
+            Ports.newPortOptions(
+                greTunnelPort,
+                new byte[]{(byte) 192, (byte) 168, (byte) 100, (byte) 1}));
+
+        log.info("Created {}",
+                 ovsConnection.portsCreate(datapath, greTunnelPort).get());
+
+        log.info("Creating an capwap tunnel port:");
+        CapWapTunnelPort capwapPort =
+            Ports.newCapwapTunnelPort("tunCapwapPort");
+
+        capwapPort.setOptions(
+            Ports.newPortOptions(capwapPort,
+                                 new byte[]{(byte) 192, (byte) 168, (byte) 100, (byte) 1}));
+        log.info("Created {}",
+                 ovsConnection.portsCreate(datapath, capwapPort).get());
+
+        log.info("List all ports: {}.",
+                 ovsConnection.portsEnumerate(datapath).get());
     }
 }

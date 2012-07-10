@@ -248,10 +248,31 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPortsCreate(@Nonnull Datapath datapath, @Nonnull Port port,
+    protected void _doPortsCreate(@Nonnull final Datapath datapath, @Nonnull Port port,
                                   @Nonnull Callback<Port> callback,
                                   long timeoutMillis) {
         validateState(callback);
+
+        if (port.getName() == null) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The provided port needs to have the desired name set"));
+            return;
+        }
+
+        if (port.getType() == null) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The provided port needs to have the type set"));
+            return;
+        }
+
+        if (Port.Type.Tunnels.contains(port.getType()) && port.getOptions() == null ){
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "A tunnel port needs to have it's options set"));
+            return;
+        }
 
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -280,7 +301,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
                 @Override
                 public Port apply(@Nullable List<ByteBuffer> input) {
-                    return null;
+                    if (input == null || input.size() == 0 || input.get(0) == null)
+                        return null;
+
+                    return deserializePort(input.get(0), datapath.getIndex());
                 }
             })
             .withTimeout(timeoutMillis)

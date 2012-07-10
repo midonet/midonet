@@ -219,9 +219,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         return future;
     }
 
-    public void portsGet(final @Nonnull Datapath datapath,
-                         final @Nonnull Port port,
-                         Callback<Port> callback) {
+    public void portsGet(final @Nonnull Datapath datapath, final @Nonnull Port port,
+                         final @Nonnull Callback<Port> callback) {
         portsGet(datapath, port, callback, DEF_REPLY_TIMEOUT);
     }
 

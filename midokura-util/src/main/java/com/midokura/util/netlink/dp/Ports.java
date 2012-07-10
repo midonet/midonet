@@ -22,7 +22,9 @@ public class Ports {
         return port.getOptions().setPeer(peerName);
     }
 
-    public static GreTunnelPort.Options newPortOptions(GreTunnelPort port, byte[] destination, TunnelPortOptions.Flag... flags) {
+    public static GreTunnelPort.Options newPortOptions(GreTunnelPort port,
+                                                       byte[] destination,
+                                                       TunnelPortOptions.Flag... flags) {
         port.setOptions(port.new Options());
         return port.getOptions().setDestinationIPv4(destination).setFlags(flags);
     }
@@ -48,6 +50,18 @@ public class Ports {
 
     public static NetDevPort newNetDevPort(@Nonnull String name) {
         return new NetDevPort(name);
+    }
+
+    public static PatchTunnelPort newPatchTunnelPort(@Nonnull String name) {
+        return new PatchTunnelPort(name);
+    }
+
+    public static GreTunnelPort newGreTunnelPort(@Nonnull String name) {
+        return new GreTunnelPort(name);
+    }
+
+    public static CapWapTunnelPort newCapwapTunnelPort(@Nonnull String name) {
+        return new CapWapTunnelPort(name);
     }
 
     public static Port newPortByType(Port.Type type, String name) {

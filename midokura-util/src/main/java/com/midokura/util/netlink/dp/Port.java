@@ -4,6 +4,7 @@
 package com.midokura.util.netlink.dp;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import javax.annotation.Nonnull;
 
 import com.midokura.util.netlink.NetlinkMessage;
@@ -21,7 +22,9 @@ public abstract class Port<PortOptions extends Port.Options, ActualPort extends 
     public abstract PortOptions newOptions();
 
     public enum Type {
-        NetDev, Internal, Patch, Gre, CapWap
+        NetDev, Internal, Patch, Gre, CapWap;
+
+        public static EnumSet<Type> Tunnels = EnumSet.of(Patch, Gre, CapWap);
     }
 
     protected abstract ActualPort self();

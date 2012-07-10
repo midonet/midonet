@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Port;
@@ -42,37 +41,23 @@ public class OvsPortsEnumerateTest
 
         // fire reply
         fireNewReply();
-
-        // fire reply
         fireNewReply();
 
         Future<Set<Datapath>> dpFuture = connection.datapathsEnumerate();
 
-        // fire the second received message
+        // multi containing the datapaths data
         fireNewReply();
-
-        // fire the second received message
+        // MSG_DONE
         fireNewReply();
 
         Future<Set<Port>> portsFuture = connection.portsEnumerate(
             dpFuture.get().iterator().next());
 
-        // fire the second received message
+        // multi containing the ports data
+        fireNewReply();
+        // MSG_DONE
         fireNewReply();
 
-        // fire the second received message
-        fireNewReply();
-
-        // validate decoding
-        assertThat("The future was completed",
-                   portsFuture.isDone(), is(true));
-
-        assertThat("The future was not canceled completed",
-                   portsFuture.isCancelled(), is(false));
-
-        Set<Port> response = portsFuture.get();
-
-        log.info("response {}", response);
         InternalPort zzzPort =
             Ports.newInternalPort("zzz")
                  .setPortNo(0)
@@ -94,7 +79,7 @@ public class OvsPortsEnumerateTest
         tauPort.setOptions(tauPort.newOptions());
 
         assertThat("We parsed the proper port information",
-                   response,
+                   portsFuture.get(),
                    Matchers.<Port>containsInAnyOrder(zzzPort, tauPort));
 
     }

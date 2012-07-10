@@ -139,7 +139,6 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     public void serialize(NetlinkMessage.Builder builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4);
-
         if (this.srcIPv4 != null) {
             builder.addAttr(Attr.OVS_TUNNEL_ATTR_SRC_IPV4, srcIPv4);
         }
