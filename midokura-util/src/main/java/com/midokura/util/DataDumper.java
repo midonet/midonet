@@ -33,7 +33,7 @@ public class DataDumper {
             }
         }
 
-        buffer.append("\n    };");
+        buffer.append("\n    }");
         return buffer.toString();
     }
 

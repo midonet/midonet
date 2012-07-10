@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -21,7 +20,6 @@ import com.midokura.midolman.eventloop.SelectLoop;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
-import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
@@ -127,16 +125,10 @@ public class Client {
             Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
         }
 
-//        log.info("datpaths {}", ovsConnection.datapathsEnumerate().get());
-        log.info("Deleting wrong datapath");
-        Future<Datapath> datapathFuture = ovsConnection.datapathsDelete("test3");
+        log.info("Getting datapath by name");
+        log.info("Got datapath: {}.", ovsConnection.datapathsGet("test").get());
 
-        try {
-            log.info("Created datapath: {}.", datapathFuture.get());
-        } catch (ExecutionException e) {
-            log.info("Exception while deleting datapath");
-        }
-
-        log.info("Deleting good datapath {}", ovsConnection.datapathsDelete("test").get());
+        log.info("Getting datapath by index");
+        log.info("Got datapath: {}.", ovsConnection.datapathsGet(13).get());
     }
 }
