@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
@@ -110,10 +110,12 @@ public class TestRule {
         private DtoRule rule;
         private DtoWebResource dtoResource;
         private Topology topology;
+        private String portGroupTag;
 
-        public TestRuleCrudSuccess(DtoRule rule) {
+        public TestRuleCrudSuccess(DtoRule rule, String portGroupTag) {
             super(FuncTest.appDesc);
             this.rule = rule;
+            this.portGroupTag = portGroupTag;
         }
 
         @Before
@@ -129,8 +131,19 @@ public class TestRule {
             DtoRuleChain c1 = new DtoRuleChain();
             c1.setName("chain1-name");
 
+            // Create a port group
+            DtoPortGroup pg1 = new DtoPortGroup();
+            pg1.setName("portgroup1-name");
+
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c1).build();
+                    .create("tenant1", "chain1", c1)
+                    .create("tenant1", "portgroup1", pg1).build();
+
+            // Set the port group to the rule if it's instructed to do so.
+            if (portGroupTag != null) {
+                DtoPortGroup portGroup = topology.getPortGroup(portGroupTag);
+                rule.setPortGroup(portGroup.getId());
+            }
         }
 
         @Parameterized.Parameters
@@ -247,7 +260,6 @@ public class TestRule {
 
             DtoRule filteringRule = new DtoRule();
             filteringRule.setMatchForwardFlow(true);
-            filteringRule.setPortGroup(UUID.randomUUID());
             filteringRule.setDlDst("aa:bb:cc:dd:ee:ff");
             filteringRule.setDlSrc("11:22:33:44:55:66");
             filteringRule.setDlType(ARP.ETHERTYPE);
@@ -255,9 +267,9 @@ public class TestRule {
             filteringRule.setPosition(1);
             filteringRule.setProperties(properties);
 
-            return Arrays.asList(new Object[][] { { dnatRule },
-                    { revDnatRule }, { snatRule }, { revSnatRule },
-                    { filteringRule } });
+            return Arrays.asList(new Object[][] { { dnatRule, null },
+                    { revDnatRule, null }, { snatRule, null },
+                    { revSnatRule, null }, { filteringRule, "portgroup1" } });
         }
 
         private void verifyPropertiesExist(DtoRule rule) {

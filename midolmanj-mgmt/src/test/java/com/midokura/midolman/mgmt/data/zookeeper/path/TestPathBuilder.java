@@ -96,16 +96,6 @@ public class TestPathBuilder {
                 + PathBuilder.BRIDGE_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 
-        // Routers
-        result = builder.getRoutersPath();
-        expected = root + "/" + PathBuilder.ROUTERS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Router
-        result = builder.getRouterPath(uuid);
-        expected = root + "/" + PathBuilder.ROUTERS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Tenant chains
         result = builder.getTenantChainsPath(strId);
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"

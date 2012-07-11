@@ -20,7 +20,6 @@ public class PathBuilder {
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String ROUTERS_PATH = "routers";
     public static final String TENANTS_PATH = "tenants";
-    private static final Object PORT_GROUPS_PATH = "port_groups";
     private static final Object PORT_GROUP_NAMES_PATH = "port_group-names";
 
     /**
@@ -41,48 +40,6 @@ public class PathBuilder {
      */
     public String getBasePath() {
         return this.basePath;
-    }
-
-    /**
-     * Get ZK port group path.
-     *
-     * @return /port_groups/groupId
-     */
-    public String getPortGroupPath(UUID id) {
-        return new StringBuilder(getPortGroupsPath()).append("/").append(id)
-                .toString();
-    }
-
-    /**
-     * Get ZK port groups path.
-     *
-     * @return /port_groups
-     */
-    public String getPortGroupsPath() {
-        return new StringBuilder(basePath).append("/").append(PORT_GROUPS_PATH)
-                .toString();
-    }
-
-    /**
-     * Get ZK router path.
-     *
-     * @param id
-     *            Router UUID
-     * @return /routers/routerId
-     */
-    public String getRouterPath(UUID id) {
-        return new StringBuilder(getRoutersPath()).append("/").append(id)
-                .toString();
-    }
-
-    /**
-     * Get ZK router path.
-     *
-     * @return /routers
-     */
-    public String getRoutersPath() {
-        return new StringBuilder(basePath).append("/").append(ROUTERS_PATH)
-                .toString();
     }
 
     /**

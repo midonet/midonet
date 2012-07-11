@@ -69,9 +69,8 @@ public class PathService {
         pathSet.add(pathManager.getAgentPortPath());
         pathSet.add(pathManager.getAgentVpnPath());
         pathSet.add(pathManager.getHostsPath());
+        pathSet.add(pathManager.getPortGroupsPath());
         pathSet.add(pathBuilder.getTenantsPath());
-        pathSet.add(pathBuilder.getRoutersPath());
-        pathSet.add(pathBuilder.getPortGroupsPath());
 
         log.debug("PathService.getInitialPaths exiting: pathSet count={}",
                 pathSet.size());

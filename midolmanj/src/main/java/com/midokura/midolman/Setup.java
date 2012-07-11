@@ -80,6 +80,7 @@ public class Setup {
         paths.add(pathMgr.getAgentPath());
         paths.add(pathMgr.getAgentPortPath());
         paths.add(pathMgr.getAgentVpnPath());
+        paths.add(pathMgr.getPortGroupsPath());
         return paths;
     }
 

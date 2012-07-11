@@ -87,6 +87,7 @@ public class TestVRNController {
     private RuleZkManager ruleMgr;
     private RouterZkManager routerMgr;
     private BridgeZkManager bridgeMgr;
+    private PortGroupZkManager portGroupMgr;
     private MockCache cache;
     private int cacheExpireSecs; // This should be an even number.
     private MockOpenvSwitchDatabaseConnection ovsdb;
@@ -110,6 +111,7 @@ public class TestVRNController {
     private short portNumB = 101;
     private short tunnelPortNumA = 102;
     private short tunnelPortNumB = 103;
+    private UUID portGroupID;
 
     // These differ to represent the result of NAT.
     // Key format is "srcIP|srcPort|dstIP|dstPort|protocolNum|ingressUUID"
@@ -138,6 +140,7 @@ public class TestVRNController {
         bgpMgr = new BgpZkManager(dir, basePath);
         routerMgr = new RouterZkManager(dir, basePath);
         bridgeMgr = new BridgeZkManager(dir, basePath);
+        portGroupMgr = new PortGroupZkManager(dir, basePath);
 
         // Now build the network's port to location map.
         UUID networkId = new UUID(1, 1);
@@ -271,6 +274,11 @@ public class TestVRNController {
         Assert.assertEquals(6, controllerStub.addedFlows.size());
         // Clear the flows: unit-tests assume the addedFlows queue starts empty.
         controllerStub.addedFlows.clear();
+
+        // Create a port group
+        PortGroupZkManager.PortGroupConfig portGroupConfig =
+                new PortGroupZkManager.PortGroupConfig();
+        portGroupID = portGroupMgr.create(portGroupConfig);
 
         // Now add the logical links between router 0 and 1.
         // First from 0 to 1
@@ -2408,7 +2416,6 @@ public class TestVRNController {
         UUID portId = portNumToUuid.get((short)10);
         PortConfig entry = portMgr.get(portId);
         entry.portGroupIDs = new HashSet<UUID>();
-        UUID portGroupID = UUID.randomUUID();
         entry.portGroupIDs.add(portGroupID);
         portMgr.update(portId, entry);
 

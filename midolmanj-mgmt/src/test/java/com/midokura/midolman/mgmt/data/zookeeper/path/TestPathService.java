@@ -72,7 +72,7 @@ public class TestPathService {
         verify(pathManager).getAgentPortPath();
         verify(pathManager).getAgentVpnPath();
         verify(pathManager).getHostsPath();
+        verify(pathManager).getPortGroupsPath();
         verify(pathBuilder).getTenantsPath();
-        verify(pathBuilder).getRoutersPath();
     }
 }

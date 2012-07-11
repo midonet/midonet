@@ -41,7 +41,8 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.HostDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.HostZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoImpl;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupDaoAdapter;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDaoImpl;
@@ -62,6 +63,7 @@ import com.midokura.midolman.state.BridgeDhcpZkManager;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortGroupZkManager;
 import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.RouterZkManager;
@@ -347,7 +349,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     private TenantOpService getTenantOpService() throws StateAccessException {
         return new TenantOpService(getTenantOpBuilder(), getTenantZkDao(),
                 getRouterZkDao(), getBridgeZkDao(), getChainZkDao(),
-                getPortGroupDao());
+                getPortGroupZkDao());
     }
 
     /*
@@ -367,7 +369,12 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     @Override
     public PortGroupDao getPortGroupDao() throws StateAccessException {
-        return new PortGroupDaoAdapter(getZkDao(), getPathBuilder());
+        return getPortGroupZkDao();
+    }
+
+    private PortGroupZkDao getPortGroupZkDao() throws StateAccessException {
+        return new PortGroupZkDaoImpl(new PortGroupZkManager(getDirectory(),
+                this.rootPath), getPathBuilder());
     }
 
     private VpnZkManager getVpnZkManager() throws StateAccessException {

@@ -11,13 +11,14 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -34,26 +35,19 @@ public class TenantOpService {
     private final BridgeZkDao bridgeZkDao;
     private final ChainZkDao chainZkDao;
     private final RouterZkDao routerZkDao;
-    private final PortGroupDao groupDao;
+    private final PortGroupZkDao portGroupZkDao;
 
     /**
      * Constructor
-     *
-     * @param opBuilder
-     *            TenantOpBuilder object
-     * @param routerOpService
-     *            RouterOpService object
-     * @param zkDao
-     *            Tenant DAO.
      */
     public TenantOpService(TenantOpBuilder opBuilder, TenantZkDao zkDao,
             RouterZkDao routerZkDao, BridgeZkDao bridgeZkDao,
-            ChainZkDao chainZkDao, PortGroupDao groupDao) {
+            ChainZkDao chainZkDao, PortGroupZkDao portGroupZkDao) {
         this.opBuilder = opBuilder;
         this.routerZkDao = routerZkDao;
         this.bridgeZkDao = bridgeZkDao;
         this.chainZkDao = chainZkDao;
-        this.groupDao = groupDao;
+        this.portGroupZkDao = portGroupZkDao;
         this.zkDao = zkDao;
     }
 
@@ -102,8 +96,6 @@ public class TenantOpService {
 
         List<Op> ops = new ArrayList<Op>();
 
-        ops.addAll(groupDao.buildTenantPortGroupsDelete(id));
-
         // Remove routers
         List<Router> routers = routerZkDao.list(id);
         for (Router router : routers) {
@@ -120,6 +112,12 @@ public class TenantOpService {
         List<Chain> chains = chainZkDao.list(id);
         for (Chain chain : chains) {
             ops.addAll(chainZkDao.prepareDelete(chain));
+        }
+
+        // Remove port groups
+        List<PortGroup> groups = portGroupZkDao.list(id);
+        for (PortGroup group : groups) {
+            ops.addAll(portGroupZkDao.prepareDelete(group));
         }
 
         ops.add(opBuilder.getTenantPortGroupNamesDeleteOp(id));

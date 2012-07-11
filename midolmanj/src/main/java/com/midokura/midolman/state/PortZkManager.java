@@ -74,6 +74,23 @@ public class PortZkManager extends ZkManager {
         return exists(pathManager.getPortPath(id));
     }
 
+    private void addToPortGroupsOps(List<Op> ops, UUID id,
+            Set<UUID> portGroupIds) {
+        for (UUID portGroupId : portGroupIds) {
+            ops.add(Op.create(
+                    pathManager.getPortGroupPortPath(portGroupId, id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        }
+    }
+
+    private void deleteFromPortGroupsOps(List<Op> ops, UUID id,
+            Set<UUID> portGroupIds) {
+        for (UUID portGroupId : portGroupIds) {
+            ops.add(Op.delete(
+                    pathManager.getPortGroupPortPath(portGroupId, id), -1));
+        }
+    }
+
     private List<Op> prepareRouterPortCreate(UUID id,
             PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
@@ -88,6 +105,10 @@ public class PortZkManager extends ZkManager {
 
         ops.addAll(filterZkManager.prepareCreate(id));
 
+        // If port groups are specified, need to update the membership.
+        if (config.portGroupIDs != null) {
+            addToPortGroupsOps(ops, id, config.portGroupIDs);
+        }
         return ops;
     }
 
@@ -124,8 +145,7 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareBridgePortCreate(UUID id,
-            PortDirectory.BridgePortConfig config)
-                    throws StateAccessException {
+            PortDirectory.BridgePortConfig config) throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -134,6 +154,11 @@ public class PortZkManager extends ZkManager {
                 CreateMode.PERSISTENT));
 
         ops.addAll(filterZkManager.prepareCreate(id));
+
+        // If port groups are specified, need to update the membership.
+        if (config.portGroupIDs != null) {
+            addToPortGroupsOps(ops, id, config.portGroupIDs);
+        }
 
         return ops;
     }
@@ -186,8 +211,7 @@ public class PortZkManager extends ZkManager {
         } else if (config instanceof PortDirectory.LogicalBridgePortConfig) {
             return prepareCreate(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
-        } else if (config instanceof
-                PortDirectory.MaterializedBridgePortConfig) {
+        } else if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
             return prepareCreate(id,
                     (PortDirectory.MaterializedBridgePortConfig) config);
         } else {
@@ -195,8 +219,7 @@ public class PortZkManager extends ZkManager {
         }
     }
 
-    public UUID create(PortDirectory.MaterializedBridgePortConfig port,
-            UUID id)
+    public UUID create(PortDirectory.MaterializedBridgePortConfig port, UUID id)
             throws StateAccessException, ZkStateSerializationException {
         multi(prepareCreate(id, port));
         return id;
@@ -270,11 +293,10 @@ public class PortZkManager extends ZkManager {
         multi(prepareUpdate(id, port));
     }
 
-    public void update(Map<UUID, PortConfig> ports)
-            throws StateAccessException {
+    public void update(Map<UUID, PortConfig> ports) throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
-        for(Map.Entry<UUID, PortConfig> port : ports.entrySet()) {
+        for (Map.Entry<UUID, PortConfig> port : ports.entrySet()) {
             ops.addAll(prepareUpdate(port.getKey(), port.getValue()));
         }
         multi(ops);
@@ -302,17 +324,28 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.delete(portPath, -1));
         ops.addAll(filterZkManager.prepareDelete(id));
 
+        // Remove the reference of this port from the port groups
+        if (config.portGroupIDs != null) {
+            deleteFromPortGroupsOps(ops, id, config.portGroupIDs);
+        }
+
         return ops;
     }
 
-    private List<Op> prepareBridgePortDelete(UUID id)
-            throws StateAccessException {
+    private List<Op> prepareBridgePortDelete(UUID id,
+            PortDirectory.BridgePortConfig config) throws StateAccessException {
 
         // Common operations for deleting logical and materialized
         // bridge ports
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getPortPath(id), -1));
         ops.addAll(filterZkManager.prepareDelete(id));
+
+        // Remove the reference of this port from the port groups
+        if (config.portGroupIDs != null) {
+            deleteFromPortGroupsOps(ops, id, config.portGroupIDs);
+        }
+
         return ops;
     }
 
@@ -365,7 +398,7 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getBridgePortPath(config.device_id, id),
                 -1));
-        ops.addAll(prepareBridgePortDelete(id));
+        ops.addAll(prepareBridgePortDelete(id, config));
 
         // Delete the GRE key
         ops.addAll(greZkManager.prepareGreDelete(config.greKey));
@@ -380,7 +413,7 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(
                 pathManager.getBridgeLogicalPortPath(config.device_id, id), -1));
-        ops.addAll(prepareBridgePortDelete(id));
+        ops.addAll(prepareBridgePortDelete(id, config));
 
         return ops;
     }
@@ -406,8 +439,7 @@ public class PortZkManager extends ZkManager {
         } else if (config instanceof PortDirectory.LogicalBridgePortConfig) {
             return prepareDelete(id,
                     (PortDirectory.LogicalBridgePortConfig) config);
-        } else if (config instanceof
-                PortDirectory.MaterializedBridgePortConfig) {
+        } else if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
             return prepareDelete(id,
                     (PortDirectory.MaterializedBridgePortConfig) config);
         } else {

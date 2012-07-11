@@ -126,6 +126,15 @@ public class RuleZkManager extends ZkManager {
         log.debug("Preparing to create: " + chainRulePath);
         ops.add(Op.create(chainRulePath, null, Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        // Add a reference entry to port group if port group is specified.
+        UUID portGroupId = ruleConfig.getCondition().portGroup;
+        if (portGroupId != null) {
+            ops.add(Op.create(
+                    pathManager.getPortGroupRulePath(portGroupId, id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        }
+
         return ops;
     }
 
@@ -151,6 +160,14 @@ public class RuleZkManager extends ZkManager {
         String rulePath = pathManager.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
+
+        // Remove the reference to port group
+        UUID portGroupId = rule.getCondition().portGroup;
+        if (portGroupId != null) {
+            ops.add(Op.delete(
+                    pathManager.getPortGroupRulePath(portGroupId, id), -1));
+        }
+
         return ops;
     }
 

@@ -425,6 +425,54 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK port group ports path.
+     *
+     * @param id
+     *            Group UUID.
+     * @return /port_groups/groupId/ports
+     */
+    public String getPortGroupPortsPath(UUID id) {
+        return new StringBuilder(getPortGroupsPath()).append("/").append(id)
+                .append("/ports").toString();
+    }
+
+    /**
+     * Get ZK port group port path.
+     *
+     * @param id
+     *            Group UUID.
+     * @return /port_groups/groupId/ports/portId
+     */
+    public String getPortGroupPortPath(UUID id, UUID portId) {
+        return new StringBuilder(getPortGroupPortsPath(id)).append("/")
+                .append(portId).toString();
+    }
+
+    /**
+     * Get ZK port group rules path.
+     *
+     * @param id
+     *            Group UUID.
+     * @return /port_groups/groupId/rules
+     */
+    public String getPortGroupRulesPath(UUID id) {
+        return new StringBuilder(getPortGroupsPath()).append("/").append(id)
+                .append("/rules").toString();
+    }
+
+    /**
+     * Get ZK port group rule path.
+     *
+     * @param id
+     *            Group UUID.
+     * @return /port_groups/groupId/rules/ruleId
+     */
+    public String getPortGroupRulePath(UUID id, UUID ruleId) {
+        return new StringBuilder(getPortGroupRulesPath(id)).append("/")
+                .append(ruleId).toString();
+    }
+
+    /**
      * Get ZK port path inside a group.
      *
      * @param id

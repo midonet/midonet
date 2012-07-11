@@ -5,16 +5,18 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
 import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
@@ -22,13 +24,13 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
 /**
- * Class to assist creating a network topology in unit tests.
- * An example usage:
+ * Class to assist creating a network topology in unit tests. An example usage:
  *
  * <pre>
  * {@code
@@ -50,7 +52,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
  *       // Run this test in the setup created.
  *    }
  *  }
- *  </pre>
+ * </pre>
  */
 public class Topology {
 
@@ -68,6 +70,7 @@ public class Topology {
         private final Map<String, DtoLogicalRouterPort> logRouterPorts;
         private final Map<String, DtoBridgePort> matBridgePorts;
         private final Map<String, DtoLogicalBridgePort> logBridgePorts;
+        private final Map<String, DtoPortGroup> portGroups;
 
         private final Map<String, String> tagToTenants;
         private final Map<String, String> tagToInChains;
@@ -86,6 +89,7 @@ public class Topology {
             this.logRouterPorts = new HashMap<String, DtoLogicalRouterPort>();
             this.matBridgePorts = new HashMap<String, DtoBridgePort>();
             this.logBridgePorts = new HashMap<String, DtoLogicalBridgePort>();
+            this.portGroups = new HashMap<String, DtoPortGroup>();
 
             this.links = new HashMap<String, String>();
             this.tagToTenants = new HashMap<String, String>();
@@ -149,6 +153,12 @@ public class Topology {
             return this;
         }
 
+        public Builder create(String tenantTag, String tag, DtoPortGroup obj) {
+            this.portGroups.put(tag, obj);
+            this.tagToTenants.put(tag, tenantTag);
+            return this;
+        }
+
         public Builder link(String portTag1, String portTag2) {
 
             if (!this.logRouterPorts.containsKey(portTag1)
@@ -199,10 +209,11 @@ public class Topology {
 
         public Topology build() {
 
+            DtoApplication app = resource.getWebResource().path("")
+                    .type(APPLICATION_JSON).get(DtoApplication.class);
+
             for (Map.Entry<String, DtoTenant> entry : tenants.entrySet()) {
-                URI tenantUri = resource.getWebResource().path("tenants")
-                        .getURI();
-                DtoTenant obj = resource.postAndVerifyCreated(tenantUri,
+                DtoTenant obj = resource.postAndVerifyCreated(app.getTenants(),
                         APPLICATION_TENANT_JSON, entry.getValue(),
                         DtoTenant.class);
                 entry.setValue(obj);
@@ -271,6 +282,20 @@ public class Topology {
                 }
                 obj = resource.postAndVerifyCreated(t.getBridges(),
                         APPLICATION_BRIDGE_JSON, obj, DtoBridge.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoPortGroup> entry : portGroups.entrySet()) {
+
+                DtoPortGroup obj = entry.getValue();
+
+                // Set the tenant ID
+                String tag = tagToTenants.get(entry.getKey());
+                DtoTenant t = tenants.get(tag);
+                obj.setTenantId(t.getId());
+
+                obj = resource.postAndVerifyCreated(t.getPortGroups(),
+                        APPLICATION_PORTGROUP_JSON, obj, DtoPortGroup.class);
                 entry.setValue(obj);
             }
 
@@ -423,6 +448,10 @@ public class Topology {
 
     public DtoBridge getBridge(String tag) {
         return this.builder.bridges.get(tag);
+    }
+
+    public DtoPortGroup getPortGroup(String tag) {
+        return this.builder.portGroups.get(tag);
     }
 
     public DtoRuleChain getChain(String tag) {

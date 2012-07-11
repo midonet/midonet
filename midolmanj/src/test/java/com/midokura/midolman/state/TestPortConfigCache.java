@@ -27,6 +27,7 @@ public class TestPortConfigCache {
     private PortZkManager portMgr;
     private UUID bridgeID;
     private UUID portID;
+    private UUID portGroupID;
     private PortConfigCache portCache;
 
     @Before
@@ -43,6 +44,11 @@ public class TestPortConfigCache {
         BridgeZkManager.BridgeConfig bridgeConfig =
                 new BridgeZkManager.BridgeConfig();
         bridgeID = bridgeMgr.create(bridgeConfig);
+
+        PortGroupZkManager portGroupMgr = new PortGroupZkManager(dir, basePath);
+        PortGroupZkManager.PortGroupConfig portGroupConfig =
+                new PortGroupZkManager.PortGroupConfig();
+        portGroupID = portGroupMgr.create(portGroupConfig);
     }
 
     @Test
@@ -56,7 +62,7 @@ public class TestPortConfigCache {
         PortConfig config = new MaterializedBridgePortConfig(bridgeID);
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
-        config.portGroupIDs.add(UUID.randomUUID());
+        config.portGroupIDs.add(portGroupID);
         portID = portMgr.create(config);
         PortConfig zkConfig = portMgr.get(portID);
         assertThat("The config in ZK should have the expected outboundFilter.",
@@ -75,7 +81,7 @@ public class TestPortConfigCache {
         config.inboundFilter = UUID.randomUUID();
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
-        config.portGroupIDs.add(UUID.randomUUID());
+        config.portGroupIDs.add(portGroupID);
         return config;
     }
 

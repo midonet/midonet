@@ -7,8 +7,6 @@ package com.midokura.midolman.mgmt.data.dao;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.Op;
-
 import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -56,20 +54,17 @@ public interface PortGroupDao {
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      */
-    PortGroup get(String tenantId, String name)
-            throws StateAccessException;
+    PortGroup get(String tenantId, String name) throws StateAccessException;
 
     /**
      * List all of a tenant's PortGroups
+     *
      * @param tenantId
      *            ID of the tenant to which the groups belongs.
      * @return A list of PortGroup objects.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      */
-    List<PortGroup> list(String tenantId)
-            throws StateAccessException;
+    List<PortGroup> list(String tenantId) throws StateAccessException;
 
-    List<Op> buildTenantPortGroupsDelete(String tenantID)
-            throws StateAccessException;
 }

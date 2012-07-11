@@ -5,11 +5,14 @@ package com.midokura.midolman.mgmt.data.dto;
 
 import java.net.URI;
 import java.util.UUID;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.config.PortGroupMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupNameMgmtConfig;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.state.PortGroupZkManager.PortGroupConfig;
 
 /**
  * Class representing a port group.
@@ -17,8 +20,14 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 @XmlRootElement
 public class PortGroup extends UriResource {
 
+    public static final int MIN_PORT_GROUP_NAME_LEN = 1;
+    public static final int MAX_PORT_GROUP_NAME_LEN = 255;
+
     private UUID id = null;
     private String tenantId = null;
+
+    @NotNull
+    @Size(min = MIN_PORT_GROUP_NAME_LEN, max = MAX_PORT_GROUP_NAME_LEN)
     private String name = null;
 
     /**
@@ -34,10 +43,10 @@ public class PortGroup extends UriResource {
      * @param id
      *            ID of the PortGroup
      * @param config
-     *            PortGroupMgmtConfig object
+     *            PortGroupConfig object
      */
-    public PortGroup(UUID id, PortGroupMgmtConfig config) {
-        this(id, config.tenantId, config.name);
+    public PortGroup(UUID id, PortGroupConfig config) {
+        this(id, config.name, config.properties.get(ConfigProperty.TENANT_ID));
     }
 
     /**
@@ -45,15 +54,15 @@ public class PortGroup extends UriResource {
      *
      * @param id
      *            ID of the PortGroup
-     * @param tenantId
-     *            Tenant ID
      * @param name
      *            PortGroup name
+     * @param tenantId
+     *            Tenant ID
      */
-    public PortGroup(UUID id, String tenantId, String name) {
+    public PortGroup(UUID id, String name, String tenantId) {
         this.id = id;
-        this.tenantId = tenantId;
         this.name = name;
+        this.tenantId = tenantId;
     }
 
     /**
@@ -113,8 +122,10 @@ public class PortGroup extends UriResource {
         }
     }
 
-    public PortGroupMgmtConfig toMgmtConfig() {
-        return new PortGroupMgmtConfig(tenantId, name);
+    public PortGroupConfig toConfig() {
+        PortGroupConfig config = new PortGroupConfig(name);
+        config.properties.put(ConfigProperty.TENANT_ID, this.tenantId);
+        return config;
     }
 
     public PortGroupNameMgmtConfig toNameMgmtConfig() {
