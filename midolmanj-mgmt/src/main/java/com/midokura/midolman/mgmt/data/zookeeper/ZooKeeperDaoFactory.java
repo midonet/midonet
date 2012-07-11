@@ -43,14 +43,12 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
-import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
@@ -308,26 +306,13 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public RouterDao getRouterDao() throws StateAccessException {
-        return new RouterDaoAdapter(getRouterZkDao(), getRouterOpService(),
-                getPortDao(), getRouteDao());
-    }
-
-    private RouterZkManager getRouterZkManager() throws StateAccessException {
-        return new RouterZkManager(getDirectory(), getRootPath());
+        return getRouterZkDao();
     }
 
     private RouterZkDao getRouterZkDao() throws StateAccessException {
-        return new RouterZkDao(getRouterZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private RouterOpBuilder getRouterOpBuilder() throws StateAccessException {
-        return new RouterOpBuilder(getRouterZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private RouterOpService getRouterOpService() throws StateAccessException {
-        return new RouterOpService(getRouterOpBuilder(), getRouterZkDao());
+        return new RouterZkDaoImpl(new RouterZkManager(getDirectory(),
+                getRootPath()), getPathBuilder(), getSerializer(),
+                getPortDao(), getRouteDao());
     }
 
     @Override
@@ -360,8 +345,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private TenantOpService getTenantOpService() throws StateAccessException {
-        return new TenantOpService(getTenantOpBuilder(), getRouterOpService(),
-                getTenantZkDao(), getBridgeZkDao(), getChainZkDao(),
+        return new TenantOpService(getTenantOpBuilder(), getTenantZkDao(),
+                getRouterZkDao(), getBridgeZkDao(), getChainZkDao(),
                 getPortGroupDao());
     }
 

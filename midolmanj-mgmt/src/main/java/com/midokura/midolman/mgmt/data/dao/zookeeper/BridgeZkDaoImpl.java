@@ -59,40 +59,6 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
      * (non-Javadoc)
      *
      * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
-     * (java.util.UUID)
-     */
-    @Override
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
-        return prepareDelete(get(id));
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
-     * (com.midokura.midolman.mgmt.data.dto.Bridge)
-     */
-    @Override
-    public List<Op> prepareDelete(Bridge bridge) throws StateAccessException {
-
-        List<Op> ops = zkDao.prepareBridgeDelete(bridge.getId());
-        String path = pathBuilder.getTenantBridgePath(bridge.getTenantId(),
-                bridge.getId());
-        ops.add(zkDao.getDeleteOp(path));
-
-        path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
-                bridge.getName());
-        ops.add(zkDao.getDeleteOp(path));
-
-        return ops;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
      * com.midokura.midolman.mgmt.data.dao.BridgeDao#create(com.midokura.midolman
      * .mgmt.data.dto.Bridge)
      */
@@ -135,68 +101,6 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         zkDao.multi(ops);
 
         log.debug("BridgeZkDaoImpl.delete exiting.");
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BridgeDao#getByPort(java.util.UUID)
-     */
-    @Override
-    public Bridge getByPort(UUID portId) throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.getByPort entered: portId={}", portId);
-
-        Port port = portDao.get(portId);
-        if (!(port instanceof BridgePort)) {
-            return null;
-        }
-        Bridge bridge = get(port.getDeviceId());
-
-        log.debug("BridgeZkDaoImpl.getByPort exiting: bridge={}", bridge);
-        return bridge;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BridgeDao#update(com.midokura.midolman
-     * .mgmt.data.dto.Bridge)
-     */
-    @Override
-    public void update(Bridge bridge) throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.update entered: bridge={}", bridge);
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Get the original config
-        BridgeConfig oldConfig = zkDao.get(bridge.getId());
-
-        // Update the config
-        Op op = zkDao.prepareUpdate(bridge.getId(), bridge.toConfig());
-        if (op != null) {
-            ops.add(op);
-        }
-
-        // Update index if the name changed
-        if (!bridge.getName().equals(oldConfig.name)) {
-
-            String path = pathBuilder.getTenantBridgeNamePath(
-                    bridge.getTenantId(), oldConfig.name);
-            ops.add(zkDao.getDeleteOp(path));
-
-            path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
-                    bridge.getName());
-            byte[] data = serializer.serialize(bridge.toNameMgmtConfig());
-            ops.add(zkDao.getPersistentCreateOp(path, data));
-        }
-
-        if (ops.size() > 0) {
-            zkDao.multi(ops);
-        }
-
-        log.debug("BridgeZkDaoImpl.update exiting");
     }
 
     /*
@@ -247,6 +151,26 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
     /*
      * (non-Javadoc)
      *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.BridgeDao#getByPort(java.util.UUID)
+     */
+    @Override
+    public Bridge getByPort(UUID portId) throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.getByPort entered: portId={}", portId);
+
+        Port port = portDao.get(portId);
+        if (!(port instanceof BridgePort)) {
+            return null;
+        }
+        Bridge bridge = get(port.getDeviceId());
+
+        log.debug("BridgeZkDaoImpl.getByPort exiting: bridge={}", bridge);
+        return bridge;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.midokura.midolman.mgmt.data.dao.BridgeDao#list(java.lang.String)
      */
     @Override
@@ -263,5 +187,81 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         log.debug("BridgeZkDaoImpl.list exiting: bridges count={}",
                 bridges.size());
         return bridges;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
+     * (java.util.UUID)
+     */
+    @Override
+    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+        return prepareDelete(get(id));
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
+     * (com.midokura.midolman.mgmt.data.dto.Bridge)
+     */
+    @Override
+    public List<Op> prepareDelete(Bridge bridge) throws StateAccessException {
+
+        List<Op> ops = zkDao.prepareBridgeDelete(bridge.getId());
+        String path = pathBuilder.getTenantBridgePath(bridge.getTenantId(),
+                bridge.getId());
+        ops.add(zkDao.getDeleteOp(path));
+
+        path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
+                bridge.getName());
+        ops.add(zkDao.getDeleteOp(path));
+
+        return ops;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.midokura.midolman.mgmt.data.dao.BridgeDao#update(com.midokura.midolman
+     * .mgmt.data.dto.Bridge)
+     */
+    @Override
+    public void update(Bridge bridge) throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.update entered: bridge={}", bridge);
+
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get the original config
+        BridgeConfig oldConfig = zkDao.get(bridge.getId());
+
+        // Update the config
+        Op op = zkDao.prepareUpdate(bridge.getId(), bridge.toConfig());
+        if (op != null) {
+            ops.add(op);
+        }
+
+        // Update index if the name changed
+        if (!bridge.getName().equals(oldConfig.name)) {
+
+            String path = pathBuilder.getTenantBridgeNamePath(
+                    bridge.getTenantId(), oldConfig.name);
+            ops.add(zkDao.getDeleteOp(path));
+
+            path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
+                    bridge.getName());
+            byte[] data = serializer.serialize(bridge.toNameMgmtConfig());
+            ops.add(zkDao.getPersistentCreateOp(path, data));
+        }
+
+        if (ops.size() > 0) {
+            zkDao.multi(ops);
+        }
+
+        log.debug("BridgeZkDaoImpl.update exiting");
     }
 }

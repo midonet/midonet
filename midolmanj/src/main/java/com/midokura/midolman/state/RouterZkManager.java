@@ -5,7 +5,9 @@
 package com.midokura.midolman.state;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,14 +27,22 @@ public class RouterZkManager extends ZkManager {
 
     public static class RouterConfig {
 
+        public String name;
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public Map<String, String> properties = new HashMap<String, String>();
 
         public RouterConfig() {
             super();
         }
 
         public RouterConfig(UUID inboundFilter, UUID outboundFilter) {
+            this.inboundFilter = inboundFilter;
+            this.outboundFilter = outboundFilter;
+        }
+
+        public RouterConfig(String name, UUID inboundFilter, UUID outboundFilter) {
+            this.name = name;
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
         }
@@ -52,6 +62,8 @@ public class RouterZkManager extends ZkManager {
             if (outboundFilter != null ? !outboundFilter
                     .equals(that.outboundFilter) : that.outboundFilter != null)
                 return false;
+            if (name != null ? !name.equals(that.name) : that.name != null)
+                return false;
 
             return true;
         }
@@ -61,6 +73,7 @@ public class RouterZkManager extends ZkManager {
             int result = inboundFilter != null ? inboundFilter.hashCode() : 0;
             result = 31 * result
                     + (outboundFilter != null ? outboundFilter.hashCode() : 0);
+            result = 31 * result + (name != null ? name.hashCode() : 0);
             return result;
         }
     }
@@ -236,6 +249,18 @@ public class RouterZkManager extends ZkManager {
     public void delete(UUID id) throws ZkStateSerializationException,
             StateAccessException {
         multi(prepareRouterDelete(id));
+    }
+
+    /**
+     * Checks whether a router with the given ID exists.
+     *
+     * @param id
+     *            Router ID to check
+     * @return True if exists
+     * @throws StateAccessException
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getRouterPath(id));
     }
 
     /**

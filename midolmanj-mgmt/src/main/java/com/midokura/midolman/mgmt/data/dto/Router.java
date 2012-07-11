@@ -14,7 +14,6 @@ import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.Router.RouterExtended;
-import com.midokura.midolman.mgmt.data.dto.config.RouterMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueRouterName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
@@ -60,6 +59,20 @@ public class Router extends UriResource {
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
+    }
+
+    /**
+     * Router constructor
+     *
+     * @param id
+     *            Router ID
+     * @param config
+     *            RouterConfig object
+     */
+    public Router(UUID id, RouterConfig config) {
+        this(id, config.name, config.properties.get(ConfigProperty.TENANT_ID));
+        this.inboundFilterId = config.inboundFilter;
+        this.outboundFilterId = config.outboundFilter;
     }
 
     /**
@@ -202,17 +215,10 @@ public class Router extends UriResource {
      * @return RouterConfig object
      */
     public RouterConfig toConfig() {
-        return new RouterConfig(this.inboundFilterId, this.outboundFilterId);
-
-    }
-
-    /**
-     * Convert this object to RouterMgmtConfig object.
-     *
-     * @return RouterMgmtConfig object.
-     */
-    public RouterMgmtConfig toMgmtConfig() {
-        return new RouterMgmtConfig(this.getTenantId(), this.getName());
+        RouterConfig config = new RouterConfig(this.name, this.inboundFilterId,
+                this.outboundFilterId);
+        config.properties.put(ConfigProperty.TENANT_ID, this.tenantId);
+        return config;
     }
 
     /**
@@ -235,8 +241,8 @@ public class Router extends UriResource {
     }
 
     /**
-     * Interface used for a Validation group.  This group gets triggered
-     * after the default validations.
+     * Interface used for a Validation group. This group gets triggered after
+     * the default validations.
      */
     public interface RouterExtended {
     }

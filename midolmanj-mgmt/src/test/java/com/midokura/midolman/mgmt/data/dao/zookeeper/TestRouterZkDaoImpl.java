@@ -20,18 +20,23 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestRouterDaoAdapter {
+public class TestRouterZkDaoImpl {
 
-    private RouterDaoAdapter testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouterZkDao dao;
+    private RouterZkDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouterOpService opService;
+    private RouterZkManager dao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PathBuilder pathBuilder;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ZkConfigSerializer serializer;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private PortDao portDao;
@@ -41,7 +46,8 @@ public class TestRouterDaoAdapter {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RouterDaoAdapter(dao, opService, portDao, routeDao);
+        testObject = new RouterZkDaoImpl(dao, pathBuilder, serializer, portDao,
+                routeDao);
     }
 
     @Test
