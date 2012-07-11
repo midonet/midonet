@@ -56,7 +56,7 @@ public interface BridgeDao {
      *            bridge name
      * @return Bridge DTO
      */
-    Bridge getByName(String tenantId, String name) throws StateAccessException;
+    Bridge get(String tenantId, String name) throws StateAccessException;
 
     /**
      * Get brige by port.

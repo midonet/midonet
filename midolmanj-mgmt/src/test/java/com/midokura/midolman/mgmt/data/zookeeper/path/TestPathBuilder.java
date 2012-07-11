@@ -4,8 +4,6 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
-import java.util.UUID;
-
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -15,7 +13,6 @@ public class TestPathBuilder {
     @Test
     public void testBuild() throws Exception {
 
-        UUID uuid = UUID.randomUUID();
         String strId = "foo";
         String testName = "bar";
         String root = "/root";
@@ -48,18 +45,6 @@ public class TestPathBuilder {
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId;
         Assert.assertEquals(expected, result);
 
-        // Tenant routers
-        result = builder.getTenantRoutersPath(strId);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.ROUTERS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Tenant router
-        result = builder.getTenantRouterPath(strId, uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.ROUTERS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Tenant router names
         result = builder.getTenantRouterNamesPath(strId);
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
@@ -72,18 +57,6 @@ public class TestPathBuilder {
                 + PathBuilder.ROUTER_NAMES_PATH + "/" + testName;
         Assert.assertEquals(expected, result);
 
-        // Tenant bridges
-        result = builder.getTenantBridgesPath(strId);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.BRIDGES_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Tenant bridge
-        result = builder.getTenantBridgePath(strId, uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.BRIDGES_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
         // Tenant bridge names
         result = builder.getTenantBridgeNamesPath(strId);
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
@@ -94,18 +67,6 @@ public class TestPathBuilder {
         result = builder.getTenantBridgeNamePath(strId, testName);
         expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
                 + PathBuilder.BRIDGE_NAMES_PATH + "/" + testName;
-        Assert.assertEquals(expected, result);
-
-        // Tenant chains
-        result = builder.getTenantChainsPath(strId);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.CHAINS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Tenant chain
-        result = builder.getTenantChainPath(strId, uuid);
-        expected = root + "/" + PathBuilder.TENANTS_PATH + "/" + strId + "/"
-                + PathBuilder.CHAINS_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
         // Tenant chain names

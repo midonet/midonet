@@ -17,6 +17,7 @@ import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
@@ -73,10 +74,6 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         List<Op> ops = zkDao.prepareBridgeCreate(bridge.getId(),
                 bridge.toConfig());
 
-        ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantBridgePath(bridge.getTenantId(),
-                        bridge.getId()), null));
-
         byte[] data = serializer.serialize(bridge.toNameMgmtConfig());
         ops.add(zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
@@ -125,27 +122,25 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BridgeDao#getByName(java.lang.String,
+     * @see com.midokura.midolman.mgmt.data.dao.BridgeDao#get(java.lang.String,
      * java.lang.String)
      */
     @Override
-    public Bridge getByName(String tenantId, String name)
-            throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.getByName entered: tenantId=" + tenantId
+    public Bridge get(String tenantId, String name) throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.get entered: tenantId=" + tenantId
                 + ", name=" + name);
 
-        List<Bridge> bridges = list(tenantId);
-        Bridge match = null;
-        for (Bridge bridge : bridges) {
-            if (bridge.getName().equals(name)) {
-                match = bridge;
-                break;
-            }
+        Bridge bridge = null;
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            BridgeNameMgmtConfig nameConfig = serializer.deserialize(data,
+                    BridgeNameMgmtConfig.class);
+            bridge = get(nameConfig.id);
         }
 
-        log.debug("BridgeZkDaoImpl.getByName exiting: bridge={}", match);
-        return match;
+        log.debug("BridgeZkDaoImpl.get exiting: bridge={}", bridge);
+        return bridge;
     }
 
     /*
@@ -177,11 +172,11 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
     public List<Bridge> list(String tenantId) throws StateAccessException {
         log.debug("BridgeZkDaoImpl.list entered: tenantId={}", tenantId);
 
-        String path = pathBuilder.getTenantBridgesPath(tenantId);
-        Set<String> ids = zkDao.getChildren(path, null);
+        String path = pathBuilder.getTenantBridgeNamesPath(tenantId);
+        Set<String> names = zkDao.getChildren(path, null);
         List<Bridge> bridges = new ArrayList<Bridge>();
-        for (String id : ids) {
-            bridges.add(get(UUID.fromString(id)));
+        for (String name : names) {
+            bridges.add(get(tenantId, name));
         }
 
         log.debug("BridgeZkDaoImpl.list exiting: bridges count={}",
@@ -212,11 +207,8 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
     public List<Op> prepareDelete(Bridge bridge) throws StateAccessException {
 
         List<Op> ops = zkDao.prepareBridgeDelete(bridge.getId());
-        String path = pathBuilder.getTenantBridgePath(bridge.getTenantId(),
-                bridge.getId());
-        ops.add(zkDao.getDeleteOp(path));
 
-        path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
+        String path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
                 bridge.getName());
         ops.add(zkDao.getDeleteOp(path));
 

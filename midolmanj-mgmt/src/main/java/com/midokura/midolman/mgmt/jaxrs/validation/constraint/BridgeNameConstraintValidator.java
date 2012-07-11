@@ -47,7 +47,7 @@ public class BridgeNameConstraintValidator implements
         }
 
         try {
-            bridge = dao.getByName(tenantId, value.getName());
+            bridge = dao.get(tenantId, value.getName());
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");

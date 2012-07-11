@@ -96,8 +96,14 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
         log.debug("PortGroupZkDaoImpl.get entered: tenantId=" + tenantId
                 + ", name=" + name);
 
-        PortGroupNameMgmtConfig nameConfig = getNameData(tenantId, name);
-        PortGroup group = get(nameConfig.id);
+        PortGroup group = null;
+        String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            PortGroupNameMgmtConfig config = serializer.deserialize(data,
+                    PortGroupNameMgmtConfig.class);
+            group = get(config.id);
+        }
 
         log.debug("PortGroupZkDaoImpl.get existing: group={}", group);
         return group;
@@ -114,33 +120,6 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
             groups.add(get(tenantId, name));
         }
         return groups;
-    }
-
-    /**
-     * Get the data for the given PortGroup by name.
-     *
-     * @param tenantId
-     *            ID of the Tenant that owns the PortGroup.
-     * @param name
-     *            Name of the PortGroup.
-     * @return PortGroupNameMgmtConfig stored in ZK.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    private PortGroupNameMgmtConfig getNameData(String tenantId, String name)
-            throws StateAccessException {
-        if (tenantId == null || name == null) {
-            throw new IllegalArgumentException(
-                    "tenantId, PortGroup name cannot be null");
-        }
-
-        String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name);
-        byte[] data = zkDao.get(path);
-        PortGroupNameMgmtConfig config = serializer.deserialize(data,
-                PortGroupNameMgmtConfig.class);
-
-        log.debug("PortGroupZkDao.getNameData exiting: path=" + path);
-        return config;
     }
 
     /*

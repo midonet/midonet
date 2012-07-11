@@ -56,7 +56,7 @@ public interface RouterDao {
      *            Router name
      * @return Router DTO
      */
-    Router getByName(String tenantId, String name) throws StateAccessException;
+    Router get(String tenantId, String name) throws StateAccessException;
 
     /**
      * Get the Router that owns the given Advertised Route ID.

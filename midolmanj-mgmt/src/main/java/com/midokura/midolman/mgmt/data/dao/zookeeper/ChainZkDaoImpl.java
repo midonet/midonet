@@ -78,11 +78,8 @@ public class ChainZkDaoImpl implements ChainZkDao {
     public List<Op> prepareDelete(Chain chain) throws StateAccessException {
 
         List<Op> ops = zkDao.prepareChainDelete(chain.getId());
-        String path = pathBuilder.getTenantChainPath(chain.getTenantId(),
-                chain.getId());
-        ops.add(zkDao.getDeleteOp(path));
 
-        path = pathBuilder.getTenantChainNamePath(chain.getTenantId(),
+        String path = pathBuilder.getTenantChainNamePath(chain.getTenantId(),
                 chain.getName());
         ops.add(zkDao.getDeleteOp(path));
 
@@ -106,10 +103,6 @@ public class ChainZkDaoImpl implements ChainZkDao {
 
         List<Op> ops = zkDao
                 .prepareChainCreate(chain.getId(), chain.toConfig());
-
-        ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantChainPath(chain.getTenantId(),
-                        chain.getId()), null));
 
         byte[] data = serializer.serialize(chain.toNameMgmtConfig());
         ops.add(zkDao.getPersistentCreateOp(
@@ -159,33 +152,7 @@ public class ChainZkDaoImpl implements ChainZkDao {
     /*
      * (non-Javadoc)
      *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.ChainDao#getByName(java.lang.String,
-     * java.lang.String)
-     */
-    @Override
-    public Chain getByName(String tenantId, String name)
-            throws StateAccessException {
-        log.debug("ChainZkDaoImpl.getByName entered: tenantId=" + tenantId
-                + ", name=" + name);
-
-        List<Chain> chains = list(tenantId);
-        Chain match = null;
-        for (Chain chain : chains) {
-            if (chain.getName().equals(name)) {
-                match = chain;
-                break;
-            }
-        }
-
-        log.debug("ChainZkDaoImpl.getByName exiting: chain={}", match);
-        return match;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#get(java.util.UUID,
+     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#get(java.lang.String,
      * java.lang.String)
      */
     @Override
@@ -193,11 +160,14 @@ public class ChainZkDaoImpl implements ChainZkDao {
         log.debug("ChainZkDaoImpl.get entered: tenantId=" + tenantId
                 + ", name=" + name);
 
+        Chain chain = null;
         String path = pathBuilder.getTenantChainNamePath(tenantId, name);
-        byte[] data = zkDao.get(path);
-        ChainNameMgmtConfig nameConfig = serializer.deserialize(data,
-                ChainNameMgmtConfig.class);
-        Chain chain = get(nameConfig.id);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            ChainNameMgmtConfig nameConfig = serializer.deserialize(data,
+                    ChainNameMgmtConfig.class);
+            chain = get(nameConfig.id);
+        }
 
         log.debug("ChainZkDaoImpl.get existing: chain={}", chain);
         return chain;
@@ -223,17 +193,17 @@ public class ChainZkDaoImpl implements ChainZkDao {
     /*
      * (non-Javadoc)
      *
-     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#list(java.util.UUID)
+     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#list(java.lang.String)
      */
     @Override
     public List<Chain> list(String tenantId) throws StateAccessException {
         log.debug("ChainZkDaoImpl.list entered: tenantId={}", tenantId);
 
-        String path = pathBuilder.getTenantChainsPath(tenantId);
-        Set<String> ids = zkDao.getChildren(path, null);
+        String path = pathBuilder.getTenantChainNamesPath(tenantId);
+        Set<String> names = zkDao.getChildren(path, null);
         List<Chain> chains = new ArrayList<Chain>();
-        for (String id : ids) {
-            chains.add(get(UUID.fromString(id)));
+        for (String name : names) {
+            chains.add(get(tenantId, name));
         }
         return chains;
     }

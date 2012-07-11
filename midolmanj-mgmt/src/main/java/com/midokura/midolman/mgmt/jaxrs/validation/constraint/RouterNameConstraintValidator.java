@@ -47,7 +47,7 @@ public class RouterNameConstraintValidator implements
         }
 
         try {
-            router = dao.getByName(tenantId, value.getName());
+            router = dao.get(tenantId, value.getName());
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");

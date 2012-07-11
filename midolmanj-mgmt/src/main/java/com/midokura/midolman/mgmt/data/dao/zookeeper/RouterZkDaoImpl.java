@@ -19,6 +19,7 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.RouterPort;
+import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;
@@ -79,10 +80,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
         List<Op> ops = zkDao.prepareRouterCreate(router.getId(),
                 router.toConfig());
 
-        ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantRouterPath(router.getTenantId(),
-                        router.getId()), null));
-
         byte[] data = serializer.serialize(router.toNameMgmtConfig());
         ops.add(zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantRouterNamePath(router.getTenantId(),
@@ -132,6 +129,30 @@ public class RouterZkDaoImpl implements RouterZkDao {
     /*
      * (non-Javadoc)
      *
+     * @see com.midokura.midolman.mgmt.data.dao.RouterDao#get(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public Router get(String tenantId, String name) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.get entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        Router router = null;
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            RouterNameMgmtConfig nameConfig = serializer.deserialize(data,
+                    RouterNameMgmtConfig.class);
+            router = get(nameConfig.id);
+        }
+
+        log.debug("RouterZkDaoImpl.get exiting: router={}", router);
+        return router;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see
      * com.midokura.midolman.mgmt.data.dao.RouterDao#getByAdRoute(java.util.
      * UUID)
@@ -163,32 +184,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
 
         log.debug("RouterZkDaoImpl.getByBgp exiting: router={}", router);
         return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByName(java.lang.String,
-     * java.lang.String)
-     */
-    @Override
-    public Router getByName(String tenantId, String name)
-            throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByName entered: tenantId=" + tenantId
-                + ", name=" + name);
-
-        List<Router> routers = list(tenantId);
-        Router match = null;
-        for (Router router : routers) {
-            if (router.getName().equals(name)) {
-                match = router;
-                break;
-            }
-        }
-
-        log.debug("RouterZkDaoImpl.getByName exiting: router={}", match);
-        return match;
     }
 
     /*
@@ -255,11 +250,11 @@ public class RouterZkDaoImpl implements RouterZkDao {
     public List<Router> list(String tenantId) throws StateAccessException {
         log.debug("RouterZkDaoImpl.list entered: tenantId={}", tenantId);
 
-        String path = pathBuilder.getTenantRoutersPath(tenantId);
-        Set<String> ids = zkDao.getChildren(path, null);
+        String path = pathBuilder.getTenantRouterNamesPath(tenantId);
+        Set<String> names = zkDao.getChildren(path, null);
         List<Router> routers = new ArrayList<Router>();
-        for (String id : ids) {
-            routers.add(get(UUID.fromString(id)));
+        for (String name : names) {
+            routers.add(get(tenantId, name));
         }
 
         log.debug("RouterZkDaoImpl.list exiting: routers count={}",
@@ -290,11 +285,8 @@ public class RouterZkDaoImpl implements RouterZkDao {
     public List<Op> prepareDelete(Router router) throws StateAccessException {
 
         List<Op> ops = zkDao.prepareRouterDelete(router.getId());
-        String path = pathBuilder.getTenantRouterPath(router.getTenantId(),
-                router.getId());
-        ops.add(zkDao.getDeleteOp(path));
 
-        path = pathBuilder.getTenantRouterNamePath(router.getTenantId(),
+        String path = pathBuilder.getTenantRouterNamePath(router.getTenantId(),
                 router.getName());
         ops.add(zkDao.getDeleteOp(path));
 

@@ -83,12 +83,6 @@ public class TenantDaoImpl implements TenantDao {
         ops.add(zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantPath(tenant.getId()), null));
         ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantBridgesPath(tenant.getId()), null));
-        ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantRoutersPath(tenant.getId()), null));
-        ops.add(zkDao.getPersistentCreateOp(
-                pathBuilder.getTenantChainsPath(tenant.getId()), null));
-        ops.add(zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantBridgeNamesPath(tenant.getId()), null));
         ops.add(zkDao.getPersistentCreateOp(
                 pathBuilder.getTenantRouterNamesPath(tenant.getId()), null));
@@ -142,9 +136,6 @@ public class TenantDaoImpl implements TenantDao {
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantChainNamesPath(id)));
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantRouterNamesPath(id)));
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantBridgeNamesPath(id)));
-        ops.add(zkDao.getDeleteOp(pathBuilder.getTenantChainsPath(id)));
-        ops.add(zkDao.getDeleteOp(pathBuilder.getTenantRoutersPath(id)));
-        ops.add(zkDao.getDeleteOp(pathBuilder.getTenantBridgesPath(id)));
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantPath(id)));
         zkDao.multi(ops);
 

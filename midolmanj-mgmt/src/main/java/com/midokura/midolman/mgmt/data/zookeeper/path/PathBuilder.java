@@ -4,7 +4,6 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
-import java.util.UUID;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -14,13 +13,10 @@ public class PathBuilder {
 
     private final String basePath;
     public static final String BRIDGE_NAMES_PATH = "bridge-names";
-    public static final String BRIDGES_PATH = "bridges";
     public static final String CHAIN_NAMES_PATH = "chain-names";
-    public static final String CHAINS_PATH = "chains";
     public static final String ROUTER_NAMES_PATH = "router-names";
-    public static final String ROUTERS_PATH = "routers";
     public static final String TENANTS_PATH = "tenants";
-    private static final Object PORT_GROUP_NAMES_PATH = "port_group-names";
+    public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
     /**
      * Constructor
@@ -91,30 +87,6 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK tenant chain path.
-     *
-     * @param tenantId
-     *            Tenant UUID
-     * @return /tenants/tenantId/chains/chainId
-     */
-    public String getTenantChainPath(String tenantId, UUID chainId) {
-        return new StringBuilder(getTenantChainsPath(tenantId)).append("/")
-                .append(chainId).toString();
-    }
-
-    /**
-     * Get ZK tenant chains path.
-     *
-     * @param tenantId
-     *            Tenant UUID
-     * @return /tenants/tenantId/chains
-     */
-    public String getTenantChainsPath(String tenantId) {
-        return new StringBuilder(getTenantPath(tenantId.toString()))
-                .append("/").append(CHAINS_PATH).toString();
-    }
-
-    /**
      * Get ZK tenant bridge name path.
      *
      * @return /tenants/tenantId/bridge-names/name
@@ -132,44 +104,6 @@ public class PathBuilder {
     public String getTenantBridgeNamesPath(String tenantId) {
         return new StringBuilder(getTenantPath(tenantId)).append("/")
                 .append(BRIDGE_NAMES_PATH).toString();
-    }
-
-    /**
-     * Get ZK tenant bridge path.
-     *
-     * @param tenantId
-     *            Tenant UUID
-     * @param bridgeId
-     *            Bridge UUID
-     * @return /tenants/tenantId/bridges/bridgeId
-     */
-    public String getTenantBridgePath(String tenantId, UUID bridgeId) {
-        return new StringBuilder(getTenantBridgesPath(tenantId)).append("/")
-                .append(bridgeId).toString();
-    }
-
-    /**
-     * Get ZK tenant bridge path.
-     *
-     * @param tenantId
-     *            Tenant UUID
-     * @return /tenants/tenantId/bridges
-     */
-    public String getTenantBridgesPath(String tenantId) {
-        return new StringBuilder(getTenantPath(tenantId)).append("/")
-                .append(BRIDGES_PATH).toString();
-    }
-
-    /**
-     * Get ZK tenant path.
-     *
-     * @param id
-     *            Tenant ID
-     * @return /tenants/tenantId
-     */
-    public String getTenantPath(String id) {
-        return new StringBuilder(getTenantsPath()).append("/").append(id)
-                .toString();
     }
 
     /**
@@ -193,29 +127,15 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK tenant router path.
+     * Get ZK tenant path.
      *
-     * @param tenantId
-     *            Tenant UUID
-     * @param routerId
-     *            Router UUID
-     * @return /tenants/tenantId/routers/routerId
-     */
-    public String getTenantRouterPath(String tenantId, UUID routerId) {
-        return new StringBuilder(getTenantRoutersPath(tenantId)).append("/")
-                .append(routerId).toString();
-    }
-
-    /**
-     * Get ZK tenant router path.
-     *
-     * @param tenantId
+     * @param id
      *            Tenant ID
-     * @return /tenants/tenantId/routers
+     * @return /tenants/tenantId
      */
-    public String getTenantRoutersPath(String tenantId) {
-        return new StringBuilder(getTenantPath(tenantId)).append("/")
-                .append(ROUTERS_PATH).toString();
+    public String getTenantPath(String id) {
+        return new StringBuilder(getTenantsPath()).append("/").append(id)
+                .toString();
     }
 
     /**
