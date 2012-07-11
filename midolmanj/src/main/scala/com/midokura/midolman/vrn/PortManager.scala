@@ -5,16 +5,16 @@ package com.midokura.midolman.vrn
 
 import java.util.UUID
 import com.midokura.midolman.state.{PortConfig, PortZkManager}
-import com.midokura.midolman.state.PortDirectory.BridgePortConfig
-import collection.mutable
+import com.midokura.midolman.state.PortDirectory.{BridgePortConfig,
+        MaterializedRouterPortConfig, LogicalBridgePortConfig}
 import com.midokura.midolman.packets.IntIPv4
 
-class PortManager(id: UUID, val mgr: PortZkManager) extends DeviceManager(id) {
+class PortManager(id: UUID, val mgr: PortZkManager,
+                  val hostIp: IntIPv4) extends DeviceManager(id) {
     private var cfg: PortConfig = null
     private var local = false
-    private var needsLocationUpdate = false
-    private val locations = mutable.Set[IntIPv4]()
-    updateLocations()
+    private var locations: java.util.Set[IntIPv4] = null
+    refreshLocations()
 
     case object RefreshLocations
     val locCb: Runnable = new Runnable() {
@@ -24,43 +24,41 @@ class PortManager(id: UUID, val mgr: PortZkManager) extends DeviceManager(id) {
         }
     }
 
-    private def updateLocations(): Unit = {
-        // TODO: mgr.getLocations(id, locCb)
+    private def refreshLocations(): Unit = {
+        locations = mgr.getLocations(id, locCb)
+        makeNewPort()
     }
 
-    private def updateLocality(isLocal: Boolean, ipAddr: IntIPv4): Unit = {
+    private def updateLocality(isLocal: Boolean): Unit = {
         if (local != isLocal) {
             local = isLocal
-            if (null == cfg)
-                needsLocationUpdate = true
-            else {
-                if (cfg.isInstanceOf[BridgePortConfig])
-                    context.actorFor("..").tell(
-                        SetBridgePortLocal(cfg.device_id, id, isLocal))
-                else
-                    context.actorFor("..").tell(
-                        SetRouterPortLocal(cfg.device_id, id, isLocal))
-                if (chainsReady())
-                    makeNewPort()
-                if (local) {
-                    ; //TODO: mgr.addLocation(id, ipAddr)
-                }
-                else {
-                    ; //TODO: mgr.removeLocation(id, ipAddr)
-                }
-            }
+            if (local) mgr.addLocation(id, hostIp)
+            else mgr.removeLocation(id, hostIp)
+            if (chainsReady())
+                makeNewPort()
+            if (cfg.isInstanceOf[BridgePortConfig])
+                context.actorFor("..").tell(
+                    SetBridgePortLocal(cfg.device_id, id, isLocal))
+            else
+                context.actorFor("..").tell(
+                    SetRouterPortLocal(cfg.device_id, id, isLocal))
         }
     }
 
     private def makeNewPort(): Unit = {
-        context.actorFor("..").tell(
-            new Port(id, cfg, inFilter, outFilter, local));
+        if (chainsReady()) {
+            if (cfg.isInstanceOf[LogicalBridgePortConfig] ||
+                cfg.isInstanceOf[MaterializedRouterPortConfig])
+                context.actorFor("..").tell(
+                    new Port(id, cfg, inFilter, outFilter))
+            else if (null != locations)
+                context.actorFor("..").tell(
+                    new MaterializedPort(
+                        id, cfg, inFilter, outFilter, locations))
+        }
     }
 
-    override def chainsUpdated() = {
-        if (!needsLocationUpdate)
-            makeNewPort()
-    }
+    override def chainsUpdated = makeNewPort
 
     override def refreshConfig() = {
         cfg = mgr.get(id, cb)
@@ -75,7 +73,7 @@ class PortManager(id: UUID, val mgr: PortZkManager) extends DeviceManager(id) {
     }
 
     override def receive() = super.receive orElse {
-        case SetPortLocal(_, local, ipAddr) => updateLocality(local, ipAddr)
-        case RefreshLocations => updateLocations()
+        case SetPortLocal(_, local) => updateLocality(local)
+        case RefreshLocations => refreshLocations()
     }
 }

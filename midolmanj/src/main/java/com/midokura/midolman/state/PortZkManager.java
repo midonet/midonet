@@ -16,6 +16,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
@@ -69,6 +70,29 @@ public class PortZkManager extends ZkManager {
         return get(id, PortConfig.class, null);
     }
 
+    public Set<IntIPv4> getLocations(UUID id, Runnable watcher)
+            throws StateAccessException {
+        Set<IntIPv4> locations = new HashSet<IntIPv4>();
+        Set<String> locationStrings =
+                getChildren(pathManager.getPortLocationsPath(id), watcher);
+        for(String location : locationStrings) {
+            locations.add(IntIPv4.fromString(location));
+        }
+        return locations;
+    }
+
+    public void addLocation(UUID id, IntIPv4 location)
+            throws StateAccessException {
+        addEphemeral(pathManager.getPortLocationsPath(id) +
+                "/" + location.toString(), null);
+    }
+
+    public void removeLocation(UUID id, IntIPv4 location)
+            throws StateAccessException {
+        delete(pathManager.getPortLocationsPath(id) +
+                "/" + location.toString());
+    }
+
     private List<Op> prepareRouterPortCreate(UUID id,
             PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
@@ -101,6 +125,8 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getPortBgpPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getPortVpnPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortLocationsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
@@ -145,6 +171,8 @@ public class PortZkManager extends ZkManager {
         // Add materialized bridge port specific operations.
         ops.add(Op.create(pathManager.getBridgePortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(pathManager.getPortLocationsPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
         GreKey gre = new GreKey(id);
@@ -187,26 +215,26 @@ public class PortZkManager extends ZkManager {
     }
 
     public UUID create(PortDirectory.BridgePortConfig port, UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port, UUID id)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.BridgePortConfig port)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         UUID id = UUID.randomUUID();
         multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         UUID id = UUID.randomUUID();
         multi(prepareCreate(id, port));
         return id;
@@ -312,6 +340,8 @@ public class PortZkManager extends ZkManager {
         log.debug("Preparing to delete: {}", path);
         ops.add(Op.delete(path, -1));
 
+        ops.add(Op.delete(pathManager.getPortLocationsPath(id), -1));
+
         // Get common router port deletion operations
         ops.addAll(prepareRouterPortDelete(id, config));
 
@@ -345,6 +375,8 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getBridgePortPath(config.device_id, id),
                 -1));
         ops.addAll(prepareBridgePortDelete(id));
+
+        ops.add(Op.delete(pathManager.getPortLocationsPath(id), -1));
 
         // Delete the GRE key
         ops.addAll(greZkManager.prepareGreDelete(config.greKey));

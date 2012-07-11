@@ -60,8 +60,8 @@ public class IntIPv4 implements Cloneable {
      *
      * @param dottedQuad
      *      The String ip address or prefix to convert. This should be in one
-     *      of the following formats: "192.168.0.0:24" for prefixes or
-     *      "192.168.0.5" for a unicast address. Note that "192.168.0.5:32" is
+     *      of the following formats: "192.168.0.0_24" for prefixes or
+     *      "192.168.0.5" for a unicast address. Note that "192.168.0.5_32" is
      *      valid, but the resulting IntIPv4.toString will yield "192.168.0.5".
      * @return
      *      The IntIPv4 represented by the String.
@@ -81,7 +81,7 @@ public class IntIPv4 implements Cloneable {
      * Convert this object to its String representation.
      *
      *  @return
-     *      A String like "192.168.0.0:24" for prefixes or "192.168.0.5" for a
+     *      A String like "192.168.0.0_24" for prefixes or "192.168.0.5" for a
      *      unicast address (i.e. if the mask length is 32).
      */
     @Override
