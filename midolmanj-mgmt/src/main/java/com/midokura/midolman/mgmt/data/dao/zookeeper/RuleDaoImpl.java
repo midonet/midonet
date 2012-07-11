@@ -19,7 +19,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Data access class for rules.
  */
-public class RuleZkProxy implements RuleDao {
+public class RuleDaoImpl implements RuleDao {
 
     private final RuleZkManager dataAccessor;
 
@@ -29,7 +29,7 @@ public class RuleZkProxy implements RuleDao {
      * @param dataAccessor
      *            Rule data accessor.
      */
-    public RuleZkProxy(RuleZkManager dataAccessor) {
+    public RuleDaoImpl(RuleZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }
 

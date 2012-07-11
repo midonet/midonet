@@ -20,7 +20,7 @@ import com.midokura.midolman.state.StateAccessException;
  *
  * @author Yoshi Tamura
  */
-public class AdRouteZkProxy implements AdRouteDao {
+public class AdRouteDaoImpl implements AdRouteDao {
 
     private final AdRouteZkManager dataAccessor;
 
@@ -30,7 +30,7 @@ public class AdRouteZkProxy implements AdRouteDao {
      * @param dataAccessor
      *            　　AdRoute data accessor.
      */
-    public AdRouteZkProxy(AdRouteZkManager dataAccessor) {
+    public AdRouteDaoImpl(AdRouteZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }
 

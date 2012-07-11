@@ -17,21 +17,21 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dto.AdRoute;
-import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.VpnZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestAdRouteZkProxy {
+public class TestVpnDaoImpl {
 
-    private AdRouteZkProxy testObject;
+    private VpnDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private AdRouteZkManager dao;
+    private VpnZkManager dao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new AdRouteZkProxy(dao);
+        testObject = new VpnDaoImpl(dao);
     }
 
     @Test
@@ -39,8 +39,8 @@ public class TestAdRouteZkProxy {
         UUID id = UUID.randomUUID();
         doThrow(NoStatePathException.class).when(dao).get(id);
 
-        AdRoute adRoute = testObject.get(id);
+        Vpn vpn = testObject.get(id);
 
-        Assert.assertNull(adRoute);
+        Assert.assertNull(vpn);
     }
 }

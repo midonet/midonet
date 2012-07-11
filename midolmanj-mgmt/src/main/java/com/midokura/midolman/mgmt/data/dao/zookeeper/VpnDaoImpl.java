@@ -21,7 +21,7 @@ import com.midokura.midolman.state.VpnZkManager;
  * @version 1.6 25 Oct 2011
  * @author Yoshi Tamura
  */
-public class VpnZkProxy implements VpnDao {
+public class VpnDaoImpl implements VpnDao {
 
     private VpnZkManager dataAccessor = null;
 
@@ -31,7 +31,7 @@ public class VpnZkProxy implements VpnDao {
      * @param dataAccessor
      *            VPN data accessor.
      */
-    public VpnZkProxy(VpnZkManager dataAccessor) {
+    public VpnDaoImpl(VpnZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }
 

@@ -25,9 +25,9 @@ import com.midokura.midolman.state.StateAccessException;
  * @version 1.6 11 Sept 2011
  * @author Yoshi Tamura
  */
-public class BgpZkProxy implements BgpDao {
+public class BgpDaoImpl implements BgpDao {
 
-    private final static Logger log = LoggerFactory.getLogger(BgpZkProxy.class);
+    private final static Logger log = LoggerFactory.getLogger(BgpDaoImpl.class);
     private final BgpZkManager dataAccessor;
     private final AdRouteDao adRouteDao;
 
@@ -39,7 +39,7 @@ public class BgpZkProxy implements BgpDao {
      * @param adRouteDao
      *            AdRoute DAO
      */
-    public BgpZkProxy(BgpZkManager dataAccessor, AdRouteDao adRouteDao) {
+    public BgpDaoImpl(BgpZkManager dataAccessor, AdRouteDao adRouteDao) {
         this.dataAccessor = dataAccessor;
         this.adRouteDao = adRouteDao;
     }
@@ -88,13 +88,12 @@ public class BgpZkProxy implements BgpDao {
      */
     @Override
     public Bgp getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("BgpZkProxy.getByAdRouteId entered: adRouteId={}",
-                adRouteId);
+        log.debug("BgpDaoImpl.getByAdRouteId entered: adRouteId={}", adRouteId);
 
         AdRoute adRoute = adRouteDao.get(adRouteId);
         Bgp bgp = get(adRoute.getBgpId());
 
-        log.debug("BgpZkProxy.getByAdRouteId exiting: BGP={}", bgp);
+        log.debug("BgpDaoImpl.getByAdRouteId exiting: BGP={}", bgp);
         return bgp;
     }
 

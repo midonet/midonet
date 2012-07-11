@@ -17,25 +17,21 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
-import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.RouteZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestBgpZkProxy {
+public class TestRouteDaoImpl {
 
-    private BgpZkProxy testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private AdRouteDao adRouteDao;
+    private RouteDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private BgpZkManager dao;
+    private RouteZkManager dao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new BgpZkProxy(dao, adRouteDao);
+        testObject = new RouteDaoImpl(dao);
     }
 
     @Test
@@ -43,8 +39,8 @@ public class TestBgpZkProxy {
         UUID id = UUID.randomUUID();
         doThrow(NoStatePathException.class).when(dao).get(id);
 
-        Bgp bgp = testObject.get(id);
+        Route route = testObject.get(id);
 
-        Assert.assertNull(bgp);
+        Assert.assertNull(route);
     }
 }

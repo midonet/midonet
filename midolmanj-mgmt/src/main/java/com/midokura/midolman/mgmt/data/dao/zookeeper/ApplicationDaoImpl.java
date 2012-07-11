@@ -18,10 +18,10 @@ import com.midokura.midolman.state.ZkManager;
 /**
  * ZooKeeper data access manager for application-wide operations.
  */
-public class ApplicationZkDao implements ApplicationDao {
+public class ApplicationDaoImpl implements ApplicationDao {
 
     private final static Logger log = LoggerFactory
-            .getLogger(ApplicationZkDao.class);
+            .getLogger(ApplicationDaoImpl.class);
     private final ZkManager zkDao;
     private final PathService pathService;
 
@@ -33,7 +33,7 @@ public class ApplicationZkDao implements ApplicationDao {
      * @param pathService
      *            ZooKeeper path helper service.
      */
-    public ApplicationZkDao(ZkManager zkDao, PathService pathService) {
+    public ApplicationDaoImpl(ZkManager zkDao, PathService pathService) {
         this.zkDao = zkDao;
         this.pathService = pathService;
     }
@@ -45,7 +45,7 @@ public class ApplicationZkDao implements ApplicationDao {
      */
     @Override
     public void initialize() throws StateAccessException {
-        log.debug("ApplicationZkDao.initialize entered.");
+        log.debug("ApplicationDaoImpl.initialize entered.");
 
         Set<String> paths = pathService.getInitialPaths();
         for (String path : paths) {
@@ -57,6 +57,6 @@ public class ApplicationZkDao implements ApplicationDao {
             }
         }
 
-        log.debug("ApplicationZkDao.initialize exiting.");
+        log.debug("ApplicationDaoImpl.initialize exiting.");
     }
 }

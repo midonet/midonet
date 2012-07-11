@@ -17,21 +17,21 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.data.dto.AdRoute;
+import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.RuleZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestRuleZkProxy {
+public class TestAdRouteDaoImpl {
 
-    private RuleZkProxy testObject;
+    private AdRouteDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RuleZkManager dao;
+    private AdRouteZkManager dao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RuleZkProxy(dao);
+        testObject = new AdRouteDaoImpl(dao);
     }
 
     @Test
@@ -39,8 +39,8 @@ public class TestRuleZkProxy {
         UUID id = UUID.randomUUID();
         doThrow(NoStatePathException.class).when(dao).get(id);
 
-        Rule rule = testObject.get(id);
+        AdRoute adRoute = testObject.get(id);
 
-        Assert.assertNull(rule);
+        Assert.assertNull(adRoute);
     }
 }

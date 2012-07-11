@@ -18,17 +18,16 @@ import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/31/12
+ * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
  */
-public class HostDaoAdapter implements HostDao {
+public class HostDaoImpl implements HostDao {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(HostDaoAdapter.class);
+    private final static Logger log = LoggerFactory
+            .getLogger(HostDaoImpl.class);
 
     private final HostZkDao zkDao;
 
-    public HostDaoAdapter(HostZkDao zkDao) {
+    public HostDaoImpl(HostZkDao zkDao) {
         this.zkDao = zkDao;
     }
 
@@ -61,8 +60,9 @@ public class HostDaoAdapter implements HostDao {
                     hosts.add(host);
                 }
             } catch (StateAccessException e) {
-                log.warn("Tried to read the information of a host that vanished " +
-                             "or become corrupted: {}", id, e);
+                log.warn(
+                        "Tried to read the information of a host that vanished "
+                                + "or become corrupted: {}", id, e);
             }
         }
 
@@ -71,7 +71,7 @@ public class HostDaoAdapter implements HostDao {
 
     @Override
     public List<Interface> listInterfaces(UUID hostId)
-        throws StateAccessException {
+            throws StateAccessException {
         List<Interface> interfaces = new ArrayList<Interface>();
 
         Collection<UUID> interfaceIds = zkDao.getInterfaceIds(hostId);
@@ -83,9 +83,9 @@ public class HostDaoAdapter implements HostDao {
                 }
             } catch (StateAccessException e) {
                 log.warn(
-                    "An interface description went missing in action while " +
-                        "we were looking for it host: {}, interface: {}.",
-                    new Object[]{hostId, interfaceId, e});
+                        "An interface description went missing in action while "
+                                + "we were looking for it host: {}, interface: {}.",
+                        new Object[] { hostId, interfaceId, e });
             }
         }
 
@@ -94,7 +94,7 @@ public class HostDaoAdapter implements HostDao {
 
     @Override
     public Interface getInterface(UUID hostId, UUID interfaceId)
-        throws StateAccessException {
+            throws StateAccessException {
         Interface anInterface = null;
 
         if (zkDao.existsInterface(hostId, interfaceId)) {
@@ -106,34 +106,33 @@ public class HostDaoAdapter implements HostDao {
 
     @Override
     public HostCommand createCommandForInterfaceUpdate(UUID hostId,
-                                                       UUID curInterfaceId,
-                                                       Interface newInterface)
-        throws StateAccessException {
+            UUID curInterfaceId, Interface newInterface)
+            throws StateAccessException {
         return zkDao.registerCommandForInterface(hostId, curInterfaceId,
-                                                 newInterface);
+                newInterface);
     }
 
     @Override
     public List<HostCommand> listCommands(UUID hostId)
-        throws StateAccessException {
+            throws StateAccessException {
         return zkDao.getCommands(hostId);
     }
 
     @Override
     public HostCommand getCommand(UUID hostId, Integer id)
-        throws StateAccessException {
+            throws StateAccessException {
         return zkDao.getCommand(hostId, id);
     }
 
     @Override
     public void deleteCommand(UUID hostId, Integer id)
-        throws StateAccessException {
+            throws StateAccessException {
         zkDao.deleteHostCommand(hostId, id);
     }
 
     @Override
     public void deleteInterface(UUID hostId, UUID interfaceId)
-        throws StateAccessException {
+            throws StateAccessException {
         //
     }
 }

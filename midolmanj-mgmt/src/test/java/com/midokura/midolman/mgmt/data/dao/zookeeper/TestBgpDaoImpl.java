@@ -17,21 +17,25 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dto.Vpn;
+import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
+import com.midokura.midolman.mgmt.data.dto.Bgp;
+import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.VpnZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestVpnZkProxy {
+public class TestBgpDaoImpl {
 
-    private VpnZkProxy testObject;
+    private BgpDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private VpnZkManager dao;
+    private AdRouteDao adRouteDao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private BgpZkManager dao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new VpnZkProxy(dao);
+        testObject = new BgpDaoImpl(dao, adRouteDao);
     }
 
     @Test
@@ -39,8 +43,8 @@ public class TestVpnZkProxy {
         UUID id = UUID.randomUUID();
         doThrow(NoStatePathException.class).when(dao).get(id);
 
-        Vpn vpn = testObject.get(id);
+        Bgp bgp = testObject.get(id);
 
-        Assert.assertNull(vpn);
+        Assert.assertNull(bgp);
     }
 }

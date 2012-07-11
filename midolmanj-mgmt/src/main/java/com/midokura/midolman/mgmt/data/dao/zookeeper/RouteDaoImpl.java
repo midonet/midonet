@@ -17,7 +17,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Data access class for routes.
  */
-public class RouteZkProxy implements RouteDao {
+public class RouteDaoImpl implements RouteDao {
 
     private final RouteZkManager dataAccessor;
 
@@ -27,7 +27,7 @@ public class RouteZkProxy implements RouteDao {
      * @param dataAccessor
      *            Route data accessor.
      */
-    public RouteZkProxy(RouteZkManager dataAccessor) {
+    public RouteDaoImpl(RouteZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }
 

@@ -29,26 +29,26 @@ import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkProxy;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteDaoImpl;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationDaoImpl;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDaoImpl;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.DhcpDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.HostDaoAdapter;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.DhcpDaoImpl;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.HostDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.HostZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDaoImpl;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDaoImpl;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoImpl;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
@@ -162,11 +162,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public AdRouteDao getAdRouteDao() throws StateAccessException {
-        return new AdRouteZkProxy(getAdRouteZkManager());
-    }
-
-    private AdRouteZkManager getAdRouteZkManager() throws StateAccessException {
-        return new AdRouteZkManager(getDirectory(), this.rootPath);
+        return new AdRouteDaoImpl(new AdRouteZkManager(getDirectory(),
+                this.rootPath));
     }
 
     /*
@@ -176,7 +173,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public ApplicationDao getApplicationDao() throws StateAccessException {
-        return new ApplicationZkDao(getZkDao(), getPathService());
+        return new ApplicationDaoImpl(getZkDao(), getPathService());
     }
 
     /*
@@ -186,11 +183,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public BgpDao getBgpDao() throws StateAccessException {
-        return new BgpZkProxy(getBgpZkManager(), getAdRouteDao());
-    }
-
-    private BgpZkManager getBgpZkManager() throws StateAccessException {
-        return new BgpZkManager(getDirectory(), this.rootPath);
+        return new BgpDaoImpl(new BgpZkManager(getDirectory(), this.rootPath),
+                getAdRouteDao());
     }
 
     /*
@@ -207,11 +201,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
         return new BridgeZkDaoImpl(
                 new BridgeZkManager(getDirectory(), rootPath),
                 getPathBuilder(), getSerializer(), getPortDao());
-    }
-
-    private BridgeDhcpZkManager getBridgeDhcpZkMaanager()
-            throws StateAccessException {
-        return new BridgeDhcpZkManager(getDirectory(), rootPath);
     }
 
     /*
@@ -231,15 +220,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     @Override
     public HostDao getHostDao() throws StateAccessException {
-        return new HostDaoAdapter(getHostZkDao());
-    }
-
-    private HostZkDao getHostZkDao() throws StateAccessException {
-        return new HostZkDao(getHostZkManager(), getPathBuilder());
-    }
-
-    private HostZkManager getHostZkManager() throws StateAccessException {
-        return new HostZkManager(getDirectory(), rootPath);
+        return new HostDaoImpl(new HostZkDao(new HostZkManager(getDirectory(),
+                rootPath), getPathBuilder()));
     }
 
     private PathBuilder getPathBuilder() {
@@ -271,11 +253,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public RouteDao getRouteDao() throws StateAccessException {
-        return new RouteZkProxy(getRouteZkManager());
-    }
-
-    private RouteZkManager getRouteZkManager() throws StateAccessException {
-        return new RouteZkManager(getDirectory(), this.rootPath);
+        return new RouteDaoImpl(new RouteZkManager(getDirectory(),
+                this.rootPath));
     }
 
     /*
@@ -296,11 +275,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     @Override
     public RuleDao getRuleDao() throws StateAccessException {
-        return new RuleZkProxy(getRuleZkManager());
-    }
-
-    private RuleZkManager getRuleZkManager() throws StateAccessException {
-        return new RuleZkManager(getDirectory(), this.rootPath);
+        return new RuleDaoImpl(new RuleZkManager(getDirectory(), this.rootPath));
     }
 
     /*
@@ -322,12 +297,13 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public VpnDao getVpnDao() throws StateAccessException {
-        return new VpnZkProxy(getVpnZkManager());
+        return new VpnDaoImpl(new VpnZkManager(getDirectory(), this.rootPath));
     }
 
     @Override
     public DhcpDao getDhcpDao() throws StateAccessException {
-        return new DhcpDaoAdapter(getBridgeDhcpZkMaanager());
+        return new DhcpDaoImpl(
+                new BridgeDhcpZkManager(getDirectory(), rootPath));
     }
 
     @Override
@@ -338,10 +314,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     private PortGroupZkDao getPortGroupZkDao() throws StateAccessException {
         return new PortGroupZkDaoImpl(new PortGroupZkManager(getDirectory(),
                 this.rootPath), getPathBuilder());
-    }
-
-    private VpnZkManager getVpnZkManager() throws StateAccessException {
-        return new VpnZkManager(getDirectory(), this.rootPath);
     }
 
     private ZkManager getZkDao() throws StateAccessException {

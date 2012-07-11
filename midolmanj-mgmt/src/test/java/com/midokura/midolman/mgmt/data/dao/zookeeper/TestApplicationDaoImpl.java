@@ -17,15 +17,14 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dao.ApplicationDao;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.state.StatePathExistsException;
 import com.midokura.midolman.state.ZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestApplicationZkDao {
+public class TestApplicationDaoImpl {
 
-    private ApplicationDao testObject;
+    private ApplicationDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private ZkManager dao;
@@ -46,7 +45,7 @@ public class TestApplicationZkDao {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new ApplicationZkDao(dao, pathService);
+        testObject = new ApplicationDaoImpl(dao, pathService);
     }
 
     @Test
