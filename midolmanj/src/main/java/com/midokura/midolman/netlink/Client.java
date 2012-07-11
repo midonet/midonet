@@ -17,10 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
+import com.midokura.midolman.packets.MAC;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
 import com.midokura.util.netlink.dp.Datapath;
+import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
@@ -131,15 +133,12 @@ public class Client {
         log.info("Got datapath: {}.", datapath);
 
         log.info("Get the internal port by name:");
-        log.info("Got {}", ovsConnection.portsGet("internalPort", null).get());
+        Port port = ovsConnection.portsGet("internalPort", null).get();
+        log.info("Result {}", port);
 
-        log.info("Get the internal port by id:");
-        log.info("Got {}", ovsConnection.portsGet(1, datapath).get());
+        port.setAddress(MAC.fromString("aa:92:26:6c:43:2c").getAddress());
 
-        log.info("Get the gre tunnel port by name:");
-        log.info("Got {}", ovsConnection.portsGet("tunGrePort", null).get());
-
-        log.info("Get the gre tunnel port by id:");
-        log.info("Got {}", ovsConnection.portsGet(4, datapath).get());
+        log.info("Changing the mac address:");
+        log.info("Result {}", ovsConnection.portsSet(port, datapath).get());
     }
 }

@@ -220,6 +220,68 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
+    protected void _doPortsSet(@Nonnull final Port port,
+                               @Nullable final Datapath datapath,
+                               @Nonnull final Callback<Port> callback,
+                               final long timeoutMillis) {
+
+        validateState(callback);
+
+        int localPid = getChannel().getLocalAddress().getPid();
+        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
+
+        if (port.getName() == null && datapathIndex == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "Setting a port data by id needs a valid datapath id provided."));
+            return;
+        }
+
+        NetlinkMessage.Builder builder = newMessage();
+        builder.addValue(datapathIndex);
+        builder.addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+
+        if (port.getName() != null )
+            builder.addAttr(VPortFamily.Attr.NAME, port.getName());
+
+        if (port.getPortNo() != null )
+            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
+
+        if (port.getType() != null)
+            builder.addAttr(VPortFamily.Attr.PORT_TYPE, OvsPortType.getOvsPortTypeId(
+                port.getType()));
+
+        if (port.getAddress() != null)
+            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
+
+        if (port.getOptions() != null)
+            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
+
+        if (port.getStats() != null)
+            builder.addAttr(VPortFamily.Attr.STATS, port.getStats());
+
+        NetlinkMessage message = builder.build();
+
+        newRequest(vPortFamily, VPortFamily.Cmd.SET)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(message.buf)
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Port>() {
+                    @Override
+                    public Port apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializePort(input.get(0), datapathIndex);
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+
     @Override
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
                                      @Nonnull Callback<Set<Port>> callback,

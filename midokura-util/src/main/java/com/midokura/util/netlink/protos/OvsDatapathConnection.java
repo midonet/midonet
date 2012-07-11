@@ -209,28 +209,44 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Future based api to retrieve port information.
      *
-     * @param datapath the datapath which holds the port
-     * @param port the port we want to retrieve information for
+     * @param portName  the name of the port we want to retrieve information for.
+     * @param datapath  the datapath owning the port.
+     *
      * @return a future
      */
-    public Future<Port> portsGet(final @Nonnull String name,
+    public Future<Port> portsGet(final @Nonnull String portName,
                                  final @Nullable Datapath datapath) {
         ValueFuture<Port> future = ValueFuture.create();
-        portsGet(name, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
+        portsGet(portName, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
 
+    /**
+     * Callback based api for retrieving a port by name.
+     *
+     * @param portName      the name of the port.
+     * @param datapath      the datapath that this port should be located on.
+     * @param callback      the callback that will be provided the operation result.
+     */
     public void portsGet(final @Nonnull String portName,
                          final @Nullable Datapath datapath,
                          final @Nonnull Callback<Port> callback) {
         portsGet(portName, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
-    public void portsGet(final @Nonnull String name,
+    /**
+     * Callback based api for retrieving a port by name.
+     *
+     * @param portName      the name of the port.
+     * @param datapath      the datapath that this port should be located on.
+     * @param callback      the callback that will be provided the operation result.
+     * @param timeoutMillis the timeout we are prepared to wait for completion.
+     */
+    public void portsGet(final @Nonnull String portName,
                          final @Nullable Datapath datapath,
                          final @Nonnull Callback<Port> callback,
                          final long timeoutMillis) {
-        _doPortsGet(name, null, datapath, callback, timeoutMillis);
+        _doPortsGet(portName, null, datapath, callback, timeoutMillis);
     }
 
     /**
@@ -247,12 +263,27 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         return future;
     }
 
+    /**
+     * Callback based api for retrieving a port by id.
+     *
+     * @param portId      the id of the port.
+     * @param datapath    the datapath that this port should be located on.
+     * @param callback    the callback that will be called with the result.
+     */
     public void portsGet(final int portId,
                          final @Nonnull Datapath datapath,
                          final @Nonnull Callback<Port> callback) {
         portsGet(portId, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
+    /**
+     * Callback based api for retrieving a port by id.
+     *
+     * @param portId      the id of the port.
+     * @param datapath    the datapath that this port should be located on.
+     * @param callback    the callback that will be called with the result.
+     * @param timeoutMillis the timeout we are willing to wait for a result.
+     */
     public void portsGet(final int portId,
                          final @Nonnull Datapath datapath,
                          final @Nonnull Callback<Port> callback,
@@ -264,6 +295,56 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         final @Nullable Integer portId,
                                         final @Nullable Datapath datapath,
                                         final @Nonnull Callback<Port> callback,
+                                        final long timeoutMillis);
+
+    /**
+     * Future based api to updating port information.
+     *
+     * @param port the port we want to retrieve information for
+     * @param datapath the datapath which holds the port
+     *
+     * @return a future holding the updated port information.
+     */
+    public Future<Port> portsSet(final @Nonnull Port port,
+                                 final @Nullable Datapath datapath) {
+        ValueFuture<Port> future = ValueFuture.create();
+        portsSet(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
+        return future;
+    }
+
+    /**
+     * Callback based api for updating port information.
+     *
+     * @param port        the port description.
+     * @param datapath    the datapath that this port should be located on.
+     *
+     * @param callback    the callback that will be called with the result.
+     */
+    public void portsSet(final @Nonnull Port port,
+                         final @Nullable Datapath datapath,
+                         final @Nonnull Callback<Port> callback) {
+        portsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for retrieving a port by id.
+     *
+     * @param port          the updated port description.
+     * @param datapath      the datapath this port should be located on.
+     * @param callback      the callback that will be called with the result.
+     *
+     * @param timeoutMillis the timeout we are willing to wait for a result.
+     */
+    public void portsSet(final @Nonnull Port port,
+                         final @Nullable Datapath datapath,
+                         final @Nonnull Callback<Port> callback,
+                         final long timeoutMillis) {
+        _doPortsSet(port, datapath, callback, timeoutMillis);
+    }
+
+    protected abstract void _doPortsSet(@Nonnull final Port port,
+                                        @Nullable final Datapath datapath,
+                                        @Nonnull final Callback<Port> callback,
                                         final long timeoutMillis);
 
     /**

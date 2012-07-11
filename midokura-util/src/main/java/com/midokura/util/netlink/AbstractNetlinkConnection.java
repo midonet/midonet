@@ -151,11 +151,11 @@ public abstract class AbstractNetlinkConnection {
                 new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        log.info("Timeout passed for request with id: {}", seq);
                         NetlinkRequest timedOutRequest =
                             pendingRequests.remove(seq);
 
                         if (timedOutRequest != null) {
+                            log.trace("Timeout passed for request with id: {}", seq);
                             timedOutRequest.callback.onTimeout();
                         }
 
@@ -302,6 +302,7 @@ public abstract class AbstractNetlinkConnection {
 
     class NetlinkRequest {
         List<ByteBuffer> buffers = new ArrayList<ByteBuffer>();
+
         Callback<List<ByteBuffer>> callback;
     }
 

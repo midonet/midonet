@@ -128,10 +128,19 @@ public abstract class Port<PortOptions extends Port.Options, ActualPort extends 
             "portNo=" + portNo +
             ", type=" + type +
             ", name='" + name + '\'' +
-            ", address=" + Arrays.toString(address) +
+            ", address=" + macAddressAsString(address) +
             ", options=" + options +
             ", stats=" + stats +
             '}';
+    }
+
+    private String macAddressAsString(byte[] address) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%02x", address[0]));
+        for (int i=1; i<address.length; i++)
+            sb.append(":").append(String.format("%02x", address[i]));
+
+        return sb.toString();
     }
 
     public interface Options extends NetlinkMessage.BuilderAware { }

@@ -4,6 +4,8 @@
 package com.midokura.util.netlink.protos;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 import org.mockito.Matchers;
@@ -55,5 +57,34 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
     protected void fireNewReply() throws IOException {
         connection.handleEvent(null);
+    }
+
+    private static String HEXES = "0123456789ABCDEF";
+
+    protected byte[] macFromString(String macAddress) {
+        byte[] address = new byte[6];
+        String[] macBytes = macAddress.split(":");
+        if (macBytes.length != 6)
+            throw new IllegalArgumentException(
+                "Specified MAC Address must contain 12 hex digits" +
+                    " separated pairwise by :'s.");
+
+        for (int i = 0; i < 6; ++i) {
+            address[i] = (byte) (
+                (HEXES.indexOf(macBytes[i].toUpperCase().charAt(0)) << 4) |
+                    HEXES.indexOf(macBytes[i].toUpperCase().charAt(1))
+            );
+        }
+
+        return address;
+
+    }
+
+    protected byte[] ipFromString(String ip) {
+        try {
+            return Inet4Address.getByName(ip).getAddress();
+        } catch (UnknownHostException e) {
+            return new byte[4];
+        }
     }
 }

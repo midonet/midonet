@@ -89,9 +89,7 @@ public class OvsPortsGetTest
         InternalPort port =
             Ports.newInternalPort("internalPort")
                  .setPortNo(1)
-                 .setAddress(new byte[]{
-                     (byte) 0xaa, (byte) 0x92, (byte) 0x25,
-                     (byte) 0x6c, (byte) 0x43, (byte) 0x2c});
+                 .setAddress(macFromString("aa:92:25:6c:43:2c"));
 
         port.setStats(port.new Stats());
         port.setOptions(port.newOptions());
@@ -103,9 +101,8 @@ public class OvsPortsGetTest
         GreTunnelPort tunGrePort =
             Ports.newGreTunnelPort("tunGrePort")
                  .setPortNo(4)
-                 .setAddress(new byte[]{
-                     (byte) 0x3a, (byte) 0xef, (byte) 0xa9,
-                     (byte) 0xfe, (byte) 0x31, (byte) 0xd3});
+                 .setAddress(
+                     macFromString("3a:ef:a9:fe:31:d3"));
 
         tunGrePort.setStats(tunGrePort.new Stats());
         tunGrePort.setOptions(

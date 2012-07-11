@@ -146,9 +146,7 @@ public class OvsPortsCreateTest
         InternalPort port =
             Ports.newInternalPort("internalPort")
                  .setPortNo(1)
-                 .setAddress(new byte[]{
-                     (byte) 0xaa, (byte) 0x92, (byte) 0x25,
-                     (byte) 0x6c, (byte) 0x43, (byte) 0x2c});
+                 .setAddress(macFromString("aa:92:25:6c:43:2c"));
 
         port.setStats(port.new Stats());
         port.setOptions(port.newOptions());
@@ -160,9 +158,7 @@ public class OvsPortsCreateTest
         NetDevPort port =
             Ports.newNetDevPort("netdevPort")
                  .setPortNo(2)
-                 .setAddress(new byte[]{
-                     (byte) 0x56, (byte) 0x68, (byte) 0xde,
-                     (byte) 0x69, (byte) 0xf4, (byte) 0x96});
+                 .setAddress(macFromString("56:68:de:69:f4:96"));
 
         port.setStats(port.new Stats());
         port.setOptions(port.newOptions());
@@ -174,9 +170,7 @@ public class OvsPortsCreateTest
         PatchTunnelPort tunPatchPort =
             Ports.newPatchTunnelPort("tunPatchPort")
                  .setPortNo(3)
-                 .setAddress(new byte[]{
-                     (byte) 0x9e, (byte) 0xc7, (byte) 0x52,
-                     (byte) 0xfc, (byte) 0xab, (byte) 0x6});
+                 .setAddress(macFromString("9e:c7:52:fc:ab:06"));
 
         tunPatchPort.setStats(tunPatchPort.new Stats());
         tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
@@ -188,23 +182,13 @@ public class OvsPortsCreateTest
         GreTunnelPort tunGrePort =
             Ports.newGreTunnelPort("tunGrePort")
                  .setPortNo(4)
-                 .setAddress(new byte[]{
-                     (byte) 0x3a, (byte) 0xef, (byte) 0xa9,
-                     (byte) 0xfe, (byte) 0x31, (byte) 0xd3});
+                 .setAddress(macFromString("3a:ef:a9:fe:31:d3"));
 
         tunGrePort.setStats(tunGrePort.new Stats());
         tunGrePort.setOptions(
             Ports
-                .newPortOptions(
-                    tunGrePort,
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    })
-                .setSourceIPv4(
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    }
-                )
+                .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
+                .setSourceIPv4(ipFromString("192.168.100.1"))
         );
 
         return tunGrePort;
@@ -214,23 +198,17 @@ public class OvsPortsCreateTest
         CapWapTunnelPort tunCapwapGrePort =
             Ports.newCapwapTunnelPort("tunCapwapPort")
                  .setPortNo(5)
-                 .setAddress(new byte[]{
-                     (byte) 0x26, (byte) 0x05, (byte) 0x3b,
-                     (byte) 0x33, (byte) 0x8d, (byte) 0xbe});
+                 .setAddress(macFromString("26:05:3b:33:8d:be"));
 
         tunCapwapGrePort.setStats(tunCapwapGrePort.new Stats());
         tunCapwapGrePort.setOptions(
             Ports
                 .newPortOptions(
                     tunCapwapGrePort,
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    }
+                    ipFromString("192.168.100.1")
                 )
                 .setSourceIPv4(
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    }
+                    ipFromString("192.168.100.1")
                 )
         );
 
