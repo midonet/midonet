@@ -5,7 +5,9 @@
 package com.midokura.midolman.state;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,10 +40,19 @@ public class BridgeZkManager extends ZkManager {
             this.outboundFilter = outboundFilter;
         }
 
+        public BridgeConfig(String name, UUID inboundFilter, UUID outboundFilter) {
+            super();
+            this.name = name;
+            this.inboundFilter = inboundFilter;
+            this.outboundFilter = outboundFilter;
+        }
+
         // TODO: Make this private with a getter.
         public int greKey; // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public String name;
+        public Map<String, String> properties = new HashMap<String, String>();
 
         @Override
         public boolean equals(Object o) {
@@ -60,6 +71,8 @@ public class BridgeZkManager extends ZkManager {
             if (outboundFilter != null ? !outboundFilter
                     .equals(that.outboundFilter) : that.outboundFilter != null)
                 return false;
+            if (name != null ? !name.equals(that.name) : that.name != null)
+                return false;
 
             return true;
         }
@@ -71,6 +84,8 @@ public class BridgeZkManager extends ZkManager {
                     + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result
                     + (outboundFilter != null ? outboundFilter.hashCode() : 0);
+            result = 31 * result
+                    + (name != null ? name.hashCode() : 0);
             return result;
         }
 
@@ -78,7 +93,7 @@ public class BridgeZkManager extends ZkManager {
         public String toString() {
             return "BridgeConfig{" + "greKey=" + greKey + ", inboundFilter="
                     + inboundFilter + ", outboundFilter=" + outboundFilter
-                    + '}';
+                    + ", name=" + name + '}';
         }
     }
 
@@ -266,6 +281,18 @@ public class BridgeZkManager extends ZkManager {
         UUID id = UUID.randomUUID();
         multi(prepareBridgeCreate(id, bridge));
         return id;
+    }
+
+    /**
+     * Checks whether a bridge with the given ID exists.
+     *
+     * @param id
+     *            Bridge ID to check
+     * @return True if exists
+     * @throws StateAccessException
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getBridgePath(id));
     }
 
     public void update(UUID id, BridgeConfig cfg) throws StateAccessException {

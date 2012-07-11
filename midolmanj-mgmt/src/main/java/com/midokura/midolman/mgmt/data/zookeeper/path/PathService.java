@@ -71,7 +71,6 @@ public class PathService {
         pathSet.add(pathManager.getHostsPath());
         pathSet.add(pathBuilder.getTenantsPath());
         pathSet.add(pathBuilder.getRoutersPath());
-        pathSet.add(pathBuilder.getBridgesPath());
         pathSet.add(pathBuilder.getPortGroupsPath());
 
         log.debug("PathService.getInitialPaths exiting: pathSet count={}",

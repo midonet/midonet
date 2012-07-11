@@ -32,8 +32,8 @@ import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.AdRouteZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.DhcpDaoAdapter;
@@ -49,8 +49,6 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
-import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
@@ -222,31 +220,17 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public BridgeDao getBridgeDao() throws StateAccessException {
-        return new BridgeDaoAdapter(getBridgeZkDao(), getBridgeOpService(),
-                getPortDao());
+        return getBridgeZkDao();
     }
 
-    private BridgeZkManager getBridgeZkManager() throws StateAccessException {
-        return new BridgeZkManager(getDirectory(), getRootPath());
+    private BridgeZkDao getBridgeZkDao() throws StateAccessException {
+        return new BridgeZkDaoImpl(new BridgeZkManager(getDirectory(),
+                getRootPath()), getPathBuilder(), getSerializer(), getPortDao());
     }
 
     private BridgeDhcpZkManager getBridgeDhcpZkMaanager()
             throws StateAccessException {
         return new BridgeDhcpZkManager(getDirectory(), getRootPath());
-    }
-
-    private BridgeZkDao getBridgeZkDao() throws StateAccessException {
-        return new BridgeZkDao(getBridgeZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private BridgeOpBuilder getBridgeOpBuilder() throws StateAccessException {
-        return new BridgeOpBuilder(getBridgeZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private BridgeOpService getBridgeOpService() throws StateAccessException {
-        return new BridgeOpService(getBridgeOpBuilder(), getBridgeZkDao());
     }
 
     /*
@@ -260,8 +244,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private ChainZkDao getChainZkDao() throws StateAccessException {
-        return new ChainZkDaoImpl(getChainZkManager(), getPathBuilder(),
-                getSerializer(), getRuleDao());
+        return new ChainZkDaoImpl(new ChainZkManager(getDirectory(),
+                getRootPath()), getPathBuilder(), getSerializer(), getRuleDao());
     }
 
     @Override
@@ -275,10 +259,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     private HostZkManager getHostZkManager() throws StateAccessException {
         return new HostZkManager(getDirectory(), getRootPath());
-    }
-
-    private ChainZkManager getChainZkManager() throws StateAccessException {
-        return new ChainZkManager(getDirectory(), getRootPath());
     }
 
     private PathBuilder getPathBuilder() {
@@ -380,8 +360,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private TenantOpService getTenantOpService() throws StateAccessException {
-        return new TenantOpService(getTenantOpBuilder(), getBridgeOpService(),
-                getRouterOpService(), getTenantZkDao(), getChainZkDao(),
+        return new TenantOpService(getTenantOpBuilder(), getRouterOpService(),
+                getTenantZkDao(), getBridgeZkDao(), getChainZkDao(),
                 getPortGroupDao());
     }
 

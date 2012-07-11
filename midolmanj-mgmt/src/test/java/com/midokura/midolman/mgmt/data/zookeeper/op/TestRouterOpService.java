@@ -33,9 +33,6 @@ public class TestRouterOpService {
     private RouterOpBuilder opBuilder;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    BridgeOpBuilder bridgeOpBuilder;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private RouterZkDao zkDao;
 
     @Before

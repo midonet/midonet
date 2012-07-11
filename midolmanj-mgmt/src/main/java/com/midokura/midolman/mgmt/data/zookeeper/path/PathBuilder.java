@@ -44,28 +44,6 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK bridge path.
-     *
-     * @param id
-     *            Bridge UUID
-     * @return /bridges/bridgeId
-     */
-    public String getBridgePath(UUID id) {
-        return new StringBuilder(getBridgesPath()).append("/").append(id)
-                .toString();
-    }
-
-    /**
-     * Get ZK bridges path.
-     *
-     * @return /bridges
-     */
-    public String getBridgesPath() {
-        return new StringBuilder(basePath).append("/").append(BRIDGES_PATH)
-                .toString();
-    }
-
-    /**
      * Get ZK port group path.
      *
      * @return /port_groups/groupId

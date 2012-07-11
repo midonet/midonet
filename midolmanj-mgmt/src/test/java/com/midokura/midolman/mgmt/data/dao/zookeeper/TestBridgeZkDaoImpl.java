@@ -19,25 +19,30 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestBridgeDaoAdapter {
+public class TestBridgeZkDaoImpl {
 
-    private BridgeDaoAdapter testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private BridgeZkDao dao;
+    private BridgeZkDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private BridgeOpService opService;
+    private BridgeZkManager dao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PathBuilder pathBuilder;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ZkConfigSerializer serializer;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private PortDao portDao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new BridgeDaoAdapter(dao, opService, portDao);
+        testObject = new BridgeZkDaoImpl(dao, pathBuilder, serializer, portDao);
     }
 
     @Test

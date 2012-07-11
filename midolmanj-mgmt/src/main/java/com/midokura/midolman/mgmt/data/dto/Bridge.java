@@ -14,7 +14,6 @@ import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeExtended;
-import com.midokura.midolman.mgmt.data.dto.config.BridgeMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueBridgeName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
@@ -60,6 +59,20 @@ public class Bridge extends UriResource {
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
+    }
+
+    /**
+     * Bridge constructor
+     *
+     * @param id
+     *            Bridge ID
+     * @param config
+     *            BridgeConfig object
+     */
+    public Bridge(UUID id, BridgeConfig config) {
+        this(id, config.name, config.properties.get(ConfigProperty.TENANT_ID));
+        this.inboundFilterId = config.inboundFilter;
+        this.outboundFilterId = config.outboundFilter;
     }
 
     /**
@@ -213,16 +226,10 @@ public class Bridge extends UriResource {
      * @return BridgeConfig object
      */
     public BridgeConfig toConfig() {
-        return new BridgeConfig(this.inboundFilterId, this.outboundFilterId);
-    }
-
-    /**
-     * Convert this object to BridgeMgmtConfig object.
-     *
-     * @return BridgeMgmtConfig object.
-     */
-    public BridgeMgmtConfig toMgmtConfig() {
-        return new BridgeMgmtConfig(this.getTenantId(), this.getName());
+        BridgeConfig config = new BridgeConfig(this.name, this.inboundFilterId,
+                this.outboundFilterId);
+        config.properties.put(ConfigProperty.TENANT_ID, this.tenantId);
+        return config;
     }
 
     /**
@@ -245,8 +252,8 @@ public class Bridge extends UriResource {
     }
 
     /**
-     * Interface used for a Validation group.  This group gets triggered
-     * after the default validations.
+     * Interface used for a Validation group. This group gets triggered after
+     * the default validations.
      */
     public interface BridgeExtended {
     }
