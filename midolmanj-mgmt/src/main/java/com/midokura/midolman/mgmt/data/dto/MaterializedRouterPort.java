@@ -85,9 +85,9 @@ public class MaterializedRouterPort extends RouterPort implements
         this.localNetworkAddress = Net
                 .convertIntAddressToString(config.localNwAddr);
         this.localNetworkLength = config.localNwLength;
-        if (config.properties.containsKey(PortProperty.VIF_ID)) {
+        if (config.properties.containsKey(ConfigProperty.VIF_ID)) {
             this.vifId = UUID.fromString(config.properties
-                    .get(PortProperty.VIF_ID));
+                    .get(ConfigProperty.VIF_ID));
         }
     }
 
@@ -173,7 +173,7 @@ public class MaterializedRouterPort extends RouterPort implements
                 .convertStringAddressToInt(this.localNetworkAddress);
         config.localNwLength = this.localNetworkLength;
         if (this.vifId != null) {
-            config.properties.put(PortProperty.VIF_ID, this.vifId.toString());
+            config.properties.put(ConfigProperty.VIF_ID, this.vifId.toString());
         }
         return config;
     }

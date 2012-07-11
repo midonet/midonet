@@ -19,25 +19,30 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestChainDaoAdapter {
+public class TestChainDaoImpl {
 
-    private ChainDaoAdapter testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private ChainZkDao dao;
+    private ChainZkDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private ChainOpService opService;
+    private ChainZkManager dao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PathBuilder pathBuilder;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private ZkConfigSerializer serializer;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private RuleDao ruleDao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new ChainDaoAdapter(dao, opService, ruleDao);
+        testObject = new ChainZkDaoImpl(dao, pathBuilder, serializer, ruleDao);
     }
 
     @Test

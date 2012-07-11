@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
+import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -25,7 +27,7 @@ public class TenantOpService {
             .getLogger(TenantOpService.class);
     private final TenantZkDao zkDao;
     private final TenantOpBuilder opBuilder;
-    private final ChainOpService chainOpService;
+    private final ChainZkDao chainZkDao;
     private final BridgeOpService bridgeOpService;
     private final RouterOpService routerOpService;
     private final PortGroupDao groupDao;
@@ -44,12 +46,11 @@ public class TenantOpService {
      */
     public TenantOpService(TenantOpBuilder opBuilder,
             BridgeOpService bridgeOpService, RouterOpService routerOpService,
-            TenantZkDao zkDao, ChainOpService chainOpService,
-            PortGroupDao groupDao) {
+            TenantZkDao zkDao, ChainZkDao chainZkDao, PortGroupDao groupDao) {
         this.opBuilder = opBuilder;
         this.bridgeOpService = bridgeOpService;
         this.routerOpService = routerOpService;
-        this.chainOpService = chainOpService;
+        this.chainZkDao = chainZkDao;
         this.groupDao = groupDao;
         this.zkDao = zkDao;
     }
@@ -100,9 +101,14 @@ public class TenantOpService {
         List<Op> ops = new ArrayList<Op>();
 
         ops.addAll(groupDao.buildTenantPortGroupsDelete(id));
-        ops.addAll(chainOpService.buildTenantChainsDelete(id));
         ops.addAll(routerOpService.buildTenantRoutersDelete(id));
         ops.addAll(bridgeOpService.buildTenantBridgesDelete(id));
+
+        // Remove chains
+        List<Chain> chains = chainZkDao.list(id);
+        for (Chain chain : chains) {
+            ops.addAll(chainZkDao.prepareDelete(chain));
+        }
 
         ops.add(opBuilder.getTenantPortGroupNamesDeleteOp(id));
         ops.add(opBuilder.getTenantChainNamesDeleteOp(id));

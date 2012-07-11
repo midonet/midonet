@@ -66,26 +66,6 @@ public class PathBuilder {
     }
 
     /**
-     * Get ZK chain path.
-     *
-     * @return /chains/chainId
-     */
-    public String getChainPath(UUID id) {
-        return new StringBuilder(getChainsPath()).append("/").append(id)
-                .toString();
-    }
-
-    /**
-     * Get ZK chains path.
-     *
-     * @return /chains
-     */
-    public String getChainsPath() {
-        return new StringBuilder(basePath).append("/").append(CHAINS_PATH)
-                .toString();
-    }
-
-    /**
      * Get ZK port group path.
      *
      * @return /port_groups/groupId

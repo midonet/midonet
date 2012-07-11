@@ -140,15 +140,5 @@ public class TestPathBuilder {
         expected = root + "/" + PathBuilder.BRIDGES_PATH + "/" + uuid;
         Assert.assertEquals(expected, result);
 
-        // Chains
-        result = builder.getChainsPath();
-        expected = root + "/" + PathBuilder.CHAINS_PATH;
-        Assert.assertEquals(expected, result);
-
-        // Chain
-        result = builder.getChainPath(uuid);
-        expected = root + "/" + PathBuilder.CHAINS_PATH + "/" + uuid;
-        Assert.assertEquals(expected, result);
-
     }
 }

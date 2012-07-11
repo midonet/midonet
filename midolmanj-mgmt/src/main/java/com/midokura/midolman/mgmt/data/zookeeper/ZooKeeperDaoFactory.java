@@ -34,13 +34,13 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.ApplicationZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BgpZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.DhcpDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.HostDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.HostZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.MetricCassandraDao;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoAdapter;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.PortDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupDaoAdapter;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterDaoAdapter;
@@ -51,8 +51,6 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.BridgeOpService;
-import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.ChainOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.op.RouterOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
@@ -258,8 +256,12 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public ChainDao getChainDao() throws StateAccessException {
-        return new ChainDaoAdapter(getChainZkDao(), getChainOpService(),
-                getRuleDao());
+        return getChainZkDao();
+    }
+
+    private ChainZkDao getChainZkDao() throws StateAccessException {
+        return new ChainZkDaoImpl(getChainZkManager(), getPathBuilder(),
+                getSerializer(), getRuleDao());
     }
 
     @Override
@@ -275,22 +277,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
         return new HostZkManager(getDirectory(), getRootPath());
     }
 
-    private ChainZkDao getChainZkDao() throws StateAccessException {
-        return new ChainZkDao(getChainZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
     private ChainZkManager getChainZkManager() throws StateAccessException {
         return new ChainZkManager(getDirectory(), getRootPath());
-    }
-
-    private ChainOpBuilder getChainOpBuilder() throws StateAccessException {
-        return new ChainOpBuilder(getChainZkManager(), getPathBuilder(),
-                getSerializer());
-    }
-
-    private ChainOpService getChainOpService() throws StateAccessException {
-        return new ChainOpService(getChainOpBuilder(), getChainZkDao());
     }
 
     private PathBuilder getPathBuilder() {
@@ -312,7 +300,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public PortDao getPortDao() throws StateAccessException {
-        return new PortDaoAdapter(getPortZkManager(), getBgpDao(), getVpnDao());
+        return new PortDaoImpl(getPortZkManager(), getBgpDao(), getVpnDao());
     }
 
     private PortZkManager getPortZkManager() throws StateAccessException {
@@ -393,7 +381,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     private TenantOpService getTenantOpService() throws StateAccessException {
         return new TenantOpService(getTenantOpBuilder(), getBridgeOpService(),
-                getRouterOpService(), getTenantZkDao(), getChainOpService(),
+                getRouterOpService(), getTenantZkDao(), getChainZkDao(),
                 getPortGroupDao());
     }
 

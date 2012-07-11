@@ -14,7 +14,6 @@ import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.Chain.ChainExtended;
-import com.midokura.midolman.mgmt.data.dto.config.ChainMgmtConfig;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueChainName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
@@ -51,11 +50,9 @@ public class Chain extends UriResource {
      *            ID of the chain
      * @param config
      *            ChainConfig object
-     * @param config
-     *            ChainMgmtConfig object
      */
-    public Chain(UUID id, ChainMgmtConfig config) {
-        this(id, config.tenantId, config.name);
+    public Chain(UUID id, ChainConfig config) {
+        this(id, config.properties.get(ConfigProperty.TENANT_ID), config.name);
     }
 
     /**
@@ -143,11 +140,11 @@ public class Chain extends UriResource {
     }
 
     public ChainConfig toConfig() {
-        return new ChainConfig(this.getName());
-    }
-
-    public ChainMgmtConfig toMgmtConfig() {
-        return new ChainMgmtConfig(tenantId, name);
+        ChainConfig config = new ChainConfig(name);
+        if (tenantId != null) {
+            config.properties.put(ConfigProperty.TENANT_ID, tenantId);
+        }
+        return config;
     }
 
     public ChainNameMgmtConfig toNameMgmtConfig() {

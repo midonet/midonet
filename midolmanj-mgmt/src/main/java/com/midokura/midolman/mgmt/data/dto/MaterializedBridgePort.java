@@ -67,9 +67,9 @@ public class MaterializedBridgePort extends BridgePort implements
      */
     public MaterializedBridgePort(UUID id, MaterializedBridgePortConfig config) {
         super(id, config);
-        if (config.properties.containsKey(PortProperty.VIF_ID)) {
+        if (config.properties.containsKey(ConfigProperty.VIF_ID)) {
             this.vifId = UUID.fromString(config.properties
-                    .get(PortProperty.VIF_ID));
+                    .get(ConfigProperty.VIF_ID));
         }
     }
 
@@ -141,7 +141,7 @@ public class MaterializedBridgePort extends BridgePort implements
         PortDirectory.MaterializedBridgePortConfig config = new PortDirectory.MaterializedBridgePortConfig();
         super.setConfig(config);
         if (vifId != null) {
-            config.properties.put(PortProperty.VIF_ID, vifId.toString());
+            config.properties.put(ConfigProperty.VIF_ID, vifId.toString());
         }
         return config;
     }

@@ -5,7 +5,9 @@
 package com.midokura.midolman.state;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ public class ChainZkManager extends ZkManager {
 
         // The chain name should only be used for logging.
         public String name = null;
+        public Map<String, String> properties = new HashMap<String, String>();
 
         public ChainConfig() {
         }
@@ -115,6 +118,18 @@ public class ChainZkManager extends ZkManager {
         UUID id = UUID.randomUUID();
         multi(prepareChainCreate(id, chain));
         return id;
+    }
+
+    /**
+     * Checks whether a chain with the given ID exists.
+     *
+     * @param id
+     *            Chain ID to check
+     * @return True if exists
+     * @throws StateAccessException
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getChainPath(id));
     }
 
     /**
