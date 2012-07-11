@@ -63,7 +63,6 @@ public class FuncTest {
             .contextParam("version", "1.0")
             .contextParam("zk_conn_string", "").contextParam("zk_timeout", "0")
             .contextParam("zk_root", "/test/midolman")
-            .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
             .contextPath("/test").clientConfig(config);
     }
 

@@ -22,8 +22,7 @@ public class AppConfig {
     public final static String defaultAuthorizer = "com.midokura.midolman.mgmt.auth.SimpleAuthorizer";
     public final static String defaultZkConnString = "127.0.0.1:2181";
     public final static int defaultZkTimeout = 3000;
-    public final static String defaultZkRootPath = "/midonet/midolman";
-    public final static String defaultZkMgmtRootPath = "/midonet/midolman-mgmt";
+    public final static String defaultZkRootPath = "/midonet";
 
     public final static String versionKey = "version";
     public final static String dataStoreKey = "datastore_service";
@@ -173,24 +172,6 @@ public class AppConfig {
                     zkRootKey, defaultZkRootPath);
             val = defaultZkRootPath;
         }
-        return val;
-    }
-
-    /**
-     * @return The ZooKeeper root path for management specified in the config.
-     */
-    public String getZkMgmtRootPath() {
-        log.debug("AppConfig.getZkMgmtRootPath entered.");
-
-        String val = ctx.getInitParameter(zkMgmtRootKey);
-        if (val == null) {
-            log.warn(
-                    "{} was not specified in the config.  Using the default: {}",
-                    zkMgmtRootKey, defaultZkMgmtRootPath);
-            val = defaultZkMgmtRootPath;
-        }
-
-        log.debug("AppConfig.getZkMgmtRootPath exiting: {}", val);
         return val;
     }
 

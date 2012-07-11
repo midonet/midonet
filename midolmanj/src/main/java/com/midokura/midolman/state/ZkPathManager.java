@@ -25,6 +25,9 @@ public class ZkPathManager {
      */
     public ZkPathManager(String basePath) {
         this.basePath = basePath;
+        if (this.basePath == null) {
+            this.basePath = "";
+        }
     }
 
     /**

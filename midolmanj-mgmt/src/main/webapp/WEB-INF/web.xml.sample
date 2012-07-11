@@ -26,11 +26,7 @@
   </context-param>
   <context-param>
     <param-name>zk_root</param-name>
-    <param-value>/midonet/v1/midolman</param-value>
-  </context-param>
-  <context-param>
-    <param-name>zk_mgmt_root</param-name>
-    <param-value>/midonet/v1/midolman-mgmt</param-value>
+    <param-value>/midonet/v1</param-value>
   </context-param>
   <context-param>
   	 <param-name>cassandra-servers</param-name>

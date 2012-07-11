@@ -159,26 +159,6 @@ public class TestAppConfig {
     }
 
     @Test
-    public void testGetZkMgmtRootPathExists() throws Exception {
-        doReturn("foo").when(context).getInitParameter(
-            AppConfig.zkMgmtRootKey);
-
-        String result = testObject.getZkMgmtRootPath();
-
-        Assert.assertEquals("foo", result);
-    }
-
-    @Test
-    public void testGetZkMgmtRootPathNotExists() throws Exception {
-        doReturn(null).when(context).getInitParameter(
-            AppConfig.zkMgmtRootKey);
-
-        String result = testObject.getZkMgmtRootPath();
-
-        Assert.assertEquals(AppConfig.defaultZkMgmtRootPath, result);
-    }
-
-    @Test
     public void testGetCassandraServers() throws Exception {
         doReturn(null)
             .when(context)

@@ -4,38 +4,22 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.path;
 
+import com.midokura.midolman.state.ZkPathManager;
 
 /**
  * This class was created to have all state classes share the Zk path
  * information.
  */
-public class PathBuilder {
+public class PathBuilder extends ZkPathManager {
 
-    private final String basePath;
     public static final String BRIDGE_NAMES_PATH = "bridge-names";
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String TENANTS_PATH = "tenants";
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
-    /**
-     * Constructor
-     *
-     * @param basePath
-     *            Base path of Zk.
-     */
     public PathBuilder(String basePath) {
-        if (basePath == null) {
-            basePath = "";
-        }
-        this.basePath = basePath;
-    }
-
-    /**
-     * @return The base path.
-     */
-    public String getBasePath() {
-        return this.basePath;
+        super(basePath);
     }
 
     /**

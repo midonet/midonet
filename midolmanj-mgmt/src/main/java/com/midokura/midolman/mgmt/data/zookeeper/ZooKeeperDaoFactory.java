@@ -70,7 +70,6 @@ import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkPathManager;
 
 /**
  * ZooKeeper DAO factory class.
@@ -82,7 +81,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     protected ZkConnection conn;
     protected final String rootPath;
-    protected final String rootMgmtPath;
     protected final String connStr;
     protected final int timeout;
 
@@ -100,7 +98,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
         log.debug("ZooKeeperDaoFactory: Initializing ZooKeeperDaoFactory");
 
         this.rootPath = config.getZkRootPath();
-        this.rootMgmtPath = config.getZkMgmtRootPath();
         this.connStr = config.getZkConnectionString();
 
         try {
@@ -152,20 +149,6 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
         }
 
         log.debug("ZooKeeperDaoFactory.process: Exiting");
-    }
-
-    /**
-     * @return the rootPath
-     */
-    public String getRootPath() {
-        return rootPath;
-    }
-
-    /**
-     * @return the rootMgmtPath
-     */
-    public String getRootMgmtPath() {
-        return rootMgmtPath;
     }
 
     private ZkConfigSerializer getSerializer() {
@@ -221,13 +204,14 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private BridgeZkDao getBridgeZkDao() throws StateAccessException {
-        return new BridgeZkDaoImpl(new BridgeZkManager(getDirectory(),
-                getRootPath()), getPathBuilder(), getSerializer(), getPortDao());
+        return new BridgeZkDaoImpl(
+                new BridgeZkManager(getDirectory(), rootPath),
+                getPathBuilder(), getSerializer(), getPortDao());
     }
 
     private BridgeDhcpZkManager getBridgeDhcpZkMaanager()
             throws StateAccessException {
-        return new BridgeDhcpZkManager(getDirectory(), getRootPath());
+        return new BridgeDhcpZkManager(getDirectory(), rootPath);
     }
 
     /*
@@ -241,8 +225,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private ChainZkDao getChainZkDao() throws StateAccessException {
-        return new ChainZkDaoImpl(new ChainZkManager(getDirectory(),
-                getRootPath()), getPathBuilder(), getSerializer(), getRuleDao());
+        return new ChainZkDaoImpl(new ChainZkManager(getDirectory(), rootPath),
+                getPathBuilder(), getSerializer(), getRuleDao());
     }
 
     @Override
@@ -251,23 +235,19 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private HostZkDao getHostZkDao() throws StateAccessException {
-        return new HostZkDao(getHostZkManager(), getPathManager());
+        return new HostZkDao(getHostZkManager(), getPathBuilder());
     }
 
     private HostZkManager getHostZkManager() throws StateAccessException {
-        return new HostZkManager(getDirectory(), getRootPath());
+        return new HostZkManager(getDirectory(), rootPath);
     }
 
     private PathBuilder getPathBuilder() {
-        return new PathBuilder(rootMgmtPath);
-    }
-
-    private ZkPathManager getPathManager() {
-        return new ZkPathManager(rootPath);
+        return new PathBuilder(rootPath);
     }
 
     private PathService getPathService() {
-        return new PathService(getPathManager(), getPathBuilder());
+        return new PathService(getPathBuilder());
     }
 
     /*
@@ -281,7 +261,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private PortZkManager getPortZkManager() throws StateAccessException {
-        return new PortZkManager(getDirectory(), getRootPath());
+        return new PortZkManager(getDirectory(), rootPath);
     }
 
     /*
@@ -309,9 +289,9 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private RouterZkDao getRouterZkDao() throws StateAccessException {
-        return new RouterZkDaoImpl(new RouterZkManager(getDirectory(),
-                getRootPath()), getPathBuilder(), getSerializer(),
-                getPortDao(), getRouteDao());
+        return new RouterZkDaoImpl(
+                new RouterZkManager(getDirectory(), rootPath),
+                getPathBuilder(), getSerializer(), getPortDao(), getRouteDao());
     }
 
     @Override
@@ -365,7 +345,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
     }
 
     private ZkManager getZkDao() throws StateAccessException {
-        return new ZkManager(getDirectory(), getRootPath());
+        return new ZkManager(getDirectory(), rootPath);
     }
 
     @Override

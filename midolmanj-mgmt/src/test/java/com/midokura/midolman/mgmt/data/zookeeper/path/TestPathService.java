@@ -17,8 +17,6 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.state.ZkPathManager;
-
 @RunWith(MockitoJUnitRunner.class)
 public class TestPathService {
 
@@ -27,23 +25,19 @@ public class TestPathService {
     // Set answer to RETURNS_SMART_NULLS since the methods defined for this
     // mock all return String, and it should return "" instead of null for the
     // unstubbed methods.
-    @Mock(answer=Answers.RETURNS_SMART_NULLS)
-    private ZkPathManager pathManager;
-
-    @Mock(answer=Answers.RETURNS_SMART_NULLS)
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private PathBuilder pathBuilder;
 
     @Before
     public void setUp() {
-        testObject = new PathService(pathManager, pathBuilder);
+        testObject = new PathService(pathBuilder);
     }
 
     @Test
     public void testGetInitialPaths() {
 
         // Set up
-        doReturn("/foo/bar").when(pathManager).getBasePath();
-        doReturn("/foo/baz").when(pathBuilder).getBasePath();
+        doReturn("/foo/bar").when(pathBuilder).getBasePath();
 
         // Execute
         Set<String> pathSet = testObject.getInitialPaths();
@@ -51,28 +45,27 @@ public class TestPathService {
         // Verify
         Assert.assertTrue(pathSet.contains("/foo"));
         Assert.assertTrue(pathSet.contains("/foo/bar"));
-        Assert.assertTrue(pathSet.contains("/foo/baz"));
 
         // Verify that all the calls to create the init paths are executed.
-        verify(pathManager).getAdRoutesPath();
-        verify(pathManager).getRoutersPath();
-        verify(pathManager).getBridgesPath();
-        verify(pathManager).getPortsPath();
-        verify(pathManager).getChainsPath();
-        verify(pathManager).getFiltersPath();
-        verify(pathManager).getGrePath();
-        verify(pathManager).getPortSetsPath();
-        verify(pathManager).getRulesPath();
-        verify(pathManager).getRoutesPath();
-        verify(pathManager).getBgpPath();
-        verify(pathManager).getAdRoutesPath();
-        verify(pathManager).getVRNPortLocationsPath();
-        verify(pathManager).getVpnPath();
-        verify(pathManager).getAgentPath();
-        verify(pathManager).getAgentPortPath();
-        verify(pathManager).getAgentVpnPath();
-        verify(pathManager).getHostsPath();
-        verify(pathManager).getPortGroupsPath();
+        verify(pathBuilder).getAdRoutesPath();
+        verify(pathBuilder).getRoutersPath();
+        verify(pathBuilder).getBridgesPath();
+        verify(pathBuilder).getPortsPath();
+        verify(pathBuilder).getChainsPath();
+        verify(pathBuilder).getFiltersPath();
+        verify(pathBuilder).getGrePath();
+        verify(pathBuilder).getPortSetsPath();
+        verify(pathBuilder).getRulesPath();
+        verify(pathBuilder).getRoutesPath();
+        verify(pathBuilder).getBgpPath();
+        verify(pathBuilder).getAdRoutesPath();
+        verify(pathBuilder).getVRNPortLocationsPath();
+        verify(pathBuilder).getVpnPath();
+        verify(pathBuilder).getAgentPath();
+        verify(pathBuilder).getAgentPortPath();
+        verify(pathBuilder).getAgentVpnPath();
+        verify(pathBuilder).getHostsPath();
+        verify(pathBuilder).getPortGroupsPath();
         verify(pathBuilder).getTenantsPath();
     }
 }
