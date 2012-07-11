@@ -47,11 +47,8 @@ import com.midokura.midolman.mgmt.data.dao.zookeeper.RouteZkProxy;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.RuleZkProxy;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoAdapter;
-import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantZkDao;
+import com.midokura.midolman.mgmt.data.dao.zookeeper.TenantDaoImpl;
 import com.midokura.midolman.mgmt.data.dao.zookeeper.VpnZkProxy;
-import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpBuilder;
-import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
@@ -333,22 +330,8 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
      */
     @Override
     public TenantDao getTenantDao() throws StateAccessException {
-        return new TenantDaoAdapter(getTenantZkDao(), getTenantOpService(),
-                getBridgeDao(), getRouterDao(), getChainDao(),
-                getPortGroupDao());
-    }
-
-    private TenantZkDao getTenantZkDao() throws StateAccessException {
-        return new TenantZkDao(getZkDao(), getPathBuilder());
-    }
-
-    private TenantOpBuilder getTenantOpBuilder() throws StateAccessException {
-        return new TenantOpBuilder(getZkDao(), getPathBuilder());
-    }
-
-    private TenantOpService getTenantOpService() throws StateAccessException {
-        return new TenantOpService(getTenantOpBuilder(), getTenantZkDao(),
-                getRouterZkDao(), getBridgeZkDao(), getChainZkDao(),
+        return new TenantDaoImpl(getZkDao(), getPathBuilder(),
+                getBridgeZkDao(), getRouterZkDao(), getChainZkDao(),
                 getPortGroupZkDao());
     }
 

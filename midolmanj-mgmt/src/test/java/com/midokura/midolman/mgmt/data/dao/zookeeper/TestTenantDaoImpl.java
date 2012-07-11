@@ -4,7 +4,8 @@
  */
 package com.midokura.midolman.mgmt.data.dao.zookeeper;
 
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -14,49 +15,44 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.data.dao.BridgeDao;
-import com.midokura.midolman.mgmt.data.dao.ChainDao;
-import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
-import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.data.zookeeper.op.TenantOpService;
-import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.ZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestTenantDaoAdapter {
+public class TestTenantDaoImpl {
 
-    private TenantDaoAdapter testObject;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private TenantZkDao dao;
+    private TenantDaoImpl testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private TenantOpService opService;
+    private ZkManager dao;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouterDao routerDao;
+    private PathBuilder pathBuilder;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private BridgeDao bridgeDao;
+    private RouterZkDao routerDao;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private ChainDao chainDao;
+    private BridgeZkDao bridgeDao;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private PortGroupDao portGroupDao;
+    private ChainZkDao chainDao;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private PortGroupZkDao portGroupDao;
 
     @Before
     public void setUp() throws Exception {
-        testObject = new TenantDaoAdapter(dao, opService, bridgeDao, routerDao,
+        testObject = new TenantDaoImpl(dao, pathBuilder, bridgeDao, routerDao,
                 chainDao, portGroupDao);
     }
 
     @Test
     public void testGetNotExist() throws Exception {
-        String id = "foo";
-        doThrow(NoStatePathException.class).when(dao).getData(id);
+        doReturn(false).when(dao).exists(any(String.class));
 
-        Tenant tenant = testObject.get(id);
+        Tenant tenant = testObject.get("foo");
 
         Assert.assertNull(tenant);
     }

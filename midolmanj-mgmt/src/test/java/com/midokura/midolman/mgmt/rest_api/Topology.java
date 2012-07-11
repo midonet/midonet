@@ -62,6 +62,7 @@ public class Topology {
 
         private final DtoWebResource resource;
 
+        private DtoApplication app;
         private final Map<String, DtoTenant> tenants;
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
@@ -209,7 +210,7 @@ public class Topology {
 
         public Topology build() {
 
-            DtoApplication app = resource.getWebResource().path("")
+            this.app = resource.getWebResource().path("")
                     .type(APPLICATION_JSON).get(DtoApplication.class);
 
             for (Map.Entry<String, DtoTenant> entry : tenants.entrySet()) {
@@ -436,6 +437,10 @@ public class Topology {
 
     private Topology(Builder builder) {
         this.builder = builder;
+    }
+
+    public DtoApplication getApplication() {
+        return this.builder.app;
     }
 
     public DtoTenant getTenant(String tag) {

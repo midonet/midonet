@@ -1,93 +1,82 @@
 /*
- * @(#)TestTenant        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.util.UUID;
-
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
 import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
-public class TestTenant extends JerseyTest {
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 
-    private final static Logger log = LoggerFactory.getLogger(TestTenant.class);
-    private final String testTenantName = "TEST-TENANT";
+@RunWith(Enclosed.class)
+public class TestTenant {
 
-    private WebResource resource;
-    private ClientResponse response;
+    public static class TestTenantCrud extends JerseyTest {
 
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
-    public TestTenant() {
-        super(FuncTest.appDesc);
-    }
-
-    @Before
-    public void before() {
-
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
-
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString().endsWith("tenants/" + testTenantName));
-    }
-
-    @Test
-    public void testCreateWithEmptyBody() {
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, "{}");
-        String body = response.getEntity(String.class);
-
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        log.debug("body: {}", body);
-
-        String idString = response.getLocation().toString();
-        idString = idString.substring(idString.lastIndexOf("/") + 1, idString.length());
-        log.debug("idString: {}", idString);
-        try {
-            UUID.fromString(idString);
-        } catch (Exception e) {
-            Assert.fail("failed: returned tenant id doesn't conform to UUID form." + e);
+        public TestTenantCrud() {
+            super(FuncTest.appDesc);
         }
-    }
 
-    @Test
-    public void testList() {
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).get(
-                ClientResponse.class);
-        String body = response.getEntity(String.class);
-        log.debug("status: {}", response.getStatus());
-        log.debug("body: {}", body);
-        assertEquals(200, response.getStatus());
-    }
+        @Before
+        public void before() {
 
-    @Test
-    public void testDelete() {
-        resource = resource().path("tenants/" + testTenantName);
-        response = resource.type(APPLICATION_TENANT_JSON).delete(
-                ClientResponse.class);
-        log.debug("status: {}", response.getStatus());
-        assertEquals(204, response.getStatus());
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Just create an application
+            topology = new Topology.Builder(dtoResource).build();
+
+        }
+
+        @Test
+        public void testCreateGetListDelete() {
+
+            DtoApplication app = topology.getApplication();
+
+            // Create a tenant with no ID
+            DtoTenant tenant1 = new DtoTenant();
+            tenant1 = dtoResource.postAndVerifyCreated(app.getTenants(),
+                    APPLICATION_TENANT_JSON, tenant1, DtoTenant.class);
+            assertNotNull(tenant1.getId());
+
+            // Create a tenant with ID
+            DtoTenant tenant2 = new DtoTenant();
+            tenant2.setId("foo");
+            tenant2 = dtoResource.postAndVerifyCreated(app.getTenants(),
+                    APPLICATION_TENANT_JSON, tenant2, DtoTenant.class);
+            assertEquals("foo", tenant2.getId());
+
+            // List tenants
+            DtoTenant[] tenants = dtoResource.getAndVerifyOk(app.getTenants(),
+                    APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
+            assertEquals(2, tenants.length);
+
+            // Delete the first tenant
+            dtoResource.deleteAndVerifyNoContent(tenant1.getUri(),
+                    APPLICATION_TENANT_JSON);
+
+            // List again
+            tenants = dtoResource.getAndVerifyOk(app.getTenants(),
+                    APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
+            assertEquals(1, tenants.length);
+
+            // The first tenant should be gone
+            dtoResource.getAndVerifyNotFound(tenant1.getUri(),
+                    APPLICATION_TENANT_JSON);
+        }
     }
 }
