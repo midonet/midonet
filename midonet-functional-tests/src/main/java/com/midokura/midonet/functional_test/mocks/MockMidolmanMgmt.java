@@ -90,7 +90,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
             .contextParam("zk_conn_string", "127.0.0.1:2181")
             .contextParam("zk_timeout", "10000")
             .contextParam("zk_root", "/smoketest/midolman")
-            .contextParam("zk_mgmt_root", "/smoketest/midolman-mgmt")
             .contextPath("/test")
             .clientConfig(clientConfig);
     }
@@ -140,9 +139,13 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     private URI post(URI uri, Object entity) {
+        return post(uri, entity, MediaType.APPLICATION_JSON);
+    }
+
+    private URI post(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
             .uri(uri)
-            .type(MediaType.APPLICATION_JSON)
+            .type(mediaType)
             .post(ClientResponse.class, entity);
 
         if (response.getLocation() == null) {
@@ -156,10 +159,15 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return response.getLocation();
     }
 
+
     private URI put(URI uri, Object entity) {
+        return put(uri, entity, MediaType.APPLICATION_JSON);
+    }
+
+    private URI put(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
             .uri(uri)
-            .type(MediaType.APPLICATION_JSON)
+            .type(mediaType)
             .put(ClientResponse.class, entity);
 
         if (response.getStatus() != 204 && response.getStatus() != 200) {
@@ -339,7 +347,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     @Override
     public DtoPortGroup addPortGroup(DtoTenant tenant, DtoPortGroup group) {
-        URI uri = post(tenant.getChains(), group);
+        URI uri = post(tenant.getPortGroups(), group,
+                VendorMediaType.APPLICATION_PORTGROUP_JSON);
         return get(uri, DtoPortGroup.class);
     }
 
