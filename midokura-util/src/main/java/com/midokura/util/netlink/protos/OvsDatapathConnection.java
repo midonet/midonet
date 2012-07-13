@@ -12,6 +12,7 @@ import com.google.common.util.concurrent.ValueFuture;
 
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.dp.Datapath;
+import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
 import com.midokura.util.reactor.Reactor;
@@ -510,4 +511,24 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                             final Callback<Datapath> callback,
                                             final long defReplyTimeout);
 
+    public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
+        ValueFuture<Set<Flow>> flowsFuture = ValueFuture.create();
+        flowsEnumerate(datapath, wrapFuture(flowsFuture));
+        return flowsFuture;
+    }
+
+    public void flowsEnumerate(@Nonnull final Datapath datapath,
+                               @Nonnull final Callback<Set<Flow>> callback) {
+        flowsEnumerate(datapath, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void flowsEnumerate(@Nonnull final Datapath datapath,
+                               @Nonnull final Callback<Set<Flow>> callback,
+                               long timeoutMillis) {
+        _doFlowsEnumerate(datapath, callback, timeoutMillis);
+    }
+
+    protected abstract void _doFlowsEnumerate(@Nonnull final Datapath datapath,
+                                              @Nonnull final Callback<Set<Flow>> callback,
+                                              long timeoutMillis);
 }

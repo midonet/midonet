@@ -17,12 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
-import com.midokura.midolman.packets.MAC;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
 import com.midokura.util.netlink.dp.Datapath;
-import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
@@ -32,13 +30,13 @@ public class Client {
     private static final Logger log = LoggerFactory
         .getLogger(Client.class);
 
-    public static void main(String[] args) throws Exception {
-
+    public static OvsDatapathConnection createDatapathConnection()
+        throws Exception {
         SelectorProvider provider = SelectorProvider.provider();
 
         if (!(provider instanceof NetlinkSelectorProvider)) {
             log.error("Invalid selector type: {}", provider.getClass());
-            return;
+            throw new RuntimeException();
         }
 
         NetlinkSelectorProvider netlinkSelector = (NetlinkSelectorProvider) provider;
@@ -121,24 +119,23 @@ public class Client {
         log.info("Starting the selector loop");
         loopThread.start();
 
-        log.info("Initializing ovs connection");
-        ovsConnection.initialize();
+        return ovsConnection;
+    }
 
-        while (!ovsConnection.isInitialized()) {
+    public static void main(String[] args) throws Exception {
+
+        OvsDatapathConnection conn = createDatapathConnection();
+
+        log.info("Initializing ovs connection");
+        conn.initialize();
+
+        while (!conn.isInitialized()) {
             Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
         }
 
-        log.info("Getting test datapath:");
-        Datapath datapath = ovsConnection.datapathsGet("test").get();
-        log.info("Got datapath: {}.", datapath);
+        Datapath datapath = conn.datapathsGet("test").get();
+        log.info("Got datapath by name: {}.", datapath);
 
-        log.info("Get the internal port by name:");
-        Port port = ovsConnection.portsGet("internalPort", null).get();
-        log.info("Result {}", port);
-
-        port.setAddress(MAC.fromString("aa:92:26:6c:43:2c").getAddress());
-
-        log.info("Changing the mac address:");
-        log.info("Result {}", ovsConnection.portsSet(port, datapath).get());
+        log.info("Flows {}", conn.flowsEnumerate(datapath).get());
     }
 }

@@ -5,12 +5,15 @@
  */
 package com.midokura.midolman.util;
 
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 /**
  * Net utility class.
- * 
+ *
  * @version 1.6 08 Sept 2011
  * @author Ryu Ishimoto
  */
@@ -18,7 +21,7 @@ public class Net {
 
     /**
      * Converts InetAddress IP address to int.
-     * 
+     *
      * @param address
      *            IP address in InetAddress.
      * @return IP address in int.
@@ -49,7 +52,7 @@ public class Net {
 
     /**
      * Converts int IP address to string.
-     * 
+     *
      * @param address
      *            IP address in int.
      * @return IP address in String.
@@ -63,7 +66,7 @@ public class Net {
 
     /**
      * Converts string IP address to int.
-     * 
+     *
      * @param address
      *            IP address in string.
      * @return IP address in int.
@@ -104,4 +107,25 @@ public class Net {
         // TODO: Test this.
     }
 
+    /**
+     * Converts int array ipv4 to String
+     *
+     * @param address ipv6 address as int array
+     *
+     * @return IPv6 address as String
+     */
+    public static String convertIPv6BytesToString(int[] ipv6) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+        IntBuffer intBuffer = byteBuffer.asIntBuffer();
+        intBuffer.put(ipv6[0]);
+        intBuffer.put(ipv6[1]);
+        intBuffer.put(ipv6[2]);
+        intBuffer.put(ipv6[3]);
+
+        try {
+            return Inet6Address.getByAddress(byteBuffer.array()).getHostAddress();
+        } catch (UnknownHostException e) {
+            return "";
+        }
+    }
 }

@@ -5,11 +5,12 @@ package com.midokura.util.netlink.dp.ports;
 
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Port;
+import com.midokura.util.netlink.messages.BaseBuilder;
 
 public abstract class AbstractPortOptions implements Port.Options {
 
     @Override
-    public void serialize(NetlinkMessage.Builder builder) {
+    public void serialize(BaseBuilder builder) {
 
     }
 

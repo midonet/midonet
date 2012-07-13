@@ -12,15 +12,24 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
+import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
+import com.midokura.util.netlink.dp.flows.FlowAction;
+import com.midokura.util.netlink.dp.flows.FlowKey;
+import com.midokura.util.netlink.dp.flows.FlowStats;
 import com.midokura.util.netlink.exceptions.NetlinkException;
 import com.midokura.util.netlink.family.DatapathFamily;
-import com.midokura.util.netlink.family.VPortFamily;
+import com.midokura.util.netlink.family.FlowFamily;
+import com.midokura.util.netlink.family.PacketFamily;
+import com.midokura.util.netlink.family.PortFamily;
+import com.midokura.util.netlink.messages.Builder;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Flag;
 
@@ -29,13 +38,23 @@ import static com.midokura.util.netlink.Netlink.Flag;
  */
 public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
+    private static final Logger log = LoggerFactory
+        .getLogger(OvsDatapathConnectionImpl.class);
+    public static final int FALLBACK_PORT_MULTICAT = 33;
+
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor)
         throws Exception {
         super(channel, reactor);
     }
 
     DatapathFamily datapathFamily;
-    VPortFamily vPortFamily;
+    PortFamily portFamily;
+    FlowFamily flowFamily;
+    PacketFamily packetFamily;
+
+    int datapathMulticast;
+    int portMulticast;
+
 
 //    CommandFamily<FlowCommands> ovsFlowFamily;
 //    CommandFamily<PacketCommands> ovsPacketFamily;
@@ -55,7 +74,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         newRequest(datapathFamily, DatapathFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO,
                        Flag.NLM_F_DUMP)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Set<Datapath>>() {
@@ -94,13 +113,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message =
             newMessage()
                 .addValue(0)
-                .addAttr(DatapathFamily.Attr.NAME, name)
                 .addAttr(DatapathFamily.Attr.UPCALL_PID, localPid)
+                .addAttr(DatapathFamily.Attr.NAME, name)
                 .build();
 
         newRequest(datapathFamily, DatapathFamily.Cmd.NEW)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Datapath>() {
@@ -131,7 +150,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage.Builder builder = newMessage();
+        Builder builder = newMessage();
 
         builder.addValue(datapathId != null ? datapathId : 0);
 
@@ -143,7 +162,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         newRequest(datapathFamily, DatapathFamily.Cmd.DEL)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Datapath>() {
@@ -189,21 +208,21 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
-        NetlinkMessage.Builder builder = newMessage();
+        Builder builder = newMessage();
         builder.addValue(datapathIndex);
-        builder.addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
         if (portId != null)
-            builder.addAttr(VPortFamily.Attr.PORT_NO, portId);
+            builder.addAttr(PortFamily.Attr.PORT_NO, portId);
 
         if (name != null)
-            builder.addAttr(VPortFamily.Attr.NAME, name);
+            builder.addAttr(PortFamily.Attr.NAME, name);
 
         NetlinkMessage message = builder.build();
 
-        newRequest(vPortFamily, VPortFamily.Cmd.GET)
+        newRequest(portFamily, PortFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Port>() {
@@ -237,34 +256,35 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage.Builder builder = newMessage();
-        builder.addValue(datapathIndex);
-        builder.addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+        Builder builder =
+            newMessage()
+                .addValue(datapathIndex)
+                .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
-        if (port.getName() != null )
-            builder.addAttr(VPortFamily.Attr.NAME, port.getName());
+        if (port.getName() != null)
+            builder.addAttr(PortFamily.Attr.NAME, port.getName());
 
-        if (port.getPortNo() != null )
-            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
+        if (port.getPortNo() != null)
+            builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
         if (port.getType() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_TYPE, OvsPortType.getOvsPortTypeId(
-                port.getType()));
+            builder.addAttr(PortFamily.Attr.PORT_TYPE,
+                            OvsPortType.getOvsPortTypeId(port.getType()));
 
         if (port.getAddress() != null)
-            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
+            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
 
         if (port.getOptions() != null)
-            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
+            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
 
         if (port.getStats() != null)
-            builder.addAttr(VPortFamily.Attr.STATS, port.getStats());
+            builder.addAttr(PortFamily.Attr.STATS, port.getStats());
 
         NetlinkMessage message = builder.build();
 
-        newRequest(vPortFamily, VPortFamily.Cmd.SET)
+        newRequest(portFamily, PortFamily.Cmd.SET)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Port>() {
@@ -292,10 +312,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapath.getIndex())
             .build();
 
-        newRequest(vPortFamily, VPortFamily.Cmd.GET)
+        newRequest(portFamily, PortFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
                        Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Set<Port>>() {
@@ -356,28 +376,29 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        NetlinkMessage.Builder builder = newMessage()
+        int portTypeId = OvsPortType.getOvsPortTypeId(port.getType());
+
+        Builder builder = newMessage()
             .addValue(datapath.getIndex())
-            .addAttr(VPortFamily.Attr.PORT_TYPE,
-                     OvsPortType.getOvsPortTypeId(port.getType()))
-            .addAttr(VPortFamily.Attr.NAME, port.getName())
-            .addAttr(VPortFamily.Attr.UPCALL_PID, localPid);
+            .addAttr(PortFamily.Attr.PORT_TYPE, portTypeId)
+            .addAttr(PortFamily.Attr.NAME, port.getName())
+            .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
         if (port.getPortNo() != null)
-            builder.addAttr(VPortFamily.Attr.PORT_NO, port.getPortNo());
+            builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
         if (port.getAddress() != null)
-            builder.addAttr(VPortFamily.Attr.ADDRESS, port.getAddress());
+            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
 
         if (port.getOptions() != null) {
-            builder.addAttr(VPortFamily.Attr.OPTIONS, port.getOptions());
+            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
         }
 
         NetlinkMessage message = builder.build();
 
-        newRequest(vPortFamily, VPortFamily.Cmd.NEW)
+        newRequest(portFamily, PortFamily.Cmd.NEW)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
                 @Override
                 public Port apply(@Nullable List<ByteBuffer> input) {
@@ -405,7 +426,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage.Builder builder = newMessage();
+        Builder builder = newMessage();
 
         builder.addValue(datapathId != null ? datapathId : 0);
 
@@ -417,7 +438,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         newRequest(datapathFamily, DatapathFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(
                 callback,
                 new Function<List<ByteBuffer>, Datapath>() {
@@ -433,6 +454,67 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
+    @Override
+    protected void _doFlowsEnumerate(@Nonnull Datapath datapath,
+                                     @Nonnull Callback<Set<Flow>> callback,
+                                     long timeoutMillis) {
+        validateState(callback);
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .build();
+
+
+        newRequest(flowFamily, FlowFamily.Cmd.GET)
+            .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
+                       Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Set<Flow>>() {
+                    @Override
+                    public Set<Flow> apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null)
+                            return Collections.emptySet();
+
+                        Set<Flow> flows = new HashSet<Flow>();
+                        for (ByteBuffer buffer : input) {
+                            flows.add(deserializeFlow(buffer, datapathId));
+                        }
+
+                        return flows;
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    private Flow deserializeFlow(ByteBuffer buffer, int datapathId) {
+        NetlinkMessage msg = new NetlinkMessage(buffer);
+
+        int actualDpIndex = msg.getInt();
+        if (datapathId != 0 && actualDpIndex != datapathId)
+            return null;
+
+        Flow flow = new Flow();
+        flow.setStats(
+            msg.getAttrValue(FlowFamily.AttrKey.STATS, new FlowStats()));
+        flow.setTcpFlags(msg.getAttrValue(FlowFamily.AttrKey.TCP_FLAGS));
+        flow.setLastUsedTime(msg.getAttrValue(FlowFamily.AttrKey.USED));
+        flow.setActions(
+            msg.getAttrValue(FlowFamily.AttrKey.ACTIONS, FlowAction.Builder));
+        flow.setKeys(msg.getAttrValue(FlowFamily.AttrKey.KEY, FlowKey.Builder));
+        return flow;
+    }
+
     private Port deserializePort(ByteBuffer buffer, int dpIndex) {
 
         NetlinkMessage msg = new NetlinkMessage(buffer);
@@ -442,8 +524,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (dpIndex != 0 && actualDpIndex != dpIndex)
             return null;
 
-        String name = msg.getAttrValue(VPortFamily.Attr.NAME);
-        Integer type = msg.getAttrValue(VPortFamily.Attr.PORT_TYPE);
+        String name = msg.getAttrValue(PortFamily.Attr.NAME);
+        Integer type = msg.getAttrValue(PortFamily.Attr.PORT_TYPE);
 
         if (type == null || name == null)
             return null;
@@ -451,14 +533,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         Port port = Ports.newPortByType(OvsPortType.getOvsPortTypeId(type),
                                         name);
 
-        port.setAddress(msg.getAttrValue(VPortFamily.Attr.ADDRESS));
-        port.setPortNo(msg.getAttrValue(VPortFamily.Attr.PORT_NO));
+        port.setAddress(msg.getAttrValue(PortFamily.Attr.ADDRESS));
+        port.setPortNo(msg.getAttrValue(PortFamily.Attr.PORT_NO));
 
         port.setStats(
-            msg.getAttrValue(VPortFamily.Attr.STATS, port.new Stats()));
+            msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
 
         //noinspection unchecked
-        port.setOptions(msg.getAttrValue(VPortFamily.Attr.OPTIONS,
+        port.setOptions(msg.getAttrValue(PortFamily.Attr.OPTIONS,
                                          port.newOptions()));
 
         return port;
@@ -490,31 +572,75 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         state = State.Initializing;
 
-        final Callback<Short> vPortFamilyBuilder = new StateAwareCallback<Short>() {
+        final Callback<Integer> portMulticastCallback = new StateAwareCallback<Integer>() {
             @Override
-            public void onSuccess(Short data) {
-                vPortFamily = new VPortFamily(data);
+            public void onSuccess(Integer data) {
+                log.debug("Got port multicast group: {}.", data);
+                if (data != null) {
+                    OvsDatapathConnectionImpl.this.portMulticast = data;
+                } else {
+                    log.info(
+                        "Setting the port multicast group to fallback value: {}",
+                        PortFamily.FALLBACK_MC_GROUP);
+
+                    OvsDatapathConnectionImpl.this.portMulticast =
+                        PortFamily.FALLBACK_MC_GROUP;
+                }
+
                 state = State.Initialized;
             }
         };
 
-        final Callback<Short> dataPathFamilyBuilder = new StateAwareCallback<Short>() {
+        final Callback<Integer> datapathMulticastCallback = new StateAwareCallback<Integer>() {
             @Override
-            public void onSuccess(Short data) {
-                datapathFamily = new DatapathFamily(data);
-                getFamilyId("ovs_vport", vPortFamilyBuilder);
+            public void onSuccess(Integer data) {
+                log.debug("Got datapath multicast group: {}.", data);
+                if (data != null)
+                    OvsDatapathConnectionImpl.this.datapathMulticast = data;
+
+                getMulticastGroup(PortFamily.NAME, PortFamily.MC_GROUP,
+                                  portMulticastCallback);
             }
         };
 
-        getFamilyId("ovs_datapath", dataPathFamilyBuilder);
+        final Callback<Short> packetFamilyBuilder = new StateAwareCallback<Short>() {
+            @Override
+            public void onSuccess(Short data) {
+                packetFamily = new PacketFamily(data);
+                log.debug("Got packet family id: {}.", data);
+                getMulticastGroup(DatapathFamily.NAME, DatapathFamily.MC_GROUP,
+                                  datapathMulticastCallback);
+            }
+        };
 
-//        ovsFlowFamily = new Family<Cmd>(getFamilyId("ovs_flow"), 1);
-//        ovsPacketFamily = new Family<Cmd>(getFamilyId("ovs_packet"), 1);
+        final Callback<Short> flowFamilyBuilder = new StateAwareCallback<Short>() {
+            @Override
+            public void onSuccess(Short data) {
+                flowFamily = new FlowFamily(data);
+                log.debug("Got flow family id: {}.", data);
+                getFamilyId(PacketFamily.NAME, packetFamilyBuilder);
+            }
+        };
 
-//        ovsVportMulticastGroup = getMulticastGroup("ovs_vport",
-//                                                   "ovs_vport").get();
+        final Callback<Short> portFamilyBuilder = new StateAwareCallback<Short>() {
+            @Override
+            public void onSuccess(Short data) {
+                portFamily = new PortFamily(data);
+                log.debug("Got port family id: {}.", data);
+                getFamilyId(FlowFamily.NAME, flowFamilyBuilder);
+            }
+        };
 
-        // TODO: create a connection socket and subscribe to ovs_vport group
+        final Callback<Short> datapathFamilyBuilder = new StateAwareCallback<Short>() {
+            @Override
+            public void onSuccess(Short data) {
+                datapathFamily = new DatapathFamily(data);
+                log.debug("Got datapath family id: {}.", data);
+                getFamilyId(PortFamily.NAME, portFamilyBuilder);
+            }
+        };
+
+        getFamilyId(DatapathFamily.NAME, datapathFamilyBuilder);
     }
 
     public boolean isInitialized() {

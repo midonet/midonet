@@ -54,12 +54,12 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
         NetlinkMessage message =
             newMessage(64)
-                .addAttr(CtrlFamily.Attr.FAMILY_NAME, familyName)
+                .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
         newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY)
             .withFlags(Flag.NLM_F_REQUEST)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(callback, new Function<List<ByteBuffer>, Short>() {
                 @Override
                 public Short apply(@Nullable List<ByteBuffer> input) {
@@ -68,7 +68,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
                     NetlinkMessage message = new NetlinkMessage(input.get(0));
                     // read result from res
-                    return message.getAttrValue(CtrlFamily.Attr.FAMILY_ID);
+                    return message.getAttrValue(CtrlFamily.AttrKey.FAMILY_ID);
                 }
             })
             .withTimeout(timeoutMillis)
@@ -77,43 +77,44 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
     public void getMulticastGroup(final String familyName,
                                   final String groupName,
+                                  Callback<Integer> callback) {
+        getMulticastGroup(familyName, groupName, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void getMulticastGroup(final String familyName,
+                                  final String groupName,
                                   Callback<Integer> callback,
-                                  long timeoutMillis)
-        throws Exception {
+                                  long timeoutMillis) {
 
         NetlinkMessage message =
-            newMessage(64)
-                .addAttr(CtrlFamily.Attr.FAMILY_NAME, familyName)
+            newMessage()
+                .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
         newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY)
             .withFlags(Flag.NLM_F_REQUEST)
-            .withPayload(message.buf)
+            .withPayload(message.getBuffer())
             .withCallback(callback, new Function<List<ByteBuffer>, Integer>() {
                 @Override
                 public Integer apply(@Nullable List<ByteBuffer> input) {
                     if (input == null)
-                        return 0;
+                        return null;
 
                     NetlinkMessage res = new NetlinkMessage(input.get(0));
 
-                    NetlinkMessage sub = res.getAttrValue(CtrlFamily.Attr.MCAST_GROUPS);
+                    NetlinkMessage sub = res.getAttrValue(CtrlFamily.AttrKey.MCAST_GROUPS);
 
-                    while (sub.hasRemaining()) {
-                        sub.buf.getShort();
-                        sub.buf.getShort();
+                    if (sub == null)
+                        return null;
 
-                        Integer id =
-                            sub.getAttrValue(CtrlFamily.Attr.MCAST_GRP_ID);
-                        String name =
-                            sub.getAttrValue(CtrlFamily.Attr.MCAST_GRP_NAME);
+                    sub.getShort();
+                    sub.getShort();
 
-                        if (name.equals(groupName)) {
-                            return id;
-                        }
-                    }
+                    String name = sub.getAttrValue(CtrlFamily.AttrKey.MCAST_GRP_NAME);
+                    if ( name.equals(groupName) )
+                        return sub.getAttrValue(CtrlFamily.AttrKey.MCAST_GRP_ID);
 
-                    return 0;
+                    return null;
                 }
             })
             .withTimeout(timeoutMillis)

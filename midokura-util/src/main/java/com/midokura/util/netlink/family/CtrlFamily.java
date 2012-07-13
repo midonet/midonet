@@ -10,7 +10,7 @@ import com.midokura.util.netlink.NetlinkMessage;
  * Abstraction for the NETLINK CTRL family of commands and attributes.
  */
 public class CtrlFamily
-    extends Netlink.CommandFamily<CtrlFamily.Cmd, CtrlFamily.Attr> {
+    extends Netlink.CommandFamily<CtrlFamily.Cmd, CtrlFamily.AttrKey> {
 
     public static final int FAMILY_ID = 0x10;
     public static final int VERSION = 1;
@@ -33,47 +33,25 @@ public class CtrlFamily
         }
     }
 
-    public static class Attr<T> extends NetlinkMessage.Attr<T> {
+    public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
 
-        public static final Attr<Short> FAMILY_ID = attr(1);
-        public static final Attr<String> FAMILY_NAME = attr(2);
-        public static final Attr<String> FAMILY_VERSION = attr(3);
-        public static final Attr<String> HDRSIZE = attr(4);
-        public static final Attr<String> MAXATTR = attr(5);
-        public static final Attr<String> OPS = attr(6);
-        public static final Attr<NetlinkMessage> MCAST_GROUPS = attr(7);
+        public static final AttrKey<Short> FAMILY_ID = attr(1);
+        public static final AttrKey<String> FAMILY_NAME = attr(2);
+        public static final AttrKey<String> FAMILY_VERSION = attr(3);
+        public static final AttrKey<String> HDRSIZE = attr(4);
+        public static final AttrKey<String> MAXATTR = attr(5);
+        public static final AttrKey<String> OPS = attr(6);
+        public static final AttrKey<NetlinkMessage> MCAST_GROUPS = attr(7);
 
-        public static final Attr<String> MCAST_GRP_NAME = attr(1);
-        public static final Attr<Integer> MCAST_GRP_ID = attr(2);
+        public static final AttrKey<String> MCAST_GRP_NAME = attr(1);
+        public static final AttrKey<Integer> MCAST_GRP_ID = attr(2);
 
-        private Attr(int id) {
+        private AttrKey(int id) {
             super(id);
         }
 
-        static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id);
-        }
-    }
-
-    public enum Attr2 implements Netlink.ShortConstant {
-
-        FAMILY_ID(1), FAMILY_NAME(2), FAMILY_VERSION(3),
-        HDRSIZE(4),
-        MAXATTR(5),
-        OPS(6),
-        MCAST_GROUPS(7),
-
-        MCAST_GRP_NAME(1), MCAST_GRP_ID(2);
-
-        short value;
-
-        private Attr2(int value) {
-            this.value = (short) value;
-        }
-
-        @Override
-        public short getValue() {
-            return value;
+        static <T> AttrKey<T> attr(int id) {
+            return new AttrKey<T>(id);
         }
     }
 

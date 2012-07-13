@@ -6,6 +6,7 @@ package com.midokura.util.netlink.dp.ports;
 import java.util.Arrays;
 
 import com.midokura.util.netlink.NetlinkMessage;
+import com.midokura.util.netlink.messages.BaseBuilder;
 
 /**
 * Abstract class that encapsulates options for a tunnel port.
@@ -116,7 +117,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
 
     protected abstract Options self();
 
-    static class Attr<T> extends NetlinkMessage.Attr<T> {
+    static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         public static final Attr<Integer> OVS_TUNNEL_ATTR_FLAGS = attr(1);
         public static final Attr<byte[]> OVS_TUNNEL_ATTR_DST_IPV4 = attr(2);
@@ -136,7 +137,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     }
 
     @Override
-    public void serialize(NetlinkMessage.Builder builder) {
+    public void serialize(BaseBuilder builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4);
         if (this.srcIPv4 != null) {

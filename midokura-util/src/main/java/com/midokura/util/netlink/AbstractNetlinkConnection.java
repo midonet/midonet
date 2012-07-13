@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.util.netlink.clib.cLibrary;
 import com.midokura.util.netlink.exceptions.NetlinkException;
+import com.midokura.util.netlink.messages.Builder;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Flag;
 
@@ -244,7 +244,8 @@ public abstract class AbstractNetlinkConnection {
                     NetlinkRequest errRequest = pendingRequests.remove(seq);
 
                     if (errRequest != null) {
-                        errRequest.callback.onError(new NetlinkException(-error, errorMessage));
+                        errRequest.callback.onError(
+                            new NetlinkException(-error, errorMessage));
                     }
 
                     break;
@@ -339,15 +340,15 @@ public abstract class AbstractNetlinkConnection {
         };
     }
 
-    protected NetlinkMessage.Builder newMessage(int size, ByteOrder order) {
+    protected Builder newMessage(int size, ByteOrder order) {
         return NetlinkMessage.newMessageBuilder(size, order);
     }
 
-    protected NetlinkMessage.Builder newMessage(int size) {
+    protected Builder newMessage(int size) {
         return NetlinkMessage.newMessageBuilder(size);
     }
 
-    protected NetlinkMessage.Builder newMessage() {
+    protected Builder newMessage() {
         return NetlinkMessage.newMessageBuilder();
     }
 }

@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Port;
+import com.midokura.util.netlink.messages.BaseBuilder;
 
 /**
  * Description of a "patch" tunnel datapath port.
@@ -37,7 +38,7 @@ public class PatchTunnelPort extends Port<PatchTunnelPort.Options, PatchTunnelPo
         }
 
         @Override
-        public void serialize(NetlinkMessage.Builder builder) {
+        public void serialize(BaseBuilder builder) {
             if ( peer != null ) {
                 builder.addAttr(Attr.OVS_PATCH_ATTR_PEER, peer);
             }
@@ -76,7 +77,7 @@ public class PatchTunnelPort extends Port<PatchTunnelPort.Options, PatchTunnelPo
         }
     }
 
-    static class Attr<T> extends NetlinkMessage.Attr<T> {
+    static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         public static final Attr<String> OVS_PATCH_ATTR_PEER = attr(1);
 

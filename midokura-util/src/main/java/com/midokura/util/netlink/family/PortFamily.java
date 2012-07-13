@@ -10,10 +10,14 @@ import com.midokura.util.netlink.dp.Port;
 /**
  * Abstraction for the NETLINK OvsVPort family of commands and attributes.
  */
-public class VPortFamily
-    extends Netlink.CommandFamily<VPortFamily.Cmd, VPortFamily.Attr>{
+public class PortFamily
+    extends Netlink.CommandFamily<PortFamily.Cmd, PortFamily.Attr>{
 
     public static final byte VERSION = 1;
+    public static final String NAME = "ovs_vport";
+    public static final String MC_GROUP = "ovs_vport";
+
+    public static final int FALLBACK_MC_GROUP = 33;
 
     public enum Cmd implements Netlink.ByteConstant {
         NEW(1), DEL(2), GET(3), SET(4);
@@ -30,7 +34,7 @@ public class VPortFamily
         }
     }
 
-    public static class Attr<T> extends NetlinkMessage.Attr<T> {
+    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         /* u32 port number within datapath */
         public static final Attr<Integer> PORT_NO = attr(1);
@@ -42,7 +46,7 @@ public class VPortFamily
         public static final Attr<String> NAME = attr(3);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<? extends Port.Options> OPTIONS = attr(4);
+        public static final Attr<Port.Options> OPTIONS = attr(4);
 
         /* u32 Netlink PID to receive upcalls */
         public static final Attr<Integer> UPCALL_PID = attr(5);
@@ -63,7 +67,7 @@ public class VPortFamily
         }
     }
 
-    public VPortFamily(int familyId) {
+    public PortFamily(int familyId) {
         super(familyId, VERSION);
     }
 }

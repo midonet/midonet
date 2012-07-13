@@ -13,6 +13,8 @@ import com.midokura.util.netlink.dp.Datapath;
 public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, DatapathFamily.Attr>{
 
     public static final byte VERSION = 1;
+    public static final String NAME = "ovs_datapath";
+    public static final String MC_GROUP = "ovs_datapath";
 
     public enum Cmd implements Netlink.ByteConstant {
         NEW(1), DEL(2), GET(3), SET(4);
@@ -29,7 +31,7 @@ public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, Da
         }
     }
 
-    public static class Attr<T> extends NetlinkMessage.Attr<T> {
+    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         public static final Attr<String> NAME = attr(1);
         public static final Attr<Integer> UPCALL_PID = attr(2);

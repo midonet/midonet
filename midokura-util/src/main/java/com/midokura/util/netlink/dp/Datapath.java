@@ -4,6 +4,8 @@
 package com.midokura.util.netlink.dp;
 
 import com.midokura.util.netlink.NetlinkMessage;
+import com.midokura.util.netlink.messages.BaseBuilder;
+import com.midokura.util.netlink.messages.BuilderAware;
 
 /**
  * Datapath abstraction.
@@ -43,7 +45,7 @@ public class Datapath {
         this.stats = stats;
     }
 
-    public class Stats implements NetlinkMessage.BuilderAware {
+    public class Stats implements BuilderAware {
 
         long hits;
         long misses;
@@ -54,36 +56,40 @@ public class Datapath {
             return hits;
         }
 
-        public void setHits(long hits) {
+        public Stats setHits(long hits) {
             this.hits = hits;
+            return this;
         }
 
         public long getMisses() {
             return misses;
         }
 
-        public void setMisses(long misses) {
+        public Stats setMisses(long misses) {
             this.misses = misses;
+            return this;
         }
 
         public long getLost() {
             return lost;
         }
 
-        public void setLost(long lost) {
+        public Stats setLost(long lost) {
             this.lost = lost;
+            return this;
         }
 
         public long getFlows() {
             return flows;
         }
 
-        public void setFlows(long flows) {
+        public Stats setFlows(long flows) {
             this.flows = flows;
+            return this;
         }
 
         @Override
-        public void serialize(NetlinkMessage.Builder builder) {
+        public void serialize(BaseBuilder builder) {
             builder.addValue(hits);
             builder.addValue(misses);
             builder.addValue(lost);
@@ -145,16 +151,23 @@ public class Datapath {
 
         Datapath datapath = (Datapath) o;
 
-        if (index != datapath.index) return false;
-        if (!name.equals(datapath.name)) return false;
+        if (index != null ? !index.equals(
+            datapath.index) : datapath.index != null)
+            return false;
+        if (name != null ? !name.equals(datapath.name) : datapath.name != null)
+            return false;
+        if (stats != null ? !stats.equals(
+            datapath.stats) : datapath.stats != null)
+            return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = index;
-        result = 31 * result + name.hashCode();
+        int result = index != null ? index.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (stats != null ? stats.hashCode() : 0);
         return result;
     }
 

@@ -8,6 +8,8 @@ import java.util.EnumSet;
 import javax.annotation.Nonnull;
 
 import com.midokura.util.netlink.NetlinkMessage;
+import com.midokura.util.netlink.messages.BaseBuilder;
+import com.midokura.util.netlink.messages.BuilderAware;
 
 /**
  * Abstract port abstraction.
@@ -143,16 +145,16 @@ public abstract class Port<PortOptions extends Port.Options, ActualPort extends 
         return sb.toString();
     }
 
-    public interface Options extends NetlinkMessage.BuilderAware { }
+    public interface Options extends BuilderAware { }
 
-    public class Stats implements NetlinkMessage.BuilderAware {
+    public class Stats implements BuilderAware {
         long rxPackets, txPackets;
         long rxBytes, txBytes;
         long rxErrors, txErrors;
         long rxDropped, txDropped;
 
         @Override
-        public void serialize(NetlinkMessage.Builder builder) {
+        public void serialize(BaseBuilder builder) {
             builder.addValue(rxPackets);
             builder.addValue(txPackets);
             builder.addValue(rxBytes);

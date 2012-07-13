@@ -131,7 +131,7 @@ public interface Netlink {
 
     public static class CommandFamily<
         Cmd extends Enum<Cmd> & ByteConstant,
-        Attr extends NetlinkMessage.Attr>
+        AttrKey extends NetlinkMessage.AttrKey>
     {
         private short familyId;
         private byte version;
