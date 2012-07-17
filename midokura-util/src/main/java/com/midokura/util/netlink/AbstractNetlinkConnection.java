@@ -48,7 +48,7 @@ public abstract class AbstractNetlinkConnection {
         this.reactor = reactor;
     }
 
-    protected NetlinkChannel getChannel() {
+    public NetlinkChannel getChannel() {
         return channel;
     }
 
@@ -155,7 +155,8 @@ public abstract class AbstractNetlinkConnection {
                             pendingRequests.remove(seq);
 
                         if (timedOutRequest != null) {
-                            log.trace("Timeout passed for request with id: {}", seq);
+                            log.trace("Timeout passed for request with id: {}",
+                                      seq);
                             timedOutRequest.callback.onTimeout();
                         }
 
@@ -164,7 +165,9 @@ public abstract class AbstractNetlinkConnection {
                 });
 
         } catch (IOException e) {
-            netlinkRequest.callback.onError(new NetlinkException(NetlinkException.ERROR_SENDING_REQUEST, e));
+            netlinkRequest.callback
+                          .onError(new NetlinkException(
+                              NetlinkException.ERROR_SENDING_REQUEST, e));
         }
     }
 
@@ -191,38 +194,35 @@ public abstract class AbstractNetlinkConnection {
         reply.mark();
 
         int finalLimit = reply.limit();
-        while ( reply.remaining() >= 20 ) {
+        while (reply.remaining() >= 20) {
             // read the nlmsghdr and check for error
             int position = reply.position();
 
             int len = reply.getInt();           // length
-            reply.limit(position + len);
-
             short type = reply.getShort();      // type
             short flags = reply.getShort();     // flags
             int seq = reply.getInt();           // sequence no.
             int pid = reply.getInt();           // pid
 
+            int nextPosition = finalLimit;
+            if (Flag.isSet(flags, Flag.NLM_F_MULTI)) {
+                reply.limit(position + len);
+                nextPosition = position + len;
+            }
+
             NetlinkRequest request = pendingRequests.get(seq);
             if (request == null) {
-                log.warn("Reply handlers for netlink request with id {} not found.",
-                         seq);
-                reply.limit(finalLimit);
-                reply.position(position + len);
-
-                continue;
+                log.warn("Reply handlers for netlink request with id {} " +
+                             "not found.", seq);
             }
 
-            List<ByteBuffer> buffers = request.buffers;
+            List<ByteBuffer> buffers =
+                request == null
+                    ? new ArrayList<ByteBuffer>()
+                    : request.buffers;
 
-            Netlink.MessageType messageType = Netlink.MessageType.findById(type);
-
-            if (messageType == null) {
-                log.error("Got unknown message with type: {}", type);
-                reply.limit(finalLimit);
-                reply.position(position + len);
-                continue;
-            }
+            Netlink.MessageType messageType =
+                Netlink.MessageType.findById(type);
 
             switch (messageType) {
                 case NLMSG_NOOP:
@@ -244,40 +244,55 @@ public abstract class AbstractNetlinkConnection {
                     NetlinkRequest errRequest = pendingRequests.remove(seq);
 
                     if (errRequest != null) {
-                        errRequest.callback.onError(
-                            new NetlinkException(-error, errorMessage));
+                        if (error == 0) {
+                            errRequest.callback.onSuccess(errRequest.buffers);
+                        } else {
+                            errRequest.callback.onError(
+                                new NetlinkException(-error, errorMessage));
+                        }
                     }
-
                     break;
 
                 case NLMSG_DONE:
                     pendingRequests.remove(seq);
-                    request.callback.onSuccess(request.buffers);
+                    if (request != null) {
+                        request.callback.onSuccess(request.buffers);
+                    }
                     break;
 
                 default:
                     // read genl header
-                    byte  genlCmd = reply.get();      // command
-                    byte  genlVer = reply.get();      // version
+                    byte cmd = reply.get();      // command
+                    byte ver = reply.get();      // version
                     short reserved = reply.getShort(); // reserved
 
                     ByteBuffer payload = reply.slice();
                     payload.order(ByteOrder.nativeOrder());
 
                     if (buffers != null) {
-                        request.buffers.add(payload);
+                        buffers.add(payload);
                     }
 
-                    if ((flags & Flag.NLM_F_MULTI.getValue()) == 0) {
+                    if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
                         pendingRequests.remove(seq);
-                        request.callback.onSuccess(request.buffers);
+                        if (request != null) {
+                            request.callback.onSuccess(request.buffers);
+                        }
+
+                        if (seq == 0) {
+                            handleNotification(type, cmd, seq, pid, buffers);
+                        }
                     }
             }
 
             reply.limit(finalLimit);
-            reply.position(position + len);
+            reply.position(nextPosition);
         }
     }
+
+    protected abstract void handleNotification(short type, byte cmd,
+                                               int seq, int pid,
+                                               List<ByteBuffer> buffers);
 
     private int serializeNetlinkHeader(ByteBuffer request, int seq,
                                        short family, byte version, byte cmd,
@@ -302,8 +317,9 @@ public abstract class AbstractNetlinkConnection {
     }
 
     class NetlinkRequest {
+        short family;
+        byte cmd;
         List<ByteBuffer> buffers = new ArrayList<ByteBuffer>();
-
         Callback<List<ByteBuffer>> callback;
     }
 

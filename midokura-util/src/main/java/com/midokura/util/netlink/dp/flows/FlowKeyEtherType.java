@@ -10,6 +10,32 @@ import com.midokura.util.netlink.messages.BaseBuilder;
 
 public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
 
+    public enum Type {
+
+        /**
+         * Internet Protocol packet
+         */
+        ETH_P_IP(0x0800),
+
+        /**
+         * Address Resolution packet
+         */
+        ETH_P_ARP(0x0806),
+
+        /**
+         * IPv6 over bluebook
+         */
+        ETH_P_IPV6(0x86DD),
+
+        /**
+         * 802.1Q VLAN Extended Header
+         */
+        ETH_P_8021Q(0x8100);
+
+        int value;
+        Type(int value) { this.value = value; }
+    }
+
     /* be16 */ short etherType;
 
     @Override

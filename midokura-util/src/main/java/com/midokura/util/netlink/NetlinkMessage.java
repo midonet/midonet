@@ -132,27 +132,66 @@ public class NetlinkMessage {
     }
 
     public Byte getAttrValue(AttrKey<Byte> attr) {
-        return findByteValue(buf, attr.getId());
+        return new SingleAttributeParser<Byte>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = buffer.get();
+                return false;
+            }
+        }.parse(this);
     }
 
     public Short getAttrValue(AttrKey<Short> attr) {
-        return findShortValue(buf, attr.getId());
+        return new SingleAttributeParser<Short>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = buffer.getShort();
+                return false;
+            }
+        }.parse(this);
     }
 
     public Integer getAttrValue(AttrKey<Integer> attr) {
-        return findIntValue(buf, attr.getId());
+        return new SingleAttributeParser<Integer>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = buffer.getInt();
+                return false;
+            }
+        }.parse(this);
     }
 
     public Long getAttrValue(AttrKey<Long> attr) {
-        return findLongValue(buf, attr.getId());
+        return new SingleAttributeParser<Long>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = buffer.getLong();
+                return false;
+            }
+        }.parse(this);
     }
 
     public String getAttrValue(AttrKey<String> attr) {
-        return findStringValue(buf, attr.getId());
+        return new SingleAttributeParser<String>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                byte[] bytes = new byte[buffer.remaining()];
+                buf.get(bytes);
+                data = new String(bytes, 0, bytes.length - 1);
+                return false;
+            }
+        }.parse(this);
     }
 
-    public byte[] getAttrValue(AttrKey<byte[]> attr) {
-        return findBytesValue(buf, attr.getId());
+    public byte[] getAttrValue(final AttrKey<byte[]> attr) {
+       return new SingleAttributeParser<byte[]>(attr) {
+           @Override
+           protected boolean parseBuffer(ByteBuffer buffer) {
+               data = new byte[buffer.remaining()];
+               buffer.get(data);
+               return false;
+           }
+       }.parse(this);
     }
 
     public interface CustomBuilder<T> {
@@ -160,64 +199,77 @@ public class NetlinkMessage {
     }
 
     public <T extends Attr & BuilderAware> List<T> getAttrValue(AttrKey<List<T>> attr, final CustomBuilder<T> builder) {
-        final NetlinkMessage message = findNestedMessageValue(buf, attr.getId());
-        if (message == null) {
-            return null;
-        }
-
-        final List<T> attributes = new ArrayList<T>();
-        message.iterateAttributes(new AttributeParser() {
+        return new SingleAttributeParser<List<T>>(attr) {
             @Override
-            public boolean processAttribute(short attributeType, ByteBuffer buffer) {
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                final NetlinkMessage message = new NetlinkMessage(buffer.slice().order(buffer.order()));
+                data = new ArrayList<T>();
+                message.iterateAttributes(new AttributeParser() {
+                    @Override
+                    public boolean processAttribute(short attributeType, ByteBuffer buffer) {
+                        T value = builder.newInstance(attributeType);
 
-                T value = builder.newInstance(attributeType);
+                        if (value != null) {
+                            value.deserialize(message);
+                            data.add(value);
+                        }
 
-                if (value != null) {
-                    value.deserialize(message);
-                    attributes.add(value);
-                }
+                        return true;
+                    }
+                });
 
-                return true;
+                return false;
             }
-        });
-
-        return attributes;
+        }.parse(this);
     }
 
     public interface AttributeParser {
+        /**
+         * @param attributeType the type of attribute
+         * @param buffer the buffer with the data
+         *
+         * @return true if the next attribute is to be parsed, false if not.
+         */
         boolean processAttribute(short attributeType, ByteBuffer buffer);
     }
 
     public void iterateAttributes(AttributeParser attributeParser) {
+
+        int limit = buf.limit();
         buf.mark();
 
         try {
             while (buf.hasRemaining()) {
-                short len           = buf.getShort();
-                short attributeType = (short) (buf.getShort() & NLA_TYPE_MASK);
-
-                int limit = buf.limit();
-                int pos = buf.position();
+                short   len         = buf.getShort();
+                short   attrType    = (short) (buf.getShort() & NLA_TYPE_MASK);
+                int     pos         = buf.position();
 
                 buf.limit(pos + len - 4);
 
-                if ( ! attributeParser.processAttribute(attributeType, buf) ) {
+                if (!attributeParser.processAttribute(attrType, buf)) {
                     return;
                 }
 
                 buf.limit(limit);
-
-                int paddedLen = (int) (Math.ceil(len / 4.0) * 4);
-                buf.position(pos + paddedLen - 4);
+                buf.position(pos + pad(len) - 4);
+                buf.order(byteOrder);
             }
         } finally {
+            buf.limit(limit);
+            buf.order(byteOrder);
             buf.reset();
         }
     }
 
 
     public NetlinkMessage getAttrValue(AttrKey<NetlinkMessage> attr) {
-        return findNestedMessageValue(buf, attr.getId());
+        return new SingleAttributeParser<NetlinkMessage>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = new NetlinkMessage(buffer.slice().order(buffer.order()));
+                return false;
+            }
+        }.parse(this);
     }
 
     /**
@@ -230,13 +282,16 @@ public class NetlinkMessage {
      * @return the updated instance if deserialization was successful of null if not
      */
     @Nullable
-    public <T extends BuilderAware> T getAttrValue(AttrKey<? extends T> attr, T instance) {
-        NetlinkMessage message = findNestedMessageValue(buf, attr.getId());
-        if (message != null && instance.deserialize(message)) {
-            return instance;
-        }
-
-        return null;
+    public <T extends BuilderAware> T getAttrValue(AttrKey<? extends T> attr, final T instance) {
+        return new SingleAttributeParser<T>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                NetlinkMessage message = new NetlinkMessage(buffer);
+                instance.deserialize(message);
+                data = instance;
+                return false;
+            }
+        }.parse(this);
     }
 
     public static void setAttrHeader(ByteBuffer buffer, short id, int len) {
@@ -257,8 +312,9 @@ public class NetlinkMessage {
 
         // pad
         int padLen = pad(strLen);
-        for (int i = 0; i < padLen - strLen; i++) {
-            buf.put((byte) 0);
+        while (padLen != strLen) {
+            buf.put((byte)0);
+            padLen--;
         }
 
         return buf.position() - startPos;
@@ -311,169 +367,6 @@ public class NetlinkMessage {
         return buf.position() - start;
     }
 
-
-    static Integer findIntValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    return buf.getInt();
-                }
-
-                buf.position(buf.position() + pad(len) - 4);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static Long findLongValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    return buf.getLong();
-                }
-
-                buf.position(buf.position() + pad(len) - 4);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static Short findShortValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    return buf.getShort();
-                }
-                buf.position(buf.position() + pad(len) - 4);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static Byte findByteValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    return buf.get();
-                }
-
-                int paddedLen = (int) (Math.ceil(len / 4.0) * 4);
-                buf.position(buf.position() + paddedLen - 4);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static byte[] findBytesValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    byte[] b = new byte[len - 4];
-                    buf.get(b);
-                    return b;
-                }
-
-                int nextPos = buf.position() + pad(len) - 4;
-                if ( nextPos < buf.capacity() )
-                    buf.position(nextPos);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static String findStringValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    byte[] b = new byte[len - 4];
-                    buf.get(b);
-                    return new String(b, 0, len - 5);
-                }
-
-                int paddedLen = len & ~0x03;
-                if ( paddedLen < len ) {
-                    paddedLen += 0x04;
-                }
-
-                int nextPos = buf.position() + paddedLen - 4;
-                if ( nextPos < buf.capacity() )
-                    buf.position(nextPos);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
-    static NetlinkMessage findNestedMessageValue(ByteBuffer buf, short type) {
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                short len = buf.getShort();
-                short t = (short) (buf.getShort() & NLA_TYPE_MASK);
-                if (t == type) {
-                    int limit = buf.limit();
-
-                    buf.limit(buf.position() + len - 4);
-
-                    ByteBuffer slice = buf.slice();
-                    slice.order(ByteOrder.nativeOrder());
-
-                    buf.limit(limit);
-
-                    return new NetlinkMessage(slice);
-                }
-
-                buf.position(buf.position() + pad(len) - 4);
-            }
-
-            return null;
-        } finally {
-            buf.reset();
-        }
-    }
-
     public static Builder newMessageBuilder(int size, ByteOrder order) {
         return new Builder(size, order);
     }
@@ -497,6 +390,30 @@ public class NetlinkMessage {
         }
 
         return paddedLen;
+    }
+
+    private abstract static class SingleAttributeParser<T> implements AttributeParser {
+        protected T data;
+        AttrKey<? extends T> attr;
+
+        protected SingleAttributeParser(AttrKey<? extends T> attr) {
+            this.attr = attr;
+        }
+
+        @Override
+        public boolean processAttribute(short attributeType, ByteBuffer buffer) {
+            if (attr.getId() != attributeType)
+                return true;
+
+            return parseBuffer(buffer);
+        }
+
+        protected abstract boolean parseBuffer(ByteBuffer buffer);
+
+        public T parse(NetlinkMessage message) {
+            message.iterateAttributes(this);
+            return data;
+        }
     }
 }
 

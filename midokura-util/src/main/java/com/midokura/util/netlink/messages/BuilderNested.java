@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 public class BuilderNested<Parent extends BaseBuilder> extends BaseBuilder<BuilderNested<Parent>, Parent> {
 
     private Parent parent;
+    int start;
 
     @Override
     protected BuilderNested<Parent> self() {
@@ -19,11 +20,15 @@ public class BuilderNested<Parent extends BaseBuilder> extends BaseBuilder<Build
 
     public BuilderNested(ByteBuffer buffer, Parent parent) {
         super(buffer);
+        // save position
+
+        start = buffer.position();
         this.parent = parent;
     }
 
     @Override
     public Parent build() {
+        buffer.putShort(start, (short) (buffer.position() - start));
         return parent;
     }
 }

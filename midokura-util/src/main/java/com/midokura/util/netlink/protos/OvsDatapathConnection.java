@@ -13,6 +13,7 @@ import com.google.common.util.concurrent.ValueFuture;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
+import com.midokura.util.netlink.dp.Packet;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
 import com.midokura.util.reactor.Reactor;
@@ -37,7 +38,35 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     }
 
     /**
-     * Future based api for enumerating datapaths.
+     * Install packet-in callback for handling miss/userspace packets on a
+     * specific datapath.
+     */
+    public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
+                                                           @Nonnull Callback<Packet> notificationHandler) {
+        ValueFuture<Boolean> valueFuture = ValueFuture.create();
+        _doDatapathsSetNotificationHandler(datapath,
+                                           wrapFuture(valueFuture), notificationHandler);
+        return valueFuture;
+    }
+
+    /**
+     * Install packet-in callback for handling miss/userspace packets on a
+     * specific datapath.
+     */
+    public void datapathsSetNotificationHandler(@Nonnull Datapath datapath,
+                                                @Nonnull Callback<Boolean> operationStatus,
+                                                @Nonnull Callback<Packet> notificationHandler) {
+        _doDatapathsSetNotificationHandler(datapath, operationStatus,
+                                           notificationHandler);
+    }
+
+    protected abstract void
+    _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
+                                       @Nonnull final Callback<Boolean> installCallback,
+                                       @Nonnull Callback<Packet> notificationHandler);
+
+    /**
+     * <com.midokura.util.netlink.dp.Packet>* Future based api for enumerating datapaths.
      *
      * @return A future that hold the set of enumerated datapaths.
      */
@@ -51,7 +80,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Callback based api for enumerating datapaths.
      *
      * @param callback the callback which will receive the results.
-     *
      * @see Callback
      */
     public void datapathsEnumerate(Callback<Set<Datapath>> callback) {
@@ -61,9 +89,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Callback based api for enumerating datapaths.
      *
-     * @param callback the callback which will receive the results.
+     * @param callback      the callback which will receive the results.
      * @param timeoutMillis the timeout we need to wait for the results.
-     *
      * @see Callback
      */
     public void datapathsEnumerate(Callback<Set<Datapath>> callback, long timeoutMillis) {
@@ -77,9 +104,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Future based api for creating a datapath by name.
      *
      * @param name the name of the datapath.
-     *
      * @return A future that hold the created datapath object
-     *
      * @see Future
      */
     public Future<Datapath> datapathsCreate(@Nonnull String name)
@@ -94,7 +119,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      *
      * @param name     the name of the datapath.
      * @param callback the callback that will be provided the operation result.
-     *
      * @see Callback
      */
     public void datapathsCreate(@Nonnull String name,
@@ -123,9 +147,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Future based api for deleting a datapath by id.
      *
      * @param datapathId the id of the datapath.
-     *
      * @return A future that hold the delete datapath object
-     *
      * @see Future
      */
     public Future<Datapath> datapathsDelete(int datapathId)
@@ -139,8 +161,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Callback based api for creating a datapath by name (with default timeout).
      *
      * @param datapathId the id of the datapath
-     * @param callback the callback that will be provided the operation result.
-     *
+     * @param callback   the callback that will be provided the operation result.
      * @see Callback
      */
     public void datapathsDelete(int datapathId,
@@ -165,9 +186,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Future based api for creating a datapath by name.
      *
      * @param name the name of the datapath.
-     *
      * @return A future that hold the created datapath object
-     *
      * @see Future
      */
     public Future<Datapath> datapathsDelete(@Nonnull String name)
@@ -182,7 +201,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      *
      * @param name     the name of the datapath.
      * @param callback the callback that will be provided the operation result.
-     *
      * @see Callback
      */
     public void datapathsDelete(@Nonnull String name,
@@ -210,9 +228,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Future based api to retrieve port information.
      *
-     * @param portName  the name of the port we want to retrieve information for.
-     * @param datapath  the datapath owning the port.
-     *
+     * @param portName the name of the port we want to retrieve information for.
+     * @param datapath the datapath owning the port.
      * @return a future
      */
     public Future<Port> portsGet(final @Nonnull String portName,
@@ -225,9 +242,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Callback based api for retrieving a port by name.
      *
-     * @param portName      the name of the port.
-     * @param datapath      the datapath that this port should be located on.
-     * @param callback      the callback that will be provided the operation result.
+     * @param portName the name of the port.
+     * @param datapath the datapath that this port should be located on.
+     * @param callback the callback that will be provided the operation result.
      */
     public void portsGet(final @Nonnull String portName,
                          final @Nullable Datapath datapath,
@@ -253,8 +270,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Future based api to retrieve port information.
      *
+     * @param port     the port we want to retrieve information for
      * @param datapath the datapath which holds the port
-     * @param port the port we want to retrieve information for
+     *
      * @return a future
      */
     public Future<Port> portsGet(final int portId,
@@ -267,9 +285,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Callback based api for retrieving a port by id.
      *
-     * @param portId      the id of the port.
-     * @param datapath    the datapath that this port should be located on.
-     * @param callback    the callback that will be called with the result.
+     * @param portId   the id of the port.
+     * @param datapath the datapath that this port should be located on.
+     * @param callback the callback that will be called with the result.
      */
     public void portsGet(final int portId,
                          final @Nonnull Datapath datapath,
@@ -280,9 +298,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Callback based api for retrieving a port by id.
      *
-     * @param portId      the id of the port.
-     * @param datapath    the datapath that this port should be located on.
-     * @param callback    the callback that will be called with the result.
+     * @param portId        the id of the port.
+     * @param datapath      the datapath that this port should be located on.
+     * @param callback      the callback that will be called with the result.
      * @param timeoutMillis the timeout we are willing to wait for a result.
      */
     public void portsGet(final int portId,
@@ -301,9 +319,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Future based api to updating port information.
      *
-     * @param port the port we want to retrieve information for
+     * @param port     the port we want to retrieve information for
      * @param datapath the datapath which holds the port
-     *
      * @return a future holding the updated port information.
      */
     public Future<Port> portsSet(final @Nonnull Port port,
@@ -316,10 +333,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Callback based api for updating port information.
      *
-     * @param port        the port description.
-     * @param datapath    the datapath that this port should be located on.
-     *
-     * @param callback    the callback that will be called with the result.
+     * @param port     the port description.
+     * @param datapath the datapath that this port should be located on.
+     * @param callback the callback that will be called with the result.
      */
     public void portsSet(final @Nonnull Port port,
                          final @Nullable Datapath datapath,
@@ -333,7 +349,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param port          the updated port description.
      * @param datapath      the datapath this port should be located on.
      * @param callback      the callback that will be called with the result.
-     *
      * @param timeoutMillis the timeout we are willing to wait for a result.
      */
     public void portsSet(final @Nonnull Port port,
@@ -528,7 +543,31 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         _doFlowsEnumerate(datapath, callback, timeoutMillis);
     }
 
-    protected abstract void _doFlowsEnumerate(@Nonnull final Datapath datapath,
+    protected abstract void _doFlowsEnumerate(Datapath datapath,
                                               @Nonnull final Callback<Set<Flow>> callback,
                                               long timeoutMillis);
+
+    public Future<Flow> flowsCreate(@Nonnull final Datapath datapath,
+                                    @Nonnull final Flow flow) {
+        ValueFuture<Flow> flowFuture = ValueFuture.create();
+        flowsCreate(datapath, flow, wrapFuture(flowFuture));
+        return flowFuture;
+    }
+
+    private void flowsCreate(@Nonnull final Datapath datapath,
+                             @Nonnull final Flow flow,
+                             @Nonnull final Callback<Flow> callback) {
+        flowsCreate(datapath, flow, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    private void flowsCreate(@Nonnull final Datapath datapath,
+                             @Nonnull final Flow flow,
+                             @Nonnull final Callback<Flow> callback, long timeout) {
+        _doFlowsCreate(datapath, flow, callback, timeout);
+    }
+
+    protected abstract void _doFlowsCreate(@Nonnull final Datapath datapath,
+                                           @Nonnull final Flow flow,
+                                           @Nonnull final Callback<Flow> callback,
+                                           final long timeout);
 }

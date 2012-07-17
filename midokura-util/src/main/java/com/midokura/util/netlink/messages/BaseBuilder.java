@@ -5,7 +5,7 @@ package com.midokura.util.netlink.messages;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Collection;
+import java.util.List;
 
 import com.midokura.util.netlink.NetlinkMessage;
 
@@ -48,7 +48,7 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         return self();
     }
 
-    public <T extends BuilderAware> Builder addAttr(NetlinkMessage.AttrKey<T> attr, T value) {
+    public Builder addAttr(NetlinkMessage.AttrKey<? extends BuilderAware> attr, BuilderAware value) {
         // save position
         int start = buffer.position();
 
@@ -105,17 +105,18 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
     }
 
     public BuilderNested<Builder> addAttrNested(NetlinkMessage.AttrKey<?> attr) {
-        // save position
-        int start = buffer.position();
+
+        BuilderNested<Builder> builderNested =
+            new BuilderNested<Builder>(buffer, self());
 
         // put a nl_attr header (with zero length)
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 0);
+        NetlinkMessage.setAttrHeader(buffer, (short) ((1 << 15) | attr.getId()), 0);
 
-        return new BuilderNested<Builder>(buffer, self());
+        return builderNested;
     }
 
-    public Builder addAttrs(Collection<? extends NetlinkMessage.Attr<BuilderAware>> attributes) {
-        for (NetlinkMessage.Attr<BuilderAware> attribute : attributes) {
+    public Builder addAttrs(List<? extends NetlinkMessage.Attr> attributes) {
+        for (NetlinkMessage.Attr<? extends BuilderAware> attribute : attributes) {
             addAttr(attribute.getKey(), attribute.getValue());
         }
 

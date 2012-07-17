@@ -20,6 +20,14 @@ public class FlowKeys {
         return new FlowKeyEtherType().setEtherType((short) value);
     }
 
+    public static FlowKeyEtherType etherType(FlowKeyEtherType.Type type) {
+        return etherType(type.value);
+    }
+
+    public static FlowKeyIPv4 ipv4(int src, int dst, IpProtocol protocol) {
+        return ipv4(src, dst, protocol.value);
+    }
+
     public static FlowKeyIPv4 ipv4(int src, int dst, int proto) {
         return
             new FlowKeyIPv4()
@@ -34,6 +42,10 @@ public class FlowKeys {
                 .setSrc(src)
                 .setDst(dst)
                 .setProto((byte) proto);
+    }
+
+    public static FlowKeyIPv6 ipv6(int[] src, int dst[], IpProtocol protocol) {
+        return ipv6(src, dst, protocol.value);
     }
 
     public static FlowKeyICMP icmp(int type, int code) {

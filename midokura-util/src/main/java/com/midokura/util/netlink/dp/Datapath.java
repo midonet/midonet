@@ -46,7 +46,6 @@ public class Datapath {
     }
 
     public class Stats implements BuilderAware {
-
         long hits;
         long misses;
         long lost;

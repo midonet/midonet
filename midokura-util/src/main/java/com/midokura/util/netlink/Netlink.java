@@ -3,6 +3,8 @@
 */
 package com.midokura.util.netlink;
 
+import javax.annotation.Nonnull;
+
 /**
  * Netlink API interface.
  */
@@ -79,6 +81,10 @@ public interface Netlink {
 
             return (short) value;
         }
+
+        public static boolean isSet(short flags, Flag flag) {
+            return (flags & flag.getValue()) != 0;
+        }
     }
 
     public enum MessageType {
@@ -96,6 +102,7 @@ public interface Netlink {
             this.value = (short) value;
         }
 
+        @Nonnull
         public static MessageType findById(short type) {
             switch (type) {
                 case 1:

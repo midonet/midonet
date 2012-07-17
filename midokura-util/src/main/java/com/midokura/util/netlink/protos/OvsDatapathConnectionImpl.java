@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -19,6 +20,7 @@ import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
+import com.midokura.util.netlink.dp.Packet;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
 import com.midokura.util.netlink.dp.flows.FlowAction;
@@ -32,6 +34,7 @@ import com.midokura.util.netlink.family.PortFamily;
 import com.midokura.util.netlink.messages.Builder;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Flag;
+import static com.midokura.util.netlink.family.FlowFamily.AttrKey;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
@@ -40,11 +43,105 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsDatapathConnectionImpl.class);
+
     public static final int FALLBACK_PORT_MULTICAT = 33;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor)
         throws Exception {
         super(channel, reactor);
+    }
+
+    @Override
+    protected void handleNotification(short type, byte cmd, int seq, int pid,
+                                      List<ByteBuffer> buffers) {
+
+        if (pid == 0 &&
+            packetFamily.getFamilyId() == type &&
+            PacketFamily.Cmd.MISS.getValue() == cmd)
+        {
+            if ( notificationHandler != null ) {
+                notificationHandler.onSuccess(new Function<List<ByteBuffer>, Packet>() {
+                    @Override
+                    public Packet apply(@Nullable List<ByteBuffer> input) {
+
+                        if (input == null || input.size() != 1)
+                            return null;
+
+                        return deserializePacket(input.get(0));
+                    }
+                }.apply(buffers));
+            }
+        } else {
+            super.handleNotification(type, cmd, seq, pid, buffers);
+        }
+    }
+
+    @Override
+    protected void _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
+                                                      @Nonnull final Callback<Boolean> installCallback,
+                                                      @Nonnull Callback<Packet> notificationHandler) {
+        this.notificationHandler = notificationHandler;
+
+        _doPortsEnumerate(datapath, new Callback<Set<Port>>() {
+            @Override
+            public void onSuccess(final Set<Port> data) {
+                if (data == null || data.size() == 0) {
+                    installCallback.onSuccess(true);
+                    return;
+                }
+
+                Callback<Port> callback = new Callback<Port>() {
+                    AtomicInteger pendingResponses = new AtomicInteger(
+                        data.size());
+                    boolean timeout = false;
+                    NetlinkException ex = null;
+
+                    @Override
+                    public void onSuccess(Port data) {
+                        handleCompletion(pendingResponses.decrementAndGet());
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        timeout = true;
+                        handleCompletion(pendingResponses.decrementAndGet());
+                    }
+
+                    @Override
+                    public void onError(NetlinkException e) {
+                        if (ex == null)
+                            ex = e;
+                        handleCompletion(pendingResponses.decrementAndGet());
+                    }
+
+                    protected void handleCompletion(int value) {
+                        if (value == 0) {
+                            if (timeout) {
+                                installCallback.onTimeout();
+                            } else if (ex != null) {
+                                installCallback.onError(ex);
+                            } else {
+                                installCallback.onSuccess(true);
+                            }
+                        }
+                    }
+                };
+
+                for (Port port : data) {
+                    _doPortsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
+                }
+            }
+
+            @Override
+            public void onTimeout() {
+                installCallback.onTimeout();
+            }
+
+            @Override
+            public void onError(NetlinkException e) {
+                installCallback.onError(e);
+            }
+        }, DEF_REPLY_TIMEOUT);
     }
 
     DatapathFamily datapathFamily;
@@ -55,6 +152,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     int datapathMulticast;
     int portMulticast;
 
+    private Callback<Packet> notificationHandler;
 
 //    CommandFamily<FlowCommands> ovsFlowFamily;
 //    CommandFamily<PacketCommands> ovsPacketFamily;
@@ -472,7 +570,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapathId)
             .build();
 
-
         newRequest(flowFamily, FlowFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
                        Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
@@ -497,6 +594,51 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
+    @Override
+    protected void _doFlowsCreate(@Nonnull final Datapath datapath,
+                                  @Nonnull final Flow flow,
+                                  @Nonnull final Callback<Flow> callback,
+                                  final long timeoutMillis) {
+        validateState(callback);
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .addAttrNested(AttrKey.KEY)
+            .addAttrs(flow.getKeys())
+            .build()
+            .addAttrNested(AttrKey.ACTIONS)
+            .addAttrs(flow.getActions())
+            .build()
+            .build();
+
+        newRequest(flowFamily, FlowFamily.Cmd.NEW)
+            .withFlags(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Flow>() {
+                    @Override
+                    public Flow apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializeFlow(input.get(0), datapathId);
+                    }
+                }
+            )
+            .withTimeout(timeoutMillis * 10)
+            .send();
+    }
+
     private Flow deserializeFlow(ByteBuffer buffer, int datapathId) {
         NetlinkMessage msg = new NetlinkMessage(buffer);
 
@@ -505,13 +647,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return null;
 
         Flow flow = new Flow();
-        flow.setStats(
-            msg.getAttrValue(FlowFamily.AttrKey.STATS, new FlowStats()));
-        flow.setTcpFlags(msg.getAttrValue(FlowFamily.AttrKey.TCP_FLAGS));
-        flow.setLastUsedTime(msg.getAttrValue(FlowFamily.AttrKey.USED));
-        flow.setActions(
-            msg.getAttrValue(FlowFamily.AttrKey.ACTIONS, FlowAction.Builder));
-        flow.setKeys(msg.getAttrValue(FlowFamily.AttrKey.KEY, FlowKey.Builder));
+        flow.setStats(msg.getAttrValue(AttrKey.STATS, new FlowStats()));
+        flow.setTcpFlags(msg.getAttrValue(AttrKey.TCP_FLAGS));
+        flow.setLastUsedTime(msg.getAttrValue(AttrKey.USED));
+        flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
+        flow.setKeys(msg.getAttrValue(AttrKey.KEY, FlowKey.Builder));
         return flow;
     }
 
@@ -545,6 +685,23 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         return port;
     }
+
+    private Packet deserializePacket(ByteBuffer buffer) {
+        Packet packet = new Packet();
+
+        NetlinkMessage msg = new NetlinkMessage(buffer);
+
+        int datapathIndex = msg.getInt();
+        packet.setData(msg.getAttrValue(PacketFamily.AttrKey.PACKET));
+        packet.setKeys(
+            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder));
+        packet.setActions(
+            msg.getAttrValue(PacketFamily.AttrKey.ACTIONS, FlowAction.Builder));
+        packet.setUserData(msg.getAttrValue(PacketFamily.AttrKey.USERDATA));
+
+        return packet;
+    }
+
 
     protected Datapath deserializeDatapath(ByteBuffer buffer) {
 

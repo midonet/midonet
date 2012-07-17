@@ -39,6 +39,11 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
         super(channel, reactor);
     }
 
+    @Override
+    protected void handleNotification(short type, byte cmd, int seq, int pid, List<ByteBuffer> buffers) {
+        log.error("Notification handler not implemented: {family: {}, cmd: {}}", type, cmd);
+    }
+
     public Future<Short> getFamilyId(@Nonnull String familyName) {
         ValueFuture<Short> future = ValueFuture.create();
         getFamilyId(familyName, wrapFuture(future));
