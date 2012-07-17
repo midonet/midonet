@@ -20,6 +20,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.actors.BridgeStateHelper;
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.packets.ARP;
@@ -33,6 +34,7 @@ import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
+import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.midolman.vrn.ForwardingElement;
 import com.midokura.midolman.vrn.VRNControllerIface;
@@ -46,7 +48,7 @@ public class Bridge implements ForwardingElement {
     // The "flood ID" is used to tag flooded flows so that they can be
     // invalidated independently of the bridge's other flows.
     UUID floodElementID;
-    MacPortMap macPortMap;
+    BridgeStateHelper bridgeState;
     long mac_port_timeout = 40*1000;
     Reactor reactor;
     PortZkManager portMgr;
@@ -60,7 +62,6 @@ public class Bridge implements ForwardingElement {
     // The delayed deletes for macPortMap.
     Map<MAC, PortFuture> delayedDeletes = new HashMap<MAC, PortFuture>();
     Map<MacPort, Integer> flowCount = new HashMap<MacPort, Integer>();
-    private MacPortWatcher macToPortWatcher;
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
     private BridgeConfig myConfig;
@@ -82,14 +83,14 @@ public class Bridge implements ForwardingElement {
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
         ZkPathManager pathMgr = new ZkPathManager(zkBasePath);
         try {
-            macPortMap = new MacPortMap(zkDir.getSubDirectory(
+            bridgeState = new BridgeStateHelper(zkDir.getSubDirectory(
                     pathMgr.getBridgeMacPortsPath(bridgeId)));
         } catch (KeeperException e) {
             throw new StateAccessException(e);
         }
-        macToPortWatcher = new MacPortWatcher();
-        macPortMap.addWatcher(macToPortWatcher);
-        macPortMap.start();
+        //macToPortWatcher = new MacPortWatcher(); XXX
+        //macPortMap.addWatcher(macToPortWatcher);
+        //macPortMap.start();
         // TODO(pino): how should clear() handle this field?
         logicalPortsWatcher = new Runnable() {
             public void run() {
@@ -192,7 +193,7 @@ public class Bridge implements ForwardingElement {
             }
         } else { // It's a unicast.
             // Is the MAC associated with a materialized port?
-            fwdInfo.outPortId = macPortMap.get(dstDlAddress);
+            fwdInfo.outPortId = bridgeState.portOfMac(dstDlAddress);
             // Otherwise, is the MAC associated with a logical port?
             if (null == fwdInfo.outPortId)
                 fwdInfo.outPortId = rtrMacToLogicalPortId.get(dstDlAddress);
@@ -246,21 +247,25 @@ public class Bridge implements ForwardingElement {
     }
 
     @Override
-    public void removePort(UUID portId) throws StateAccessException {
+    public void removePort(final UUID portId) throws StateAccessException {
         // No invalidation needed: controller invalidates on Port-Loc changes.
         localPorts.remove(portId);
         controller.removeLocalPortFromSet(bridgeId, portId);
         if (localPorts.size() == 0)
             controller.unsubscribePortSet(bridgeId);
         log.info("removePort - expire MAC-port entries for port {}", portId);
-        List<MAC> macList = macPortMap.getByValue(portId);
-        for (MAC mac : macList) {
-            log.info("Removing mapping from MAC {} to port {}", mac, portId);
-            flowCount.remove(new MacPort(mac, portId));
-            // Only schedule the mac-port mapping for expiration. We want it
-            // to be remembered for a short time in case the port is migrating.
-            expireMacPortEntry(mac, portId);
-        }
+        bridgeState.callForAllMacsOfPort(portId,
+            new Callback1<MAC>() {
+                public void call(MAC mac) {
+                    log.info("Removing mapping from MAC {} to port {}",
+                             mac, portId);
+                    flowCount.remove(new MacPort(mac, portId));
+                    // Only schedule the mac-port mapping for expiration.  We
+                    // want it to be remembered for a short time in case the
+                    // port is migrating.
+                    expireMacPortEntry(mac, portId);
+                }
+        });
     }
 
     @Override
@@ -316,17 +321,17 @@ public class Bridge implements ForwardingElement {
             pF.future.cancel(false);
         delayedDeletes.clear();
         for (MacPort mp : flowCount.keySet()) {
-            try {
-                macPortMap.removeIfOwner(mp.mac);
+            /*try {
+                //XXX macPortMap.removeIfOwner(mp.mac);
             } catch (KeeperException e) {
                 log.error("Error while destroying", e);
             } catch (InterruptedException e) {
                 log.error("Error while destroying", e);
-            }
+            }*/
         }
         flowCount.clear();
-        macPortMap.removeWatcher(macToPortWatcher);
-        macPortMap.stop();
+        //XXX macPortMap.removeWatcher(macToPortWatcher);
+        //XXX macPortMap.stop();
         // .stop() includes a .clear() of the underlying map, so we don't
         // need to clear out the entries here.
     }
@@ -463,7 +468,7 @@ public class Bridge implements ForwardingElement {
     }
 
     private void expireMacPortEntry(final MAC mac, final UUID port) {
-        UUID currentPort = macPortMap.get(mac);
+        UUID currentPort = bridgeState.portOfMac(mac);
         if (currentPort == null) {
             log.debug("MAC->port mapping for MAC {} has already been removed",
                     mac);
@@ -473,8 +478,8 @@ public class Bridge implements ForwardingElement {
                 new Runnable() {
                     public void run() {
                         try {
-                            if (port.equals(macPortMap.get(mac))) {
-                                macPortMap.removeIfOwner(mac);
+                            if (port.equals(bridgeState.portOfMac(mac))) {
+                                //XXX macPortMap.removeIfOwner(mac);
                                 log.debug("Un-mapped {} from {}", mac, port);
                             }
                         } catch (Exception e) {
@@ -509,11 +514,11 @@ public class Bridge implements ForwardingElement {
         log.debug("Increased flow count for source MAC {} from port {} to {}",
                   new Object[] { macAddr, portUuid, count });
         boolean writeMacPortMap = false;
-        if (macPortMap.containsKey(macAddr)) {
+        if (bridgeState.isKnownMac(macAddr)) {
             // Since mac was mapped to another port, flows to the mac would
             // not have been flooded, only directed to that port. So we can
             // invalidate by the port ID.
-            UUID oldPortUuid = macPortMap.get(macAddr);
+            UUID oldPortUuid = bridgeState.portOfMac(macAddr);
             if (!oldPortUuid.equals(portUuid)) {
                 log.debug("Mac {} moved to new port. Invalidate flows to old " +
                           "port {}", macAddr, oldPortUuid);
@@ -530,16 +535,16 @@ public class Bridge implements ForwardingElement {
         }
         // We need to write to the MacPortMap if the mac wasn't mapped or the
         // mapping needs to change, or if we're not the owner of the map entry.
-        if (writeMacPortMap || !macPortMap.isKeyOwner(macAddr)) {
-            try {
-                macPortMap.put(macAddr, portUuid);
+        if (writeMacPortMap /*XXX || !macPortMap.isKeyOwner(macAddr) */) {
+            /*try {
+                //XXX macPortMap.put(macAddr, portUuid);
             } catch (KeeperException e) {
                 log.error("ZooKeeper threw exception {}", e);
                 // TODO: What should we do about this?
             } catch (InterruptedException e) {
                 log.error("MacPortMap threw InterruptedException {}", e);
                 // TODO: What should we do about this?
-            }
+            }*/
         }
     }
 

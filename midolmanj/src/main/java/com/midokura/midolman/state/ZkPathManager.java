@@ -185,6 +185,18 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK locations path for a given port.
+     *
+     * @param id
+     *            Port ID.
+     * @return /ports/portId/locations
+     */
+    public String getPortLocationsPath(UUID id) {
+        return new StringBuilder(getPortPath(id))
+                .append("/locations").toString();
+    }
+
+    /**
      * Get ZK port sets path.
      *
      * @return /port_sets

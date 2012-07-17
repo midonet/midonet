@@ -50,7 +50,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class OFMessageAsyncStream {
-    private final static Logger log = LoggerFactory.getLogger(OFMessageAsyncStream.class);
+    private final static Logger log =
+         LoggerFactory.getLogger(OFMessageAsyncStream.class);
 
     static public int defaultBufferSize = 65536;
 

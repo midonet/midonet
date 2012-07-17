@@ -94,6 +94,12 @@
             <url>http://jsch.sf.net/maven2/</url>
         </repository>
 
+        <repository>
+            <id>typesafe</id>
+            <name>Typesafe Repository</name>
+            <url>http://repo.typesafe.com/typesafe/releases/</url>
+        </repository>
+
     </repositories>
 
     <build>
