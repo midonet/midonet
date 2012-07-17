@@ -6,8 +6,7 @@ import akka.actor.{Actor, ActorRef}
 import scala.collection.mutable.{Map, Set}
 import java.util.ArrayList
 
-//XXX: Use the packet type returned by the datapath
-import com.midokura.midolman.packets.{Ethernet => Packet} //XXX
+import com.midokura.util.netlink.dp.Packet
 import com.midokura.midolman.openflow.MidoMatch
 
 

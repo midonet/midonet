@@ -105,7 +105,7 @@
                 <configuration>
                     <compilerArguments>
                         <verbose />
-                        <bootclasspath>${project.basedir}/../midokura-jdk-bootstrap-12.06-SNAPSHOT.jar:${java.home}/lib/rt.jar</bootclasspath>
+                        <bootclasspath>${project.basedir}/../midokura-jdk-bootstrap-12.12-SNAPSHOT.jar:${java.home}/lib/rt.jar</bootclasspath>
                     </compilerArguments>
                 </configuration>
             </plugin>
@@ -130,7 +130,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-jdk-bootstrap</artifactId>
-            <version>12.06-SNAPSHOT</version>
+            <version>12.12-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
