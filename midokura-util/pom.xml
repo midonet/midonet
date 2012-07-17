@@ -69,25 +69,6 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>create-bootclasspath-patch</id>
-                        <phase>package</phase>
-                        <goals><goal>jar</goal></goals>
-                        <configuration>
-                            <classifier>bootclasspath</classifier>
-                            <includes>
-                                <include>sun/nio/ch/*Impl.class</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.4</version>
             </plugin>
@@ -104,8 +85,7 @@
                 <version>2.5.1</version>
                 <configuration>
                     <compilerArguments>
-                        <verbose />
-                        <bootclasspath>${project.basedir}/../midokura-jdk-bootstrap-12.12-SNAPSHOT.jar:${java.home}/lib/rt.jar</bootclasspath>
+                        <bootclasspath>${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar:${java.home}/lib/rt.jar:${java.home}/../Classes/classes.jar</bootclasspath>
                     </compilerArguments>
                 </configuration>
             </plugin>
@@ -113,12 +93,6 @@
     </build>
 
     <dependencies>
-
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>2.0.0</version>
-        </dependency>
 
         <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
         <dependency>
