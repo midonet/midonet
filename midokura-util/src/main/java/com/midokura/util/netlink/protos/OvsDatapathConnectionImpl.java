@@ -91,8 +91,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 }
 
                 Callback<Port> callback = new Callback<Port>() {
-                    AtomicInteger pendingResponses = new AtomicInteger(
-                        data.size());
+                    AtomicInteger pendingResponses =
+                        new AtomicInteger(data.size());
+
                     boolean timeout = false;
                     NetlinkException ex = null;
 
@@ -111,6 +112,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     public void onError(NetlinkException e) {
                         if (ex == null)
                             ex = e;
+
+                        log.error("Exception while setting port data");
                         handleCompletion(pendingResponses.decrementAndGet());
                     }
 
@@ -139,6 +142,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
             @Override
             public void onError(NetlinkException e) {
+                log.error("Exception while listing datapath ports");
                 installCallback.onError(e);
             }
         }, DEF_REPLY_TIMEOUT);
@@ -372,11 +376,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (port.getAddress() != null)
             builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
 
-        if (port.getOptions() != null)
-            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
+//        if (port.getOptions() != null)
+//            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
 
-        if (port.getStats() != null)
-            builder.addAttr(PortFamily.Attr.STATS, port.getStats());
+//        if (port.getStats() != null)
+//            builder.addAttr(PortFamily.Attr.STATS, port.getStats());
 
         NetlinkMessage message = builder.build();
 
