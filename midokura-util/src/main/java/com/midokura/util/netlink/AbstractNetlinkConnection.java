@@ -211,7 +211,7 @@ public abstract class AbstractNetlinkConnection {
             }
 
             NetlinkRequest request = pendingRequests.get(seq);
-            if (request == null) {
+            if (request == null && seq != 0) {
                 log.warn("Reply handlers for netlink request with id {} " +
                              "not found.", seq);
             }

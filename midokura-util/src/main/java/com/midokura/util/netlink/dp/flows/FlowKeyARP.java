@@ -6,6 +6,7 @@ package com.midokura.util.netlink.dp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import com.midokura.midolman.util.Net;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.messages.BaseBuilder;
 
@@ -124,11 +125,11 @@ public class FlowKeyARP implements FlowKey<FlowKeyARP> {
     @Override
     public String toString() {
         return "FlowKeyARP{" +
-            "arp_sip=" + arp_sip +
-            ", arp_tip=" + arp_tip +
+            "arp_sip=" + Net.convertIntAddressToString(arp_sip) +
+            ", arp_tip=" + Net.convertIntAddressToString(arp_tip) +
             ", arp_op=" + arp_op +
-            ", arp_sha=" + Arrays.toString(arp_sha) +
-            ", arp_tha=" + Arrays.toString(arp_tha) +
+            ", arp_sha=" + Net.convertByteMacToString(arp_sha) +
+            ", arp_tha=" + Net.convertByteMacToString(arp_tha) +
             '}';
     }
 }

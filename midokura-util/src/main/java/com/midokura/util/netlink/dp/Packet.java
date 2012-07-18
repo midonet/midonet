@@ -3,6 +3,7 @@
 */
 package com.midokura.util.netlink.dp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,12 +38,28 @@ public class Packet {
         return this;
     }
 
+    public Packet addKey(FlowKey key) {
+        if (this.keys == null)
+            this.keys = new ArrayList<FlowKey>();
+
+        this.keys.add(key);
+        return this;
+    }
+
     public List<FlowAction> getActions() {
         return actions;
     }
 
     public Packet setActions(List<FlowAction> actions) {
         this.actions = actions;
+        return this;
+    }
+
+    public Packet addAction(FlowAction action) {
+        if (this.actions == null)
+            this.actions = new ArrayList<FlowAction>();
+
+        this.actions.add(action);
         return this;
     }
 

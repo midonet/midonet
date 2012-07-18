@@ -54,6 +54,7 @@ public class IOStatus {
         if ( ioStatusClassRef != null ) {
             try {
                 Field fieldRef = ioStatusClassRef.getDeclaredField(fieldName);
+                fieldRef.setAccessible(true);
                 return (Integer) fieldRef.get(null);
             } catch (Exception e) {
                 log.error(
