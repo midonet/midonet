@@ -3,7 +3,6 @@
 */
 package com.midokura.util.netlink;
 
-
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,8 +10,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
+import javax.annotation.Nullable;
 
-import com.sun.istack.internal.Nullable;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
