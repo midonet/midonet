@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import com.midokura.util.netlink.dp.flows.FlowAction;
 import com.midokura.util.netlink.dp.flows.FlowKey;
 
@@ -16,7 +18,7 @@ import com.midokura.util.netlink.dp.flows.FlowKey;
 public class Packet {
 
     byte[] data;
-    List<FlowKey> keys;
+    @Nonnull FlowMatch match = new FlowMatch();
     List<FlowAction> actions;
     Long userData;
 
@@ -29,20 +31,17 @@ public class Packet {
         return this;
     }
 
-    public List<FlowKey> getKeys() {
-        return keys;
+    public FlowMatch getMatch() {
+        return match;
     }
 
-    public Packet setKeys(List<FlowKey> keys) {
-        this.keys = keys;
+    public Packet setMatch(FlowMatch match_) {
+        this.match = match_;
         return this;
     }
 
     public Packet addKey(FlowKey key) {
-        if (this.keys == null)
-            this.keys = new ArrayList<FlowKey>();
-
-        this.keys.add(key);
+        match.addKey(key);
         return this;
     }
 
@@ -82,7 +81,7 @@ public class Packet {
         if (actions != null ? !actions.equals(
             packet.actions) : packet.actions != null) return false;
         if (!Arrays.equals(data, packet.data)) return false;
-        if (keys != null ? !keys.equals(packet.keys) : packet.keys != null)
+        if (!match.equals(packet.match))
             return false;
         if (userData != null ? !userData.equals(
             packet.userData) : packet.userData != null) return false;
@@ -93,7 +92,7 @@ public class Packet {
     @Override
     public int hashCode() {
         int result = data != null ? Arrays.hashCode(data) : 0;
-        result = 31 * result + (keys != null ? keys.hashCode() : 0);
+        result = 31 * result + match.hashCode();
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
         return result;
@@ -103,7 +102,7 @@ public class Packet {
     public String toString() {
         return "Packet{" +
             "data=" + Arrays.toString(data) +
-            ", keys=" + keys +
+            ", match=" + match +
             ", actions=" + actions +
             ", userData=" + userData +
             '}';

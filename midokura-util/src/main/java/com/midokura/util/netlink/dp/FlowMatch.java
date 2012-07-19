@@ -12,7 +12,15 @@ import com.midokura.util.netlink.dp.flows.FlowKey;
 * // TODO: mtoader ! Please explain yourself.
 */
 public class FlowMatch {
-    List<FlowKey> keys = new ArrayList<FlowKey>();
+    List<FlowKey> keys;
+
+    public FlowMatch() {
+        keys = new ArrayList<FlowKey>();
+    }
+
+    public FlowMatch(List<FlowKey> keys_) {
+        keys = keys_;
+    }
 
     public FlowMatch addKey(FlowKey key) {
         keys.add(key);
@@ -35,8 +43,8 @@ public class FlowMatch {
 
         FlowMatch flowMatch = (FlowMatch) o;
 
-        if (keys != null ? !keys.equals(
-            flowMatch.keys) : flowMatch.keys != null)
+        if (keys == null ? flowMatch.keys != null
+                         : !keys.equals(flowMatch.keys))
             return false;
 
         return true;

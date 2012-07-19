@@ -13,7 +13,7 @@ import java.util.{List => JavaList}
 import com.midokura.util.netlink.dp.Packet
 import com.midokura.util.netlink.dp.{Flow => KernelFlow}
 import com.midokura.util.netlink.dp.flows.{FlowAction, FlowKey}
-import com.midokura.util.netlink.dp.flows.{FlowMatch => KernelMatch}
+import com.midokura.util.netlink.dp.{FlowMatch => KernelMatch}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midolman.packets.Ethernet
 
@@ -75,8 +75,6 @@ object KernelMatch {
 */
 
 class ControllerActor(XXX: Unit) extends Actor {
-    import KernelMatch._
-
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
     private var wildcardFlowManager: WildcardFlowManager = _
@@ -125,7 +123,7 @@ class ControllerActor(XXX: Unit) extends Actor {
                 removeFlow(kernelFlow)
             }
         } else {
-            val kernelMatch = new KernelMatch(packet.getKeys)
+            val kernelMatch = packet.getMatch
             if (pendedMatches.get(kernelMatch) == None) {
                 launchNewSimulation(packet)
             }
@@ -137,13 +135,13 @@ class ControllerActor(XXX: Unit) extends Actor {
         case PacketIn(packet) => doPacketIn(packet)
 
         case SimulationDone(wildcardFlow, packet) =>
-            val kernelMatch = new KernelMatch(packet.getKeys)
+            val kernelMatch = packet.getMatch
             val pendedPackets = pendedMatches.get(kernelMatch)
             // wildcardFlow == null  indicates packet is consumed without
             // a flow rule being installed in the datapath.
             if (wildcardFlow != null) {
                 val kernelFlow = new KernelFlow()
-                kernelFlow.setKeys(packet.getKeys)
+                kernelFlow.setMatch(packet.getMatch)
                 kernelFlow.setActions(packet.getActions)
                 installFlow(kernelFlow, packet)
                 // Send pended packets out the new rule
