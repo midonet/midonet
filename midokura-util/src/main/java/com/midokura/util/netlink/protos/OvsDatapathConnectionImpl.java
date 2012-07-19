@@ -703,8 +703,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int datapathIndex = msg.getInt();
         packet.setData(msg.getAttrValue(PacketFamily.AttrKey.PACKET));
-        packet.setKeys(
-            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder));
+        packet.setMatch(new FlowMatch(
+            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder)));
         packet.setActions(
             msg.getAttrValue(PacketFamily.AttrKey.ACTIONS, FlowAction.Builder));
         packet.setUserData(msg.getAttrValue(PacketFamily.AttrKey.USERDATA));

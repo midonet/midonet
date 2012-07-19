@@ -146,7 +146,8 @@ class ControllerActor(XXX: Unit) extends Actor {
                 installFlow(kernelFlow, packet)
                 // Send pended packets out the new rule
                 if (pendedPackets != None)
-                    for (unpendedPacket <- pendedPackets.get)
+                    for {unpendedPacket <- pendedPackets.get
+                         if unpendedPacket != packet}
                         packetOut(unpendedPacket, kernelFlow)
 
                 val evictedWcFlows = wildcardFlowManager.add(wildcardFlow)
