@@ -6,7 +6,6 @@ package com.midokura.util.netlink.dp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 
 import com.midokura.util.netlink.dp.flows.FlowAction;
@@ -31,6 +30,7 @@ public class Packet {
         return this;
     }
 
+    @Nonnull
     public FlowMatch getMatch() {
         return match;
     }

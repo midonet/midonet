@@ -5,6 +5,7 @@ package com.midokura.util.netlink.dp;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 import com.midokura.util.netlink.dp.flows.FlowKey;
 
@@ -12,10 +13,10 @@ import com.midokura.util.netlink.dp.flows.FlowKey;
 * // TODO: mtoader ! Please explain yourself.
 */
 public class FlowMatch {
-    List<FlowKey> keys;
+    @Nullable List<FlowKey> keys;
 
     public FlowMatch() {
-        keys = new ArrayList<FlowKey>();
+        keys = null;
     }
 
     public FlowMatch(List<FlowKey> keys_) {
@@ -23,6 +24,8 @@ public class FlowMatch {
     }
 
     public FlowMatch addKey(FlowKey key) {
+        if (keys == null)
+            keys = new ArrayList<FlowKey>();
         keys.add(key);
         return this;
     }
