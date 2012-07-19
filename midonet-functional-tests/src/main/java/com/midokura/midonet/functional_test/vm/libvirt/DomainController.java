@@ -4,17 +4,8 @@
 
 package com.midokura.midonet.functional_test.vm.libvirt;
 
-import com.midokura.midonet.functional_test.vm.HypervisorType;
-import com.midokura.midonet.functional_test.vm.VMController;
-import org.libvirt.Connect;
-import org.libvirt.Domain;
-import org.libvirt.DomainInfo;
-import org.libvirt.LibvirtException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,9 +14,16 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import org.libvirt.Connect;
+import org.libvirt.Domain;
+import org.libvirt.LibvirtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import com.midokura.midonet.functional_test.vm.HypervisorType;
+import com.midokura.midonet.functional_test.vm.VMController;
 import static com.midokura.midonet.functional_test.vm.libvirt.LibvirtUtils.uriForHypervisorType;
 
 /**
@@ -89,8 +87,11 @@ public class DomainController implements VMController {
         executeWithDomain(new DomainAwareExecutor<Void>() {
             @Override
             public Void execute(Domain domain) throws LibvirtException {
-                if (domain.getInfo().state != DomainInfo.DomainState.VIR_DOMAIN_SHUTOFF) {
+                try {
+                    domain.getJobInfo();
                     domain.destroy();
+                } catch (LibvirtException ex) {
+                    // if the domain is not active it will throw an error.
                 }
 
                 domain.undefine();
@@ -105,7 +106,12 @@ public class DomainController implements VMController {
         Boolean isRunningStatus = executeWithDomain(new DomainAwareExecutor<Boolean>() {
             @Override
             public Boolean execute(Domain domain) throws LibvirtException {
-                return domain.getInfo().state == DomainInfo.DomainState.VIR_DOMAIN_RUNNING;
+                try {
+                    domain.getJobInfo();
+                    return true;
+                } catch (LibvirtException e) {
+                    return false;
+                }
             }
         });
 
