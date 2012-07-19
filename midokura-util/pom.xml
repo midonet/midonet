@@ -87,19 +87,18 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>midokura-jdk-bootstrap</artifactId>
+            <version>12.12-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
             <version>0.1.45</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.midokura</groupId>
-            <artifactId>midokura-jdk-bootstrap</artifactId>
-            <version>12.12-SNAPSHOT</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

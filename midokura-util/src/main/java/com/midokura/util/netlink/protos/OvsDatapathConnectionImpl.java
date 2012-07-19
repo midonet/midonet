@@ -20,6 +20,7 @@ import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
+import com.midokura.util.netlink.dp.FlowMatch;
 import com.midokura.util.netlink.dp.Packet;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
@@ -616,7 +617,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = newMessage()
             .addValue(datapathId)
             .addAttrNested(AttrKey.KEY)
-            .addAttrs(flow.getKeys())
+            .addAttrs(flow.getMatch().getKeys())
             .build()
             .addAttrNested(AttrKey.ACTIONS)
             .addAttrs(flow.getActions())
@@ -655,7 +656,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         flow.setTcpFlags(msg.getAttrValue(AttrKey.TCP_FLAGS));
         flow.setLastUsedTime(msg.getAttrValue(AttrKey.USED));
         flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
-        flow.setKeys(msg.getAttrValue(AttrKey.KEY, FlowKey.Builder));
+
+        List<FlowKey> flowKeys = msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
+        if (flowKeys != null ) {
+            flow.setMatch(new FlowMatch().setKeys(flowKeys));
+        }
+
         return flow;
     }
 
