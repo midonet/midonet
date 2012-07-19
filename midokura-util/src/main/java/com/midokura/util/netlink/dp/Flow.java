@@ -5,6 +5,7 @@ package com.midokura.util.netlink.dp;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 import com.midokura.util.netlink.dp.flows.FlowAction;
 import com.midokura.util.netlink.dp.flows.FlowKey;
@@ -15,18 +16,20 @@ import com.midokura.util.netlink.dp.flows.FlowStats;
  */
 public class Flow {
 
-    List<FlowKey> keys = new ArrayList<FlowKey>();
+    FlowMatch match;
     List<FlowAction> actions = new ArrayList<FlowAction>();
     FlowStats stats;
     Byte tcpFlags;
     Long lastUsedTime;
 
-    public List<FlowKey> getKeys() {
-        return keys;
+    @Nullable
+    public FlowMatch getMatch() {
+        return match;
     }
 
-    public void setKeys(List<FlowKey> keys) {
-        this.keys = keys;
+    public Flow setMatch(FlowMatch match) {
+        this.match = match;
+        return this;
     }
 
     public List<FlowAction> getActions() {
@@ -69,7 +72,11 @@ public class Flow {
     }
 
     public Flow addKey(FlowKey key) {
-        keys.add(key);
+        if  (match == null) {
+            match = new FlowMatch();
+        }
+
+        match.addKey(key);
         return this;
     }
 
@@ -83,7 +90,7 @@ public class Flow {
         if (actions != null ? !actions.equals(
             flow.actions) : flow.actions != null)
             return false;
-        if (keys != null ? !keys.equals(flow.keys) : flow.keys != null)
+        if (match != null ? !match.equals(flow.match) : flow.match != null)
             return false;
         if (lastUsedTime != null ? !lastUsedTime.equals(
             flow.lastUsedTime) : flow.lastUsedTime != null) return false;
@@ -97,7 +104,7 @@ public class Flow {
 
     @Override
     public int hashCode() {
-        int result = keys != null ? keys.hashCode() : 0;
+        int result = match != null ? match.hashCode() : 0;
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (stats != null ? stats.hashCode() : 0);
         result = 31 * result + (tcpFlags != null ? tcpFlags.hashCode() : 0);
@@ -108,7 +115,7 @@ public class Flow {
     @Override
     public String toString() {
         return "Flow{" +
-            "keys=" + keys +
+            "match=" + match +
             ", actions=" + actions +
             ", stats=" + stats +
             ", tcpFlags=" + tcpFlags +
