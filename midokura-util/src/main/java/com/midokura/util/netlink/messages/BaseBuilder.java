@@ -105,6 +105,10 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         return self();
     }
 
+    public Builder addValue(long value, ByteOrder order) {
+        buffer.order(order).putLong(value).order(this.order);
+        return self();
+    }
 
     public Builder addValue(int[] bytes) {
         for (int aByte : bytes) {

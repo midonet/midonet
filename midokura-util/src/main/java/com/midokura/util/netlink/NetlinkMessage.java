@@ -247,6 +247,9 @@ public class NetlinkMessage {
         try {
             while (buf.hasRemaining()) {
                 short   len         = buf.getShort();
+                if ( len == 0 )
+                    return;
+
                 short   attrType    = (short) (buf.getShort() & NLA_TYPE_MASK);
                 int     pos         = buf.position();
 
@@ -292,7 +295,7 @@ public class NetlinkMessage {
         return new SingleAttributeParser<T>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                NetlinkMessage message = new NetlinkMessage(buffer);
+                final NetlinkMessage message = new NetlinkMessage(buffer.slice().order(buffer.order()));
                 instance.deserialize(message);
                 data = instance;
                 return false;

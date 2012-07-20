@@ -3,8 +3,6 @@
 */
 package com.midokura.util.netlink.dp.flows;
 
-import java.nio.ByteOrder;
-
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.messages.BaseBuilder;
 
@@ -15,7 +13,7 @@ public class FlowActionOutput implements FlowAction<FlowActionOutput> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(portNumber, ByteOrder.BIG_ENDIAN);
+        builder.addValue(portNumber);
     }
 
     @Override

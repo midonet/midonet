@@ -49,7 +49,7 @@ public abstract class OvsFlowsCreateSetSomeTest
             connection.flowsGet(datapath, flowMatch());
         fireReply();
         fireReply();
-        assertThat("The returned flow has the same Match as we wanted",
+        assertThat("The retrieved flow has the same Match as we wanted",
                    retrievedFlowFuture.get().getMatch(), equalTo(flowMatch()));
 
         // update the with actions.

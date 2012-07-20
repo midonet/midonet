@@ -51,9 +51,10 @@ public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAw
             switch (type) {
                 case 1: return new FlowActionOutput();
                 case 2: return new FlowActionUserspace();
-                case 3: return new FlowActionPushVLAN();
-                case 4: return new FlowActionPopVLAN();
-                case 5: return new FlowActionSample();
+                case 3: return new FlowActionSetKey();
+                case 4: return new FlowActionPushVLAN();
+                case 5: return new FlowActionPopVLAN();
+                case 6: return new FlowActionSample();
                 default: return null;
             }
         }

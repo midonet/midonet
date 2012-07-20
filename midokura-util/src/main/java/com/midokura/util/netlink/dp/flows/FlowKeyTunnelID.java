@@ -14,7 +14,7 @@ public class FlowKeyTunnelID implements FlowKey<FlowKeyTunnelID> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(tunnelID);
+        builder.addValue(tunnelID, ByteOrder.BIG_ENDIAN);
     }
 
     @Override

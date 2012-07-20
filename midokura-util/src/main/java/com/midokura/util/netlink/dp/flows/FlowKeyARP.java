@@ -20,11 +20,12 @@ public class FlowKeyARP implements FlowKey<FlowKeyARP> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(arp_sip)
-               .addValue(arp_tip)
-               .addValue(arp_op)
+        builder.addValue(arp_sip, ByteOrder.BIG_ENDIAN)
+               .addValue(arp_tip, ByteOrder.BIG_ENDIAN)
+               .addValue(arp_op, ByteOrder.BIG_ENDIAN)
                .addValue(arp_sha)
-               .addValue(arp_tha);
+               .addValue(arp_tha)
+               .addValue((short)0); // padding
     }
 
     @Override

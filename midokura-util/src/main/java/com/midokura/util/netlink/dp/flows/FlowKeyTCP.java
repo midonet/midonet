@@ -14,8 +14,8 @@ public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(tcp_src);
-        builder.addValue(tcp_dst);
+        builder.addValue(tcp_src, ByteOrder.BIG_ENDIAN);
+        builder.addValue(tcp_dst, ByteOrder.BIG_ENDIAN);
     }
 
     @Override
