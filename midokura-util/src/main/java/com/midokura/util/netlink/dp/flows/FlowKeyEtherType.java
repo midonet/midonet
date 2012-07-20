@@ -40,7 +40,7 @@ public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(etherType);
+        builder.addValue(etherType, ByteOrder.BIG_ENDIAN);
     }
 
     @Override

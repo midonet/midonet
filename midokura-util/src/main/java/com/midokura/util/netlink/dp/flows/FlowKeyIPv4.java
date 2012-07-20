@@ -19,8 +19,8 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(ipv4_src)
-               .addValue(ipv4_dst)
+        builder.addValue(ipv4_src, ByteOrder.BIG_ENDIAN)
+               .addValue(ipv4_dst, ByteOrder.BIG_ENDIAN)
                .addValue(ipv4_proto)
                .addValue(ipv4_tos)
                .addValue(ipv4_ttl)

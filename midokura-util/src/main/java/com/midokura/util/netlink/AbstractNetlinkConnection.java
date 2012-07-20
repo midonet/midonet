@@ -185,7 +185,7 @@ public abstract class AbstractNetlinkConnection {
 
         // allocate buffer for the reply
         ByteBuffer reply = ByteBuffer.allocate(cLibrary.PAGE_SIZE);
-        reply.order(ByteOrder.nativeOrder());
+        reply.order(ByteOrder.LITTLE_ENDIAN);
 
         // read the reply
         channel.read(reply);

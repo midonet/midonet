@@ -3,8 +3,7 @@
 */
 package com.midokura.util.netlink.dp.ports;
 
-import java.util.Arrays;
-
+import com.midokura.midolman.util.Net;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.messages.BaseBuilder;
 
@@ -63,8 +62,8 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     }
 
     int flags;
-    byte[] dstIPv4;
-    byte[] srcIPv4;
+    Integer dstIPv4;
+    Integer srcIPv4;
     Long outKey;
     Long inKey;
     private String name;
@@ -76,12 +75,12 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         return self();
     }
 
-    public Options setDestinationIPv4(byte[] destinationIPv4) {
+    public Options setDestinationIPv4(int destinationIPv4) {
         this.dstIPv4 = destinationIPv4;
         return self();
     }
 
-    public Options setSourceIPv4(byte[] sourceIPv4) {
+    public Options setSourceIPv4(int sourceIPv4) {
         this.srcIPv4 = sourceIPv4;
         return self();
     }
@@ -120,12 +119,12 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         public static final Attr<Integer> OVS_TUNNEL_ATTR_FLAGS = attr(1);
-        public static final Attr<byte[]> OVS_TUNNEL_ATTR_DST_IPV4 = attr(2);
-        public static final Attr<byte[]> OVS_TUNNEL_ATTR_SRC_IPV4 = attr(2);
-        public static final Attr<Long> OVS_TUNNEL_ATTR_OUT_KEY = attr(3);
-        public static final Attr<Long> OVS_TUNNEL_ATTR_IN_KEY = attr(4);
-        public static final Attr<Byte> OVS_TUNNEL_ATTR_TOS = attr(5);
-        public static final Attr<Byte> OVS_TUNNEL_ATTR_TTL = attr(6);
+        public static final Attr<Integer> OVS_TUNNEL_ATTR_DST_IPV4 = attr(2);
+        public static final Attr<Integer> OVS_TUNNEL_ATTR_SRC_IPV4 = attr(3);
+        public static final Attr<Long> OVS_TUNNEL_ATTR_OUT_KEY = attr(4);
+        public static final Attr<Long> OVS_TUNNEL_ATTR_IN_KEY = attr(5);
+        public static final Attr<Byte> OVS_TUNNEL_ATTR_TOS = attr(6);
+        public static final Attr<Byte> OVS_TUNNEL_ATTR_TTL = attr(7);
 
         public Attr(int id) {
             super(id);
@@ -183,18 +182,23 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         TunnelPortOptions that = (TunnelPortOptions) o;
 
         if (flags != that.flags) return false;
-        if (!Arrays.equals(dstIPv4, that.dstIPv4)) return false;
+        if (dstIPv4 != null ? !dstIPv4.equals(
+            that.dstIPv4) : that.dstIPv4 != null)
+            return false;
         if (inKey != null ? !inKey.equals(that.inKey) : that.inKey != null)
             return false;
         if (name != null ? !name.equals(that.name) : that.name != null)
             return false;
         if (outKey != null ? !outKey.equals(that.outKey) : that.outKey != null)
             return false;
-        if (!Arrays.equals(srcIPv4, that.srcIPv4)) return false;
+        if (srcIPv4 != null ? !srcIPv4.equals(
+            that.srcIPv4) : that.srcIPv4 != null)
+            return false;
         if (tos != null ? !tos.equals(that.tos) : that.tos != null)
             return false;
         if (ttl != null ? !ttl.equals(that.ttl) : that.ttl != null)
@@ -206,8 +210,8 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     @Override
     public int hashCode() {
         int result = flags;
-        result = 31 * result + (dstIPv4 != null ? Arrays.hashCode(dstIPv4) : 0);
-        result = 31 * result + (srcIPv4 != null ? Arrays.hashCode(srcIPv4) : 0);
+        result = 31 * result + (dstIPv4 != null ? dstIPv4.hashCode() : 0);
+        result = 31 * result + (srcIPv4 != null ? srcIPv4.hashCode() : 0);
         result = 31 * result + (outKey != null ? outKey.hashCode() : 0);
         result = 31 * result + (inKey != null ? inKey.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
@@ -220,8 +224,8 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     public String toString() {
         return "TunnelPortOptions{" +
             "flags=" + flags +
-            ", dstIPv4=" + Arrays.toString(dstIPv4) +
-            ", srcIPv4=" + Arrays.toString(dstIPv4) +
+            ", dstIPv4=" + Net.convertIntAddressToString(dstIPv4 != null ? dstIPv4 : 0) +
+            ", srcIPv4=" + Net.convertIntAddressToString(srcIPv4 != null ? srcIPv4 : 0) +
             ", outKey=" + outKey +
             ", inKey=" + inKey +
             ", name='" + name + '\'' +

@@ -24,6 +24,7 @@ import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
+import com.midokura.util.netlink.dp.FlowMatch;
 import com.midokura.util.netlink.dp.flows.FlowKeyEtherType;
 import com.midokura.util.netlink.dp.flows.IpProtocol;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
@@ -156,23 +157,31 @@ public class Client {
 //        }).get();
 
 
-        Flow flow =
-            new Flow()
-                .addKey(inPort(0))
-                .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
-                                 MAC.fromString("33:33:00:00:00:16").getAddress()))
-                .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
-                .addKey(
-                    ipv4(
-                        IPv4.toIPv4Address("192.168.100.1"),
-                        IPv4.toIPv4Address("192.168.100.2"),
-                        IpProtocol.ICMP)
-                        )
-                .addKey(icmp(143, 0))
-                .addAction(userspace().setUserData(234l));
+        log.info("Installed flow: {}, ",
+                 conn.flowsCreate(datapath, new Flow().setMatch(flowMatch()))
+                     .get());
 
-        log.info("Installed flow: {}, ", conn.flowsCreate(datapath, flow).get());
+        Flow retrievedFlow = conn.flowsGet(datapath, flowMatch()).get();
 
+        log.info("Retrieved flow: {}", retrievedFlow);
+
+
+        retrievedFlow.addAction(userspace()
+                                    .setUserData(234l)
+                                    .setUplinkPid(
+                                        conn.getChannel()
+                                            .getLocalAddress()
+                                            .getPid()));
+
+        Flow updatedFlow = new Flow()
+            .setMatch(flowMatch())
+            .addAction(userspace()
+                .setUserData(234l)
+                .setUplinkPid(
+                    conn.getChannel().getLocalAddress().getPid()
+                ));
+
+        log.info("Flow that was set: {}", conn.flowsSet(datapath, updatedFlow).get());
         // multi containing the ports data
 //        fireReply();
 
@@ -186,5 +195,20 @@ public class Client {
 //        log.info("Old port {}", port);
 //        port = conn.portsSet(port, datapath).get();
 //        log.info("New port {}", port);
+    }
+
+    private static FlowMatch flowMatch() {
+        return new FlowMatch()
+            .addKey(inPort(0))
+            .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
+                             MAC.fromString("33:33:00:00:00:16").getAddress()))
+            .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
+            .addKey(
+                ipv4(
+                    IPv4.toIPv4Address("192.168.100.1"),
+                    IPv4.toIPv4Address("192.168.100.2"),
+                    IpProtocol.ICMP)
+            )
+            .addKey(icmp(143, 0));
     }
 }

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
+import javax.annotation.Nonnull;
+
 import com.midokura.util.netlink.dp.flows.FlowKey;
 
 /**
@@ -30,6 +32,7 @@ public class FlowMatch {
         return this;
     }
 
+    @Nonnull
     public List<FlowKey> getKeys() {
         return keys;
     }

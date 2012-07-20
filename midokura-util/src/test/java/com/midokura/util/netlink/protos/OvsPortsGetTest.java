@@ -137,16 +137,7 @@ public class OvsPortsGetTest
         tunGrePort.setStats(tunGrePort.new Stats());
         tunGrePort.setOptions(
             Ports
-                .newPortOptions(
-                    tunGrePort,
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    })
-                .setSourceIPv4(
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    }
-                )
+                .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
         );
 
         return tunGrePort;
@@ -161,16 +152,7 @@ public class OvsPortsGetTest
         capwapPort.setStats(capwapPort.new Stats());
         capwapPort.setOptions(
             Ports
-                .newPortOptions(
-                    capwapPort,
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    })
-                .setSourceIPv4(
-                    new byte[]{
-                        (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                    }
-                )
+                .newPortOptions(capwapPort, ipFromString("192.168.100.1"))
         );
 
         return capwapPort;
@@ -842,7 +824,7 @@ public class OvsPortsGetTest
             (byte) 0x00, (byte) 0x00, (byte) 0x14, (byte) 0x00, (byte) 0x04, (byte) 0x00,
             (byte) 0x08, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x02, (byte) 0x00,
-            (byte) 0xC0, (byte) 0xA8, (byte) 0x64, (byte) 0x01
+            (byte) 0x01, (byte) 0x64, (byte) 0xA8, (byte) 0xC0,
         },
 /*
 // write - time: 1342192448354
@@ -885,7 +867,7 @@ public class OvsPortsGetTest
             (byte) 0x00, (byte) 0x00, (byte) 0x14, (byte) 0x00, (byte) 0x04, (byte) 0x00,
             (byte) 0x08, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x02, (byte) 0x00,
-            (byte) 0xC0, (byte) 0xA8, (byte) 0x64, (byte) 0x01
+            (byte) 0x01, (byte) 0x64, (byte) 0xA8, (byte) 0xC0
         },
 /*
 // write - time: 1342192448355
@@ -928,7 +910,7 @@ public class OvsPortsGetTest
             (byte) 0x89, (byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x14, (byte) 0x00,
             (byte) 0x04, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x01, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x08, (byte) 0x00,
-            (byte) 0x02, (byte) 0x00, (byte) 0xC0, (byte) 0xA8, (byte) 0x64, (byte) 0x01
+            (byte) 0x02, (byte) 0x00, (byte) 0x01, (byte) 0x64, (byte) 0xA8, (byte) 0xC0,
         },
 /*
 // write - time: 1342192448357
@@ -973,7 +955,7 @@ public class OvsPortsGetTest
             (byte) 0x89, (byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x14, (byte) 0x00,
             (byte) 0x04, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x01, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x08, (byte) 0x00,
-            (byte) 0x02, (byte) 0x00, (byte) 0xC0, (byte) 0xA8, (byte) 0x64, (byte) 0x01
+            (byte) 0x02, (byte) 0x00, (byte) 0x01, (byte) 0x64, (byte) 0xA8, (byte) 0xC0,
         },
     };
 }

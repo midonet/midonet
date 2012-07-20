@@ -13,6 +13,7 @@ import com.google.common.util.concurrent.ValueFuture;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
+import com.midokura.util.netlink.dp.FlowMatch;
 import com.midokura.util.netlink.dp.Packet;
 import com.midokura.util.netlink.dp.Port;
 import com.midokura.util.netlink.dp.Ports;
@@ -44,8 +45,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
                                                            @Nonnull Callback<Packet> notificationHandler) {
         ValueFuture<Boolean> valueFuture = ValueFuture.create();
-        _doDatapathsSetNotificationHandler(datapath,
-                                           wrapFuture(valueFuture), notificationHandler);
+        _doDatapathsSetNotificationHandler(datapath, notificationHandler, wrapFuture(valueFuture));
         return valueFuture;
     }
 
@@ -53,17 +53,17 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Install packet-in callback for handling miss/userspace packets on a
      * specific datapath.
      */
-    public void datapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                @Nonnull Callback<Boolean> operationStatus,
-                                                @Nonnull Callback<Packet> notificationHandler) {
-        _doDatapathsSetNotificationHandler(datapath, operationStatus,
-                                           notificationHandler);
+    public void datapathsSetNotificationHandler(@Nonnull final Datapath datapath,
+                                                @Nonnull final Callback<Packet> notificationHandler,
+                                                @Nonnull final Callback<Boolean> operationCallback) {
+        _doDatapathsSetNotificationHandler(datapath, notificationHandler,
+                                           operationCallback);
     }
 
     protected abstract void
     _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                       @Nonnull final Callback<Boolean> installCallback,
-                                       @Nonnull Callback<Packet> notificationHandler);
+                                       @Nonnull final Callback<Packet> notificationHandler,
+                                       @Nonnull final Callback<Boolean> operationCallback);
 
     /**
      * <com.midokura.util.netlink.dp.Packet>* Future based api for enumerating datapaths.
@@ -270,13 +270,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     /**
      * Future based api to retrieve port information.
      *
-     * @param port     the port we want to retrieve information for
-     * @param datapath the datapath which holds the port
+     * @param portId    the port we want to retrieve information for
+     * @param datapath  the datapath which holds the port
      *
      * @return a future
      */
     public Future<Port> portsGet(final int portId,
-                                 final @Nonnull Datapath datapath) {
+                                 @Nonnull final Datapath datapath) {
         ValueFuture<Port> future = ValueFuture.create();
         portsGet(portId, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
@@ -570,4 +570,53 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull final Flow flow,
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
+
+    public Future<Flow> flowsGet(@Nonnull final Datapath datapath,
+                                 @Nonnull final FlowMatch match) {
+        ValueFuture<Flow> flowFuture = ValueFuture.create();
+        flowsGet(datapath, match, wrapFuture(flowFuture));
+        return flowFuture;
+    }
+
+    public void flowsGet(@Nonnull final Datapath datapath,
+                         @Nonnull final FlowMatch match,
+                         @Nonnull final Callback<Flow> flowCallback) {
+        flowsGet(datapath, match, flowCallback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void flowsGet(@Nonnull final Datapath datapath,
+                         @Nonnull final FlowMatch match,
+                         @Nonnull final Callback<Flow> flowCallback,
+                         long timeoutMillis) {
+        _doFlowsGet(datapath, match, flowCallback, timeoutMillis);
+    }
+
+    protected abstract void _doFlowsGet(@Nonnull final Datapath datapath,
+                                        @Nonnull final FlowMatch match,
+                                        @Nonnull final Callback<Flow> flowCallback,
+                                        long timeout);
+
+    public Future<Flow> flowsSet(Datapath datapath, Flow flow) {
+        ValueFuture<Flow> flowFuture = ValueFuture.create();
+        flowsSet(datapath, flow, wrapFuture(flowFuture));
+        return flowFuture;
+    }
+
+    public void flowsSet(@Nonnull final Datapath datapath,
+                         @Nonnull final Flow match,
+                         @Nonnull final Callback<Flow> flowCallback) {
+        flowsSet(datapath, match, flowCallback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void flowsSet(@Nonnull final Datapath datapath,
+                         @Nonnull final Flow match,
+                         @Nonnull final Callback<Flow> flowCallback,
+                         long timeoutMillis) {
+        _doFlowsSet(datapath, match, flowCallback, timeoutMillis);
+    }
+
+    protected abstract void _doFlowsSet(@Nonnull final Datapath datapath,
+                                        @Nonnull final Flow match,
+                                        @Nonnull final Callback<Flow> flowCallback,
+                                        long timeout);
 }

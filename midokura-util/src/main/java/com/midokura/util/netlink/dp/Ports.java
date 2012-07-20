@@ -23,15 +23,22 @@ public class Ports {
     }
 
     public static GreTunnelPort.Options newPortOptions(GreTunnelPort port,
-                                                       byte[] destination,
+                                                       int destination,
                                                        TunnelPortOptions.Flag... flags) {
         port.setOptions(port.new Options());
-        return port.getOptions().setDestinationIPv4(destination).setFlags(flags);
+        return port.getOptions()
+                   .setDestinationIPv4(destination)
+                   .setFlags(flags);
     }
 
-    public static CapWapTunnelPort.Options newPortOptions(CapWapTunnelPort port, byte[] destination, TunnelPortOptions.Flag... flags) {
+    public static CapWapTunnelPort.Options newPortOptions(CapWapTunnelPort port,
+                                                          int destination,
+                                                          TunnelPortOptions.Flag... flags) {
         port.setOptions(port.new Options());
-        return port.getOptions().setDestinationIPv4(destination).setFlags(flags);
+        return port
+            .getOptions()
+            .setDestinationIPv4(destination)
+            .setFlags(flags);
     }
 
     public static InternalPort.Options newPortOptions(InternalPort port) {
@@ -65,7 +72,7 @@ public class Ports {
     }
 
     public static Port newPortByType(Port.Type type, String name) {
-        if ( type == null || name == null)
+        if (type == null || name == null)
             return null;
 
         switch (type) {

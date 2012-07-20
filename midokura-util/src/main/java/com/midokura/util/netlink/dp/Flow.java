@@ -5,6 +5,7 @@ package com.midokura.util.netlink.dp;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.midokura.util.netlink.dp.flows.FlowAction;
@@ -32,6 +33,7 @@ public class Flow {
         return this;
     }
 
+    @Nonnull
     public List<FlowAction> getActions() {
         return actions;
     }

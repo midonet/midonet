@@ -29,9 +29,9 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
     NetlinkConnection connection;
 
-    public void setUp(final byte[][] responses) throws Exception {
+    protected void setUp(final byte[][] responses) throws Exception {
         Netlink.Address remote = new Netlink.Address(0);
-        Netlink.Address local = new Netlink.Address(294);
+        Netlink.Address local = new Netlink.Address(uplinkPid());
 
         PowerMockito.when(channel.getRemoteAddress())
                     .thenReturn(remote);
@@ -54,6 +54,10 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
         PowerMockito.when(channel.read(Matchers.<ByteBuffer>any()))
                     .then(playbackResponseAnswer);
+    }
+
+    protected int uplinkPid() {
+        return 294;
     }
 
     protected void fireReply() throws IOException {
@@ -88,11 +92,12 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
     }
 
-    protected byte[] ipFromString(String ip) {
+    protected int ipFromString(String ip) {
         try {
-            return Inet4Address.getByName(ip).getAddress();
+            byte []address = Inet4Address.getByName(ip).getAddress();
+            return ByteBuffer.wrap(address).asIntBuffer().get();
         } catch (UnknownHostException e) {
-            return new byte[4];
+            return 0;
         }
     }
 

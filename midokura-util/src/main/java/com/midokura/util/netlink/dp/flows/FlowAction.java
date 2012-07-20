@@ -18,10 +18,10 @@ public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAw
         public static final FlowActionKey<FlowActionOutput> OUTPUT = attr(1);
 
         /** Nested OVS_USERSPACE_ATTR_*. */
-        public static final FlowActionKey<FlowActionUserspace> USERSPACE = attr(2);
+        public static final FlowActionKey<FlowActionUserspace> USERSPACE = attrNest(2);
 
         /** One nested OVS_KEY_ATTR_*. */
-        public static final FlowActionKey<FlowActionSetKey> SET = attr(3);
+        public static final FlowActionKey<FlowActionSetKey> SET = attrNest(3);
 
         /** struct ovs_action_push_vlan. */
         public static final FlowActionKey<FlowActionPushVLAN> PUSH_VLAN = attr(4);
@@ -30,14 +30,18 @@ public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAw
         public static final FlowActionKey<FlowActionPopVLAN> POP_VLAN = attr(5);
 
         /* Nested OVS_SAMPLE_ATTR_*. */
-        public static final FlowActionKey<FlowActionSample> SAMPLE = attr(6);
+        public static final FlowActionKey<FlowActionSample> SAMPLE = attrNest(6);
 
-        public FlowActionKey(int id) {
-            super(id);
+        private FlowActionKey(int id, boolean nested) {
+            super(id, nested);
         }
 
         static <T extends FlowAction> FlowActionKey<T> attr(int id) {
-            return new FlowActionKey<T>(id);
+            return new FlowActionKey<T>(id, false);
+        }
+
+        static <T extends FlowAction> FlowActionKey<T> attrNest(int id) {
+            return new FlowActionKey<T>(id, true);
         }
     }
 

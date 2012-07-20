@@ -92,10 +92,7 @@ public class OvsPortsCreateAndEnumerateTest
         log.info("Creating an gre tunnel port.");
         GreTunnelPort tunGrePort = Ports.newGreTunnelPort("tunGrePort");
         tunGrePort.setOptions(
-            Ports.newPortOptions(tunGrePort,
-                                 new byte[]{
-                                     (byte) 0xc0, (byte) 0xa8,
-                                     (byte) 0x64, (byte) 0x01}));
+            Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
 
         Future<Port> tunGrePortFuture = connection.portsCreate(datapath,
                                                                tunGrePort);
@@ -113,11 +110,7 @@ public class OvsPortsCreateAndEnumerateTest
         tunCapwapPort.setOptions(
             Ports.newPortOptions(
                 tunCapwapPort,
-                new byte[]{
-                    (byte) 0xc0, (byte) 0xa8, (byte) 0x64, (byte) 0x01
-                }
-            )
-        );
+                ipFromString("192.168.100.1")));
 
         Future<Port> tunCapwapPortFuture =
             connection.portsCreate(datapath, tunCapwapPort);
@@ -184,7 +177,6 @@ public class OvsPortsCreateAndEnumerateTest
         tunGrePort.setOptions(
             Ports
                 .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
-                .setSourceIPv4(ipFromString("192.168.100.1"))
         );
 
         return tunGrePort;
@@ -201,9 +193,6 @@ public class OvsPortsCreateAndEnumerateTest
             Ports
                 .newPortOptions(
                     tunCapwapGrePort,
-                    ipFromString("192.168.100.1")
-                )
-                .setSourceIPv4(
                     ipFromString("192.168.100.1")
                 )
         );
@@ -654,7 +643,7 @@ public class OvsPortsCreateAndEnumerateTest
         (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00,
         (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-        (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01
+        (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64, (byte)0xA8, (byte)0xC0
     },
 */
         // read - time: 1342190625726
@@ -685,7 +674,7 @@ public class OvsPortsCreateAndEnumerateTest
             (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00, (byte)0x04, (byte)0x00,
             (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00,
-            (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01
+            (byte)0x01, (byte)0x64, (byte)0xA8, (byte)0xC0,
         },
 /*
 // write - time: 1342190625729
@@ -702,8 +691,8 @@ public class OvsPortsCreateAndEnumerateTest
         (byte)0x05, (byte)0x00, (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00,
         (byte)0x14, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00,
         (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8,
-        (byte)0x64, (byte)0x01
+        (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64,
+        (byte)0xA8, (byte)0xC0,
     },
 */
         // read - time: 1342190625729
@@ -735,7 +724,7 @@ public class OvsPortsCreateAndEnumerateTest
             (byte)0x89, (byte)0x02, (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00,
             (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01
+            (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64, (byte)0xA8, (byte)0xC0,
         },
 /*
 // write - time: 1342190625731
@@ -875,7 +864,7 @@ public class OvsPortsCreateAndEnumerateTest
             (byte)0x49, (byte)0xDF, (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00,
             (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01,
+            (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64, (byte)0xA8, (byte)0xC0,
             (byte)0xA8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
             (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
@@ -903,7 +892,7 @@ public class OvsPortsCreateAndEnumerateTest
             (byte)0x89, (byte)0x02, (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00,
             (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01
+            (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64, (byte)0xA8, (byte)0xC0,
         },
 
         // read - time: 1342190625734

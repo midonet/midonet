@@ -15,10 +15,12 @@ import com.midokura.util.netlink.NetlinkMessage;
 public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, Result> {
 
     ByteBuffer buffer;
+    ByteOrder order;
 
     public BaseBuilder(int size, ByteOrder byteOrder) {
         buffer = ByteBuffer.allocate(size);
         buffer.order(byteOrder);
+        order = byteOrder;
     }
 
     public BaseBuilder(ByteBuffer buffer) {
@@ -57,8 +59,14 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
 
         value.serialize(self());
 
-        buffer.putShort(start, (short) (buffer.position() - start));
+        int len = buffer.position() - start;
+        buffer.putShort(start, (short) len);
 
+        int padLen = NetlinkMessage.pad(len);
+        while (padLen != len) {
+            buffer.put((byte)0);
+            padLen--;
+        }
         return self();
     }
 
@@ -76,8 +84,19 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         buffer.putShort(value);
         return self();
     }
+
+    public Builder addValue(short value, ByteOrder order) {
+        buffer.order(order).putShort(value).order(this.order);
+        return self();
+    }
+
     public Builder addValue(int value) {
         buffer.putInt(value);
+        return self();
+    }
+
+    public Builder addValue(int value, ByteOrder order) {
+        buffer.order(order).putInt(value).order(this.order);
         return self();
     }
 

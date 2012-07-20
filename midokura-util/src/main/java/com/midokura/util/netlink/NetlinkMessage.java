@@ -25,7 +25,13 @@ public class NetlinkMessage {
         short id;
 
         public AttrKey(int id) {
-            this.id = (short)id;
+            this(id, false);
+        }
+
+        public AttrKey(int id, boolean nested) {
+            this.id = nested
+                        ? (short) (id | NetlinkMessage.NLA_F_NESTED)
+                        : (short) id;
         }
 
         public short getId() {
@@ -40,9 +46,9 @@ public class NetlinkMessage {
         public T getValue();
     }
 
-    static final short NLA_F_NESTED = (short) (1 << 15);
-    static final short NLA_F_NET_BYTEORDER = (1 << 14);
-    static final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
+    static public final short NLA_F_NESTED = (short) (1 << 15);
+    static public final short NLA_F_NET_BYTEORDER = (1 << 14);
+    static public final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
 
     private ByteBuffer buf;
     private ByteOrder byteOrder;
@@ -383,7 +389,7 @@ public class NetlinkMessage {
         return newMessageBuilder(cLibrary.PAGE_SIZE);
     }
 
-    private static int pad(int len) {
+    public static int pad(int len) {
         int paddedLen = len & ~0x03;
         if ( paddedLen < len ) {
             paddedLen += 0x04;
@@ -402,7 +408,7 @@ public class NetlinkMessage {
 
         @Override
         public boolean processAttribute(short attributeType, ByteBuffer buffer) {
-            if (attr.getId() != attributeType)
+            if ((attr.getId() & NLA_TYPE_MASK) != attributeType)
                 return true;
 
             return parseBuffer(buffer);

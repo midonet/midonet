@@ -79,8 +79,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                                      @Nonnull final Callback<Boolean> installCallback,
-                                                      @Nonnull Callback<Packet> notificationHandler) {
+                                                      @Nonnull Callback<Packet> notificationHandler,
+                                                      @Nonnull final Callback<Boolean> installCallback) {
         this.notificationHandler = notificationHandler;
 
         _doPortsEnumerate(datapath, new Callback<Set<Port>>() {
@@ -158,11 +158,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     int portMulticast;
 
     private Callback<Packet> notificationHandler;
-
-//    CommandFamily<FlowCommands> ovsFlowFamily;
-//    CommandFamily<PacketCommands> ovsPacketFamily;
-
-    int ovsVportMulticastGroup;
 
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
@@ -569,6 +564,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The datapath to dump flows for needs a valid datapath id"));
+            return;
         }
 
         NetlinkMessage message = newMessage()
@@ -612,17 +608,22 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The datapath to dump flows for needs a valid datapath id"));
+            return;
         }
 
-        NetlinkMessage message = newMessage()
+        Builder builder = newMessage()
             .addValue(datapathId)
-            .addAttrNested(AttrKey.KEY)
-            .addAttrs(flow.getMatch().getKeys())
-            .build()
             .addAttrNested(AttrKey.ACTIONS)
-            .addAttrs(flow.getActions())
-            .build()
-            .build();
+                .addAttrs(flow.getActions())
+                .build();
+
+        FlowMatch match = flow.getMatch();
+        if ( match != null )
+            builder.addAttrNested(AttrKey.KEY)
+                   .addAttrs(match.getKeys())
+                   .build();
+
+        NetlinkMessage message = builder.build();
 
         newRequest(flowFamily, FlowFamily.Cmd.NEW)
             .withFlags(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
@@ -640,7 +641,108 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     }
                 }
             )
-            .withTimeout(timeoutMillis * 10)
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    @Override
+    protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match,
+                               @Nonnull Callback<Flow> callback, long timeoutMillis) {
+
+        validateState(callback);
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to get the flow from needs a valid datapath id"));
+            return;
+        }
+
+        Builder builder = newMessage()
+            .addValue(datapathId)
+            .addAttrNested(AttrKey.KEY)
+                .addAttrs(match.getKeys())
+                .build();
+
+        newRequest(flowFamily, FlowFamily.Cmd.GET)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP)
+            .withPayload(builder.build().getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Flow>() {
+                    @Override
+                    public Flow apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializeFlow(input.get(0), datapathId);
+                    }
+                }
+            )
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    @Override
+    protected void _doFlowsSet(@Nonnull final Datapath datapath,
+                               @Nonnull final Flow flow,
+                               @Nonnull final Callback<Flow> callback,
+                               long timeoutMillis) {
+
+        validateState(callback);
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to get the flow from needs a valid datapath id"));
+            return;
+        }
+
+        FlowMatch flowMatch = flow.getMatch();
+
+        if ( flowMatch == null || flowMatch.getKeys().size() == 0 ){
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The flow should have a FlowMatch object set up (with non empty key set)."
+                )
+            );
+            return;
+        }
+
+        Builder builder = newMessage()
+            .addValue(datapathId)
+            .addAttrNested(AttrKey.KEY)
+            .addAttrs(flowMatch.getKeys())
+            .build();
+
+        if ( flow.getActions().size() > 0 ) {
+            builder.addAttrNested(AttrKey.ACTIONS)
+                .addAttrs(flow.getActions())
+                .build();
+        }
+
+        newRequest(flowFamily, FlowFamily.Cmd.SET)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(builder.build().getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Flow>() {
+                    @Override
+                    public Flow apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializeFlow(input.get(0), datapathId);
+                    }
+                }
+            )
+            .withTimeout(timeoutMillis)
             .send();
     }
 
@@ -685,9 +787,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         port.setAddress(msg.getAttrValue(PortFamily.Attr.ADDRESS));
         port.setPortNo(msg.getAttrValue(PortFamily.Attr.PORT_NO));
-
-        port.setStats(
-            msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
+        port.setStats(msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
 
         //noinspection unchecked
         port.setOptions(msg.getAttrValue(PortFamily.Attr.OPTIONS,

@@ -52,18 +52,18 @@ public class OvsFlowsCreateTest
         Flow flow =
             new Flow()
                 .addKey(FlowKeys.inPort(1))
-            .addKey(inPort(0))
-            .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                             macFromString("33:33:00:00:00:16")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    ipv6FromString("ff02::16"),
-                    IpProtocol.ICMPV6)
-                    .setHLimit((byte) 1))
-            .addKey(icmpv6(143, 0))
-            .addAction(output(1));
+                .addKey(inPort(0))
+                .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
+                                 macFromString("33:33:00:00:00:16")))
+                .addKey(etherType(Type.ETH_P_IPV6))
+                .addKey(
+                    ipv6(
+                        ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
+                        ipv6FromString("ff02::16"),
+                        IpProtocol.ICMPV6)
+                        .setHLimit((byte) 1))
+                .addKey(icmpv6(143, 0))
+                .addAction(output(1));
 
         Future<Flow> flowFuture =
             connection.flowsCreate(dpFuture.get(), flow);

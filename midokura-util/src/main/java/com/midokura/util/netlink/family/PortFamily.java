@@ -46,7 +46,7 @@ public class PortFamily
         public static final Attr<String> NAME = attr(3);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<Port.Options> OPTIONS = attr(4);
+        public static final Attr<Port.Options> OPTIONS = attrNested(4);
 
         /* u32 Netlink PID to receive upcalls */
         public static final Attr<Integer> UPCALL_PID = attr(5);
@@ -58,12 +58,16 @@ public class PortFamily
         public static final Attr<byte[]> ADDRESS = attr(100);
 
 
-        public Attr(int id) {
-            super(id);
+        private Attr(int id, boolean nested) {
+            super(id, nested);
         }
 
         static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id);
+            return new Attr<T>(id, false);
+        }
+
+        static <T> Attr<T> attrNested(int id) {
+            return new Attr<T>(id, true);
         }
     }
 
