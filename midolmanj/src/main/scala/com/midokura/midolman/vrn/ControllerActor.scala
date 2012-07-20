@@ -7,9 +7,12 @@ import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
 import java.util.{Set => JavaSet}
 
-import com.midokura.util.netlink.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Packet}
+import com.midokura.util.netlink.dp.{Flow => KernelFlow,
+                                     FlowMatch => KernelMatch, Packet}
 import com.midokura.midolman.packets.Ethernet
-import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlowTable, WildcardFlow}
+import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlowTable,
+                               WildcardFlow}
+
 
 abstract class ControllerActorRequest
 case class PacketIn(packet: Packet) extends ControllerActorRequest
@@ -17,19 +20,11 @@ case class SimulationDone(result: WildcardFlow, packet: Packet)
         extends ControllerActorRequest
 case class EmitGeneratedPacket(dpPort: Short, frame: Ethernet)
 
-/*
-class KernelMatch(keys: JavaList[FlowKey[_ <: FlowKey[Any]]]) { }
-object KernelMatch {
-    implicit def fromKeyList(keys: JavaList[FlowKey[_ <: FlowKey[_]]]) =
-        new KernelMatch(keys)
-}
-*/
 
-class ControllerActor(XXX: Unit) extends Actor {
+class ControllerActor(val wildcardFlowManager: WildcardFlowTable,
+                      val exactFlowManager: NetlinkFlowTable) extends Actor {
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
-    private var wildcardFlowManager: WildcardFlowTable = _
-    private var exactFlowManager: NetlinkFlowTable = _
 
 
     // Callback invoked from select-loop thread context.
@@ -37,7 +32,6 @@ class ControllerActor(XXX: Unit) extends Actor {
         self ! PacketIn(packet)
     }
 
-    // TODO(jlm, pino): Verify these calls are nonblocking.
     // Send the packet to be processed by the flow rule
     private def packetOut(packet: Packet, flow: KernelFlow) {
         //XXX
