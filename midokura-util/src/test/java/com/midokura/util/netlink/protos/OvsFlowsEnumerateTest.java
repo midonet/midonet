@@ -13,10 +13,12 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 
+import com.midokura.midolman.util.Net;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.flows.FlowStats;
 import static com.midokura.util.netlink.dp.flows.FlowActions.output;
+import static com.midokura.util.netlink.dp.flows.FlowKeyEtherType.Type;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.etherType;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.ethernet;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.icmpv6;
@@ -86,8 +88,8 @@ public class OvsFlowsEnumerateTest
             .addKey(etherType(0x86DD))
             .addKey(
                 ipv6(
-                    ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    ipv6FromString("ff02::16"),
+                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
+                    Net.ipv6FromString("ff02::16"),
                     58)
                     .setHLimit((byte) 1))
             .addKey(icmpv6(143, 0))
@@ -105,8 +107,8 @@ public class OvsFlowsEnumerateTest
             .addKey(etherType(0x86DD))
             .addKey(
                 ipv6(
-                    ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    ipv6FromString("ff02::2"),
+                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
+                    Net.ipv6FromString("ff02::2"),
                     58)
                     .setHLimit((byte) -1))
             .addKey(
@@ -127,12 +129,13 @@ public class OvsFlowsEnumerateTest
                 etherType(0x86DD))
             .addKey(
                 ipv6(
-                    ipv6FromString("::"),
-                    ipv6FromString("ff02::1:ff8c:a148"), 58)
+                    Net.ipv6FromString("::"),
+                    Net.ipv6FromString("ff02::1:ff8c:a148"), 58)
                     .setHLimit((byte) -1))
             .addKey(icmpv6(135, 0))
             .addKey(
-                neighborDiscovery(ipv6FromString("fe80::acb3:77ff:fe8c:a148")))
+                neighborDiscovery(Net.ipv6FromString(
+                    "fe80::acb3:77ff:fe8c:a148")))
             .addAction(output(4))
             .addAction(output(3))
             .addAction(output(2))
@@ -148,8 +151,8 @@ public class OvsFlowsEnumerateTest
             .addKey(etherType(0x86dd))
             .addKey(
                 ipv6(
-                    ipv6FromString("::"),
-                    ipv6FromString("ff02::16"),
+                    Net.ipv6FromString("::"),
+                    Net.ipv6FromString("ff02::16"),
                     58)
                     .setHLimit((byte) 1))
             .addKey(
@@ -167,11 +170,11 @@ public class OvsFlowsEnumerateTest
             .addKey(
                 ethernet(macFromString("ae:b3:77:8C:A1:48"),
                          macFromString("33:33:00:00:00:fb")))
-            .addKey(etherType(0x86dd))
+            .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    ipv6FromString("ff02::fb"),
+                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
+                    Net.ipv6FromString("ff02::fb"),
                     17)
                     .setHLimit((byte) -1))
             .addKey(

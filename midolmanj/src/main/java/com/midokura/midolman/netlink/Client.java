@@ -6,6 +6,8 @@ package com.midokura.midolman.netlink;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -17,25 +19,27 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
-import com.midokura.midolman.packets.IPv4;
 import com.midokura.midolman.packets.MAC;
+import com.midokura.midolman.util.Net;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkSelectorProvider;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.FlowMatch;
+import com.midokura.util.netlink.dp.flows.FlowAction;
 import com.midokura.util.netlink.dp.flows.FlowKeyEtherType;
 import com.midokura.util.netlink.dp.flows.IpProtocol;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
-import static com.midokura.util.netlink.dp.flows.FlowActions.userspace;
+import static com.midokura.util.netlink.dp.flows.FlowActions.output;
+import static com.midokura.util.netlink.dp.flows.FlowActions.sample;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.etherType;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.ethernet;
-import static com.midokura.util.netlink.dp.flows.FlowKeys.icmp;
+import static com.midokura.util.netlink.dp.flows.FlowKeys.icmpv6;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.inPort;
-import static com.midokura.util.netlink.dp.flows.FlowKeys.ipv4;
+import static com.midokura.util.netlink.dp.flows.FlowKeys.ipv6;
 
 public class Client {
 
@@ -166,22 +170,14 @@ public class Client {
         log.info("Retrieved flow: {}", retrievedFlow);
 
 
-        retrievedFlow.addAction(userspace()
-                                    .setUserData(234l)
-                                    .setUplinkPid(
-                                        conn.getChannel()
-                                            .getLocalAddress()
-                                            .getPid()));
+        retrievedFlow.setActions(flowActions());
 
         Flow updatedFlow = new Flow()
             .setMatch(flowMatch())
-            .addAction(userspace()
-                .setUserData(234l)
-                .setUplinkPid(
-                    conn.getChannel().getLocalAddress().getPid()
-                ));
+            .setActions(flowActions());
 
-        log.info("Flow that was set: {}", conn.flowsSet(datapath, updatedFlow).get());
+        log.info("Flow that was set: {}",
+                 conn.flowsSet(datapath, updatedFlow).get());
         // multi containing the ports data
 //        fireReply();
 
@@ -197,18 +193,24 @@ public class Client {
 //        log.info("New port {}", port);
     }
 
+    private static List<FlowAction> flowActions() {
+        return
+            Arrays.<FlowAction>asList(
+                sample(Integer.MAX_VALUE / 3, Arrays.<FlowAction>asList(output(2))));
+    }
+
     private static FlowMatch flowMatch() {
         return new FlowMatch()
             .addKey(inPort(0))
             .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
                              MAC.fromString("33:33:00:00:00:16").getAddress()))
-            .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
+            .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IPV6))
             .addKey(
-                ipv4(
-                    IPv4.toIPv4Address("192.168.100.1"),
-                    IPv4.toIPv4Address("192.168.100.2"),
-                    IpProtocol.ICMP)
+                ipv6(
+                    Net.ipv6FromString("fe80::96bf:90ff:fe6c:e2c1"),
+                    Net.ipv6FromString("fe80::96ef:90ff:fe6c:e2c1"),
+                    IpProtocol.ICMPV6)
             )
-            .addKey(icmp(143, 0));
+            .addKey(icmpv6(143, 0));
     }
 }

@@ -22,9 +22,9 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(ipv6_src)
-               .addValue(ipv6_dst)
-               .addValue(ipv6_label)
+        builder.addValue(ipv6_src, ByteOrder.BIG_ENDIAN)
+               .addValue(ipv6_dst, ByteOrder.BIG_ENDIAN)
+               .addValue(ipv6_label, ByteOrder.BIG_ENDIAN)
                .addValue(ipv6_proto)
                .addValue(ipv6_tclass)
                .addValue(ipv6_hlimit)

@@ -16,11 +16,11 @@ import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.FlowMatch;
 import com.midokura.util.netlink.dp.flows.FlowAction;
 
-public abstract class OvsFlowsCreateSetSomeTest
+public abstract class OvsFlowsCreateSetMatchTest
     extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateSetSomeTest.class);
+        .getLogger(OvsFlowsCreateSetMatchTest.class);
 
     protected void setUp(final byte[][] responses) throws Exception {
         super.setUp(responses);

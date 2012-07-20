@@ -117,6 +117,13 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         return self();
     }
 
+    public Builder addValue(int[] ints, ByteOrder order) {
+        for (int anInt : ints) {
+            addValue(anInt, order);
+        }
+        return self();
+    }
+
     public Builder addValue(byte [] bytes) {
         buffer.put(bytes);
         return self();

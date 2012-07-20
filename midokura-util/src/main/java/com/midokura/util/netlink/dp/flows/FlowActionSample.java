@@ -29,7 +29,8 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-//            portNumber = message.getInt();
+            probability = message.getAttrValue(Attr.PROBABILITY);
+            actions = message.getAttrValue(Attr.ACTIONS, FlowAction.Builder);
             return true;
         } catch (Exception e) {
             return false;
@@ -46,14 +47,17 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         /**
          * Nested OVS_ACTION_ATTR_*.
          */
-        public static final Attr<List<FlowAction>> ACTIONS = attr(2);
+        public static final Attr<List<FlowAction>> ACTIONS = attrNest(2);
 
-        public Attr(int id) {
+        private Attr(int id, boolean nested) {
             super(id);
         }
 
         static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id);
+            return new Attr<T>(id, false);
+        }
+        static <T> Attr<T> attrNest(int id) {
+            return new Attr<T>(id, true);
         }
     }
 
@@ -83,5 +87,35 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
     public FlowActionSample setActions(List<? extends FlowAction> actions) {
         this.actions = actions;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FlowActionSample that = (FlowActionSample) o;
+
+        if (probability != that.probability) return false;
+        if (actions != null ? !actions.equals(
+            that.actions) : that.actions != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = probability;
+        result = 31 * result + (actions != null ? actions.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "FlowActionSample{" +
+            "probability=" + probability +
+            ", actions=" + actions +
+            '}';
     }
 }

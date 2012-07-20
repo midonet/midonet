@@ -5,7 +5,6 @@ package com.midokura.util.netlink.protos;
 
 import java.io.IOException;
 import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
@@ -99,20 +98,5 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
         } catch (UnknownHostException e) {
             return 0;
         }
-    }
-
-    protected int[] ipv6FromString(String ip) {
-        int []address = new int[4];
-
-        try {
-            ByteBuffer
-                .wrap(Inet6Address.getByName(ip).getAddress())
-                .asIntBuffer()
-                .get(address);
-        } catch (UnknownHostException e) {
-            //
-        }
-
-        return address;
     }
 }

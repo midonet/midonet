@@ -128,4 +128,26 @@ public class Net {
             return "";
         }
     }
+
+    /**
+     * Convert string ipv6 to an four int array
+     * @param ip the ip representation as a string
+     *
+     * @return the converted value
+     */
+    public static int[] ipv6FromString(String ip) {
+        int []address = new int[4];
+
+        try {
+            ByteBuffer
+                .wrap(Inet6Address.getByName(ip).getAddress())
+                .asIntBuffer()
+                .get(address);
+        } catch (UnknownHostException e) {
+            //
+        }
+
+        return address;
+    }
+
 }

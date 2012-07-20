@@ -23,11 +23,11 @@ public class FlowActions {
         return new FlowActionSetKey().setFlowKey(flowKey);
     }
 
-    public static FlowActionPushVLAN pushVLAN(short tagProtocolIdentifier, short tagControlIdentifier) {
+    public static FlowActionPushVLAN pushVLAN(int tagControlIdentifier) {
         return
             new FlowActionPushVLAN()
-                .setTagProtocolIdentifier(tagProtocolIdentifier)
-                .setTagControlIdentifier(tagControlIdentifier);
+                .setTagProtocolIdentifier((short)FlowKeyEtherType.Type.ETH_P_8021Q.value)
+                .setTagControlIdentifier((short) (0x1000 | tagControlIdentifier));
     }
 
     public static FlowActionPopVLAN popVLAN() {

@@ -3,6 +3,8 @@
 */
 package com.midokura.util.netlink.dp.flows;
 
+import java.nio.ByteOrder;
+
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.messages.BaseBuilder;
 
@@ -16,15 +18,15 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(vlan_tpid);
-        builder.addValue(vlan_tci);
+        builder.addValue(vlan_tpid, ByteOrder.BIG_ENDIAN);
+        builder.addValue(vlan_tci, ByteOrder.BIG_ENDIAN);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            vlan_tpid = message.getShort();
-            vlan_tci = message.getShort();
+            vlan_tpid = message.getShort(ByteOrder.BIG_ENDIAN);
+            vlan_tci = message.getShort(ByteOrder.BIG_ENDIAN);
             return true;
         } catch (Exception e) {
             return false;
@@ -58,5 +60,33 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
     public FlowActionPushVLAN setTagControlIdentifier(short tagControlIdentifier) {
         this.vlan_tci = tagControlIdentifier;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FlowActionPushVLAN that = (FlowActionPushVLAN) o;
+
+        if (vlan_tci != that.vlan_tci) return false;
+        if (vlan_tpid != that.vlan_tpid) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) vlan_tpid;
+        result = 31 * result + (int) vlan_tci;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "FlowActionPushVLAN{" +
+            "vlan_tpid=" + vlan_tpid +
+            ", vlan_tci=" + vlan_tci +
+            '}';
     }
 }

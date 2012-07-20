@@ -23,11 +23,11 @@ import static com.midokura.util.netlink.dp.flows.FlowKeys.inPort;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.ipv4;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.udp;
 
-public class OvsFlowsCreateSetIpUdpTest
-    extends OvsFlowsCreateSetSomeTest {
+public class OvsFlowsCreateSet_IPv4_UDP_Test
+    extends OvsFlowsCreateSetMatchTest {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateSetIpUdpTest.class);
+        .getLogger(OvsFlowsCreateSet_IPv4_UDP_Test.class);
 
     @Before
     public void setUp() throws Exception {
@@ -61,7 +61,7 @@ public class OvsFlowsCreateSetIpUdpTest
     }
 
     @Test
-    public void testIpUdpFlow() throws Exception {
+    public void testIPv4_UDP() throws Exception {
         doTest();
     }
 

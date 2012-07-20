@@ -22,11 +22,11 @@ import static com.midokura.util.netlink.dp.flows.FlowKeys.icmp;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.inPort;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.ipv4;
 
-public class OvsFlowsCreateSetIpIcmpTest
-    extends OvsFlowsCreateSetSomeTest {
+public class OvsFlowsCreateSet_IPv4_ICMP_Test
+    extends OvsFlowsCreateSetMatchTest {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateSetIpIcmpTest.class);
+        .getLogger(OvsFlowsCreateSet_IPv4_ICMP_Test.class);
 
     @Before
     public void setUp() throws Exception {
@@ -69,7 +69,7 @@ public class OvsFlowsCreateSetIpIcmpTest
     }
 
     @Test
-    public void testIpIcmpFlow() throws Exception {
+    public void testIPv4_ICMP() throws Exception {
         doTest();
     }
 
