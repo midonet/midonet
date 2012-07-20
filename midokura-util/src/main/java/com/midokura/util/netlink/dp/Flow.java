@@ -36,8 +36,9 @@ public class Flow {
         return actions;
     }
 
-    public void setActions(List<FlowAction> actions) {
+    public Flow setActions(List<FlowAction> actions) {
         this.actions = actions;
+        return this;
     }
 
     public FlowStats getStats() {
@@ -53,8 +54,9 @@ public class Flow {
         return tcpFlags;
     }
 
-    public void setTcpFlags(Byte tcpFlags) {
+    public Flow setTcpFlags(Byte tcpFlags) {
         this.tcpFlags = tcpFlags;
+        return this;
     }
 
     public Long getLastUsedTime() {

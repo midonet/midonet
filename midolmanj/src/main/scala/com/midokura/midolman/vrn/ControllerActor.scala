@@ -2,69 +2,20 @@
 
 package com.midokura.midolman.vrn
 
-import akka.actor.{Actor, ActorRef}
-import compat.Platform.currentTime
-import scala.collection.Iterator
-import scala.collection.immutable.List
-import scala.collection.mutable.{HashMap, Map, MultiMap, Set}
-import java.util.{ArrayList, UUID}
-import java.util.{List => JavaList}
+import akka.actor.Actor
+import collection.JavaConversions._
+import collection.mutable.{HashMap, MultiMap, Set}
+import java.util.{Set => JavaSet}
 
-import com.midokura.util.netlink.dp.Packet
-import com.midokura.util.netlink.dp.{Flow => KernelFlow}
-import com.midokura.util.netlink.dp.flows.{FlowAction, FlowKey}
-import com.midokura.util.netlink.dp.{FlowMatch => KernelMatch}
-import com.midokura.midolman.openflow.MidoMatch
+import com.midokura.util.netlink.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Packet}
 import com.midokura.midolman.packets.Ethernet
-
+import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlowTable, WildcardFlow}
 
 abstract class ControllerActorRequest
 case class PacketIn(packet: Packet) extends ControllerActorRequest
-case class SimulationDone(result: WildcardFlow, packet: Packet) 
+case class SimulationDone(result: WildcardFlow, packet: Packet)
         extends ControllerActorRequest
 case class EmitGeneratedPacket(dpPort: Short, frame: Ethernet)
-
-
-//XXX: Move into separate file
-class WildcardFlow(val wcmatch: MidoMatch, val actions: List[FlowAction[_]],
-                   val priority: Int) {
-    val creationTime = currentTime
-    private var lastUsedTime = creationTime
-
-    def getLastUsedTime() = lastUsedTime
-    def setLastUsedTime(timestamp: Long) { 
-        if (timestamp > lastUsedTime)
-            lastUsedTime = timestamp
-    }
-}
-
-abstract class WildcardFlowManager {
-    def matchPacket(packet: Packet): (WildcardFlow, KernelFlow)
-    // returns evicted flows
-    def add(flow: WildcardFlow): Set[WildcardFlow]
-    def remove(wcmatch: MidoMatch): Unit
-    def markUsed(flow: WildcardFlow): Unit
-    def markUnused(flows: Set[WildcardFlow]): Unit
-}
-
-abstract class ExactFlowManager {
-    // Returns evicted WildcardFlows
-    def add(wcflow: WildcardFlow, flow: KernelFlow): 
-                                (Set[WildcardFlow], Set[KernelFlow])
-
-    def removeByWildcard(wcflow: WildcardFlow): Set[KernelFlow]
-    def get(packet: Packet): KernelFlow
-}
-
-abstract class ValidationEngine {
-    def add(wcflow: WildcardFlow, devices: Set[UUID]): Unit
-    def remove(wcflow: WildcardFlow): Unit
-    def getFlows(id: UUID): Set[WildcardFlow]
-    // Older by creation time
-    def getFlowsOlderThan(timestamp: Long): Iterator[WildcardFlow]
-    def getFlowsOlderThan(id: UUID, timestamp: Long): Iterator[WildcardFlow]
-}
-
 
 /*
 class KernelMatch(keys: JavaList[FlowKey[_ <: FlowKey[Any]]]) { }
@@ -77,8 +28,8 @@ object KernelMatch {
 class ControllerActor(XXX: Unit) extends Actor {
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
-    private var wildcardFlowManager: WildcardFlowManager = _
-    private var exactFlowManager: ExactFlowManager = _
+    private var wildcardFlowManager: WildcardFlowTable = _
+    private var exactFlowManager: NetlinkFlowTable = _
 
 
     // Callback invoked from select-loop thread context.
@@ -98,7 +49,7 @@ class ControllerActor(XXX: Unit) extends Actor {
     }
 
     // Remove the flow from the datapath
-    private def removeFlow(flow: KernelFlow) {
+    private def removeFlow(kMatch: KernelMatch) {
         //XXX
     }
 
@@ -113,13 +64,15 @@ class ControllerActor(XXX: Unit) extends Actor {
             return
         }
 
-        // Query the WildcardFlowManager 
-        val flows = wildcardFlowManager.matchPacket(packet)
-        if (flows._2 != null) {
-            val evictedFlows = exactFlowManager.add(flows._1, flows._2)
-            installFlow(flows._2, packet)
-            wildcardFlowManager.markUnused(evictedFlows._1)
-            for (kernelFlow <- evictedFlows._2) {
+        // Query the WildcardFlowTable
+        val wFlow = wildcardFlowManager.matchPacket(packet)
+        if (wFlow != null) {
+            val kFlow = new KernelFlow().
+                setMatch(packet.getMatch).setActions(wFlow.actions)
+            val evictedFlows = exactFlowManager.add(wFlow, kFlow)
+            installFlow(kFlow, packet)
+            wildcardFlowManager.markUnused(evictedFlows.fst)
+            for (kernelFlow <- evictedFlows.snd) {
                 removeFlow(kernelFlow)
             }
         } else {
@@ -127,7 +80,7 @@ class ControllerActor(XXX: Unit) extends Actor {
             if (pendedMatches.get(kernelMatch) == None) {
                 launchNewSimulation(packet)
             }
-            pendedMatches.addBinding(kernelMatch, packet)    
+            pendedMatches.addBinding(kernelMatch, packet)
         }
     }
 
@@ -155,7 +108,7 @@ class ControllerActor(XXX: Unit) extends Actor {
                         (Set[KernelFlow]() /: evictedWcFlows)
                                 (_ ++ exactFlowManager.removeByWildcard(_)))
                 for (kernelFlow <- evictedKernelFlows)
-                    removeFlow(kernelFlow)
+                    removeFlow(kernelFlow.getMatch)
             }
             pendedMatches.remove(kernelMatch)
 
