@@ -7,8 +7,8 @@ package com.midokura.midolman.mgmt.data.dao;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dao.zookeeper.PortInUseException;
 import com.midokura.midolman.mgmt.data.dto.Port;
+import com.midokura.midolman.mgmt.data.zookeeper.dao.PortInUseException;
 import com.midokura.midolman.state.StateAccessException;
 
 /**
