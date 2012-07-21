@@ -137,7 +137,7 @@ public class TenantDaoImpl implements TenantDao {
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantRouterNamesPath(id)));
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantBridgeNamesPath(id)));
         ops.add(zkDao.getDeleteOp(pathBuilder.getTenantPath(id)));
-        zkDao.multi(ops);
+        zkDao.multiDedup(ops);
 
         log.debug("TenantDaoImpl.delete exiting.");
     }

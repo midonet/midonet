@@ -7,6 +7,7 @@ package com.midokura.midolman.state;
 import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -233,6 +234,21 @@ public class ZkManager {
                             + path + ": " + e.getMessage(), e);
         }
         return children;
+    }
+
+    public List<OpResult> multiDedup(List<Op> ops) throws StateAccessException {
+
+        Set<String> paths = new HashSet<String>(ops.size());
+        List<Op> dedupOps = new ArrayList<Op>(ops.size());
+        for(Op op : ops) {
+            String path = op.getPath();
+            if(!paths.contains(path)) {
+                paths.add(path);
+                dedupOps.add(op);
+            }
+        }
+
+        return multi(dedupOps);
     }
 
     public List<OpResult> multi(List<Op> ops) throws StateAccessException {

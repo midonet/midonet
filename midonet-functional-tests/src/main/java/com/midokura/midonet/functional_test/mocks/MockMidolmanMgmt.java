@@ -89,7 +89,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                               : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
             .contextParam("zk_conn_string", "127.0.0.1:2181")
             .contextParam("zk_timeout", "10000")
-            .contextParam("zk_root", "/smoketest/midolman")
+            .contextParam("zk_root", "/smoketest/midonet")
             .contextPath("/test")
             .clientConfig(clientConfig);
     }

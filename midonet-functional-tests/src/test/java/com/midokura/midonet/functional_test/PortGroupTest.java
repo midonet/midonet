@@ -52,7 +52,7 @@ public class PortGroupTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     Tenant tenant1;
-    LogicalBridgePort bPort1;
+    LogicalBridgePort bLogPort1;
     LogicalRouterPort rPort1;
     TapWrapper tap1;
     TapWrapper tap2;
@@ -91,8 +91,8 @@ public class PortGroupTest {
                 .setNetworkAddress("10.0.0.0")
                 .setNetworkLength(24)
                 .setPortAddress("10.0.0.1").build();
-        bPort1 = bridge1.addLinkPort().build();
-        rPort1.link(bPort1);
+        bLogPort1 = bridge1.addLinkPort().build();
+        rPort1.link(bLogPort1);
         // All sec groups should allow packets from the router (10.0.0.1/32)
 
         // Sec Group 1 allows receiving packets from nwAddr in 10.1.1.0/24.
@@ -103,6 +103,8 @@ public class PortGroupTest {
         sg1.addRule().matchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
         sg1.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+                .setSimpleType(DtoRule.Accept).build();
+        sg1.addRule().matchDlType((short) 0x0806)
                 .setSimpleType(DtoRule.Accept).build();
 
         // Sec Group 2 allows receiving packets from nwAddr in 10.2.2.0/24,
@@ -118,6 +120,8 @@ public class PortGroupTest {
         sg2.addRule().matchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
                 .setSimpleType(DtoRule.Accept).build();
         sg2.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
+                .setSimpleType(DtoRule.Accept).build();
+        sg2.addRule().matchDlType((short) 0x0806)
                 .setSimpleType(DtoRule.Accept).build();
 
         // port1 will be in security group 1.
@@ -153,7 +157,7 @@ public class PortGroupTest {
         BridgePort bPort3 = bridge1.addPort()
                 .setOutboundFilter(portOutChain3.chain.getId())
                 .setPortGroups(
-                        new UUID[] {sg2Members.getId(), sg2Members.getId()})
+                        new UUID[] {sg1Members.getId(), sg2Members.getId()})
                 .build();
 
         // port4 will not be in any security group.
