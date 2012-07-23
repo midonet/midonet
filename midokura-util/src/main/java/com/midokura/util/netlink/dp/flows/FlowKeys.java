@@ -90,4 +90,8 @@ public class FlowKeys {
     public static FlowKeyVLAN vlan(int vlan) {
         return new FlowKeyVLAN().setVLAN((short)vlan);
     }
+
+    public static FlowKeyEncap encap() {
+        return new FlowKeyEncap();
+    }
 }

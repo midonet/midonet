@@ -15,7 +15,7 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
                                                 NetlinkMessage.AttrKey<T> {
 
         /** Nested set of encapsulated attributes. */
-        public static final FlowKeyAttr<?> ENCAP = attr(1);
+        public static final FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
 
         /** u32 skb->priority */
         public static final FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
@@ -72,6 +72,7 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
         @Override
         public FlowKey newInstance(short type) {
             switch (type) {
+                case 1: return new FlowKeyEncap();
                 case 2: return new FlowKeyPriority();
                 case 3: return new FlowKeyInPort();
                 case 4: return new FlowKeyEthernet();

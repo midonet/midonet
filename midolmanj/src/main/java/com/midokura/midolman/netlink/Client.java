@@ -29,17 +29,16 @@ import com.midokura.util.netlink.dp.Flow;
 import com.midokura.util.netlink.dp.FlowMatch;
 import com.midokura.util.netlink.dp.flows.FlowAction;
 import com.midokura.util.netlink.dp.flows.FlowKeyEtherType;
-import com.midokura.util.netlink.dp.flows.IpProtocol;
 import com.midokura.util.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.util.netlink.Netlink.Protocol;
 import static com.midokura.util.netlink.dp.flows.FlowActions.output;
-import static com.midokura.util.netlink.dp.flows.FlowActions.sample;
+import static com.midokura.util.netlink.dp.flows.FlowKeys.arp;
+import static com.midokura.util.netlink.dp.flows.FlowKeys.encap;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.etherType;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.ethernet;
-import static com.midokura.util.netlink.dp.flows.FlowKeys.icmpv6;
 import static com.midokura.util.netlink.dp.flows.FlowKeys.inPort;
-import static com.midokura.util.netlink.dp.flows.FlowKeys.ipv6;
+import static com.midokura.util.netlink.dp.flows.FlowKeys.vlan;
 
 public class Client {
 
@@ -194,9 +193,7 @@ public class Client {
     }
 
     private static List<FlowAction> flowActions() {
-        return
-            Arrays.<FlowAction>asList(
-                sample(Integer.MAX_VALUE / 3, Arrays.<FlowAction>asList(output(2))));
+        return Arrays.<FlowAction>asList(output(513));
     }
 
     private static FlowMatch flowMatch() {
@@ -204,13 +201,20 @@ public class Client {
             .addKey(inPort(0))
             .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
                              MAC.fromString("33:33:00:00:00:16").getAddress()))
-            .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IPV6))
+            .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
+            .addKey(vlan(0x0111))
             .addKey(
-                ipv6(
-                    Net.ipv6FromString("fe80::96bf:90ff:fe6c:e2c1"),
-                    Net.ipv6FromString("fe80::96ef:90ff:fe6c:e2c1"),
-                    IpProtocol.ICMPV6)
-            )
-            .addKey(icmpv6(143, 0));
+                encap()
+                    .addKey(
+                        etherType(FlowKeyEtherType.Type.ETH_P_ARP))
+                    .addKey(
+                        arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
+                            MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
+                            .setOp((short) 2)
+                            .setSip(Net.convertStringAddressToInt(
+                                "192.168.100.1"))
+                            .setTip(Net.convertStringAddressToInt(
+                                "192.168.102.1"))
+                    ));
     }
 }
