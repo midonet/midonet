@@ -21,7 +21,7 @@ case class Consume(packet: Packet)
 // Callback argument should not block.
 case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
 
-class FlowController(XXX: Unit) extends Actor {
+class DatapathController(XXX: Unit) extends Actor {
     private var wildcardFlowManager: WildcardFlowTable = _
     private var exactFlowManager: NetlinkFlowTable = _
     private var packetInCallback: (Packet, UUID) => Unit = null
