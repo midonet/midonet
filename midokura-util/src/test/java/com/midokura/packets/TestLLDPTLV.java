@@ -5,6 +5,7 @@
 package com.midokura.packets;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.Assert;
@@ -13,8 +14,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import scala.actors.threadpool.Arrays;
 
 @RunWith(Enclosed.class)
 public class TestLLDPTLV {

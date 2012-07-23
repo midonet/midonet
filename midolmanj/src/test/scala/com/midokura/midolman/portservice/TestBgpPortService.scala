@@ -21,7 +21,7 @@ import scala.collection.JavaConversions._
 import com.midokura.midolman.eventloop.MockReactor
 import com.midokura.midolman.layer3.MockServiceFlowController
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.midolman.packets.MAC
+import com.midokura.packets.MAC
 import com.midokura.midolman.quagga.{MockBgpConnection, MockZebraServer}
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
                                     MockDirectory, PortDirectory,

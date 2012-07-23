@@ -23,7 +23,7 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConn
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
 import com.midokura.midolman.openvswitch.OpenvSwitchException._
-import com.midokura.midolman.packets.IPv4
+import com.midokura.packets.IPv4
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.{BgpZkManager, MockDirectory, PortDirectory,
                                     PortZkManager, RouteZkManager,

@@ -40,7 +40,7 @@ class DatapathController(XXX: Unit) extends Actor {
 
     private def doPacketIn(packet: Packet) {
         // First check if packet matches an exact flow, in case
-        // the PacketIn notify crosssed the flow's install message.
+        // the PacketIn notify crossed the flow's install message.
         val exactFlow = exactFlowManager.get(packet)
         if (exactFlow != null) {
             // XXX

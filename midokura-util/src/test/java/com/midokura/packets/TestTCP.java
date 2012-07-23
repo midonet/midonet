@@ -1,8 +1,7 @@
 package com.midokura.packets;
 
-import static org.junit.Assert.assertEquals;
-
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
@@ -12,8 +11,7 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import scala.actors.threadpool.Arrays;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(Enclosed.class)
 public class TestTCP {
