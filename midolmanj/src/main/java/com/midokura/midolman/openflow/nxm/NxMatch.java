@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.ARP;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 
 public class NxMatch {
 

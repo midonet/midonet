@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.IPv4;
+import com.midokura.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.util.Cache;

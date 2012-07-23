@@ -1,7 +1,7 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 public interface Transport {
 

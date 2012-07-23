@@ -7,12 +7,12 @@ package com.midokura.midolman.openflow.nxm;
 import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.ARP;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 
 public class Match {
 

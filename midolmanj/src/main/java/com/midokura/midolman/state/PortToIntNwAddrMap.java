@@ -1,12 +1,12 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 
 public class PortToIntNwAddrMap extends ReplicatedMap<UUID, IntIPv4> {
 

@@ -4,7 +4,7 @@
 package com.midokura.midolman.portservice;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

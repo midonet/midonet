@@ -1,7 +1,7 @@
 /**
-*    Copyright 2011, Big Switch Networks, Inc. 
+*    Copyright 2011, Big Switch Networks, Inc.
 *    Originally created by David Erickson, Stanford University
-* 
+*
 *    Licensed under the Apache License, Version 2.0 (the "License"); you may
 *    not use this file except in compliance with the License. You may obtain
 *    a copy of the License at
@@ -14,43 +14,54 @@
 *    License for the specific language governing permissions and limitations
 *    under the License.
 **/
-package com.midokura.midolman.packets;
+package com.midokura.packets;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
-*
-* @author David Erickson (daviderickson@cs.stanford.edu)
-*/
-public abstract class BasePacket implements IPacket {
-    protected IPacket parent;
-    protected IPacket payload;
+ *
+ * @author David Erickson (daviderickson@cs.stanford.edu)
+ */
+public class Data extends BasePacket {
+    protected byte[] data;
 
     /**
-     * @return the parent
+     *
      */
-    public IPacket getParent() {
-        return parent;
+    public Data() {
     }
 
     /**
-     * @param parent the parent to set
+     * @param data
      */
-    public IPacket setParent(IPacket parent) {
-        this.parent = parent;
+    public Data(byte[] data) {
+        this.data = data;
+    }
+
+    /**
+     * @return the data
+     */
+    public byte[] getData() {
+        return data;
+    }
+
+    /**
+     * @param data the data to set
+     */
+    public Data setData(byte[] data) {
+        this.data = data;
         return this;
     }
 
-    /**
-     * @return the payload
-     */
-    public IPacket getPayload() {
-        return payload;
+    public byte[] serialize() {
+        return this.data;
     }
 
-    /**
-     * @param payload the payload to set
-     */
-    public IPacket setPayload(IPacket payload) {
-        this.payload = payload;
+    @Override
+    public IPacket deserialize(ByteBuffer bb) {
+        this.data = new byte[bb.remaining()];
+        bb.get(this.data);
         return this;
     }
 
@@ -59,9 +70,9 @@ public abstract class BasePacket implements IPacket {
      */
     @Override
     public int hashCode() {
-        final int prime = 6733;
-        int result = 1;
-        result = prime * result + ((payload == null) ? 0 : payload.hashCode());
+        final int prime = 1571;
+        int result = super.hashCode();
+        result = prime * result + Arrays.hashCode(data);
         return result;
     }
 
@@ -72,15 +83,12 @@ public abstract class BasePacket implements IPacket {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (obj == null)
+        if (!super.equals(obj))
             return false;
-        if (!(obj instanceof BasePacket))
+        if (!(obj instanceof Data))
             return false;
-        BasePacket other = (BasePacket) obj;
-        if (payload == null) {
-            if (other.payload != null)
-                return false;
-        } else if (!payload.equals(other.payload))
+        Data other = (Data) obj;
+        if (!Arrays.equals(data, other.data))
             return false;
         return true;
     }

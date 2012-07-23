@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.util.Net;
 

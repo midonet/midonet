@@ -6,8 +6,8 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 
 /**
  * This class was created to have all state classes share the Zk path

@@ -33,7 +33,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.midokura.midolman.packets.ARP;
+import com.midokura.packets.ARP;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 

@@ -38,7 +38,7 @@ import com.midokura.midolman.mgmt.data.dto.RelativeUriResource;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 

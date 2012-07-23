@@ -3,7 +3,7 @@
  *
  * Copyright 2012 Midokura KK
  */
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 public class MalformedPacketException extends Exception {
 

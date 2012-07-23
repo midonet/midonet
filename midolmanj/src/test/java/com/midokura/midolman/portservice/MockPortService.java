@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.quagga.ZebraServer;
 import com.midokura.midolman.quagga.BgpVtyConnection;
 import com.midokura.midolman.state.AdRouteZkManager;
@@ -29,7 +29,6 @@ import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midolman.state.VpnZkManager.VpnConfig;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
 

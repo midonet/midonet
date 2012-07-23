@@ -11,8 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
@@ -23,7 +21,6 @@ import java.util.UUID;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -32,7 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.IPv4;
+import com.midokura.packets.IPv4;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.ForwardInfo;
 

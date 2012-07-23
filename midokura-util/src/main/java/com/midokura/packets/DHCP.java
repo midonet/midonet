@@ -1,7 +1,7 @@
 /**
-*    Copyright 2011, Big Switch Networks, Inc. 
+*    Copyright 2011, Big Switch Networks, Inc.
 *    Originally created by David Erickson, Stanford University
-* 
+*
 *    Licensed under the Apache License, Version 2.0 (the "License"); you may
 *    not use this file except in compliance with the License. You may obtain
 *    a copy of the License at
@@ -14,7 +14,7 @@
 *    License for the specific language governing permissions and limitations
 *    under the License.
 **/
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -307,7 +307,7 @@ public class DHCP extends BasePacket {
         // minimum size 240 including magic cookie, options generally padded to 300
         int optionsLength = 0;
         for (DHCPOption option : this.options) {
-            if (option.getCode() == 0 || 
+            if (option.getCode() == 0 ||
                     option.getCode() == DHCPOption.Code.END.value()) {
                 optionsLength += 1;
             } else {

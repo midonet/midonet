@@ -10,9 +10,9 @@ import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;

@@ -6,7 +6,7 @@ package com.midokura.midolman.agent.commands;
 
 import com.midokura.midolman.agent.commands.executors.CommandProperty;
 import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

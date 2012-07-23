@@ -1,15 +1,15 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class TCP extends BasePacket implements Transport {
     public static final byte PROTOCOL_NUMBER = 6;
-    
+
     public static final int MIN_HEADER_LEN = 20;
     public static final int MIN_DATA_OFFSET = 5;
 

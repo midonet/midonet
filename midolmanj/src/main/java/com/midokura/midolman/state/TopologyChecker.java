@@ -34,7 +34,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.codehaus.jackson.JsonParseException;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.midolman.state.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.util.JSONSerializer;

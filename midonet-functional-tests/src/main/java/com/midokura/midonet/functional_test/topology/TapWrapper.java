@@ -1,6 +1,6 @@
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.packets.*;
+import com.midokura.packets.*;
 import com.midokura.midonet.functional_test.utils.Tap;
 
 import org.slf4j.Logger;

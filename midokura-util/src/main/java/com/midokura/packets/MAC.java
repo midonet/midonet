@@ -3,7 +3,7 @@
 // MAC.java - utility class for a Ethernet-type Media Access Control address
 //            (a/k/a "Hardware" or "data link" or "link layer" address)
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.util.Arrays;
 import java.util.Random;

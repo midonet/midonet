@@ -13,7 +13,7 @@ import com.midokura.midolman.openvswitch.ControllerConnectionMode;
 import com.midokura.midolman.openvswitch.GrePortBuilder;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 import static com.midokura.util.process.ProcessHelper.newProcess;
 
 /**

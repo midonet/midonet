@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.nio.ByteBuffer;
 

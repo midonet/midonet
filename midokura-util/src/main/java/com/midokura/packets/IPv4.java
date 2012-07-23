@@ -17,7 +17,7 @@
 *    THIS FILE HAS BEEN MODIFIED FROM ITS ORIGINAL CONTENTS.
 **/
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

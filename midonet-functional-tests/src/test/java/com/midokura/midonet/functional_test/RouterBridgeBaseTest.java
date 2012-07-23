@@ -13,8 +13,8 @@ import org.junit.BeforeClass;
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;

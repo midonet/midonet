@@ -26,7 +26,7 @@
         <appender-ref ref="file"/>
     </root>
 
-    <logger name="com.midokura.midolman.packets">
+    <logger name="com.midokura.packets">
         <level value="debug"/>
     </logger>
 

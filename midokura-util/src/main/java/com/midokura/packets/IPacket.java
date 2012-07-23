@@ -1,7 +1,7 @@
 /**
-*    Copyright 2011, Big Switch Networks, Inc. 
+*    Copyright 2011, Big Switch Networks, Inc.
 *    Originally created by David Erickson, Stanford University
-* 
+*
 *    Licensed under the Apache License, Version 2.0 (the "License"); you may
 *    not use this file except in compliance with the License. You may obtain
 *    a copy of the License at
@@ -15,7 +15,7 @@
 *    under the License.
 **/
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.nio.ByteBuffer;
 
@@ -25,33 +25,33 @@ import java.nio.ByteBuffer;
 */
 public interface IPacket {
     /**
-     * 
+     *
      * @return
      */
     public IPacket getPayload();
 
     /**
-     * 
+     *
      * @param packet
      * @return
      */
     public IPacket setPayload(IPacket packet);
 
     /**
-     * 
+     *
      * @return
      */
     public IPacket getParent();
 
     /**
-     * 
+     *
      * @param packet
      * @return
      */
     public IPacket setParent(IPacket packet);
 
     /**
-     * Sets all payloads parent packet if applicable, then serializes this 
+     * Sets all payloads parent packet if applicable, then serializes this
      * packet and all payloads
      * @return a byte[] containing this packet and payloads
      */

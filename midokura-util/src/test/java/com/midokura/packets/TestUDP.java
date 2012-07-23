@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

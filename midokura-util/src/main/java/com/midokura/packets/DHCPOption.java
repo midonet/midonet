@@ -1,7 +1,7 @@
 /**
-*    Copyright 2011, Big Switch Networks, Inc. 
+*    Copyright 2011, Big Switch Networks, Inc.
 *    Originally created by David Erickson, Stanford University
-* 
+*
 *    Licensed under the Apache License, Version 2.0 (the "License"); you may
 *    not use this file except in compliance with the License. You may obtain
 *    a copy of the License at
@@ -14,7 +14,7 @@
 *    License for the specific language governing permissions and limitations
 *    under the License.
 **/
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import java.util.Arrays;
 import java.util.HashMap;

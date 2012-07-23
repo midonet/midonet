@@ -139,6 +139,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.openflow</groupId>
+            <artifactId>openflowj</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
             <version>${versions.junit}</version>

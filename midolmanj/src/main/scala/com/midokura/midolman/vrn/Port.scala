@@ -5,7 +5,7 @@ package com.midokura.midolman.vrn
 
 import java.util.UUID
 import com.midokura.midolman.state.PortConfig
-import com.midokura.midolman.packets.IntIPv4
+import com.midokura.packets.IntIPv4
 
 class Port(val id: UUID, val cfg: PortConfig,
            val inFilter: Chain, val outFilter: Chain) {

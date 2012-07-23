@@ -1,4 +1,4 @@
-package com.midokura.midolman.packets;
+package com.midokura.packets;
 
 import static org.junit.Assert.assertEquals;
 

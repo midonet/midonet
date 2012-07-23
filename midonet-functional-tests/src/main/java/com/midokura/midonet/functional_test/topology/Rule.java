@@ -4,8 +4,8 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class Rule {

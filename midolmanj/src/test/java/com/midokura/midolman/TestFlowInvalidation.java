@@ -16,7 +16,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.midokura.midolman.openflow.MockControllerStub;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.test.Bridge;

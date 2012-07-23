@@ -49,7 +49,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
-import com.midokura.midolman.packets.*;
+import com.midokura.packets.*;
 import com.midokura.midolman.portservice.MockPortService;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -757,7 +757,7 @@ public class TestVRNController {
     @Test
     public void testOneRouterNotIPv4() {
         // This isn't a real IPv6 packet. So this will break if we add an
-        // IPv6 class in com.midokura.midolman.packets.
+        // IPv6 class in com.midokura.packets.
         Data payload = new Data();
         ByteBuffer bb = ByteBuffer.wrap(new byte[100], 0, 100);
         payload.deserialize(bb);

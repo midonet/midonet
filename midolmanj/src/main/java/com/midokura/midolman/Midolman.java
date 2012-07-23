@@ -39,7 +39,7 @@ import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.midolman.portservice.BgpPortService;
 import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.portservice.OpenVpnPortService;

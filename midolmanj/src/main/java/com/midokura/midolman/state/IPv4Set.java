@@ -4,7 +4,7 @@ package com.midokura.midolman.state;
 
 import org.apache.zookeeper.CreateMode;
 
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 
 public class IPv4Set extends ReplicatedSet<IntIPv4> {
     public IPv4Set(Directory d, CreateMode createMode) {

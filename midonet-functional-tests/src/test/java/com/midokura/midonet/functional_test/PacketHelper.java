@@ -19,16 +19,16 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.Data;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.ICMP;
-import com.midokura.midolman.packets.ICMP.UNREACH_CODE;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.ARP;
+import com.midokura.packets.Data;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.ICMP.UNREACH_CODE;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
+import com.midokura.packets.UDP;
 
 
 public class PacketHelper {

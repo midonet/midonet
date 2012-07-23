@@ -4,7 +4,7 @@
 
 package com.midokura.midolman.rules;
 
-import com.midokura.midolman.packets.IPv4;
+import com.midokura.packets.IPv4;
 import com.midokura.midolman.util.Net;
 
 public class NatTarget {
@@ -25,23 +25,23 @@ public class NatTarget {
     public NatTarget() { super(); }
 
     /* Custom accessors for Jackson serialization with more readable IPs. */
-    
+
     public String getNwStart() {
     	return Net.convertIntAddressToString(this.nwStart);
     }
-    
+
     public void setNwStart(String addr) {
     	this.nwStart = Net.convertStringAddressToInt(addr);
     }
-    
+
     public String getNwEnd() {
     	return Net.convertIntAddressToString(this.nwEnd);
     }
-    
+
     public void setNwEnd(String addr) {
     	this.nwEnd = Net.convertStringAddressToInt(addr);
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (this == other)
