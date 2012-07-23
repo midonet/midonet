@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.SelectListener;
 import com.midokura.midolman.eventloop.SelectLoop;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.util.Net;
 import com.midokura.util.netlink.Netlink;
 import com.midokura.util.netlink.NetlinkChannel;
@@ -208,13 +208,13 @@ public class Client {
                     .addKey(
                         etherType(FlowKeyEtherType.Type.ETH_P_ARP))
                     .addKey(
-                        arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
-                            MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
-                            .setOp((short) 2)
-                            .setSip(Net.convertStringAddressToInt(
-                                "192.168.100.1"))
-                            .setTip(Net.convertStringAddressToInt(
-                                "192.168.102.1"))
+                            arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
+                                    MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
+                                    .setOp((short) 2)
+                                    .setSip(Net.convertStringAddressToInt(
+                                            "192.168.100.1"))
+                                    .setTip(Net.convertStringAddressToInt(
+                                            "192.168.102.1"))
                     ));
     }
 }
