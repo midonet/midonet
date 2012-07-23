@@ -58,19 +58,24 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         if (pid == 0 &&
             packetFamily.getFamilyId() == type &&
-            PacketFamily.Cmd.MISS.getValue() == cmd)
+            (PacketFamily.Cmd.MISS.getValue() == cmd ||
+                PacketFamily.Cmd.ACTION.getValue() == cmd))
         {
-            if ( notificationHandler != null ) {
-                notificationHandler.onSuccess(new Function<List<ByteBuffer>, Packet>() {
-                    @Override
-                    public Packet apply(@Nullable List<ByteBuffer> input) {
+            if (notificationHandler != null) {
+                Packet packet = null;
 
-                        if (input == null || input.size() != 1)
-                            return null;
+                if (buffers == null || buffers.size() != 1)
+                    return;
 
-                        return deserializePacket(input.get(0));
-                    }
-                }.apply(buffers));
+                packet = deserializePacket(buffers.get(0));
+
+                if (PacketFamily.Cmd.ACTION.getValue() == cmd) {
+                    packet.setReason(Packet.Reason.FlowActionUserspace);
+                } else {
+                    packet.setReason(Packet.Reason.FlowTableMiss);
+                }
+
+                notificationHandler.onSuccess(packet);
             }
         } else {
             super.handleNotification(type, cmd, seq, pid, buffers);
@@ -162,7 +167,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         NetlinkMessage message =
             newMessage(64)
@@ -204,7 +210,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsCreate(@Nonnull String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -240,7 +247,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsDelete(Integer datapathId, String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         if (datapathId == null && name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
@@ -284,8 +292,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                final @Nullable Datapath datapath,
                                final @Nonnull Callback<Port> callback,
                                final long timeoutMillis) {
-
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -341,8 +349,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                @Nullable final Datapath datapath,
                                @Nonnull final Callback<Port> callback,
                                final long timeoutMillis) {
-
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         int localPid = getChannel().getLocalAddress().getPid();
         final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
@@ -404,7 +412,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
                                      @Nonnull Callback<Set<Port>> callback,
                                      long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         NetlinkMessage message = newMessage()
             .addValue(datapath.getIndex())
@@ -447,7 +456,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsCreate(@Nonnull final Datapath datapath, @Nonnull Port port,
                                   @Nonnull Callback<Port> callback,
                                   long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         if (port.getName() == null) {
             callback.onError(
@@ -516,7 +526,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsGet(Integer datapathId, String name,
                                    @Nonnull Callback<Datapath> callback,
                                    long defReplyTimeout) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         if (datapathId == null && name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
@@ -556,7 +567,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doFlowsEnumerate(@Nonnull Datapath datapath,
                                      @Nonnull Callback<Set<Flow>> callback,
                                      long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
@@ -600,7 +612,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull final Flow flow,
                                   @Nonnull final Callback<Flow> callback,
                                   final long timeoutMillis) {
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
@@ -614,11 +627,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         Builder builder = newMessage()
             .addValue(datapathId)
             .addAttrNested(AttrKey.ACTIONS)
-                .addAttrs(flow.getActions())
-                .build();
+            .addAttrs(flow.getActions())
+            .build();
 
         FlowMatch match = flow.getMatch();
-        if ( match != null )
+        if (match != null)
             builder.addAttrNested(AttrKey.KEY)
                    .addAttrs(match.getKeys())
                    .build();
@@ -649,7 +662,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match,
                                @Nonnull Callback<Flow> callback, long timeoutMillis) {
 
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
@@ -663,8 +677,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         Builder builder = newMessage()
             .addValue(datapathId)
             .addAttrNested(AttrKey.KEY)
-                .addAttrs(match.getKeys())
-                .build();
+            .addAttrs(match.getKeys())
+            .build();
 
         newRequest(flowFamily, FlowFamily.Cmd.GET)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP)
@@ -692,7 +706,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                @Nonnull final Callback<Flow> callback,
                                long timeoutMillis) {
 
-        validateState(callback);
+        if (!validateState(callback))
+            return;
 
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
@@ -705,7 +720,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         FlowMatch flowMatch = flow.getMatch();
 
-        if ( flowMatch == null || flowMatch.getKeys().size() == 0 ){
+        if (flowMatch == null || flowMatch.getKeys().size() == 0) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The flow should have a FlowMatch object set up (with non empty key set)."
@@ -720,10 +735,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttrs(flowMatch.getKeys())
             .build();
 
-        if ( flow.getActions().size() > 0 ) {
+        if (flow.getActions().size() > 0) {
             builder.addAttrNested(AttrKey.ACTIONS)
-                .addAttrs(flow.getActions())
-                .build();
+                   .addAttrs(flow.getActions())
+                   .build();
         }
 
         newRequest(flowFamily, FlowFamily.Cmd.SET)
@@ -746,6 +761,69 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
+    @Override
+    protected void _doPacketsExecute(@Nonnull Datapath datapath,
+                                     @Nonnull Packet packet,
+                                     @Nonnull Callback<Boolean> callback,
+                                     long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to get the flow from needs a valid datapath id"));
+            return;
+        }
+
+        FlowMatch flowMatch = packet.getMatch();
+
+        if (flowMatch.getKeys().size() == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The packet should have a FlowMatch object set up (with non empty key set)."
+                )
+            );
+            return;
+        }
+
+        if (packet.getActions() == null || packet.getActions().size() == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The packet should have an action set up."
+                )
+            );
+            return;
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .addAttrNested(PacketFamily.AttrKey.KEY)
+                .addAttrs(flowMatch.getKeys())
+                .build()
+            .addAttrNested(PacketFamily.AttrKey.ACTIONS)
+                .addAttrs(packet.getActions())
+                .build()
+            .build();
+
+        newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Boolean>() {
+                    @Override
+                    public Boolean apply(@Nullable List<ByteBuffer> input) {
+                        return true;
+                    }
+                }
+            )
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
     private Flow deserializeFlow(ByteBuffer buffer, int datapathId) {
         NetlinkMessage msg = new NetlinkMessage(buffer);
 
@@ -760,7 +838,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
 
         List<FlowKey> flowKeys = msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
-        if (flowKeys != null ) {
+        if (flowKeys != null) {
             flow.setMatch(new FlowMatch().setKeys(flowKeys));
         }
 
@@ -787,7 +865,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         port.setAddress(msg.getAttrValue(PortFamily.Attr.ADDRESS));
         port.setPortNo(msg.getAttrValue(PortFamily.Attr.PORT_NO));
-        port.setStats(msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
+        port.setStats(
+            msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
 
         //noinspection unchecked
         port.setOptions(msg.getAttrValue(PortFamily.Attr.OPTIONS,
@@ -914,17 +993,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         return state == State.Initialized;
     }
 
-    private void validateState(Callback callback) {
+    private boolean validateState(Callback callback) {
         switch (state) {
-            case Initialized:
-                return;
             case ErrorInInitialization:
                 callback.onError(stateInitializationEx);
-                break;
+                return false;
             case Initializing:
                 callback.onError(new OvsDatapathNotInitializedException());
-                break;
+                return false;
         }
+
+        return true;
     }
 
     private class StateAwareCallback<T> extends Callback<T> {

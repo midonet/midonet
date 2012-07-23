@@ -16,10 +16,16 @@ import com.midokura.util.netlink.dp.flows.FlowKey;
  */
 public class Packet {
 
+    public enum Reason {
+        FlowTableMiss,
+        FlowActionUserspace,
+    }
+
     byte[] data;
     @Nonnull FlowMatch match = new FlowMatch();
     List<FlowAction> actions;
     Long userData;
+    Reason reason;
 
     public byte[] getData() {
         return data;
@@ -71,6 +77,15 @@ public class Packet {
         return this;
     }
 
+    public Reason getReason() {
+        return reason;
+    }
+
+    public Packet setReason(Reason reason) {
+        this.reason = reason;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,8 +96,9 @@ public class Packet {
         if (actions != null ? !actions.equals(
             packet.actions) : packet.actions != null) return false;
         if (!Arrays.equals(data, packet.data)) return false;
-        if (!match.equals(packet.match))
+        if (match != null ? !match.equals(packet.match) : packet.match != null)
             return false;
+        if (reason != packet.reason) return false;
         if (userData != null ? !userData.equals(
             packet.userData) : packet.userData != null) return false;
 
@@ -92,11 +108,13 @@ public class Packet {
     @Override
     public int hashCode() {
         int result = data != null ? Arrays.hashCode(data) : 0;
-        result = 31 * result + match.hashCode();
+        result = 31 * result + (match != null ? match.hashCode() : 0);
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
     }
+
 
     @Override
     public String toString() {
@@ -105,6 +123,7 @@ public class Packet {
             ", match=" + match +
             ", actions=" + actions +
             ", userData=" + userData +
+            ", reason=" + reason +
             '}';
     }
 }

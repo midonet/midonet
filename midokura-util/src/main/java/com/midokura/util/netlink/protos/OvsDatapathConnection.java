@@ -526,17 +526,39 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                             final Callback<Datapath> callback,
                                             final long defReplyTimeout);
 
+    /**
+     * Future based api for enumerating flows.
+     *
+     * @param datapath      the name of the datapath
+     * @param callback      the callback that will receive information.
+     *
+     * @return  a future that provides access to the set of flows present inside
+     *          a datapath.
+     */
     public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
         ValueFuture<Set<Flow>> flowsFuture = ValueFuture.create();
         flowsEnumerate(datapath, wrapFuture(flowsFuture));
         return flowsFuture;
     }
 
+    /**
+     * Callback based api for enumerating flows.
+     *
+     * @param datapath      the name of the datapath
+     * @param callback      the callback that will receive information.
+     */
     public void flowsEnumerate(@Nonnull final Datapath datapath,
                                @Nonnull final Callback<Set<Flow>> callback) {
         flowsEnumerate(datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
+    /**
+     * Callback based api for enumerating flows.
+     *
+     * @param datapath      the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
     public void flowsEnumerate(@Nonnull final Datapath datapath,
                                @Nonnull final Callback<Set<Flow>> callback,
                                long timeoutMillis) {
@@ -547,6 +569,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                               @Nonnull final Callback<Set<Flow>> callback,
                                               long timeoutMillis);
 
+    /**
+     * Future based api for creating a flow.
+     *
+     * @param datapath  the name of the datapath
+     * @param flow      the flow that we want to install
+     *
+     * @return  a future that provides access to the installed flow.
+     */
     public Future<Flow> flowsCreate(@Nonnull final Datapath datapath,
                                     @Nonnull final Flow flow) {
         ValueFuture<Flow> flowFuture = ValueFuture.create();
@@ -554,16 +584,32 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         return flowFuture;
     }
 
+    /**
+     * Callback based api for creating a flow.
+     *
+     * @param datapath  the name of the datapath
+     * @param flow      the flow that we want to install
+     * @param callback  a callback which will receive the installed flow
+     */
     private void flowsCreate(@Nonnull final Datapath datapath,
                              @Nonnull final Flow flow,
                              @Nonnull final Callback<Flow> callback) {
         flowsCreate(datapath, flow, callback, DEF_REPLY_TIMEOUT);
     }
 
+    /**
+     * Callback based api for creating a flow.
+     *
+     * @param datapath      the name of the datapath
+     * @param flow          the flow that we want to install
+     * @param callback      the callback which will receive the installed flow
+     * @param timeoutMillis the amount of time we should wait for the response
+     */
     private void flowsCreate(@Nonnull final Datapath datapath,
                              @Nonnull final Flow flow,
-                             @Nonnull final Callback<Flow> callback, long timeout) {
-        _doFlowsCreate(datapath, flow, callback, timeout);
+                             @Nonnull final Callback<Flow> callback,
+                             long timeoutMillis) {
+        _doFlowsCreate(datapath, flow, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsCreate(@Nonnull final Datapath datapath,
@@ -571,6 +617,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
 
+    /**
+     * Future based api for retrieving a flow.
+     *
+     * @param datapath      the datapath
+     * @param match         the flowMatch for the flow we want to retrieve
+     *
+     * @return a future that provides access to the retrieved flow
+     */
     public Future<Flow> flowsGet(@Nonnull final Datapath datapath,
                                  @Nonnull final FlowMatch match) {
         ValueFuture<Flow> flowFuture = ValueFuture.create();
@@ -578,12 +632,27 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         return flowFuture;
     }
 
+    /**
+     * Callback based api for retrieving a flow.
+     *
+     * @param datapath      the datapath
+     * @param match         the flowMatch for the flow we want to retrieve
+     * @param callback      the callback which will receive the flow data
+     */
     public void flowsGet(@Nonnull final Datapath datapath,
                          @Nonnull final FlowMatch match,
                          @Nonnull final Callback<Flow> flowCallback) {
         flowsGet(datapath, match, flowCallback, DEF_REPLY_TIMEOUT);
     }
 
+    /**
+     * Callback based api for retrieving a flow.
+     *
+     * @param datapath      the datapath
+     * @param match         the flowMatch for the flow we want to retrieve
+     * @param callback      the callback which will receive the flow data
+     * @param timeoutMillis the amount of time we should wait for the response
+     */
     public void flowsGet(@Nonnull final Datapath datapath,
                          @Nonnull final FlowMatch match,
                          @Nonnull final Callback<Flow> flowCallback,
@@ -596,27 +665,106 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         @Nonnull final Callback<Flow> flowCallback,
                                         long timeout);
 
+    /**
+     * Future based api for updating a flow.
+     *
+     * @param datapath    the datapath
+     * @param flow        the flow we want to update (it should exists)
+     *
+     * @return a future that provides access to the updated flow
+     */
     public Future<Flow> flowsSet(Datapath datapath, Flow flow) {
         ValueFuture<Flow> flowFuture = ValueFuture.create();
         flowsSet(datapath, flow, wrapFuture(flowFuture));
         return flowFuture;
     }
 
+    /**
+     * Callback based api for updating a flow.
+     *
+     * @param datapath    the datapath
+     * @param flow        the flow we want to update (it should exists)
+     * @param callback    the callback which will receive the updated flow
+     */
     public void flowsSet(@Nonnull final Datapath datapath,
-                         @Nonnull final Flow match,
-                         @Nonnull final Callback<Flow> flowCallback) {
-        flowsSet(datapath, match, flowCallback, DEF_REPLY_TIMEOUT);
+                         @Nonnull final Flow flow,
+                         @Nonnull final Callback<Flow> callback) {
+        flowsSet(datapath, flow, callback, DEF_REPLY_TIMEOUT);
     }
 
+    /**
+     * Callback based api for updating a flow.
+     *
+     * @param datapath    the datapath
+     * @param flow        the flow we want to update (it should exists)
+     * @param callback    the callback which will receive the updated flow
+     * @param timeoutMillis the timeout to use
+     *
+     */
     public void flowsSet(@Nonnull final Datapath datapath,
-                         @Nonnull final Flow match,
-                         @Nonnull final Callback<Flow> flowCallback,
+                         @Nonnull final Flow flow,
+                         @Nonnull final Callback<Flow> callback,
                          long timeoutMillis) {
-        _doFlowsSet(datapath, match, flowCallback, timeoutMillis);
+        _doFlowsSet(datapath, flow, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsSet(@Nonnull final Datapath datapath,
                                         @Nonnull final Flow match,
                                         @Nonnull final Callback<Flow> flowCallback,
                                         long timeout);
+
+    /**
+     * Future based callback for executing a packet
+     *
+     * @param datapath is the datapath on which we want to send the packet.
+     * @param packet is the packet we want to send. It needs to have both the
+     *               keys and the actions parameters set.
+     *
+     * @return a future that can be used to track the successful completion of
+     * the operation.
+     */
+    public Future<Boolean> packetsExecute(@Nonnull final Datapath datapath,
+                                          @Nonnull final Packet packet) {
+        ValueFuture<Boolean> resultFuture = ValueFuture.create();
+        packetsExecute(datapath, packet, wrapFuture(resultFuture));
+        return resultFuture;
+    }
+
+    /**
+     * Callback based api for executing actions on a packet
+     *
+     * @param datapath  is the datapath on which we want to send the packet.
+     * @param packet    is the packet we want to send. It needs to have both
+     *                  the keys and the actions parameters set.
+     * @param callback  is the callback which will receive the operation completion
+     *                  status
+     */
+    public void packetsExecute(@Nonnull final Datapath datapath,
+                               @Nonnull final Packet packet,
+                               @Nonnull final Callback<Boolean> callback) {
+        packetsExecute(datapath, packet, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for executing actions on a packet
+     *
+     * @param datapath  is the datapath on which we want to send the packet.
+     * @param packet    is the packet we want to send. It needs to have both
+     *                  the keys and the actions parameters set.
+     * @param callback  is the callback which will receive the operation completion
+     *                  status
+     * @param timeoutMillis is the timeout we want to wait until the operation
+     *                      should complete
+     */
+    public void packetsExecute(@Nonnull final Datapath datapath,
+                               @Nonnull final Packet packet,
+                               @Nonnull final Callback<Boolean> resultCallback,
+                               long timeoutMillis) {
+        _doPacketsExecute(datapath, packet, resultCallback, timeoutMillis);
+    }
+
+    protected abstract void _doPacketsExecute(@Nonnull final Datapath datapath,
+                                              @Nonnull final Packet packet,
+                                              @Nonnull final Callback<Boolean> resultCallback,
+                                              long timeoutMillis);
 }
