@@ -1,6 +1,6 @@
 ## Midolman Daemon Design Overview
 
-### ASCII Diagram
+### Text diagram
 
 <pre>
         ┌────────────────────────────────────────────┐  ┌────────────┐
@@ -61,7 +61,7 @@ can be used to:
 name) on a given physical host.
 - determine what physical hosts are subscribed to a given PortSet.
 - determine what local virtual ports are part of a PortSet.
-- determine all the virtual ports taht are part of a PortSet.
+- determine all the virtual ports that are part of a PortSet.
 - determine whether a virtual port is reachable and at what physical host (a
 virtual port is reachable if the responsible host has mapped the vport ID to its
 corresponding local interface and the interface is ready to receive).
@@ -163,10 +163,10 @@ an extension of the DP Controller.
 
 ### Simulations
 
-Each simulation queries the Virtual Topology Actor for device state. The
+Each simulation queries the Virtual Topology Manager for device state. The
 simulations don't subscribe for device updates. Normally a simulation cannot
 know at the outset the entire set of devices it will need to simulate (and
-therefore query from the VTA) - more commonly, it will discover a new device
+therefore query from the VTM) - more commonly, it will discover a new device
 it needs to simulate as soon as the previous device's simulation completes.
 
 The role of a simulation is to determine for a single packet entering the
@@ -207,7 +207,7 @@ invalidation for flows whose re-simulations returned different results.
 When the Datapath Controller successfully associates a virtual port with a
 local interface, it notifies the Virtual-Physical Mapping that the virtual
 port is ready to emit forwarded packets. The VPM in turn notifies the Virtual
-Topology Manager that the virtual port is now local to this host. The VTA in
+Topology Manager that the virtual port is now local to this host. The VTM in
 turn notifies any component that is subscribed to 'local port updates'.
 
 The Port Service Manager is such a component, subscribed to local port updates.
