@@ -12,12 +12,12 @@ import com.google.common.util.concurrent.ValueFuture;
 
 import com.midokura.netlink.Callback;
 import com.midokura.netlink.NetlinkChannel;
-import com.midokura.netlink.dp.Datapath;
-import com.midokura.netlink.dp.Flow;
-import com.midokura.netlink.dp.FlowMatch;
-import com.midokura.netlink.dp.Packet;
-import com.midokura.netlink.dp.Port;
-import com.midokura.netlink.dp.Ports;
+import com.midokura.sdn.dp.Datapath;
+import com.midokura.sdn.dp.Flow;
+import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.Packet;
+import com.midokura.sdn.dp.Port;
+import com.midokura.sdn.dp.Ports;
 import com.midokura.util.reactor.Reactor;
 
 /**
@@ -67,7 +67,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                        @Nonnull final Callback<Boolean> operationCallback);
 
     /**
-     * <com.midokura.netlink.dp.Packet>* Future based api for enumerating datapaths.
+     * <com.midokura.sdn.dp.Packet>* Future based api for enumerating datapaths.
      *
      * @return A future that hold the set of enumerated datapaths.
      */

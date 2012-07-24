@@ -7,12 +7,12 @@ import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
 import java.util.UUID
 
-import com.midokura.util.netlink.dp.{Flow => KernelFlow,
+import com.midokura.sdn.dp.{Flow => KernelFlow,
                                      FlowMatch => KernelMatch, Packet}
 import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
                                WildcardFlowTable}
 import com.midokura.midolman.openflow.MidoMatch
-import com.midokura.util.netlink.dp.flows.FlowAction
+import com.midokura.sdn.dp.flows.FlowAction
 
 case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
                            packet: Option[Packet])

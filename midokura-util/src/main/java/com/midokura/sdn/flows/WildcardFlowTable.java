@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.midokura.netlink.dp.Packet;
-import com.midokura.netlink.dp.flows.FlowKey;
+import com.midokura.sdn.dp.Packet;
+import com.midokura.sdn.dp.flows.FlowKey;
 
 // Not thread-safe.
 public class WildcardFlowTable {

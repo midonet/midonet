@@ -24,21 +24,21 @@ import com.midokura.midolman.util.Net;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkSelectorProvider;
-import com.midokura.netlink.dp.Datapath;
-import com.midokura.netlink.dp.Flow;
-import com.midokura.netlink.dp.FlowMatch;
-import com.midokura.netlink.dp.flows.FlowAction;
-import com.midokura.netlink.dp.flows.FlowKeyEtherType;
+import com.midokura.sdn.dp.Datapath;
+import com.midokura.sdn.dp.Flow;
+import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.flows.FlowAction;
+import com.midokura.sdn.dp.flows.FlowKeyEtherType;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.reactor.Reactor;
 import static com.midokura.netlink.Netlink.Protocol;
-import static com.midokura.netlink.dp.flows.FlowActions.output;
-import static com.midokura.netlink.dp.flows.FlowKeys.arp;
-import static com.midokura.netlink.dp.flows.FlowKeys.encap;
-import static com.midokura.netlink.dp.flows.FlowKeys.etherType;
-import static com.midokura.netlink.dp.flows.FlowKeys.ethernet;
-import static com.midokura.netlink.dp.flows.FlowKeys.inPort;
-import static com.midokura.netlink.dp.flows.FlowKeys.vlan;
+import static com.midokura.sdn.dp.flows.FlowActions.output;
+import static com.midokura.sdn.dp.flows.FlowKeys.arp;
+import static com.midokura.sdn.dp.flows.FlowKeys.encap;
+import static com.midokura.sdn.dp.flows.FlowKeys.etherType;
+import static com.midokura.sdn.dp.flows.FlowKeys.ethernet;
+import static com.midokura.sdn.dp.flows.FlowKeys.inPort;
+import static com.midokura.sdn.dp.flows.FlowKeys.vlan;
 
 public class Client {
 

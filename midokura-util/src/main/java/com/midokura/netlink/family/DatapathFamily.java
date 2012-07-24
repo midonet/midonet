@@ -5,7 +5,7 @@ package com.midokura.netlink.family;
 
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkMessage;
-import com.midokura.netlink.dp.Datapath;
+import com.midokura.sdn.dp.Datapath;
 
 /**
  * Abstraction for the NETLINK OvsDatapath family of commands and attributes.

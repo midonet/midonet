@@ -7,9 +7,9 @@ import java.util.List;
 
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkMessage;
-import com.midokura.netlink.dp.flows.FlowAction;
-import com.midokura.netlink.dp.flows.FlowKey;
-import com.midokura.netlink.dp.flows.FlowStats;
+import com.midokura.sdn.dp.flows.FlowAction;
+import com.midokura.sdn.dp.flows.FlowKey;
+import com.midokura.sdn.dp.flows.FlowStats;
 
 /**
  * // TODO: mtoader ! Please explain yourself.

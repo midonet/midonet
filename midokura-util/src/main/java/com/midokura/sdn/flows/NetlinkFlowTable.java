@@ -8,9 +8,9 @@ import java.util.Set;
 
 import com.sun.tools.javac.util.Pair;
 
-import com.midokura.netlink.dp.Flow;
-import com.midokura.netlink.dp.FlowMatch;
-import com.midokura.netlink.dp.Packet;
+import com.midokura.sdn.dp.Flow;
+import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.Packet;
 
 // not thread-safe
 public class NetlinkFlowTable {

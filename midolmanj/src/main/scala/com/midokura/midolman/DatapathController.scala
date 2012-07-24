@@ -4,10 +4,10 @@
 package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
-import com.midokura.util.netlink.dp.{Port, Datapath, Packet}
+import com.midokura.sdn.dp.{Port, Datapath, Packet}
 import vrn.VirtualToPhysicalMapper
-import com.midokura.util.netlink.protos.OvsDatapathConnection
-import com.midokura.util.netlink.Callback
+import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.netlink.Callback
 
 /**
  * Holder object that keeps the external message definitions

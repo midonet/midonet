@@ -4,12 +4,12 @@ package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
 
-import com.midokura.util.netlink.dp.Packet
 import com.midokura.sdn.flows.{WildcardFlow, MidoMatch}
 import java.util.UUID
 import com.midokura.packets.Ethernet
-import com.midokura.util.netlink.dp.flows.FlowAction
 import collection.mutable
+import com.midokura.sdn.dp.Packet
+import com.midokura.sdn.dp.flows.FlowAction
 
 case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
                           outPorts: mutable.Set[UUID], packet: Packet,
