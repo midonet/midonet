@@ -7,7 +7,7 @@ package com.midokura.midolman.util;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.collections.TypedHashMap;
 import com.midokura.util.collections.TypedMap;
 

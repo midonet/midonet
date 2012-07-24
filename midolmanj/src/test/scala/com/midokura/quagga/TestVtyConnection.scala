@@ -4,7 +4,7 @@
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.quagga
+package com.midokura.quagga
 
 import java.net.InetAddress
 import java.util.UUID
@@ -23,7 +23,6 @@ import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.util.{Net, Sudo}
-
 
 object TestBgpVtyConnection {
     private final val log =

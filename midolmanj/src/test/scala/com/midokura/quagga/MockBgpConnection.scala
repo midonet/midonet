@@ -4,7 +4,7 @@
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.quagga
+package com.midokura.quagga
 
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 

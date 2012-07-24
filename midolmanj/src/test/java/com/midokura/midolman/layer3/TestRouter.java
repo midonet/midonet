@@ -24,7 +24,7 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;

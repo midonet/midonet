@@ -10,7 +10,7 @@
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.quagga
+package com.midokura.quagga
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
 import com.midokura.midolman.state.{PortZkManager, RouteZkManager}
@@ -52,9 +52,9 @@ protected[quagga] object ZebraProtocol {
     final val ZebraMaxPayloadSize = (1 << 16) - 1
 
     // Zebra message types.
-    final val ZebraInterfaceAdd              = 1
+    final val ZebraInterfaceAdd:Byte         = 1
     final val ZebraInterfaceDelete           = 2
-    final val ZebraInterfaceAddressAdd       = 3
+    final val ZebraInterfaceAddressAdd:Byte  = 3
     final val ZebraInterfaceAddressDelete    = 4
     final val ZebraInterfaceUp               = 5
     final val ZebraInterfaceDown             = 6
@@ -73,7 +73,7 @@ protected[quagga] object ZebraProtocol {
     final val ZebraInterfaceRename           = 19
     final val ZebraRouterIdAdd               = 20
     final val ZebraRouterIdDelete            = 21
-    final val ZebraRouterIdUpdate            = 22
+    final val ZebraRouterIdUpdate:Byte       = 22
     final val ZebraMessageMax                = 23
 
     // Interface related constants.
@@ -350,7 +350,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
-        val prefixLen = in.readByte
+        val prefixLen:Byte = in.readByte
         val prefix = new Array[Byte](Ipv4MaxBytelen)
         // Protocol daemons only send network part.
         in.read(prefix, 0, ((prefixLen + 7) / 8))

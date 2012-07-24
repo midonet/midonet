@@ -27,8 +27,8 @@ import org.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.SelectListener;
-import com.midokura.util.eventloop.eventloop.SelectLoop;
+import com.midokura.util.eventloop.SelectListener;
+import com.midokura.util.eventloop.SelectLoop;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.ControllerStubImpl;

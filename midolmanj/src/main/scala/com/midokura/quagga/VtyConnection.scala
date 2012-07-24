@@ -7,21 +7,18 @@
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.quagga
+package com.midokura.quagga
 
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager}
 import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.state.NoStatePathException
-import com.midokura.midolman.layer3.Route
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Set}
-import scala.util.matching.Regex
 
 import java.io.{BufferedReader, InputStreamReader, PrintWriter}
-import java.net.{InetAddress,Socket,SocketException}
+import java.net.{InetAddress, Socket}
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
@@ -34,13 +31,13 @@ object VtyConnection {
     private final val BufSize = 1024
     private final val SkipHello = 7
 
-    private final val Enable		= "enable"
-    private final val Disable		= "disable"
+    private final val Enable = "enable"
+    private final val Disable = "disable"
     private final val ConfigureTerminal = "configure terminal"
-    private final val Exit		= "exit"
-    private final val End		= "end"
+    private final val Exit = "exit"
+    private final val End = "end"
 
-    private  final val log = LoggerFactory.getLogger(this.getClass)
+    private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
 /**
@@ -48,6 +45,7 @@ object VtyConnection {
  */
 abstract class VtyConnection(val addr: String, val port: Int,
                              val password: String) {
+
     import VtyConnection._
 
     var socket: Socket = _
@@ -62,7 +60,9 @@ abstract class VtyConnection(val addr: String, val port: Int,
     private def recvMessage(): Seq[String] = {
         var lines = new ListBuffer[String]()
         var line: String = null
-        while ({line = in.readLine; line != null }) {
+        while ( {
+            line = in.readLine; line != null
+        }) {
             lines.append(line)
             //println(line)
         }
@@ -78,7 +78,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
         socket = new Socket(addr, port)
         out = new PrintWriter(socket.getOutputStream(), true)
         in = new BufferedReader(new InputStreamReader(socket.getInputStream),
-                                BufSize)
+            BufSize)
 
         // Quagga returns, blank line, hello message, two blank lines,
         // user access verification message and blank line upon connection.
@@ -99,7 +99,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     protected def doTransacation(messages: Seq[String],
-                      isConfigure: Boolean): Seq[String] = {
+                                 isConfigure: Boolean): Seq[String] = {
         openConnection
         if (isConfigure) {
             configureTerminal
@@ -121,7 +121,9 @@ abstract class VtyConnection(val addr: String, val port: Int,
         return response
     }
 
-    protected def isConnected(): Boolean = { return connected }
+    protected def isConnected(): Boolean = {
+        return connected
+    }
 
     protected def enable() {
         sendMessage(Enable)
@@ -167,7 +169,7 @@ object BgpVtyConnection {
     private final val SetNetwork = "network %s/%d"
     private final val DeleteNetwork = "no network %s/%d"
 
-    private  final val log = LoggerFactory.getLogger(this.getClass)
+    private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
 /**
@@ -175,69 +177,79 @@ object BgpVtyConnection {
  */
 trait BgpConnection {
     def create(localAddr: InetAddress, bgpUUID: UUID, bgp: BgpConfig)
+
     def getAs(): Int
+
     def setAs(as: Int)
+
     def deleteAs(as: Int)
+
     def setLocalNw(as: Int, localAddr: InetAddress)
+
     def setPeer(as: Int, peerAddr: InetAddress, peerAs: Int)
+
     def getNetwork(): Seq[String]
+
     def setNetwork(as: Int, nwPrefix: String, prefixLength: Int)
+
     def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int)
 }
 
 class BgpVtyConnection(addr: String, port: Int, password: String,
                        val bgpZk: BgpZkManager,
                        val adRouteZk: AdRouteZkManager)
-extends VtyConnection(addr, port, password) with BgpConnection {
+    extends VtyConnection(addr, port, password) with BgpConnection {
+
     import BgpVtyConnection._
 
-    private class AdRouteWatcher(val localAS: Int, val adRouteUUID: UUID, 
+    private class AdRouteWatcher(val localAS: Int, val adRouteUUID: UUID,
                                  val oldConfig: AdRouteConfig,
                                  val adRouteZk: AdRouteZkManager)
-            extends Runnable {
-                override def run() {
-                    // Whether this event is update or delete, we have to
-                    // delete the old config first.
-                    deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
-                                  oldConfig.prefixLength)
-                    try {
-                        val adRoute = adRouteZk.get(adRouteUUID, this)
-                        if (adRoute != null) {
-                            setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
-                                       adRoute.prefixLength)
-                        }
-                    } catch {
-                        case e: NoStatePathException =>
-                            { log.warn("AdRouteWatcher: node already deleted") }
-                    }
+        extends Runnable {
+        override def run() {
+            // Whether this event is update or delete, we have to
+            // delete the old config first.
+            deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
+                oldConfig.prefixLength)
+            try {
+                val adRoute = adRouteZk.get(adRouteUUID, this)
+                if (adRoute != null) {
+                    setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
+                        adRoute.prefixLength)
+                }
+            } catch {
+                case e: NoStatePathException => {
+                    log.warn("AdRouteWatcher: node already deleted")
                 }
             }
+        }
+    }
 
     private class BgpWatcher(val localAddr: InetAddress, var bgpUUID: UUID,
                              var oldConfig: BgpConfig, val adRoutes: Set[UUID],
                              val bgpZk: BgpZkManager,
                              val adRouteZk: AdRouteZkManager)
-            extends Runnable {
-                override def run() {
-                    // Compare the length of adRoutes and only handle
-                    // adRoute events when routes are added.
-                    try {
-                        if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
-                            val bgp = bgpZk.get(bgpUUID, this)
-                            if (bgp != null) {
-                                this.bgpUUID = bgpUUID
-                                this.oldConfig = bgp
-                                create(localAddr, bgpUUID, bgp)
-                            }
-                        }
-                    } catch {
-                        case e: NoStatePathException => {
-                            log.warn("BgpWatcher: node already deleted")
-                            deleteAs(oldConfig.localAS)
-                        }
+        extends Runnable {
+        override def run() {
+            // Compare the length of adRoutes and only handle
+            // adRoute events when routes are added.
+            try {
+                if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
+                    val bgp = bgpZk.get(bgpUUID, this)
+                    if (bgp != null) {
+                        this.bgpUUID = bgpUUID
+                        this.oldConfig = bgp
+                        create(localAddr, bgpUUID, bgp)
                     }
                 }
+            } catch {
+                case e: NoStatePathException => {
+                    log.warn("BgpWatcher: node already deleted")
+                    deleteAs(oldConfig.localAS)
+                }
             }
+        }
+    }
 
     override def getAs(): Int = {
         val request = new ListBuffer[String]()
@@ -249,8 +261,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             response = doTransacation(request.toSeq, false)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed getting local AS", e) }
+            case e: Exception => {
+                log.error("failed getting local AS", e)
+            }
         }
 
         if (response != null) {
@@ -274,8 +287,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed setting local AS", e) }
+            case e: Exception => {
+                log.error("failed setting local AS", e)
+            }
         }
     }
 
@@ -287,10 +301,11 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed deleting local AS", e) }
+            case e: Exception => {
+                log.error("failed deleting local AS", e)
+            }
         }
-    }    
+    }
 
     override def setLocalNw(as: Int, localAddr: InetAddress) {
         val request = ListBuffer[String]()
@@ -301,8 +316,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed setting local network", e) }
+            case e: Exception => {
+                log.error("failed setting local network", e)
+            }
         }
     }
 
@@ -315,8 +331,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed setting local network", e) }
+            case e: Exception => {
+                log.error("failed setting local network", e)
+            }
         }
     }
 
@@ -330,7 +347,7 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             response = doTransacation(request.toSeq, false)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception => { 
+            case e: Exception => {
                 log.error("failed getting network", e)
             }
         }
@@ -352,10 +369,10 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                 val peerNetwork = network.mkString(",")
                 log.debug("getPeerNetwork: peerNetwork {}", peerNetwork)
                 //peerNetworks += peerNetwork
-                peerNetworks += ((rmatch.group(1),  // nwPrefix
-                                  rmatch.group(2),  // nextHop
-                                  rmatch.group(3),  // weight
-                                  rmatch.group(4))) // path
+                peerNetworks += ((rmatch.group(1), // nwPrefix
+                    rmatch.group(2), // nextHop
+                    rmatch.group(3), // weight
+                    rmatch.group(4))) // path
             }
         }
         return peerNetworks.toSeq
@@ -386,8 +403,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
             doTransacation(request.toSeq, true)
         } catch {
             // TODO(yoshi): finer exception handling.
-            case e: Exception =>
-                { log.error("failed setting advertising routes", e) }
+            case e: Exception => {
+                log.error("failed setting advertising routes", e)
+            }
         }
     }
 
@@ -402,8 +420,9 @@ extends VtyConnection(addr, port, password) with BgpConnection {
                 doTransacation(request.toSeq, true)
             } catch {
                 // TODO(yoshi): finer exception handling.
-                case e: Exception =>
-                    { log.error("failed deleting advertising routes", e) }
+                case e: Exception => {
+                    log.error("failed deleting advertising routes", e)
+                }
             }
         }
     }
@@ -416,17 +435,17 @@ extends VtyConnection(addr, port, password) with BgpConnection {
 
         val adRoutes = Set[UUID]()
         val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp, adRoutes,
-                                        bgpZk, adRouteZk)
+            bgpZk, adRouteZk)
 
         for (adRouteUUID <- adRouteZk.list(bgpUUID, bgpWatcher)) {
             val adRoute = adRouteZk.get(adRouteUUID)
             setNetwork(bgp.localAS, adRoute.nwPrefix.getHostAddress,
-                       adRoute.prefixLength)
+                adRoute.prefixLength)
             adRoutes.add(adRouteUUID)
             // Register AdRouteWatcher.
             adRouteZk.get(adRouteUUID,
-                          new AdRouteWatcher(bgp.localAS, adRouteUUID, adRoute,
-                                             adRouteZk))
+                new AdRouteWatcher(bgp.localAS, adRouteUUID, adRoute,
+                    adRouteZk))
         }
     }
 }

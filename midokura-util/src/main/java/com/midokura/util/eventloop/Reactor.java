@@ -1,7 +1,7 @@
 /*
  * Copyright 2011 Midokura KK
  */
-package com.midokura.util.eventloop.eventloop;
+package com.midokura.util.eventloop;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;

@@ -25,8 +25,7 @@ import org.junit.{AfterClass, BeforeClass, Ignore, Test}
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
-import com.midokura.util.eventloop.eventloop.{SelectLoop, SelectListener}
-import com.midokura.midolman.eventloop.{SelectListener, SelectLoop}
+import com.midokura.util.eventloop._
 import openflow.{SuccessHandler, ControllerStubImpl, OpenFlowError}
 import com.midokura.midolman.openvswitch.{
 OpenvSwitchDatabaseConnectionImpl,

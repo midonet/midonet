@@ -29,7 +29,7 @@ import scala.actors.threadpool.Arrays;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.CookieMonster;
 import com.midokura.midolman.DhcpHandler;
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;

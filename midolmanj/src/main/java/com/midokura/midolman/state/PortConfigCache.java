@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.LoadingCache;
 

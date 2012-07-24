@@ -20,16 +20,10 @@ import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.openvswitch.PortBuilder;
-import com.midokura.packets.MAC;
-import com.midokura.quagga.BgpConnection;
-import com.midokura.quagga.BgpVtyConnection;
-import com.midokura.quagga.ZebraServer;
-import com.midokura.quagga.ZebraServerImpl;
 import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.BgpZkManager.BgpConfig;
@@ -40,6 +34,12 @@ import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
+import com.midokura.packets.MAC;
+import com.midokura.quagga.BgpConnection;
+import com.midokura.quagga.BgpVtyConnection;
+import com.midokura.quagga.ZebraServer;
+import com.midokura.quagga.ZebraServerImpl;
+import com.midokura.util.eventloop.Reactor;
 
 public class BgpPortService implements PortService {
 

@@ -20,7 +20,7 @@ import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.packets.ARP;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;

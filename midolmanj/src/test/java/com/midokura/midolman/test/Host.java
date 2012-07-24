@@ -11,7 +11,7 @@ import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
 import com.midokura.midolman.CookieMonster;
-import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.packets.IntIPv4;

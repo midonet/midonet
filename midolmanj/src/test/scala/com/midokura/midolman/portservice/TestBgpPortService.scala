@@ -18,12 +18,11 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 
-import com.midokura.util.eventloop.eventloop.MockReactor
-import com.midokura.midolman.eventloop.MockReactor
+import com.midokura.util.eventloop.MockReactor
 import com.midokura.midolman.layer3.MockServiceFlowController
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
 import com.midokura.packets.MAC
-import com.midokura.midolman.quagga.{MockBgpConnection, MockZebraServer}
+import com.midokura.quagga.{MockBgpConnection, MockZebraServer}
 import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
                                     MockDirectory, PortDirectory,
                                     PortZkManager, RouteZkManager,
@@ -32,6 +31,7 @@ import com.midokura.midolman.state.BgpZkManager.BgpConfig
 import com.midokura.midolman.util.{Net, Sudo}
 import com.midokura.midolman.{TestHelpers, Setup}
 import org.hamcrest.Matchers._
+import com.midokura.quagga.MockBgpConnection
 
 /**
  * Test for BgpPortService using Open vSwitch database connection.

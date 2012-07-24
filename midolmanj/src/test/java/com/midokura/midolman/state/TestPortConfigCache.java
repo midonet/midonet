@@ -11,16 +11,14 @@ import java.util.concurrent.TimeUnit;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.midokura.midolman.Setup;
-import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
-
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.IsNull.nullValue;
+
+import com.midokura.midolman.Setup;
+import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
+import com.midokura.util.eventloop.MockReactor;
 
 public class TestPortConfigCache {
     private MockReactor reactor;

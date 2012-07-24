@@ -2,17 +2,6 @@
 
 package com.midokura.midolman;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
-import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,20 +24,40 @@ import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
+import com.midokura.midolman.state.BridgeZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.PortToIntNwAddrMap;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.util.JSONSerializer;
+import com.midokura.midolman.vrn.VRNController;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.JSONSerializer;
-import com.midokura.midolman.vrn.VRNController;
+import com.midokura.util.eventloop.MockReactor;
 
 
 public class TestBridge {

@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.SelectListener;
-import com.midokura.util.eventloop.eventloop.SelectLoop;
+import com.midokura.util.eventloop.SelectListener;
+import com.midokura.util.eventloop.SelectLoop;
 import com.midokura.packets.MAC;
 import com.midokura.midolman.util.Net;
 import com.midokura.netlink.Netlink;

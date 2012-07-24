@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;

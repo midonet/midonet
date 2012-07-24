@@ -36,7 +36,7 @@ import org.openflow.protocol.action.*;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.Setup;
-import com.midokura.midolman.eventloop.MockReactor;
+import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;

@@ -68,7 +68,7 @@ public class OvsPacketInTest
                    result.get());
 
         // check that we got the proper 5 notifications.
-        for (int i = 0 ;i < 5 ; i++) {
+        for (int i = 0; i < 5; i++) {
             notificationHandler.setPacket(null);
             fireReply();
             assertThat(notificationHandler.getPacket(),
@@ -80,12 +80,11 @@ public class OvsPacketInTest
     private Packet expectedArpPacket() {
         Packet packet = new Packet();
 
-        packet.setData(
-            new byte[]{
-                -1, -1, -1, -1, -1, -1, 62, 5, -44, 115, 45,
-                76, 8, 6, 0, 1, 8, 0, 6, 4, 0, 1, 62, 5, -44, 115, 45, 76, -80, 28,
-                127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
-            })
+        packet.setData(new byte[]{
+            -1, -1, -1, -1, -1, -1, 62, 5, -44, 115, 45,
+            76, 8, 6, 0, 1, 8, 0, 6, 4, 0, 1, 62, 5, -44, 115, 45, 76, -80, 28,
+            127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
+        })
               .addKey(inPort(0))
               .addKey(ethernet(macFromString("3e:05:d4:73:2d:4c"),
                                macFromString("ff:ff:ff:ff:ff:ff")))
@@ -96,7 +95,7 @@ public class OvsPacketInTest
                       .setOp((byte) 1)
                       .setSip(Net.convertStringAddressToInt("176.28.127.69"))
                       .setTip(Net.convertStringAddressToInt("192.168.100.10"))
-              );
+              ).setReason(Packet.Reason.FlowTableMiss);
 
         return packet;
     }

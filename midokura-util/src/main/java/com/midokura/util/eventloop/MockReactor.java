@@ -1,4 +1,4 @@
-package com.midokura.util.eventloop.eventloop;
+package com.midokura.util.eventloop;
 
 import java.util.PriorityQueue;
 import java.util.concurrent.Delayed;
@@ -7,8 +7,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import com.midokura.util.eventloop.eventloop.Reactor;
 
 public class MockReactor implements Reactor {
 

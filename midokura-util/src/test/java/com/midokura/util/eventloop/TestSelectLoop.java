@@ -1,6 +1,6 @@
 // Copyright 2011 Midokura Inc.
 
-package com.midokura.util.eventloop.eventloop;
+package com.midokura.util.eventloop;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

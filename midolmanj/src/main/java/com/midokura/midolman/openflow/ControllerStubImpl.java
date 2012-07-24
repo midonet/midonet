@@ -55,7 +55,7 @@ import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.openflow.nxm.MatchTranslation;
 import com.midokura.midolman.openflow.nxm.NxFlowMod;
 import com.midokura.midolman.openflow.nxm.NxFlowRemoved;

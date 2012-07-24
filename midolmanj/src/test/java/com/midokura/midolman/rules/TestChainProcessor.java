@@ -17,8 +17,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 
-import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.MockReactor;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
