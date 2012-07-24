@@ -11,17 +11,21 @@ import java.util.UUID
 import com.midokura.packets.Ethernet
 import com.midokura.util.netlink.dp.flows.FlowAction
 
+
 case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
                           outPorts: Set[UUID], packet: Packet,
                           generated: Boolean)
 case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
 
+
 class ControllerActor(val fController: ActorRef) extends Actor {
     fController ! RegisterPacketInListener(packetInCallback)
 
     case class PacketIn(packet: Packet, vportID: UUID)
-    def packetInCallback(packet: Packet, id: UUID): Unit =
+
+    def packetInCallback(packet: Packet, id: UUID) {
         self ! PacketIn(packet, id)
+    }
 
     def receive = {
         case SimulationDone(originalMatch, finalMatch, outPorts,

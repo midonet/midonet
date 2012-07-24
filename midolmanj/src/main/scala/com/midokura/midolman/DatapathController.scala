@@ -5,12 +5,15 @@ package com.midokura.midolman
 import akka.actor.Actor
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
-
-import com.midokura.util.netlink.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Packet}
-import com.midokura.sdn.flows.{WildcardFlow, NetlinkFlowTable, WildcardFlowTable}
-import openflow.MidoMatch
 import java.util.UUID
+
+import com.midokura.util.netlink.dp.{Flow => KernelFlow,
+                                     FlowMatch => KernelMatch, Packet}
+import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
+                               WildcardFlowTable}
+import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.util.netlink.dp.flows.FlowAction
+
 
 case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
                            packet: Option[Packet])
@@ -21,9 +24,9 @@ case class Consume(packet: Packet)
 // Callback argument should not block.
 case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
 
-class DatapathController(XXX: Unit) extends Actor {
-    private var wildcardFlowManager: WildcardFlowTable = _
-    private var exactFlowManager: NetlinkFlowTable = _
+
+class DatapathController(val wildcardFlowManager: WildcardFlowTable,
+                         val exactFlowManager: NetlinkFlowTable) extends Actor {
     private var packetInCallback: (Packet, UUID) => Unit = null
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
@@ -109,8 +112,8 @@ class DatapathController(XXX: Unit) extends Actor {
             val kernelMatch = packet.getMatch
             pendedMatches.remove(kernelMatch)
 
-        case RemoveWildcardFlow(fmatch) =>
-        case SendPacket(data, actions, outPorts) =>
+        case RemoveWildcardFlow(fmatch) => //XXX
+        case SendPacket(data, actions, outPorts) => //XXX
         case RegisterPacketInListener(callback) =>
             packetInCallback = callback
 
