@@ -2,34 +2,34 @@
 
 ### Ascii Diagram
 
-         +------------------------------------------+ +------------+
-         |                                          | |Port Service|
-         |                         Virt Device      | |  Manager   |
-         |                 +---+     Queries        | +---^--------+
-         |                 |SIM+--------------->    |     |Local Port
-   Device|                 +-+-+   +---+       |    |     |Updates
-  Updates|          Delegate |     |SIM+------->    |     |
-         |         Single Pkt|     +-+-+       |    +-----+--+
+         +--------------------------------------------+  +------------+
+         |                                            |  |Port Service|
+         |                         Virt Device        |  |  Manager   |
+         |                 +---+     Queries          |  +-^---------+
+         |Device           |SIM+--------------->      |    |Local Port
+         |Updates          +-+-+   +---+       |      |    |Updates
+         |          Delegate |     |SIM+------->      |    |
+         |         Single Pkt|     +-+-+       |    +-v----+-+
          |         Simulation|       |         +---->Virtual +----------->
          |               +---+-------+------+       |Topology|           |
          |               |  Sim Controller  |       |Manager <-+         +------>
          |               +-----+--^---------+       +--------+ |Local    |Remote
          |                Sim  |  |                            |Port     |State
          |              Results|  |PktIn by                    |Updates  |Queries
-+--------v-+                   |  |  UUID      Host/IF/Vport +-+--+----+ |
-|   Flow   |             +-----v--+----------+   Mappings    |Virt-Phys+->
-|Validation+-------------+   DP Controller   +---------------+ Mapping |
-|  Engige  |  Flow Index +--+-------------+--+               +---------+
-+----------+  and Inval     |             |
+ +-------v--+                  |  |  UUID      Host/IF/Vport +-+-------+ |
+ |   Flow   |            +-----v--+----------+   Mappings    |Virt-Phys+->
+ |Validation<------------>   DP Controller   <---------------> Mapping |
+ |  Engige  | Flow Index +---------------^--+               +---------+
+ +----------+ and Inval     |             |
               by Dev ID     |             |PktIn & Wildcard Flow Queries
                             |             |
-                            |    +--------+--------+
+                            |    +--------v--------+
                      DP Port|    | Flow Controller |
-                     Queries|    +--------+--------+
+                     Queries|    +--------^--------+
                             |             |
                             |             |PktIn & DP Flow Queries
                             |             |
-                      +-----v-------------+-------+
+                      +-----v-------------v-------+
                       |    Netlink Datapath API   |
                       +---------------------------+
 
