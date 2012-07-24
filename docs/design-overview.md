@@ -159,6 +159,29 @@ simulations that need concurrent processing (for performance reasons). This is
 a very narrow responsibility, so the Simulation Controller may be thought of as
 an extension of the DP Controller.
 
+### Simulations
+
+Each simulation queries the Virtual Topology Actor for device state. The
+simulations don't subscribe for device updates. Normally a simulation cannot
+know at the outset the entire set of devices it will need to simulate (and
+therefore query from the VTA) - more commonly, it will discover a new device
+it needs to simulate as soon as the previous device's simulation completes.
+
+The role of a simulation is to determine for a single packet entering the
+virtual network at some vport, whether:
+- some simulated device will consume the packet (and should continue to receive
+similar packets OR
+- some device will drop the packet (and hence a DROP flow may be installed) OR
+- the packet, after potential modifications to its network protocol headers,
+would be emitted from some other vport (or set of vports).
+
+In the course of determining one of these outcomes, a simulation may update
+a device's dynamic state (mac-learning table, arp-cache), or introduce new
+packets into the virtual network on behalf of a device that emits a packet
+(e.g. a router making an ARP request). A Simulation calls the Simulation
+Controller in order to introduce new packets into the virtual network; the
+Simulation Controller normally starts a new Simulation to handle such a request.
+
 ### Flow Validation Engine
 
 The Flow Validation Engine receives an update from the Datapath Controller for
