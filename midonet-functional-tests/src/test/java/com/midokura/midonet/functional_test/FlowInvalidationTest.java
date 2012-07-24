@@ -9,9 +9,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.Rule;

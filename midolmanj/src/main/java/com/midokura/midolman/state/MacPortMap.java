@@ -2,12 +2,9 @@
 
 package com.midokura.midolman.state;
 
-import java.util.Map;
 import java.util.UUID;
 
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.MAC;
 
 public class MacPortMap extends ReplicatedMap<MAC, UUID> {
 

@@ -4,7 +4,7 @@ package com.midokura.midolman.vrn;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.Ethernet;
+import com.midokura.packets.Ethernet;
 import com.midokura.midolman.state.StateAccessException;
 
 

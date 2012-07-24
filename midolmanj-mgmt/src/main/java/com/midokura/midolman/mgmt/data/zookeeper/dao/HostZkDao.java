@@ -23,7 +23,7 @@ import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.HostCommand.LogEntry;
 import com.midokura.midolman.mgmt.data.dto.Interface;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 

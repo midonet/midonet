@@ -7,15 +7,15 @@ package com.midokura.midolman.rules;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NatMapping;
-import org.apache.cassandra.gms.IFailureDetectionEventListener;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
 
 public class ReverseNatRule extends NatRule {

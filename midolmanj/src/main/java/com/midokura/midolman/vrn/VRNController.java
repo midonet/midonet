@@ -36,7 +36,7 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
-import com.midokura.midolman.packets.*;
+import com.midokura.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;

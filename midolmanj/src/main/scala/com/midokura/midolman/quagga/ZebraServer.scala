@@ -23,18 +23,16 @@ import scala.actors._
 import scala.actors.Actor._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 
 import java.io.{DataInputStream, DataOutputStream, EOFException, InputStream,
                 IOException, OutputStream, OutputStreamWriter, PrintWriter}
 import java.lang.StringBuffer
-import java.net.{InetAddress, NetworkInterface, ServerSocket, Socket,
-                 SocketAddress}
-import java.nio.ByteBuffer
+import java.net.{InetAddress, ServerSocket, Socket, SocketAddress}
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
-import com.midokura.midolman.packets.IntIPv4
+import com.midokura.packets.IntIPv4
 
 
 case class Request(socket: Socket, reqId: Int)
@@ -233,7 +231,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
     import ZebraProtocol._
 
     private final val log = LoggerFactory.getLogger(this.getClass)
-    
+
     // Map to get port uuid from route type.
     private val ribTypeToPortUUID = mutable.Map[Int, String]()
     // Map to track zebra route and MidoNet Route.
@@ -666,7 +664,7 @@ extends ZebraServer {
                 try {
                     val conn = server.accept
                     log.debug("start.actor accepted connection {}", conn);
-                    
+
                     dispatcher ! Request(conn, requestId)
                     requestId += 1
                 } catch {

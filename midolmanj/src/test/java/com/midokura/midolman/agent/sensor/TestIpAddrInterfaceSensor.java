@@ -5,7 +5,7 @@
 package com.midokura.midolman.agent.sensor;
 
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import org.junit.Test;
 
 import java.net.InetAddress;

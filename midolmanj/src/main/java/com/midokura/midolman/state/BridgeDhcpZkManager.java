@@ -15,8 +15,8 @@ import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 
 public class BridgeDhcpZkManager extends ZkManager {
 

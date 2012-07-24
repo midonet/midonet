@@ -49,7 +49,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
-import com.midokura.midolman.packets.*;
+import com.midokura.packets.*;
 import com.midokura.midolman.portservice.MockPortService;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
@@ -768,7 +768,7 @@ public class TestVRNController {
     @Test
     public void testOneRouterNotIPv4() {
         // This isn't a real IPv6 packet. So this will break if we add an
-        // IPv6 class in com.midokura.midolman.packets.
+        // IPv6 class in com.midokura.packets.
         Data payload = new Data();
         ByteBuffer bb = ByteBuffer.wrap(new byte[100], 0, 100);
         payload.deserialize(bb);
@@ -2327,7 +2327,7 @@ public class TestVRNController {
     public void testOnPacketInMalformedDhcpPacket() {
         // Verify that a bad packet does not crash Midolman.
         // This packet contains a junk DHCP data.
-        byte[] dhcpData = Arrays.copyOf(TestDHCP.dhcpBytes, 100);
+        byte[] dhcpData = Arrays.copyOf(dhcpBytes, 100);
 
         Ethernet eth = TestRouter.makeUDP(MAC.fromString("02:00:11:22:00:01"),
                 MAC.fromString("02:00:11:22:00:01"), 0x0a000005, 0x0a040005,
@@ -2464,4 +2464,80 @@ public class TestVRNController {
         Assert.assertArrayEquals(actions.toArray(),
                 actualPacket.actions.toArray());
     }
+
+    public final static byte[] dhcpBytes = new byte[] {
+        // op, htype, hlen, hops
+        (byte) 0x01, (byte) 0x01, (byte) 0x06, (byte) 0x00,
+        // transaction ID
+        (byte) 0x2e, (byte) 0x86, (byte) 0xe1, (byte) 0x21,
+        // secs and flags
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // client ip add
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // your ip add
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // server ip add
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // your ip add
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // Client Hardware address
+        (byte) 0x02, (byte) 0x16, (byte) 0x3e, (byte) 0x26,
+        (byte) 0x14, (byte) 0x99, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // Server name
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // Filename
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+        // Magic number
+        (byte) 0x63, (byte) 0x82, (byte) 0x53, (byte) 0x63,
+        // Options
+        (byte) 0x35, (byte) 0x01, (byte) 0xFF, (byte) 0xFF};
+
 }

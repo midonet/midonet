@@ -6,11 +6,11 @@ package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
 
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.MalformedPacketException;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 
 

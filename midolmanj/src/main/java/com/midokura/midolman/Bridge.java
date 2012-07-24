@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.ARP;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;

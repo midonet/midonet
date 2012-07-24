@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
-import com.midokura.midolman.packets.ARP;
-import com.midokura.midolman.packets.Ethernet;
+import com.midokura.packets.ARP;
+import com.midokura.packets.Ethernet;
 import com.midokura.midonet.functional_test.utils.RemoteTap;
 import com.midokura.tools.timed.Timed;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;

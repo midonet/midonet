@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +29,7 @@ import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.packets.*;
+import com.midokura.packets.*;
 import com.midokura.midolman.rules.*;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.RouterZkManager.RouterConfig;

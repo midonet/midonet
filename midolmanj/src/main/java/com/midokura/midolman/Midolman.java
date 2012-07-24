@@ -18,6 +18,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import akka.actor.Actor;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActorFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -38,8 +43,6 @@ import com.midokura.midolman.monitoring.NodeAgentHostIdProvider;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.packets.IntIPv4;
 import com.midokura.midolman.portservice.BgpPortService;
 import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.portservice.OpenVpnPortService;
@@ -48,7 +51,10 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheFactory;
+import com.midokura.midolman.vrn.SetPortLocal;
 import com.midokura.midolman.vrn.VRNController;
+import com.midokura.midolman.vrn.VirtualTopologyActor;
+import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
 
 
@@ -148,10 +154,10 @@ public class Midolman implements SelectListener, Watcher {
         loop = new SelectLoop(executor);
 
         // open the OVSDB connection
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch",
-            config.getOpenvSwitchIpAddr(),
-            config.getOpenvSwitchTcpPort());
+//        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
+//            "Open_vSwitch",
+//            config.getOpenvSwitchIpAddr(),
+//            config.getOpenvSwitchTcpPort());
 
         zkConnection = new ZkConnection(
             config.getZooKeeperHosts(),
@@ -162,6 +168,20 @@ public class Midolman implements SelectListener, Watcher {
         log.debug("done with ZkConnection.open()");
 
         midonetDirectory = zkConnection.getRootDirectory();
+
+        ActorSystem actorSystem = ActorSystem.create("midolmanActors");
+        ActorRef ref = actorSystem.actorOf(new Props(new UntypedActorFactory() {
+            @Override
+            public Actor create() {
+                return new VirtualTopologyActor(
+                    midonetDirectory,
+                    basePath,
+                    localNwAddr
+                );
+            }
+        }));
+
+        ref.tell(new SetPortLocal(UUID.randomUUID(), true));
 
         if (config.getMidolmanStartHostAgent()) {
             nodeAgent = NodeAgent.bootstrapAgent(configProvider,
@@ -343,10 +363,13 @@ public class Midolman implements SelectListener, Watcher {
             RemoteHost.getSpecification();
 
             new Midolman().run(args);
+//            new Midolman().runTest();
         } catch (Exception e) {
             log.error("main caught", e);
             System.exit(-1);
         }
     }
 
+    private void runTest() {
+    }
 }

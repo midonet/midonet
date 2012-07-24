@@ -4,9 +4,7 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.MockDirectory;
+import com.midokura.packets.MAC;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -25,7 +23,7 @@ public class TestMacPortMap {
     }
 
     @Test
-    public void testContainsEntryAfterPut() 
+    public void testContainsEntryAfterPut()
                 throws KeeperException, InterruptedException {
         byte[] mac1 = { 0, 1, 2, 3, 4, 5 };
         byte[] mac2 = { 0, 1, 2, 3, 4, 5 };

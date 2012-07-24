@@ -39,11 +39,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                    <excludes>
+                        <exclude>com/midokura/midolman/netlink/*Channel*.java</exclude>
+                    </excludes>
                 </configuration>
-                <version>2.3</version>
             </plugin>
 
             <plugin>
@@ -349,6 +352,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>spy</groupId>
             <artifactId>spymemcached</artifactId>
             <version>2.7</version>
@@ -603,6 +612,34 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>netlink-client</id>
+            <activation>
+                <property>
+                    <name>netlink-exec</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <configuration>
+                            <executable>sudo</executable>
+                            <arguments>
+                                <argument>java</argument>
+                                <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
+                                <argument>-cp</argument>
+                                <classpath />
+                                <argument>com.midokura.midolman.netlink.Client</argument>
+                            </arguments>
                         </configuration>
                     </plugin>
                 </plugins>

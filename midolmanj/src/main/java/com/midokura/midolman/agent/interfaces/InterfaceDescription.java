@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>

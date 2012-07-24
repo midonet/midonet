@@ -6,8 +6,8 @@ package com.midokura.midolman.state;
 
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -185,6 +185,18 @@ public class ZkPathManager {
     public String getPortPath(UUID id) {
         return new StringBuilder(getPortsPath()).append("/").append(id)
                 .toString();
+    }
+
+    /**
+     * Get ZK locations path for a given port.
+     *
+     * @param id
+     *            Port ID.
+     * @return /ports/portId/locations
+     */
+    public String getPortLocationsPath(UUID id) {
+        return new StringBuilder(getPortPath(id))
+                .append("/locations").toString();
     }
 
     /**

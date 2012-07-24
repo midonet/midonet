@@ -30,8 +30,8 @@ import openflow.{SuccessHandler, ControllerStubImpl, OpenFlowError}
 import com.midokura.midolman.openvswitch.{
 OpenvSwitchDatabaseConnectionImpl,
 OpenvSwitchDatabaseConnectionBridgeConnector}
-import com.midokura.midolman.packets.MAC
-import com.midokura.midolman.packets.IntIPv4
+import com.midokura.packets.MAC
+import com.midokura.packets.IntIPv4
 import com.midokura.midolman.state.{BridgeZkManager, MacPortMap, MockDirectory,
 PortToIntNwAddrMap, ZkPathManager}
 import com.midokura.midolman.vrn.VRNController

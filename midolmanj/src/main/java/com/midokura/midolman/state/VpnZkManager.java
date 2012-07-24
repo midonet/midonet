@@ -14,7 +14,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 
 public class VpnZkManager extends ZkManager {
 

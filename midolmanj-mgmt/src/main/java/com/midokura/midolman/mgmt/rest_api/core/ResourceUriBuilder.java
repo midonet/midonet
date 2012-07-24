@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 
 public class ResourceUriBuilder {
 

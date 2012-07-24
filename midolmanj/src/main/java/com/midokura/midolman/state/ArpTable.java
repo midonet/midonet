@@ -2,10 +2,7 @@
 
 package com.midokura.midolman.state;
 
-import java.util.Map;
-
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IntIPv4;
 
 public class ArpTable extends ReplicatedMap<IntIPv4, ArpCacheEntry> {
 

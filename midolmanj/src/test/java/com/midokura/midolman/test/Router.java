@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.TCP;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.ForwardNatRule;
 import com.midokura.midolman.rules.LiteralRule;

@@ -11,8 +11,7 @@ import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IPv4;
+import com.midokura.packets.Ethernet;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 

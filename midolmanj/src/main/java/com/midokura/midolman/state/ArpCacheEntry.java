@@ -2,7 +2,7 @@
 
 package com.midokura.midolman.state;
 
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 
 public class ArpCacheEntry implements Cloneable {
     public MAC macAddr;

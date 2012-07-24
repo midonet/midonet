@@ -4,9 +4,7 @@
 
 package com.midokura.midolman.test;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import org.openflow.protocol.OFFeaturesReply;
@@ -16,9 +14,8 @@ import com.midokura.midolman.CookieMonster;
 import com.midokura.midolman.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection.GrePort;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;

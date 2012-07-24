@@ -6,7 +6,7 @@ package com.midokura.midolman.openflow;
 
 import org.openflow.protocol.OFMatch;
 
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.

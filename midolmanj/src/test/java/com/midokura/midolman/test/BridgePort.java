@@ -11,12 +11,9 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus;
 
 import com.midokura.midolman.layer3.TestRouter;
-import com.midokura.midolman.packets.Data;
-import com.midokura.midolman.packets.Ethernet;
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
-import com.midokura.midolman.packets.UDP;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.Rule;

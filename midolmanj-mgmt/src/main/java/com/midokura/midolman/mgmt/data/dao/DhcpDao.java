@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.DhcpHost;
 import com.midokura.midolman.mgmt.data.dto.DhcpSubnet;
-import com.midokura.midolman.packets.IntIPv4;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 
 public interface DhcpDao {

@@ -16,7 +16,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 import com.midokura.midolman.agent.commands.executors.CommandProperty;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.address;
 import static com.midokura.midolman.agent.commands.executors.CommandProperty.iface;

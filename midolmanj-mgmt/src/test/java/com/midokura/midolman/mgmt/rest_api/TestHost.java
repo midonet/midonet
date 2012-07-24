@@ -38,7 +38,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
 import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
 import com.midokura.midolman.mgmt.servlet.AuthFilter;
 import com.midokura.midolman.mgmt.servlet.ServletSupport;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkPathManager;
 import com.sun.jersey.api.client.ClientResponse;

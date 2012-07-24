@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.StateAccessException;
 
 public interface PortService {

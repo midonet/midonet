@@ -8,8 +8,7 @@ package com.midokura.midolman.openflow.nxm;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.midokura.midolman.packets.IPv4;
-import com.midokura.midolman.packets.IntIPv4;
+import com.midokura.packets.IPv4;
 import com.midokura.midolman.util.Net;
 
 public abstract class OfIpNxmEntry implements NxmEntry {

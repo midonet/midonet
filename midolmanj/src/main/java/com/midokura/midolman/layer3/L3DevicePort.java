@@ -13,7 +13,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.packets.MAC;
+import com.midokura.packets.MAC;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
