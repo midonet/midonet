@@ -1,37 +1,39 @@
 ## Midolman Daemon Design Overview
 
-### Ascii Diagram
+### ASCII Diagram
 
-         +--------------------------------------------+  +------------+
-         |                                            |  |Port Service|
-         |                         Virt Device        |  |  Manager   |
-         |                 +---+     Queries          |  +-^---------+
-         |Device           |SIM+--------------->      |    |Local Port
-         |Updates          +-+-+   +---+       |      |    |Updates
-         |          Delegate |     |SIM+------->      |    |
-         |         Single Pkt|     +-+-+       |    +-v----+-+
-         |         Simulation|       |         +---->Virtual +----------->
-         |               +---+-------+------+       |Topology|           |
-         |               |  Sim Controller  |       |Manager <-+         +------>
-         |               +-----+--^---------+       +--------+ |Local    |Remote
-         |                Sim  |  |                            |Port     |State
-         |              Results|  |PktIn by                    |Updates  |Queries
- +-------v--+                  |  |  UUID      Host/IF/Vport +-+-------+ |
- |   Flow   |            +-----v--+----------+   Mappings    |Virt-Phys+->
- |Validation<------------>   DP Controller   <---------------> Mapping |
- |  Engige  | Flow Index +---------------^--+               +---------+
- +----------+ and Inval     |             |
-              by Dev ID     |             |PktIn & Wildcard Flow Queries
-                            |             |
-                            |    +--------v--------+
-                     DP Port|    | Flow Controller |
-                     Queries|    +--------^--------+
-                            |             |
-                            |             |PktIn & DP Flow Queries
-                            |             |
-                      +-----v-------------v-------+
-                      |    Netlink Datapath API   |
-                      +---------------------------+
+<pre>
+        ┌────────────────────────────────────────────┐  ┌────────────┐
+        │                                            │  │Port Service│
+        │                         Virt Device        │  │  Manager   │
+        │                 ┌───┐     Queries          │  └────────────┘
+        │Device           │SIM│───────────────↴      │    ↑Local Port
+        │Updates          └───┘   ┌───┐       │      │    │Updates
+        │          Delegate │     │SIM│───────↴      ↓    │
+        │         Single Pkt│     └───┘       │    ┌────────┐
+        │         Simulation│       │         └───→│Virtual │───────────⬎
+        │               ┌──────────────────┐       │Topology│           │
+        │               │  Sim Controller  │       │Manager │←┐         ├──────→
+        │               └──────────────────┘       └────────┘ │Local    │Remote
+        │                Sim  │  ↑                            │Port     │State
+        ↓              Results│  │PktIn by                    │Updates  │Queries
+┌──────────┐                  ↓  │  UUID      Host/IF/Vport ┌─────────┐ │
+│   Flow   │            ┌───────────────────┐   Mappings    │Virt─Phys│─⬏
+│Validation│←──────────→│   DP Controller   │←─────────────→│ Mapping │
+│  Engige  │ Flow Index └───────────────────┘               └─────────┘
+└──────────┘ and Inval     │             ↑
+             by Dev ID     │             │PktIn & Wildcard Flow Queries
+                           │             ↓
+                           │    ┌─────────────────┐
+                    DP Port│    │ Flow Controller │
+                    Queries│    └─────────────────┘
+                           │             ↑
+                           │             │PktIn & DP Flow Queries
+                           ↓             ↓
+                     ┌───────────────────────────┐
+                     │    Netlink Datapath API   │
+                     └───────────────────────────┘
+</pre>
 
 ## Terminology
 - PortSet: identified by a UUID, this represents a group of virtual ports. A
