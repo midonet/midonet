@@ -45,7 +45,7 @@ class PortManager(id: UUID, val mgr: PortZkManager,
         }
     }
 
-    private def makeNewPort(): Unit = {
+    private def makeNewPort() {
         if (chainsReady()) {
             if (cfg.isInstanceOf[LogicalBridgePortConfig] ||
                 cfg.isInstanceOf[MaterializedRouterPortConfig])
