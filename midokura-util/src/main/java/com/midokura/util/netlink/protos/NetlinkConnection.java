@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.util.netlink.AbstractNetlinkConnection;
+import com.midokura.util.netlink.Callback;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.family.CtrlFamily;

@@ -3,22 +3,22 @@
 package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
-import collection.mutable.Set
 
-import com.midokura.util.netlink.dp.{Packet}
+import com.midokura.util.netlink.dp.Packet
 import com.midokura.sdn.flows.{WildcardFlow, MidoMatch}
 import java.util.UUID
 import com.midokura.packets.Ethernet
 import com.midokura.util.netlink.dp.flows.FlowAction
-
+import collection.mutable
 
 case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
-                          outPorts: Set[UUID], packet: Packet,
+                          outPorts: mutable.Set[UUID], packet: Packet,
                           generated: Boolean)
+
 case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
 
+class SimulationController(val fController: ActorRef) extends Actor {
 
-class ControllerActor(val fController: ActorRef) extends Actor {
     fController ! RegisterPacketInListener(packetInCallback)
 
     case class PacketIn(packet: Packet, vportID: UUID)

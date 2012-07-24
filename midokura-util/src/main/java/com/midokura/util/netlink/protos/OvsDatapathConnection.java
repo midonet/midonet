@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
 
+import com.midokura.util.netlink.Callback;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Flow;
@@ -370,8 +371,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @return A future that holds the set of ports visible on the path
      * @see Future
      */
-    public Future<Set<Port>> portsEnumerate(@Nonnull Datapath datapath) {
-        ValueFuture<Set<Port>> valueFuture = ValueFuture.create();
+    public Future<Set<Port<?, ?>>> portsEnumerate(@Nonnull Datapath datapath) {
+        ValueFuture<Set<Port<?, ?>>> valueFuture = ValueFuture.create();
         portsEnumerate(datapath, wrapFuture(valueFuture));
         return valueFuture;
     }
@@ -384,7 +385,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @see Callback
      */
     public void portsEnumerate(@Nonnull Datapath datapath,
-                               @Nonnull Callback<Set<Port>> callback) {
+                               @Nonnull Callback<Set<Port<?, ?>>> callback) {
         portsEnumerate(datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -397,12 +398,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @see Callback
      */
     public void portsEnumerate(@Nonnull Datapath datapath,
-                               @Nonnull Callback<Set<Port>> callback,
+                               @Nonnull Callback<Set<Port<?, ?>>> callback,
                                final long timeoutMillis) {
         _doPortsEnumerate(datapath, callback, timeoutMillis);
     }
 
-    protected abstract void _doPortsEnumerate(Datapath datapath, Callback<Set<Port>> callback, long timeoutMillis);
+    protected  abstract void _doPortsEnumerate(@Nonnull Datapath datapath,
+                                               @Nonnull Callback<Set<Port<?, ?>>> callback,
+                                               long timeoutMillis);
 
     /**
      * Future based api for adding a new port to a datapath.
@@ -530,7 +533,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Future based api for enumerating flows.
      *
      * @param datapath      the name of the datapath
-     * @param callback      the callback that will receive information.
      *
      * @return  a future that provides access to the set of flows present inside
      *          a datapath.
@@ -641,8 +643,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void flowsGet(@Nonnull final Datapath datapath,
                          @Nonnull final FlowMatch match,
-                         @Nonnull final Callback<Flow> flowCallback) {
-        flowsGet(datapath, match, flowCallback, DEF_REPLY_TIMEOUT);
+                         @Nonnull final Callback<Flow> callback) {
+        flowsGet(datapath, match, callback, DEF_REPLY_TIMEOUT);
     }
 
     /**
@@ -655,14 +657,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void flowsGet(@Nonnull final Datapath datapath,
                          @Nonnull final FlowMatch match,
-                         @Nonnull final Callback<Flow> flowCallback,
+                         @Nonnull final Callback<Flow> callback,
                          long timeoutMillis) {
-        _doFlowsGet(datapath, match, flowCallback, timeoutMillis);
+        _doFlowsGet(datapath, match, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsGet(@Nonnull final Datapath datapath,
                                         @Nonnull final FlowMatch match,
-                                        @Nonnull final Callback<Flow> flowCallback,
+                                        @Nonnull final Callback<Flow> callback,
                                         long timeout);
 
     /**
@@ -758,13 +760,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void packetsExecute(@Nonnull final Datapath datapath,
                                @Nonnull final Packet packet,
-                               @Nonnull final Callback<Boolean> resultCallback,
+                               @Nonnull final Callback<Boolean> callback,
                                long timeoutMillis) {
-        _doPacketsExecute(datapath, packet, resultCallback, timeoutMillis);
+        _doPacketsExecute(datapath, packet, callback, timeoutMillis);
     }
 
     protected abstract void _doPacketsExecute(@Nonnull final Datapath datapath,
                                               @Nonnull final Packet packet,
-                                              @Nonnull final Callback<Boolean> resultCallback,
+                                              @Nonnull final Callback<Boolean> callback,
                                               long timeoutMillis);
 }

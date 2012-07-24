@@ -121,11 +121,11 @@ public class OvsPortsCreateAndEnumerateTest
                    tunCapwapPortFuture.get(), is(expectedPort));
         expectedPorts.add(expectedPort);
 
-        Future<Set<Port>> portsFutures = connection.portsEnumerate(datapath);
+        Future<Set<Port<?, ?>>> portsFutures = connection.portsEnumerate(datapath);
         fireReply();
         fireReply();
 
-        for (Port port : expectedPorts) {
+        for (Port<?, ?> port : expectedPorts) {
             assertThat("The ports list contains a created port",
                        portsFutures.get(), hasItem(port));
         }

@@ -16,6 +16,7 @@ import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.util.netlink.Callback;
 import com.midokura.util.netlink.NetlinkChannel;
 import com.midokura.util.netlink.NetlinkMessage;
 import com.midokura.util.netlink.dp.Datapath;
@@ -88,9 +89,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                                       @Nonnull final Callback<Boolean> installCallback) {
         this.notificationHandler = notificationHandler;
 
-        _doPortsEnumerate(datapath, new Callback<Set<Port>>() {
+        _doPortsEnumerate(datapath, new Callback<Set<Port<?, ?>>>() {
             @Override
-            public void onSuccess(final Set<Port> data) {
+            public void onSuccess(final Set<Port<?, ?>> data) {
                 if (data == null || data.size() == 0) {
                     installCallback.onSuccess(true);
                     return;
@@ -410,7 +411,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
-                                     @Nonnull Callback<Set<Port>> callback,
+                                     @Nonnull Callback<Set<Port<?, ?>>> callback,
                                      long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -425,14 +426,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withPayload(message.getBuffer())
             .withCallback(
                 callback,
-                new Function<List<ByteBuffer>, Set<Port>>() {
+                new Function<List<ByteBuffer>, Set<Port<?, ?>>>() {
                     @Override
-                    public Set<Port> apply(@Nullable List<ByteBuffer> input) {
+                    public Set<Port<?, ?>> apply(@Nullable List<ByteBuffer> input) {
                         if (input == null) {
                             return Collections.emptySet();
                         }
 
-                        Set<Port> ports = new HashSet<Port>();
+                        Set<Port<?, ?>> ports = new HashSet<Port<?, ?>>();
 
                         for (ByteBuffer buffer : input) {
                             Port port = deserializePort(buffer,

@@ -323,19 +323,6 @@ public abstract class AbstractNetlinkConnection {
         Callback<List<ByteBuffer>> callback;
     }
 
-    public static abstract class Callback<T> {
-
-        public void onSuccess(T data) {
-        }
-
-        public void onTimeout() {
-        }
-
-        public void onError(NetlinkException e) {
-
-        }
-    }
-
     @Nonnull
     protected <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
         return new Callback<T>() {

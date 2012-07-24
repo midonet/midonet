@@ -16,7 +16,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.midokura.midolman.util.Net;
-import com.midokura.util.netlink.AbstractNetlinkConnection;
+import com.midokura.util.netlink.Callback;
 import com.midokura.util.netlink.dp.Datapath;
 import com.midokura.util.netlink.dp.Packet;
 import static com.midokura.util.netlink.dp.flows.FlowKeyEtherType.Type;
@@ -728,7 +728,7 @@ public class OvsPacketInTest
     };
 
     private static class PacketReceivingCallback
-        extends AbstractNetlinkConnection.Callback<Packet> {
+        extends Callback<Packet> {
         Packet packet;
 
         @Override
