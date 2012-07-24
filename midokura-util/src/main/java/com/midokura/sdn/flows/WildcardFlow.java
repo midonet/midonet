@@ -6,8 +6,7 @@ package com.midokura.sdn.flows;
 
 import java.util.List;
 
-import com.midokura.util.netlink.dp.FlowMatch;
-import com.midokura.util.netlink.dp.flows.FlowAction;
+import com.midokura.netlink.dp.flows.FlowAction;
 
 public class WildcardFlow {
     private short priority; // used to choose among many matching flows
