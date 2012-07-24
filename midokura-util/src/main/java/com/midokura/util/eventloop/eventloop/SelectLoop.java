@@ -29,7 +29,7 @@ The name and trademarks of copyright holder(s) may NOT be used in advertising
 or publicity pertaining to the Software or any derivatives without specific,
 written prior permission.
 */
-package com.midokura.midolman.eventloop;
+package com.midokura.util.eventloop.eventloop;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;

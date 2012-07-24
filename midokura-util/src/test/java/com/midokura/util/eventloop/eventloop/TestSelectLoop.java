@@ -1,6 +1,6 @@
 // Copyright 2011 Midokura Inc.
 
-package com.midokura.midolman.eventloop;
+package com.midokura.util.eventloop.eventloop;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,6 +16,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

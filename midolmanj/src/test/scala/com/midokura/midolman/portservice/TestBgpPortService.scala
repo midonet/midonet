@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 
+import com.midokura.util.eventloop.eventloop.MockReactor
 import com.midokura.midolman.eventloop.MockReactor
 import com.midokura.midolman.layer3.MockServiceFlowController
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector

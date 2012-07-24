@@ -1,4 +1,4 @@
-package com.midokura.midolman.eventloop;
+package com.midokura.util.eventloop.eventloop;
 
 import java.util.PriorityQueue;
 import java.util.concurrent.Delayed;
@@ -8,18 +8,20 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.midokura.util.eventloop.eventloop.Reactor;
+
 public class MockReactor implements Reactor {
-    
+
     // public so that unittests can access.
     public PriorityQueue<DelayedCall> calls = new PriorityQueue<DelayedCall>();
     long currentTimeMillis;
-    
+
     public class DelayedCall implements ScheduledFuture {
         public Runnable runnable;
         long executeAfterTimeMillis;
         boolean canceled;
         boolean completed;
-        
+
         private DelayedCall(Runnable runnable, long delayMillis) {
             this.runnable = runnable;
             this.executeAfterTimeMillis = currentTimeMillis + delayMillis;
@@ -28,11 +30,11 @@ public class MockReactor implements Reactor {
         private void complete() {
             if (!canceled) {
                 completed = true;
-                
+
                 runnable.run();
             }
         }
-        
+
         @Override
         public long getDelay(TimeUnit arg0) {
             long delay = arg0.convert(
@@ -43,7 +45,7 @@ public class MockReactor implements Reactor {
             }
             return delay;
         }
-        
+
         @Override
         public int compareTo(Delayed arg0) {
             long diff = this.executeAfterTimeMillis -
@@ -58,17 +60,17 @@ public class MockReactor implements Reactor {
             if (completed) {
                 return false;
             }
-            
+
             canceled = true;
-            
+
             return true;
         }
-        
+
         @Override
         public Object get() throws InterruptedException, ExecutionException {
             return null;
         }
-        
+
         @Override
         public Object get(long arg0, TimeUnit arg1) throws InterruptedException,
                 ExecutionException, TimeoutException {
@@ -79,7 +81,7 @@ public class MockReactor implements Reactor {
         public boolean isCancelled() {
             return canceled;
         }
-        
+
         @Override
         public boolean isDone() {
             return completed;
@@ -96,7 +98,7 @@ public class MockReactor implements Reactor {
     @Override
     public ScheduledFuture schedule(Runnable runnable, long delay,
                                     TimeUnit unit) {
-        DelayedCall dc = new DelayedCall(runnable, 
+        DelayedCall dc = new DelayedCall(runnable,
                                  TimeUnit.MILLISECONDS.convert(delay, unit));
         calls.add(dc);
         return dc;
@@ -104,9 +106,9 @@ public class MockReactor implements Reactor {
 
     public void incrementTime(long interval, TimeUnit unit) {
         long intervalMillis = TimeUnit.MILLISECONDS.convert(interval, unit);
-        
+
         currentTimeMillis += intervalMillis;
-        
+
         while (!calls.isEmpty() &&
                calls.peek().executeAfterTimeMillis <= currentTimeMillis) {
             calls.remove().complete();

@@ -36,8 +36,8 @@ import org.openflow.protocol.factory.BasicFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.eventloop.SelectListener;
+import com.midokura.util.eventloop.eventloop.Reactor;
+import com.midokura.util.eventloop.eventloop.SelectListener;
 import com.midokura.midolman.openflow.nxm.NxError;
 
 /**

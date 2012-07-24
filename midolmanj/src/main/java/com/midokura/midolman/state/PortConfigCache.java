@@ -12,12 +12,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
-import com.midokura.midolman.util.Callback0;
+import com.midokura.util.eventloop.eventloop.Reactor;
 import com.midokura.midolman.util.Callback1;
 import com.midokura.midolman.util.LoadingCache;
-import com.midokura.util.collections.TypedHashMap;
-import com.midokura.util.collections.TypedMap;
 
 /**
  * An implementation of {@link com.midokura.midolman.util.LoadingCache} that

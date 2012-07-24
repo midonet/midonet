@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.midolman.eventloop.MockReactor;
-import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.util.eventloop.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.Directory;

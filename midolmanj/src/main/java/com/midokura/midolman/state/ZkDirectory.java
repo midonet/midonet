@@ -20,7 +20,7 @@ import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.util.eventloop.eventloop.Reactor;
 
 public class ZkDirectory implements Directory {
     static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);

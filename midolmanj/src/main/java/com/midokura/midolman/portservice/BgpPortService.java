@@ -20,7 +20,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.util.eventloop.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;

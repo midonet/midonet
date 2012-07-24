@@ -7,7 +7,7 @@ package com.midokura.midolman.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.midokura.midolman.eventloop.Reactor;
+import com.midokura.util.eventloop.eventloop.Reactor;
 
 public class MockCache implements Cache {
 
