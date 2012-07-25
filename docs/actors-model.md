@@ -1,6 +1,6 @@
 ## Motivation
 
-We want midolman to be able to handle multiple ongoing VRN packet simulations,
+We want midolman to be able to handle multiple ongoing packet simulations,
 so that we don't waste time while stalled and can take advantage of
 multiprocessing where desired.  At the same time, we have to ensure that
 these multiple threads don't interfere with each other's execution and
@@ -17,20 +17,26 @@ consistency.
 
 ## Actors library
 
-Most likely to be Akka, due to maturity, documentation, ease of use for both
-Java and Scala, and flexibility in policies for dispatching actors among
-threads.
+Akka, due to maturity, documentation, ease of use for both Java and Scala,
+and flexibility in policies for dispatching actors among threads.
 
 ## Architecture model
 
-### VRNController
+### SimulationController
 
-When the `VRNController` receives a `onPacketIn` call, it checks to see if
-there's already a simulation outstanding for this flow, and defers the
-packet if so.  If not, it spawns off a `SimulationProcess` actor which
-performs the VRN simulation and returns the actions to perform for that
-flow.  When a simulation returns, the `VRNController` installs the actions
-and directs any deferred packets for the flow to that rule.
+When the `SimulationController` actor receives an `onPacketIn` call
+from the `DatapathController`, it checks to see if there's already
+a simulation outstanding for this flow, and defers the packet if so.
+If not, it spawns off a `SimulationProcess` actor which performs the
+networking simulation and returns the packet changes to perform for
+that flow.  When a simulation returns, the `SimulationController`
+instructs the `DatapathController` to install a rule implementing the
+packet changes from the simulation and directs any deferred packets for
+the flow to that rule.
+
+The `SimulationController` and `DatapathController` run in the same actor,
+and the `DatapathController` design is described in [the Midolman Daemon
+Design Overview](design-overview.md).
 
 ### SimulationProcess
 
@@ -84,27 +90,23 @@ it has consumed the packet.
 
 If the ARP Cache has an entry for a requested IP address, it returns it
 immediately.  If it does not, it records the waiting actor and the address
-it's waiting on, and produces an ARP request and instructs
-the `VRNController` to emit it.  If it's notified by ZooKeeper of an entry
-for an outstanding address, it sends that entry to every actor waiting for it.
-If it receives an ARP reply from the `Router` object, it updates ZooKeeper
-with the data from that reply and sends it to any actors waiting on it.
+it's waiting on, and produces an ARP request and instructs the
+`SimulationController` to emit it.  If it's notified by `MidostoreClient`
+of an entry for an outstanding address, it sends that entry to every
+actor waiting for it.  If it receives an ARP reply from the `Router`
+object, it updates Midostore with the data from that reply and sends it
+to any actors waiting on it.
 
 ## Chains
 
-*(Requires more discussion)*
-
-It's problematic to handle the rule chains with RCU, because an update
-to a chain will have to update every chain which references it to reference
-the new chain, transitively.  So, have each chain be an actor which can
-be instructed to process a packet, and watches ZooKeeper for updates to its
-own configuration.  This way updates to rule chains is atomic at the chain
-level, but it doesn't provide atomicity for updates to multiple chains.
+Handle the rule chains with RCU, by having an update to a chain triggering
+an update to every chain which references it to change its reference to be
+the new chain, transitively.
 
 ## Materialized Ports
 
 Each materialized port object will record the host it's located at and
-watch its own ZooKeeper node for updates.  This way we store only the
+watch its own Midostore node for updates.  This way we store only the
 location information for materialized ports the midolman is actually
 encountering and updates to a port's location are sent only to the
 midolmans interested in that port and contain only the data for that port.
