@@ -4,9 +4,9 @@
  * Copyright (c) 2011 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.quagga
+package com.midokura.quagga
 
-import java.io.{DataInputStream, DataOutputStream, File, IOException}
+import java.io.{DataInputStream, DataOutputStream, File}
 import java.net.{InetAddress, Socket}
 import java.util.UUID
 
@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl._
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConsts._
-import com.midokura.midolman.openvswitch.OpenvSwitchException._
 import com.midokura.packets.IPv4
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.{BgpZkManager, MockDirectory, PortDirectory,
@@ -56,7 +53,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
     private final var routeMgr: RouteZkManager = _
     private final var routerMgr: RouterZkManager = _
 
-    private final var portName = "testbgp0"
+    private final val portName = "testbgp0"
     private final var portId: UUID = _
     private final var portConfig: PortDirectory.MaterializedRouterPortConfig = _
     private final val portNwAddr = "192.168.10.0"
@@ -110,7 +107,7 @@ class TestZebraServer {
 
     @After
     def stopZebraServer() {
-        client.close
+        client.close()
         zebra.stop
     }
 
@@ -152,7 +149,7 @@ class TestZebraServer {
             var portBuilder = ovsdb.addInternalPort(bridgeId, portName)
             portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
             portBuilder.externalId(portIdExtIdKey, portId.toString)
-            portBuilder.build
+            portBuilder.build()
             assertTrue(ovsdb.hasPort(portName))
 
             sendHeader(out, ZebraInterfaceAdd, 0)
@@ -196,14 +193,16 @@ class TestZebraServer {
             var portBuilder = ovsdb.addInternalPort(bridgeId, portName)
             portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
             portBuilder.externalId(portIdExtIdKey, portId.toString)
-            portBuilder.build
+            portBuilder.build()
+
             assertTrue(ovsdb.hasPort(portName))
             // Add another BGP service port.
             val anotherPortName = "testbgp1"
             portBuilder = ovsdb.addInternalPort(bridgeId, anotherPortName)
             portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
             portBuilder.externalId(portIdExtIdKey, portId.toString)
-            portBuilder.build
+            portBuilder.build()
+
             assertTrue(ovsdb.hasPort(anotherPortName))
             sendHeader(out, ZebraInterfaceAdd, 0)
             Thread.sleep(10)
@@ -229,10 +228,11 @@ class TestZebraServer {
             val out = new DataOutputStream(client.getOutputStream)
             val in = new DataInputStream(client.getInputStream)
             // Add a BGP service port. This is required to add a route.
-            var portBuilder = ovsdb.addInternalPort(bridgeId, portName)
+            val portBuilder = ovsdb.addInternalPort(bridgeId, portName)
+
             portBuilder.externalId(portServiceExtIdKey, portServiceExtId)
             portBuilder.externalId(portIdExtIdKey, portId.toString)
-            portBuilder.build
+            portBuilder.build()
             assertTrue(ovsdb.hasPort(portName))
             sendHeader(out, ZebraInterfaceAdd, 0)
             // There should be no route in ZK.
@@ -245,8 +245,8 @@ class TestZebraServer {
             out.write(0)
             // message
             out.write(ZAPIMessageNextHop)
-            var prefix = Net.convertStringAddressToInt("10.8.8.20")
-            var prefixLen = 29
+            val prefix = Net.convertStringAddressToInt("10.8.8.20")
+            val prefixLen = 29
             // prefix length
             out.write(prefixLen)
             // prefix
@@ -260,7 +260,7 @@ class TestZebraServer {
             // Check whether the route is in ZK.
             var routes = routeMgr.listPortRoutes(portId)
             assertEquals(1, routes.size)
-            var route = routeMgr.get(routes(0))
+            val route = routeMgr.get(routes(0))
             assertEquals(prefix, route.dstNetworkAddr)
             assertEquals(prefixLen, route.dstNetworkLength)
             assertEquals(Net.convertStringAddressToInt(peerAddr),
@@ -302,15 +302,15 @@ class TestZebraServer {
         sendHeader(out, ZebraRouterIdAdd, 0)
         Thread.sleep(1000)
         assertTrue(in.available != 0)
-        var response = recvHeader(in)
-        var message = response._1
-        var length = response._2
+        val response = recvHeader(in)
+        val message = response._1
+        val length = response._2
         assertEquals(ZebraRouterIdUpdate, message)
         assertEquals(ZebraRouterIdUpdateSize, length)
         assertEquals(AF_INET, in.readByte)
     }
 
-    def testUnsupportedCmds(message: Byte) = {
+    def testUnsupportedCmds(message: Short) {
         val out = new DataOutputStream(client.getOutputStream)
         val in = new DataInputStream(client.getInputStream)
         sendHeader(out, message, 0)

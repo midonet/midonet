@@ -6,17 +6,13 @@
 
 package com.midokura.midolman.portservice
 
-import java.util.UUID;
+import java.util.UUID
 
-import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.CreateMode
 import org.junit.{ AfterClass, BeforeClass, Ignore, Test }
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
-
-import com.midokura.util.eventloop.eventloop.MockReactor
-import com.midokura.midolman.eventloop.MockReactor
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.{MockDirectory, PortDirectory,
                                     PortZkManager, RouterZkManager,
@@ -42,7 +38,7 @@ object TestVpnPortAgent {
     private final var routerMgr: RouterZkManager = _
     private final var vpnMgr: VpnZkManager = _
 
-    private final var portName = "midovpn0"
+    private final val portName = "midovpn0"
     private final var pubPortName = portName
     private final var priPortName = "midovpn1"
     private final var pubPortId: UUID = _
@@ -63,10 +59,10 @@ object TestVpnPortAgent {
 
     @BeforeClass
     def initializeTest() {
-        val dir = new MockDirectory();
-        val basePath = "/midolman";
-        val pathMgr = new ZkPathManager(basePath);
-        dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT)
+        val dir = new MockDirectory()
+        val basePath = "/midolman"
+        val pathMgr = new ZkPathManager(basePath)
+        dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
         Setup.createZkDirectoryStructure(dir, basePath)
         portMgr = new PortZkManager(dir, basePath)
         routerMgr = new RouterZkManager(dir, basePath)

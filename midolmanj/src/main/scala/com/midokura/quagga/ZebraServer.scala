@@ -26,7 +26,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import java.io.{DataInputStream, DataOutputStream, EOFException, InputStream,
-                IOException, OutputStream, OutputStreamWriter, PrintWriter}
+                IOException, OutputStream}
 import java.lang.StringBuffer
 import java.net.{InetAddress, ServerSocket, Socket, SocketAddress}
 import java.util.UUID
@@ -52,29 +52,29 @@ protected[quagga] object ZebraProtocol {
     final val ZebraMaxPayloadSize = (1 << 16) - 1
 
     // Zebra message types.
-    final val ZebraInterfaceAdd:Byte         = 1
-    final val ZebraInterfaceDelete           = 2
-    final val ZebraInterfaceAddressAdd:Byte  = 3
-    final val ZebraInterfaceAddressDelete    = 4
-    final val ZebraInterfaceUp               = 5
-    final val ZebraInterfaceDown             = 6
-    final val ZebraIpv4RouteAdd              = 7
-    final val ZebraIpv4RouteDelete           = 8
-    final val ZebraIpv6RouteAdd              = 9
-    final val ZebraIpv6RouteDelete           = 10
-    final val ZebraRedistributeAdd           = 11
-    final val ZebraRedistributeDelete        = 12
-    final val ZebraRedistributeDefaultAdd    = 13
-    final val ZebraRedistributeDefaultDelete = 14
-    final val ZebraIpv4NextHopLookup         = 15
-    final val ZebraIpv6NextHopLookup         = 16
-    final val ZebraIpv4ImportLookup          = 17
-    final val ZebraIpv6ImportLookup          = 18
-    final val ZebraInterfaceRename           = 19
-    final val ZebraRouterIdAdd               = 20
-    final val ZebraRouterIdDelete            = 21
-    final val ZebraRouterIdUpdate:Byte       = 22
-    final val ZebraMessageMax                = 23
+    final val ZebraInterfaceAdd:Short           = 1
+    final val ZebraInterfaceDelete:Short        = 2
+    final val ZebraInterfaceAddressAdd:Short    = 3
+    final val ZebraInterfaceAddressDelete:Short = 4
+    final val ZebraInterfaceUp:Short            = 5
+    final val ZebraInterfaceDown:Short          = 6
+    final val ZebraIpv4RouteAdd:Short           = 7
+    final val ZebraIpv4RouteDelete:Short        = 8
+    final val ZebraIpv6RouteAdd:Short           = 9
+    final val ZebraIpv6RouteDelete:Short        = 10
+    final val ZebraRedistributeAdd:Short        = 11
+    final val ZebraRedistributeDelete:Short     = 12
+    final val ZebraRedistributeDefaultAdd:Short = 13
+    final val ZebraRedistributeDefaultDelete:Short   = 14
+    final val ZebraIpv4NextHopLookup:Short      = 15
+    final val ZebraIpv6NextHopLookup:Short      = 16
+    final val ZebraIpv4ImportLookup:Short       = 17
+    final val ZebraIpv6ImportLookup:Short       = 18
+    final val ZebraInterfaceRename:Short        = 19
+    final val ZebraRouterIdAdd:Short            = 20
+    final val ZebraRouterIdDelete:Short         = 21
+    final val ZebraRouterIdUpdate:Short         = 22
+    final val ZebraMessageMax:Short             = 23
 
     // Interface related constants.
     final val InterfaceNameSize  = 20
@@ -147,7 +147,7 @@ protected[quagga] object ZebraProtocol {
     final val ZebraRouteHsls    = 10
     final val ZebraRouteMax     = 11
 
-    final def sendHeader(out: DataOutputStream, message: Byte, length: Int) {
+    final def sendHeader(out: DataOutputStream, message: Short, length: Int) {
         assert(ZebraHeaderSize + length <= ZebraMaxPayloadSize)
 
         out.writeShort(ZebraHeaderSize + length)
@@ -156,13 +156,14 @@ protected[quagga] object ZebraProtocol {
         out.writeShort(message)
     }
 
-    final def recvHeader(in: DataInputStream): (Int, Int) = {
+    final def recvHeader(in: DataInputStream): (Short, Int) = {
         val length = in.readUnsignedShort
         assert(length <= ZebraMaxPayloadSize)
         val headerMarker = in.readByte
         val version = in.readByte
-        val message = in.readUnsignedShort
-        return (message, length - ZebraHeaderSize)
+        val message = in.readUnsignedShort.toShort
+
+        (message, length - ZebraHeaderSize)
     }
 }
 
@@ -571,7 +572,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     throw new RuntimeException("not implemented")
                 }
                 case _ => {
-                    log.error("received unknown message %d".format(message))
+                    log.error("received unknown message %s".format(message))
                 }
             }
         }
@@ -593,7 +594,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                         case e: IOException =>
                             { log.warn("IO error", e) }
                     } finally {
-                        conn.close
+                        conn.close()
                         dispatcher ! Response(requestId)
                     }
                 }
@@ -663,7 +664,7 @@ extends ZebraServer {
             loopWhile(run) {
                 try {
                     val conn = server.accept
-                    log.debug("start.actor accepted connection {}", conn);
+                    log.debug("start.actor accepted connection {}", conn)
 
                     dispatcher ! Request(conn, requestId)
                     requestId += 1
@@ -680,6 +681,6 @@ extends ZebraServer {
     override def stop() {
         log.info("stop")
         run = false
-        server.close
+        server.close()
     }
 }
