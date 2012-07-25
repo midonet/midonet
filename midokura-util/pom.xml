@@ -29,7 +29,7 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
-		    <compilerArgument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</compilerArgument>
+                    <compilerArgument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</compilerArgument>
                     <excludes>
                         <exclude>sun/nio/ch/*</exclude>
                     </excludes>
@@ -68,6 +68,7 @@
                 <configuration>
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
+                    <argLine>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
                 </configuration>
             </plugin>
 
