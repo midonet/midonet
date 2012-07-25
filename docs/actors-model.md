@@ -26,7 +26,8 @@ and flexibility in policies for dispatching actors among threads.
 
 When the `SimulationController` actor receives an `onPacketIn` call
 from the `DatapathController`, it checks to see if there's already
-a simulation outstanding for this flow, and defers the packet if so.
+a simulation outstanding for this flow, and defers the packet if 
+so.<sup>1</sup>
 If not, it spawns off a `SimulationProcess` actor which performs the
 networking simulation and returns the packet changes to perform for
 that flow.  When a simulation returns, the `SimulationController`
@@ -65,7 +66,7 @@ forwarding element objects with updated RCU data to the
 forwarding element has been deleted, these notifications causing the
 `VirtualTopologyManager` to update its map of forwarding element objects.
 
-### ForwardingElementManager
+### ForwardingElementManager <sup>2</sup>
 
 `ForwardingElementManager`s are constructed by the `VirtualTopologyManager` to
 manage the RCU state for a particular forwarding element.  A
@@ -78,9 +79,9 @@ the `VirtualTopologyManager`.
 ## ARP Cache
 
 The ARP Cache is traffic-updated (specifically, ARP-reply-updated) data
-used by the `Router` class.  All instances of a particular virtual router will
-share the same ARP Cache, which will handle ARP replies and generate ARP
-requests.
+managed by Midostore and used by the `Router` class.  All instances of
+a particular virtual router will share the same ARP Cache, which will
+handle ARP replies and generate ARP requests.
 
 When a `Router` requires the MAC for an IP address, it queries its ARP cache,
 which will suspend the `SimulationProcess` actor the `Router` is running in
@@ -91,11 +92,11 @@ it has consumed the packet.
 If the ARP Cache has an entry for a requested IP address, it returns it
 immediately.  If it does not, it records the waiting actor and the address
 it's waiting on, and produces an ARP request and instructs the
-`SimulationController` to emit it.  If it's notified by `MidostoreClient`
-of an entry for an outstanding address, it sends that entry to every
-actor waiting for it.  If it receives an ARP reply from the `Router`
-object, it updates Midostore with the data from that reply and sends it
-to any actors waiting on it.
+`SimulationController` to emit it.  If Midostore is notified of an entry
+for an outstanding address, it sends that entry to every actor waiting
+for it.  When `MidostoreClient` receives an ARP reply from the `Router`
+object, it updates the ARP Cache with the data from that reply and sends
+it to any actors waiting on it.
 
 ## Chains
 
@@ -111,3 +112,19 @@ location information for materialized ports the midolman is actually
 encountering and updates to a port's location are sent only to the
 midolmans interested in that port and contain only the data for that port.
 
+(TODO: Move the *Materialized Ports* section to a document explaining
+the Virtual-Physical Mapping.)
+
+
+### Footnotes
+
+<sup>1</sup> The FlowController will intercept any packets making it through
+the netlink connection which match an exact (kernel) flow match for another
+packet which is being processed.  However, if another packet of the flow 
+doesn't trigger an exact match (eg, TTL differed), then it will make it up
+to the `SimulationController`.
+
+<sup>2</sup> The `ForwardingElementManager` may be designed away:  The 
+alternate design we're looking at is to have the `VirtualTopologyManager`
+pass builders to `MidostoreClient` which will construct new forwarding
+elements as required and send them on to the `VirtualTopologyManager`.
