@@ -468,7 +468,7 @@ public class Bridge implements ForwardingElement {
                     mac);
             return;
         } else if (currentPort.equals(port)) {
-            Future future = reactor.schedule(
+            Future<?> future = reactor.schedule(
                 new Runnable() {
                     public void run() {
                         try {

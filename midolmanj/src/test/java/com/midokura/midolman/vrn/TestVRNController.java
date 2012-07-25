@@ -807,10 +807,10 @@ public class TestVRNController {
         // This time along with the 'drop' flow, we expect an ICMP !N addressed
         // to the source of the UDP.
         Assert.assertEquals(1, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof
-                          PacketContinuation);
+        Assert.assertTrue(reactor.calls.peek().callable
+                              instanceof PacketContinuation);
         PacketContinuation pktCont =
-            (PacketContinuation) reactor.calls.peek().runnable;
+            (PacketContinuation) reactor.calls.peek().callable;
         // Check pktCont.fwdInfo
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
         Assert.assertEquals(portNumToUuid.get(phyPort.getPortNumber()),
@@ -849,10 +849,10 @@ public class TestVRNController {
         // in the reactor's DelayedCall queue as an GeneratedPacketContext.
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(1, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+        Assert.assertTrue(reactor.calls.peek().callable instanceof
                           PacketContinuation);
         PacketContinuation pktCont =
-            (PacketContinuation) reactor.calls.peek().runnable;
+            (PacketContinuation) reactor.calls.peek().callable;
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
         Assert.assertEquals(portNumToUuid.get(phyPort.getPortNumber()),
                             pktCont.fwdInfo.outPortId);
@@ -892,10 +892,10 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
         // Expect 3 delayed calls: Send ARP, retry ARP, expire ARP.
         Assert.assertEquals(3, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+        Assert.assertTrue(reactor.calls.peek().callable instanceof
                           PacketContinuation);
         PacketContinuation pktCont =
-            (PacketContinuation) reactor.calls.peek().runnable;
+            (PacketContinuation) reactor.calls.peek().callable;
         // Check pktCont.fwdInfo
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
         Assert.assertEquals(portNumToUuid.get(phyPortOut.getPortNumber()),
@@ -1005,10 +1005,10 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         // 3 delayed calls:  Send ARP, retry ARP, expire ARP.
         Assert.assertEquals(3, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+        Assert.assertTrue(reactor.calls.peek().callable instanceof
                           PacketContinuation);
         PacketContinuation pktCont =
-            (PacketContinuation) reactor.calls.peek().runnable;
+            (PacketContinuation) reactor.calls.peek().callable;
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
         Assert.assertEquals(egressUuid, pktCont.fwdInfo.outPortId);
         MAC srcMac = new MAC(phyPortOut.getHardwareAddress());
@@ -1070,10 +1070,10 @@ public class TestVRNController {
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         // 3 calls:  Send ARP, retry ARP, expire ARP.
         Assert.assertEquals(3, reactor.calls.size());
-        Assert.assertTrue(reactor.calls.peek().runnable instanceof
+        Assert.assertTrue(reactor.calls.peek().callable instanceof
                           PacketContinuation);
         PacketContinuation pktCont =
-            (PacketContinuation) reactor.calls.peek().runnable;
+            (PacketContinuation) reactor.calls.peek().callable;
         Assert.assertEquals(null, pktCont.fwdInfo.inPortId);
         Assert.assertEquals(egressUuid, pktCont.fwdInfo.outPortId);
         MAC srcMac = new MAC(phyPortOut.getHardwareAddress());

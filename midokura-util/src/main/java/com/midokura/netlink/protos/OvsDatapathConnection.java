@@ -18,7 +18,7 @@ import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.Packet;
 import com.midokura.sdn.dp.Port;
 import com.midokura.sdn.dp.Ports;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.Reactor;
 
 /**
  * OvsDatapath protocol implementation.

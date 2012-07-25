@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.is;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.exceptions.NetlinkException;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.Reactor;
 
 /**
  * // TODO: Explain yourself.

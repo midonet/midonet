@@ -8,29 +8,25 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.SelectListener;
-import com.midokura.util.eventloop.SelectLoop;
-import com.midokura.packets.MAC;
 import com.midokura.midolman.util.Net;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkSelectorProvider;
+import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.packets.MAC;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
-import com.midokura.netlink.protos.OvsDatapathConnection;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.SelectListener;
+import com.midokura.util.eventloop.SelectLoop;
 import static com.midokura.netlink.Netlink.Protocol;
 import static com.midokura.sdn.dp.flows.FlowActions.output;
 import static com.midokura.sdn.dp.flows.FlowKeys.arp;
@@ -68,42 +64,7 @@ public class Client {
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-            OvsDatapathConnection.create(netlinkChannel, new Reactor() {
-                @Override
-                public long currentTimeMillis() {
-                    return loop.currentTimeMillis();
-                }
-
-                @Override
-                public <V> Future<V> submit(final Callable<V> work) {
-                    //noinspection unchecked
-                    return (Future<V>) loop.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                work.call();
-                            } catch (Exception e) {
-                                log.error("Exception");
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public <V> ScheduledFuture<V> schedule(long delay, TimeUnit unit, final Callable<V> work) {
-                    //noinspection unchecked
-                    return (ScheduledFuture<V>) loop.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                work.call();
-                            } catch (Exception e) {
-                                log.error("Exception");
-                            }
-                        }
-                    }, delay, unit);
-                }
-            });
+            OvsDatapathConnection.create(netlinkChannel, loop);
 
         log.info("Setting the channel to non blocking");
         netlinkChannel.configureBlocking(false);

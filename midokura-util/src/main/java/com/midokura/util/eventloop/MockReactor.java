@@ -1,6 +1,7 @@
 package com.midokura.util.eventloop;
 
 import java.util.PriorityQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -8,49 +9,59 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MockReactor implements Reactor {
+
+    private static final Logger log = LoggerFactory
+        .getLogger(MockReactor.class);
 
     // public so that unittests can access.
     public PriorityQueue<DelayedCall> calls = new PriorityQueue<DelayedCall>();
     long currentTimeMillis;
 
-    public class DelayedCall implements ScheduledFuture {
-        public Runnable runnable;
+    public class DelayedCall<V> implements ScheduledFuture<V> {
+        public Callable<V> callable;
         long executeAfterTimeMillis;
         boolean canceled;
         boolean completed;
 
-        private DelayedCall(Runnable runnable, long delayMillis) {
-            this.runnable = runnable;
+        V value;
+
+        private DelayedCall(Callable<V> callable, long delayMillis) {
+            this.callable = callable;
             this.executeAfterTimeMillis = currentTimeMillis + delayMillis;
         }
 
         private void complete() {
             if (!canceled) {
                 completed = true;
-
-                runnable.run();
+                try {
+                    value = callable.call();
+                } catch (Exception e) {
+                    log.error("Exception completing work.", e);
+                }
             }
         }
 
         @Override
-        public long getDelay(TimeUnit arg0) {
-            long delay = arg0.convert(
-                             executeAfterTimeMillis - currentTimeMillis,
+        public long getDelay(TimeUnit unit) {
+            long delay =
+                unit.convert(executeAfterTimeMillis - currentTimeMillis,
                              TimeUnit.MILLISECONDS);
-            if (delay < 0) {
-                return 0;
-            }
-            return delay;
+
+            return delay < 0 ? 0 : delay;
         }
 
         @Override
         public int compareTo(Delayed arg0) {
             long diff = this.executeAfterTimeMillis -
-                            ((DelayedCall) arg0).executeAfterTimeMillis;
-            if (diff > 0) return 1;
-            if (diff < 0) return -1;
-            return 0;
+                ((DelayedCall) arg0).executeAfterTimeMillis;
+            return
+                diff > 0
+                    ? 1
+                    : diff < 0 ? -1 : 0;
         }
 
         @Override
@@ -65,14 +76,15 @@ public class MockReactor implements Reactor {
         }
 
         @Override
-        public Object get() throws InterruptedException, ExecutionException {
-            return null;
+        public V get() throws InterruptedException, ExecutionException {
+            return value;
         }
 
         @Override
-        public Object get(long arg0, TimeUnit arg1) throws InterruptedException,
-                ExecutionException, TimeoutException {
-            return null;
+        public V get(long arg0, TimeUnit arg1) throws InterruptedException,
+                                                      ExecutionException,
+                                                      TimeoutException {
+            return value;
         }
 
         @Override
@@ -87,28 +99,49 @@ public class MockReactor implements Reactor {
     }
 
     @Override
-    public Future submit(Runnable runnable) {
-        DelayedCall dc = new DelayedCall(runnable, 0);
+    public Future<?> submit(final Runnable runnable) {
+        return submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                runnable.run();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public <V> Future<V> submit(Callable<V> work) {
+        DelayedCall<V> dc = new DelayedCall<V>(work, 0);
         calls.add(dc);
         return dc;
     }
 
     @Override
-    public ScheduledFuture schedule(Runnable runnable, long delay,
-                                    TimeUnit unit) {
-        DelayedCall dc = new DelayedCall(runnable,
-                                 TimeUnit.MILLISECONDS.convert(delay, unit));
+    public <V> ScheduledFuture<V> schedule(Callable<V> work, long delay, TimeUnit unit) {
+        DelayedCall<V> dc =
+            new DelayedCall<V>(work,
+                               TimeUnit.MILLISECONDS.convert(delay, unit));
         calls.add(dc);
         return dc;
     }
 
+    @Override
+    public ScheduledFuture<?> schedule(final Runnable runnable, long delay, TimeUnit unit) {
+        return schedule(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                runnable.run();
+                return null;
+            }
+        }, delay, unit);
+    }
+
     public void incrementTime(long interval, TimeUnit unit) {
         long intervalMillis = TimeUnit.MILLISECONDS.convert(interval, unit);
-
         currentTimeMillis += intervalMillis;
 
         while (!calls.isEmpty() &&
-               calls.peek().executeAfterTimeMillis <= currentTimeMillis) {
+            calls.peek().executeAfterTimeMillis <= currentTimeMillis) {
             calls.remove().complete();
         }
     }

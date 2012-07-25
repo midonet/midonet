@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.net.InetSocketAddress
 import java.nio.channels.{SelectionKey, ServerSocketChannel}
-import java.util.concurrent.{Executors, TimeUnit, ScheduledFuture, Semaphore}
+import java.util.concurrent._
 import java.util.UUID
 
 import org.openflow.protocol.{OFMatch, OFPort}
@@ -137,7 +137,7 @@ with SelectListener {
                 registerController
 
                 tookTooLong = reactor.schedule(
-                    new Runnable() {
+                    new Runnable {
                         def run() {
                             log.info("Took too long!")
                             tooLongFlag = true
@@ -148,6 +148,7 @@ with SelectListener {
                         }
                     },
                     10000, TimeUnit.MILLISECONDS)
+
                 reactor.doLoop()
                 log.info("reactor thread exiting")
             }

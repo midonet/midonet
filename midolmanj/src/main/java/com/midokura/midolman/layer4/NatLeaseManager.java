@@ -150,7 +150,7 @@ public class NatLeaseManager implements NatMapping {
         if (null == refreshKeys) {
             refreshKeys = new HashSet<String>();
             matchToNatKeys.put(origMatch, refreshKeys);
-            ScheduledFuture future = reactor.schedule(new RefreshNatMappings(
+            ScheduledFuture<?> future = reactor.schedule(new RefreshNatMappings(
                     origMatch), refreshSeconds, TimeUnit.SECONDS);
             matchToFuture.put(origMatch, future);
             log.debug("scheduleRefresh");

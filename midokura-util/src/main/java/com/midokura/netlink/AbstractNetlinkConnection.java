@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.netlink.clib.cLibrary;
 import com.midokura.netlink.exceptions.NetlinkException;
 import com.midokura.netlink.messages.Builder;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import static com.midokura.netlink.Netlink.Flag;
 
 /**
@@ -146,23 +146,24 @@ public abstract class AbstractNetlinkConnection {
         try {
             channel.write(request);
             log.debug("Sending message for id {}", seq);
-            getReactor().schedule(
-                timeoutMillis, TimeUnit.MILLISECONDS,
-                new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        NetlinkRequest timedOutRequest =
-                            pendingRequests.remove(seq);
+            netlinkRequest.timeoutHandler = new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    NetlinkRequest timedOutRequest =
+                        pendingRequests.remove(seq);
 
-                        if (timedOutRequest != null) {
-                            log.trace("Timeout passed for request with id: {}",
-                                      seq);
-                            timedOutRequest.callback.onTimeout();
-                        }
-
-                        return null;
+                    if (timedOutRequest != null) {
+                        log.trace("Timeout passed for request with id: {}",
+                                  seq);
+                        timedOutRequest.callback.onTimeout();
                     }
-                });
+
+                    return null;
+                }
+            };
+
+            getReactor().schedule(netlinkRequest.timeoutHandler,
+                                  timeoutMillis, TimeUnit.MILLISECONDS);
 
         } catch (IOException e) {
             netlinkRequest.callback
@@ -321,6 +322,7 @@ public abstract class AbstractNetlinkConnection {
         byte cmd;
         List<ByteBuffer> buffers = new ArrayList<ByteBuffer>();
         Callback<List<ByteBuffer>> callback;
+        Callable<?> timeoutHandler;
     }
 
     @Nonnull

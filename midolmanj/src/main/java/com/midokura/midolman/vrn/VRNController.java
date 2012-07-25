@@ -14,13 +14,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.*;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionDataLayer;
+import org.openflow.protocol.action.OFActionDataLayerDestination;
+import org.openflow.protocol.action.OFActionDataLayerSource;
+import org.openflow.protocol.action.OFActionNetworkLayerAddress;
+import org.openflow.protocol.action.OFActionNetworkLayerDestination;
+import org.openflow.protocol.action.OFActionNetworkLayerSource;
+import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.action.OFActionTransportLayer;
+import org.openflow.protocol.action.OFActionTransportLayerDestination;
+import org.openflow.protocol.action.OFActionTransportLayerSource;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,24 +40,43 @@ import scala.actors.threadpool.Arrays;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.CookieMonster;
 import com.midokura.midolman.DhcpHandler;
-import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
-import com.midokura.packets.*;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.GreZkManager;
 import com.midokura.midolman.state.GreZkManager.GreKey;
+import com.midokura.midolman.state.IPv4Set;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.PortZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.VpnZkManager.VpnType;
 import com.midokura.midolman.util.Cache;
+import com.midokura.packets.ARP;
+import com.midokura.packets.DHCP;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.UnaryFunctor;
 
 
@@ -189,7 +219,7 @@ public class VRNController extends AbstractController
      * This inner class is used to re-launch processing of un-PAUSED packets
      * in the main thread.  This also supports re-pausing packets.
      */
-    class PacketContinuation implements Runnable {
+    class PacketContinuation implements Callable<Object> {
         ForwardInfo fwdInfo;
 
         private PacketContinuation(ForwardInfo fwdInfo) {
@@ -197,7 +227,7 @@ public class VRNController extends AbstractController
         }
 
         @Override
-        public void run() {
+        public Object call() {
             log.debug("continue simulation of {}", fwdInfo);
             try {
                 vrn.handleProcessResult(fwdInfo);
@@ -208,6 +238,8 @@ public class VRNController extends AbstractController
             } catch (Exception e) {
                 log.error("Error processing packet:", e);
             }
+
+            return null;
         }
     }
 

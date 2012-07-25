@@ -564,6 +564,12 @@
         </dependency>
 
         <dependency>
+            <groupId> com.google.inject.extensions</groupId>
+            <artifactId>guice-throwingproviders</artifactId>
+            <version>3.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>${versions.yammer.metrics}</version>
@@ -635,10 +641,10 @@
                             <executable>sudo</executable>
                             <arguments>
                                 <argument>java</argument>
-                                <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
+                                <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
                                 <argument>-cp</argument>
                                 <classpath />
-                                <argument>com.midokura.midolman.netlink.Client</argument>
+                                <argument>com.midokura.midolman.Midolman</argument>
                             </arguments>
                         </configuration>
                     </plugin>

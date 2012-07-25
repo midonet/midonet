@@ -16,7 +16,7 @@ import org.powermock.api.mockito.PowerMockito;
 import com.midokura.netlink.AbstractNetlinkConnection;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.Reactor;
 
 /**
  * // TODO: mtoader ! Please explain yourself.

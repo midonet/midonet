@@ -37,6 +37,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -48,9 +49,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Dirt simple SelectLoop for simple java controller
- *
+ * <p/>
  * Originally from org.openflowj.examples
- *
  */
 public class SelectLoop implements Reactor {
 
@@ -73,33 +73,55 @@ public class SelectLoop implements Reactor {
     }
 
     @Override
-    public Future submit(final Runnable runnable) {
-        return executor.submit(new Runnable() {
+    public Future<?> submit(final Runnable runnable) {
+        return submit(new Callable<Object>() {
             @Override
-            public void run() {
-                synchronized (SelectLoop.this) {
-                    runnable.run();
-                }
+            public Object call() throws Exception {
+                runnable.run();
+                return null;
             }
         });
     }
 
-    @Override
-    public ScheduledFuture schedule(final Runnable runnable, long delay,
-                                    TimeUnit unit) {
-        return executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (SelectLoop.this) {
+  //  @Override
+    public ScheduledFuture<?> schedule(final Runnable runnable,
+                                       long delay, TimeUnit unit) {
+        return schedule(
+            new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
                     runnable.run();
+                    return null;
+                }
+            }, delay, unit);
+    }
+
+    @Override
+    public <V> Future<V> submit(final Callable<V> work) {
+        return executor.submit(wrapWithLock(work));
+    }
+
+    @Override
+    public <V> ScheduledFuture<V> schedule(final Callable<V> work,
+                                           long delay, TimeUnit unit) {
+        return executor.schedule(wrapWithLock(work), delay, unit);
+    }
+
+    private <V> Callable<V> wrapWithLock(final Callable<V> work) {
+        return new Callable<V>() {
+            @Override
+            public V call() throws Exception {
+                synchronized (SelectLoop.this) {
+                    return work.call();
                 }
             }
-        }, delay, unit);
+        };
     }
 
     /**
      * Registers the supplied SelectableChannel with this SelectLoop.
-     * @param ch the channel
+     *
+     * @param ch  the channel
      * @param ops interest ops
      * @param arg argument that will be returned with the SelectListener
      * @return SelectionKey
@@ -107,8 +129,8 @@ public class SelectLoop implements Reactor {
      */
     public SelectionKey register(SelectableChannel ch, int ops,
                                  SelectListener arg)
-                throws ClosedChannelException {
-        synchronized(registerLock) {
+        throws ClosedChannelException {
+        synchronized (registerLock) {
             selector.wakeup();
             // The doLoop won't re-enter select() because we hold the
             // registerLock.  This is necessary because
@@ -126,7 +148,7 @@ public class SelectLoop implements Reactor {
     /**
      * Main top-level IO loop this dispatches all IO events and timer events
      * together I believe this is fairly efficient
-     **/
+     */
     public void doLoop() throws IOException {
         log.debug("doLoop");
 
@@ -135,7 +157,8 @@ public class SelectLoop implements Reactor {
         while (dontStop) {
             log.debug("looping");
 
-            synchronized(registerLock) {}
+            synchronized (registerLock) {
+            }
             nEvents = selector.select(timeout);
             log.debug("got {} events", nEvents);
             if (nEvents > 0) {
@@ -160,9 +183,9 @@ public class SelectLoop implements Reactor {
      * was already blocked.
      */
     public void wakeup() {
-       if (selector != null) {
-           selector.wakeup();
-       }
+        if (selector != null) {
+            selector.wakeup();
+        }
     }
 
     /**

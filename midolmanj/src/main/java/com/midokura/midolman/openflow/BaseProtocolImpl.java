@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -137,17 +138,18 @@ public abstract class BaseProtocolImpl implements SelectListener {
 
         final int nextXid = xid;
 
-        ScheduledFuture future = null;
+        ScheduledFuture<Boolean> future = null;
         if (timeoutMillis != null) {
-            future = reactor.schedule(new Runnable() {
-
+            future = reactor.schedule(new Callable<Boolean>() {
                 @Override
-                public void run() {
+                public Boolean call() {
                     if (pendingOperations.remove(nextXid) != null) {
                         log.debug("pending operation {} timed out", nextXid);
                         timeoutHandler.onTimeout();
+                        return true;
                     } else {
                         log.debug("pending operation {} not found", nextXid);
+                        return false;
                     }
                 }
 

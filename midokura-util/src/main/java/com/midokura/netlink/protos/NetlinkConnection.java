@@ -20,7 +20,7 @@ import com.midokura.netlink.Callback;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.family.CtrlFamily;
-import com.midokura.util.reactor.Reactor;
+import com.midokura.util.eventloop.Reactor;
 import static com.midokura.netlink.Netlink.Flag;
 
 /**
