@@ -11,39 +11,57 @@ import com.midokura.midolman.state.BGP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
 
+
 public interface PortBuilders {
-    interface PortBuilder extends DeviceBuilder {
-        void setDeviceID(UUID id);
-        void setPortGroupIDs(Set<UUID> portGroupIDs);
+
+    interface PortBuilder<
+        ConcretePortBuilder extends PortBuilder<ConcretePortBuilder>
+        >
+        extends DeviceBuilder<ConcretePortBuilder> {
+
+        ConcretePortBuilder setDeviceID(UUID id);
+
+        ConcretePortBuilder setPortGroupIDs(Set<UUID> portGroupIDs);
     }
 
-    interface ExteriorPortBuilder extends PortBuilder {
-        void setTunnelKey(long tunnelKey);
+    interface ExteriorPortBuilder<Builder extends ExteriorPortBuilder<Builder>>
+        extends PortBuilder<Builder> {
+        Builder setTunnelKey(long tunnelKey);
     }
 
     interface InteriorPortBuilder extends PortBuilder {
         void setPeerID(UUID peerID);
     }
 
-    interface RouterPortBuilder extends PortBuilder {
-        void setNetAddr(IPv4 ipAddr);
-        void setPortAddr(IPv4 ipAddr);
+    interface RouterPortBuilder<B extends PortBuilder<B>> extends PortBuilder<B> {
+        B setNetAddr(IPv4 ipAddr);
+
+        B setPortAddr(IPv4 ipAddr);
+
         void setMac(MAC mac);
     }
 
-    interface BridgePortBuilder extends PortBuilder {}
+    interface BridgePortBuilder<C extends BridgePortBuilder<C>> extends PortBuilder<C> {
+    }
 
     interface InteriorBridgePortBuilder
-            extends  InteriorPortBuilder, BridgePortBuilder{}
+        extends InteriorPortBuilder, BridgePortBuilder {
+    }
 
     interface ExteriorBridgePortBuilder
-            extends ExteriorPortBuilder, BridgePortBuilder {}
+        extends ExteriorPortBuilder<ExteriorBridgePortBuilder>,
+                BridgePortBuilder<ExteriorBridgePortBuilder> {
+    }
 
     interface InteriorRouterPortBuilder
-            extends InteriorPortBuilder, RouterPortBuilder {}
+        extends InteriorPortBuilder, RouterPortBuilder {
+    }
 
     interface ExteriorRouterPortBuilder
-            extends ExteriorPortBuilder, RouterPortBuilder{
-        void setBgps(Set<BGP> bgps);
+        extends ExteriorPortBuilder<ExteriorRouterPortBuilder>,
+                RouterPortBuilder<ExteriorRouterPortBuilder>
+    {
+        ExteriorRouterPortBuilder setBgps(Set<BGP> bgps);
     }
+
 }

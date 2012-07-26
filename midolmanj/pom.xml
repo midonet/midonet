@@ -337,6 +337,21 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <executable>sudo</executable>
+                    <arguments>
+                        <argument>java</argument>
+                        <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
+                        <argument>-cp</argument>
+                        <classpath />
+                        <argument>com.midokura.midolman.Midolman</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -546,6 +561,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.weiglewilczek.slf4s</groupId>
+            <artifactId>slf4s_2.9.1</artifactId>
+            <version>1.0.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${versions.scala.library}</version>
@@ -618,34 +639,6 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>true</skipTests>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>netlink-client</id>
-            <activation>
-                <property>
-                    <name>netlink-exec</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.2.1</version>
-                        <configuration>
-                            <executable>sudo</executable>
-                            <arguments>
-                                <argument>java</argument>
-                                <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
-                                <argument>-cp</argument>
-                                <classpath />
-                                <argument>com.midokura.midolman.Midolman</argument>
-                            </arguments>
                         </configuration>
                     </plugin>
                 </plugins>

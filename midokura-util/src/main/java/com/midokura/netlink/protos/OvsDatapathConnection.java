@@ -25,7 +25,7 @@ import com.midokura.util.eventloop.Reactor;
  */
 public abstract class OvsDatapathConnection extends NetlinkConnection {
 
-    public abstract void initialize() throws Exception;
+    public abstract Future<Boolean> initialize() throws Exception;
 
     public abstract boolean isInitialized();
 

@@ -32,6 +32,10 @@ case class SetPortLocal(id: UUID, local: Boolean)
 case class SetBridgePortLocal(devId: UUID, portId: UUID, local: Boolean)
 case class SetRouterPortLocal(devId: UUID, portId: UUID, local: Boolean)
 
+object VirtualTopologyActor {
+    val Name:String = "VirtualTopologyActor"
+}
+
 class VirtualTopologyActor(dir: Directory, zkBasePath: String,
                            val hostIp: IntIPv4) extends Actor {
     private val idToBridge = mutable.Map[UUID, Bridge]()

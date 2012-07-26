@@ -4,8 +4,11 @@
 package com.midokura.midolman.vrn
 
 import akka.actor.Actor
+import com.weiglewilczek.slf4s.Logging
 
 object VirtualToPhysicalMapper {
+
+    val Name = "VirtualToPhysicalMapper"
 
     /**
      * Will make the actor fire a `LocalStateReply` message to the sender
@@ -42,14 +45,18 @@ object VirtualToPhysicalMapper {
  * </li>
  * </ul>
  */
-class VirtualToPhysicalMapper extends Actor {
+class VirtualToPhysicalMapper extends Actor with Logging {
 
     import VirtualToPhysicalMapper._
 
     protected def receive = {
-        case req: LocalStateRequest =>
+        case LocalStateRequest(host) =>
             // TODO: Implement this properly
-            sender ! LocalStateReply
+            logger.info("Go local state request for host: " + host)
+            sender ! LocalStateReply("bibi")
+
+        case value =>
+            logger.error("Unknown message: " + value)
     }
 }
 

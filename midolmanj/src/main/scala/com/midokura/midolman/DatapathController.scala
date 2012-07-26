@@ -5,20 +5,27 @@ package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
 import com.midokura.sdn.dp.{Port, Datapath, Packet}
-import vrn.VirtualToPhysicalMapper
+import vrn.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.Callback
+import org.slf4j.{LoggerFactory, Logger}
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * Holder object that keeps the external message definitions
  */
 object DatapathController {
 
+    val Name = "DatapathController"
+
     /**
      * This will make the Datapath Controller to start the local state
      * initialization process.
      */
     case class Initialize()
+
+    // Java API
+    def getInitialize:Initialize = Initialize()
 }
 
 /**
@@ -64,25 +71,31 @@ object DatapathController {
  * are passed on to the FlowController.
  */
 class DatapathController(localHostIdentifier: String,
-                         datapathConnection: OvsDatapathConnection) extends Actor {
+                         datapathConnection: OvsDatapathConnection) extends Actor with Logging {
     import DatapathController._
 
-    // TODO: mtoader retrieve the actors properly
-    val virtualToPhysicalMapper: ActorRef = null
-    val virtualTopology: ActorRef = null
+    var virtualTopology:ActorRef = null
+    var virtualToPhysicalMapper:ActorRef = null
+
+    override def preStart() {
+        super.preStart()
+
+        virtualToPhysicalMapper = context.actorFor(VirtualToPhysicalMapper.Name)
+        virtualTopology = context.actorFor(VirtualTopologyActor.Name)
+    }
 
     def receive = {
         /**
          * External message reaction
          */
-        case Initialize =>
+        case Initialize() =>
             doLocalDatapathInitialization()
 
         /**
          * Reply messages reaction
          */
-        case state: VirtualToPhysicalMapper.LocalStateReply =>
-            doLocalStateUpdate(state)
+        case VirtualToPhysicalMapper.LocalStateReply(datapath) =>
+            doLocalStateUpdate(datapath)
 
         /**
          * internally posted replies reactions
@@ -92,6 +105,9 @@ class DatapathController(localHostIdentifier: String,
 
         case value: _NetlinkDatapathPorts =>
             doDatapathPortsUpdate(value.dp, value.ports)
+
+        case value =>
+            logger.info("Unknown message: " + value)
     }
 
     private def doPacketIn(packet: Packet) {
@@ -99,13 +115,17 @@ class DatapathController(localHostIdentifier: String,
     }
 
     private def doLocalDatapathInitialization() {
-        virtualToPhysicalMapper !
-            VirtualToPhysicalMapper.LocalStateRequest(localHostIdentifier)
+        logger.info("Doing local datapath initialization")
+        val req = VirtualToPhysicalMapper.LocalStateRequest(localHostIdentifier)
+
+        logger.info("Request " + req)
+
+        virtualToPhysicalMapper ! req
     }
 
-    private def doLocalStateUpdate(state: VirtualToPhysicalMapper.LocalStateReply) {
-
-        datapathConnection.datapathsGet(state.dpName,
+    private def doLocalStateUpdate(dpName: String) {
+        logger.info("Retrieved local state reply: " + dpName)
+        datapathConnection.datapathsGet(dpName,
             call {
                 dp: Datapath =>
                     datapathConnection.portsEnumerate(dp,

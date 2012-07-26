@@ -11,35 +11,33 @@ import java.io.PrintStream;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActorFactory;
+import com.google.common.base.Service;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
-import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.NodeAgent;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.util.eventloop.SelectListener;
-import com.midokura.util.eventloop.SelectLoop;
+import com.midokura.midolman.guice.ConfigurationModule;
+import com.midokura.midolman.guice.MidolmanActorsModule;
+import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
-import com.midokura.midolman.monitoring.NodeAgentHostIdProvider;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -47,15 +45,18 @@ import com.midokura.midolman.portservice.BgpPortService;
 import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.portservice.OpenVpnPortService;
 import com.midokura.midolman.portservice.PortService;
+import com.midokura.midolman.services.MidolmanActorsService;
+import com.midokura.midolman.services.MidolmanService;
+import com.midokura.midolman.services.NetlinkConnectionService;
+import com.midokura.midolman.services.SelectLoopService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheFactory;
-import com.midokura.midolman.vrn.SetPortLocal;
 import com.midokura.midolman.vrn.VRNController;
-import com.midokura.midolman.vrn.VirtualTopologyActor;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
+import com.midokura.util.eventloop.SelectListener;
+import com.midokura.util.eventloop.SelectLoop;
 
 
 public class Midolman implements SelectListener, Watcher {
@@ -86,6 +87,14 @@ public class Midolman implements SelectListener, Watcher {
 
     private Directory midonetDirectory;
 
+    private Injector injector;
+
+    final List<Class<? extends Service>> services = new ArrayList<Class<? extends Service>>() {{
+        add(MidolmanActorsService.class);
+        add(SelectLoopService.class);
+        add(NetlinkConnectionService.class);
+    }};
+
     private Midolman() {
     }
 
@@ -103,20 +112,22 @@ public class Midolman implements SelectListener, Watcher {
         log.info("build.user: {}", properties.get("git.build.user.name"));
         log.info("-------------------------------------");
 
+        log.info("Added SIGTERM handling for cleanup");
+        Signal.handle(new Signal("TERM"), new SignalHandler() {
+            @Override
+            public void handle(Signal sig) {
+                doServicesCleanup();
+            }
+        });
+
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                log.warn("In shutdown hook: disconnecting ZK.");
-                if (null != zkConnection)
-                    zkConnection.close();
-                if (null != nodeAgent)
-                    nodeAgent.stop();
-                if (null != monitoringAgent)
-                    monitoringAgent.stop();
-                log.warn("Exiting. BYE!");
+                doServicesCleanup();
             }
         });
+
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
@@ -126,32 +137,39 @@ public class Midolman implements SelectListener, Watcher {
                           "will cause the stdout to be redirected");
         options.addOption("redirectStdErr", true,
                           "will cause the stderr to be redirected");
+
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
 
-        String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
-
-        ConfigProvider configProvider =
-            ConfigProvider.providerForIniConfig(
-                new HierarchicalINIConfiguration(configFilePath));
-
-        MidolmanConfig config =
-            configProvider.getConfig(MidolmanConfig.class);
-
         redirectStdOutAndErrIfRequested(cl);
 
-        basePath = config.getMidolmanRootKey();
-        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());
-        externalIdKey = config.getOpenvSwitchMidolmanExternalIdKey();
-        vrnId = UUID.fromString(config.getVrnRouterNetworkId());
-        useNxm = config.getOpenFlowUseNxm();
-        enableBgp = config.getMidolmanEnableBgp();
-        disconnected_ttl_seconds = config.getMidolmanDisconnectedTtlSeconds();
+        String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
 
-        dhcpMtu = config.getMidolmanDhcpMtu();
+        injector = Guice.createInjector(
+            new ConfigurationModule(configFilePath),
+            new MidolmanModule(),
+            new MidolmanActorsModule()
+        );
 
-        executor = Executors.newScheduledThreadPool(1);
-        loop = new SelectLoop(executor);
+        // start the services
+        injector.getInstance(MidolmanService.class).startAndWait();
+
+        // fire the initialize message to an actor
+//        injector.getInstance(MidolmanActorsService.class).initProcessing();
+
+//        basePath = config.getMidolmanRootKey();
+//        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());
+//        externalIdKey = config.getOpenvSwitchMidolmanExternalIdKey();
+//        vrnId = UUID.fromString(config.getVrnRouterNetworkId());
+//        useNxm = config.getOpenFlowUseNxm();
+//        enableBgp = config.getMidolmanEnableBgp();
+//        disconnected_ttl_seconds = config.getMidolmanDisconnectedTtlSeconds();
+//
+//        dhcpMtu = config.getMidolmanDhcpMtu();
+//
+//        executor = Executors.newScheduledThreadPool(1);
+//        loop = new SelectLoop(executor);
+
 
         // open the OVSDB connection
 //        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
@@ -159,30 +177,20 @@ public class Midolman implements SelectListener, Watcher {
 //            config.getOpenvSwitchIpAddr(),
 //            config.getOpenvSwitchTcpPort());
 
-        zkConnection = new ZkConnection(
-            config.getZooKeeperHosts(),
-            config.getZooKeeperSessionTimeout(), this, loop);
+//        zkConnection = new ZkConnection(
+//            config.getZooKeeperHosts(),
+//            config.getZooKeeperSessionTimeout(), this, loop);
+//
+//        log.debug("about to ZkConnection.open()");
+//        zkConnection.open();
+//        log.debug("done with ZkConnection.open()");
 
-        log.debug("about to ZkConnection.open()");
-        zkConnection.open();
-        log.debug("done with ZkConnection.open()");
+//        midonetDirectory = zkConnection.getRootDirectory();
 
-        midonetDirectory = zkConnection.getRootDirectory();
 
-        ActorSystem actorSystem = ActorSystem.create("midolmanActors");
-        ActorRef ref = actorSystem.actorOf(new Props(new UntypedActorFactory() {
-            @Override
-            public Actor create() {
-                return new VirtualTopologyActor(
-                    midonetDirectory,
-                    basePath,
-                    localNwAddr
-                );
-            }
-        }));
+//        ref.tell(new SetPortLocal(UUID.randomUUID(), true));
 
-        ref.tell(new SetPortLocal(UUID.randomUUID(), true));
-
+/*
         if (config.getMidolmanStartHostAgent()) {
             nodeAgent = NodeAgent.bootstrapAgent(configProvider,
                                                  zkConnection, ovsdb);
@@ -193,6 +201,8 @@ public class Midolman implements SelectListener, Watcher {
                     "configuration file.");
         }
 
+*/
+/*
         if (config.getMidolmanEnableMonitoring()) {
             log.info("Starting monitoring...");
             NodeAgentHostIdProvider hostIdProvider =
@@ -201,28 +211,45 @@ public class Midolman implements SelectListener, Watcher {
                 MonitoringAgent.bootstrapMonitoring(configProvider,
                                                     hostIdProvider);
         }
+*/
 
-        vrnCache = CacheFactory.create(config);
+//        listenSock = ServerSocketChannel.open();
+//        listenSock.configureBlocking(false);
+//        listenSock.socket().bind(
+//            new java.net.InetSocketAddress(
+//                config.getOpenFlowControllerPort()));
+//
+//        loop.register(listenSock, SelectionKey.OP_ACCEPT, this);
 
-        listenSock = ServerSocketChannel.open();
-        listenSock.configureBlocking(false);
-        listenSock.socket().bind(
-            new java.net.InetSocketAddress(
-                config.getOpenFlowControllerPort()));
+//        log.debug("before doLoop which will block");
+//        loop.doLoop();
+//        log.debug("after doLoop is done");
+//
+//        if (nodeAgent != null) {
+//            log.debug("Stopping the node agent");
+//            nodeAgent.stop();
+//            log.debug("Node agent stopped");
+//        }
 
-        loop.register(listenSock, SelectionKey.OP_ACCEPT, this);
-
-        log.debug("before doLoop which will block");
-        loop.doLoop();
-        log.debug("after doLoop is done");
-
-        if (nodeAgent != null) {
-            log.debug("Stopping the node agent");
-            nodeAgent.stop();
-            log.debug("Node agent stopped");
-        }
+//        vrnCache = CacheFactory.create(config);
 
         log.info("main finish");
+    }
+
+    private void doServicesCleanup() {
+        MidolmanService instance =
+            injector.getInstance(MidolmanService.class);
+
+        if ( instance.state() == Service.State.TERMINATED )
+            return;
+
+        try {
+            instance.stopAndWait();
+        } catch (Exception e) {
+            log.error("Exception ", e);
+        } finally {
+            log.info("Exiting. BYE (signal)!");
+        }
     }
 
     private void redirectStdOutAndErrIfRequested(CommandLine commandLine) {

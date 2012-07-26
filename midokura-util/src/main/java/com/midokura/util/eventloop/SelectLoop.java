@@ -146,6 +146,31 @@ public class SelectLoop implements Reactor {
     }
 
     /**
+     * Unregisgters the supplied SelectableChannel with this SelectLoop.
+     *
+     * @param ch  the channel
+     * @param ops interest ops
+     * @param arg argument that will be returned with the SelectListener
+     * @throws ClosedChannelException if channel was already closed
+     */
+    public void unregister(SelectableChannel ch, int ops)
+        throws ClosedChannelException {
+        synchronized (registerLock) {
+            selector.wakeup();
+            // The doLoop won't re-enter select() because we hold the
+            // registerLock.  This is necessary because
+            // SelectableChannel.register() contends with select() for
+            // a lock, so it could block if we didn't prevent doLoop
+            // from calling select() until after we call ch.register.
+            // We won't block if wakeup() is called between the doLoop's
+            // synchronizing on registerLock and its calling select(),
+            // because select() returns immediately if a wakeup() was
+            // called while the selector didn't have a select in progress.
+            ch.register(selector, ops).cancel();
+        }
+    }
+
+    /**
      * Main top-level IO loop this dispatches all IO events and timer events
      * together I believe this is fairly efficient
      */
@@ -194,6 +219,12 @@ public class SelectLoop implements Reactor {
     public void shutdown() {
         this.dontStop = false;
         wakeup();
+        try {
+            executor.shutdown();
+            executor.awaitTermination(200, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            log.error("InterruptedException while shutting down the SelectLoop executor thread");
+        }
     }
 
     @Override

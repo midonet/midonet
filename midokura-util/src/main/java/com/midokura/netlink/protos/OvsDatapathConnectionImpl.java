@@ -8,11 +8,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +62,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (pid == 0 &&
             packetFamily.getFamilyId() == type &&
             (PacketFamily.Cmd.MISS.getValue() == cmd ||
-                PacketFamily.Cmd.ACTION.getValue() == cmd))
-        {
+                PacketFamily.Cmd.ACTION.getValue() == cmd)) {
             if (notificationHandler != null) {
                 Packet packet = null;
 
@@ -802,11 +803,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = newMessage()
             .addValue(datapathId)
             .addAttrNested(PacketFamily.AttrKey.KEY)
-                .addAttrs(flowMatch.getKeys())
-                .build()
+            .addAttrs(flowMatch.getKeys())
+            .build()
             .addAttrNested(PacketFamily.AttrKey.ACTIONS)
-                .addAttrs(packet.getActions())
-                .build()
+            .addAttrs(packet.getActions())
+            .build()
             .build();
 
         newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)
@@ -915,79 +916,92 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     private State state;
     private NetlinkException stateInitializationEx;
 
-    public void initialize() throws Exception {
+    public Future<Boolean> initialize() throws Exception {
+
+        final ValueFuture<Boolean> future = ValueFuture.create();
+        final Callback<Boolean> initStatusCallback = wrapFuture(future);
 
         state = State.Initializing;
 
-        final Callback<Integer> portMulticastCallback = new StateAwareCallback<Integer>() {
-            @Override
-            public void onSuccess(Integer data) {
-                log.debug("Got port multicast group: {}.", data);
-                if (data != null) {
-                    OvsDatapathConnectionImpl.this.portMulticast = data;
-                } else {
-                    log.info(
-                        "Setting the port multicast group to fallback value: {}",
-                        PortFamily.FALLBACK_MC_GROUP);
+        final Callback<Integer> portMulticastCallback =
+            new StateAwareCallback<Integer>(initStatusCallback) {
+                @Override
+                public void onSuccess(Integer data) {
 
-                    OvsDatapathConnectionImpl.this.portMulticast =
-                        PortFamily.FALLBACK_MC_GROUP;
+                    log.debug("Got port multicast group: {}.", data);
+                    if (data != null) {
+                        OvsDatapathConnectionImpl.this.portMulticast = data;
+                    } else {
+                        log.info(
+                            "Setting the port multicast group to fallback value: {}",
+                            PortFamily.FALLBACK_MC_GROUP);
+
+                        OvsDatapathConnectionImpl.this.portMulticast =
+                            PortFamily.FALLBACK_MC_GROUP;
+                    }
+
+                    state = State.Initialized;
+                    initStatusCallback.onSuccess(true);
                 }
+            };
 
-                state = State.Initialized;
-            }
-        };
+        final Callback<Integer> datapathMulticastCallback =
+            new StateAwareCallback<Integer>(initStatusCallback) {
+                @Override
+                public void onSuccess(Integer data) {
+                    log.debug("Got datapath multicast group: {}.", data);
+                    if (data != null)
+                        OvsDatapathConnectionImpl.this.datapathMulticast = data;
 
-        final Callback<Integer> datapathMulticastCallback = new StateAwareCallback<Integer>() {
-            @Override
-            public void onSuccess(Integer data) {
-                log.debug("Got datapath multicast group: {}.", data);
-                if (data != null)
-                    OvsDatapathConnectionImpl.this.datapathMulticast = data;
+                    getMulticastGroup(PortFamily.NAME, PortFamily.MC_GROUP,
+                                      portMulticastCallback);
+                }
+            };
 
-                getMulticastGroup(PortFamily.NAME, PortFamily.MC_GROUP,
-                                  portMulticastCallback);
-            }
-        };
+        final Callback<Short> packetFamilyBuilder =
+            new StateAwareCallback<Short>(initStatusCallback) {
+                @Override
+                public void onSuccess(Short data) {
+                    packetFamily = new PacketFamily(data);
+                    log.debug("Got packet family id: {}.", data);
+                    getMulticastGroup(DatapathFamily.NAME,
+                                      DatapathFamily.MC_GROUP,
+                                      datapathMulticastCallback);
+                }
+            };
 
-        final Callback<Short> packetFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                packetFamily = new PacketFamily(data);
-                log.debug("Got packet family id: {}.", data);
-                getMulticastGroup(DatapathFamily.NAME, DatapathFamily.MC_GROUP,
-                                  datapathMulticastCallback);
-            }
-        };
+        final Callback<Short> flowFamilyBuilder =
+            new StateAwareCallback<Short>(initStatusCallback) {
+                @Override
+                public void onSuccess(Short data) {
+                    flowFamily = new FlowFamily(data);
+                    log.debug("Got flow family id: {}.", data);
+                    getFamilyId(PacketFamily.NAME, packetFamilyBuilder);
+                }
+            };
 
-        final Callback<Short> flowFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                flowFamily = new FlowFamily(data);
-                log.debug("Got flow family id: {}.", data);
-                getFamilyId(PacketFamily.NAME, packetFamilyBuilder);
-            }
-        };
+        final Callback<Short> portFamilyBuilder =
+            new StateAwareCallback<Short>(initStatusCallback) {
+                @Override
+                public void onSuccess(Short data) {
+                    portFamily = new PortFamily(data);
+                    log.debug("Got port family id: {}.", data);
+                    getFamilyId(FlowFamily.NAME, flowFamilyBuilder);
+                }
+            };
 
-        final Callback<Short> portFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                portFamily = new PortFamily(data);
-                log.debug("Got port family id: {}.", data);
-                getFamilyId(FlowFamily.NAME, flowFamilyBuilder);
-            }
-        };
-
-        final Callback<Short> datapathFamilyBuilder = new StateAwareCallback<Short>() {
-            @Override
-            public void onSuccess(Short data) {
-                datapathFamily = new DatapathFamily(data);
-                log.debug("Got datapath family id: {}.", data);
-                getFamilyId(PortFamily.NAME, portFamilyBuilder);
-            }
-        };
+        final Callback<Short> datapathFamilyBuilder =
+            new StateAwareCallback<Short>(initStatusCallback) {
+                @Override
+                public void onSuccess(Short data) {
+                    datapathFamily = new DatapathFamily(data);
+                    log.debug("Got datapath family id: {}.", data);
+                    getFamilyId(PortFamily.NAME, portFamilyBuilder);
+                }
+            };
 
         getFamilyId(DatapathFamily.NAME, datapathFamilyBuilder);
+        return future;
     }
 
     public boolean isInitialized() {
@@ -1009,6 +1023,16 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     private class StateAwareCallback<T> extends Callback<T> {
 
+        Callback<Boolean> statusCallback;
+
+        public StateAwareCallback() {
+            this(null);
+        }
+
+        public StateAwareCallback(Callback<Boolean> statusCallback) {
+            this.statusCallback = statusCallback;
+        }
+
         @Override
         public void onSuccess(T data) {
             super.onSuccess(data);
@@ -1017,12 +1041,16 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         @Override
         public void onTimeout() {
             state = State.ErrorInInitialization;
+            if (statusCallback != null)
+                statusCallback.onTimeout();
         }
 
         @Override
         public void onError(NetlinkException ex) {
             state = State.ErrorInInitialization;
             stateInitializationEx = ex;
+            if (statusCallback != null)
+                statusCallback.onError(ex);
         }
     }
 

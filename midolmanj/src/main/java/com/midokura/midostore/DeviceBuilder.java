@@ -4,9 +4,16 @@ package com.midokura.midostore;/*
 
 import java.util.UUID;
 
-public interface DeviceBuilder {
-    void setID(UUID id);
-    void setInFilter(UUID filterID);
-    void setOutFilter(UUID filterID);
+public interface DeviceBuilder<
+        ConcreteDeviceBulder extends DeviceBuilder<ConcreteDeviceBulder>
+    >
+    extends Builder<ConcreteDeviceBulder> {
+
+    ConcreteDeviceBulder setID(UUID id);
+
+    ConcreteDeviceBulder setInFilter(UUID filterID);
+
+    ConcreteDeviceBulder setOutFilter(UUID filterID);
+
     void build();
 }
