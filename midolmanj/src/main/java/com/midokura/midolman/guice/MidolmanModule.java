@@ -56,14 +56,18 @@ public class MidolmanModule extends AbstractModule {
 
         bindMidostoreClient();
 
-        bind(OvsDatapathConnection.class)
-            .toProvider(OvsDatapathConnectionProvider.class)
-            .asEagerSingleton();
+        bindOvsDatapathConnection();
 
         bind(NetlinkConnectionService.class)
             .asEagerSingleton();
 
         bind(MidolmanService.class)
+            .asEagerSingleton();
+    }
+
+    protected void bindOvsDatapathConnection() {
+        bind(OvsDatapathConnection.class)
+            .toProvider(OvsDatapathConnectionProvider.class)
             .asEagerSingleton();
     }
 

@@ -37,6 +37,7 @@ import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.guice.ConfigurationModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.MockOvsDatapathConnectionProvider;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
@@ -53,6 +54,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.VRNController;
+import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
 import com.midokura.util.eventloop.SelectListener;
@@ -146,7 +148,14 @@ public class Midolman implements SelectListener, Watcher {
 
         injector = Guice.createInjector(
             new ConfigurationModule(configFilePath),
-            new MidolmanModule(),
+            new MidolmanModule() {
+                @Override
+                protected void bindOvsDatapathConnection() {
+                    bind(OvsDatapathConnection.class)
+                        .toProvider(MockOvsDatapathConnectionProvider.class)
+                        .asEagerSingleton();
+                }
+            },
             new MidolmanActorsModule()
         );
 
@@ -157,6 +166,12 @@ public class Midolman implements SelectListener, Watcher {
         injector.getInstance(MidolmanActorsService.class).initProcessing();
 
         log.info("{} was initialized", MidolmanActorsService.class);
+
+        OvsDatapathConnection ovsDatapathConnection = injector.getInstance(OvsDatapathConnection.class);
+
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        log.info("Datapaths: {} " +ovsDatapathConnection.datapathsEnumerate().get());
+        log.info("Ports: {} " +ovsDatapathConnection.portsEnumerate(ovsDatapathConnection.datapathsGet("new_test").get()).get());
 
 //        basePath = config.getMidolmanRootKey();
 //        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());

@@ -79,6 +79,10 @@ public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, 
         return self();
     }
 
+    public ActualPort setOptions() {
+        return setOptions(newOptions());
+    }
+
     public PortOptions getOptions() {
         return options;
     }
@@ -87,8 +91,9 @@ public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, 
         return stats;
     }
 
-    public void setStats(Stats stats) {
+    public ActualPort setStats(Stats stats) {
         this.stats = stats;
+        return self();
     }
 
     @Override
@@ -149,7 +154,7 @@ public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, 
         return sb.toString();
     }
 
-    public class Stats implements BuilderAware {
+    public static class Stats implements BuilderAware {
         long rxPackets, txPackets;
         long rxBytes, txBytes;
         long rxErrors, txErrors;

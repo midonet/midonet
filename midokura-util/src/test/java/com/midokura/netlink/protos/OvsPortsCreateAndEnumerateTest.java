@@ -135,7 +135,7 @@ public class OvsPortsCreateAndEnumerateTest
                  .setPortNo(1)
                  .setAddress(macFromString("9a:f0:9b:71:9c:0d"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
 
         return port;
@@ -147,7 +147,7 @@ public class OvsPortsCreateAndEnumerateTest
                  .setPortNo(2)
                  .setAddress(macFromString("e6:0a:c4:71:de:a6"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
 
         return port;
@@ -159,7 +159,7 @@ public class OvsPortsCreateAndEnumerateTest
                  .setPortNo(3)
                  .setAddress(macFromString("9a:c3:94:ec:d6:b2"));
 
-        tunPatchPort.setStats(tunPatchPort.new Stats());
+        tunPatchPort.setStats(new Port.Stats());
         tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
 
         return tunPatchPort;
@@ -171,7 +171,7 @@ public class OvsPortsCreateAndEnumerateTest
                  .setPortNo(4)
                  .setAddress(macFromString("72:67:52:d0:49:df"));
 
-        tunGrePort.setStats(tunGrePort.new Stats());
+        tunGrePort.setStats(new Port.Stats());
         tunGrePort.setOptions(
             Ports
                 .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
@@ -186,7 +186,7 @@ public class OvsPortsCreateAndEnumerateTest
                  .setPortNo(5)
                  .setAddress(macFromString("ea:53:9a:b7:89:02"));
 
-        tunCapwapGrePort.setStats(tunCapwapGrePort.new Stats());
+        tunCapwapGrePort.setStats(new Port.Stats());
         tunCapwapGrePort.setOptions(
             Ports
                 .newPortOptions(

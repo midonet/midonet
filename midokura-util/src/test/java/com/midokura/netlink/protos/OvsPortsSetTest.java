@@ -74,7 +74,7 @@ public class OvsPortsSetTest
                  .setPortNo(1)
                  .setAddress(macFromString("9a:f0:9b:71:9c:0d"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
 
         return port;

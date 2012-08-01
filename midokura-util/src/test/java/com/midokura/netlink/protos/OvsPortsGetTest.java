@@ -3,7 +3,6 @@
 */
 package com.midokura.netlink.protos;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.junit.Before;
@@ -58,7 +57,7 @@ public class OvsPortsGetTest
 
     private void assertGetOps(int portNo, String portName,
                               Datapath datapath, Port expectedPort)
-        throws Exception, ExecutionException, InterruptedException {
+        throws Exception, InterruptedException {
 
         log.info("Get the port by id: {}.", portName);
         Future<Port<?, ?>> portFuture = connection.portsGet(portNo, datapath);
@@ -81,7 +80,7 @@ public class OvsPortsGetTest
                  .setPortNo(0)
                  .setAddress(macFromString("ba:0c:ce:42:79:f2"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
 
         return port;
@@ -93,7 +92,7 @@ public class OvsPortsGetTest
                  .setPortNo(1)
                  .setAddress(macFromString("aa:92:26:6c:43:2c"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
 
         return port;
@@ -105,7 +104,7 @@ public class OvsPortsGetTest
                  .setPortNo(2)
                  .setAddress(macFromString("e6:0a:c4:71:de:a6"));
 
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
         port.setOptions(Ports.newPortOptions(port));
 
         return port;
@@ -118,7 +117,7 @@ public class OvsPortsGetTest
             .setAddress(macFromString("9a:c3:94:ec:d6:b2"));
 
         port.setOptions(Ports.newPortOptions(port, "peer"));
-        port.setStats(port.new Stats());
+        port.setStats(new Port.Stats());
 
         return port;
     }
@@ -130,7 +129,7 @@ public class OvsPortsGetTest
                  .setAddress(
                      macFromString("72:67:52:d0:49:df"));
 
-        tunGrePort.setStats(tunGrePort.new Stats());
+        tunGrePort.setStats(new Port.Stats());
         tunGrePort.setOptions(
             Ports
                 .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
@@ -145,7 +144,7 @@ public class OvsPortsGetTest
                  .setPortNo(5)
                  .setAddress(macFromString("ea:53:9a:b7:89:02"));
 
-        capwapPort.setStats(capwapPort.new Stats());
+        capwapPort.setStats(new Port.Stats());
         capwapPort.setOptions(
             Ports
                 .newPortOptions(capwapPort, ipFromString("192.168.100.1"))

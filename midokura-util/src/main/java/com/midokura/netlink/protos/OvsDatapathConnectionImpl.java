@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import static java.lang.String.format;
 
 import com.google.common.base.Function;
@@ -103,7 +102,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     return;
                 }
 
-                ComposingCallback<Port<?,?>,NetlinkException> portsSetCallback =
+                ComposingCallback<Port<?, ?>, NetlinkException> portsSetCallback =
                     Callbacks.composeTo(
                         Callbacks.transform(
                             installCallback,
@@ -115,8 +114,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                             }));
 
                 for (Port<?, ?> port : data) {
-                        @SuppressWarnings("unchecked")
-                        Callback<Port<?, ?>> callback =
+                    @SuppressWarnings("unchecked")
+                    Callback<Port<?, ?>> callback =
                         portsSetCallback.createCallback(
                             format("SET upcall_id on port: {}", port.getName()),
                             Callback.class
@@ -523,16 +522,19 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         newRequest(portFamily, PortFamily.Cmd.NEW)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback, new Function<List<ByteBuffer>, Port<?, ?>>() {
-                @Override
-                public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null || input.size() == 0 || input.get(
-                        0) == null)
-                        return null;
+            .withCallback(callback,
+                          new Function<List<ByteBuffer>, Port<?, ?>>() {
+                              @Override
+                              public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
+                                  if (input == null || input.size() == 0 || input
+                                      .get(
+                                          0) == null)
+                                      return null;
 
-                    return deserializePort(input.get(0), datapath.getIndex());
-                }
-            })
+                                  return deserializePort(input.get(0),
+                                                         datapath.getIndex());
+                              }
+                          })
             .withTimeout(timeoutMillis)
             .send();
 
@@ -862,32 +864,29 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         return flow;
     }
 
-    private Port deserializePort(ByteBuffer buffer, int dpIndex) {
+    private Port<?, ?> deserializePort(ByteBuffer buffer, int dpIndex) {
 
-        NetlinkMessage msg = new NetlinkMessage(buffer);
+        NetlinkMessage m = new NetlinkMessage(buffer);
 
         // read the datapath id;
-        int actualDpIndex = msg.getInt();
+        int actualDpIndex = m.getInt();
         if (dpIndex != 0 && actualDpIndex != dpIndex)
             return null;
 
-        String name = msg.getAttrValue(PortFamily.Attr.NAME);
-        Integer type = msg.getAttrValue(PortFamily.Attr.PORT_TYPE);
+        String name = m.getAttrValue(PortFamily.Attr.NAME);
+        Integer type = m.getAttrValue(PortFamily.Attr.PORT_TYPE);
 
         if (type == null || name == null)
             return null;
 
-        Port port = Ports.newPortByType(OvsPortType.getOvsPortTypeId(type),
-                                        name);
-
-        port.setAddress(msg.getAttrValue(PortFamily.Attr.ADDRESS));
-        port.setPortNo(msg.getAttrValue(PortFamily.Attr.PORT_NO));
-        port.setStats(
-            msg.getAttrValue(PortFamily.Attr.STATS, port.new Stats()));
+        Port port =
+            Ports.newPortByType(OvsPortType.getOvsPortTypeId(type), name);
 
         //noinspection unchecked
-        port.setOptions(msg.getAttrValue(PortFamily.Attr.OPTIONS,
-                                         port.newOptions()));
+        port.setAddress(m.getAttrValue(PortFamily.Attr.ADDRESS))
+            .setPortNo(m.getAttrValue(PortFamily.Attr.PORT_NO))
+            .setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()))
+            .setOptions(m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
 
         return port;
     }
