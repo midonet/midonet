@@ -4,14 +4,13 @@
 package com.midokura.sdn.dp.ports;
 
 import com.midokura.netlink.NetlinkMessage;
-import com.midokura.sdn.dp.Port;
 import com.midokura.netlink.messages.BaseBuilder;
+import com.midokura.sdn.dp.PortOptions;
 
-public abstract class AbstractPortOptions implements Port.Options {
+public abstract class AbstractPortOptions implements PortOptions {
 
     @Override
     public void serialize(BaseBuilder builder) {
-
     }
 
     @Override

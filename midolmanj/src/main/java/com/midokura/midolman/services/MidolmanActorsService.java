@@ -12,24 +12,28 @@ import akka.actor.Props;
 import akka.actor.UntypedActorFactory;
 import akka.dispatch.Await;
 import akka.dispatch.Future;
+import akka.pattern.Patterns;
 import akka.util.Duration;
+import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
-import com.midokura.midolman.DatapathController$;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.vrn.VirtualToPhysicalMapper;
 import com.midokura.midolman.vrn.VirtualTopologyActor;
+import static com.midokura.midolman.DatapathController.getInitialize;
 import static com.midokura.packets.IntIPv4.fromString;
 
 /**
  * Midolman actors coordinator internal service.
- *
+ * <p/>
  * It can start the actor system, spawn the initial actors, kill them when it's
  * time to shutdown.
  */
@@ -44,6 +48,9 @@ public class MidolmanActorsService extends AbstractService {
     @Inject
     Directory midonetDirectory;
 
+    @Inject
+    Injector injector;
+
     ActorSystem actorSystem;
 
     ActorRef virtualTopologyActor;
@@ -52,6 +59,8 @@ public class MidolmanActorsService extends AbstractService {
 
     @Override
     protected void doStart() {
+        ComponentInjectorHolder.setInjector(injector);
+
         log.info("Booting up actors service");
 
         log.debug("Creating actors system.");
@@ -102,7 +111,7 @@ public class MidolmanActorsService extends AbstractService {
                 new UntypedActorFactory() {
                     @Override
                     public Actor create() {
-                        return new DatapathController("", null);
+                        return new DatapathController("");
                     }
                 }
             );
@@ -141,13 +150,20 @@ public class MidolmanActorsService extends AbstractService {
                 gracefulStop(virtualTopologyActor,
                              Duration.create(100, TimeUnit.MILLISECONDS),
                              actorSystem);
-            Await.result(stopFuture, Duration.create(150, TimeUnit.MILLISECONDS));
+            Await.result(stopFuture,
+                         Duration.create(150, TimeUnit.MILLISECONDS));
         } catch (Exception e) {
             log.debug("Actor {} didn't stop on time. ");
         }
     }
 
-    public void initProcessing() {
-        this.datapathControllerActor.tell(DatapathController.getInitialize());
+    public void initProcessing() throws Exception {
+        log.debug("Sending Initialization message to datapath controller.");
+
+        Timeout timeout = new Timeout(Duration.parse("1 second"));
+
+        Await.result(
+            Patterns.ask(datapathControllerActor, getInitialize(), timeout),
+            timeout.duration());
     }
 }

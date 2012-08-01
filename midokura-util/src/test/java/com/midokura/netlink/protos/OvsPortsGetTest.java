@@ -65,7 +65,7 @@ public class OvsPortsGetTest
         throws IOException, ExecutionException, InterruptedException {
 
         log.info("Get the port by id: {}.", portName);
-        Future<Port> portFuture = connection.portsGet(portNo, datapath);
+        Future<Port<?, ?>> portFuture = connection.portsGet(portNo, datapath);
         fireReply();
 
         assertThat("We should have gotten back the expected port",
@@ -103,7 +103,7 @@ public class OvsPortsGetTest
         return port;
     }
 
-    private Port expectedNetdevPort() {
+    private Port<?, ?> expectedNetdevPort() {
         NetDevPort port =
             Ports.newNetDevPort("netdevPort")
                  .setPortNo(2)
@@ -143,7 +143,7 @@ public class OvsPortsGetTest
         return tunGrePort;
     }
 
-    private Port expectedCapwapPort() {
+    private Port<?, ?> expectedCapwapPort() {
         CapWapTunnelPort capwapPort =
             Ports.newCapwapTunnelPort("tunCapwapPort")
                  .setPortNo(5)

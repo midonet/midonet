@@ -121,11 +121,11 @@ public abstract class AbstractNetlinkConnection {
     private void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
                                     byte version, ByteBuffer payload,
                                     Callback<List<ByteBuffer>> callback,
-                                    long timeoutMillis) {
+                                    final long timeoutMillis) {
         final int seq = sequenceGenerator.getAndIncrement();
 
         int totalSize = 20 + payload.remaining();
-        ByteBuffer request = ByteBuffer.allocate(totalSize + 4);
+        final ByteBuffer request = ByteBuffer.allocate(totalSize + 4);
         request.order(ByteOrder.nativeOrder());
 
         serializeNetlinkHeader(request, seq, cmdFamily, version, cmd, flags);
@@ -137,39 +137,46 @@ public abstract class AbstractNetlinkConnection {
         request.putInt(0, totalSize);
         request.flip();
 
-        NetlinkRequest netlinkRequest = new NetlinkRequest();
+        final NetlinkRequest netlinkRequest = new NetlinkRequest();
+        netlinkRequest.family = cmdFamily;
+        netlinkRequest.cmd = cmd;
         netlinkRequest.callback = callback;
 
-        pendingRequests.put(seq, netlinkRequest);
+        getReactor().submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                pendingRequests.put(seq, netlinkRequest);
+                // send the request
+                try {
+                    log.debug("Sending message for id {}", seq);
+                    netlinkRequest.timeoutHandler = new Callable<Object>() {
+                        @Override
+                        public Object call() throws Exception {
+                            log.trace("Timeout fired for {}", seq);
+                            NetlinkRequest timedOutRequest =
+                                pendingRequests.remove(seq);
 
-        // send the request
-        try {
-            channel.write(request);
-            log.debug("Sending message for id {}", seq);
-            netlinkRequest.timeoutHandler = new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    NetlinkRequest timedOutRequest =
-                        pendingRequests.remove(seq);
+                            if (timedOutRequest != null) {
+                                log.debug("Signalling timeout to the callback: {}", seq);
+                                timedOutRequest.callback.onTimeout();
+                            }
 
-                    if (timedOutRequest != null) {
-                        log.trace("Timeout passed for request with id: {}",
-                                  seq);
-                        timedOutRequest.callback.onTimeout();
-                    }
-
-                    return null;
+                            return null;
+                        }
+                    };
+                    getReactor().schedule(netlinkRequest.timeoutHandler,
+                                          timeoutMillis, TimeUnit.MILLISECONDS);
+                    channel.write(request);
+                } catch (IOException e) {
+                    netlinkRequest.callback
+                                  .onError(new NetlinkException(
+                                      NetlinkException.ERROR_SENDING_REQUEST,
+                                      e));
                 }
-            };
 
-            getReactor().schedule(netlinkRequest.timeoutHandler,
-                                  timeoutMillis, TimeUnit.MILLISECONDS);
-
-        } catch (IOException e) {
-            netlinkRequest.callback
-                          .onError(new NetlinkException(
-                              NetlinkException.ERROR_SENDING_REQUEST, e));
-        }
+                return null;
+            }
+        });
     }
 
     protected <
@@ -180,9 +187,23 @@ public abstract class AbstractNetlinkConnection {
         return new RequestBuilder<Cmd, Family>(commandFamily, cmd);
     }
 
-    public void handleEvent(SelectionKey key) throws IOException {
+    public void handleEvent(final SelectionKey key) throws IOException {
 
-        log.debug("Handling event {}", key);
+        processReadFromChannel(key);
+
+//        getReactor().submit(new Callable<Object>() {
+//            @Override
+//            public Object call() throws Exception {
+//                return null;
+//            }
+//        });
+    }
+
+    private synchronized void processReadFromChannel(SelectionKey key) throws IOException {
+
+        log.debug("Handling event with key: {key:{}, ops:{}}", key.isValid(), key.readyOps());
+
+        log.warn("Pending requests: {}" , pendingRequests);
 
         // allocate buffer for the reply
         ByteBuffer reply = ByteBuffer.allocate(cLibrary.PAGE_SIZE);
@@ -214,7 +235,7 @@ public abstract class AbstractNetlinkConnection {
             NetlinkRequest request = pendingRequests.get(seq);
             if (request == null && seq != 0) {
                 log.warn("Reply handlers for netlink request with id {} " +
-                             "not found.", seq);
+                             "not found. {}", seq, pendingRequests);
             }
 
             List<ByteBuffer> buffers =
@@ -243,7 +264,6 @@ public abstract class AbstractNetlinkConnection {
                     String errorMessage = cLibrary.lib.strerror(-error);
 
                     NetlinkRequest errRequest = pendingRequests.remove(seq);
-
                     if (errRequest != null) {
                         if (error == 0) {
                             errRequest.callback.onSuccess(errRequest.buffers);
@@ -265,7 +285,7 @@ public abstract class AbstractNetlinkConnection {
                     // read genl header
                     byte cmd = reply.get();      // command
                     byte ver = reply.get();      // version
-                    short reserved = reply.getShort(); // reserved
+                    reply.getShort();            // reserved
 
                     ByteBuffer payload = reply.slice();
                     payload.order(ByteOrder.nativeOrder());
@@ -323,6 +343,14 @@ public abstract class AbstractNetlinkConnection {
         List<ByteBuffer> buffers = new ArrayList<ByteBuffer>();
         Callback<List<ByteBuffer>> callback;
         Callable<?> timeoutHandler;
+
+        @Override
+        public String toString() {
+            return "NetlinkRequest{" +
+                "family=" + family +
+                ", cmd=" + cmd +
+                '}';
+        }
     }
 
     @Nonnull

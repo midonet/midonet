@@ -6,10 +6,15 @@ package com.midokura.sdn.dp;
 import javax.annotation.Nonnull;
 
 import com.midokura.sdn.dp.ports.CapWapTunnelPort;
+import com.midokura.sdn.dp.ports.CapwapTunnelPortOptions;
 import com.midokura.sdn.dp.ports.GreTunnelPort;
+import com.midokura.sdn.dp.ports.GreTunnelPortOptions;
 import com.midokura.sdn.dp.ports.InternalPort;
+import com.midokura.sdn.dp.ports.InternalPortOptions;
 import com.midokura.sdn.dp.ports.NetDevPort;
+import com.midokura.sdn.dp.ports.NetDevPortOptions;
 import com.midokura.sdn.dp.ports.PatchTunnelPort;
+import com.midokura.sdn.dp.ports.PatchTunnelPortOptions;
 import com.midokura.sdn.dp.ports.TunnelPortOptions;
 
 /**
@@ -17,37 +22,37 @@ import com.midokura.sdn.dp.ports.TunnelPortOptions;
  */
 public class Ports {
 
-    public static PatchTunnelPort.Options newPortOptions(PatchTunnelPort port, String peerName) {
-        port.setOptions(port.new Options());
+    public static PatchTunnelPortOptions newPortOptions(PatchTunnelPort port, String peerName) {
+        port.setOptions(new PatchTunnelPortOptions());
         return port.getOptions().setPeer(peerName);
     }
 
-    public static GreTunnelPort.Options newPortOptions(GreTunnelPort port,
+    public static GreTunnelPortOptions newPortOptions(GreTunnelPort port,
                                                        int destination,
                                                        TunnelPortOptions.Flag... flags) {
-        port.setOptions(port.new Options());
+        port.setOptions(new GreTunnelPortOptions());
         return port.getOptions()
                    .setDestinationIPv4(destination)
                    .setFlags(flags);
     }
 
-    public static CapWapTunnelPort.Options newPortOptions(CapWapTunnelPort port,
+    public static CapwapTunnelPortOptions newPortOptions(CapWapTunnelPort port,
                                                           int destination,
                                                           TunnelPortOptions.Flag... flags) {
-        port.setOptions(port.new Options());
+        port.setOptions(new CapwapTunnelPortOptions());
         return port
             .getOptions()
             .setDestinationIPv4(destination)
             .setFlags(flags);
     }
 
-    public static InternalPort.Options newPortOptions(InternalPort port) {
-        port.setOptions(port.new Options());
+    public static InternalPortOptions newPortOptions(InternalPort port) {
+        port.setOptions(new InternalPortOptions());
         return port.getOptions();
     }
 
-    public static NetDevPort.Options newPortOptions(NetDevPort port) {
-        port.setOptions(port.new Options());
+    public static NetDevPortOptions newPortOptions(NetDevPort port) {
+        port.setOptions(new NetDevPortOptions());
         return port.getOptions();
     }
 

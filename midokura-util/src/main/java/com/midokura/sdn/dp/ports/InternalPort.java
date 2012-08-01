@@ -10,15 +10,15 @@ import com.midokura.sdn.dp.Port;
 /**
  * Description to an internal datapath port.
  */
-public class InternalPort extends Port<InternalPort.Options, InternalPort> {
+public class InternalPort extends Port<InternalPortOptions, InternalPort> {
 
     public InternalPort(@Nonnull String name) {
         super(name, Type.Internal);
     }
 
     @Override
-    public Options newOptions() {
-        return new Options();
+    public InternalPortOptions newOptions() {
+        return new InternalPortOptions();
     }
 
     @Override
@@ -26,6 +26,4 @@ public class InternalPort extends Port<InternalPort.Options, InternalPort> {
         return this;
     }
 
-    public class Options extends AbstractPortOptions {
-    }
 }

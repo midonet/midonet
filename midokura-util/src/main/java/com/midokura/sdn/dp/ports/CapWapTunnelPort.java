@@ -10,7 +10,7 @@ import com.midokura.sdn.dp.Port;
 /**
  * A CapWap Tunnel datapath port.
  */
-public class CapWapTunnelPort extends Port<CapWapTunnelPort.Options, CapWapTunnelPort> {
+public class CapWapTunnelPort extends Port<CapwapTunnelPortOptions, CapWapTunnelPort> {
 
     public CapWapTunnelPort(@Nonnull String name) {
         super(name, Type.CapWap);
@@ -22,14 +22,8 @@ public class CapWapTunnelPort extends Port<CapWapTunnelPort.Options, CapWapTunne
     }
 
     @Override
-    public Options newOptions() {
-        return new Options();
+    public CapwapTunnelPortOptions newOptions() {
+        return new CapwapTunnelPortOptions();
     }
 
-    public class Options extends TunnelPortOptions<Options> {
-        @Override
-        protected Options self() {
-            return this;
-        }
-    }
 }

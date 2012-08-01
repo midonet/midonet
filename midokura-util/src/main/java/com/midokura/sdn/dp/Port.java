@@ -14,7 +14,7 @@ import com.midokura.netlink.messages.BuilderAware;
 /**
  * Abstract port abstraction.
  */
-public abstract class Port<PortOptions extends Port.Options, ActualPort extends Port<PortOptions, ActualPort>> {
+public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, ActualPort extends Port<PortOptions, ActualPort>> {
 
     protected Port(@Nonnull String name, @Nonnull Type type) {
         this.name = name;
@@ -137,6 +137,10 @@ public abstract class Port<PortOptions extends Port.Options, ActualPort extends 
     }
 
     private String macAddressAsString(byte[] address) {
+        if (address == null ) {
+            return "null";
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("%02x", address[0]));
         for (int i=1; i<address.length; i++)
@@ -144,8 +148,6 @@ public abstract class Port<PortOptions extends Port.Options, ActualPort extends 
 
         return sb.toString();
     }
-
-    public interface Options extends BuilderAware { }
 
     public class Stats implements BuilderAware {
         long rxPackets, txPackets;

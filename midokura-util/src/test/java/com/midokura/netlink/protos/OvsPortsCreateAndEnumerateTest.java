@@ -56,7 +56,7 @@ public class OvsPortsCreateAndEnumerateTest
 
 
         log.info("Creating an internal port.");
-        Future<Port> internalPort =
+        Future<Port<?, ?>> internalPort =
             connection.portsCreate(datapath,
                                    Ports.newInternalPort("internalPort"));
         fireReply();
@@ -67,7 +67,7 @@ public class OvsPortsCreateAndEnumerateTest
         expectedPorts.add(expectedPort);
 
         log.info("Creating an netdev port.");
-        Future<Port> netdevPort =
+        Future<Port<?, ?>> netdevPort =
             connection.portsCreate(datapath, Ports.newNetDevPort("netdevPort"));
 
         fireReply();
@@ -80,7 +80,7 @@ public class OvsPortsCreateAndEnumerateTest
         log.info("Creating an patch tunnel port.");
         PatchTunnelPort tunPatchPort = Ports.newPatchTunnelPort("tunPatchPort");
         tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
-        Future<Port> tunPatchPortFuture = connection.portsCreate(datapath,
+        Future<Port<?, ?>> tunPatchPortFuture = connection.portsCreate(datapath,
                                                                  tunPatchPort);
         fireReply();
 
@@ -94,7 +94,7 @@ public class OvsPortsCreateAndEnumerateTest
         tunGrePort.setOptions(
             Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
 
-        Future<Port> tunGrePortFuture = connection.portsCreate(datapath,
+        Future<Port<?, ?>> tunGrePortFuture = connection.portsCreate(datapath,
                                                                tunGrePort);
         fireReply();
 
@@ -112,7 +112,7 @@ public class OvsPortsCreateAndEnumerateTest
                 tunCapwapPort,
                 ipFromString("192.168.100.1")));
 
-        Future<Port> tunCapwapPortFuture =
+        Future<Port<?, ?>> tunCapwapPortFuture =
             connection.portsCreate(datapath, tunCapwapPort);
         fireReply();
 

@@ -8,15 +8,6 @@ import com.midokura.netlink.exceptions.NetlinkException;
 /**
 * // TODO: mtoader ! Please explain yourself.
 */
-public class Callback<T> {
+public interface Callback<T> extends com.midokura.util.functors.Callback<T, NetlinkException> {
 
-    public void onSuccess(T data) {
-    }
-
-    public void onTimeout() {
-    }
-
-    public void onError(NetlinkException e) {
-
-    }
 }

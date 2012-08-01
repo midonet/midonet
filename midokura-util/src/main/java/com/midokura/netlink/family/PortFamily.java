@@ -6,6 +6,7 @@ package com.midokura.netlink.family;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.sdn.dp.Port;
+import com.midokura.sdn.dp.PortOptions;
 
 /**
  * Abstraction for the NETLINK OvsVPort family of commands and attributes.
@@ -46,7 +47,7 @@ public class PortFamily
         public static final Attr<String> NAME = attr(3);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<Port.Options> OPTIONS = attrNested(4);
+        public static final Attr<PortOptions> OPTIONS = attrNested(4);
 
         /* u32 Netlink PID to receive upcalls */
         public static final Attr<Integer> UPCALL_PID = attr(5);

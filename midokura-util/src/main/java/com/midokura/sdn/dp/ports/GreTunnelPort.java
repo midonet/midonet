@@ -10,7 +10,7 @@ import com.midokura.sdn.dp.Port;
 /**
  * Description of a GRE tunnel datapath port.
  */
-public class GreTunnelPort extends Port<GreTunnelPort.Options, GreTunnelPort> {
+public class GreTunnelPort extends Port<GreTunnelPortOptions, GreTunnelPort> {
 
     public GreTunnelPort(@Nonnull String name) {
         super(name, Type.Gre);
@@ -22,14 +22,8 @@ public class GreTunnelPort extends Port<GreTunnelPort.Options, GreTunnelPort> {
     }
 
     @Override
-    public Options newOptions() {
-        return new Options();
+    public GreTunnelPortOptions newOptions() {
+        return new GreTunnelPortOptions();
     }
 
-    public class Options extends TunnelPortOptions<Options> {
-        @Override
-        protected Options self() {
-            return this;
-        }
-    }
 }

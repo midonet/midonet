@@ -46,7 +46,7 @@ public class OvsPortsSetTest
                    datapath, is(expectedDatapath()));
 
         Port expectedPort;
-        Future<Port> portFuture;
+        Future<Port<?, ?>> portFuture;
 
         expectedPort = expectedInternalPort();
         log.info("Get the internal port by name.");

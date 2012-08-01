@@ -3,8 +3,13 @@
 */
 package com.midokura.midolman.vrn
 
-import akka.actor.Actor
-import com.weiglewilczek.slf4s.Logging
+import akka.actor.{ActorRef, Actor}
+import java.util.UUID
+import akka.util.duration._
+import akka.event.Logging
+import collection.mutable
+import com.midokura.midolman.DatapathController.{PortInternalOpReply, CreatePortInternal}
+import com.midokura.sdn.dp.Ports
 
 object VirtualToPhysicalMapper {
 
@@ -16,14 +21,22 @@ object VirtualToPhysicalMapper {
      *
      * @param hostIdentifier is the identifier of the current host.
      */
-    case class LocalStateRequest(hostIdentifier: String)
+    case class LocalDatapathRequest(hostIdentifier: String)
 
     /**
      * Carries the local desired state information
      *
      * @param dpName is the name of the local datapath that we want.
      */
-    case class LocalStateReply(dpName: String)
+    case class LocalDatapathReply(dpName: String)
+
+    case class LocalPortsRequest(hostIdentifier: String)
+
+    //    * @param ports is a map from UUID to a pair of (netdevName, XX)
+    //    , ports: Map[UUID, (String, String)]
+
+
+    case class LocalPortsReply(ports: Map[UUID, String])
 
 }
 
@@ -45,18 +58,36 @@ object VirtualToPhysicalMapper {
  * </li>
  * </ul>
  */
-class VirtualToPhysicalMapper extends Actor with Logging {
+class VirtualToPhysicalMapper extends Actor {
 
     import VirtualToPhysicalMapper._
 
+    val log = Logging(context.system, this)
+    val localPortsActors: mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
+
     protected def receive = {
-        case LocalStateRequest(host) =>
+        case LocalDatapathRequest(host) =>
             // TODO: Implement this properly
-            logger.info("Go local state request for host: " + host)
-            sender ! LocalStateReply("bibi")
+            log.info("Got local state request for host: " + host)
+            sender ! LocalDatapathReply("new_test")
+
+        case LocalPortsRequest(host) =>
+            localPortsActors.put(host, sender)
+            sender ! LocalPortsReply(
+                ports = Map(
+                    UUID.randomUUID() -> "xx",
+                    UUID.randomUUID() -> "xy"
+                ))
+
+            log.info("Will send event in 2 seconds to: {}", localPortsActors.get(host).get)
+            context.system.scheduler.scheduleOnce(2 seconds,
+                localPortsActors.get(host).get,
+                LocalPortsReply(
+                    ports = Map(UUID.randomUUID() -> "xz",
+                        UUID.randomUUID() -> "xy")))
 
         case value =>
-            logger.error("Unknown message: " + value)
+            log.error("Unknown message: " + value)
     }
 }
 

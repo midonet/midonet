@@ -9,9 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static java.lang.String.format;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
@@ -37,6 +38,9 @@ import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKey;
 import com.midokura.sdn.dp.flows.FlowStats;
 import com.midokura.util.eventloop.Reactor;
+import com.midokura.util.functors.Callbacks;
+import com.midokura.util.functors.ComposingCallback;
+import com.midokura.util.functors.Functor;
 import static com.midokura.netlink.Netlink.Flag;
 import static com.midokura.netlink.family.FlowFamily.AttrKey;
 
@@ -98,49 +102,72 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     return;
                 }
 
-                Callback<Port> callback = new Callback<Port>() {
-                    AtomicInteger pendingResponses =
-                        new AtomicInteger(data.size());
+                ComposingCallback<Port<?,?>,NetlinkException> portsSetCallback =
+                    Callbacks.composeTo(
+                        Callbacks.transform(
+                            installCallback,
+                            new Functor<MultiResult<Port<?, ?>>, Boolean>() {
+                                @Override
+                                public Boolean apply(MultiResult<Port<?, ?>> arg0) {
+                                    return true;
+                                }
+                            }));
 
-                    boolean timeout = false;
-                    NetlinkException ex = null;
+                for (Port<?, ?> port : data) {
+                        @SuppressWarnings("unchecked")
+                        Callback<Port<?, ?>> callback =
+                        portsSetCallback.createCallback(
+                            format("SET upcall_id on port: {}", port.getName()),
+                            Callback.class
+                        );
 
-                    @Override
-                    public void onSuccess(Port data) {
-                        handleCompletion(pendingResponses.decrementAndGet());
-                    }
-
-                    @Override
-                    public void onTimeout() {
-                        timeout = true;
-                        handleCompletion(pendingResponses.decrementAndGet());
-                    }
-
-                    @Override
-                    public void onError(NetlinkException e) {
-                        if (ex == null)
-                            ex = e;
-
-                        log.error("Exception while setting port data");
-                        handleCompletion(pendingResponses.decrementAndGet());
-                    }
-
-                    protected void handleCompletion(int value) {
-                        if (value == 0) {
-                            if (timeout) {
-                                installCallback.onTimeout();
-                            } else if (ex != null) {
-                                installCallback.onError(ex);
-                            } else {
-                                installCallback.onSuccess(true);
-                            }
-                        }
-                    }
-                };
-
-                for (Port port : data) {
                     _doPortsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
                 }
+
+
+//                Callback<Port<?, ?>> callback = new Callback<Port<?, ?>>() {
+//                    AtomicInteger pendingResponses =
+//                        new AtomicInteger(data.size());
+//
+//                    boolean timeout = false;
+//                    NetlinkException ex = null;
+//
+//                    @Override
+//                    public void onSuccess(Port data) {
+//                        handleCompletion(pendingResponses.decrementAndGet());
+//                    }
+//
+//                    @Override
+//                    public void onTimeout() {
+//                        timeout = true;
+//                        handleCompletion(pendingResponses.decrementAndGet());
+//                    }
+//
+//                    @Override
+//                    public void onError(NetlinkException e) {
+//                        if (ex == null)
+//                            ex = e;
+//
+//                        log.error("Exception while setting port data");
+//                        handleCompletion(pendingResponses.decrementAndGet());
+//                    }
+//
+//                    protected void handleCompletion(int value) {
+//                        if (value == 0) {
+//                            if (timeout) {
+//                                installCallback.onTimeout();
+//                            } else if (ex != null) {
+//                                installCallback.onError(ex);
+//                            } else {
+//                                installCallback.onSuccess(true);
+//                            }
+//                        }
+//                    }
+//                };
+//
+//                for (Port<?, ?> port : data) {
+//                    _doPortsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
+//                }
             }
 
             @Override
@@ -292,7 +319,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsGet(final @Nullable String name,
                                final @Nullable Integer portId,
                                final @Nullable Datapath datapath,
-                               final @Nonnull Callback<Port> callback,
+                               final @Nonnull Callback<Port<?, ?>> callback,
                                final long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -333,9 +360,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withPayload(message.getBuffer())
             .withCallback(
                 callback,
-                new Function<List<ByteBuffer>, Port>() {
+                new Function<List<ByteBuffer>, Port<?, ?>>() {
                     @Override
-                    public Port apply(@Nullable List<ByteBuffer> input) {
+                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
                         if (input == null || input.size() == 0 ||
                             input.get(0) == null)
                             return null;
@@ -347,9 +374,38 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .send();
     }
 
-    protected void _doPortsSet(@Nonnull final Port port,
+    @Override
+    protected void _doPortsDelete(@Nonnull Port<?, ?> port, @Nullable Datapath datapath,
+                                  @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
+
+        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
+        Builder builder = newMessage();
+        builder.addValue(datapathIndex);
+        builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
+
+        newRequest(portFamily, PortFamily.Cmd.DEL)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(builder.build().getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Port<?, ?>>() {
+                    @Override
+                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializePort(input.get(0), datapathIndex);
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    @Override
+    protected void _doPortsSet(@Nonnull final Port<?, ?> port,
                                @Nullable final Datapath datapath,
-                               @Nonnull final Callback<Port> callback,
+                               @Nonnull final Callback<Port<?, ?>> callback,
                                final long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -395,9 +451,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withPayload(message.getBuffer())
             .withCallback(
                 callback,
-                new Function<List<ByteBuffer>, Port>() {
+                new Function<List<ByteBuffer>, Port<?, ?>>() {
                     @Override
-                    public Port apply(@Nullable List<ByteBuffer> input) {
+                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
                         if (input == null || input.size() == 0 ||
                             input.get(0) == null)
                             return null;
@@ -455,8 +511,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPortsCreate(@Nonnull final Datapath datapath, @Nonnull Port port,
-                                  @Nonnull Callback<Port> callback,
+    protected void _doPortsCreate(@Nonnull final Datapath datapath,
+                                  @Nonnull Port<?, ?> port,
+                                  @Nonnull Callback<Port<?, ?>> callback,
                                   long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -509,9 +566,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         newRequest(portFamily, PortFamily.Cmd.NEW)
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback, new Function<List<ByteBuffer>, Port>() {
+            .withCallback(callback, new Function<List<ByteBuffer>, Port<?, ?>>() {
                 @Override
-                public Port apply(@Nullable List<ByteBuffer> input) {
+                public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
                     if (input == null || input.size() == 0 || input.get(
                         0) == null)
                         return null;
@@ -562,6 +619,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                         return deserializeDatapath(input.get(0));
                     }
                 })
+            .withTimeout(defReplyTimeout)
             .send();
     }
 
@@ -1021,7 +1079,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         return true;
     }
 
-    private class StateAwareCallback<T> extends Callback<T> {
+    private class StateAwareCallback<T> implements Callback<T> {
 
         Callback<Boolean> statusCallback;
 
@@ -1035,7 +1093,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         @Override
         public void onSuccess(T data) {
-            super.onSuccess(data);
+            statusCallback.onSuccess(Boolean.TRUE);
         }
 
         @Override

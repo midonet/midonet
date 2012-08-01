@@ -146,11 +146,10 @@ public class SelectLoop implements Reactor {
     }
 
     /**
-     * Unregisgters the supplied SelectableChannel with this SelectLoop.
+     * Removed the registration of the supplied SelectableChannel from this SelectLoop.
      *
      * @param ch  the channel
-     * @param ops interest ops
-     * @param arg argument that will be returned with the SelectListener
+     * @param ops interest ops used to previously register the channel
      * @throws ClosedChannelException if channel was already closed
      */
     public void unregister(SelectableChannel ch, int ops)

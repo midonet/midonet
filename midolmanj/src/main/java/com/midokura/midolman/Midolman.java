@@ -128,7 +128,6 @@ public class Midolman implements SelectListener, Watcher {
             }
         });
 
-
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
 
@@ -155,7 +154,9 @@ public class Midolman implements SelectListener, Watcher {
         injector.getInstance(MidolmanService.class).startAndWait();
 
         // fire the initialize message to an actor
-//        injector.getInstance(MidolmanActorsService.class).initProcessing();
+        injector.getInstance(MidolmanActorsService.class).initProcessing();
+
+        log.info("{} was initialized", MidolmanActorsService.class);
 
 //        basePath = config.getMidolmanRootKey();
 //        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());
