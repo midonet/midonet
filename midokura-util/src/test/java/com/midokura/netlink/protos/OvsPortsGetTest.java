@@ -3,7 +3,6 @@
 */
 package com.midokura.netlink.protos;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -32,20 +31,17 @@ public class OvsPortsGetTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
         connection = OvsDatapathConnection.create(channel, reactor);
     }
 
     @Test
     public void testPortsGet() throws Exception {
 
-        connection.initialize();
-        // fire reply
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("test");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage(1);
 
         Datapath datapath = dpFuture.get();
 
@@ -62,18 +58,18 @@ public class OvsPortsGetTest
 
     private void assertGetOps(int portNo, String portName,
                               Datapath datapath, Port expectedPort)
-        throws IOException, ExecutionException, InterruptedException {
+        throws Exception, ExecutionException, InterruptedException {
 
         log.info("Get the port by id: {}.", portName);
         Future<Port<?, ?>> portFuture = connection.portsGet(portNo, datapath);
-        fireReply();
+        exchangeMessage();
 
         assertThat("We should have gotten back the expected port",
                    portFuture.get(), is(expectedPort));
 
         log.info("Get the port by name: {}.", portName);
         portFuture = connection.portsGet(portName, null);
-        fireReply();
+        exchangeMessage();
 
         assertThat("We should have gotten back the expected port",
                    portFuture.get(), is(expectedPort));

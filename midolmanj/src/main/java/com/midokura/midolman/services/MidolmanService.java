@@ -12,7 +12,10 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Basic controller of the internal midolman services.
+ *
+ * Has the responsability of starting/stopping them when needed and in the
+ * proper order.
  */
 public class MidolmanService extends AbstractService {
 

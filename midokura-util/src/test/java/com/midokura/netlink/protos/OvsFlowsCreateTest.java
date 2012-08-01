@@ -42,13 +42,11 @@ public class OvsFlowsCreateTest
     @Test
     public void testFlowsCreate() throws Exception {
 
-        connection.initialize();
-        // fire reply
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("test");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage();
 
         Flow flow =
             new Flow()
@@ -70,7 +68,7 @@ public class OvsFlowsCreateTest
             connection.flowsCreate(dpFuture.get(), flow);
 
         // multi containing the ports data
-        fireReply();
+        exchangeMessage();
     }
 
     private Flow fifthFlow() {

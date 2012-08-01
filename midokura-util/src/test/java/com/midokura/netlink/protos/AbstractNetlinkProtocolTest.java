@@ -7,28 +7,46 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import com.google.common.util.concurrent.ValueFuture;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static junit.framework.Assert.fail;
 
 import com.midokura.netlink.AbstractNetlinkConnection;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.util.eventloop.Reactor;
+import com.midokura.util.eventloop.SelectLoop;
 
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
 public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends AbstractNetlinkConnection> {
 
+    private static final Logger log = LoggerFactory
+        .getLogger(AbstractNetlinkProtocolTest.class);
+
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
-    Reactor reactor = PowerMockito.mock(Reactor.class);
+    BlockingQueue<ValueFuture<ByteBuffer>> listWrites;
+    ScheduledExecutorService executorService;
+    Reactor reactor = null;
 
     NetlinkConnection connection;
 
     protected void setUp(final byte[][] responses) throws Exception {
+
+        executorService = Executors.newSingleThreadScheduledExecutor();
+        reactor = new SelectLoop(executorService);
+
         Netlink.Address remote = new Netlink.Address(0);
         Netlink.Address local = new Netlink.Address(uplinkPid());
 
@@ -53,10 +71,53 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
         PowerMockito.when(channel.read(Matchers.<ByteBuffer>any()))
                     .then(playbackResponseAnswer);
+
+        PowerMockito.when(channel.write(Matchers.<ByteBuffer>any())).then(
+            new Answer<Object>() {
+
+                @Override
+                public Object answer(InvocationOnMock invocation)
+                    throws Throwable {
+
+                    ValueFuture<ByteBuffer> future = ValueFuture.create();
+                    future.set(((ByteBuffer)invocation.getArguments()[0]));
+                    listWrites.offer(future);
+
+                    return null;
+                }
+            }
+        );
+
+        listWrites = new LinkedBlockingQueue<ValueFuture<ByteBuffer>>();
+    }
+
+
+
+    protected Future<ByteBuffer> waitWrite() throws InterruptedException {
+        return listWrites.poll(100, TimeUnit.MILLISECONDS);
+    }
+
+    protected void tearDown() throws Exception {
+        executorService.shutdown();
     }
 
     protected int uplinkPid() {
         return 294;
+    }
+
+    protected void exchangeMessage() throws Exception {
+        exchangeMessage(1);
+    }
+
+    protected void exchangeMessage(int replyCount) throws Exception {
+        try {
+            waitWrite().get(100, TimeUnit.MILLISECONDS);
+            while (replyCount-- > 0) {
+                fireReply();
+            }
+        } catch (TimeoutException e) {
+            fail("Waiting for the write operation timed out.");
+        }
     }
 
     protected void fireReply() throws IOException {
@@ -64,9 +125,8 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
     }
 
     protected void fireReply(int amount) throws IOException {
-        while ( amount > 0 ) {
+        while ( amount-- > 0 ) {
             connection.handleEvent(null);
-            amount--;
         }
     }
 
@@ -98,5 +158,14 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
         } catch (UnknownHostException e) {
             return 0;
         }
+    }
+
+    protected void initializeConnection(Future<Boolean> initialization, int messages) throws Exception {
+
+        while (messages-- > 0) {
+            exchangeMessage();
+        }
+
+        initialization.get();
     }
 }

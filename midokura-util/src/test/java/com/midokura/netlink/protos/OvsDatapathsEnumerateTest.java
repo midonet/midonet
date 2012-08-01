@@ -29,20 +29,11 @@ public class OvsDatapathsEnumerateTest extends AbstractNetlinkProtocolTest<OvsDa
     @Test
     public void testEnumerateDatapaths() throws Exception {
 
-        connection.initialize();
-
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
+        initializeConnection(connection.initialize(), 6);
 
         Future<Set<Datapath>> future = connection.datapathsEnumerate();
 
-        // fire the second received message
-        fireReply();
-        fireReply();
+        exchangeMessage(2);
 
         // validate decoding
         assertThat("The future was completed",

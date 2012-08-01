@@ -28,14 +28,7 @@ public class OvsDatapathsGetTest
     @Test
     public void testGetDatapath() throws Exception {
 
-        connection.initialize();
-
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> future;
 
@@ -43,13 +36,13 @@ public class OvsDatapathsGetTest
         datapath.setStats(datapath.new Stats().setHits(218).setMisses(153));
 
         future = connection.datapathsGet("test");
-        fireReply();
+        exchangeMessage();
 
         assertThat("The data was retrieved correctly",
                    future.get(), is(datapath));
 
         future = connection.datapathsGet(99);
-        fireReply();
+        exchangeMessage();
 
         assertThat("The data was retrieved correctly",
                    future.get(), is(datapath));

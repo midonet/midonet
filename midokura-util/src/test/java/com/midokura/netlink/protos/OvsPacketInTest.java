@@ -42,12 +42,11 @@ public class OvsPacketInTest
     @Test
     public void testPacketIn() throws Exception {
 
-        connection.initialize();
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("bibi");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage();
 
         Datapath datapath = dpFuture.get();
 
@@ -60,10 +59,10 @@ public class OvsPacketInTest
             connection.datapathsSetNotificationHandler(datapath,
                                                        notificationHandler);
 
-        fireReply(2);
+        exchangeMessage(2);
 
         // 10'th
-        fireReply();
+        exchangeMessage();
 
         assertThat("The datapath notification setup was completed properly",
                    result.get());

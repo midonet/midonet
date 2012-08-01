@@ -43,20 +43,17 @@ public class OvsFlowsEnumerateTest
     @Test
     public void testFlowsEnumerate() throws Exception {
 
-        connection.initialize();
-        // fire reply
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("test");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage();
 
         Future<Set<Flow>> flowsFuture =
             connection.flowsEnumerate(dpFuture.get());
 
         // multi containing the ports data
-        fireReply();
-        fireReply();
+        exchangeMessage(2);
 
         Set<Flow> flows = flowsFuture.get();
 

@@ -33,12 +33,11 @@ public class OvsPortsSetTest
     @Test
     public void testPortsSet() throws Exception {
 
-        connection.initialize();
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("test-ports");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage();
 
         Datapath datapath = dpFuture.get();
 
@@ -51,7 +50,7 @@ public class OvsPortsSetTest
         expectedPort = expectedInternalPort();
         log.info("Get the internal port by name.");
         portFuture = connection.portsGet("internalPort", null);
-        fireReply();
+        exchangeMessage();
 
         Port port = portFuture.get();
         assertThat("The returned port should match what we expected",
@@ -62,7 +61,7 @@ public class OvsPortsSetTest
 
         log.info("Updating port address.");
         portFuture = connection.portsSet(port, datapath);
-        fireReply();
+        exchangeMessage();
 
         expectedPort.setAddress(macFromString("aa:92:26:6c:43:2c"));
         assertThat("The returned port should match what we expected",

@@ -5,6 +5,7 @@ package com.midokura.netlink.protos;
 
 import java.util.concurrent.Future;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,21 +26,19 @@ public class OvsDatapathsDeleteTest
         connection = OvsDatapathConnection.create(channel, reactor);
     }
 
+    @Override
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+    }
+
     @Test
     public void testDeleteDatapath() throws Exception {
 
-        connection.initialize();
-
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> future = connection.datapathsDelete("test2");
-
-        fireReply();
+        exchangeMessage();
 
         Datapath datapath = new Datapath(107, "test2");
         datapath.setStats(datapath.new Stats());

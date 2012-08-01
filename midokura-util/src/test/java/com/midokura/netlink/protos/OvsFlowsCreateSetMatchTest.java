@@ -29,26 +29,24 @@ public abstract class OvsFlowsCreateSetMatchTest
 
     public void doTest() throws Exception {
 
-        connection.initialize();
-        // fire reply
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("bibi");
-        fireReply();
+        exchangeMessage();
         Datapath datapath = dpFuture.get();
 
         Future<Flow> flowFuture =
             connection.flowsCreate(dpFuture.get(),
                                    new Flow().setMatch(flowMatch()));
 
-        fireReply();
+        exchangeMessage();
         assertThat("The returned flow has the same Match as we wanted",
                    flowFuture.get().getMatch(), equalTo(flowMatch()));
 
         Future<Flow> retrievedFlowFuture =
             connection.flowsGet(datapath, flowMatch());
-        fireReply();
-        fireReply();
+
+        exchangeMessage(2);
         assertThat("The retrieved flow has the same Match as we wanted",
                    retrievedFlowFuture.get().getMatch(), equalTo(flowMatch()));
 
@@ -61,7 +59,7 @@ public abstract class OvsFlowsCreateSetMatchTest
 
         Future<Flow> flowWithActionsFuture = connection.flowsSet(datapath,
                                                                  updatedFlow);
-        fireReply();
+        exchangeMessage();
 
         assertThat("The updated flow has the same keySet as the requested one",
                    flowWithActionsFuture.get().getMatch(),

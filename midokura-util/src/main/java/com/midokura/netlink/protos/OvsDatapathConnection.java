@@ -46,7 +46,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
                                                            @Nonnull Callback<Packet> notificationHandler) {
         ValueFuture<Boolean> valueFuture = ValueFuture.create();
-        _doDatapathsSetNotificationHandler(datapath, notificationHandler,
+        datapathsSetNotificationHandler(datapath, notificationHandler,
                                            wrapFuture(valueFuture));
         return valueFuture;
     }
@@ -59,13 +59,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                                 @Nonnull final Callback<Packet> notificationHandler,
                                                 @Nonnull final Callback<Boolean> operationCallback) {
         _doDatapathsSetNotificationHandler(datapath, notificationHandler,
-                                           operationCallback);
+                                           operationCallback, DEF_REPLY_TIMEOUT);
     }
 
     protected abstract void
     _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
                                        @Nonnull final Callback<Packet> notificationHandler,
-                                       @Nonnull final Callback<Boolean> operationCallback);
+                                       @Nonnull final Callback<Boolean> operationCallback,
+                                       long timeoutMillis);
 
     /**
      * Future based api for enumerating datapaths.

@@ -201,7 +201,9 @@ public abstract class AbstractNetlinkConnection {
 
     private synchronized void processReadFromChannel(SelectionKey key) throws IOException {
 
-        log.debug("Handling event with key: {key:{}, ops:{}}", key.isValid(), key.readyOps());
+        if (key != null) {
+            log.debug("Handling event with key: {key:{}, ops:{}}", key.isValid(), key.readyOps());
+        }
 
         log.warn("Pending requests: {}" , pendingRequests);
 

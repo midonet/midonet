@@ -5,6 +5,7 @@ package com.midokura.netlink.protos;
 
 import java.util.concurrent.Future;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,26 +22,23 @@ public class OvsDatapathsCreateTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
         connection = OvsDatapathConnection.create(channel, reactor);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
     }
 
     @Test
     public void testCreateDatapath() throws Exception {
 
-        connection.initialize();
-
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
-        fireReply();
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> future = connection.datapathsCreate("test2");
 
         // fire the second received message
-        fireReply();
+        exchangeMessage();
 
         Datapath datapath = new Datapath(105, "test2");
         datapath.setStats(datapath.new Stats());

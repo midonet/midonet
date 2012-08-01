@@ -40,12 +40,11 @@ public class OvsPortsCreateAndEnumerateTest
     @Test
     public void testPortsCreate() throws Exception {
 
-        connection.initialize();
-        fireReply(6);
+        initializeConnection(connection.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.datapathsGet("test-port");
         // multi containing the datapaths data
-        fireReply();
+        exchangeMessage();
 
         Datapath datapath = dpFuture.get();
         assertThat("Datapath was parsed correctly",
@@ -59,7 +58,7 @@ public class OvsPortsCreateAndEnumerateTest
         Future<Port<?, ?>> internalPort =
             connection.portsCreate(datapath,
                                    Ports.newInternalPort("internalPort"));
-        fireReply();
+        exchangeMessage();
 
         expectedPort = expectedInternalPort();
         assertThat("Internal port was created correctly",
@@ -70,7 +69,7 @@ public class OvsPortsCreateAndEnumerateTest
         Future<Port<?, ?>> netdevPort =
             connection.portsCreate(datapath, Ports.newNetDevPort("netdevPort"));
 
-        fireReply();
+        exchangeMessage();
 
         expectedPort = expectedNetdevPort();
         assertThat("Netdev port was created correctly",
@@ -80,9 +79,9 @@ public class OvsPortsCreateAndEnumerateTest
         log.info("Creating an patch tunnel port.");
         PatchTunnelPort tunPatchPort = Ports.newPatchTunnelPort("tunPatchPort");
         tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
-        Future<Port<?, ?>> tunPatchPortFuture = connection.portsCreate(datapath,
-                                                                 tunPatchPort);
-        fireReply();
+        Future<Port<?, ?>> tunPatchPortFuture =
+            connection.portsCreate(datapath, tunPatchPort);
+        exchangeMessage();
 
         expectedPort = expectedPatchTunnelPort();
         assertThat("Patch Tunnel port was created correctly",
@@ -96,7 +95,7 @@ public class OvsPortsCreateAndEnumerateTest
 
         Future<Port<?, ?>> tunGrePortFuture = connection.portsCreate(datapath,
                                                                tunGrePort);
-        fireReply();
+        exchangeMessage();
 
         expectedPort = expectedGreTunnelPort();
         assertThat("Gre Tunnel port was created correctly",
@@ -114,7 +113,7 @@ public class OvsPortsCreateAndEnumerateTest
 
         Future<Port<?, ?>> tunCapwapPortFuture =
             connection.portsCreate(datapath, tunCapwapPort);
-        fireReply();
+        exchangeMessage();
 
         expectedPort = expectedCapwapTunnelPort();
         assertThat("Capwap Tunnel port was created correctly",
@@ -122,8 +121,7 @@ public class OvsPortsCreateAndEnumerateTest
         expectedPorts.add(expectedPort);
 
         Future<Set<Port<?, ?>>> portsFutures = connection.portsEnumerate(datapath);
-        fireReply();
-        fireReply();
+        exchangeMessage(2);
 
         for (Port<?, ?> port : expectedPorts) {
             assertThat("The ports list contains a created port",

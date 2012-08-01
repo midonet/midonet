@@ -45,7 +45,7 @@ import static com.midokura.netlink.Netlink.Flag;
 import static com.midokura.netlink.family.FlowFamily.AttrKey;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Netlink transport aware implementation of a OvsDatapathConnection.
  */
 public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
@@ -91,7 +91,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
                                                       @Nonnull Callback<Packet> notificationHandler,
-                                                      @Nonnull final Callback<Boolean> installCallback) {
+                                                      @Nonnull final Callback<Boolean> installCallback,
+                                                      final long timeoutMillis) {
         this.notificationHandler = notificationHandler;
 
         _doPortsEnumerate(datapath, new Callback<Set<Port<?, ?>>>() {
@@ -121,53 +122,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                             Callback.class
                         );
 
-                    _doPortsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
+                    _doPortsSet(port, datapath, callback, timeoutMillis);
                 }
 
-
-//                Callback<Port<?, ?>> callback = new Callback<Port<?, ?>>() {
-//                    AtomicInteger pendingResponses =
-//                        new AtomicInteger(data.size());
-//
-//                    boolean timeout = false;
-//                    NetlinkException ex = null;
-//
-//                    @Override
-//                    public void onSuccess(Port data) {
-//                        handleCompletion(pendingResponses.decrementAndGet());
-//                    }
-//
-//                    @Override
-//                    public void onTimeout() {
-//                        timeout = true;
-//                        handleCompletion(pendingResponses.decrementAndGet());
-//                    }
-//
-//                    @Override
-//                    public void onError(NetlinkException e) {
-//                        if (ex == null)
-//                            ex = e;
-//
-//                        log.error("Exception while setting port data");
-//                        handleCompletion(pendingResponses.decrementAndGet());
-//                    }
-//
-//                    protected void handleCompletion(int value) {
-//                        if (value == 0) {
-//                            if (timeout) {
-//                                installCallback.onTimeout();
-//                            } else if (ex != null) {
-//                                installCallback.onError(ex);
-//                            } else {
-//                                installCallback.onSuccess(true);
-//                            }
-//                        }
-//                    }
-//                };
-//
-//                for (Port<?, ?> port : data) {
-//                    _doPortsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
-//                }
+                portsSetCallback.enableResultCollection();
             }
 
             @Override
@@ -177,10 +135,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
             @Override
             public void onError(NetlinkException e) {
-                log.error("Exception while listing datapath ports");
                 installCallback.onError(e);
             }
-        }, DEF_REPLY_TIMEOUT);
+        }, timeoutMillis);
     }
 
     DatapathFamily datapathFamily;
