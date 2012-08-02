@@ -8,6 +8,9 @@ import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;

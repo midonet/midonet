@@ -12,8 +12,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.packets.IntIPv4;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Opt121;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Subnet;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Subnet;
 
 @XmlRootElement
 public class DhcpSubnet extends RelativeUriResource {

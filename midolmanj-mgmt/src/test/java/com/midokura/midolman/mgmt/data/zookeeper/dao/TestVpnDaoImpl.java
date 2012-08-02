@@ -18,9 +18,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dto.Vpn;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.VpnDaoImpl;
 import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestVpnDaoImpl {

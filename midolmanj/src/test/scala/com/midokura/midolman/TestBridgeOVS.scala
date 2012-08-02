@@ -32,8 +32,8 @@ OpenvSwitchDatabaseConnectionImpl,
 OpenvSwitchDatabaseConnectionBridgeConnector}
 import com.midokura.packets.MAC
 import com.midokura.packets.IntIPv4
-import com.midokura.midolman.state.{BridgeZkManager, MacPortMap, MockDirectory,
-PortToIntNwAddrMap, ZkPathManager}
+import state.zkManagers.BridgeZkManager
+import state.{MacPortMap, ZkPathManager, PortToIntNwAddrMap, MockDirectory}
 import com.midokura.midolman.vrn.VRNController
 import java.util.{List => JdkList}
 

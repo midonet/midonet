@@ -13,7 +13,7 @@
 package com.midokura.quagga
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
-import com.midokura.midolman.state.{PortZkManager, RouteZkManager}
+import com.midokura.midolman.state.zkManagers.{PortZkManager, RouteZkManager}
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig
 import com.midokura.midolman.state.{NoStatePathException,
                                     StatePathExistsException}

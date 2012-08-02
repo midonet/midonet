@@ -9,9 +9,7 @@
 
 package com.midokura.quagga
 
-import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager}
-import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
-import com.midokura.midolman.state.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.zkManagers.{BgpZkManager, AdRouteZkManager}
 import com.midokura.midolman.state.NoStatePathException
 
 import scala.collection.JavaConversions._
@@ -22,6 +20,8 @@ import java.net.{InetAddress, Socket}
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig
 
 
 /**

@@ -1,8 +1,7 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura Pte. Ltd.
  */
-package com.midokura.midolman.state;
+package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,14 +10,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.state.GreZkManager.GreKey;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -129,7 +131,7 @@ public class BridgeZkManager extends ZkManager {
      * @param config
      *            BridgeConfig object
      * @return A list of Op objects to represent the operations to perform.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
      *             Error accessing ZooKeeper.
@@ -165,7 +167,7 @@ public class BridgeZkManager extends ZkManager {
         ops.add(portSetMap.preparePortSetCreate(id));
 
         // Update GreKey to reference the bridge.
-        GreKey gre = new GreKey(id);
+        GreZkManager.GreKey gre = new GreZkManager.GreKey(id);
         ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
 
         ops.addAll(filterZkManager.prepareCreate(id));
@@ -181,7 +183,7 @@ public class BridgeZkManager extends ZkManager {
      * @param config
      *            the new bridge configuration.
      * @return The ZK operation required to update the bridge.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             if the BridgeConfig could not be serialized.
      */
     public Op prepareUpdate(UUID id, BridgeConfig config)
@@ -222,7 +224,7 @@ public class BridgeZkManager extends ZkManager {
      * @param entry
      *            Bridge ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
      *             ZooKeeper error occurred.
@@ -269,7 +271,7 @@ public class BridgeZkManager extends ZkManager {
      * @param bridge
      *            Bridge object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      * @throws KeeperException
      *             ZooKeeper error occurred.

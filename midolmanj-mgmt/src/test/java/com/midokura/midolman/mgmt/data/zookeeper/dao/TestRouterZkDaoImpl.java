@@ -20,9 +20,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.RouterZkDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.state.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)

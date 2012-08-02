@@ -17,7 +17,7 @@ import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeExtended;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueBridgeName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 
 /**
  * Class representing Virtual Bridge.

@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;

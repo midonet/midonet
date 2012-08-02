@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.ChainZkManager;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.vrn.VRNControllerIface;
 

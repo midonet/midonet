@@ -11,8 +11,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.VpnZkManager;
-import com.midokura.midolman.state.VpnZkManager.VpnConfig;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnConfig;
 
 /**
  * Class representing VPN.

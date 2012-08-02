@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +17,8 @@ import com.midokura.midolman.mgmt.data.dto.DhcpHost;
 import com.midokura.midolman.mgmt.data.dto.DhcpSubnet;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.state.BridgeDhcpZkManager;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Host;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Subnet;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Subnet;
 import com.midokura.midolman.state.StateAccessException;
 
 public class DhcpDaoImpl implements DhcpDao {

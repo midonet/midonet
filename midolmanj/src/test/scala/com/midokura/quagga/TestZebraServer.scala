@@ -22,11 +22,10 @@ import scala.collection.JavaConversions._
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
 import com.midokura.packets.IPv4
 import com.midokura.midolman.Setup
-import com.midokura.midolman.state.{BgpZkManager, MockDirectory, PortDirectory,
-                                    PortZkManager, RouteZkManager,
-                                    RouterZkManager, ZkPathManager}
-import com.midokura.midolman.state.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.Net
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 
 
 /**

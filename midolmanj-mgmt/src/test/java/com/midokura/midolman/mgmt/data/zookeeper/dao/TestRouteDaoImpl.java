@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -18,9 +19,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.RouteDaoImpl;
 import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.RouteZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestRouteDaoImpl {

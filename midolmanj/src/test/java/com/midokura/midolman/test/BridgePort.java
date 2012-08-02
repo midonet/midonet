@@ -7,6 +7,7 @@ package com.midokura.midolman.test;
 import java.util.Random;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus;
 
@@ -18,8 +19,6 @@ import com.midokura.midolman.rules.Condition;
 import com.midokura.midolman.rules.LiteralRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;

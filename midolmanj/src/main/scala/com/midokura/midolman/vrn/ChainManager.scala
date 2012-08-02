@@ -7,9 +7,9 @@ import akka.actor.Actor
 import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
-import com.midokura.midolman.state.{RuleZkManager, ChainZkManager}
-import com.midokura.midolman.state.ChainZkManager.ChainConfig
+import com.midokura.midolman.state.zkManagers.{ChainZkManager, RuleZkManager}
 import com.midokura.midolman.rules.{JumpRule, Rule}
+import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
 
 class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
                    val ruleMgr: RuleZkManager) extends Actor {

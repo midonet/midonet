@@ -10,6 +10,7 @@ import scala.Some
 
 import com.midokura.midolman.state._
 import com.midokura.packets.IntIPv4
+import zkManagers._
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent

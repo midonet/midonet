@@ -4,6 +4,7 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
+import com.midokura.midolman.state.zkManagers.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -54,19 +55,16 @@ import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.store.CassandraStore;
-import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.BgpZkManager;
-import com.midokura.midolman.state.BridgeDhcpZkManager;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortGroupZkManager;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkManager;

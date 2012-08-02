@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
-import com.midokura.midolman.state.AdRouteZkManager;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 

@@ -17,7 +17,7 @@ import com.midokura.midolman.mgmt.data.dto.Chain.ChainExtended;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueChainName;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 
 /**
  * Class representing chain.

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,6 @@ import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.PortFactory;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
 /**

@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpOption121;
 import com.midokura.packets.IntIPv4;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Opt121;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
 
 @XmlRootElement
 public class DhcpOption121 extends DtoDhcpOption121 {

@@ -13,7 +13,7 @@ import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 
 /**
  * Data access class for VPN.

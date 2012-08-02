@@ -8,19 +8,17 @@
 
 package com.midokura.midolman.portservice
 
-import com.midokura.midolman.state.{StateAccessException,
-                                    StatePathExistsException, VpnZkManager,
-                                    ZkManager}
-import com.midokura.midolman.state.VpnZkManager.{VpnConfig, VpnType}
+import com.midokura.midolman.state.zkManagers.VpnZkManager
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-import java.io.IOException
 import java.util.EnumMap
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
+import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnType, VpnConfig}
+import com.midokura.midolman.state.{StateAccessException, StatePathExistsException}
 
 
 object VpnPortAgent {

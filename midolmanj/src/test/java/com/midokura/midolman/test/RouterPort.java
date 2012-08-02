@@ -9,7 +9,7 @@ import java.util.UUID;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.StateAccessException;

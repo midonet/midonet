@@ -6,6 +6,8 @@ package com.midokura.midolman.vrn;
 import java.util.Collections;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFeaturesReply;
@@ -23,8 +25,6 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.util.Cache;

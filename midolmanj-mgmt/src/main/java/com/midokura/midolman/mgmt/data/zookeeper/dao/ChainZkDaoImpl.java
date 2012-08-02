@@ -18,8 +18,8 @@ import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.mgmt.data.dto.config.ChainNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.state.ChainZkManager;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 
@@ -72,7 +72,7 @@ public class ChainZkDaoImpl implements ChainZkDao {
      *
      * @see
      * com.midokura.midolman.mgmt.data.dao.zookeeper.ChainZkDao#prepareDelete
-     * (java.util.UUID, com.midokura.midolman.state.ChainZkManager.ChainConfig)
+     * (java.util.UUID, com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig)
      */
     @Override
     public List<Op> prepareDelete(Chain chain) throws StateAccessException {

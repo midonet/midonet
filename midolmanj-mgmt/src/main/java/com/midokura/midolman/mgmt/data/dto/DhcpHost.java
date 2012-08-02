@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.state.BridgeDhcpZkManager.Host;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
 
 @XmlRootElement
 public class DhcpHost extends RelativeUriResource {

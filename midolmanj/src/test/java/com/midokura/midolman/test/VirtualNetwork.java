@@ -4,18 +4,18 @@
 
 package com.midokura.midolman.test;
 
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import com.midokura.midolman.Setup;
-import com.midokura.midolman.state.BridgeZkManager;
-import com.midokura.midolman.state.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
-import com.midokura.midolman.state.RouterZkManager;
-import com.midokura.midolman.state.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
 public class VirtualNetwork {

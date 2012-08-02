@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -19,8 +20,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.BgpDaoImpl;
-import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.NoStatePathException;
 
 @RunWith(MockitoJUnitRunner.class)

@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.FiltersZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.util.CacheWithPrefix;

@@ -17,7 +17,7 @@ import com.midokura.packets.MAC;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
 public class L3DevicePort {

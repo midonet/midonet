@@ -22,7 +22,7 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.FiltersZkManager;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;

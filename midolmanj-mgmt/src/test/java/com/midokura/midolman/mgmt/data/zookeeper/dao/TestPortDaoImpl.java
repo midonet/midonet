@@ -9,6 +9,7 @@ import static org.mockito.Mockito.spy;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -23,9 +24,6 @@ import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.LogicalRouterPort;
 import com.midokura.midolman.mgmt.data.dto.MaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.PortDaoImpl;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.PortInUseException;
-import com.midokura.midolman.state.PortZkManager;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestPortDaoImpl {

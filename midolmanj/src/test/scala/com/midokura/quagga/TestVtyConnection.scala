@@ -16,13 +16,11 @@ import org.junit.Assume._
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.Setup
-import com.midokura.midolman.state.{AdRouteZkManager, BgpZkManager,
-                                    MockDirectory, PortDirectory,
-                                    PortZkManager, RouterZkManager,
-                                    ZkPathManager}
-import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig
-import com.midokura.midolman.state.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.{Net, Sudo}
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig
+import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 
 object TestBgpVtyConnection {
     private final val log =

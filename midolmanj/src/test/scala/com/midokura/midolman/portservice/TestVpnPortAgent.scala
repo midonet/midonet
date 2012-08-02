@@ -14,12 +14,10 @@ import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.Setup
-import com.midokura.midolman.state.{MockDirectory, PortDirectory,
-                                    PortZkManager, RouterZkManager,
-                                    StateAccessException, VpnZkManager,
-                                    ZkPathManager}
-import com.midokura.midolman.state.VpnZkManager.{VpnConfig, VpnType}
+import com.midokura.midolman.state.zkManagers.{PortZkManager, VpnZkManager, RouterZkManager}
 import com.midokura.midolman.util.Net
+import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnType, VpnConfig}
+import com.midokura.midolman.state.{StateAccessException, PortDirectory, ZkPathManager, MockDirectory}
 
 
 /**

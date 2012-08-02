@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.state;
+package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -62,7 +66,7 @@ public class ChainZkManager extends ZkManager {
      * @param config
      *            ChainConfig object.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareChainCreate(UUID id, ChainConfig config)
@@ -82,7 +86,7 @@ public class ChainZkManager extends ZkManager {
      * @param id
      *            Chain ID
      * @return A list of Op objects representing the operations to perform.
-     * @throws StateAccessException
+     * @throws com.midokura.midolman.state.StateAccessException
      */
     public List<Op> prepareChainDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();

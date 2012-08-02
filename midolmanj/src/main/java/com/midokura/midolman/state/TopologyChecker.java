@@ -19,6 +19,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -35,7 +40,7 @@ import org.codehaus.jackson.JsonParseException;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.packets.IntIPv4;
-import com.midokura.midolman.state.ChainZkManager.ChainConfig;
+import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.util.JSONSerializer;
 

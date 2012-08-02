@@ -12,7 +12,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.AdRouteZkManager.AdRouteConfig;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
 
 /**
  * Class representing advertising route.

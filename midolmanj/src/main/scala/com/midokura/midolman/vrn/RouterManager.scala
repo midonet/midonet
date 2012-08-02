@@ -9,10 +9,10 @@ import collection.JavaConversions._
 
 import org.apache.zookeeper.CreateMode
 
-import com.midokura.midolman.state.{RouteZkManager, RouterZkManager}
-import com.midokura.midolman.state.RouterZkManager.RouterConfig
+import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.util.JSONSerializer
+import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 
 class RouterManager(id: UUID, val mgr: RouterZkManager,
                     val routeMgr: RouteZkManager)

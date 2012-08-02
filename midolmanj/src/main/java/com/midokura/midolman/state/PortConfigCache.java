@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

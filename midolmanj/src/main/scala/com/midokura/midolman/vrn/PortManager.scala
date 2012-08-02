@@ -4,10 +4,11 @@
 package com.midokura.midolman.vrn
 
 import java.util.UUID
-import com.midokura.midolman.state.{PortConfig, PortZkManager}
+import com.midokura.midolman.state.zkManagers.PortZkManager
 import com.midokura.midolman.state.PortDirectory.{BridgePortConfig,
         MaterializedRouterPortConfig, LogicalBridgePortConfig}
 import com.midokura.packets.IntIPv4
+import com.midokura.midolman.state.PortConfig
 
 class PortManager(id: UUID, val mgr: PortZkManager,
                   val hostIp: IntIPv4) extends DeviceManager(id) {

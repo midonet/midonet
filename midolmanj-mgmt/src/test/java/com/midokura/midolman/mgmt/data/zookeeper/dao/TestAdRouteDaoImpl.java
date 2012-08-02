@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -18,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.AdRouteDaoImpl;
-import com.midokura.midolman.state.AdRouteZkManager;
 import com.midokura.midolman.state.NoStatePathException;
 
 @RunWith(MockitoJUnitRunner.class)

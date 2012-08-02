@@ -15,15 +15,13 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
 import com.midokura.midolman.state.MockDirectory
 import com.midokura.midolman.state.PortDirectory
-import com.midokura.midolman.state.PortZkManager
-import com.midokura.midolman.state.RouterZkManager
-import com.midokura.midolman.state.VpnZkManager
-import com.midokura.midolman.state.VpnZkManager.{VpnConfig, VpnType}
+import com.midokura.midolman.state.zkManagers.{PortZkManager, VpnZkManager, RouterZkManager}
 import com.midokura.midolman.state.ZkPathManager
 import com.midokura.midolman.util.Net
 import com.midokura.midolman.Setup
 import com.midokura.midolman.TestHelpers._
 import java.util
+import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnType, VpnConfig}
 
 /**
  * Test for OpenVpnPortService using Open vSwitch database connection.

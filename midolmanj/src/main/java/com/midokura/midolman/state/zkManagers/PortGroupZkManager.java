@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.state;
+package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +12,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;

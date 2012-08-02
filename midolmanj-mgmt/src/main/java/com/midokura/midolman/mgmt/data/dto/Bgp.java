@@ -12,7 +12,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.state.BgpZkManager.BgpConfig;
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 
 /**
  * Class representing BGP.

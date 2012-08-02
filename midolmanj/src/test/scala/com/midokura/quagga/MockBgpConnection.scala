@@ -6,12 +6,11 @@
 
 package com.midokura.quagga
 
-import com.midokura.midolman.state.BgpZkManager.BgpConfig
-
 import java.net.InetAddress
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
 
 
 class MockBgpConnection extends BgpConnection {

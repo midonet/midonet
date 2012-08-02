@@ -14,6 +14,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,15 +27,10 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.packets.MAC;
 import com.midokura.quagga.ZebraServer;
 import com.midokura.quagga.BgpVtyConnection;
-import com.midokura.midolman.state.AdRouteZkManager;
-import com.midokura.midolman.state.BgpZkManager;
 import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortZkManager;
-import com.midokura.midolman.state.RouteZkManager;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.VpnZkManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.BgpZkManager.BgpConfig;
+import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 
 import com.midokura.midolman.util.Net;
 

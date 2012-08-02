@@ -2,12 +2,16 @@
  * Copyright 2011 Midokura KK
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.state;
+package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -58,7 +62,7 @@ public class GreZkManager extends ZkManager {
      * @param gre
      *            GreKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
+     * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareGreUpdate(int key, GreKey gre)
@@ -82,7 +86,7 @@ public class GreZkManager extends ZkManager {
     /***
      * Constructs a list of operations to perform in a gre deletion.
      *
-     * @param entry
+     * @param greKey
      *            ZK entry of the gre to delete.
      */
     public List<Op> prepareGreDelete(int greKey) {

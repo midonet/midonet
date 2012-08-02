@@ -17,8 +17,8 @@ import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
-import com.midokura.midolman.state.PortGroupZkManager;
-import com.midokura.midolman.state.PortGroupZkManager.PortGroupConfig;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 

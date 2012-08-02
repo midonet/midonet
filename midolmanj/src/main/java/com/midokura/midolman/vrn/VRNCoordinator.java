@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.management.JMException;
 
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;

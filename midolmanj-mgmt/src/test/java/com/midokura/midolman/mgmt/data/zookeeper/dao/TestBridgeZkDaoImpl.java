@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doReturn;
 
 import java.util.UUID;
 
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -19,9 +20,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.BridgeZkDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
-import com.midokura.midolman.state.BridgeZkManager;
 import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)

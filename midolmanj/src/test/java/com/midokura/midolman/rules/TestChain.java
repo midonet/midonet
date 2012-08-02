@@ -5,6 +5,8 @@
 package com.midokura.midolman.rules;
 
 import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import junit.framework.Assert;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;

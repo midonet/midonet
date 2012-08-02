@@ -15,7 +15,7 @@ import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.state.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
