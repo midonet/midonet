@@ -38,9 +38,9 @@ object TestBridgeZkManager {
 
     @BeforeClass
     def initializeTest() {
-        val dir = new MockDirectory();
-        val basePath = "/midolman";
-        val pathMgr = new ZkPathManager(basePath);
+        val dir = new MockDirectory()
+        val basePath = "/midolman"
+        val pathMgr = new ZkPathManager(basePath)
         dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
         Setup.createZkDirectoryStructure(dir, basePath)
         bridgeMgr = new BridgeZkManager(dir, basePath)

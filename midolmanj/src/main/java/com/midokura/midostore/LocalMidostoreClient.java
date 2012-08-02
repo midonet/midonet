@@ -6,13 +6,13 @@ package com.midokura.midostore;
 import java.util.UUID;
 import javax.inject.Inject;
 
-import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.util.Callback1;
 
 public class LocalMidostoreClient implements MidostoreClient {
 
     @Inject
-    ZkConnection connection;
+    Directory directory;
 
     public LocalMidostoreClient() {
     }

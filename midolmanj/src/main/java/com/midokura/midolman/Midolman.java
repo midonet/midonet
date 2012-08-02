@@ -11,8 +11,6 @@ import java.io.PrintStream;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,8 +46,6 @@ import com.midokura.midolman.portservice.OpenVpnPortService;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
-import com.midokura.midolman.services.NetlinkConnectionService;
-import com.midokura.midolman.services.SelectLoopService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
@@ -90,12 +86,6 @@ public class Midolman implements SelectListener, Watcher {
     private Directory midonetDirectory;
 
     private Injector injector;
-
-    final List<Class<? extends Service>> services = new ArrayList<Class<? extends Service>>() {{
-        add(MidolmanActorsService.class);
-        add(SelectLoopService.class);
-        add(NetlinkConnectionService.class);
-    }};
 
     private Midolman() {
     }
@@ -170,8 +160,13 @@ public class Midolman implements SelectListener, Watcher {
         OvsDatapathConnection ovsDatapathConnection = injector.getInstance(OvsDatapathConnection.class);
 
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-        log.info("Datapaths: {} " +ovsDatapathConnection.datapathsEnumerate().get());
-        log.info("Ports: {} " +ovsDatapathConnection.portsEnumerate(ovsDatapathConnection.datapathsGet("new_test").get()).get());
+
+        log.info("Datapaths: {} " +
+            ovsDatapathConnection.datapathsEnumerate().get());
+
+        log.info("Ports: {} " +
+            ovsDatapathConnection.portsEnumerate(
+                ovsDatapathConnection.datapathsGet("new_test").get()).get());
 
 //        basePath = config.getMidolmanRootKey();
 //        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());

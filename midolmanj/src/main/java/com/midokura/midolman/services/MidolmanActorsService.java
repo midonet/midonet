@@ -166,4 +166,8 @@ public class MidolmanActorsService extends AbstractService {
             Patterns.ask(datapathControllerActor, getInitialize(), timeout),
             timeout.duration());
     }
+
+    public ActorSystem system() {
+        return actorSystem;
+    }
 }

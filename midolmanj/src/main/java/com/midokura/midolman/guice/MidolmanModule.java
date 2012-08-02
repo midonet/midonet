@@ -42,17 +42,13 @@ public class MidolmanModule extends AbstractModule {
         bind(SelectLoopProvider.class)
             .in(Singleton.class);
 
-        // midolman zookeeper connections
-        bind(ZkConnection.class)
-            .toProvider(ZKConnectionProvider.class)
-            .asEagerSingleton();
-
         bind(MidolmanConfig.class)
             .toProvider(MidolmanConfigProvider.class)
             .asEagerSingleton();
 
-        bind(Directory.class)
-            .toProvider(DirectoryProvider.class);
+        bindZookeeperConnection();
+
+        bindDirectory();
 
         bindMidostoreClient();
 
@@ -63,6 +59,17 @@ public class MidolmanModule extends AbstractModule {
 
         bind(MidolmanService.class)
             .asEagerSingleton();
+    }
+
+    protected void bindZookeeperConnection() {
+        bind(ZkConnection.class)
+            .toProvider(ZKConnectionProvider.class)
+            .asEagerSingleton();
+    }
+
+    protected void bindDirectory() {
+        bind(Directory.class)
+            .toProvider(DirectoryProvider.class);
     }
 
     protected void bindOvsDatapathConnection() {

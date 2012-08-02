@@ -31,7 +31,7 @@ public class MidolmanService extends AbstractService {
     @Inject
     SelectLoopService selectLoopService;
 
-    @Inject
+    @Inject(optional = true)
     ZkConnection zkConnection;
 
     @Override
@@ -49,7 +49,9 @@ public class MidolmanService extends AbstractService {
             stopService(netlinkConnectionService);
             stopService(selectLoopService);
 
-            zkConnection.close();
+            if (zkConnection != null)
+                zkConnection.close();
+
             notifyStopped();
         } catch (Exception e) {
             notifyFailed(e);
