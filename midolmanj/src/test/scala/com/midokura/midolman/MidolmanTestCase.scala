@@ -29,7 +29,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         config
     }
 
-    protected def datapathConnection(): OvsDatapathConnection = {
+    protected def dpConn(): OvsDatapathConnection = {
         injector.getInstance(classOf[OvsDatapathConnection])
     }
 
@@ -90,7 +90,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     def datapathPorts(datapath: Datapath):mutable.Map[String, Port[_, _]] = {
 
         val ports: mutable.Set[Port[_, _]] =
-            datapathConnection().portsEnumerate(datapath).get()
+            dpConn().portsEnumerate(datapath).get()
 
         val portsByName = mutable.Map[String, Port[_, _]]()
         for ( port <- ports ) {

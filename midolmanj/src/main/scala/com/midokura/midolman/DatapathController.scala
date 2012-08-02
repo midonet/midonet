@@ -282,15 +282,16 @@ class DatapathController(hostIdentifier: String) extends Actor {
             }
         }
 
-        // find ports that needs to be removes and post myself messages to
+        // find ports that need to be removed and post myself messages to
         // remove them
         for ((portName, portData) <- localPorts) {
-            if (!knownPortsByName.contains(portName) && !localPorts.contains(portName)) {
+            log.info("Looking at {} -> {}", portName, portData)
+            if (!knownPortsByName.contains(portName) || !localPorts.contains(portName)) {
                 portData match {
                     case p: NetDevPort =>
                         self ! DeletePortNetdev(p)
-                    case p: InternalPort if (p.getPortNo == 0) =>
-                    //
+                    case p: InternalPort if (p.getPortNo != 0) =>
+                        self ! DeletePortInternal(p)
                     case default =>
                         log.error("port type not matched {}", default)
                 }
