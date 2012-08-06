@@ -159,18 +159,18 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            Integer flags = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_FLAGS);
+            Integer flags = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_FLAGS);
 
             if (flags != null) {
                 this.flags = flags;
             }
 
-            dstIPv4 = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_DST_IPV4);
-            srcIPv4 = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_SRC_IPV4);
-            outKey = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_OUT_KEY);
-            inKey = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_IN_KEY);
-            tos = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_TOS);
-            ttl = message.getAttrValue(Attr.OVS_TUNNEL_ATTR_TTL);
+            dstIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_DST_IPV4);
+            srcIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_SRC_IPV4);
+            outKey = message.getAttrValueLong(Attr.OVS_TUNNEL_ATTR_OUT_KEY);
+            inKey = message.getAttrValueLong(Attr.OVS_TUNNEL_ATTR_IN_KEY);
+            tos = message.getAttrValueByte(Attr.OVS_TUNNEL_ATTR_TOS);
+            ttl = message.getAttrValueByte(Attr.OVS_TUNNEL_ATTR_TTL);
         } catch (Exception e) {
             return false;
         }

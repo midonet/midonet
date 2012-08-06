@@ -8,7 +8,6 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import akka.actor.ActorRef
 import com.midokura.sdn.dp.{Ports, Datapath}
 import collection.mutable
-import java.util.concurrent.TimeUnit
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 

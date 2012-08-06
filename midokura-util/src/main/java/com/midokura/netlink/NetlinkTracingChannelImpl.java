@@ -5,13 +5,13 @@ package com.midokura.netlink;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.nio.ByteBuffer;
 import java.nio.channels.spi.SelectorProvider;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.management.ManagementFactory;
 
 import com.midokura.util.DataDumper;
 
@@ -26,7 +26,7 @@ public class NetlinkTracingChannelImpl extends NetlinkChannelImpl {
     private static final Logger log = LoggerFactory
         .getLogger(NetlinkTracingChannelImpl.class);
 
-    String pid =  ManagementFactory.getRuntimeMXBean().getName();
+    String pid = ManagementFactory.getRuntimeMXBean().getName();
 
     File dumpFile;
 

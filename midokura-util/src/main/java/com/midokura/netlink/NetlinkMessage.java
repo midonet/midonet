@@ -137,7 +137,7 @@ public class NetlinkMessage {
         return buf.hasRemaining();
     }
 
-    public Byte getAttrValue(AttrKey<Byte> attr) {
+    public Byte getAttrValueByte(AttrKey<Byte> attr) {
         return new SingleAttributeParser<Byte>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -147,7 +147,7 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public Short getAttrValue(AttrKey<Short> attr) {
+    public Short getAttrValueShort(AttrKey<Short> attr) {
         return new SingleAttributeParser<Short>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -157,7 +157,7 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public Integer getAttrValue(AttrKey<Integer> attr) {
+    public Integer getAttrValueInt(AttrKey<Integer> attr) {
         return new SingleAttributeParser<Integer>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -167,7 +167,7 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public Long getAttrValue(AttrKey<Long> attr) {
+    public Long getAttrValueLong(AttrKey<Long> attr) {
         return new SingleAttributeParser<Long>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -177,7 +177,7 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public String getAttrValue(AttrKey<String> attr) {
+    public String getAttrValueString(AttrKey<String> attr) {
         return new SingleAttributeParser<String>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -189,7 +189,7 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public byte[] getAttrValue(final AttrKey<byte[]> attr) {
+    public byte[] getAttrValueBytes(final AttrKey<byte[]> attr) {
        return new SingleAttributeParser<byte[]>(attr) {
            @Override
            protected boolean parseBuffer(ByteBuffer buffer) {
@@ -271,7 +271,7 @@ public class NetlinkMessage {
     }
 
 
-    public NetlinkMessage getAttrValue(AttrKey<NetlinkMessage> attr) {
+    public NetlinkMessage getAttrValueNested(AttrKey<NetlinkMessage> attr) {
         return new SingleAttributeParser<NetlinkMessage>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {

@@ -5,7 +5,6 @@ package com.midokura.netlink;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.Pipe;
 import java.nio.channels.ServerSocketChannel;
@@ -15,6 +14,9 @@ import java.nio.channels.spi.SelectorProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+// uncomment this and the commented method below to let it compile for jdk7 properly.
+// import java.net.ProtocolFamily
 
 /**
  * A {@link SelectorProvider} service implementation that can create
@@ -63,6 +65,16 @@ public class NetlinkSelectorProvider extends SelectorProvider {
     public SocketChannel openSocketChannel() throws IOException {
         return underlyingSelector.openSocketChannel();
     }
+
+
+    /**
+     * WARN: implementation for jdk7 SelectorProvider methods
+     */
+//    @Override
+//    public DatagramChannel openDatagramChannel(ProtocolFamily family)
+//        throws IOException {
+//        return underlyingSelector.openDatagramChannel(family);
+//    }
 
     public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol protocol) {
         final String NAME = "com.midokura.netlink.NetlinkChannelImpl";

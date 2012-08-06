@@ -29,7 +29,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            probability = message.getAttrValue(Attr.PROBABILITY);
+            probability = message.getAttrValueInt(Attr.PROBABILITY);
             actions = message.getAttrValue(Attr.ACTIONS, FlowAction.Builder);
             return true;
         } catch (Exception e) {

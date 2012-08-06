@@ -74,7 +74,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
                     NetlinkMessage message = new NetlinkMessage(input.get(0));
                     // read result from res
-                    return message.getAttrValue(CtrlFamily.AttrKey.FAMILY_ID);
+                    return message.getAttrValueShort(CtrlFamily.AttrKey.FAMILY_ID);
                 }
             })
             .withTimeout(timeoutMillis)
@@ -108,7 +108,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
                     NetlinkMessage res = new NetlinkMessage(input.get(0));
 
-                    NetlinkMessage sub = res.getAttrValue(CtrlFamily.AttrKey.MCAST_GROUPS);
+                    NetlinkMessage sub = res.getAttrValueNested(CtrlFamily.AttrKey.MCAST_GROUPS);
 
                     if (sub == null)
                         return null;
@@ -116,9 +116,9 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                     sub.getShort();
                     sub.getShort();
 
-                    String name = sub.getAttrValue(CtrlFamily.AttrKey.MCAST_GRP_NAME);
+                    String name = sub.getAttrValueString(CtrlFamily.AttrKey.MCAST_GRP_NAME);
                     if ( name.equals(groupName) )
-                        return sub.getAttrValue(CtrlFamily.AttrKey.MCAST_GRP_ID);
+                        return sub.getAttrValueInt(CtrlFamily.AttrKey.MCAST_GRP_ID);
 
                     return null;
                 }

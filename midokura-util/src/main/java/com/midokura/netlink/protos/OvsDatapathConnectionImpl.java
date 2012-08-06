@@ -852,8 +852,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         Flow flow = new Flow();
         flow.setStats(msg.getAttrValue(AttrKey.STATS, new FlowStats()));
-        flow.setTcpFlags(msg.getAttrValue(AttrKey.TCP_FLAGS));
-        flow.setLastUsedTime(msg.getAttrValue(AttrKey.USED));
+        flow.setTcpFlags(msg.getAttrValueByte(AttrKey.TCP_FLAGS));
+        flow.setLastUsedTime(msg.getAttrValueLong(AttrKey.USED));
         flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
 
         List<FlowKey> flowKeys = msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
@@ -873,8 +873,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (dpIndex != 0 && actualDpIndex != dpIndex)
             return null;
 
-        String name = m.getAttrValue(PortFamily.Attr.NAME);
-        Integer type = m.getAttrValue(PortFamily.Attr.PORT_TYPE);
+        String name = m.getAttrValueString(PortFamily.Attr.NAME);
+        Integer type = m.getAttrValueInt(PortFamily.Attr.PORT_TYPE);
 
         if (type == null || name == null)
             return null;
@@ -883,10 +883,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             Ports.newPortByType(OvsPortType.getOvsPortTypeId(type), name);
 
         //noinspection unchecked
-        port.setAddress(m.getAttrValue(PortFamily.Attr.ADDRESS))
-            .setPortNo(m.getAttrValue(PortFamily.Attr.PORT_NO))
+        port.setAddress(m.getAttrValueBytes(PortFamily.Attr.ADDRESS))
+            .setPortNo(m.getAttrValueInt(PortFamily.Attr.PORT_NO))
             .setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()))
-            .setOptions(m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
+            .setOptions(
+                m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
 
         return port;
     }
@@ -897,12 +898,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage msg = new NetlinkMessage(buffer);
 
         int datapathIndex = msg.getInt();
-        packet.setData(msg.getAttrValue(PacketFamily.AttrKey.PACKET));
-        packet.setMatch(new FlowMatch(
-            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder)));
-        packet.setActions(
-            msg.getAttrValue(PacketFamily.AttrKey.ACTIONS, FlowAction.Builder));
-        packet.setUserData(msg.getAttrValue(PacketFamily.AttrKey.USERDATA));
+        packet
+            .setData(msg.getAttrValueBytes(PacketFamily.AttrKey.PACKET))
+            .setMatch(
+                new FlowMatch(
+                    msg.getAttrValue(PacketFamily.AttrKey.KEY,
+                                     FlowKey.Builder)))
+            .setActions(
+                msg.getAttrValue(
+                    PacketFamily.AttrKey.ACTIONS, FlowAction.Builder))
+            .setUserData(
+                msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA));
 
         return packet;
     }
@@ -914,7 +920,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         Datapath datapath = new Datapath(
             msg.getInt(),
-            msg.getAttrValue(DatapathFamily.Attr.NAME)
+            msg.getAttrValueString(DatapathFamily.Attr.NAME)
         );
 
         datapath.setStats(

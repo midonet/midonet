@@ -27,7 +27,7 @@ public class PatchTunnelPortOptions extends AbstractPortOptions {
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
-        peer = message.getAttrValue(PatchTunnelPort.Attr.OVS_PATCH_ATTR_PEER);
+        peer = message.getAttrValueString(PatchTunnelPort.Attr.OVS_PATCH_ATTR_PEER);
         return true;
     }
 

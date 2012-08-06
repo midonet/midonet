@@ -22,8 +22,8 @@ public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            uplinkPid = message.getAttrValue(Attr.OVS_USERSPACE_ATTR_PID);
-            userData = message.getAttrValue(Attr.OVS_USERSPACE_ATTR_USERDATA);
+            uplinkPid = message.getAttrValueInt(Attr.OVS_USERSPACE_ATTR_PID);
+            userData = message.getAttrValueLong(Attr.OVS_USERSPACE_ATTR_USERDATA);
             return true;
         } catch (Exception e) {
             return false;
