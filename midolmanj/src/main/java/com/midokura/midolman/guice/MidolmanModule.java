@@ -13,8 +13,6 @@ import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.services.NetlinkConnectionService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
-import com.midokura.midostore.LocalMidostoreClient;
-import com.midokura.midostore.MidostoreClient;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectLoop;
@@ -50,8 +48,6 @@ public class MidolmanModule extends AbstractModule {
 
         bindDirectory();
 
-        bindMidostoreClient();
-
         bindOvsDatapathConnection();
 
         bind(NetlinkConnectionService.class)
@@ -75,12 +71,6 @@ public class MidolmanModule extends AbstractModule {
     protected void bindOvsDatapathConnection() {
         bind(OvsDatapathConnection.class)
             .toProvider(OvsDatapathConnectionProvider.class)
-            .asEagerSingleton();
-    }
-
-    protected void bindMidostoreClient() {
-        bind(MidostoreClient.class)
-            .to(LocalMidostoreClient.class)
             .asEagerSingleton();
     }
 }

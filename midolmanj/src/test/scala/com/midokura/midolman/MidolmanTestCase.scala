@@ -19,13 +19,17 @@ import akka.pattern.ask
 import com.midokura.sdn.dp.{Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
+import com.midokura.midostore.module.MidostoreModule
+import com.midokura.midostore.services.MidostoreSetupService
+import com.midokura.midostore.MidostoreClient
+import java.util.UUID
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
 
     var injector: Injector = null
 
     protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
-        config.setProperty("[midolman].midolman_root_key", "/test/v3/midolman")
+	config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config
     }
 
@@ -35,6 +39,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
 
     protected def actors(): ActorSystem = {
         injector.getInstance(classOf[MidolmanActorsService]).system
+    }
+
+    protected def midoStore(): MidostoreClient = {
+	injector.getInstance(classOf[MidostoreClient])
+    }
+
+    protected def hostId(): UUID = {
+	UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
     }
 
     def topActor(name: String): ActorRef = {
@@ -51,7 +63,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
                 }
             },
             new MidolmanModule {
-
                 protected override def bindZookeeperConnection() {
                     // not needed here
                 }
@@ -70,10 +81,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
                         .asEagerSingleton()
                 }
             },
+	    new MidostoreModule(),
             new MidolmanActorsModule()
         )
 
         injector.getInstance(classOf[MidolmanService]).startAndWait()
+	injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
     }
 
     after {

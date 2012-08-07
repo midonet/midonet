@@ -18,6 +18,7 @@ class PortManager(id: UUID, val mgr: PortZkManager,
     refreshLocations()
 
     case object RefreshLocations
+
     val locCb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.

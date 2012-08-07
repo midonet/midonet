@@ -6,10 +6,14 @@ package com.midokura.midostore;
 
 import java.util.UUID;
 
-import com.midokura.midostore.PortBuilders.*;
 import com.midokura.midolman.util.Callback1;
+import com.midokura.midostore.PortBuilders.ExteriorBridgePortBuilder;
+import com.midokura.midostore.PortBuilders.ExteriorRouterPortBuilder;
+import com.midokura.midostore.PortBuilders.InteriorBridgePortBuilder;
+import com.midokura.midostore.PortBuilders.InteriorRouterPortBuilder;
 
 public interface MidostoreClient {
+
 
     enum PortType {
         InteriorBridge, ExteriorBridge, InteriorRouter, ExteriorRouter
@@ -31,5 +35,11 @@ public interface MidostoreClient {
 
     void getPort(UUID portID, ExteriorRouterPortBuilder builder);
 
-    void getLocalStateFor(String hostIdentifier, LocalStateBuilder builder);
+    void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder);
+
+    void setLocalVrnDatapath(UUID hostIdentifier, String datapathName);
+
+    void setLocalVrnPortMapping(UUID hostInterface, UUID portId, String tapName);
+
+    void removeLocalPortMapping(UUID hostIdentifier, UUID portId);
 }

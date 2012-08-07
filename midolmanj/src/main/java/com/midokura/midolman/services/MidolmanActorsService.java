@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman.services;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.Actor;
@@ -106,15 +107,14 @@ public class MidolmanActorsService extends AbstractService {
     }
 
     private Props getDatapathControllerProps() {
-        return
-            new Props(
-                new UntypedActorFactory() {
-                    @Override
-                    public Actor create() {
-                        return new DatapathController("");
-                    }
-                }
-            );
+	return new Props(DatapathController.class);
+//                new UntypedActorFactory() {
+//                    @Override
+//                    public Actor create() {
+//                        return new DatapathController();
+//                    }
+//                }
+//            );
     }
 
     private Props getVirtualTopologyActorFactory() {

@@ -8,6 +8,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import akka.actor.ActorRef
 import com.midokura.sdn.dp.{Ports, Datapath}
 import collection.mutable
+import java.util.UUID
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
@@ -15,11 +16,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     import DatapathController._
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
-        config.setProperty("[midolman].midolman_root_key", "/test/v3/midolman2")
-        config
+        super.fillConfig(config)
     }
 
-    def testDatapathFromZero() {
+    def testDatapathEmptyDefault() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
         dpConn().datapathsEnumerate().get() should have size 0
@@ -32,24 +32,18 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
 
         datapaths should have size 1
-        datapaths.head should have ('name ("new_test") )
+        datapaths.head should have('name("midonet"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 3
-        ports should contain key ("new_test")
-        ports should contain key ("xx")
-        ports should contain key ("xy")
+        ports should have size 1
+        ports should contain key ("midonet")
     }
 
-    def testDatapathSync() {
+    def testDatapathEmpty() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
-        val datapath = dpConn().datapathsCreate("new_test").get()
-        dpConn().portsCreate(datapath, Ports.newNetDevPort("a")).get()
-        dpConn().portsCreate(datapath, Ports.newInternalPort("t")).get()
-
-        dpConn().datapathsEnumerate().get() should have size 1
-        dpConn().portsEnumerate(datapath).get() should have size 3
+        midoStore().setLocalVrnDatapath(hostId, "test")
+        dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
         val reply = sendReply[InitializationComplete](dpController, Initialize())
@@ -59,12 +53,63 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
 
         datapaths should have size 1
-        datapaths.head should have ('name ("new_test") )
+        datapaths.head should have('name("test"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 3
-        ports should contain key ("new_test")
-        ports should contain key ("xx")
-        ports should contain key ("xy")
+        ports should have size 1
+        ports should contain key ("test")
+    }
+
+    def testDatapathEmptyOnePort() {
+        val dpController: ActorRef = topActor(DatapathController.Name)
+
+        midoStore().setLocalVrnDatapath(hostId, "test")
+        midoStore().setLocalVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+
+        dpConn().datapathsEnumerate().get() should have size 0
+
+        // send initialization message and wait
+        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        reply should not be (null)
+
+        // validate the final datapath state
+        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+
+        datapaths should have size 1
+        datapaths.head should have('name("test"))
+
+        val ports = datapathPorts(datapaths.head)
+        ports should have size 2
+        ports should contain key ("test")
+        ports should contain key ("port1")
+    }
+
+    def testDatapathExistingMore() {
+        val dpController: ActorRef = topActor(DatapathController.Name)
+
+        midoStore().setLocalVrnDatapath(hostId, "test")
+        midoStore().setLocalVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+
+        val dp = dpConn().datapathsCreate("test").get()
+        dpConn().portsCreate(dp, Ports.newNetDevPort("port2")).get()
+        dpConn().portsCreate(dp, Ports.newNetDevPort("port3")).get()
+
+        dpConn().datapathsEnumerate().get() should have size 1
+        dpConn().portsEnumerate(dp).get() should have size 3
+
+        // send initialization message and wait
+        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        reply should not be (null)
+
+        // validate the final datapath state
+        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+
+        datapaths should have size 1
+        datapaths.head should have('name("test"))
+
+        val ports = datapathPorts(datapaths.head)
+        ports should have size 2
+        ports should contain key ("test")
+        ports should contain key ("port1")
     }
 }

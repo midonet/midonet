@@ -35,7 +35,6 @@ import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.guice.ConfigurationModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
-import com.midokura.midolman.guice.MockOvsDatapathConnectionProvider;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
@@ -50,6 +49,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.VRNController;
+import com.midokura.midostore.module.MidostoreModule;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
@@ -139,13 +139,14 @@ public class Midolman implements SelectListener, Watcher {
         injector = Guice.createInjector(
             new ConfigurationModule(configFilePath),
             new MidolmanModule() {
-                @Override
-                protected void bindOvsDatapathConnection() {
-                    bind(OvsDatapathConnection.class)
-                        .toProvider(MockOvsDatapathConnectionProvider.class)
-                        .asEagerSingleton();
-                }
+//                @Override
+//                protected void bindOvsDatapathConnection() {
+//                    bind(OvsDatapathConnection.class)
+//                        .toProvider(MockOvsDatapathConnectionProvider.class)
+//                        .asEagerSingleton();
+//                }
             },
+	    new MidostoreModule(),
             new MidolmanActorsModule()
         );
 

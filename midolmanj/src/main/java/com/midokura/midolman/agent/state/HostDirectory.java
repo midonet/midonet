@@ -369,4 +369,64 @@ public class HostDirectory {
             // UUID is unique so we cannot copy it
         }
     }
+
+    public static class VirtualPortMapping {
+	UUID virtualPortId;
+	String localDeviceName;
+
+	public VirtualPortMapping() {
+	}
+
+	public VirtualPortMapping(UUID virtualPortId, String localDeviceName) {
+	    this.virtualPortId = virtualPortId;
+	    this.localDeviceName = localDeviceName;
+	}
+
+	public UUID getVirtualPortId() {
+	    return virtualPortId;
+	}
+
+	public void setVirtualPortId(UUID virtualPortId) {
+	    this.virtualPortId = virtualPortId;
+	}
+
+	public String getLocalDeviceName() {
+	    return localDeviceName;
+	}
+
+	public void setLocalDeviceName(String localDeviceName) {
+	    this.localDeviceName = localDeviceName;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+	    if (this == o) return true;
+	    if (o == null || getClass() != o.getClass()) return false;
+
+	    VirtualPortMapping that = (VirtualPortMapping) o;
+
+	    if (localDeviceName != null ? !localDeviceName.equals(
+		that.localDeviceName) : that.localDeviceName != null)
+		return false;
+	    if (virtualPortId != null ? !virtualPortId.equals(
+		that.virtualPortId) : that.virtualPortId != null) return false;
+
+	    return true;
+	}
+
+	@Override
+	public int hashCode() {
+	    int result = virtualPortId != null ? virtualPortId.hashCode() : 0;
+	    result = 31 * result + (localDeviceName != null ? localDeviceName.hashCode() : 0);
+	    return result;
+	}
+
+	@Override
+	public String toString() {
+	    return "VirtualPortMapping{" +
+		"virtualPortId=" + virtualPortId +
+		", localDeviceName='" + localDeviceName + '\'' +
+		'}';
+	}
+    }
 }

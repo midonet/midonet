@@ -884,4 +884,21 @@ public class ZkPathManager {
                 .append("/").append(String.format("%010d", commandId))
                 .toString();
     }
+
+
+    public String getHostVrnMappingsPath(UUID hostId) {
+	return getHostPath(hostId) + "/vrnMappings";
+    }
+
+    public String getHostVrnPortMappingsPath(UUID hostIdentifier) {
+	return getHostVrnMappingsPath(hostIdentifier) + "/ports";
+    }
+
+    public String getHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
+	return getHostVrnPortMappingsPath(hostIdentifier) + "/" + virtualPortId;
+    }
+
+    public String getHostVrnDatapathMappingPath(UUID hostIdentifier) {
+	return getHostVrnMappingsPath(hostIdentifier) + "/datapath";
+    }
 }
