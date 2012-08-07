@@ -19,7 +19,7 @@ import akka.pattern.ask
 import com.midokura.sdn.dp.{Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
-import com.midokura.midostore.module.MidostoreModule
+import com.midokura.midostore.module.MidoStoreModule
 import com.midokura.midostore.services.MidostoreSetupService
 import com.midokura.midostore.MidostoreClient
 import java.util.UUID
@@ -81,7 +81,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
                         .asEagerSingleton()
                 }
             },
-	    new MidostoreModule(),
+	    new MidoStoreModule(),
             new MidolmanActorsModule()
         )
 

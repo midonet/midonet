@@ -49,7 +49,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.VRNController;
-import com.midokura.midostore.module.MidostoreModule;
+import com.midokura.midostore.module.MidoStoreModule;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
@@ -146,7 +146,7 @@ public class Midolman implements SelectListener, Watcher {
 //                        .asEagerSingleton();
 //                }
             },
-	    new MidostoreModule(),
+	    new MidoStoreModule(),
             new MidolmanActorsModule()
         );
 

@@ -42,8 +42,8 @@ public class HostZkManager extends ZkManager {
         byte[] data = get(pathManager.getHostPath(id));
         HostDirectory.Metadata metadata;
         try {
-	    metadata = serializer.deserialize(data,
-					      HostDirectory.Metadata.class);
+            metadata = serializer.deserialize(data,
+                                              HostDirectory.Metadata.class);
         } catch (ZkStateSerializationException e) {
             String dataAsString = new String(data);
             throw new ZkStateSerializationException(
@@ -98,7 +98,7 @@ public class HostZkManager extends ZkManager {
         if (metadata != null) {
             try {
                 update(pathManager.getHostPath(hostId),
-		       serializer.serialize(metadata));
+                       serializer.serialize(metadata));
             } catch (ZkStateSerializationException e) {
                 throw new ZkStateSerializationException(
                     "Could not serialize host metadata for id: " + hostId,
@@ -402,107 +402,109 @@ public class HostZkManager extends ZkManager {
     }
 
     public Set<HostDirectory.VirtualPortMapping> getVirtualPortMappings(UUID hostIdentifier)
-	throws StateAccessException {
+        throws StateAccessException {
 
-	String virtualPortMappingPath = pathManager.getHostVrnPortMappingsPath(
-	    hostIdentifier);
+        String virtualPortMappingPath = pathManager.getHostVrnPortMappingsPath(
+            hostIdentifier);
 
-	Set<HostDirectory.VirtualPortMapping> portMappings =
-	    new HashSet<HostDirectory.VirtualPortMapping>();
+        Set<HostDirectory.VirtualPortMapping> portMappings =
+            new HashSet<HostDirectory.VirtualPortMapping>();
 
-	if (exists(virtualPortMappingPath)) {
-	    Set<String> children = getChildren(virtualPortMappingPath);
-	    for (String child : children) {
-		portMappings.add(
-		    serializer.deserialize(
-			get(pathManager.getHostVrnPortMappingPath(
-			    hostIdentifier,
-			    UUID.fromString(
-				child))),
-			HostDirectory.VirtualPortMapping.class
-		    )
-		);
-	    }
-	}
+        if (exists(virtualPortMappingPath)) {
+            Set<String> children = getChildren(virtualPortMappingPath);
+            for (String child : children) {
+                portMappings.add(
+                    serializer.deserialize(
+                        get(pathManager.getHostVrnPortMappingPath(
+                            hostIdentifier,
+                            UUID.fromString(
+                                child))),
+                        HostDirectory.VirtualPortMapping.class
+                    )
+                );
+            }
+        }
 
-	return portMappings;
+        return portMappings;
     }
 
     public void addVirtualDatapathMapping(UUID hostIdentifier, String datapathMapping)
-	throws StateAccessException {
+        throws StateAccessException {
 
-	List<Op> operations = new ArrayList<Op>();
+        List<Op> operations = new ArrayList<Op>();
 
-	if (!exists(pathManager.getHostPath(hostIdentifier)))
-	    operations.add(getPersistentCreateOp(pathManager.getHostPath(hostIdentifier), null));
+        if (!exists(pathManager.getHostPath(hostIdentifier)))
+            operations.add(
+                getPersistentCreateOp(pathManager.getHostPath(hostIdentifier),
+                                      null));
 
-	String virtualMappingPath =
-	    pathManager.getHostVrnMappingsPath(hostIdentifier);
+        String virtualMappingPath =
+            pathManager.getHostVrnMappingsPath(hostIdentifier);
 
 
-	if (!exists(virtualMappingPath)) {
-	    operations.add(getPersistentCreateOp(virtualMappingPath, null));
-	}
+        if (!exists(virtualMappingPath)) {
+            operations.add(getPersistentCreateOp(virtualMappingPath, null));
+        }
 
-	String hostVrnDatapathMappingPath =
-	    pathManager.getHostVrnDatapathMappingPath(hostIdentifier);
+        String hostVrnDatapathMappingPath =
+            pathManager.getHostVrnDatapathMappingPath(hostIdentifier);
 
-	if (exists(hostVrnDatapathMappingPath)) {
-	    operations.add(getDeleteOp(hostVrnDatapathMappingPath));
-	}
+        if (exists(hostVrnDatapathMappingPath)) {
+            operations.add(getDeleteOp(hostVrnDatapathMappingPath));
+        }
 
-	operations.add(
-	    getPersistentCreateOp(
-		hostVrnDatapathMappingPath,
-		serializer.serialize(datapathMapping)));
+        operations.add(
+            getPersistentCreateOp(
+                hostVrnDatapathMappingPath,
+                serializer.serialize(datapathMapping)));
 
-	multi(operations);
+        multi(operations);
     }
 
     public void addVirtualPortMapping(UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
-	throws StateAccessException {
+        throws StateAccessException {
 
-	String virtualMappingPath = pathManager.getHostVrnMappingsPath(
-	    hostIdentifier);
+        String virtualMappingPath = pathManager.getHostVrnMappingsPath(
+            hostIdentifier);
 
-	List<Op> operations = new ArrayList<Op>();
+        List<Op> operations = new ArrayList<Op>();
 
-	if (!exists(virtualMappingPath)) {
-	    operations.add(getPersistentCreateOp(virtualMappingPath, null));
-	}
+        if (!exists(virtualMappingPath)) {
+            operations.add(getPersistentCreateOp(virtualMappingPath, null));
+        }
 
-	String hostVrnPortMappingsPath =
-	    pathManager.getHostVrnPortMappingsPath(hostIdentifier);
+        String hostVrnPortMappingsPath =
+            pathManager.getHostVrnPortMappingsPath(hostIdentifier);
 
-	if (!exists(hostVrnPortMappingsPath)) {
-	    operations.add(
-		getPersistentCreateOp(hostVrnPortMappingsPath, null));
-	}
+        if (!exists(hostVrnPortMappingsPath)) {
+            operations.add(
+                getPersistentCreateOp(hostVrnPortMappingsPath, null));
+        }
 
-	String hostVrnPortMappingPath =
-	    pathManager.getHostVrnPortMappingPath(hostIdentifier,
-						  portMapping.getVirtualPortId());
+        String hostVrnPortMappingPath =
+            pathManager.getHostVrnPortMappingPath(hostIdentifier,
+                                                  portMapping.getVirtualPortId());
 
-	if (exists(hostVrnPortMappingPath)) {
-	    operations.add(getDeleteOp(hostVrnPortMappingPath));
-	}
+        if (exists(hostVrnPortMappingPath)) {
+            operations.add(getDeleteOp(hostVrnPortMappingPath));
+        }
 
-	operations.add(
-	    getPersistentCreateOp(
-		hostVrnPortMappingPath,
-		serializer.serialize(portMapping)));
+        operations.add(
+            getPersistentCreateOp(
+                hostVrnPortMappingPath,
+                serializer.serialize(portMapping)));
 
-	multi(operations);
+        multi(operations);
     }
 
     public void removeVirtualPortMapping(UUID hostIdentifier, UUID portId)
-	throws StateAccessException {
+        throws StateAccessException {
 
-	String virtualMappingPath =
-	    pathManager.getHostVrnPortMappingPath(hostIdentifier, portId);
+        String virtualMappingPath =
+            pathManager.getHostVrnPortMappingPath(hostIdentifier, portId);
 
-	if (exists(virtualMappingPath)) {
-	    delete(virtualMappingPath);
-	}
+        if (exists(virtualMappingPath)) {
+            delete(virtualMappingPath);
+        }
     }
 }

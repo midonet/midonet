@@ -4,18 +4,14 @@
 package com.midokura.midolman.agent.modules;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.Scopes;
 
 import com.midokura.midolman.agent.commands.executors.CommandInterpreter;
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.midolman.MidolmanProvidedConnectionsModule;
 import com.midokura.midolman.agent.scanner.DefaultInterfaceScanner;
 import com.midokura.midolman.agent.scanner.InterfaceScanner;
-import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.agent.updater.DefaultInterfaceDataUpdater;
 import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
-import com.midokura.midolman.state.Directory;
 
 /**
  * Abstract Guice module implementation that will configure guice with most of the
@@ -37,12 +33,5 @@ public abstract class AbstractAgentModule extends AbstractModule {
         bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
         bind(CommandInterpreter.class).in(Scopes.SINGLETON);
-    }
-
-    @Provides
-    HostZkManager buildHostManager(Directory directory,
-                                   HostAgentConfiguration configuration) {
-        return new HostZkManager(directory,
-                                 configuration.getZooKeeperBasePath());
     }
 }
