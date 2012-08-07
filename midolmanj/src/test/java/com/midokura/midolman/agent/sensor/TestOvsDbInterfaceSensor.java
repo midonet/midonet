@@ -21,6 +21,7 @@ import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.modules.AbstractAgentModule;
+import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.openvswitch.BridgeBuilder;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
@@ -75,6 +76,11 @@ public class TestOvsDbInterfaceSensor {
             @Provides
             Directory buildDirectory() {
                 return new MockDirectory();
+            }
+
+            @Provides
+            HostZkManager buildZkManager(Directory directory, HostAgentConfiguration agentConfiguration) {
+                return new HostZkManager(directory, agentConfiguration.getZooKeeperBasePath());
             }
         });
 

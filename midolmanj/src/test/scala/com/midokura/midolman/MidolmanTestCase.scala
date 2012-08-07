@@ -81,7 +81,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
                         .asEagerSingleton()
                 }
             },
-	    new MidoStoreModule(),
+            new MidoStoreModule(),
             new MidolmanActorsModule()
         )
 

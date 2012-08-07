@@ -92,6 +92,11 @@ public class DefaultInterfaceDataUpdaterTest {
                 // not used in this test yet so not necessary to mock
                 return null;
             }
+
+            @Provides
+            HostZkManager buildZkManager(Directory directory, HostAgentConfiguration agentConfiguration) {
+                return new HostZkManager(directory, agentConfiguration.getZooKeeperBasePath());
+            }
         });
 
         directory = cleanDirectory;

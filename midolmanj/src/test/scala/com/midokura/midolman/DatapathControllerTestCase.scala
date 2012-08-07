@@ -11,7 +11,6 @@ import collection.mutable
 import java.util.UUID
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
-
     import scala.collection.JavaConversions._
     import DatapathController._
 
