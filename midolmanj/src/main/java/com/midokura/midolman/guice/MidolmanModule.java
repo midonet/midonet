@@ -8,14 +8,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 
+import com.google.inject.name.Names;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.services.NetlinkConnectionService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZookeeperConnectionWatcher;
+import com.midokura.midostore.LocalMidostoreClient;
+import com.midokura.midostore.MidostoreClient;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectLoop;
+import org.apache.zookeeper.Watcher;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
@@ -45,6 +50,10 @@ public class MidolmanModule extends AbstractModule {
             .asEagerSingleton();
 
         bindZookeeperConnection();
+
+        bind(Watcher.class)
+            .annotatedWith(Names.named("ZookeeperConnectionWatcher"))
+            .to(ZookeeperConnectionWatcher.class);
 
         bindDirectory();
 

@@ -33,4 +33,17 @@ public interface ZookeeperConfig {
     @ConfigInt(key = "session_timeout", defaultValue = 30000)
     public int getZooKeeperSessionTimeout();
 
+    /**
+     * ZooKeeper related configuration: session grace time.
+     *
+     * The session grace time indicates how much time after we receive a
+     * Zookeeper "disconnect" event we shutdown midolman. This value is
+     * not a zookeeper property but a midolman one.
+     *
+     * Time units are seconds
+     *
+     * @return zookeeper session grace time
+     */
+    @ConfigInt(key = "session_gracetime", defaultValue = 2)
+    public int getZooKeeperGraceTime();
 }

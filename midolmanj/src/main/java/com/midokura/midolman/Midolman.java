@@ -57,7 +57,7 @@ import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
 
 
-public class Midolman implements SelectListener, Watcher {
+public class Midolman implements SelectListener {
 
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
 
@@ -363,37 +363,6 @@ public class Midolman implements SelectListener, Watcher {
             controllerStubImpl.start();
         } catch (Throwable e) {
             log.warn("handleEvent resulted in Throwable!", e);
-        }
-    }
-
-    @Override
-    public synchronized void process(WatchedEvent event) {
-        if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
-            log.warn("KeeperState is Disconnected, shutdown soon");
-
-            disconnected_kill_timer = executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    log.error("have been disconnected for {} seconds, " +
-                                  "so exiting", disconnected_ttl_seconds);
-                    System.exit(-1);
-                }
-            }, disconnected_ttl_seconds, TimeUnit.SECONDS);
-        }
-
-        if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-            log.info("KeeperState is SyncConnected");
-
-            if (disconnected_kill_timer != null) {
-                log.info("canceling shutdown");
-                disconnected_kill_timer.cancel(true);
-                disconnected_kill_timer = null;
-            }
-        }
-
-        if (event.getState() == Watcher.Event.KeeperState.Expired) {
-            log.warn("KeeperState is Expired, shutdown now");
-            System.exit(-1);
         }
     }
 
