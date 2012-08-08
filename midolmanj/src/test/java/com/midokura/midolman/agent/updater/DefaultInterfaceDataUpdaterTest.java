@@ -16,6 +16,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midostore.module.MidoStoreModule;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
@@ -83,7 +84,8 @@ public class DefaultInterfaceDataUpdaterTest {
                 return cleanDirectory;
             }
 
-        });
+        },
+                new MidoStoreModule());
 
         directory = cleanDirectory;
         updater = injector.getInstance(InterfaceDataUpdater.class);
