@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.services;
+package com.midokura.midolman.host.services;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
@@ -14,7 +14,7 @@ import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostAgentConfig;
 import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

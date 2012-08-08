@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package com.midokura.midolman.guice;
+package com.midokura.midolman.host.guice;
 
 import com.google.inject.*;
 import com.midokura.midolman.host.commands.executors.CommandInterpreter;
@@ -9,7 +9,7 @@ import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
 import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
 import com.midokura.midolman.host.updater.InterfaceDataUpdater;
-import com.midokura.midolman.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostAgentConfig;
 
 /**
  * Module to configure dependencies for the host agent.

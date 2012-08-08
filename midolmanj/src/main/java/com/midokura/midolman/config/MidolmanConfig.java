@@ -17,7 +17,7 @@ import com.midokura.config.ConfigString;
 @ConfigGroup(MidolmanConfig.GROUP_NAME)
 public interface MidolmanConfig
     extends ZookeeperConfig, OpenvSwitchConfig, OpenFlowConfig,
-            MemcacheConfig, CassandraConfig, HostAgentConfig
+            MemcacheConfig, CassandraConfig
 {
     public final static String GROUP_NAME = "midolman";
 

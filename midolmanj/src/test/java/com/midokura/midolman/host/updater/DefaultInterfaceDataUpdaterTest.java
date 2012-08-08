@@ -11,7 +11,7 @@ import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.guice.HostAgentModule;
+import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;

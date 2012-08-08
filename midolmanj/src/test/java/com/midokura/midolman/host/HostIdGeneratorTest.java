@@ -7,7 +7,7 @@
 package com.midokura.midolman.host;
 
 import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostAgentConfig;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;

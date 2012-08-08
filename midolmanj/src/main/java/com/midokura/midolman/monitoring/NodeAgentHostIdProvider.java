@@ -7,7 +7,7 @@ package com.midokura.midolman.monitoring;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.midokura.midolman.services.HostAgentService;
+import com.midokura.midolman.host.services.HostAgentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

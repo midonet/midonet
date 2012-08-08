@@ -6,10 +6,9 @@ package com.midokura.midolman.services;
 import com.google.common.base.Service;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import com.midokura.midolman.host.services.HostAgentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.state.ZkConnection;
 
 /**
  * Basic controller of the internal midolman services.

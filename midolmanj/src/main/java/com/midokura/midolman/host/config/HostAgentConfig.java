@@ -1,13 +1,11 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.config;
+package com.midokura.midolman.host.config;
 
 import com.midokura.config.ConfigGroup;
 import com.midokura.config.ConfigInt;
 import com.midokura.config.ConfigString;
-import com.midokura.midolman.config.OpenvSwitchConfig;
-import com.midokura.midolman.config.ZookeeperConfig;
 
 /**
  * Interface that provides access to various configuration values
