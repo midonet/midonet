@@ -6,10 +6,11 @@ package com.midokura.midolman.agent;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import com.midokura.midolman.config.HostAgentConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.midolman.config.HostAgentConfig;
 import com.midokura.midolman.agent.interfaces.InterfaceDescription;
 import com.midokura.midolman.agent.scanner.InterfaceScanner;
 import com.midokura.midolman.agent.state.HostDirectory;
@@ -39,7 +40,7 @@ public class NodeInterfaceWatcher implements Runnable {
     InterfaceDataUpdater interfaceDataUpdater;
 
     @Inject
-    HostAgentConfiguration configuration;
+    HostAgentConfig configuration;
 
     boolean isRunning;
 
@@ -59,7 +60,7 @@ public class NodeInterfaceWatcher implements Runnable {
 
             interfaceDataUpdater.updateInterfacesData(hostId, hostMetadata, descriptions);
             try {
-                Thread.sleep(configuration.getWaitTimeBetweenScans());
+                Thread.sleep(configuration.getWaitTimeBetweenHostScans());
             } catch (InterruptedException e) {
                 log.debug("Got interrupted. Stopping watcher loop");
                 break;

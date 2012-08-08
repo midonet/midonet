@@ -6,10 +6,12 @@ package com.midokura.midolman.guice;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
 import com.google.inject.name.Names;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.config.OpenvSwitchConfig;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.services.NetlinkConnectionService;
 import com.midokura.midolman.state.Directory;

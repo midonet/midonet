@@ -10,33 +10,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.midolman.agent.scanner.InterfaceScanner;
+import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.config.HostAgentConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
-
-/**
- * Custom exception PropertiesFileNotWritableException
- */
-class PropertiesFileNotWritableException extends Exception {
-    PropertiesFileNotWritableException(String message) {
-        super(message);
-    }
-}
-
-/**
- * Custom exception HostIdAlreadyInUseException
- */
-class HostIdAlreadyInUseException extends Exception {
-    HostIdAlreadyInUseException(String message) {
-        super(message);
-    }
-}
 
 /**
  * HostIdGenerator will be used to generate unique ID for the controllers. These ids
@@ -53,6 +42,24 @@ public class HostIdGenerator {
     private final static Logger log =
         LoggerFactory.getLogger(HostIdGenerator.class);
     static private String uuidPropertyName = "host_uuid";
+
+    /**
+     * Custom exception PropertiesFileNotWritableException
+     */
+    public static class PropertiesFileNotWritableException extends Exception {
+        PropertiesFileNotWritableException(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Custom exception HostIdAlreadyInUseException
+     */
+    public static class HostIdAlreadyInUseException extends Exception {
+        HostIdAlreadyInUseException(String message) {
+            super(message);
+        }
+    }
 
     /**
      * Assumptions:
@@ -79,7 +86,7 @@ public class HostIdGenerator {
      *                                     be written
      * @throws InterruptedException
      */
-    public static UUID getHostId(HostAgentConfiguration config,
+    public static UUID getHostId(HostAgentConfig config,
                                  HostZkManager zkManager)
         throws HostIdAlreadyInUseException, StateAccessException,
                PropertiesFileNotWritableException,
@@ -90,7 +97,9 @@ public class HostIdGenerator {
         // if it's empty read it from local file
         if (myUUID == null) {
             log.debug("No previous ID found in the local config");
-            String localPropertiesFilePath = config.getPropertiesFilePath();
+            String localPropertiesFilePath =
+                    config.getHostPropertiesFilePath();
+
             myUUID = getIdFromPropertiesFile(localPropertiesFilePath,
                                              zkManager);
             // check if it's null, if so generate it
@@ -117,11 +126,11 @@ public class HostIdGenerator {
      * @throws StateAccessException        If there's a problem in reading the data
      *                                     from ZK. E.g. the path doesn't exist
      */
-    private static UUID getIdFromConfigFile(HostAgentConfiguration config,
+    private static UUID getIdFromConfigFile(HostAgentConfig config,
                                             HostZkManager zkManager)
         throws HostIdAlreadyInUseException, StateAccessException {
         UUID myUUID = null;
-        String id = config.getId();
+        String id = config.getHostId();
         if (!id.isEmpty()) {
             myUUID = UUID.fromString(id);
             // Check if it's unique, if not throw an exception. Conf file and

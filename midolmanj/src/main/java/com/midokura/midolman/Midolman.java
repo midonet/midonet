@@ -4,19 +4,6 @@
 
 package com.midokura.midolman;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -31,8 +18,8 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import com.midokura.midolman.agent.NodeAgent;
 import com.midokura.midolman.guice.ConfigurationModule;
+import com.midokura.midolman.guice.HostAgentModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
@@ -55,7 +42,29 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Midolman implements SelectListener {
 
@@ -78,7 +87,6 @@ public class Midolman implements SelectListener {
     private ZkConnection zkConnection;
     private ServerSocketChannel listenSock;
 
-    private NodeAgent nodeAgent;
     private MonitoringAgent monitoringAgent;
 
     private SelectLoop loop;
@@ -138,6 +146,7 @@ public class Midolman implements SelectListener {
 
         injector = Guice.createInjector(
             new ConfigurationModule(configFilePath),
+            new HostAgentModule(),
             new MidolmanModule() {
 //                @Override
 //                protected void bindOvsDatapathConnection() {

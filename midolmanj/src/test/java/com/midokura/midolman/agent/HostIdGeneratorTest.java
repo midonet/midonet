@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.midokura.midolman.config.HostAgentConfig;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -22,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.midolman.config.HostAgentConfig;
 import com.midokura.midolman.agent.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -40,8 +41,8 @@ public class HostIdGeneratorTest {
     File confFileFake;
     File propFile;
     String basePath = "/midolman";
-    HostAgentConfiguration config;
-    HostAgentConfiguration configFake;
+    HostAgentConfig config;
+    HostAgentConfig configFake;
 
     @After
     public void tearDown() throws Exception {
@@ -68,7 +69,7 @@ public class HostIdGeneratorTest {
             String.format("" +
                               "[%s]\n" +
                               "%s=%s\n",
-                          HostAgentConfiguration.GROUP_NAME,
+                          HostAgentConfig.GROUP_NAME,
                           uuidPropertyName, hostId1),
             out
         );
@@ -79,13 +80,13 @@ public class HostIdGeneratorTest {
             ConfigProvider
                 .providerForIniConfig(
                     new HierarchicalINIConfiguration(confFileName))
-                .getConfig(HostAgentConfiguration.class);
+                .getConfig(HostAgentConfig.class);
 
         confFileFake = new File(confFileNameFake);
 
         out = new FileWriter(confFileNameFake);
         IOUtils.write(
-            String.format("[%s]\n", HostAgentConfiguration.GROUP_NAME), out);
+            String.format("[%s]\n", HostAgentConfig.GROUP_NAME), out);
         out.flush();
         out.close();
 
@@ -93,7 +94,7 @@ public class HostIdGeneratorTest {
             ConfigProvider
                 .providerForIniConfig(
                     new HierarchicalINIConfiguration(confFileNameFake))
-                .getConfig(HostAgentConfiguration.class);
+                .getConfig(HostAgentConfig.class);
 
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, hostId2);
@@ -135,7 +136,7 @@ public class HostIdGeneratorTest {
         Assert.assertTrue(id.equals(idFromProperty));
     }
 
-    @Test(expected = HostIdAlreadyInUseException.class)
+    @Test(expected = HostIdGenerator.HostIdAlreadyInUseException.class)
     public void hostAlreadyAlive() throws Exception {
         UUID id = HostIdGenerator.getHostId(config, zkManager);
         // the first time works
@@ -146,7 +147,7 @@ public class HostIdGeneratorTest {
         HostIdGenerator.getHostId(config, zkManager);
     }
 
-    @Test(expected = PropertiesFileNotWritableException.class)
+    @Test(expected = HostIdGenerator.PropertiesFileNotWritableException.class)
     public void propertyFileCorrupted() throws Exception {
         // delete properties file so no ID will be loaded from there
         boolean res = propFile.delete();

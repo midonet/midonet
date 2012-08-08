@@ -3,22 +3,29 @@
  */
 package com.midokura.midolman.agent.updater;
 
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.agent.interfaces.InterfaceDescription;
+import com.midokura.midolman.agent.state.HostDirectory;
+import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.HostAgentModule;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.net.InetAddress;
+import java.util.*;
+
+import static com.midokura.midolman.agent.state.HostDirectory.Interface;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -26,19 +33,6 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
-
-import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
-import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.agent.modules.AbstractAgentModule;
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.agent.state.HostZkManager;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkPathManager;
-import static com.midokura.midolman.agent.state.HostDirectory.Interface;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
@@ -63,23 +57,25 @@ public class DefaultInterfaceDataUpdaterTest {
         pathManager = new ZkPathManager("");
 
         final HierarchicalConfiguration configuration = new HierarchicalConfiguration();
-        configuration.addNodes(HostAgentConfiguration.GROUP_NAME, Arrays.asList(
-            new HierarchicalConfiguration.Node("midolman_root_key", "")
+        configuration.addNodes(MidolmanConfig.GROUP_NAME,
+                Arrays.asList(new HierarchicalConfiguration.Node
+                        ("midolman_root_key", "")
         ));
 
-        Injector injector = Guice.createInjector(new AbstractAgentModule() {
+        Injector injector = Guice.createInjector(new HostAgentModule() {
 
             @Override
             protected void configure() {
                 super.configure();
                 bind(ConfigProvider.class)
-                    .toInstance(
-                        ConfigProvider.providerForIniConfig(configuration));
+                        .toInstance(
+                                ConfigProvider.providerForIniConfig
+                                        (configuration));
             }
 
             @Provides
-            HostAgentConfiguration buildConfiguration(ConfigProvider configProvider) {
-                return configProvider.getConfig(HostAgentConfiguration.class);
+            MidolmanConfig buildConfiguration(ConfigProvider configProvider) {
+                return configProvider.getConfig(MidolmanConfig.class);
             }
 
             @Provides
@@ -87,16 +83,6 @@ public class DefaultInterfaceDataUpdaterTest {
                 return cleanDirectory;
             }
 
-            @Provides
-            OpenvSwitchDatabaseConnection buildOvsConnection() {
-                // not used in this test yet so not necessary to mock
-                return null;
-            }
-
-            @Provides
-            HostZkManager buildZkManager(Directory directory, HostAgentConfiguration agentConfiguration) {
-                return new HostZkManager(directory, agentConfiguration.getZooKeeperBasePath());
-            }
         });
 
         directory = cleanDirectory;

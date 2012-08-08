@@ -14,7 +14,7 @@ import com.midokura.midolman.state.ZkConnection;
 /**
  * Basic controller of the internal midolman services.
  *
- * Has the responsability of starting/stopping them when needed and in the
+ * Has the responsibility of starting/stopping them when needed and in the
  * proper order.
  */
 public class MidolmanService extends AbstractService {
@@ -31,6 +31,9 @@ public class MidolmanService extends AbstractService {
     @Inject
     SelectLoopService selectLoopService;
 
+    @Inject
+    HostAgentService hostAgentService;
+
     //@Inject(optional = true)
     //ZkConnection zkConnection;
 
@@ -39,12 +42,14 @@ public class MidolmanService extends AbstractService {
         startService(selectLoopService);
         startService(netlinkConnectionService);
         startService(actorsService);
+        startService(hostAgentService);
         notifyStarted();
     }
 
     @Override
     protected void doStop() {
         try {
+            stopService(hostAgentService);
             stopService(actorsService);
             stopService(netlinkConnectionService);
             stopService(selectLoopService);

@@ -7,10 +7,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import com.midokura.midolman.config.HostAgentConfig;
+import com.midokura.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.config.HostAgentConfiguration;
+import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 
 /**
@@ -25,7 +27,7 @@ public class MidonetPortIdExecutor extends AbstractCommandExecutor<UUID> {
     OpenvSwitchDatabaseConnection ovsdb;
 
     @Inject
-    HostAgentConfiguration configuration;
+    MidolmanConfig configuration;
 
     private static final Logger log = LoggerFactory
         .getLogger(MidonetPortIdExecutor.class);
