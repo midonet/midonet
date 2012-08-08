@@ -3,7 +3,6 @@
 */
 package com.midokura.midolman.services;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.Actor;
@@ -29,14 +28,13 @@ import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.vrn.VirtualToPhysicalMapper;
 import com.midokura.midolman.vrn.VirtualTopologyActor;
-import static com.midokura.midolman.DatapathController.getInitialize;
 import static com.midokura.packets.IntIPv4.fromString;
 
 /**
  * Midolman actors coordinator internal service.
  * <p/>
- * It can start the actor system, spawn the initial actors, kill them when it's
- * time to shutdown.
+ * It can start the actor system, spawn the initial top level actors and kill
+ * them when it's time to shutdown.
  */
 public class MidolmanActorsService extends AbstractService {
 
@@ -67,24 +65,14 @@ public class MidolmanActorsService extends AbstractService {
         log.debug("Creating actors system.");
         actorSystem = ActorSystem.create("midolmanActors");
 
-        log.debug("Spawning the VirtualTopologyActor");
-        virtualTopologyActor =
-            actorSystem.actorOf(getVirtualTopologyActorFactory(),
-                                VirtualTopologyActor.Name());
-        log.debug("Spawned at {}", virtualTopologyActor);
+        virtualTopologyActor = startActor(getVirtualTopologyProps(),
+                                          VirtualTopologyActor.Name());
 
-        log.debug("Spawning the VirtualToPhysicalMapper");
-        virtualToPhysicalActor =
-            actorSystem.actorOf(getVirtualToPhysicalMapperActorFactory(),
-                                VirtualToPhysicalMapper.Name());
-        log.debug("Spawned at {}", virtualToPhysicalActor);
+        virtualToPhysicalActor = startActor(getVirtualToPhysicalProps(),
+                                            VirtualToPhysicalMapper.Name());
 
-        log.debug("Spawning the DatapathController");
-        datapathControllerActor =
-            actorSystem.actorOf(getDatapathControllerProps(),
-                                DatapathController.Name());
-        log.debug("Spawned at {}", datapathControllerActor);
-
+        datapathControllerActor = startActor(getDatapathControllerProps(),
+                                             DatapathController.Name());
 
         notifyStarted();
         log.info("Actors system started");
@@ -108,16 +96,9 @@ public class MidolmanActorsService extends AbstractService {
 
     private Props getDatapathControllerProps() {
         return new Props(DatapathController.class);
-//                new UntypedActorFactory() {
-//                    @Override
-//                    public Actor create() {
-//                        return new DatapathController();
-//                    }
-//                }
-//            );
     }
 
-    private Props getVirtualTopologyActorFactory() {
+    private Props getVirtualTopologyProps() {
         return
             new Props(
                 new UntypedActorFactory() {
@@ -132,15 +113,8 @@ public class MidolmanActorsService extends AbstractService {
                 });
     }
 
-    private Props getVirtualToPhysicalMapperActorFactory() {
-        return
-            new Props(
-                new UntypedActorFactory() {
-                    @Override
-                    public Actor create() {
-                        return new VirtualToPhysicalMapper();
-                    }
-                });
+    private Props getVirtualToPhysicalProps() {
+	return new Props(VirtualToPhysicalMapper.class);
     }
 
     private void stopActor(ActorRef actorRef) {
@@ -157,13 +131,28 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
+    protected ActorRef startActor(Props actorProps, String actorName) {
+        ActorRef actorRef = null;
+
+        try {
+            log.debug("Starting actor {}", actorName);
+            actorRef = actorSystem.actorOf(actorProps, actorName);
+            log.debug("Started at {}", actorRef);
+        } catch (Exception e) {
+            log.error("Failed {}", e);
+        }
+
+        return actorRef;
+    }
+
     public void initProcessing() throws Exception {
         log.debug("Sending Initialization message to datapath controller.");
 
         Timeout timeout = new Timeout(Duration.parse("1 second"));
 
         Await.result(
-            Patterns.ask(datapathControllerActor, getInitialize(), timeout),
+            Patterns.ask(datapathControllerActor,
+                         DatapathController.getInitialize(), timeout),
             timeout.duration());
     }
 

@@ -44,12 +44,12 @@ public class PacketFamily
         /**
          * Nested OVS_KEY_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowKey>> KEY = attr(2);
+        public static final AttrKey<List<FlowKey<?>>> KEY = attr(2);
 
         /**
          * Nested OVS_ACTION_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowAction>> ACTIONS = attr(3);
+        public static final AttrKey<List<FlowAction<?>>> ACTIONS = attr(3);
 
         /**
          * u64 OVS_ACTION_ATTR_USERSPACE arg.

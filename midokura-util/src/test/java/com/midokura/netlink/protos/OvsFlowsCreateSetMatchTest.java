@@ -71,5 +71,5 @@ public abstract class OvsFlowsCreateSetMatchTest
 
     protected abstract FlowMatch flowMatch();
 
-    protected abstract List<FlowAction> flowActions();
+    protected abstract List<FlowAction<?>> flowActions();
 }

@@ -5,9 +5,13 @@ package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
 import com.midokura.sdn.dp._
+import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
+import datapath.ErrorHandlingCallback
+import flows.{FlowActions, FlowKeys, FlowAction}
 import guice.ComponentInjectorHolder
 import ports._
+import vrn.dp.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import vrn.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.google.inject.Inject
@@ -18,7 +22,7 @@ import collection.mutable
 import akka.util.duration._
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
-import com.midokura.util.functors.Callback.{Result, MultiResult}
+import java.lang
 
 /**
  * Holder object that keeps the external message definitions
@@ -114,6 +118,12 @@ object DatapathController {
                                    timeout: Boolean, error: NetlinkException)
         extends PortOpReply[CapWapTunnelPort]
 
+    case class InstallFlow(flow: KernelFlow)
+
+    case class DeleteFlow(flow: KernelFlow)
+
+    case class SendPacket(packet: Packet)
+
 }
 
 
@@ -160,8 +170,10 @@ object DatapathController {
  * are passed on to the FlowController.
  */
 class DatapathController() extends Actor {
+
     import DatapathController._
     import VirtualToPhysicalMapper._
+    import FlowController._
     import context._
 
     val log = Logging(context.system, this)
@@ -171,6 +183,7 @@ class DatapathController() extends Actor {
 
     val hostId = UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
 
+    var flowController: ActorRef = null
     var virtualTopology: ActorRef = null
     var virtualToPhysicalMapper: ActorRef = null
 
@@ -189,15 +202,28 @@ class DatapathController() extends Actor {
 
         virtualToPhysicalMapper = context.actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
         virtualTopology = context.actorFor("/user/%s" format VirtualTopologyActor.Name)
+        flowController = context.actorFor("/user/%s" format FlowController.Name)
 
         context.become(DatapathInitializationActor)
     }
 
     var pendingUpdateCount = 0
 
-    var initializer:ActorRef = null
+    var initializer: ActorRef = null
 
     protected def receive = null
+
+    def installPacketInHandler() {
+        datapathConnection.datapathsSetNotificationHandler(datapath, new NetlinkCallback[Packet] {
+            def onSuccess(data: Packet) {
+                self ! _PacketIn(data)
+            }
+
+            def onTimeout() {}
+
+            def onError(e: NetlinkException) {}
+        }).get()
+    }
 
     val DatapathInitializationActor: Receive = {
 
@@ -206,10 +232,11 @@ class DatapathController() extends Actor {
          */
         case Initialize() =>
             initializer = sender
-	    virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
+            virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
 
         case m: InitializationComplete =>
-	    log.info("Initialization complete. Starting to act as a controller")
+            log.info("Initialization complete. Starting to act as a controller")
+            installPacketInHandler()
             become(DatapathControllerActor)
             initializer forward m
 
@@ -224,18 +251,27 @@ class DatapathController() extends Actor {
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
             if (sender == self)
-                doCreateDatapathPort(sender, newPortOp.port)
+                createDatapathPort(sender, newPortOp.port)
 
         case delPortOp: DeletePortOp[Port[_, _]] =>
             if (sender == self)
-                doDeleteDatapathPort(sender, delPortOp.port)
+                deleteDatapathPort(sender, delPortOp.port)
 
         case opReply: PortOpReply[Port[_, _]] =>
             if (sender == self)
-                doHandlePortOperationReply(opReply)
+                handlePortOperationReply(opReply)
 
         case value =>
             log.info("(behaving as InitializationActor). Not handling message: " + value)
+    }
+
+    def doHandlePacketIn(packet: Packet) {
+        val translatedPacket =
+            new Packet()
+                .setData(packet.getData)
+                .setMatch(translate(packet.getMatch))
+
+        flowController ! PacketIn(translatedPacket)
     }
 
     val DatapathControllerActor: Receive = {
@@ -249,62 +285,125 @@ class DatapathController() extends Actor {
             self ! m
 
         case LocalPortsReply(ports) =>
-	     doDatapathPortsUpdate(ports)
+            doDatapathPortsUpdate(ports)
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
-	    doCreateDatapathPort(sender, newPortOp.port)
+            createDatapathPort(sender, newPortOp.port)
 
         case delPortOp: DeletePortOp[Port[_, _]] =>
-            doDeleteDatapathPort(sender, delPortOp.port)
+            deleteDatapathPort(sender, delPortOp.port)
 
-	case opReply: PortOpReply[Port[_, _]] =>
-	    doHandlePortOperationReply(opReply)
+        case opReply: PortOpReply[Port[_, _]] =>
+            handlePortOperationReply(opReply)
+
+        case InstallFlow(flow) =>
+            handleInstallFlow(flow)
+
+        case SendPacket(packet) =>
+            handleSendPacket(packet)
 
         /**
          * internally posted replies reactions
          */
         case _PacketIn(packet) =>
-            doPacketIn(packet)
+            doHandlePacketIn(packet)
     }
 
-    def doHandlePortOperationReply(opReply: PortOpReply[_]) {
+    def handleInstallFlow(flow: KernelFlow) {
+
+        flow.setActions(translate(flow.getActions))
+        flow.setMatch(translate(flow.getMatch))
+        datapathConnection.flowsCreate(datapath, flow, new ErrorHandlingCallback[Flow] {
+            def onSuccess(data: Flow) {
+
+            }
+
+            def handleError(ex: NetlinkException, timeout: Boolean) {}
+        })
+    }
+
+    def handleSendPacket(packet: Packet) {
+        packet
+            .setMatch(translate(packet.getMatch))
+            .setActions(translate(packet.getActions))
+
+        datapathConnection.packetsExecute(datapath, packet, new ErrorHandlingCallback[lang.Boolean] {
+            def onSuccess(data: lang.Boolean) {
+
+            }
+
+            def handleError(ex: NetlinkException, timeout: Boolean) {}
+        })
+    }
+
+    private def translate(flowMatch: FlowMatch): FlowMatch = {
+        val translatedFlowMatch = new FlowMatch()
+
+        for (flowKey <- flowMatch.getKeys) {
+            flowKey match {
+                case vrnPort: FlowKeyVrnPort =>
+                    translatedFlowMatch.addKey(FlowKeys.inPort(10))
+                case value =>
+                    translatedFlowMatch.addKey(value)
+            }
+        }
+
+        translatedFlowMatch
+    }
+
+    private def translate(actions: java.util.List[FlowAction[_]]): java.util.List[FlowAction[_]] = {
+        val translatedActions = List[FlowAction[_]]()
+        for (action <- actions) {
+            action match {
+                case vrnPortAction: FlowActionVrnPortOutput =>
+                    translatedActions.add(FlowActions.output(10))
+                case value =>
+                    translatedActions.add(value)
+            }
+        }
+
+        translatedActions
+    }
+
+
+    def handlePortOperationReply(opReply: PortOpReply[_]) {
         log.info("Port operation reply: {}", opReply)
 
         pendingUpdateCount -= 1
 
-	opReply.port match {
-	    case p:Port[_, _] if opReply.error == null && !opReply.timeout =>
-		opReply.op match {
-		    case PortOperation.Create =>
-			localPorts.put(p.getName, p)
-		    case PortOperation.Delete =>
-			localPorts.remove(p.getName)
-		}
-	    case value =>
-		log.error("No match {}", value)
-	}
+        opReply.port match {
+            case p: Port[_, _] if opReply.error == null && !opReply.timeout =>
+                opReply.op match {
+                    case PortOperation.Create =>
+                        localPorts.put(p.getName, p)
+                    case PortOperation.Delete =>
+                        localPorts.remove(p.getName)
+                }
+            case value =>
+                log.error("No match {}", value)
+        }
 
         if (pendingUpdateCount == 0)
             self ! InitializationComplete()
     }
 
     def doDatapathPortsUpdate(ports: Map[UUID, String]) {
-	if (pendingUpdateCount != 0) {
-	    self ! LocalPortsReply(ports)
-	    return
-	}
+        if (pendingUpdateCount != 0) {
+            self ! LocalPortsReply(ports)
+            return
+        }
 
-	log.info("Migrating local datapath to configuration {}", ports)
-	log.info("Current known local ports: {}", localPorts)
+        log.info("Migrating local datapath to configuration {}", ports)
+        log.info("Current known local ports: {}", localPorts)
 
-	vifPorts.clear()
+        vifPorts.clear()
         // post myself messages to force the creation of missing ports
-	val newTaps:mutable.Set[String] = mutable.Set()
+        val newTaps: mutable.Set[String] = mutable.Set()
         for ((vifId, tapName) <- ports) {
-	    vifPorts.put(vifId, tapName)
-	    newTaps.add(tapName)
+            vifPorts.put(vifId, tapName)
+            newTaps.add(tapName)
             if (!localPorts.contains(tapName)) {
-		selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName)))
+                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName)))
             }
         }
 
@@ -312,12 +411,12 @@ class DatapathController() extends Actor {
         // remove them
         for ((portName, portData) <- localPorts) {
             log.info("Looking at {} -> {}", portName, portData)
-	    if (!knownPortsByName.contains(portName) && !newTaps.contains(portName)) {
+            if (!knownPortsByName.contains(portName) && !newTaps.contains(portName)) {
                 portData match {
                     case p: NetDevPort =>
-			selfPostPortCommand(DeletePortNetdev(p))
+                        selfPostPortCommand(DeletePortNetdev(p))
                     case p: InternalPort if (p.getPortNo != 0) =>
-			selfPostPortCommand(DeletePortInternal(p))
+                        selfPostPortCommand(DeletePortInternal(p))
                     case default =>
                         log.error("port type not matched {}", default)
                 }
@@ -325,37 +424,38 @@ class DatapathController() extends Actor {
         }
 
         log.info("Pending updates {}", pendingUpdateCount)
-        if ( pendingUpdateCount == 0 )
+        if (pendingUpdateCount == 0)
             self ! InitializationComplete()
     }
 
     private def selfPostPortCommand(command: PortOp[_]) {
-	pendingUpdateCount += 1
-	log.info("Scheduling port command {}", command)
-	self ! command
+        pendingUpdateCount += 1
+        log.info("Scheduling port command {}", command)
+        self ! command
     }
 
-    def doCreateDatapathPort(caller: ActorRef, port: Port[_, _]) {
+    def createDatapathPort(caller: ActorRef, port: Port[_, _]) {
         log.info("creating port: {} (by request of: {})", port, caller)
 
-        datapathConnection.portsCreate(datapath, port, new ErrorHandlingCallback[Port[_, _]] {
-            def onSuccess(data: Port[_, _]) {
-		for ( (vifId, tapName) <- vifPorts) {
-		    if (tapName == data.getName) {
-			log.info("VIF port {} mapped to local port number {}", vifId, data.getPortNo)
-			localToVifPorts.put(data.getPortNo.shortValue(), vifId)
-		    }
-		}
-		sendOpReply(caller, data, PortOperation.Create, null, timeout = false)
-            }
+        datapathConnection.portsCreate(datapath, port,
+            new ErrorHandlingCallback[Port[_, _]] {
+                def onSuccess(data: Port[_, _]) {
+                    for ((vifId, tapName) <- vifPorts) {
+                        if (tapName == data.getName) {
+                            log.info("VIF port {} mapped to local port number {}", vifId, data.getPortNo)
+                            localToVifPorts.put(data.getPortNo.shortValue(), vifId)
+                        }
+                    }
+                    sendOpReply(caller, data, PortOperation.Create, null, timeout = false)
+                }
 
-            def handleError(ex: NetlinkException, timeout: Boolean) {
-                sendOpReply(caller, port, PortOperation.Create, ex, timeout)
-            }
-        })
+                def handleError(ex: NetlinkException, timeout: Boolean) {
+                    sendOpReply(caller, port, PortOperation.Create, ex, timeout)
+                }
+            })
     }
 
-    def doDeleteDatapathPort(caller: ActorRef, port: Port[_, _]) {
+    def deleteDatapathPort(caller: ActorRef, port: Port[_, _]) {
         log.info("deleting port: {} (by request of: {})", port, caller)
 
         datapathConnection.portsDelete(port, datapath, new ErrorHandlingCallback[Port[_, _]] {
@@ -369,9 +469,8 @@ class DatapathController() extends Actor {
         })
     }
 
-    def sendOpReply(actor: ActorRef, port: Port[_, _], op: PortOperation.Value,
-                    ex: NetlinkException, timeout: Boolean) {
-
+    private def sendOpReply(actor: ActorRef, port: Port[_, _], op: PortOperation.Value,
+                            ex: NetlinkException, timeout: Boolean) {
         port match {
             case p: InternalPort =>
                 actor ! PortInternalOpReply(p, op, timeout, ex)
@@ -384,10 +483,6 @@ class DatapathController() extends Actor {
             case p: CapWapTunnelPort =>
                 actor ! TunnelCapwapOpReply(p, op, timeout, ex)
         }
-    }
-
-    private def doPacketIn(packet: Packet) {
-
     }
 
     private def readDatapathInformation(wantedDatapath: String) {
@@ -445,10 +540,11 @@ class DatapathController() extends Actor {
                     }
 
                     log.info("Local ports listed {}", ports)
-
-		    virtualToPhysicalMapper ! VirtualToPhysicalMapper.LocalPortsRequest(hostId)
+                    virtualToPhysicalMapper ! VirtualToPhysicalMapper.LocalPortsRequest(hostId)
                 }
 
+                // WARN: this is ugly. Normally we should configure the message error handling
+                // inside the router
                 def handleError(ex: NetlinkException, timeout: Boolean) {
                     context.system.scheduler.scheduleOnce(100 millis, new Runnable {
                         def run() {
@@ -460,142 +556,10 @@ class DatapathController() extends Actor {
         )
     }
 
-/*
-    def doDatapathCreatePorts(datapath: Datapath, retry: Int) {
-
-        log.info("Creating ports on the local datapath")
-        val collector: ComposingCallback[Port[_, _], NetlinkException] =
-            Callbacks.composeTo(
-                new NetlinkMultiCallback[Port[_, _]]() {
-                    override def onSuccess(multi: MultiResult[Port[_, _]]) {
-                        super.onSuccess(multi)
-                        //                        if ( (multi.hasTimeouts || multi.hasExceptions) && retry > 0)
-                        //                            self ! _NetlinkCreateDatapathPorts(localState, datapath, retry - 1)
-                    }
-                })
-
-        //        for ((uuid, (tapName, _)) <- localState.ports) {
-        //            log.info("Creating port: " + tapName)
-        //            datapathConnection.portsCreate(
-        //                datapath, Ports.newNetDevPort(tapName),
-        //                collector.createCallback(
-        //                    classOf[Callback[Port[_, _]]], "Create port:" + tapName))
-        //        }
-
-        collector.enableResultCollection()
-    }
-
-*/
-    def doDatapathStateUpdate(datapath: Datapath, ports: mutable.Set[Port[_, _]]) {
-        log.info("Updating the local datapath state.")
-        log.info("Datapath: " + datapath)
-        log.info("Ports: " + ports)
-
-        //        if (datapath == null) {
-        //            datapathConnection.datapathsCreate(localState.dpName,
-        //                new ErrorHandlingCallback[Datapath] {
-        //                    def onSuccess(data: Datapath) {
-        //                        self ! _NetlinkDatapathPortsStatus(localState, datapath, ports)
-        //                    }
-        //
-        //                    def handleError(ex: NetlinkException, timeout: Boolean) {
-        //                        self ! _NetlinkDatapathPortsStatus(localState, datapath, ports)
-        //                    }
-        //                }
-        //            )
-        //        }
-
-        // index the existing ports by name
-        var indexedPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
-
-        // remove the local port (it can't be deleted anyway
-        for (port <- ports) {
-            indexedPorts(port.getName) = port
-        }
-
-        // remove all the ports that are supposed to be in there
-        //        for ((uuid, (tapName, b)) <- localState.ports) {
-        //            indexedPorts -= tapName
-        //        }
-
-        indexedPorts -= datapath.getName
-
-        log.info("After removing local ports " + indexedPorts)
-        // if there are no spurious ports we go to the next phase
-        if (indexedPorts.size == 0) {
-            //            self ! _NetlinkCreateDatapathPorts(localState, datapath, 3)
-            return
-        }
-
-        for ((name, port) <- indexedPorts) {
-            port match {
-                case p: InternalPort =>
-                    self ! DeletePortInternal(p)
-                case p: NetDevPort =>
-                    self ! DeletePortNetdev(p)
-                case p: PatchTunnelPort =>
-                    self ! DeleteTunnelPatch(p)
-                case p: GreTunnelPort =>
-                    self ! DeleteTunnelGre(p)
-                case p: CapWapTunnelPort =>
-                    self ! DeleteTunnelCapwap(p)
-            }
-        }
-    }
-
     /**
      * Called when the netlink library receives a packet in
      *
      * @param packet the received packet
      */
     private case class _PacketIn(packet: Packet)
-
-    /**
-     * Called from the callback listing the datapath ports.
-     *
-     * @param datapath the datapath data
-     * @param ports the set of ports
-     */
-    private case class _NetlinkDatapathPortsStatus(datapath: Datapath,
-                                                   ports: mutable.Set[Port[_, _]])
-
-    private case class _NetlinkCreateDatapathPorts(datapath: Datapath)
-
-    abstract class ErrorHandlingCallback[T] extends NetlinkCallback[T] {
-
-        def onTimeout() {
-            handleError(null, timeout = true)
-        }
-
-        def onError(e: NetlinkException) {
-            handleError(e, timeout = false)
-        }
-
-        def handleError(ex: NetlinkException, timeout: Boolean)
-    }
-
-    class NetlinkMultiCallback[T] extends NetlinkCallback[MultiResult[T]] {
-        def onSuccess(multi: MultiResult[T]) {
-            if (multi.hasTimeouts || multi.hasExceptions) {
-                for (result <- multi) {
-                    if (result.timeout())
-                        onTimeout(result)
-                    else if (result.exception() != null)
-                        onError(result)
-                }
-            }
-        }
-
-        final def onTimeout() {}
-
-        def onTimeout(result: Result[T]) {
-            log.error("Operation \"{}\" timed out.", result.operation)
-        }
-
-        final def onError(e: NetlinkException) {}
-
-        def onError(result: Result[T]) {
-            log.error(result.exception(), "Operation \"{}\" failed.", result.operation)
-        }
-    }
 }

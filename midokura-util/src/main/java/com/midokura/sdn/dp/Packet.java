@@ -8,11 +8,23 @@ import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+import com.sun.istack.internal.NotNull;
+
+import com.midokura.netlink.Callback;
+import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKey;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * An abstraction over the Ovs kernel datapath Packet entity. Contains an
+ * {@link FlowMatch} object and a <code>byte[] data</code> member when triggered
+ * via a kernel notification and a set list of {@link FlowAction} actions when
+ * sent from userland.
+ *
+ * @see FlowMatch
+ * @see FlowAction
+ * @see OvsDatapathConnection#packetsExecute(Datapath, Packet)
+ * @see OvsDatapathConnection#datapathsSetNotificationHandler(Datapath, Callback)
  */
 public class Packet {
 
@@ -23,7 +35,7 @@ public class Packet {
 
     byte[] data;
     @Nonnull FlowMatch match = new FlowMatch();
-    List<FlowAction> actions;
+    List<FlowAction<?>> actions;
     Long userData;
     Reason reason;
 
@@ -41,8 +53,8 @@ public class Packet {
         return match;
     }
 
-    public Packet setMatch(FlowMatch match_) {
-        this.match = match_;
+    public Packet setMatch(@NotNull FlowMatch match) {
+	this.match = match;
         return this;
     }
 
@@ -51,18 +63,18 @@ public class Packet {
         return this;
     }
 
-    public List<FlowAction> getActions() {
+    public List<FlowAction<?>> getActions() {
         return actions;
     }
 
-    public Packet setActions(List<FlowAction> actions) {
+    public Packet setActions(List<FlowAction<?>> actions) {
         this.actions = actions;
         return this;
     }
 
-    public Packet addAction(FlowAction action) {
+    public Packet addAction(FlowAction<?> action) {
         if (this.actions == null)
-            this.actions = new ArrayList<FlowAction>();
+	    this.actions = new ArrayList<FlowAction<?>>();
 
         this.actions.add(action);
         return this;

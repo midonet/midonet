@@ -45,7 +45,7 @@ public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAw
         }
     }
 
-    static NetlinkMessage.CustomBuilder<FlowAction> Builder = new NetlinkMessage.CustomBuilder<FlowAction>() {
+    static NetlinkMessage.CustomBuilder<FlowAction<?>> Builder = new NetlinkMessage.CustomBuilder<FlowAction<?>>() {
         @Override
         public FlowAction newInstance(short type) {
             switch (type) {

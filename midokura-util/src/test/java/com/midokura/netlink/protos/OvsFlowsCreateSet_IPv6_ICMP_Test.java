@@ -58,10 +58,10 @@ public class OvsFlowsCreateSet_IPv6_ICMP_Test
     }
 
     @Override
-    protected List<FlowAction> flowActions() {
+    protected List<FlowAction<?>> flowActions() {
         return
-            Arrays.<FlowAction>asList(
-                sample(715827882, Arrays.<FlowAction>asList(output(2))));
+	    Arrays.<FlowAction<?>>asList(
+		sample(715827882, Arrays.<FlowAction<?>>asList(output(2))));
     }
 
     @Test

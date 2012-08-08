@@ -56,9 +56,9 @@ public class OvsFlowsCreateSet_IPv4_ICMP_Test
     }
 
     @Override
-    protected List<FlowAction> flowActions() {
+    protected List<FlowAction<?>> flowActions() {
         return
-            Arrays.<FlowAction>asList(
+	    Arrays.<FlowAction<?>>asList(
                 FlowActions.userspace()
                            .setUserData(234l)
                            .setUplinkPid(

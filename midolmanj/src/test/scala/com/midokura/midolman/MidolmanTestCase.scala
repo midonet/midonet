@@ -10,7 +10,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import com.midokura.config.ConfigProvider
 import com.midokura.netlink.protos.OvsDatapathConnection
 import services.{MidolmanActorsService, MidolmanService}
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{Props, ActorRef, ActorSystem}
 import state.{MockDirectory, Directory}
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
@@ -23,13 +23,14 @@ import com.midokura.midostore.module.MidoStoreModule
 import com.midokura.midostore.services.MidostoreSetupService
 import com.midokura.midostore.MidostoreClient
 import java.util.UUID
+import akka.testkit.{TestActor, TestProbe}
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
 
     var injector: Injector = null
 
     protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
-	config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
+        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config
     }
 
@@ -42,11 +43,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     }
 
     protected def midoStore(): MidostoreClient = {
-	injector.getInstance(classOf[MidostoreClient])
+        injector.getInstance(classOf[MidostoreClient])
     }
 
     protected def hostId(): UUID = {
-	UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
+        UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
     }
 
     def topActor(name: String): ActorRef = {
@@ -82,11 +83,30 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
                 }
             },
             new MidoStoreModule(),
-            new MidolmanActorsModule()
+            new MidolmanActorsModule() {
+                protected override def bindMidolmanActorsService() {
+                    bind(classOf[MidolmanActorsService])
+                        .toInstance(
+                        new MidolmanActorsService() {
+                            protected override def startActor(actorProps: Props, actorName: String) {
+                                val actor = system().actorOf(actorProps)
+                                val probe = TestProbe()
+                                system().actorOf(Props(), actorName)
+
+                                probe.setAutoPilot(new TestActor.AutoPilot {
+                                    def run(sender: ActorRef, msg: Any): TestActor.AutoPilot =
+                                        msg match {
+                                            case x ⇒ actor.tell(x, sender); TestActor.KeepRunning
+                                        }
+                                })
+                            }
+                        })
+                }
+            }
         )
 
         injector.getInstance(classOf[MidolmanService]).startAndWait()
-	injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
+        injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
     }
 
     after {
@@ -100,13 +120,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         Await.result(replyPromise, t.duration).asInstanceOf[T]
     }
 
-    def datapathPorts(datapath: Datapath):mutable.Map[String, Port[_, _]] = {
+    def datapathPorts(datapath: Datapath): mutable.Map[String, Port[_, _]] = {
 
         val ports: mutable.Set[Port[_, _]] =
             dpConn().portsEnumerate(datapath).get()
 
         val portsByName = mutable.Map[String, Port[_, _]]()
-        for ( port <- ports ) {
+        for (port <- ports) {
             portsByName.put(port.getName, port)
         }
 

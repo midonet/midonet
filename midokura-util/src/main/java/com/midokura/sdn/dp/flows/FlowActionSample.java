@@ -14,7 +14,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
      * u32 port number.
      */
     int probability;
-    List<? extends FlowAction> actions;
+    List<? extends FlowAction<?>> actions;
 
 
     @Override
@@ -22,7 +22,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         builder
             .addAttr(Attr.PROBABILITY, probability)
             .addAttrNested(Attr.ACTIONS)
-                .addAttrs(actions)
+            .addAttrs(actions)
             .build();
     }
 
@@ -47,7 +47,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         /**
          * Nested OVS_ACTION_ATTR_*.
          */
-        public static final Attr<List<FlowAction>> ACTIONS = attrNest(2);
+        public static final Attr<List<FlowAction<?>>> ACTIONS = attrNest(2);
 
         private Attr(int id, boolean nested) {
             super(id);
@@ -56,6 +56,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         static <T> Attr<T> attr(int id) {
             return new Attr<T>(id, false);
         }
+
         static <T> Attr<T> attrNest(int id) {
             return new Attr<T>(id, true);
         }
@@ -84,7 +85,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         return actions;
     }
 
-    public FlowActionSample setActions(List<? extends FlowAction> actions) {
+    public FlowActionSample setActions(List<? extends FlowAction<?>> actions) {
         this.actions = actions;
         return this;
     }

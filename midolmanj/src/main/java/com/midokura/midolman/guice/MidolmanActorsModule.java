@@ -9,12 +9,17 @@ import com.google.inject.Singleton;
 import com.midokura.midolman.services.MidolmanActorsService;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * This Guice module will bind an instance of {@link MidolmanActorsService} so
+ * that it can be retrieved by the client class and booted up at the system
+ * initialization time.
  */
 public class MidolmanActorsModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(MidolmanActorsService.class)
-            .in(Singleton.class);
+        bindMidolmanActorsService();
+    }
+
+    protected void bindMidolmanActorsService() {
+        bind(MidolmanActorsService.class).in(Singleton.class);
     }
 }

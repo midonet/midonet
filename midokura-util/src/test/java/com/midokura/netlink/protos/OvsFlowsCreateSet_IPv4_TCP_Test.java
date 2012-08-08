@@ -55,8 +55,8 @@ public class OvsFlowsCreateSet_IPv4_TCP_Test
     }
 
     @Override
-    protected List<FlowAction> flowActions() {
-        return Arrays.<FlowAction>asList(FlowActions.popVLAN());
+    protected List<FlowAction<?>> flowActions() {
+	return Arrays.<FlowAction<?>>asList(FlowActions.popVLAN());
     }
 
     @Test

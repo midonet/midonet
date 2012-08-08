@@ -11,6 +11,7 @@ import collection.mutable
 import java.util.UUID
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
+
     import scala.collection.JavaConversions._
     import DatapathController._
 
@@ -110,5 +111,34 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should have size 2
         ports should contain key ("test")
         ports should contain key ("port1")
+    }
+
+    def testDatapathBasicOperations() {
+        val dpController: ActorRef = topActor(DatapathController.Name)
+
+        midoStore().setLocalVrnDatapath(hostId, "test")
+        val reply: AnyRef = sendReply[InitializationComplete](dpController, Initialize())
+        reply should not be (null)
+
+        var portReply = sendReply[PortNetdevOpReply](dpController, CreatePortNetdev(Ports.newNetDevPort("netdev")))
+        portReply should not be (null)
+
+        // validate the final datapath state
+        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+
+        datapaths should have size 1
+        datapaths.head should have('name("test"))
+
+        var ports = datapathPorts(datapaths.head)
+        ports should have size 2
+        ports should contain key ("test")
+        ports should contain key ("netdev")
+
+        portReply = sendReply[PortNetdevOpReply](dpController, DeletePortNetdev(portReply.port))
+        portReply should not be (null)
+
+        ports = datapathPorts(datapaths.head)
+        ports should have size 1
+        ports should contain key ("test")
     }
 }

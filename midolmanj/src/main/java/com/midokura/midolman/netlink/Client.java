@@ -153,8 +153,8 @@ public class Client {
 //        log.info("New port {}", port);
     }
 
-    private static List<FlowAction> flowActions() {
-        return Arrays.<FlowAction>asList(output(513));
+    private static List<FlowAction<?>> flowActions() {
+        return Arrays.<FlowAction<?>>asList(output(513));
     }
 
     private static FlowMatch flowMatch() {

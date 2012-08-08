@@ -13,12 +13,12 @@ import com.midokura.sdn.dp.flows.FlowKey;
 import com.midokura.sdn.dp.flows.FlowStats;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * An abstraction over the OpenVSwitch kernel datapath flow object.
  */
 public class Flow {
 
     FlowMatch match;
-    List<FlowAction> actions = new ArrayList<FlowAction>();
+    List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
     FlowStats stats;
     Byte tcpFlags;
     Long lastUsedTime;
@@ -34,11 +34,11 @@ public class Flow {
     }
 
     @Nonnull
-    public List<FlowAction> getActions() {
+    public List<FlowAction<?>> getActions() {
         return actions;
     }
 
-    public Flow setActions(List<FlowAction> actions) {
+    public Flow setActions(List<FlowAction<?>> actions) {
         this.actions = actions;
         return this;
     }

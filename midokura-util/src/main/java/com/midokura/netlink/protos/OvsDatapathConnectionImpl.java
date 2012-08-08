@@ -856,7 +856,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         flow.setLastUsedTime(msg.getAttrValueLong(AttrKey.USED));
         flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
 
-        List<FlowKey> flowKeys = msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
+	List<FlowKey<?>> flowKeys = msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
         if (flowKeys != null) {
             flow.setMatch(new FlowMatch().setKeys(flowKeys));
         }

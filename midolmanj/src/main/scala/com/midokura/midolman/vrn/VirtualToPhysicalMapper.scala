@@ -11,7 +11,6 @@ import com.midokura.midostore.{LocalStateBuilder, MidostoreClient}
 import com.midokura.midolman.guice.ComponentInjectorHolder
 
 object VirtualToPhysicalMapper {
-
     val Name = "VirtualToPhysicalMapper"
 
     /**
@@ -72,62 +71,62 @@ class VirtualToPhysicalMapper extends Actor {
     private var localHostData = Map[UUID, (String, Map[UUID, String])]()
 
     override def preStart() {
-	super.preStart()
-	ComponentInjectorHolder.inject(this)
+        super.preStart()
+        ComponentInjectorHolder.inject(this)
     }
 
     protected def receive = {
         case LocalDatapathRequest(host) =>
-	    localPortsActors += (host -> sender)
-	    actorWants += (sender -> ExpectingDatapath())
-	    midoStore.getLocalStateFor(host, new MyLocalStateBuilder(self, host))
+            localPortsActors += (host -> sender)
+            actorWants += (sender -> ExpectingDatapath())
+            midoStore.getLocalStateFor(host, new MyLocalStateBuilder(self, host))
 
         case LocalPortsRequest(host) =>
-	    actorWants += (sender -> ExpectingPorts())
-	    fireStateUpdates(host)
+            actorWants += (sender -> ExpectingPorts())
+            fireStateUpdates(host)
 
-	case _LocalDataUpdatedForHost(host, datapath, ports) =>
-	    localHostData += (host -> (datapath -> ports))
-	    fireStateUpdates(host)
+        case _LocalDataUpdatedForHost(host, datapath, ports) =>
+            localHostData += (host -> (datapath -> ports))
+            fireStateUpdates(host)
 
         case value =>
             log.error("Unknown message: " + value)
     }
 
     private def fireStateUpdates(host: UUID) {
-	val callingActor = localPortsActors(host)
-	if (callingActor != null) {
-	    actorWants(callingActor) match {
-		case ExpectingDatapath() =>
-		    callingActor ! LocalDatapathReply(localHostData(host)._1)
-		case ExpectingPorts() =>
-		    callingActor ! LocalPortsReply(localHostData(host)._2)
-	    }
-	}
+        val callingActor = localPortsActors(host)
+        if (callingActor != null) {
+            actorWants(callingActor) match {
+                case ExpectingDatapath() =>
+                    callingActor ! LocalDatapathReply(localHostData(host)._1)
+                case ExpectingPorts() =>
+                    callingActor ! LocalPortsReply(localHostData(host)._2)
+            }
+        }
     }
 
     class MyLocalStateBuilder(actor: ActorRef, host: UUID) extends LocalStateBuilder {
-	var ports: Map[UUID, String] = Map()
-	var datapathName: String = null
+        var ports: Map[UUID, String] = Map()
+        var datapathName: String = null
 
-	def setDatapathName(datapathName: String): LocalStateBuilder = {
-	    this.datapathName = datapathName
-	    this
-	}
+        def setDatapathName(datapathName: String): LocalStateBuilder = {
+            this.datapathName = datapathName
+            this
+        }
 
-	def addLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
-	    ports += (portId -> interfaceName)
-	    this
-	}
+        def addLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
+            ports += (portId -> interfaceName)
+            this
+        }
 
-	def removeLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
-	    ports -= portId
-	    this
-	}
+        def removeLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
+            ports -= portId
+            this
+        }
 
-	def build() {
-	    actor ! _LocalDataUpdatedForHost(host, datapathName, ports)
-	}
+        def build() {
+            actor ! _LocalDataUpdatedForHost(host, datapathName, ports)
+        }
     }
 
     case class _LocalDataUpdatedForHost(host: UUID, dpName: String, ports: Map[UUID, String])

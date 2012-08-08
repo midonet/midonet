@@ -34,7 +34,7 @@ public class FlowActions {
         return new FlowActionPopVLAN();
     }
 
-    public static FlowActionSample sample(int probability, List<FlowAction> actions) {
+    public static FlowActionSample sample(int probability, List<FlowAction<?>> actions) {
         return new FlowActionSample().setProbability(probability).setActions(actions);
     }
 }

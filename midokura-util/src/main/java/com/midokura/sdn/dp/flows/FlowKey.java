@@ -68,7 +68,7 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
         }
     }
 
-    static NetlinkMessage.CustomBuilder<FlowKey> Builder = new NetlinkMessage.CustomBuilder<FlowKey>() {
+    static NetlinkMessage.CustomBuilder<FlowKey<?>> Builder = new NetlinkMessage.CustomBuilder<FlowKey<?>>() {
         @Override
         public FlowKey newInstance(short type) {
             switch (type) {

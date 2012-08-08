@@ -11,7 +11,7 @@ import com.midokura.sdn.dp.flows.FlowAction;
 public class WildcardFlow {
     private short priority; // used to choose among many matching flows
     public MidoMatch match;
-    public List<FlowAction> actions;
+    public List<FlowAction<?>> actions;
 
     private long creationTime = System.currentTimeMillis();
     private long lastUsedTime = creationTime;

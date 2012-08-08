@@ -14,33 +14,41 @@ import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.sdn.dp.flows.FlowAction
 
-case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
-                           packet: Option[Packet])
-case class RemoveWildcardFlow(fmatch: MidoMatch)
+object FlowController {
+    val Name = "FlowController"
 
-case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]],
-                      outPorts: Set[UUID])
+    case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
+			       packet: Option[Packet])
+    case class RemoveWildcardFlow(fmatch: MidoMatch)
 
-case class Consume(packet: Packet)
+    case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]],
+                          outPorts: Set[UUID])
 
-// Callback argument should not block.
-case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
+    case class Consume(packet: Packet)
+
+    // Callback argument should not block.
+    case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
+
+    case class PacketIn(packet: Packet)
+}
 
 class FlowController(val wildcardFlowManager: WildcardFlowTable,
                          val exactFlowManager: NetlinkFlowTable) extends Actor {
+    import FlowController._
+
     private var packetInCallback: (Packet, UUID) => Unit = null
 
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
 
     // Send this message to myself when I get the NL packetIn callback
-    case class PacketIn(packet: Packet)
+//    case class PacketIn(packet: Packet)
     // Callback invoked from select-loop thread context.
     // TODO(pino, jlm): register this callback
     // XXX
-    def onPacketIn(packet: Packet) {
-        self ! PacketIn(packet)
-    }
+//    def onPacketIn(packet: Packet) {
+//        self ! PacketIn(packet)
+//    }
 
     private def doPacketIn(packet: Packet) {
         // First check if packet matches an exact flow, in case
@@ -78,7 +86,8 @@ class FlowController(val wildcardFlowManager: WildcardFlowTable,
     }
 
     def receive = {
-        case PacketIn(packet) => doPacketIn(packet)
+	case PacketIn(packet) =>
+	    doPacketIn(packet)
 
         case AddWildcardFlow(wildcardFlow, outPorts, packetOption) =>
             // TODO(pino, jlm): translate the outPorts to output actions and
@@ -119,5 +128,4 @@ class FlowController(val wildcardFlowManager: WildcardFlowTable,
             packetInCallback = callback
 
     }
-
 }

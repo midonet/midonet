@@ -56,8 +56,8 @@ public class OvsFlowsCreateSet_IPv4_UDP_Test
     }
 
     @Override
-    protected List<FlowAction> flowActions() {
-        return Arrays.<FlowAction>asList(FlowActions.setKey(FlowKeys.tunnelID(83453l)));
+    protected List<FlowAction<?>> flowActions() {
+	return Arrays.<FlowAction<?>>asList(FlowActions.setKey(FlowKeys.tunnelID(83453l)));
     }
 
     @Test

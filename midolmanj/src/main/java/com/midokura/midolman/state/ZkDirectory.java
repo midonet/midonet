@@ -31,21 +31,13 @@ public class ZkDirectory implements Directory {
     private Reactor reactor;
 
     /**
-     * @param zk
-     * @param absolutePath
-     *            must start with "/"
-     * @param acl
-     * @param create_mode
+     * @param zk the zookeeper object
+     * @param basePath must start with "/"
+     * @param acl the list of {@link ACL} the we need to use
+     * @param reactor the delayed reactor loop
      */
-    public ZkDirectory(ZooKeeper zk, String basePath, List<ACL> acl) {
-        this.zk = zk;
-        this.basePath = basePath;
-//        this.acl = acl;
-        this.acl = Ids.OPEN_ACL_UNSAFE;
-    }
-
-    public ZkDirectory(ZooKeeper zk, String basePath, List<ACL> acl,
-            Reactor reactor) {
+    public ZkDirectory(ZooKeeper zk, String basePath,
+                       List<ACL> acl, Reactor reactor) {
         this.zk = zk;
         this.basePath = basePath;
         this.acl = Ids.OPEN_ACL_UNSAFE;
@@ -143,8 +135,6 @@ public class ZkDirectory implements Directory {
     public List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException {
         return zk.multi(ops);
-        // TODO Auto-generated method stub
-
     }
 
     @Override
