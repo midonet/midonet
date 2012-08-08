@@ -6,31 +6,26 @@
 
 package com.midokura.midolman.host;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.Writer;
-import java.util.Properties;
-import java.util.UUID;
-
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.HostAgentConfig;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.io.IOUtils;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.UUID;
 
 public class HostIdGeneratorTest {
 
-    String confFileName = "./test_conf.conf";
-    String confFileNameFake = "./test_conf_fake.conf";
     String localPropertiesFile = "host_uuid.properties";
     String uuidPropertyName = "host_uuid";
     String hostId1 = "e3f9adc0-5175-11e1-b86c-0800200c9a66";
@@ -45,10 +40,6 @@ public class HostIdGeneratorTest {
 
     @After
     public void tearDown() throws Exception {
-        if (confFile.exists())
-            confFile.delete();
-        if (confFileFake.exists())
-            confFileFake.delete();
         if (propFile.exists())
             propFile.delete();
     }
@@ -61,39 +52,29 @@ public class HostIdGeneratorTest {
                                 null);
         zkManager.addPersistent(basePath + "/hosts", null);
 
-        confFile = new File(confFileName);
-        Writer out = new FileWriter(confFileName);
-
-        IOUtils.write(
-            String.format("" +
-                              "[%s]\n" +
-                              "%s=%s\n",
-                          HostAgentConfig.GROUP_NAME,
-                          uuidPropertyName, hostId1),
-            out
-        );
-        out.flush();
-        out.close();
+        final HierarchicalConfiguration configuration =
+                new HierarchicalConfiguration();
+        configuration.addNodes(HostAgentConfig.GROUP_NAME,
+                Arrays.asList(new HierarchicalConfiguration.Node
+                        (uuidPropertyName, hostId1)
+                ));
 
         config =
-            ConfigProvider
-                .providerForIniConfig(
-                    new HierarchicalINIConfiguration(confFileName))
-                .getConfig(HostAgentConfig.class);
+                ConfigProvider
+                        .providerForIniConfig(
+                                configuration)
+                        .getConfig(HostAgentConfig.class);
 
-        confFileFake = new File(confFileNameFake);
 
-        out = new FileWriter(confFileNameFake);
-        IOUtils.write(
-            String.format("[%s]\n", HostAgentConfig.GROUP_NAME), out);
-        out.flush();
-        out.close();
+        final HierarchicalConfiguration fakeConfiguration =
+                new HierarchicalConfiguration();
+        fakeConfiguration.addNodes(HostAgentConfig.GROUP_NAME, null);
 
         configFake =
-            ConfigProvider
-                .providerForIniConfig(
-                    new HierarchicalINIConfiguration(confFileNameFake))
-                .getConfig(HostAgentConfig.class);
+                ConfigProvider
+                        .providerForIniConfig(
+                                fakeConfiguration)
+                        .getConfig(HostAgentConfig.class);
 
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, hostId2);
