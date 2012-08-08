@@ -25,7 +25,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.commands.DataValidationException;
+import com.midokura.midolman.host.commands.DataValidationException;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.DaoFactory;

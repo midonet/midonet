@@ -14,7 +14,7 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;

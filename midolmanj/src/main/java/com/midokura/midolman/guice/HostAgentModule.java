@@ -4,15 +4,12 @@
 package com.midokura.midolman.guice;
 
 import com.google.inject.*;
-import com.midokura.midolman.agent.commands.executors.CommandInterpreter;
-import com.midokura.midolman.agent.scanner.DefaultInterfaceScanner;
-import com.midokura.midolman.agent.scanner.InterfaceScanner;
-import com.midokura.midolman.agent.state.HostZkManager;
-import com.midokura.midolman.agent.updater.DefaultInterfaceDataUpdater;
-import com.midokura.midolman.agent.updater.InterfaceDataUpdater;
+import com.midokura.midolman.host.commands.executors.CommandInterpreter;
+import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
+import com.midokura.midolman.host.scanner.InterfaceScanner;
+import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
+import com.midokura.midolman.host.updater.InterfaceDataUpdater;
 import com.midokura.midolman.config.HostAgentConfig;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.state.Directory;
 
 /**
  * Module to configure dependencies for the host agent.

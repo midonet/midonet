@@ -29,8 +29,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
 import com.midokura.midolman.mgmt.data.dto.client.DtoHost;

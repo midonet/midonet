@@ -10,7 +10,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.config.AppConfig;
 import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.midolman.mgmt.data.AbstractDaoFactory;

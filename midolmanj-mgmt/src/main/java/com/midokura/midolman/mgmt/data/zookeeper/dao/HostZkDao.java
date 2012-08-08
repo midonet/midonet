@@ -15,10 +15,10 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.commands.HostCommandGenerator;
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.agent.state.HostDirectory.Command;
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.commands.HostCommandGenerator;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostDirectory.Command;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.HostCommand.LogEntry;

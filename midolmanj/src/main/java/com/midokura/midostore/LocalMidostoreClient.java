@@ -12,8 +12,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.util.Callback1;

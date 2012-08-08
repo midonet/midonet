@@ -5,15 +5,15 @@ package com.midokura.midolman.services;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import com.midokura.midolman.agent.HostIdGenerator;
-import com.midokura.midolman.agent.HostIdGenerator.HostIdAlreadyInUseException;
-import com.midokura.midolman.agent.HostIdGenerator.PropertiesFileNotWritableException;
-import com.midokura.midolman.agent.NodeInterfaceWatcher;
-import com.midokura.midolman.agent.commands.executors.NodeCommandWatcher;
-import com.midokura.midolman.agent.interfaces.InterfaceDescription;
-import com.midokura.midolman.agent.scanner.InterfaceScanner;
-import com.midokura.midolman.agent.state.HostDirectory;
-import com.midokura.midolman.agent.state.HostZkManager;
+import com.midokura.midolman.host.HostIdGenerator;
+import com.midokura.midolman.host.HostIdGenerator.HostIdAlreadyInUseException;
+import com.midokura.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
+import com.midokura.midolman.host.HostInterfaceWatcher;
+import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.midolman.host.scanner.InterfaceScanner;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.config.HostAgentConfig;
 import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
@@ -43,10 +43,10 @@ public class HostAgentService extends AbstractService {
     HostAgentConfig configuration;
 
     @Inject
-    private NodeCommandWatcher cmdWatcher;
+    private HostCommandWatcher cmdWatcher;
 
     @Inject
-    private NodeInterfaceWatcher interfaceWatcher;
+    private HostInterfaceWatcher interfaceWatcher;
 
     @Inject
     private InterfaceScanner scanner;
