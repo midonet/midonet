@@ -13,6 +13,10 @@ import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
 import com.midokura.midolman.host.config.HostAgentConfig;
 import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
 import com.midokura.midolman.host.scanner.InterfaceScanner;
+import com.midokura.midolman.host.sensor.DmesgInterfaceSensor;
+import com.midokura.midolman.host.sensor.IpAddrInterfaceSensor;
+import com.midokura.midolman.host.sensor.IpTuntapInterfaceSensor;
+import com.midokura.midolman.host.sensor.NetlinkSensor;
 import com.midokura.midolman.host.services.HostAgentService;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
@@ -41,12 +45,17 @@ public class HostAgentModule extends PrivateModule {
                 .asEagerSingleton();
 
         // TODO: uncomment this when the direct dependency on HostZKManager has been removed
-//        requireBinding(MidostoreClient.class);
+        // requireBinding(MidostoreClient.class);
         requireBinding(HostZkManager.class);
         bind(HostCommandWatcher.class);
         bind(HostInterfaceWatcher.class);
 
         bind(HostAgentService.class).asEagerSingleton();
         expose(HostAgentService.class);
+
+        bind(IpAddrInterfaceSensor.class);
+        bind(IpTuntapInterfaceSensor.class);
+        bind(DmesgInterfaceSensor.class);
+        bind(NetlinkSensor.class);
     }
 }

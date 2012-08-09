@@ -9,6 +9,7 @@ import com.google.inject.PrivateModule;
 
 import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.util.eventloop.Reactor;
 
 /**
  *
@@ -16,6 +17,9 @@ import com.midokura.netlink.protos.OvsDatapathConnection;
 public class DatapathModule extends PrivateModule {
     @Override
     protected void configure() {
+        binder().requireExplicitBindings();
+        requireBinding(Reactor.class);
+
         bindOvsDatapathConnection();
         expose(OvsDatapathConnection.class);
 

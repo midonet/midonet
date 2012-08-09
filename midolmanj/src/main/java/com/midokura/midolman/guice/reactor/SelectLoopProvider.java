@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.util.eventloop.SelectLoop;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Provides an implementation of a {@link SelectLoop}.
  */
 public class SelectLoopProvider implements Provider<SelectLoop> {
 

@@ -4,19 +4,16 @@
 package com.midokura.midolman
 
 import guice._
-import guice.config.{MockConfigProviderModule, ConfigProviderModule}
-import guice.datapath.{MockDatapathModule, MockOvsDatapathConnectionProvider, DatapathModule}
-import guice.zookeeper.ZookeeperConnectionModule
-import host.guice.HostAgentModule
+import guice.config.MockConfigProviderModule
+import guice.datapath.MockDatapathModule
+import guice.zookeeper.MockZookeeperConnectionModule
 import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
-import com.google.inject.{AbstractModule, Guice, Injector}
+import com.google.inject.{Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.config.ConfigProvider
 import com.midokura.netlink.protos.OvsDatapathConnection
 import reactor.ReactorModule
 import services.{MidolmanActorsService, MidolmanService}
-import akka.actor.{Props, ActorRef, ActorSystem}
-import state.{MockDirectory, Directory}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
 import akka.util.duration._
@@ -28,7 +25,6 @@ import com.midokura.midostore.module.MidoStoreModule
 import com.midokura.midostore.services.MidostoreSetupService
 import com.midokura.midostore.MidostoreClient
 import java.util.UUID
-import akka.testkit.{TestActor, TestProbe}
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
 
@@ -62,10 +58,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     before {
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
-//            new HostAgentModule(), // We don't need it in this test
+            // new HostAgentModule(), // We don't need it in this test
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockZooKeeperModule(),
+            new MockZookeeperConnectionModule(),
 
             new ReactorModule(),
             new MidoStoreModule(),
@@ -99,16 +95,5 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         }
 
         portsByName
-    }
-
-    private class MockZooKeeperModule extends ZookeeperConnectionModule {
-        protected override def bindZookeeperConnection() {
-        }
-
-        protected override def bindDirectory() {
-            bind(classOf[Directory])
-                .to(classOf[MockDirectory])
-                .asEagerSingleton()
-        }
     }
 }

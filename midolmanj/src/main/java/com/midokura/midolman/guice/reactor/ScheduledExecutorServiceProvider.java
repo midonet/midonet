@@ -12,7 +12,7 @@ import com.google.inject.Provider;
 import com.midokura.midolman.config.MidolmanConfig;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Provides an instance of a {@link ScheduledExecutorService} implementation.
  */
 public class ScheduledExecutorServiceProvider implements
                                               Provider<ScheduledExecutorService> {

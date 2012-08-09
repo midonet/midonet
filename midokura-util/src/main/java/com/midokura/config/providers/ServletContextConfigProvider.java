@@ -8,7 +8,8 @@ import javax.servlet.ServletContext;
 import com.midokura.config.ConfigProvider;
 
 /**
- * // TODO: Explain yourself.
+ * ConfigProvider which adapts the servlet context parameters to be automatically
+ * used by config interfaces.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 6/14/12

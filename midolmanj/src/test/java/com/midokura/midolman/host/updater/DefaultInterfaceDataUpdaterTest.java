@@ -11,10 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
@@ -28,12 +26,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
 
-import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.config.MockConfigProviderModule;
+import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.datapath.MockDatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
-import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.state.HostDirectory;
@@ -71,26 +69,10 @@ public class DefaultInterfaceDataUpdaterTest {
 
         Injector injector = Guice.createInjector(
             new MockConfigProviderModule(configuration),
-            new ReactorModule(),
-            new ZookeeperConnectionModule() {
-                @Override
-                protected void bindZookeeperConnection() { }
-
-                @Override
-                protected void bindDirectory() {
-                    bind(Directory.class).toInstance(cleanDirectory);
-                }
-            },
-            new AbstractModule() {
-                @Override
-                protected void configure() { }
-
-                @Provides
-                MidolmanConfig config(ConfigProvider provider) {
-                    return provider.getConfig(MidolmanConfig.class);
-                }
-            },
+            new MockZookeeperConnectionModule(cleanDirectory),
+            new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
             new MockDatapathModule(),
+            new ReactorModule(),
             new HostAgentModule(),
             new MidoStoreModule());
 

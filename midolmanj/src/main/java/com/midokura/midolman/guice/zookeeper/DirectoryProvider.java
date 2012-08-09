@@ -11,7 +11,8 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Provides an {@link Directory} implementation which is backed up by a
+ * zookeeper connection.
  */
 public class DirectoryProvider implements Provider<Directory> {
 

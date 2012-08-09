@@ -11,7 +11,8 @@ import com.midokura.midolman.state.ZkConnection;
 import com.midokura.util.eventloop.Reactor;
 
 /**
- *
+ * Modules which creates the proper bindings for building a Directory backed up
+ * by zookeeper.
  */
 public class ZookeeperConnectionModule extends PrivateModule {
     @Override
