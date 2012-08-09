@@ -45,9 +45,6 @@ public class MidolmanActorsService extends AbstractService {
     MidolmanConfig config;
 
     @Inject
-    Directory midonetDirectory;
-
-    @Inject
     Injector injector;
 
     ActorSystem actorSystem;
@@ -99,18 +96,7 @@ public class MidolmanActorsService extends AbstractService {
     }
 
     private Props getVirtualTopologyProps() {
-        return
-            new Props(
-                new UntypedActorFactory() {
-                    @Override
-                    public Actor create() {
-                        return new VirtualTopologyActor(
-                            midonetDirectory,
-                            config.getMidolmanRootKey(),
-                            fromString(config.getOpenFlowPublicIpAddress())
-                        );
-                    }
-                });
+        return new Props(VirtualTopologyActor.class);
     }
 
     private Props getVirtualToPhysicalProps() {

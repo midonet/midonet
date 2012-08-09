@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.guice;
+package com.midokura.midolman.guice.config;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -12,7 +12,8 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import com.midokura.config.ConfigProvider;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Simple Provider of a {@link ConfigProvider} instance that will build it from
+ * a file on disk.
  */
 public class ConfigFromFileProvider implements Provider<ConfigProvider> {
 

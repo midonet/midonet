@@ -3,12 +3,17 @@
 */
 package com.midokura.midolman
 
-import guice.{MidolmanActorsModule, MockOvsDatapathConnectionProvider, MidolmanModule}
+import guice._
+import guice.config.{MockConfigProviderModule, ConfigProviderModule}
+import guice.datapath.{MockDatapathModule, MockOvsDatapathConnectionProvider, DatapathModule}
+import guice.zookeeper.ZookeeperConnectionModule
+import host.guice.HostAgentModule
 import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
 import com.google.inject.{AbstractModule, Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import com.midokura.config.ConfigProvider
 import com.midokura.netlink.protos.OvsDatapathConnection
+import reactor.ReactorModule
 import services.{MidolmanActorsService, MidolmanService}
 import akka.actor.{Props, ActorRef, ActorSystem}
 import state.{MockDirectory, Directory}
@@ -57,52 +62,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     before {
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
-            new AbstractModule {
-                def configure() {
-                    bind(classOf[ConfigProvider])
-                        .toInstance(ConfigProvider.providerForIniConfig(config))
-                }
-            },
-            new MidolmanModule {
-                protected override def bindZookeeperConnection() {
-                    // not needed here
-                }
+//            new HostAgentModule(), // We don't need it in this test
+            new MockConfigProviderModule(config),
+            new MockDatapathModule(),
+            new MockZooKeeperModule(),
 
-                // override the binding for the ovsDatapathConnection to be in-memory
-                protected override def bindOvsDatapathConnection() {
-                    bind(classOf[OvsDatapathConnection])
-                        .toProvider(classOf[MockOvsDatapathConnectionProvider])
-                        .asEagerSingleton()
-                }
-
-                // override the binding for the directory to be in-memory
-                protected override def bindDirectory() {
-                    bind(classOf[Directory])
-                        .to(classOf[MockDirectory])
-                        .asEagerSingleton()
-                }
-            },
+            new ReactorModule(),
             new MidoStoreModule(),
-            new MidolmanActorsModule() {
-                protected override def bindMidolmanActorsService() {
-                    bind(classOf[MidolmanActorsService])
-                        .toInstance(
-                        new MidolmanActorsService() {
-                            protected override def startActor(actorProps: Props, actorName: String) {
-                                val actor = system().actorOf(actorProps)
-                                val probe = TestProbe()
-                                system().actorOf(Props(), actorName)
-
-                                probe.setAutoPilot(new TestActor.AutoPilot {
-                                    def run(sender: ActorRef, msg: Any): TestActor.AutoPilot =
-                                        msg match {
-                                            case x ⇒ actor.tell(x, sender); TestActor.KeepRunning
-                                        }
-                                })
-                            }
-                        })
-                }
-            }
+            new MidolmanActorsModule(),
+            new MidolmanModule()
         )
 
         injector.getInstance(classOf[MidolmanService]).startAndWait()
@@ -131,5 +99,16 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         }
 
         portsByName
+    }
+
+    private class MockZooKeeperModule extends ZookeeperConnectionModule {
+        protected override def bindZookeeperConnection() {
+        }
+
+        protected override def bindDirectory() {
+            bind(classOf[Directory])
+                .to(classOf[MockDirectory])
+                .asEagerSingleton()
+        }
     }
 }

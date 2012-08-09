@@ -299,8 +299,8 @@ class DatapathController() extends Actor {
         case InstallFlow(flow) =>
             handleInstallFlow(flow)
 
-        case SendPacket(packet) =>
-            handleSendPacket(packet)
+//        case SendPacket(packet) =>
+//            handleSendPacket(packet)
 
         /**
          * internally posted replies reactions

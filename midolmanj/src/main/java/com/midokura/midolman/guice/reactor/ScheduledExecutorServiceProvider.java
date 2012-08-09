@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.guice;
+package com.midokura.midolman.guice.reactor;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

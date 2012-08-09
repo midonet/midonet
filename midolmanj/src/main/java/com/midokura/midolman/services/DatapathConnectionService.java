@@ -18,12 +18,12 @@ import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Service implementation that will open a connection to the local datapath when started.
  */
-public class NetlinkConnectionService extends AbstractService {
+public class DatapathConnectionService extends AbstractService {
 
     private static final Logger log = LoggerFactory
-        .getLogger(NetlinkConnectionService.class);
+        .getLogger(DatapathConnectionService.class);
 
     @Inject
     MidolmanConfig config;

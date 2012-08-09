@@ -1,22 +1,25 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.guice;
+package com.midokura.midolman.guice.zookeeper;
+
+import javax.inject.Named;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.zookeeper.Watcher;
 
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.util.eventloop.Reactor;
-import org.apache.zookeeper.Watcher;
-
-import javax.inject.Named;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * A ZKConnection provider which is instantiating a ZKConnection while optionally
+ * using a reconnect watcher
  */
 public class ZKConnectionProvider implements Provider<ZkConnection> {
+
+    public static final String WATCHER_NAME_TAG = "ZookeeperConnectionWatcher";
 
     @Inject
     MidolmanConfig config;
@@ -24,8 +27,8 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
     @Inject
     Reactor reactorLoop;
 
-    @Inject
-    @Named("ZookeeperConnectionWatcher")
+    @Inject(optional = true)
+    @Named(WATCHER_NAME_TAG)
     Watcher watcher;
 
     @Override

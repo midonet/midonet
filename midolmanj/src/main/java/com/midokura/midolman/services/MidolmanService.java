@@ -6,9 +6,10 @@ package com.midokura.midolman.services;
 import com.google.common.base.Service;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import com.midokura.midolman.host.services.HostAgentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.host.services.HostAgentService;
 
 /**
  * Basic controller of the internal midolman services.
@@ -25,21 +26,19 @@ public class MidolmanService extends AbstractService {
     MidolmanActorsService actorsService;
 
     @Inject
-    NetlinkConnectionService netlinkConnectionService;
+    DatapathConnectionService datapathConnectionService;
 
     @Inject
     SelectLoopService selectLoopService;
 
-    @Inject
+    @Inject(optional = true)
     HostAgentService hostAgentService;
 
-    //@Inject(optional = true)
-    //ZkConnection zkConnection;
 
     @Override
     protected void doStart() {
         startService(selectLoopService);
-        startService(netlinkConnectionService);
+        startService(datapathConnectionService);
         startService(actorsService);
         startService(hostAgentService);
         notifyStarted();
@@ -50,11 +49,8 @@ public class MidolmanService extends AbstractService {
         try {
             stopService(hostAgentService);
             stopService(actorsService);
-            stopService(netlinkConnectionService);
+            stopService(datapathConnectionService);
             stopService(selectLoopService);
-
-            //if (zkConnection != null)
-            //    zkConnection.close();
 
             notifyStopped();
         } catch (Exception e) {
@@ -63,6 +59,9 @@ public class MidolmanService extends AbstractService {
     }
 
     private void stopService(Service service) {
+        if (service == null)
+            return;
+
         try {
             log.info("Service: {}.", service);
             service.stopAndWait();
@@ -75,6 +74,9 @@ public class MidolmanService extends AbstractService {
 
 
     protected void startService(Service service) {
+        if (service == null)
+            return;
+
         log.info("Service {}", service);
         try {
             service.startAndWait();

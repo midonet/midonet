@@ -3,30 +3,23 @@
  */
 package com.midokura.midolman.host.updater;
 
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
-import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.host.guice.HostAgentModule;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midostore.module.MidoStoreModule;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.net.InetAddress;
-import java.util.*;
-
-import static com.midokura.midolman.host.state.HostDirectory.Interface;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -35,10 +28,23 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/14/12
- */
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.config.MockConfigProviderModule;
+import com.midokura.midolman.guice.datapath.MockDatapathModule;
+import com.midokura.midolman.guice.reactor.ReactorModule;
+import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import com.midokura.midolman.host.guice.HostAgentModule;
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midostore.module.MidoStoreModule;
+import static com.midokura.midolman.host.state.HostDirectory.Interface;
+
 public class DefaultInterfaceDataUpdaterTest {
 
     InterfaceDataUpdater updater;
@@ -63,29 +69,30 @@ public class DefaultInterfaceDataUpdaterTest {
                         ("midolman_root_key", "")
         ));
 
-        Injector injector = Guice.createInjector(new HostAgentModule() {
+        Injector injector = Guice.createInjector(
+            new MockConfigProviderModule(configuration),
+            new ReactorModule(),
+            new ZookeeperConnectionModule() {
+                @Override
+                protected void bindZookeeperConnection() { }
 
-            @Override
-            protected void configure() {
-                super.configure();
-                bind(ConfigProvider.class)
-                        .toInstance(
-                                ConfigProvider.providerForIniConfig
-                                        (configuration));
-            }
+                @Override
+                protected void bindDirectory() {
+                    bind(Directory.class).toInstance(cleanDirectory);
+                }
+            },
+            new AbstractModule() {
+                @Override
+                protected void configure() { }
 
-            @Provides
-            MidolmanConfig buildConfiguration(ConfigProvider configProvider) {
-                return configProvider.getConfig(MidolmanConfig.class);
-            }
-
-            @Provides
-            Directory buildRootDirectory() {
-                return cleanDirectory;
-            }
-
-        },
-                new MidoStoreModule());
+                @Provides
+                MidolmanConfig config(ConfigProvider provider) {
+                    return provider.getConfig(MidolmanConfig.class);
+                }
+            },
+            new MockDatapathModule(),
+            new HostAgentModule(),
+            new MidoStoreModule());
 
         directory = cleanDirectory;
         updater = injector.getInstance(InterfaceDataUpdater.class);

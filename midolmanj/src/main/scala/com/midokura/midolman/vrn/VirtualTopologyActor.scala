@@ -9,8 +9,11 @@ import collection.mutable
 import scala.Some
 
 import com.midokura.midolman.state.zkManagers._
-import com.midokura.packets.IntIPv4
+import com.midokura.packets.{IPv4, IntIPv4}
 import com.midokura.midolman.state.Directory
+import com.midokura.midolman.guice.ComponentInjectorHolder
+import javax.inject.Inject
+import com.midokura.midolman.config.MidolmanConfig
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -37,27 +40,51 @@ object VirtualTopologyActor {
     val Name:String = "VirtualTopologyActor"
 }
 
-class VirtualTopologyActor(dir: Directory, zkBasePath: String,
-                           val hostIp: IntIPv4) extends Actor {
+class VirtualTopologyActor() extends Actor {
+    // dir: Directory, zkBasePath: String, val hostIp: IntIPv4
+
     private val idToBridge = mutable.Map[UUID, Bridge]()
     private val idToChain = mutable.Map[UUID, Chain]()
     private val idToPort = mutable.Map[UUID, Port]()
     private val idToRouter = mutable.Map[UUID, Router]()
+
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
     private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val idToUnansweredClients = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val managed = mutable.Set[UUID]()
+
     // TODO(pino): use localPorts to avoid unloading local ports that have
     // TODO:       no subscribers and haven't been used in a while.
     private val localPorts = mutable.Set[UUID]()
 
-    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
-    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
-    private val portStateMgr = new PortZkManager(dir, zkBasePath)
-    private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
-    private val routeStateMgr = new RouteZkManager(dir, zkBasePath)
-    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
+//    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
+//    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
+//    private val portStateMgr = new PortZkManager(dir, zkBasePath)
+//    private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
+//    private val routeStateMgr = new RouteZkManager(dir, zkBasePath)
+//    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
+
+    @Inject
+    var bridgeStateMgr: BridgeZkManager = null
+    @Inject
+    var portStateMgr: PortZkManager = null
+    @Inject
+    var chainStateMgr: ChainZkManager = null
+    @Inject
+    var ruleStateMgr: RuleZkManager = null
+    @Inject
+    var routeStateMgr: RouteZkManager = null
+    @Inject
+    var routerStateMgr: RouterZkManager = null
+    @Inject
+    var config: MidolmanConfig = null
+
+    override def preStart() {
+        super.preStart()
+        ComponentInjectorHolder.inject(this)
+
+    }
 
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {
@@ -100,7 +127,8 @@ class VirtualTopologyActor(dir: Directory, zkBasePath: String,
     }
 
     private def portMgrCtor =
-        (portId: UUID) => new PortManager(portId, portStateMgr, hostIp)
+        (portId: UUID) => new PortManager(portId, portStateMgr,
+            IntIPv4.fromString(config.getOpenFlowPublicIpAddress))
 
     def receive = {
         case BridgeRequest(id, update) =>

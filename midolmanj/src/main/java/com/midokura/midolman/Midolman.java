@@ -4,6 +4,18 @@
 
 package com.midokura.midolman;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -16,10 +28,13 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import com.midokura.midolman.guice.ConfigurationModule;
-import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.config.ConfigProviderModule;
+import com.midokura.midolman.guice.datapath.DatapathModule;
+import com.midokura.midolman.guice.reactor.ReactorModule;
+import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
@@ -35,24 +50,10 @@ import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.VRNController;
 import com.midokura.midostore.module.MidoStoreModule;
-import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class Midolman implements SelectListener {
 
@@ -133,18 +134,14 @@ public class Midolman implements SelectListener {
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
 
         injector = Guice.createInjector(
-            new ConfigurationModule(configFilePath),
+            new ZookeeperConnectionModule(),
+            new ReactorModule(),
             new HostAgentModule(),
-            new MidolmanModule() {
-//                @Override
-//                protected void bindOvsDatapathConnection() {
-//                    bind(OvsDatapathConnection.class)
-//                        .toProvider(MockOvsDatapathConnectionProvider.class)
-//                        .asEagerSingleton();
-//                }
-            },
-	    new MidoStoreModule(),
-            new MidolmanActorsModule()
+            new ConfigProviderModule(configFilePath),
+            new DatapathModule(),
+            new MidoStoreModule(),
+            new MidolmanActorsModule(),
+            new MidolmanModule()
         );
 
         // start the services
@@ -154,17 +151,6 @@ public class Midolman implements SelectListener {
         injector.getInstance(MidolmanActorsService.class).initProcessing();
 
         log.info("{} was initialized", MidolmanActorsService.class);
-
-        OvsDatapathConnection ovsDatapathConnection = injector.getInstance(OvsDatapathConnection.class);
-
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-
-        log.info("Datapaths: {} " +
-            ovsDatapathConnection.datapathsEnumerate().get());
-
-        log.info("Ports: {} " +
-            ovsDatapathConnection.portsEnumerate(
-                ovsDatapathConnection.datapathsGet("new_test").get()).get());
 
 //        basePath = config.getMidolmanRootKey();
 //        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());
@@ -246,10 +232,13 @@ public class Midolman implements SelectListener {
     }
 
     private void doServicesCleanup() {
+        if ( injector == null )
+            return;
+
         MidolmanService instance =
             injector.getInstance(MidolmanService.class);
 
-        if ( instance.state() == Service.State.TERMINATED )
+        if (instance.state() == Service.State.TERMINATED)
             return;
 
         try {

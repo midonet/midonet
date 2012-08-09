@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.util.eventloop.SelectLoop;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Service implementation that will initialize the SelectLoop select thread.
  */
 public class SelectLoopService extends AbstractService {
 
@@ -28,7 +28,7 @@ public class SelectLoopService extends AbstractService {
     @Override
     protected void doStart() {
 
-        log.info("Starting the select loop service.");
+        log.info("Starting the select loop thread.");
         try {
             selectLoopThread = new Thread(new Runnable() {
                 @Override
@@ -43,7 +43,7 @@ public class SelectLoopService extends AbstractService {
 
             selectLoopThread.start();
             notifyStarted();
-            log.info("Started correctly");
+            log.info("Select loop thread started correctly");
         } catch (Exception e) {
             notifyFailed(e);
         }

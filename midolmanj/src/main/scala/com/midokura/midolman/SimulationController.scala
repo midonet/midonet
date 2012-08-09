@@ -10,6 +10,8 @@ import com.midokura.packets.Ethernet
 import collection.mutable
 import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
+import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume, RegisterPacketInListener}
+import com.midokura.midolman.FlowController.SendPacket
 
 case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
                           outPorts: mutable.Set[UUID], packet: Packet,

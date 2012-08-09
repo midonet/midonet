@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.guice;
+package com.midokura.midolman.guice.datapath;
 
 import java.nio.channels.spi.SelectorProvider;
 import javax.inject.Inject;

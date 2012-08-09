@@ -113,6 +113,7 @@
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
+                    <argLine>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <org.newsclub.net.unix.library.path>
                             ${project.build.directory}/lib-native
