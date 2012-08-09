@@ -6,10 +6,7 @@ package com.midokura.midolman.host.scanner;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.midokura.midolman.host.sensor.InterfaceSensor;
-import com.midokura.midolman.host.sensor.IpAddrInterfaceSensor;
-import com.midokura.midolman.host.sensor.DmesgInterfaceSensor;
-import com.midokura.midolman.host.sensor.IpTuntapInterfaceSensor;
+import com.midokura.midolman.host.sensor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +45,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
         sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
         sensors.add(injector.getInstance(DmesgInterfaceSensor.class));
+        sensors.add(injector.getInstance(NetlinkSensor.class));
     }
 
     @Override
