@@ -8,8 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-import com.sun.istack.internal.NotNull;
-
 import com.midokura.netlink.Callback;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.sdn.dp.flows.FlowAction;
@@ -51,9 +49,9 @@ public class Packet {
     @Nonnull
     public FlowMatch getMatch() {
         return match;
-    }
+    }                          j
 
-    public Packet setMatch(@NotNull FlowMatch match) {
+    public Packet setMatch(@Nonnull FlowMatch match) {
 	this.match = match;
         return this;
     }
