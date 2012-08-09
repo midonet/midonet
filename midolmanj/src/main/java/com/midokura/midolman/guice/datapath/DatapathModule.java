@@ -11,7 +11,7 @@ import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ *
  */
 public class DatapathModule extends PrivateModule {
     @Override

@@ -49,7 +49,7 @@ public class Packet {
     @Nonnull
     public FlowMatch getMatch() {
         return match;
-    }                          j
+    }
 
     public Packet setMatch(@Nonnull FlowMatch match) {
 	this.match = match;

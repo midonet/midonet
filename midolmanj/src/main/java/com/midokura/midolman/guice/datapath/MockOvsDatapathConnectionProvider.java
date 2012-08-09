@@ -18,7 +18,8 @@ import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl;
 import com.midokura.util.eventloop.Reactor;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Will provide an {@link OvsDatapathConnection} instance that is handled via
+ * by an in memory datapath store.
  */
 public class MockOvsDatapathConnectionProvider implements
                                            Provider<OvsDatapathConnection> {

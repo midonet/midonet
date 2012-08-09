@@ -17,7 +17,8 @@ import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.Reactor;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * This will create a OvsDatapathConnection which is already connected to the
+ * local netlink kernel module.
  */
 public class OvsDatapathConnectionProvider implements
                                            Provider<OvsDatapathConnection> {
