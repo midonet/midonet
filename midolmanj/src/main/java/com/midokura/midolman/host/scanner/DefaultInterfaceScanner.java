@@ -45,7 +45,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
         sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
         sensors.add(injector.getInstance(DmesgInterfaceSensor.class));
-        sensors.add(injector.getInstance(NetlinkSensor.class));
+        sensors.add(injector.getInstance(NetlinkInterfaceSensor.class));
     }
 
     @Override

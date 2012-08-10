@@ -16,7 +16,7 @@ import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.host.sensor.DmesgInterfaceSensor;
 import com.midokura.midolman.host.sensor.IpAddrInterfaceSensor;
 import com.midokura.midolman.host.sensor.IpTuntapInterfaceSensor;
-import com.midokura.midolman.host.sensor.NetlinkSensor;
+import com.midokura.midolman.host.sensor.NetlinkInterfaceSensor;
 import com.midokura.midolman.host.services.HostService;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
@@ -59,7 +59,7 @@ public class HostModule extends PrivateModule {
         expose(IpTuntapInterfaceSensor.class);
         bind(DmesgInterfaceSensor.class);
         expose(DmesgInterfaceSensor.class);
-        bind(NetlinkSensor.class);
-        expose(NetlinkSensor.class);
+        bind(NetlinkInterfaceSensor.class);
+        expose(NetlinkInterfaceSensor.class);
     }
 }

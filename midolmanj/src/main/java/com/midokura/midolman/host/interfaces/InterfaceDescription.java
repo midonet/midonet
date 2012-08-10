@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.midokura.packets.MAC;
+import com.midokura.sdn.dp.Port;
+import com.midokura.sdn.dp.PortOptions;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
@@ -18,7 +20,8 @@ import com.midokura.packets.MAC;
 public class InterfaceDescription {
 
     public enum Type { PHYS, VIRT, TUNN, UNKNOWN }
-    public enum Endpoint { BRIDGE, PHYSICAL, VM, GRE, LOCALHOST, TUNTAP, UNKNOWN }
+    public enum Endpoint { DATAPATH, PHYSICAL, VM, GRE, LOCALHOST, TUNTAP,
+        UNKNOWN }
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes
@@ -31,6 +34,7 @@ public class InterfaceDescription {
     protected boolean hasLink;
     protected int mtu;
     protected Endpoint endpoint;
+    protected Port.Type portType;
     //protected ... other
     protected Map<String, String> properties;
 
@@ -82,8 +86,9 @@ public class InterfaceDescription {
             InetAddress inetAddress = InetAddress.getByName(addressString);
             this.inetAddresses.add(inetAddress);
         } catch (Exception ignored) {
-            // We allow the interfaceDescription not to have any IP addresses. If the
-            // IP address conversion fails, we just don't add it to the list.
+            // We allow the interfaceDescription not to have any IP addresses.
+            // If the IP address conversion fails, we just don't add it to
+            // the list.
         }
     }
 
@@ -123,6 +128,14 @@ public class InterfaceDescription {
         this.endpoint = endpoint;
     }
 
+    public Port.Type getPortType() {
+        return portType;
+    }
+
+    public void setPortType(Port.Type portType) {
+        this.portType = portType;
+    }
+
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -142,6 +155,7 @@ public class InterfaceDescription {
             ", hasLink=" + hasLink +
             ", mtu=" + mtu +
             ", endpoint=" + endpoint +
+            ", portType=" + portType +
             ", properties=" + properties +
             '}';
     }

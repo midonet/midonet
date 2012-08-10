@@ -5,7 +5,6 @@ package com.midokura.midolman.host.sensor;
 
 import com.google.inject.Inject;
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.netlink.protos.NetlinkConnection;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.sdn.dp.Port;
 import org.slf4j.Logger;
@@ -20,10 +19,10 @@ import java.util.concurrent.TimeoutException;
 /**
  * Interface sensor using Netlink.
  */
-public class NetlinkSensor implements InterfaceSensor {
+public class NetlinkInterfaceSensor implements InterfaceSensor {
 
     private static final Logger log = LoggerFactory.getLogger(
-            NetlinkSensor.class);
+            NetlinkInterfaceSensor.class);
 
     @Inject
     private OvsDatapathConnection datapathConnection;
@@ -42,13 +41,7 @@ public class NetlinkSensor implements InterfaceSensor {
 
             try {
 
-                // Query datapath to see if there is a port with this name.
-                Future<Port<?, ?>> result =
-                        datapathConnection.portsGet(
-                                interfaceDescription.getName(), null);
-
-                port = result.get(NETLINK_CONN_TIMEOUT,
-                        TimeUnit.MILLISECONDS);
+                port = getDatapathPort(interfaceDescription.getName());
 
             } catch (InterruptedException ex) {
                 log.debug("Got interrupted. Interrupting the current thread");
@@ -69,21 +62,33 @@ public class NetlinkSensor implements InterfaceSensor {
             // Existence of port implies this is port used in Midolman
             if (port != null) {
 
-                if (interfaceDescription.getEndpoint() !=
+                // Set the port type
+                interfaceDescription.setPortType(port.getType());
+
+                // Set the endpoint if it's still unknown
+                if (interfaceDescription.getEndpoint() ==
                         InterfaceDescription.Endpoint.UNKNOWN) {
-                    // We already got an endpoint classification from the
-                    // previous sensor Skip this interface
-                    continue;
+                    // We have not got an endpoint classification from the
+                    // previous sensor Skip this interface.
+                    interfaceDescription.setEndpoint(
+                            InterfaceDescription.Endpoint.DATAPATH);
+                    interfaceDescription.setType(
+                            InterfaceDescription.Type.VIRT);
                 }
-
-                interfaceDescription.setEndpoint(
-                        InterfaceDescription.Endpoint.BRIDGE);
-                interfaceDescription.setType(InterfaceDescription.Type.VIRT);
-
             }
 
         }
 
         return interfaces;
+    }
+
+    protected Port getDatapathPort(String portName)
+            throws ExecutionException, TimeoutException, InterruptedException {
+
+        // Query datapath to see if there is a port with this name.
+        Future<Port<?, ?>> result =
+                datapathConnection.portsGet(portName, null);
+
+        return result.get(NETLINK_CONN_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 }
