@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.midokura.midolman.config.ZookeeperConfig;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
@@ -26,9 +27,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
 
-import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.config.MockConfigProviderModule;
-import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.datapath.MockDatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -62,7 +61,7 @@ public class DefaultInterfaceDataUpdaterTest {
         pathManager = new ZkPathManager("");
 
         final HierarchicalConfiguration configuration = new HierarchicalConfiguration();
-        configuration.addNodes(MidolmanConfig.GROUP_NAME,
+        configuration.addNodes(ZookeeperConfig.GROUP_NAME,
                 Arrays.asList(new HierarchicalConfiguration.Node
                         ("midolman_root_key", "")
         ));
@@ -70,7 +69,6 @@ public class DefaultInterfaceDataUpdaterTest {
         Injector injector = Guice.createInjector(
             new MockConfigProviderModule(configuration),
             new MockZookeeperConnectionModule(cleanDirectory),
-            new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
             new MockDatapathModule(),
             new ReactorModule(),
             new HostModule(),

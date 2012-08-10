@@ -65,14 +65,14 @@ public class HostInterfaceWatcher implements Runnable {
                 break;
             }
         }
-        log.info("Midolman node agent watcher thread stopped.");
+        log.info("Midolman host watcher thread stopped.");
     }
 
     /**
      * Method that will signal the main loop to stop.
      */
     public void stop() {
-        log.info("Midolman node agent watcher thread stopping.");
+        log.info("Midolman host watcher thread stopping.");
         isRunning = false;
     }
 

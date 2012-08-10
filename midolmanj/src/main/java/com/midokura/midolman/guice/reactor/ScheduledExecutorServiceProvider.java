@@ -16,9 +16,6 @@ import com.midokura.midolman.config.MidolmanConfig;
  */
 public class ScheduledExecutorServiceProvider implements
                                               Provider<ScheduledExecutorService> {
-    @Inject
-    MidolmanConfig config;
-
     @Override
     public ScheduledExecutorService get() {
         return Executors.newScheduledThreadPool(1);

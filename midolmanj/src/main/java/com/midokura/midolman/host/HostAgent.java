@@ -76,10 +76,9 @@ public class HostAgent {
         String configFilePath =
                 commandLine.getOptionValue('c', "./conf/midolman.conf");
 
-        Injector injector = Guice.createInjector(
+        injector = Guice.createInjector(
                 new ConfigProviderModule(configFilePath),
                 new ZookeeperConnectionModule(),
-                new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
                 new DatapathModule(),
                 new ReactorModule(),
                 new HostAgentModule(),
@@ -91,8 +90,8 @@ public class HostAgent {
     }
 
     private void doServiceCleanup() {
-        HostService instance =
-                injector.getInstance(HostService.class);
+        HostAgentService instance =
+                injector.getInstance(HostAgentService.class);
 
         if ( instance.state() == Service.State.TERMINATED )
             return;

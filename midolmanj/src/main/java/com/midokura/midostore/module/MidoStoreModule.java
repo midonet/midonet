@@ -11,10 +11,10 @@ import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.midokura.midolman.config.ZookeeperConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
@@ -80,7 +80,7 @@ public class MidoStoreModule extends PrivateModule {
         Directory directory;
 
         @Inject
-        MidolmanConfig config;
+        ZookeeperConfig config;
 
         Class<T> managerClass;
 

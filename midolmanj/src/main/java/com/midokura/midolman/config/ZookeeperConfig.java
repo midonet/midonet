@@ -46,4 +46,12 @@ public interface ZookeeperConfig {
      */
     @ConfigInt(key = "session_gracetime", defaultValue = 2)
     public int getZooKeeperGraceTime();
+
+    /**
+     * ZooKeeper root directory path for Midolman.
+     *
+     * @return Midolman's zookeeper root directory path
+     */
+    @ConfigString(key = "midolman_root_key", defaultValue = "/midonet")
+    String getMidolmanRootKey();
 }

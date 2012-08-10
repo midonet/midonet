@@ -24,9 +24,6 @@ public interface MidolmanConfig
     @ConfigInt(key = "disconnected_ttl_seconds", defaultValue = 30)
     int getMidolmanDisconnectedTtlSeconds();
 
-    @ConfigString(key = "midolman_root_key", defaultValue = "/midonet/midolman")
-    String getMidolmanRootKey();
-
     @ConfigBool(key = "enable_bgp", defaultValue = true)
     public boolean getMidolmanEnableBgp();
 

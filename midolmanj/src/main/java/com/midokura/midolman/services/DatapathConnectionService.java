@@ -12,7 +12,6 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
@@ -24,9 +23,6 @@ public class DatapathConnectionService extends AbstractService {
 
     private static final Logger log = LoggerFactory
         .getLogger(DatapathConnectionService.class);
-
-    @Inject
-    MidolmanConfig config;
 
     @Inject
     SelectLoop selectLoop;
