@@ -176,6 +176,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         hostInterface.setName(description.getName());
         hostInterface.setMac(description.getMac());
         hostInterface.setMtu(description.getMtu());
+        hostInterface.setPortType(description.getPortType());
 
         switch (description.getType()) {
             case PHYS:

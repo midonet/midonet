@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.host.commands.executors.CommandProperty;
+import com.midokura.sdn.dp.Port;
 
 /**
  * ZooKeeper state objects definitions for Host and Interface data.
@@ -216,6 +217,7 @@ public class HostDirectory {
         byte[] mac;
         int status;
         int mtu;
+        Port.Type portType;
         InetAddress[] addresses;
         Map<String, String> properties = new HashMap<String, String>();
 
@@ -295,6 +297,14 @@ public class HostDirectory {
             return false;
         }
 
+        public Port.Type getPortType() {
+            return portType;
+        }
+
+        public void setPortType(Port.Type portType) {
+            this.portType = portType;
+        }
+
         public Map<String, String> getProperties() {
             return properties;
         }
@@ -365,6 +375,7 @@ public class HostDirectory {
             this.mac = original.mac.clone();
             this.name = new String(original.name);
             this.type = original.type;
+            this.portType = original.portType;
             this.properties = new HashMap<String, String>(original.properties);
             // UUID is unique so we cannot copy it
         }
