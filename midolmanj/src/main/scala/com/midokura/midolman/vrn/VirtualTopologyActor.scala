@@ -14,6 +14,7 @@ import com.midokura.midolman.state.Directory
 import com.midokura.midolman.guice.ComponentInjectorHolder
 import javax.inject.Inject
 import com.midokura.midolman.config.MidolmanConfig
+import akka.event.Logging
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -25,6 +26,7 @@ case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
 case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
 case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
+// TODO(ross): why trait if there's no implementation?
 sealed trait Unsubscribe
 case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
 case class ChainUnsubscribe(id: UUID) extends Unsubscribe
@@ -57,6 +59,7 @@ class VirtualTopologyActor() extends Actor {
     // TODO(pino): use localPorts to avoid unloading local ports that have
     // TODO:       no subscribers and haven't been used in a while.
     private val localPorts = mutable.Set[UUID]()
+    val log = Logging(context.system, this)
 
 //    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
 //    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
@@ -77,6 +80,9 @@ class VirtualTopologyActor() extends Actor {
     var routeStateMgr: RouteZkManager = null
     @Inject
     var routerStateMgr: RouterZkManager = null
+
+    //@Inject
+    //var greZK: GreZkManager = null
     @Inject
     var config: MidolmanConfig = null
 
@@ -99,21 +105,30 @@ class VirtualTopologyActor() extends Actor {
                                    update: Boolean): Unit = {
         if (idToDevice.contains(id))
             sender.tell(idToDevice(id))
-        else
+        else {
+            log.info("Adding requester to unanswered clients")
             idToUnansweredClients(id).add(sender)
-        if (update)
-            idToSubscribers(id).add(sender)
+        }
+        log.info("check requester for update")
+        if (update) {
+             log.info("Adding requester to subscribed clients")
+             idToSubscribers(id).add(sender)
+        }
     }
 
     private def updated[T](id: UUID, device: T,
                            idToDevice: mutable.Map[UUID, T]): Unit = {
         idToDevice.put(id, device)
-        for (client <- idToSubscribers(id))
-            client != device
+        for (client <- idToSubscribers(id)) {
+            log.info("Send subscriber the device update.")
+            client ! device
+        }
         for (client <- idToUnansweredClients(id))
             // Avoid notifying the subscribed clients twice.
-            if (!idToSubscribers(id).contains(client))
+            if (!idToSubscribers(id).contains(client)) {
+                log.info("Send unanswered client the device update.")
                 client ! device
+            }
         idToUnansweredClients(id).clear()
     }
 
@@ -149,7 +164,9 @@ class VirtualTopologyActor() extends Actor {
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)
         case RouterUnsubscribe(id) => unsubscribe(id, sender)
-        case bridge : Bridge => updated(bridge.id, bridge, idToBridge)
+        case bridge : Bridge =>
+            log.info("Received Bridge")
+            updated(bridge.id, bridge, idToBridge)
         case chain: Chain => updated(chain.id, chain, idToChain)
         case port: Port => updated(port.id, port, idToPort)
         case router: Router => updated(router.id, router, idToRouter)

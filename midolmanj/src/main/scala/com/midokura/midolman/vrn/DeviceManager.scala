@@ -5,8 +5,10 @@ package com.midokura.midolman.vrn
 
 import java.util.UUID
 import akka.actor.Actor
+import akka.event.Logging
 
 abstract class DeviceManager(val id: UUID) extends Actor {
+    val log = Logging(context.system, this)
     // Kick off the first attempt to construct the device.
     updateConfig();
 

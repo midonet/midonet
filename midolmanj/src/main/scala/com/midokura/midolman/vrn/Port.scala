@@ -14,5 +14,14 @@ class Port(val id: UUID, val cfg: PortConfig,
 class MaterializedPort(id: UUID, cfg: PortConfig, inFilter: Chain,
                        outFilter: Chain, val locations: java.util.Set[IntIPv4])
     extends Port(id, cfg, inFilter, outFilter) {
-
+    override def hashCode = id.hashCode()
+    override def equals(other: Any) = other match{
+        case that: MaterializedPort =>
+            (that canEqual this) &&
+                (this.id == that.id) && (this.cfg == that.cfg) && (this.inFilter == that.inFilter) &&
+                (this.outFilter == that.outFilter) && (this.locations == that.locations)
+        case _ =>
+            false
+    }
+    def canEqual(other: Any) = other.isInstanceOf[MaterializedPort]
 }

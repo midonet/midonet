@@ -12,10 +12,12 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     private var cfg: BridgeConfig = null;
 
     override def chainsUpdated() = {
+        log.info("chains updated")
         context.actorFor("..").tell(new Bridge(id, cfg, inFilter, outFilter))
     }
 
     override def refreshConfig() = {
+        log.info("refresh config")
         cfg = mgr.get(id, cb)
     }
 

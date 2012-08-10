@@ -10,6 +10,7 @@ import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, IPv4}
 import org.slf4j.LoggerFactory
 
 
+
 class Bridge(val id: UUID, val cfg: BridgeConfig,
              val inFilter: Chain, val outFilter: Chain) extends Device {
 
@@ -18,6 +19,17 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
     private val rtrMacToLogicalPortId = new mutable.HashMap[MAC, UUID]()
     private val rtrIpToMac = new mutable.HashMap[IntIPv4, MAC]()
     private val macPortMap = new mutable.HashMap[MAC, UUID]() //XXX: No
+
+    override def hashCode = id.hashCode()
+    override def equals(other: Any) = other match{
+        case that: Bridge =>
+            (that canEqual this) &&
+                (this.id == that.id) && (this.cfg == that.cfg) && (this.inFilter == that.inFilter) &&
+                (this.outFilter == that.outFilter)
+        case _ =>
+            false
+    }
+    def canEqual(other: Any) = other.isInstanceOf[Bridge]
    
     override def process(ingress: PacketContext): ProcessResult = {
         val srcDlAddress = new MAC(ingress.mmatch.getDataLayerSource)
