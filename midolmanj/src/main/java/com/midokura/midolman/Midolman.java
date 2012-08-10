@@ -34,7 +34,7 @@ import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import com.midokura.midolman.host.guice.HostAgentModule;
+import com.midokura.midolman.host.guice.HostModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.openflow.Controller;
 import com.midokura.midolman.openflow.ControllerStubImpl;
@@ -136,7 +136,7 @@ public class Midolman implements SelectListener {
         injector = Guice.createInjector(
             new ZookeeperConnectionModule(),
             new ReactorModule(),
-            new HostAgentModule(),
+            new HostModule(),
             new ConfigProviderModule(configFilePath),
             new DatapathModule(),
             new MidoStoreModule(),

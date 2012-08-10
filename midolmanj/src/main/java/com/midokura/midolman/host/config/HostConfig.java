@@ -9,15 +9,15 @@ import com.midokura.config.ConfigString;
 
 /**
  * Interface that provides access to various configuration values
- * available to the agent.
+ * available to the host.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/8/12
  */
-@ConfigGroup(HostAgentConfig.GROUP_NAME)
-public interface HostAgentConfig {
+@ConfigGroup(HostConfig.GROUP_NAME)
+public interface HostConfig {
 
-    public static final String GROUP_NAME = "host_agent";
+    public static final String GROUP_NAME = "host";
 
     /**
      * Returns the time to wait between local information scans (in millis).

@@ -6,19 +6,19 @@ package com.midokura.midolman.host.guice;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.host.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostConfig;
 
 /**
- * Provider for HostAgentConfig
+ * Provider for HostConfig
  */
-public class HostAgentConfigProvider implements Provider<HostAgentConfig> {
+public class HostConfigProvider implements Provider<HostConfig> {
 
     @Inject
     ConfigProvider configProvider;
 
     @Override
-    public HostAgentConfig get() {
-        return configProvider.getConfig(HostAgentConfig.class);
+    public HostConfig get() {
+        return configProvider.getConfig(HostConfig.class);
     }
 
 }

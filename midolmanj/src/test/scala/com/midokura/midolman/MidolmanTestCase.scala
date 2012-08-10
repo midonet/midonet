@@ -58,7 +58,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     before {
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
-            // new HostAgentModule(), // We don't need it in this test
+            // new HostModule(), // We don't need it in this test
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),

@@ -7,7 +7,7 @@
 package com.midokura.midolman.host;
 
 import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.host.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostConfig;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -35,8 +35,8 @@ public class HostIdGeneratorTest {
     File confFileFake;
     File propFile;
     String basePath = "/midolman";
-    HostAgentConfig config;
-    HostAgentConfig configFake;
+    HostConfig config;
+    HostConfig configFake;
 
     @After
     public void tearDown() throws Exception {
@@ -54,7 +54,7 @@ public class HostIdGeneratorTest {
 
         final HierarchicalConfiguration configuration =
                 new HierarchicalConfiguration();
-        configuration.addNodes(HostAgentConfig.GROUP_NAME,
+        configuration.addNodes(HostConfig.GROUP_NAME,
                 Arrays.asList(new HierarchicalConfiguration.Node
                         (uuidPropertyName, hostId1)
                 ));
@@ -63,18 +63,18 @@ public class HostIdGeneratorTest {
                 ConfigProvider
                         .providerForIniConfig(
                                 configuration)
-                        .getConfig(HostAgentConfig.class);
+                        .getConfig(HostConfig.class);
 
 
         final HierarchicalConfiguration fakeConfiguration =
                 new HierarchicalConfiguration();
-        fakeConfiguration.addNodes(HostAgentConfig.GROUP_NAME, null);
+        fakeConfiguration.addNodes(HostConfig.GROUP_NAME, null);
 
         configFake =
                 ConfigProvider
                         .providerForIniConfig(
                                 fakeConfiguration)
-                        .getConfig(HostAgentConfig.class);
+                        .getConfig(HostConfig.class);
 
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, hostId2);

@@ -6,7 +6,7 @@ package com.midokura.midolman.host;
 import java.util.UUID;
 
 import com.google.inject.Inject;
-import com.midokura.midolman.host.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class HostInterfaceWatcher implements Runnable {
     InterfaceDataUpdater interfaceDataUpdater;
 
     @Inject
-    HostAgentConfig configuration;
+    HostConfig configuration;
 
     boolean isRunning;
 

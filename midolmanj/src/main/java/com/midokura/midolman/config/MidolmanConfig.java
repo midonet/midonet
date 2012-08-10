@@ -24,9 +24,6 @@ public interface MidolmanConfig
     @ConfigInt(key = "disconnected_ttl_seconds", defaultValue = 30)
     int getMidolmanDisconnectedTtlSeconds();
 
-    @ConfigBool(key = "start_host_agent", defaultValue = false)
-    boolean getMidolmanStartHostAgent();
-
     @ConfigString(key = "midolman_root_key", defaultValue = "/midonet/midolman")
     String getMidolmanRootKey();
 

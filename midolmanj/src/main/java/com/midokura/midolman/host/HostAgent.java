@@ -6,8 +6,16 @@ package com.midokura.midolman.host;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.midokura.midolman.host.guice.StandAloneHostAgentModule;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.config.ConfigProviderModule;
+import com.midokura.midolman.guice.config.TypedConfigModule;
+import com.midokura.midolman.guice.datapath.DatapathModule;
+import com.midokura.midolman.guice.reactor.ReactorModule;
+import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.host.services.HostAgentService;
+import com.midokura.midolman.host.services.HostService;
+import com.midokura.midostore.module.MidoStoreModule;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,16 +76,23 @@ public class HostAgent {
         String configFilePath =
                 commandLine.getOptionValue('c', "./conf/midolman.conf");
 
-        injector = Guice.createInjector(
-                new StandAloneHostAgentModule(configFilePath)
-        );
+        Injector injector = Guice.createInjector(
+                new ConfigProviderModule(configFilePath),
+                new ZookeeperConnectionModule(),
+                new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
+                new DatapathModule(),
+                new ReactorModule(),
+                new HostAgentModule(),
+                new MidoStoreModule());
 
         injector.getInstance(HostAgentService.class).startAndWait();
+
+        log.info("{} has started", HostAgentService.class);
     }
 
     private void doServiceCleanup() {
-        HostAgentService instance =
-                injector.getInstance(HostAgentService.class);
+        HostService instance =
+                injector.getInstance(HostService.class);
 
         if ( instance.state() == Service.State.TERMINATED )
             return;

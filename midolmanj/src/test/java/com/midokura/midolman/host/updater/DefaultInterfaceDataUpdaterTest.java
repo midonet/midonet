@@ -32,7 +32,7 @@ import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.datapath.MockDatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule;
-import com.midokura.midolman.host.guice.HostAgentModule;
+import com.midokura.midolman.host.guice.HostModule;
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
@@ -73,7 +73,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
             new MockDatapathModule(),
             new ReactorModule(),
-            new HostAgentModule(),
+            new HostModule(),
             new MidoStoreModule());
 
         directory = cleanDirectory;

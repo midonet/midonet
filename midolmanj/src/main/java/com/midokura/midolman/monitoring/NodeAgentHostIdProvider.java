@@ -7,7 +7,7 @@ package com.midokura.midolman.monitoring;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.midokura.midolman.host.services.HostAgentService;
+import com.midokura.midolman.host.services.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +19,9 @@ public class NodeAgentHostIdProvider implements HostIdProvider {
     private final static Logger log =
         LoggerFactory.getLogger(NodeAgentHostIdProvider.class);
 
-    HostAgentService agent;
+    HostService agent;
 
-    public NodeAgentHostIdProvider(HostAgentService agent) {
+    public NodeAgentHostIdProvider(HostService agent) {
         this.agent = agent;
     }
 

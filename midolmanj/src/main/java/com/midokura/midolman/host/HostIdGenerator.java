@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.midokura.midolman.host.config.HostAgentConfig;
+import com.midokura.midolman.host.config.HostConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,7 @@ public class HostIdGenerator {
      *                                     be written
      * @throws InterruptedException
      */
-    public static UUID getHostId(HostAgentConfig config,
+    public static UUID getHostId(HostConfig config,
                                  HostZkManager zkManager)
         throws HostIdAlreadyInUseException, StateAccessException,
                PropertiesFileNotWritableException,
@@ -119,7 +119,7 @@ public class HostIdGenerator {
      * @throws StateAccessException        If there's a problem in reading the data
      *                                     from ZK. E.g. the path doesn't exist
      */
-    private static UUID getIdFromConfigFile(HostAgentConfig config,
+    private static UUID getIdFromConfigFile(HostConfig config,
                                             HostZkManager zkManager)
         throws HostIdAlreadyInUseException, StateAccessException {
         UUID myUUID = null;
