@@ -4,8 +4,19 @@
 
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import com.google.inject.assistedinject.Assisted;
+import java.util.List;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 import com.google.inject.servlet.RequestScoped;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.data.dao.MetricDao;
 import com.midokura.midolman.mgmt.data.dto.Metric;
@@ -14,17 +25,6 @@ import com.midokura.midolman.mgmt.data.dto.MetricQueryResponse;
 import com.midokura.midolman.mgmt.data.dto.MetricTarget;
 import com.midokura.midolman.mgmt.http.VendorMediaType;
 import com.midokura.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import java.util.List;
 
 /**
  * Date: 5/3/12
@@ -33,7 +33,7 @@ import java.util.List;
 public class MonitoringResource {
 
     private final static Logger log = LoggerFactory
-        .getLogger(MonitoringResource.class);
+            .getLogger(MonitoringResource.class);
 
     private final MetricDao dao;
 
@@ -46,21 +46,21 @@ public class MonitoringResource {
      * This method will execute the query against the collected metrics data
      * store and return the results.
      *
-     * @param query      the query that the system will process
+     * @param queries the queries that the system will process
      * @return MetricQueryResponse with the results of the query
      * @throws StateAccessException
      */
     @POST
     @Path("/query")
     @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({VendorMediaType.APPLICATION_MONITORING_QUERY_JSON,
+    @Consumes({VendorMediaType.APPLICATION_MONITORING_QUERY_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON})
+    @Produces({VendorMediaType.APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    @Produces({VendorMediaType.APPLICATION_MONITORING_QUERY_RESPONSE_JSON,
-                  MediaType.APPLICATION_JSON})
-    public MetricQueryResponse post(MetricQuery query)
+    public List<MetricQueryResponse> post(List<MetricQuery> queries)
         throws StateAccessException {
 
-        return dao.executeQuery(query);
+        return dao.executeQueries(queries);
     }
 
     /**
@@ -82,6 +82,8 @@ public class MonitoringResource {
     public List<Metric> getMetricResource(MetricTarget target)
         throws StateAccessException {
 
-        return dao.listMetrics(target.getType(), target.getTargetIdentifier());
+        return dao.listMetrics(target.getTargetIdentifier());
     }
+
+
 }

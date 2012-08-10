@@ -16,7 +16,8 @@ import com.midokura.midolman.mgmt.data.dto.MetricQueryResponse;
  */
 public interface MetricDao {
 
-    MetricQueryResponse executeQuery(MetricQuery query);
+    List<Metric> listMetrics(UUID targetIdentifier);
 
-    List<Metric> listMetrics(String type, UUID targetIdentifier);
+    List<MetricQueryResponse> executeQueries(List<MetricQuery> queries);
+
 }

@@ -23,6 +23,11 @@ public class Metric {
      */
     UUID targetIdentifier;
 
+    /**
+     * the metric type
+     */
+    String type;
+
     public String getName() {
         return name;
     }
@@ -40,4 +45,11 @@ public class Metric {
         this.targetIdentifier = targetIdentifier;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

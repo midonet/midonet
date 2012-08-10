@@ -46,8 +46,8 @@ public class VendorMediaType {
     public static final String APPLICATION_DHCP_HOST_JSON = "application/vnd.com.midokura.midolman.mgmt.DhcpHost+json";
     public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.DhcpHost+json";
 
-    public static final String APPLICATION_MONITORING_QUERY_RESPONSE_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQueryResponse+json";
-    public static final String APPLICATION_MONITORING_QUERY_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQuery+json";
+    public static final String APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.collection.mgmt.MetricQueryResponse+json";
+    public static final String APPLICATION_MONITORING_QUERY_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.MetricQuery+json";
     public static final String APPLICATION_METRICS_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Metric+json";
     public static final String APPLICATION_METRIC_TARGET_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricTarget+json";
 

@@ -18,10 +18,6 @@ public class MetricTarget {
      * the UUID of the object to which the metric refers
      */
     UUID targetIdentifier;
-    /**
-     * the type of the object
-     */
-    String type;
 
     public UUID getTargetIdentifier() {
         return targetIdentifier;
@@ -31,11 +27,4 @@ public class MetricTarget {
         this.targetIdentifier = targetIdentifier;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

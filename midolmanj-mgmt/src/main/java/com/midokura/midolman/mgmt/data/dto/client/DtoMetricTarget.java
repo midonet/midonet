@@ -15,7 +15,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class DtoMetricTarget {
     UUID targetIdentifier;
-    String type;
 
     public UUID getTargetIdentifier() {
         return targetIdentifier;
@@ -25,11 +24,4 @@ public class DtoMetricTarget {
         this.targetIdentifier = targetIdentifier;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

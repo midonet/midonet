@@ -28,11 +28,10 @@ public class CassandraStore implements Store {
     public CassandraStore(String server, String clusterName,
                           String keyspaceName, String columnFamily,
                           int replicationFactor, int expirationSecs)
-        throws HectorException
-    {
+            throws HectorException {
         client = new CassandraClient(server, clusterName, keyspaceName,
-                                     columnFamily, replicationFactor,
-                                     expirationSecs);
+                columnFamily, replicationFactor,
+                expirationSecs);
     }
 
     @Override
@@ -43,7 +42,7 @@ public class CassandraStore implements Store {
         client.set(key, Long.toString(value), Long.toString(time));
 
         log.trace("Added value {}, for key {}, column {}",
-                  new Object[]{value, key, time});
+                new Object[]{value, key, time});
     }
 
     @Override
@@ -56,8 +55,8 @@ public class CassandraStore implements Store {
     private String asKey(String type, String targetIdentifier,
                          String metricName, long time) {
         return
-            targetIdentifier + type + metricName +
-                GMTTime.getDayMonthYear(time);
+                targetIdentifier + type + metricName +
+                        GMTTime.getDayMonthYear(time);
     }
 
     @Override
@@ -70,8 +69,8 @@ public class CassandraStore implements Store {
             String key = asKey(type, targetIdentifier, metricName, timeStart);
 
             return client.executeSliceQuery(key, Long.toString(timeStart),
-                                            Long.toString(timeEnd), Long.class,
-                                            maxNumberQueryResult);
+                    Long.toString(timeEnd), Long.class,
+                    maxNumberQueryResult);
         } else {
             long perDayMillis = TimeUnit.DAYS.toMillis(1);
             List<String> keys = new ArrayList<String>();
@@ -79,26 +78,36 @@ public class CassandraStore implements Store {
                 // since we store each day using a different key, calculate
                 // the keys
                 keys.add(asKey(type, targetIdentifier, metricName,
-                              timeStart + i * perDayMillis));
+                        timeStart + i * perDayMillis));
             }
 
             return client.executeSliceQuery(keys, Long.toString(timeStart),
-                                            Long.toString(timeEnd), Long.class,
-                                            maxNumberQueryResult);
+                    Long.toString(timeEnd), Long.class,
+                    maxNumberQueryResult);
         }
     }
 
     @Override
-    public void addMetric(String type, String targetIdentifier,
-                          String metricName) {
-        //TODO use another columnfamily?
-        client.set(targetIdentifier + type, metricName, metricName);
+    public void addMetricTypeToTarget(String targetIdentifier, String type) {
+        client.set(targetIdentifier, type, type);
     }
 
     @Override
-    public List<String> getMetrics(String type, String targetIdentifier) {
-        return client.getAllColumnsValues(targetIdentifier + type, String.class,
-                                          maxNumberQueryResult);
+    public List<String> getMetricsTypeForTarget(String targetIdentifier) {
+        return client.getAllColumnsValues(targetIdentifier, String.class, maxNumberQueryResult);
+    }
+
+    @Override
+    public void addMetricToType(String type,
+                                String metricName) {
+        //TODO use another columnfamily?
+        client.set(type, metricName, metricName);
+    }
+
+    @Override
+    public List<String> getMetricsForType(String type) {
+        return client.getAllColumnsValues(type, String.class,
+                maxNumberQueryResult);
     }
 
     public static void setMaxNumberQueryResult(int maxNumberQueryResult) {

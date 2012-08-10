@@ -5,6 +5,7 @@
 package com.midokura.midolman.monitoring;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,16 @@ public class MidoReporter extends AbstractPollingReporter
     private final static Logger log = LoggerFactory.getLogger(
             MidoReporter.class);
 
+    /* List of the metrics recently added and that need to be registered in the store
+     * Key is type + metricName */
     private static List<MetricName> metricsToStore = new ArrayList<MetricName>();
+    /* List of new metrics type activated for some target. We will store every metrics type
+       available for every target in the store. We can then retrieve target-> type,
+       type-> metrics.
+     */
+    private static List<MetricName> typeTargetToStore = new ArrayList<MetricName>();
+    /* List of metrics already registered in the store */
+    private static Map<String, Integer> storedMetrics = new HashMap<String, Integer>();
 
     private Store store;
 
@@ -52,7 +62,7 @@ public class MidoReporter extends AbstractPollingReporter
                 entry.getValue().processWith(this, entry.getKey(), "");
             } catch (Exception e) {
                 log.error("Error in sampling metric {}",
-                          new Object[]{entry.getKey().getName()}, e);
+                        new Object[]{entry.getKey().getName()}, e);
             }
         }
         // save the info of the last added metrics into the store
@@ -61,13 +71,23 @@ public class MidoReporter extends AbstractPollingReporter
 
     private void addNewMetricsInfoToStore() {
         for (MetricName metric : metricsToStore) {
-            store.addMetric(metric.getType(), metric.getScope(),
-                            metric.getName());
-            log.debug("Added metric {} for target {} type {}",
-                      new Object[]{metric.getName(), metric.getScope(), metric.getType()});
+            // check if it's a "new" metric, if so we should store it
+            // TODO(ross) this needs to be modified and use MidoStore
+            if (!storedMetrics.containsKey(metric.getType() + metric.getName())) {
+                store.addMetricToType(metric.getType(), metric.getName());
+                storedMetrics.put(metric.getType() + metric.getName(), 1);
+                log.debug("Added metric {} to type {}",
+                        new Object[]{metric.getName(), metric.getType()});
+            }
+        }
+        for (MetricName metric : typeTargetToStore) {
+            store.addMetricTypeToTarget(metric.getScope(), metric.getType());
+            log.debug("Added type {} to target {}",
+                    new Object[]{metric.getType(), metric.getScope()});
         }
         // clear list
         metricsToStore.clear();
+        typeTargetToStore.clear();
     }
 
     @Override
@@ -81,12 +101,12 @@ public class MidoReporter extends AbstractPollingReporter
             val = (Boolean) originalValue ? 1l : 0l;
         } else {
             log.debug("Unsupported value type {}",
-                      originalValue.getClass().getCanonicalName());
+                    originalValue.getClass().getCanonicalName());
             return;
         }
 
         store.addTSPoint(name.getType(), name.getScope(),
-                         name.getName(), System.currentTimeMillis(), val
+                name.getName(), System.currentTimeMillis(), val
         );
 
     }
@@ -97,7 +117,7 @@ public class MidoReporter extends AbstractPollingReporter
         Long val = metered.count();
 
         store.addTSPoint(metricName.getType(), metricName.getScope(),
-                         metricName.getName(), System.currentTimeMillis(), val
+                metricName.getName(), System.currentTimeMillis(), val
         );
     }
 
@@ -108,7 +128,7 @@ public class MidoReporter extends AbstractPollingReporter
         Long val = counter.count();
 
         store.addTSPoint(metricName.getType(), metricName.getScope(),
-                         metricName.getName(), System.currentTimeMillis(), val
+                metricName.getName(), System.currentTimeMillis(), val
         );
     }
 
@@ -126,10 +146,17 @@ public class MidoReporter extends AbstractPollingReporter
 
     @Override
     public void onMetricAdded(MetricName name, Metric metric) {
+        // This method must return fast, it's called every time a metric is added
+        // VifMetrics also fires this event, so if it takes too long we could have
+        // some problem in addVirtualPort
         metricsToStore.add(name);
     }
 
     @Override
     public void onMetricRemoved(MetricName name) {
+    }
+
+    public static void notifyNewMetricTypeForTarget(MetricName metricName) {
+        typeTargetToStore.add(metricName);
     }
 }

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.HostIdProvider;
+import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
 import com.midokura.util.jmx.JMXHelper;
 
@@ -52,6 +53,10 @@ public class ZookeeperMetricsCollection {
         }
 
         hostName = hostIdProvider.getHostId();
+
+        MidoReporter.notifyNewMetricTypeForTarget(
+            new MetricName(ZookeeperMetricsCollection.class, "", hostName));
+
 
         registerMetric(serverConn, "ZKPacketsSent", Long.class, mBeanZkService,
                 "PacketsSent");

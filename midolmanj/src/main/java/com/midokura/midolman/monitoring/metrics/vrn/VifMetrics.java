@@ -20,6 +20,7 @@ import org.openflow.protocol.statistics.OFPortStatisticsReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.openflow.SuccessHandler;
 import com.midokura.midolman.openflow.TimeoutHandler;
 import com.midokura.midolman.vrn.VRNController;
@@ -61,6 +62,10 @@ public class VifMetrics {
         counters.portName = portName;
 
         watchedPorts.add(portId);
+
+        MidoReporter.notifyNewMetricTypeForTarget(
+            new MetricName(VifMetrics.class, "", portId.toString()));
+
 
         schedulePortStatsRequest(controller, counters, portId, System.currentTimeMillis());
     }

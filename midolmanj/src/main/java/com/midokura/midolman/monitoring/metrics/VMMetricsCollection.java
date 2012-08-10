@@ -16,12 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.HostIdProvider;
+import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
 
 /**
  * This metrics collection will create Gauges for the the interesting VM metrics
  * available via local JMX beans.
- *
+ * <p/>
  * Date: 4/26/12
  */
 public class VMMetricsCollection {
@@ -32,6 +33,8 @@ public class VMMetricsCollection {
     private static final MBeanServer SERVER =
             ManagementFactory.getPlatformMBeanServer();
 
+    private static int metricsCount = 0;
+
     @Inject
     HostIdProvider hostIdProvider;
 
@@ -40,6 +43,8 @@ public class VMMetricsCollection {
     public void registerMetrics() {
 
         hostName = hostIdProvider.getHostId();
+
+        MidoReporter.notifyNewMetricTypeForTarget(new MetricName(VMMetricsCollection.class, "", hostName));
 
         addLocalJmxPoolingMetric("ThreadCount", Integer.class,
                 "java.lang:type=Threading", "ThreadCount");
@@ -120,6 +125,11 @@ public class VMMetricsCollection {
         Metrics.newGauge(
                 new MetricName(VMMetricsCollection.class, name, hostName),
                 gauge);
+
+        metricsCount++;
     }
 
+    public static int getMetricsCount() {
+        return metricsCount;
+    }
 }

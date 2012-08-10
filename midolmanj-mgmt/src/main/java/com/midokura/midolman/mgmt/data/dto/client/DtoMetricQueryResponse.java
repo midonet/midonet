@@ -98,11 +98,11 @@ public class DtoMetricQueryResponse {
             "type=" + type;
 
         for (Map.Entry<String, Long> entry : results.entrySet()) {
-            res += "[";
+            res += "[{timestamp: ";
             res += entry.getKey();
-            res += ",";
-            res += entry.getValue().toString();
-            res += "]";
+            res += ", ";
+            res += "value : " + entry.getValue().toString();
+            res += "}]";
         }
 
         res += "}";

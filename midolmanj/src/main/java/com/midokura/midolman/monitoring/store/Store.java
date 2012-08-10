@@ -20,9 +20,13 @@ public interface Store {
                                          String metricName, long timeStart,
                                          long timeEnd);
 
-    public void addMetric(String type, String targetIdentifier,
-                          String metricName);
+    public void addMetricTypeToTarget(String targetIdentifier, String type);
 
-    public List<String> getMetrics(String type, String targetIdentifier);
+    public List<String> getMetricsTypeForTarget(String targetIdentifier);
+
+    public void addMetricToType(String type,
+                                String metricName);
+
+    public List<String> getMetricsForType(String type);
 
 }

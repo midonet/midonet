@@ -15,6 +15,7 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.cassandraunit.utils.EmbeddedCassandraServerHelper.stopEmbeddedCassandra;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -38,6 +39,7 @@ import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.util.lock.LockHelper;
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeCassandraFolder;
@@ -82,16 +84,15 @@ public class MonitoringTest {
 
         zkLauncher = ZKLauncher.start(Jmx_Enabled);
 
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         WebAppDescriptor webAppDescriptor =
-            MockMidolmanMgmt.getAppDescriptorBuilder(false)
-                            .contextParam("zk_conn_string", "127.0.0.1:2182")
-                            .build();
+                MockMidolmanMgmt.getAppDescriptorBuilder(false)
+                        .contextParam("zk_conn_string", "127.0.0.1:2182")
+                        .build();
 
         api = new MockMidolmanMgmt(webAppDescriptor);
 
         ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch", "127.0.0.1", 12344);
+                "Open_vSwitch", "127.0.0.1", 12344);
 
         midolman = MidolmanLauncher.start(Monitoring, "MonitoringTest");
 
@@ -105,14 +106,14 @@ public class MonitoringTest {
         tenant = new Tenant.Builder(api).setName("tenant-metrics").build();
 
         bridge = tenant.addBridge()
-                       .setName("bridge-metrics")
-                       .build();
+                .setName("bridge-metrics")
+                .build();
 
         ipInt = IntIPv4.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
         intBridgePort = bridge.addPort().build();
         ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
-                                  ipInt, 24);
+                ipInt, 24);
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
@@ -124,10 +125,10 @@ public class MonitoringTest {
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
 
         store = new CassandraStore("localhost:9171",
-                                   "midonet",
-                                   "midonet_monitoring_keyspace",
-                                   "midonet_monitoring_column_family",
-                                   replicationFactor, ttlInSecs);
+                "midonet",
+                "midonet_monitoring_keyspace",
+                "midonet_monitoring_column_family",
+                replicationFactor, ttlInSecs);
 
     }
 
@@ -139,7 +140,6 @@ public class MonitoringTest {
         removeTenant(tenant);
         stopMidolmanMgmt(api);
         FunctionalTestsHelper.stopZookeeperService(zkLauncher);
-        stopEmbeddedCassandra();
         removeCassandraFolder();
         lock.release();
     }
@@ -154,159 +154,160 @@ public class MonitoringTest {
 
 
         sleepBecause("Let's collect metrics", 5);
+        List<String> types = store.getMetricsTypeForTarget(hostName);
+        assertThat("We didn't save the metric type", types.size(), greaterThan(2));
+
         List<String> zkMetrics =
-            store.getMetrics(ZookeeperMetricsCollection.class.getSimpleName(),
-                             hostName);
+                store.getMetricsForType(ZookeeperMetricsCollection.class.getSimpleName());
 
         assertThat("We didn't initialize some metric for ZooKeeper",
-                   zkMetrics.size(), greaterThan(0));
+                zkMetrics.size(), greaterThan(0));
 
         for (String metric : zkMetrics) {
             Map<String, Long> res = store.getTSPoints(
-                ZookeeperMetricsCollection.class.getSimpleName(),
-                hostName, metric, startTime, System.currentTimeMillis());
+                    ZookeeperMetricsCollection.class.getSimpleName(),
+                    hostName, metric, startTime, System.currentTimeMillis());
             assertThat("The ts points for Zk metrics are > 0",
-                       res.size(), greaterThan(0));
+                    res.size(), greaterThan(0));
             Long lastValue = getValueLastKey(res);
             resZkMetrics.put(metric, lastValue);
         }
 
         List<String> vmMetrics =
-            store.getMetrics(VMMetricsCollection.class.getSimpleName(),
-                             hostName);
+                store.getMetricsForType(VMMetricsCollection.class.getSimpleName());
 
         assertThat("We didn't initialize some metric for the vm",
-                   vmMetrics.size(), greaterThan(0));
+                vmMetrics.size(), greaterThan(0));
 
         for (String metric : vmMetrics) {
             Map<String, Long> res =
-                store.getTSPoints(VMMetricsCollection.class.getSimpleName(),
-                                  hostName, metric, startTime,
-                                  System.currentTimeMillis());
+                    store.getTSPoints(VMMetricsCollection.class.getSimpleName(),
+                            hostName, metric, startTime,
+                            System.currentTimeMillis());
 
             assertThat("The ts points for vm metrics aren't > 0", res.size(),
-                       greaterThan(0));
+                    greaterThan(0));
 
             Long lastValue = getValueLastKey(res);
             resVmMetrics.put(metric, lastValue);
         }
 
-        List<String> vifMetrics = store.getMetrics(
-            VifMetrics.class.getSimpleName(), tapBridgePort.getId().toString());
+        List<String> vifMetrics = store.getMetricsForType(
+                VifMetrics.class.getSimpleName());
 
         assertThat("We didn't initialize some metric for this vif",
-                   vifMetrics.size(), greaterThan(0));
+                vifMetrics.size(), greaterThan(0));
 
         Map<String, Long> rxPackets =
-            store.getTSPoints(VifMetrics.class.getSimpleName(),
-                              tapBridgePort.getId().toString(), "rxPackets",
-                              startTime, System.currentTimeMillis());
+                store.getTSPoints(VifMetrics.class.getSimpleName(),
+                        tapBridgePort.getId().toString(), "rxPackets",
+                        startTime, System.currentTimeMillis());
 
         // record the current metric value, take last key in the map
         long previousCount = getValueLastKey(rxPackets);
         long timeBeforeSending = System.currentTimeMillis();
         // send a packet
         assertPacketWasSentOnTap(metricsTap,
-                                 helperTap_int.makeIcmpEchoRequest(ipInt));
+                helperTap_int.makeIcmpEchoRequest(ipInt));
         sleepBecause("need to wait for metric to update", 2);
 
         rxPackets =
-            store.getTSPoints(VifMetrics.class.getSimpleName(),
-                              tapBridgePort.getId().toString(), "rxPackets",
-                              timeBeforeSending, System.currentTimeMillis());
+                store.getTSPoints(VifMetrics.class.getSimpleName(),
+                        tapBridgePort.getId().toString(), "rxPackets",
+                        timeBeforeSending, System.currentTimeMillis());
 
         long currentValue = getValueLastKey(rxPackets);
         // check that the counter increased properly
         assertThat("the counter didn't increased properly",
-                   currentValue, is(previousCount + 1));
+                currentValue, is(previousCount + 1));
 
         timeBeforeSending = System.currentTimeMillis();
 
         // send another packet
         assertPacketWasSentOnTap(metricsTap,
-                                 helperTap_int.makeIcmpEchoRequest(ipInt));
+                helperTap_int.makeIcmpEchoRequest(ipInt));
         sleepBecause("need to wait for metric to update", 2);
 
         rxPackets =
-            store.getTSPoints(VifMetrics.class.getSimpleName(),
-                              tapBridgePort.getId().toString(), "rxPackets",
-                              timeBeforeSending, System.currentTimeMillis());
+                store.getTSPoints(VifMetrics.class.getSimpleName(),
+                        tapBridgePort.getId().toString(), "rxPackets",
+                        timeBeforeSending, System.currentTimeMillis());
 
         currentValue = getValueLastKey(rxPackets);
 
         // check that the counter increased properly
         assertThat("the counter didn't increase properly",
-                   currentValue, is(previousCount + 2));
+                currentValue, is(previousCount + 2));
 
         timeBeforeSending = System.currentTimeMillis();
 
         assertPacketWasSentOnTap(metricsTap,
-                                 helperTap_int.makeIcmpEchoRequest(ipInt));
+                helperTap_int.makeIcmpEchoRequest(ipInt));
         sleepBecause("need to wait for metric to update", 2);
 
         rxPackets =
-            store.getTSPoints(VifMetrics.class.getSimpleName(),
-                              tapBridgePort.getId().toString(), "rxPackets",
-                              timeBeforeSending, System.currentTimeMillis());
+                store.getTSPoints(VifMetrics.class.getSimpleName(),
+                        tapBridgePort.getId().toString(), "rxPackets",
+                        timeBeforeSending, System.currentTimeMillis());
 
         currentValue = getValueLastKey(rxPackets);
 
         // check that the counter increased properly
         assertThat("the counter didn't increased properly",
-                   currentValue, is(previousCount + 3));
+                currentValue, is(previousCount + 3));
 
 
         timeBeforeSending = System.currentTimeMillis();
 
         assertPacketWasSentOnTap(metricsTap,
-                                 helperTap_int.makeIcmpEchoRequest(ipInt));
+                helperTap_int.makeIcmpEchoRequest(ipInt));
         sleepBecause("need to wait for metric to update", 2);
 
         rxPackets =
-            store.getTSPoints(VifMetrics.class.getSimpleName(),
-                              tapBridgePort.getId().toString(), "rxPackets",
-                              timeBeforeSending, System.currentTimeMillis());
+                store.getTSPoints(VifMetrics.class.getSimpleName(),
+                        tapBridgePort.getId().toString(), "rxPackets",
+                        timeBeforeSending, System.currentTimeMillis());
         currentValue = getValueLastKey(rxPackets);
 
         // check that the counter increased properly
         assertThat("the counter didn't increased properly",
-                   currentValue, is(previousCount + 4));
+                currentValue, is(previousCount + 4));
 
         // Since it's hard to predict these values, we will just check that they have been modified
         boolean succeed = false;
         for (String metric : zkMetrics) {
             Map<String, Long> res = store.getTSPoints(
-                ZookeeperMetricsCollection.class.getSimpleName(),
-                hostName, metric, timeBeforeSending,
-                System.currentTimeMillis());
+                    ZookeeperMetricsCollection.class.getSimpleName(),
+                    hostName, metric, timeBeforeSending,
+                    System.currentTimeMillis());
             // if at least one metric got update we succeed
             if (!(getValueLastKey(res).equals(
-                (Long) resZkMetrics.get(metric)))) {
+                    (Long) resZkMetrics.get(metric)))) {
                 succeed = true;
                 break;
             }
         }
 
         assertThat("The values for Zk metrics haven't been updated",
-                   succeed, is(true));
+                succeed, is(true));
 
         succeed = false;
         for (String metric : vmMetrics) {
             Map<String, Long> res =
-                store.getTSPoints(VMMetricsCollection.class.getSimpleName(),
-                                  hostName, metric, startTime,
-                                  System.currentTimeMillis());
+                    store.getTSPoints(VMMetricsCollection.class.getSimpleName(),
+                            hostName, metric, startTime,
+                            System.currentTimeMillis());
 
             // if at least one metric got update we succeed
             if (!(getValueLastKey(res).equals(
-                (Long) resVmMetrics.get(metric)))) {
+                    (Long) resVmMetrics.get(metric)))) {
                 succeed = true;
                 break;
             }
         }
 
         assertThat("The values for VM metrics haven't been updated",
-                   succeed, is(true));
+                succeed, is(true));
     }
 
     public static Long getValueLastKey(Map<String, Long> entries) {
