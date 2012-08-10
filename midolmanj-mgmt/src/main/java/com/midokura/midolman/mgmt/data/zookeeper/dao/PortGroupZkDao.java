@@ -30,8 +30,8 @@ public interface PortGroupZkDao extends PortGroupDao {
     /**
      * Generates a list of Op objects to delete a PortGroup.
      *
-     * @param router
-     *            Router object
+     * @param portGroup
+     *            PortGroup object
      * @return List of Op objects
      * @throws StateAccessException
      */

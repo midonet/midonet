@@ -46,6 +46,7 @@ public class DtoInterface {
     private int status;
     private Type type;
     private String endpoint;
+    private String portType;
     private InetAddress[] addresses;
     private Map<String, String> properties = new HashMap<String, String>();
 
@@ -144,6 +145,14 @@ public class DtoInterface {
         this.addresses = addresses;
     }
 
+    public String getPortType() {
+        return portType;
+    }
+
+    public void setPortType(String portType) {
+        this.portType = portType;
+    }
+
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -163,14 +172,14 @@ public class DtoInterface {
     @Override
     public String toString() {
         return "DtoInterface{" +
-            "id=" + id +
+            "name=" + name +
             ", hostId=" + hostId +
-            ", name='" + name + '\'' +
             ", mac='" + mac + '\'' +
             ", mtu=" + mtu +
             ", status=" + status +
             ", type=" + type +
             ", endpoint='" + endpoint + '\'' +
+            ", porttype='" + portType + '\'' +
             ", addresses=" + (addresses == null ? null : Arrays.asList(
             addresses)) +
             ", properties=" + properties +

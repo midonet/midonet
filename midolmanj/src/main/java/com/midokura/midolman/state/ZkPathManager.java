@@ -826,13 +826,13 @@ public class ZkPathManager {
      *
      * @param hostId
      *            Host UUID
-     * @param interfaceId
-     *            Host interface UUID
-     * @return /hosts/&lt;hostId&gt;/interfaces/&lt;interfaceId&gt;
+     * @param name
+     *            Host interface name
+     * @return /hosts/&lt;hostId&gt;/interfaces/&lt;name&gt;
      */
-    public String getHostInterfacePath(UUID hostId, UUID interfaceId) {
+    public String getHostInterfacePath(UUID hostId, String name) {
         return new StringBuilder(getHostPath(hostId)).append("/interfaces/")
-                .append(interfaceId.toString()).toString();
+                .append(name).toString();
     }
 
     /**

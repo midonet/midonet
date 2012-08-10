@@ -18,7 +18,6 @@ import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
 @XmlRootElement
 public class Interface extends UriResource {
 
-    UUID id;
     UUID hostId;
     String name;
     String mac;
@@ -26,6 +25,7 @@ public class Interface extends UriResource {
     int status;
     Type type;
     String endpoint;
+    String portType;
     InetAddress[] addresses;
     Map<String, String> properties = new HashMap<String, String>();
 
@@ -76,14 +76,6 @@ public class Interface extends UriResource {
         this.type = type;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public UUID getHostId() {
         return hostId;
     }
@@ -108,6 +100,14 @@ public class Interface extends UriResource {
         this.addresses = addresses;
     }
 
+    public String getPortType() {
+        return portType;
+    }
+
+    public void setPortType(String portType) {
+        this.portType = portType;
+    }
+
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -118,9 +118,9 @@ public class Interface extends UriResource {
 
     @Override
     public URI getUri() {
-        if (super.getBaseUri() != null && hostId != null && id != null) {
+        if (super.getBaseUri() != null && hostId != null && name != null) {
             return ResourceUriBuilder.getHostInterface(super.getBaseUri(),
-                    hostId, id);
+                    hostId, name);
         } else {
             return null;
         }

@@ -39,7 +39,6 @@ import com.midokura.midolman.mgmt.data.zookeeper.dao.ChainZkDao;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.ChainZkDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.DhcpDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.HostDaoImpl;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.HostZkDao;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.MetricCassandraDao;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.PortDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.PortGroupZkDao;
@@ -218,8 +217,7 @@ public class ZooKeeperDaoFactory extends AbstractDaoFactory implements Watcher {
 
     @Override
     public HostDao getHostDao() throws StateAccessException {
-        return new HostDaoImpl(new HostZkDao(new HostZkManager(getDirectory(),
-                rootPath), getPathBuilder()));
+        return new HostDaoImpl(new HostZkManager(getDirectory(), rootPath));
     }
 
     private PathBuilder getPathBuilder() {

@@ -60,7 +60,8 @@ public class DefaultInterfaceDataUpdaterTest {
 
         pathManager = new ZkPathManager("");
 
-        final HierarchicalConfiguration configuration = new HierarchicalConfiguration();
+        final HierarchicalConfiguration configuration =
+                new HierarchicalConfiguration();
         configuration.addNodes(ZookeeperConfig.GROUP_NAME,
                 Arrays.asList(new HierarchicalConfiguration.Node
                         ("midolman_root_key", "")
@@ -98,7 +99,8 @@ public class DefaultInterfaceDataUpdaterTest {
 
     @Test
     public void testOneInterface() throws Exception {
-        InterfaceDescription description = new InterfaceDescription("testInterface");
+        InterfaceDescription description = new InterfaceDescription(
+                "testInterface");
         assertStoreDescriptions(description);
     }
 
@@ -107,12 +109,14 @@ public class DefaultInterfaceDataUpdaterTest {
         Map<String, Interface> interfaceMap;
         String testInterfaceName = "testInterface";
 
-        InterfaceDescription description = new InterfaceDescription(testInterfaceName);
+        InterfaceDescription description = new InterfaceDescription(
+                testInterfaceName);
         description.setMac("11:11:11:11:11:11");
 
         interfaceMap = assertStoreDescriptions(description);
 
-        HostDirectory.Interface hostInterface = interfaceMap.get(description.getName());
+        HostDirectory.Interface hostInterface = interfaceMap.get(
+                description.getName());
 
         assertThat("The interface object has the same name as a the one saved",
                    hostInterface.getMac(),
@@ -123,10 +127,6 @@ public class DefaultInterfaceDataUpdaterTest {
         description.setMac("11:11:11:11:11:12");
 
         interfaceMap = assertStoreDescriptions(description);
-        assertThat("The interface retained the previously generated id",
-                   interfaceMap.get(description.getName()).getId(),
-                   equalTo(hostInterface.getId()));
-
         assertThat("The interface object has the same name as a the one saved",
                    interfaceMap.get(description.getName()).getMac(),
                    equalTo(description.getMac()));
@@ -136,14 +136,16 @@ public class DefaultInterfaceDataUpdaterTest {
     public void testRenameInterface() throws Exception {
         Map<String, HostDirectory.Interface> hostInterfaces;
 
-        InterfaceDescription description = new InterfaceDescription("test-before");
+        InterfaceDescription description = new InterfaceDescription(
+                "test-before");
         description.setMac("11:11:11:11:11:11");
 
         hostInterfaces = assertStoreDescriptions(description);
 
         assertThat(
-            "Exactly one interface should appear inside the datastore directory.",
-            hostInterfaces.entrySet(), hasSize(1));
+            "Exactly one interface should appear inside the datastore "
+             +  "directory.", hostInterfaces.entrySet(), hasSize(1));
+
 
         Interface hostInterface = hostInterfaces.get(description.getName());
         assertThat("The new interface object should have the proper mac",
@@ -153,10 +155,6 @@ public class DefaultInterfaceDataUpdaterTest {
         description.setName("test-after");
         hostInterfaces = assertStoreDescriptions(description);
         Interface newHostInterface = hostInterfaces.get(description.getName());
-
-        assertThat("The interface should have a new UUID assigned",
-                   newHostInterface.getId(),
-                   not(equalTo(hostInterface.getId())));
 
         assertThat("The interface should have the same mac",
                    newHostInterface.getMac(), equalTo(description.getMac()));
@@ -192,13 +190,16 @@ public class DefaultInterfaceDataUpdaterTest {
         HostDirectory.Interface hostInterface = boundInterfaces.get(name);
 
         for ( int i = 0; i < 10; i++ ) {
-            Map<String, Interface> newBoundInterfaces = assertStoreDescriptions(first);
+            Map<String, Interface> newBoundInterfaces =
+                    assertStoreDescriptions(first);
 
-            assertThat(newBoundInterfaces.entrySet(), hasSize(boundInterfaces.size()));
+            assertThat(newBoundInterfaces.entrySet(),
+                    hasSize(boundInterfaces.size()));
             assertThat(newBoundInterfaces,
                        hasEntry(equalTo(name),
                                 HasPropertyWithValue.<Interface>hasProperty(
-                                    "id", equalTo(hostInterface.getId()))));
+                                    "name", equalTo(hostInterface.getName()))
+                       ));
         }
 
         assertStoreDescriptions(first);
@@ -207,8 +208,8 @@ public class DefaultInterfaceDataUpdaterTest {
     /**
      * This method will take an array of descriptions, add them to the datastore
      * using the updater and after that will read the data directly from the
-     * datastore, validate that all the entries have UUIDs and that the new objects
-     * map properly to interface names.
+     * datastore, validate that all the entries have UUIDs and that the new
+     * objects map properly to interface names.
      *
      * @param descriptions the descriptions that we want to store
      * @return a mapping from interface name to interface object.
@@ -221,10 +222,10 @@ public class DefaultInterfaceDataUpdaterTest {
 
         updater.updateInterfacesData(hostID, metadata, descriptions);
 
-        Set<UUID> interfaceIDs = hostManager.getInterfaceIds(hostID);
+        Set<String> interfaces = hostManager.getInterfaces(hostID);
 
         assertThat("The datastore interfaces count should be correct one.",
-                   interfaceIDs, hasSize(descriptions.length));
+                interfaces, hasSize(descriptions.length));
 
         Set<String> interfaceNames = new HashSet<String>();
 
@@ -235,9 +236,9 @@ public class DefaultInterfaceDataUpdaterTest {
         Map<String, Interface> nameToHostInterfaceMap =
             new HashMap<String, Interface>();
 
-        for (UUID interfaceID : interfaceIDs) {
+        for (String interfaceName : interfaces) {
             Interface hostInterface =
-                hostManager.getInterfaceData(hostID, interfaceID);
+                hostManager.getInterfaceData(hostID, interfaceName);
 
             assertThat("The interface object is not a null value",
                        hostInterface, notNullValue());

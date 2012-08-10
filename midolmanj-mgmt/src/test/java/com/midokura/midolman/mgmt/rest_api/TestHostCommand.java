@@ -450,7 +450,7 @@ public class TestHostCommand extends JerseyTest {
         hostInterface.getProperties().put(PropertyKeys.midonet_port_id.name(),
                                           portId.toString());
 
-        hostInterface.setId(hostManager.createInterface(hostId, hostInterface));
+        hostManager.createInterface(hostId, hostInterface);
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())

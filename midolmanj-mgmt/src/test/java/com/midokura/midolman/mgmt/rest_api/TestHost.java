@@ -379,7 +379,7 @@ public class TestHost extends JerseyTest {
             InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
         });
 
-        UUID interfaceId = hostManager.createInterface(hostId, anInterface);
+        hostManager.createInterface(hostId, anInterface);
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
@@ -402,8 +402,6 @@ public class TestHost extends JerseyTest {
 
         assertThat("The DTO interface object is not null",
                    dtoInterface, notNullValue());
-        assertThat("The DTO interface object should have a proper id",
-                   dtoInterface.getId(), equalTo(interfaceId));
         assertThat("The DtoInterface object should have a proper host id",
                    dtoInterface.getHostId(), equalTo(hostId));
         assertThat("The DtoInterface object should have a proper name",

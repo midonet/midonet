@@ -47,17 +47,18 @@ public interface HostDao {
      * Removes an interface description from a host.
      *
      * @param hostId      the host uuid
-     * @param interfaceId the interface uuid
+     * @param interfaceName the interface name
      * @throws StateAccessException if the deletion fails
      */
-    void deleteInterface(UUID hostId, UUID interfaceId)
+    void deleteInterface(UUID hostId, String interfaceName)
         throws StateAccessException;
 
     /**
      * Lists all the interface information available on a host.
      *
      * @param hostId the host uuid
-     * @return the list of interface data available on a host (that can be modified).
+     * @return the list of interface data available on a host (that can be
+     * modified).
      * @throws StateAccessException if the operation fails
      */
     List<Interface> listInterfaces(UUID hostId) throws StateAccessException;
@@ -66,11 +67,11 @@ public interface HostDao {
      * Returns the information about an interface available on a host.
      *
      * @param hostId      the host uuid
-     * @param interfaceId the interface uuid
+     * @param interfaceName the interface name
      * @return an object encapsulating interface data
      * @throws StateAccessException if the operation fails
      */
-    Interface getInterface(UUID hostId, UUID interfaceId)
+    Interface getInterface(UUID hostId, String interfaceName)
         throws StateAccessException;
 
     /**
@@ -79,13 +80,14 @@ public interface HostDao {
      *
      * @param hostId    is the if of the host on which the commands are
      *                  to be executed
-     * @param interfaceId   interfaceId that we want to change (may be null)
+     * @param interfaceName   interfaceName that we want to change (may be null)
      * @param interfaceData is the interface description that we want created
      *
      * @return the command abstraction of this interface
      * @throws StateAccessException if the operation fails
      */
-    HostCommand createCommandForInterfaceUpdate(UUID hostId, UUID interfaceId,
+    HostCommand createCommandForInterfaceUpdate(UUID hostId,
+                                                String interfaceName,
                                                 Interface interfaceData)
         throws StateAccessException;
 

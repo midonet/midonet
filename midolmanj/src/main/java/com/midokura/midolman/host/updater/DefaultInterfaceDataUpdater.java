@@ -40,19 +40,18 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     @Override
     public synchronized void updateInterfacesData(UUID hostID,
                                                   HostDirectory.Metadata host,
-                                                  InterfaceDescription... descriptions) {
+                                                  InterfaceDescription...
+                                                          descriptions) {
         log.debug("Start uploading the interface data ({} entries).",
                   descriptions.length);
 
-        Map<String, Interface> currentInterfacesByName = getPreviousDescriptions();
+        Map<String, Interface> currentInterfacesByName =
+                getPreviousDescriptions();
 
         Map<String, Interface> newInterfacesByName = new HashMap<String, Interface>();
 
         for (InterfaceDescription description : descriptions) {
-            Interface hostInterface =
-                processDescription(description,
-                                   currentInterfacesByName,
-                                   newInterfacesByName);
+            Interface hostInterface = createHostInterfaceInstance(description);
 
             newInterfacesByName.put(hostInterface.getName(), hostInterface);
         }
@@ -65,12 +64,12 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                                  Map<String, Interface> curMapByName,
                                  Map<String, Interface> newMapByName) {
         try {
-            Set<UUID> interfacesToRemove = new HashSet<UUID>();
+            Set<String> interfacesToRemove = new HashSet<String>();
 
             for (Interface curHostInterface : curMapByName.values()) {
                 // the interface disappeared form the new list
                 if (!newMapByName.containsKey(curHostInterface.getName())) {
-                    interfacesToRemove.add(curHostInterface.getId());
+                    interfacesToRemove.add(curHostInterface.getName());
                 }
             }
 
@@ -107,66 +106,6 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         } catch (StateAccessException e) {
             log.warn("Updating of the interface data failed: ", e);
         }
-    }
-
-    /**
-     * This method will process a InterfaceDescription provided by the scanner
-     * and construct a proper object suitable for storage inside the datastore.
-     * <p/>
-     * It also takes care of generating and maintaining the internal UUID cache.
-     * <p/>
-     * It might return null if the description is up-to-date for example.
-     *
-     * @param description       an interface description
-     * @param currentInterfaces the current list of interfaces registered
-     * @param newInterfaces     the new list of interfaces that we want to register
-     * @return an interface object corresponding to the description passed in
-     *         and with the proper uuid set.
-     */
-    private Interface processDescription(InterfaceDescription description,
-                                         Map<String, Interface> currentInterfaces,
-                                         Map<String, Interface> newInterfaces) {
-        Interface hostInterface = createHostInterfaceInstance(description);
-
-        Interface previousHostInterface = currentInterfaces.get(
-            description.getName());
-
-        Set<UUID> uuids =
-            buildInterfaceUUIDSet(currentInterfaces, newInterfaces);
-
-        if (previousHostInterface == null) {
-            log.debug("New interface named: {}. Generating a new id",
-                      description.getName());
-
-            UUID uuid;
-            synchronized (this) {
-                do {
-                    uuid = UUID.randomUUID();
-                } while (uuids.contains(uuid));
-            }
-
-            hostInterface.setId(uuid);
-        } else {
-            hostInterface.setId(previousHostInterface.getId());
-        }
-
-        return hostInterface;
-    }
-
-    private Set<UUID> buildInterfaceUUIDSet(
-        Map<String, Interface> currentByName,
-        Map<String, Interface> newByName) {
-        Set<UUID> uuids = new HashSet<UUID>();
-
-        for (Interface anInterface : currentByName.values()) {
-            uuids.add(anInterface.getId());
-        }
-
-        for (Interface anInterface : newByName.values()) {
-            uuids.add(anInterface.getId());
-        }
-
-        return uuids;
     }
 
     private Interface createHostInterfaceInstance(

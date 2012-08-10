@@ -137,6 +137,18 @@ public class HostZkManager extends ZkManager {
         multi(delMulti);
     }
 
+    public Set<UUID> getHostIds() throws StateAccessException {
+        String path = pathManager.getHostsPath();
+        Set<String> ids = getChildren(path, null);
+        Set<UUID> uuids = new HashSet<UUID>();
+
+        for (String id : ids) {
+            uuids.add(UUID.fromString(id));
+        }
+
+        return uuids;
+    }
+
     public Integer createHostCommandId(UUID hostId, Command command)
         throws StateAccessException {
 
@@ -155,39 +167,42 @@ public class HostZkManager extends ZkManager {
         }
     }
 
-    public UUID createInterface(UUID hostId,
+    public boolean existsInterface(UUID hostId, String interfaceName)
+            throws StateAccessException {
+        return exists(pathManager.getHostInterfacePath(hostId,
+                interfaceName));
+    }
+
+    public void createInterface(UUID hostId,
                                 HostDirectory.Interface anInterface)
         throws StateAccessException, IOException {
 
         List<Op> ops = new ArrayList<Op>();
 
-        UUID uuid = UUID.randomUUID();
         if (!exists(pathManager.getHostInterfacesPath(hostId))) {
             ops.add(getPersistentCreateOp(
                 pathManager.getHostInterfacesPath(hostId), null));
         }
         ops.add(getEphemeralCreateOp(
-            pathManager.getHostInterfacePath(hostId, uuid),
+            pathManager.getHostInterfacePath(hostId, anInterface.getName()),
             serializer.serialize(anInterface)));
 
         multi(ops);
-
-        return uuid;
     }
 
     public HostDirectory.Interface getInterfaceData(UUID hostId,
-                                                    UUID interfaceId)
+                                                    String name)
         throws StateAccessException {
 
         try {
             byte[] data = get(
-                pathManager.getHostInterfacePath(hostId, interfaceId));
+                pathManager.getHostInterfacePath(hostId, name));
 
             return serializer.deserialize(data, HostDirectory.Interface.class);
         } catch (ZkStateSerializationException e) {
             throw new ZkStateSerializationException(
                 "Could not deserialize host interface metadata for id: " +
-                    hostId + " / " + interfaceId,
+                    hostId + " / " + name,
                 e, HostDirectory.Metadata.class);
         }
     }
@@ -211,41 +226,34 @@ public class HostZkManager extends ZkManager {
     }
 
     /**
-     * Will return the collection of UUID for all the interfaces presently
+     * Will return the collection of names for all the interfaces presently
      * described under the provided host entry.
      *
      * @param hostId the host id for which we want the interfaces
-     * @return the collection of interface keys
+     * @return the collection of interface names
      * @throws StateAccessException if we weren't able to properly communicate
      *                              with the datastore.
      */
-    public Set<UUID> getInterfaceIds(UUID hostId)
+    public Set<String> getInterfaces(UUID hostId)
         throws StateAccessException {
 
-        Set<String> interfaceKeys = getChildren(
-            pathManager.getHostInterfacesPath(hostId));
-
-        Set<UUID> uuids = new HashSet<UUID>();
-        for (String key : interfaceKeys) {
-            try {
-                uuids.add(UUID.fromString(key));
-            } catch (Exception e) {
-                log.warn("Interface identifier couldn't be converted into a " +
-                             "UUID: {} (for host {})", key, hostId.toString());
-            }
+        String path = pathManager.getHostInterfacesPath(hostId);
+        if (!exists(path)) {
+            return Collections.emptySet();
         }
 
-        return uuids;
+        return getChildren(path);
     }
 
     public void updateHostInterfaces(UUID hostId,
-                                     List<HostDirectory.Interface> currentInterfaces,
-                                     Set<UUID> obsoleteInterfaces)
+                                     List<HostDirectory.Interface>
+                                             currentInterfaces,
+                                     Set<String> obsoleteInterfaces)
         throws StateAccessException {
 
         List<Op> updateInterfacesOperation = new ArrayList<Op>();
 
-        for (UUID obsoleteInterface : obsoleteInterfaces) {
+        for (String obsoleteInterface : obsoleteInterfaces) {
             updateInterfacesOperation.add(
                 getDeleteOp(
                     pathManager.getHostInterfacePath(hostId,
@@ -257,7 +265,7 @@ public class HostZkManager extends ZkManager {
 
                 String hostInterfacePath =
                     pathManager.getHostInterfacePath(hostId,
-                                                     hostInterface.getId());
+                                                     hostInterface.getName());
                 byte[] serializedData = serializer.serialize(hostInterface);
 
                 Op hostInterfaceOp;

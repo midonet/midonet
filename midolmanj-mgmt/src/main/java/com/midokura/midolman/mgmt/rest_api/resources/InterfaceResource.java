@@ -61,26 +61,19 @@ public class InterfaceResource {
      * @param context     Object that holds the security data.
      * @param uriInfo     Object that holds the request URI data.
      * @param daoFactory  Data access factory object.
-     * @param authorizer  Authorizer object.
      * @return Response object with 201 status code set if successful.
      * @throws com.midokura.midolman.state.StateAccessException
      *          Data access error.
      */
     @POST
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Response create(Interface anInterface,
                            @Context SecurityContext context,
                            @Context UriInfo uriInfo,
-                           @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer)
+                           @Context DaoFactory daoFactory)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to create an interface.");
-        }
 
         HostDao hostDao = daoFactory.getHostDao();
         try {
@@ -106,29 +99,22 @@ public class InterfaceResource {
     /**
      * Handler for deleting an interface.
      *
-     * @param interfaceId Interface ID from the request.
+     * @param name        Interface name from the request.
      * @param context     Object that holds the security data.
      * @param daoFactory  Data access factory object.
-     * @param authorizer  Authorizer object.
      * @throws StateAccessException  Data access error.
      */
     @DELETE
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
-    @Path("{id}")
-    public void delete(@PathParam("id") UUID interfaceId,
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{name}")
+    public void delete(@PathParam("name") String name,
                        @Context SecurityContext context,
-                       @Context DaoFactory daoFactory,
-                       @Context Authorizer authorizer)
+                       @Context DaoFactory daoFactory)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to delete the" +
-                                                     " interface.");
-        }
 
         HostDao dao = daoFactory.getHostDao();
         try {
-            dao.deleteInterface(hostId, interfaceId);
+            dao.deleteInterface(hostId, name);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);
@@ -141,23 +127,17 @@ public class InterfaceResource {
      * @param context    Object that holds the security data.
      * @param uriInfo    Object that holds the request URI data.
      * @param daoFactory Data access factory object.
-     * @param authorizer Authorizer object.
      * @return A list of Interface objects.
      * @throws StateAccessException  Data access error.
      */
     @GET
-    @PermitAll
+    @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<Interface> list(@Context SecurityContext context,
                                 @Context UriInfo uriInfo,
-                                @Context DaoFactory daoFactory,
-                                @Context Authorizer authorizer)
+                                @Context DaoFactory daoFactory)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to view interfaces.");
-        }
 
         HostDao dao = daoFactory.getHostDao();
 
@@ -175,34 +155,27 @@ public class InterfaceResource {
     /**
      * Handler to getting an interface.
      *
-     * @param id         Interface ID from the request.
+     * @param name       Interface name from the request.
      * @param context    Object that holds the security data.
      * @param uriInfo    Object that holds the request URI data.
      * @param daoFactory Data access factory object.
-     * @param authorizer Authorizer object.
-     * @return A Tenant object.
+     * @return An Interface object.
      * @throws StateAccessException  Data access error.
      */
     @GET
-    @PermitAll
-    @Path("{id}")
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{name}")
     @Produces({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
-    public Interface get(@PathParam("id") UUID id,
+    public Interface get(@PathParam("name") String name,
                          @Context SecurityContext context,
                          @Context UriInfo uriInfo,
-                         @Context DaoFactory daoFactory,
-                         @Context Authorizer authorizer)
+                         @Context DaoFactory daoFactory)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to get node interface data.");
-        }
 
         HostDao dao = daoFactory.getHostDao();
 
-        Interface anInterface = dao.getInterface(hostId, id);
+        Interface anInterface = dao.getInterface(hostId, name);
         if (anInterface == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -215,35 +188,28 @@ public class InterfaceResource {
     /**
      * Handler for updating an interface.
      *
-     * @param id         Interface ID from the request.
+     * @param name       Interface name from the request.
      * @param context    Object that holds the security data.
      * @param uriInfo    Object that holds the request URI data.
      * @param daoFactory Data access factory object.
-     * @param authorizer Authorizer object.
-     * @return A Tenant object.
+     * @return An Interface object.
      * @throws StateAccessException  Data access error.
      */
     @PUT
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
-    @Path("{id}")
-    public Response update(@PathParam("id") UUID id,
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{name}")
+    public Response update(@PathParam("name") String name,
                            Interface newInterfaceData,
                            @Context SecurityContext context,
                            @Context UriInfo uriInfo,
-                           @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer)
+                           @Context DaoFactory daoFactory)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to get node interface data.");
-        }
 
         try {
             HostDao dao = daoFactory.getHostDao();
 
             HostCommand command =
-                dao.createCommandForInterfaceUpdate(hostId, id,
+                dao.createCommandForInterfaceUpdate(hostId, name,
                                                     newInterfaceData);
 
             command.setBaseUri(uriInfo.getBaseUri());

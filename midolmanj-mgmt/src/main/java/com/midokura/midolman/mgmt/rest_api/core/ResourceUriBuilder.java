@@ -252,9 +252,9 @@ public class ResourceUriBuilder {
     }
 
     public static URI getHostInterface(URI baseUri, UUID hostId,
-            UUID interfaceId) {
+            String name) {
         return UriBuilder.fromUri(getHostInterfaces(baseUri, hostId))
-                .path(interfaceId.toString()).build();
+                .path(name).build();
     }
 
     public static URI getHostCommands(URI baseUri, UUID hostId) {

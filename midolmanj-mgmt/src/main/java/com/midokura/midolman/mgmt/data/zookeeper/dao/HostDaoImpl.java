@@ -3,19 +3,23 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.midokura.midolman.host.commands.HostCommandGenerator;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.packets.MAC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
@@ -25,23 +29,35 @@ public class HostDaoImpl implements HostDao {
     private final static Logger log = LoggerFactory
             .getLogger(HostDaoImpl.class);
 
-    private final HostZkDao zkDao;
+    private final HostZkManager zkDao;
 
-    public HostDaoImpl(HostZkDao zkDao) {
+    public HostDaoImpl(HostZkManager zkDao) {
         this.zkDao = zkDao;
     }
 
     @Override
     public void delete(UUID id) throws StateAccessException {
-        zkDao.delete(id);
+        zkDao.deleteHost(id);
     }
 
     @Override
     public Host get(UUID id) throws StateAccessException {
         Host host = null;
 
-        if (zkDao.exists(id)) {
-            host = zkDao.get(id);
+        if (zkDao.hostExists(id)) {
+
+            HostDirectory.Metadata hostMetadata = zkDao.getHostMetadata(id);
+
+            host = new Host(id);
+            host.setName(hostMetadata.getName());
+            List<String> addresses = new ArrayList<String>();
+            if (hostMetadata.getAddresses() != null) {
+                for (InetAddress inetAddress : hostMetadata.getAddresses()) {
+                    addresses.add(inetAddress.toString());
+                }
+            }
+            host.setAddresses(addresses);
+            host.setAlive(zkDao.isAlive(id));
         }
 
         return host;
@@ -74,18 +90,19 @@ public class HostDaoImpl implements HostDao {
             throws StateAccessException {
         List<Interface> interfaces = new ArrayList<Interface>();
 
-        Collection<UUID> interfaceIds = zkDao.getInterfaceIds(hostId);
-        for (UUID interfaceId : interfaceIds) {
+        Collection<String> interfaceNames = zkDao.getInterfaces(hostId);
+        for (String interfaceName : interfaceNames) {
             try {
-                Interface anInterface = getInterface(hostId, interfaceId);
+                Interface anInterface = getInterface(hostId, interfaceName);
                 if (anInterface != null) {
                     interfaces.add(anInterface);
                 }
             } catch (StateAccessException e) {
                 log.warn(
                         "An interface description went missing in action while "
-                                + "we were looking for it host: {}, interface: {}.",
-                        new Object[] { hostId, interfaceId, e });
+                                + "we were looking for it host: {}, interface: "
+                                + "{}.",
+                        new Object[] { hostId, interfaceName, e });
             }
         }
 
@@ -93,35 +110,167 @@ public class HostDaoImpl implements HostDao {
     }
 
     @Override
-    public Interface getInterface(UUID hostId, UUID interfaceId)
+    public Interface getInterface(UUID hostId, String interfaceName)
             throws StateAccessException {
         Interface anInterface = null;
 
-        if (zkDao.existsInterface(hostId, interfaceId)) {
-            anInterface = zkDao.getInterface(hostId, interfaceId);
+        if (zkDao.existsInterface(hostId, interfaceName)) {
+            HostDirectory.Interface interfaceData =
+                    zkDao.getInterfaceData(hostId, interfaceName);
+            anInterface = toDtoInterfaceObject(hostId, interfaceData);
         }
 
         return anInterface;
     }
 
+    private Interface toDtoInterfaceObject(UUID hostId,
+                                           HostDirectory.Interface
+                                                   interfaceData) {
+        Interface hostInterface = new Interface();
+
+        hostInterface.setName(interfaceData.getName());
+        if (interfaceData.getMac() != null) {
+            hostInterface.setMac(new MAC(interfaceData.getMac()).toString());
+        }
+        hostInterface.setStatus(interfaceData.getStatus());
+        hostInterface.setMtu(interfaceData.getMtu());
+        hostInterface.setHostId(hostId);
+        if (interfaceData.getType() != null) {
+            hostInterface.setType(Interface.Type.valueOf(interfaceData
+                    .getType().name()));
+        }
+        hostInterface.setAddresses(interfaceData.getAddresses());
+        hostInterface.setEndpoint(interfaceData.getEndpoint());
+        hostInterface.setProperties(interfaceData.getProperties());
+
+        return hostInterface;
+    }
+
     @Override
     public HostCommand createCommandForInterfaceUpdate(UUID hostId,
-            UUID curInterfaceId, Interface newInterface)
+                                                       String curInterfaceId,
+                                                       Interface newInterface)
             throws StateAccessException {
-        return zkDao.registerCommandForInterface(hostId, curInterfaceId,
-                newInterface);
+        HostCommandGenerator commandGenerator = new HostCommandGenerator();
+
+        HostDirectory.Interface curHostInterface = null;
+
+        if (curInterfaceId != null) {
+            curHostInterface = zkDao.getInterfaceData(hostId, curInterfaceId);
+        }
+
+        HostDirectory.Interface newHostInterface =
+                toHostDirectoryInterface(newInterface);
+
+        HostDirectory.Command command = commandGenerator.createUpdateCommand(
+                curHostInterface, newHostInterface);
+
+        Integer commandId = zkDao.createHostCommandId(hostId, command);
+
+        HostCommand dtoCommand = new HostCommand();
+        dtoCommand.setId(commandId);
+        dtoCommand.setHostId(hostId);
+
+        return dtoCommand;
+    }
+
+    private HostDirectory.Interface toHostDirectoryInterface(
+            Interface intface) {
+
+        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
+
+        hostInterface.setName(intface.getName());
+        if (intface.getMac() != null) {
+            hostInterface.setMac(MAC.fromString(intface.getMac()).getAddress());
+        }
+        hostInterface.setStatus(intface.getStatus());
+        hostInterface.setMtu(intface.getMtu());
+        if (intface.getType() != null) {
+            hostInterface.setType(HostDirectory.Interface.Type.valueOf(intface
+                    .getType().name()));
+        }
+        hostInterface.setAddresses(intface.getAddresses());
+        hostInterface.setEndpoint(intface.getEndpoint());
+        hostInterface.setProperties(intface.getProperties());
+        return hostInterface;
     }
 
     @Override
     public List<HostCommand> listCommands(UUID hostId)
             throws StateAccessException {
-        return zkDao.getCommands(hostId);
-    }
+        List<Integer> commandsIds = zkDao.getCommandIds(hostId);
+        List<HostCommand> commands = new ArrayList<HostCommand>();
+        for (Integer commandsId : commandsIds) {
+
+            HostCommand hostCommand = getCommand(hostId, commandsId);
+
+            if (hostCommand != null) {
+                commands.add(hostCommand);
+            }
+        }
+
+        return commands;    }
 
     @Override
     public HostCommand getCommand(UUID hostId, Integer id)
             throws StateAccessException {
-        return zkDao.getCommand(hostId, id);
+
+        HostCommand command = null;
+
+        try {
+            HostDirectory.Command hostCommand =
+                    zkDao.getCommandData(hostId, id);
+
+            HostDirectory.ErrorLogItem errorLogItem =
+                    zkDao.getErrorLogData(hostId, id);
+
+            command = new HostCommand();
+
+            command.setId(id);
+            command.setHostId(hostId);
+            command.setInterfaceName(hostCommand.getInterfaceName());
+            command.setCommands(translateCommands(
+                    hostCommand.getCommandList()));
+            if ( errorLogItem != null)
+                command.setLogEntries(translateErrorLog(errorLogItem));
+        } catch (StateAccessException e) {
+            log.warn("Could not read command with id {} from datastore "
+                    + "(for host: {})", new Object[] { id, hostId, e });
+            throw e;
+        }
+
+        return command;
+    }
+
+    private HostCommand.LogEntry[] translateErrorLog(
+            HostDirectory.ErrorLogItem item) {
+
+        HostCommand.LogEntry logEntry = new HostCommand.LogEntry();
+
+        logEntry.setTimestamp(item.getTime().getTime());
+        logEntry.setMessage(item.getError());
+
+        return new HostCommand.LogEntry[] { logEntry };
+    }
+
+    private HostCommand.Command[] translateCommands(
+            List<HostDirectory.Command.AtomicCommand> list)
+    {
+        HostCommand.Command[] commands = new HostCommand.Command[list.size()];
+
+        int pos = 0;
+        for (HostDirectory.Command.AtomicCommand atomicCommand : list) {
+            HostCommand.Command newCommand = new HostCommand.Command();
+
+            newCommand.setOperation(atomicCommand.getOpType().name());
+            newCommand.setProperty(atomicCommand.getProperty().getKey());
+            newCommand.setValue(atomicCommand.getValue());
+            commands[pos] = newCommand;
+
+            pos = pos + 1;
+        }
+
+        return commands;
     }
 
     @Override
@@ -131,7 +280,7 @@ public class HostDaoImpl implements HostDao {
     }
 
     @Override
-    public void deleteInterface(UUID hostId, UUID interfaceId)
+    public void deleteInterface(UUID hostId, String interfaceId)
             throws StateAccessException {
         //
     }

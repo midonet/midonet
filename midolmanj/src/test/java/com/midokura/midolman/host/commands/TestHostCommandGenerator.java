@@ -16,7 +16,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -109,7 +108,6 @@ public class TestHostCommandGenerator {
         iface.setStatus(1);
         iface.setMac(MAC.fromString("00:01:02:03:04:05").getAddress());
         iface.setEndpoint("lo");
-        iface.setId(new UUID(1, 1));
         iface.setType(HostDirectory.Interface.Type.Physical);
 
         Map<String, String> propertiesMap = new HashMap<String, String>();
