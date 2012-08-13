@@ -235,10 +235,12 @@ class DatapathController() extends Actor {
             virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
 
         case m: InitializationComplete =>
-            log.info("Initialization complete. Starting to act as a controller")
-            installPacketInHandler()
-            become(DatapathControllerActor)
-            initializer forward m
+            if (sender == self) {
+                log.info("Initialization complete. Starting to act as a controller")
+                installPacketInHandler()
+                become(DatapathControllerActor)
+                initializer forward m
+            }
 
         /**
          * Reply messages reaction
@@ -389,7 +391,7 @@ class DatapathController() extends Actor {
 
     def doDatapathPortsUpdate(ports: Map[UUID, String]) {
         if (pendingUpdateCount != 0) {
-            self ! LocalPortsReply(ports)
+            system.scheduler.scheduleOnce(100 millis, self, LocalPortsReply(ports))
             return
         }
 

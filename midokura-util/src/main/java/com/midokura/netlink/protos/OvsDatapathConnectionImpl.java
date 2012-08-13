@@ -627,6 +627,41 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
+    protected void _doFlowsFlush(@Nonnull final Datapath datapath,
+                                          @Nonnull final Callback<Boolean> callback,
+                                          long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+            return;
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .build();
+
+        newRequest(flowFamily, FlowFamily.Cmd.DEL)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Boolean>() {
+                    @Override
+                    public Boolean apply(@Nullable List<ByteBuffer> input) {
+                        return Boolean.TRUE;
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    @Override
     protected void _doFlowsCreate(@Nonnull final Datapath datapath,
                                   @Nonnull final Flow flow,
                                   @Nonnull final Callback<Flow> callback,

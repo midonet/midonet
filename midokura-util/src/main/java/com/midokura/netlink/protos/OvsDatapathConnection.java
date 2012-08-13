@@ -622,6 +622,46 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                               long timeoutMillis);
 
     /**
+     * Future based api for flushing all the flows belonging to a datapath.
+     *
+     * @param datapath is the actual datapath.
+     * @return a future that provides access to the operation result.
+     */
+    public Future<Boolean> flowsFlush(@Nonnull final Datapath datapath) {
+        ValueFuture<Boolean> flowsFuture = ValueFuture.create();
+        flowsFlush(datapath, wrapFuture(flowsFuture));
+        return flowsFuture;
+    }
+
+    /**
+     * Callback based api for for flushing all the flows belonging to a datapath.
+     *
+     * @param datapath the name of the datapath
+     * @param callback the callback that will receive the operation result.
+     */
+    public void flowsFlush(@Nonnull final Datapath datapath,
+                           @Nonnull final Callback<Boolean> callback) {
+        flowsFlush(datapath, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for for flushing all the flows belonging to a datapath.
+     *
+     * @param datapath      the name of the datapath
+     * @param callback      the callback that will receive the operation result.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void flowsFlush(@Nonnull final Datapath datapath,
+                           @Nonnull final Callback<Boolean> callback,
+                           long timeoutMillis) {
+        _doFlowsFlush(datapath, callback, timeoutMillis);
+    }
+
+    protected abstract void _doFlowsFlush(@Nonnull final Datapath datapath,
+                                          @Nonnull final Callback<Boolean> callback,
+                                          long timeoutMillis);
+
+    /**
      * Future based api for creating a flow.
      *
      * @param datapath the name of the datapath

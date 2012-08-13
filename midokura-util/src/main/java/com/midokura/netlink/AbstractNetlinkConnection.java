@@ -28,7 +28,7 @@ import com.midokura.util.eventloop.Reactor;
 import static com.midokura.netlink.Netlink.Flag;
 
 /**
- * // TODO: Explain yourself.
+ * Abstract class to be derived by any netlink protocol implementation.
  */
 public abstract class AbstractNetlinkConnection {
 

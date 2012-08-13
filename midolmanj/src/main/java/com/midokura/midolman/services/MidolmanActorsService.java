@@ -100,7 +100,7 @@ public class MidolmanActorsService extends AbstractService {
     }
 
     private Props getVirtualToPhysicalProps() {
-	return new Props(VirtualToPhysicalMapper.class);
+        return new Props(VirtualToPhysicalMapper.class);
     }
 
     private void stopActor(ActorRef actorRef) {

@@ -113,44 +113,14 @@ public class Client {
 
         log.info("Got datapath by name: {}.", datapath);
 
-//        conn.datapathsSetNotificationHandler(datapath, new AbstractNetlinkConnection.Callback<Packet>() {
-//            @Override
-//            public void onSuccess(Packet data) {
-//                log.info("Packet-in received: {}", data);
-//            }
-//        }).get();
-
-
         log.info("Installed flow: {}, ",
                  conn.flowsCreate(datapath, new Flow().setMatch(flowMatch()))
                      .get());
 
-        Flow retrievedFlow = conn.flowsGet(datapath, flowMatch()).get();
+        log.info("Waiting before flushing");
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
-        log.info("Retrieved flow: {}", retrievedFlow);
-
-
-        retrievedFlow.setActions(flowActions());
-
-        Flow updatedFlow = new Flow()
-            .setMatch(flowMatch())
-            .setActions(flowActions());
-
-        log.info("Flow that was set: {}",
-                 conn.flowsSet(datapath, updatedFlow).get());
-        // multi containing the ports data
-//        fireReply();
-
-//        Flow flow =
-//            new Flow()
-//                .addKey(FlowKeys.inPort(0))
-//                .addAction(
-//                    FlowActions.output(0));
-//
-//        Port port = conn.portsGet(0, datapath).get();
-//        log.info("Old port {}", port);
-//        port = conn.portsSet(port, datapath).get();
-//        log.info("New port {}", port);
+        log.info("Flush operation: {}", conn.flowsFlush(datapath).get());
     }
 
     private static List<FlowAction<?>> flowActions() {
