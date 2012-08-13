@@ -69,7 +69,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
                 if (interfaceDescription.getEndpoint() ==
                         InterfaceDescription.Endpoint.UNKNOWN) {
                     // We have not got an endpoint classification from the
-                    // previous sensor Skip this interface.
+                    // previous sensor.
                     interfaceDescription.setEndpoint(
                             InterfaceDescription.Endpoint.DATAPATH);
                     interfaceDescription.setType(

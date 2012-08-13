@@ -43,7 +43,7 @@ public class RestApplication extends Application {
     public RestApplication() {
     }
 
-    @Context
+    //@Context
     ServletContext servletContext;
 
     /**

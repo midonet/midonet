@@ -4,6 +4,17 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
+import com.google.inject.Inject;
+import com.midokura.midolman.mgmt.config.AppConfig;
+import com.midokura.midolman.mgmt.config.InvalidConfigException;
+import com.midokura.midolman.mgmt.config.RestApiConfig;
+import com.midokura.midolman.mgmt.data.dto.Application;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,17 +23,21 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.config.InvalidConfigException;
-import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-
 /**
  * The top application resource class.
  */
 @Path(ResourceUriBuilder.ROOT)
 public class ApplicationResource {
+
+    private final static Logger log =
+            LoggerFactory.getLogger(ApplicationResource.class);
+
+    private final RestApiConfig config;
+
+    @Inject
+    public ApplicationResource(RestApiConfig config) {
+        this.config = config;
+    }
 
     /**
      * Tenant resource locator.
@@ -159,8 +174,6 @@ public class ApplicationResource {
      *
      * @param uriInfo
      *            Object that holds the request URI data.
-     * @param config
-     *            AppConfig object that holds the application configurations.
      * @throws InvalidConfigException
      *             Missing configuration parameter.
      * @return An Application object.
@@ -168,10 +181,14 @@ public class ApplicationResource {
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
-    public Application get(@Context UriInfo uriInfo, @Context AppConfig config)
+    public Application get(@Context UriInfo uriInfo)
             throws InvalidConfigException {
+        log.debug("ApplicationResource: entered: " + uriInfo);
+
         Application a = new Application(uriInfo.getBaseUri());
         a.setVersion(config.getVersion());
+
+        log.debug("ApplicationResource: existing: " + a);
         return a;
     }
 }

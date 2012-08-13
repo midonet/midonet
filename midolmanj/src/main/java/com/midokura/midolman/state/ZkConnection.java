@@ -26,7 +26,7 @@ public class ZkConnection implements Watcher {
     private boolean connecting;
     private boolean connected;
 
-    public ZkConnection(String zkHosts, int sessionTimeoutMillis, Watcher watcher) throws Exception {
+    public ZkConnection(String zkHosts, int sessionTimeoutMillis, Watcher watcher) {
         this.zkHosts = zkHosts;
         this.sessionTimeoutMillis = sessionTimeoutMillis;
         this.watcher = watcher;
@@ -35,7 +35,7 @@ public class ZkConnection implements Watcher {
     }
 
     public ZkConnection(String zkHosts, int sessionTimeoutMillis,
-            Watcher watcher, Reactor reactor) throws Exception {
+            Watcher watcher, Reactor reactor) {
         this.zkHosts = zkHosts;
         this.sessionTimeoutMillis = sessionTimeoutMillis;
         this.watcher = watcher;
@@ -96,5 +96,9 @@ public class ZkConnection implements Watcher {
 
     public ZooKeeper getZooKeeper() {
         return this.zk;
+    }
+
+    public void setWatcher(Watcher watcher) {
+        this.watcher = watcher;
     }
 }

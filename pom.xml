@@ -40,6 +40,7 @@
         <versions.junit>4.10</versions.junit>
         <versions.plugins.jdeb>0.10</versions.plugins.jdeb>
         <versions.javax.servlet>2.5</versions.javax.servlet>
+        <versions.guice>3.0</versions.guice>
     </properties>
 
     <pluginRepositories>

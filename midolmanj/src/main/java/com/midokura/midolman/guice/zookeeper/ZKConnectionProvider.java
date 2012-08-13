@@ -23,7 +23,7 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
     @Inject
     ZookeeperConfig config;
 
-    @Inject
+    @Inject(optional = true)
     Reactor reactorLoop;
 
     @Inject(optional = true)

@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.config;
 
 import javax.servlet.ServletContext;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,6 @@ public class AppConfig {
     public final static String zkConnStringKey = "zk_conn_string";
     public final static String zkTimeoutKey = "zk_timeout";
     public final static String zkRootKey = "zk_root";
-    public final static String zkMgmtRootKey = "zk_mgmt_root";
 
     public final static String CASSANDRA_SERVERS = "cassandra-servers";
     public final static String CASSANDRA_CLUSTER = "cassandra-cluster";
@@ -59,6 +59,9 @@ public class AppConfig {
         this.ctx = ctx;
     }
 
+    public AppConfig() {
+        ctx = null;
+    }
     /**
      * @return The version specified in the config.
      * @throws InvalidConfigException
