@@ -103,8 +103,9 @@ and passes the PacketIn to the Simulation Controller. Upon receiving a
 simulation result from the Simulation Controller, the DP is responsible for
 creating the corresponding wildcard flow. If the flow is being emitted from
 a single remote virtual port, this involves querying the Virtual-Physical
-Mapping for the location of the host responsible for that virtual port, and
-then building an appropriate tunnel port or using the existing one. If the
+Mapping for the identity of the host responsible for that virtual port, and
+then adding flow actions to set the tunnel-id to encode that virtual port and
+to emit the packet from the tunnel corresponding to that remote host. If the
 flow is being emitted from a single local virtual port, the DP Controller
 recognizes this and uses the corresponding datapath port. Finally, if the flow
 is being emitted from a PortSet, the DP Controller queries the Virtual-Physical
@@ -115,7 +116,7 @@ virtual port belonging to that PortSet. Finally, the wildcard flow, free of any
 MidoNet ID references, is pushed to the FlowController.
 
 The DP Controller is responsible for managing overlay tunnels (see the previous
-paragraph).
+paragraph). Tunnel management is described in a separate design document.
 
 The DP Controller notifies the Flow Validation Engine of any installed wildcard
 flow so that the FVE may do appropriate indexing of flows (e.g. by the ID of
