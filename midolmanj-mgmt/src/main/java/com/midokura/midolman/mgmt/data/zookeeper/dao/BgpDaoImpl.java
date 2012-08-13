@@ -44,33 +44,16 @@ public class BgpDaoImpl implements BgpDao {
         this.adRouteDao = adRouteDao;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BgpDao#create(com.midokura.midolman
-     * .mgmt.data.dto.Bgp)
-     */
     @Override
     public UUID create(Bgp bgp) throws StateAccessException {
         return dataAccessor.create(bgp.toConfig());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.BgpDao#delete(java.util.UUID)
-     */
     @Override
     public void delete(UUID id) throws StateAccessException {
         dataAccessor.delete(id);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.BgpDao#get(java.util.UUID)
-     */
     @Override
     public Bgp get(UUID id) throws StateAccessException {
         try {
@@ -80,30 +63,24 @@ public class BgpDaoImpl implements BgpDao {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BgpDao#getByAdRoute(java.util.UUID)
-     */
     @Override
-    public Bgp getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("BgpDaoImpl.getByAdRouteId entered: adRouteId={}", adRouteId);
+    public void update(Bgp obj) throws StateAccessException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Bgp findByAdRoute(UUID adRouteId) throws StateAccessException {
+        log.debug("BgpDaoImpl.findByAdRoute entered: adRouteId={}", adRouteId);
 
         AdRoute adRoute = adRouteDao.get(adRouteId);
         Bgp bgp = get(adRoute.getBgpId());
 
-        log.debug("BgpDaoImpl.getByAdRouteId exiting: BGP={}", bgp);
+        log.debug("BgpDaoImpl.findByAdRoute exiting: BGP={}", bgp);
         return bgp;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.BgpDao#list(java.util.UUID)
-     */
     @Override
-    public List<Bgp> list(UUID portId) throws StateAccessException {
+    public List<Bgp> findByPort(UUID portId) throws StateAccessException {
         List<Bgp> bgps = new ArrayList<Bgp>();
         List<UUID> ids = dataAccessor.list(portId);
         for (UUID id : ids) {

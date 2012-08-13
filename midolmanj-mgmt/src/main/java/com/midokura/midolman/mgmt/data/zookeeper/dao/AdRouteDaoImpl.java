@@ -15,6 +15,8 @@ import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 
+import javax.naming.OperationNotSupportedException;
+
 /**
  * Data access class for advertising route.
  *
@@ -34,23 +36,11 @@ public class AdRouteDaoImpl implements AdRouteDao {
         this.dataAccessor = dataAccessor;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.AdRouteDao#create(com.midokura.midolman
-     * .mgmt.data.dto.AdRoute)
-     */
     @Override
     public UUID create(AdRoute adRoute) throws StateAccessException {
         return dataAccessor.create(adRoute.toConfig());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.AdRouteDao#get(java.util.UUID)
-     */
     @Override
     public AdRoute get(UUID id) throws StateAccessException {
         try {
@@ -60,13 +50,8 @@ public class AdRouteDaoImpl implements AdRouteDao {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.AdRouteDao#list(java.util.UUID)
-     */
     @Override
-    public List<AdRoute> list(UUID bgpId) throws StateAccessException {
+    public List<AdRoute> findByBgp(UUID bgpId) throws StateAccessException {
         List<AdRoute> adRoutes = new ArrayList<AdRoute>();
         List<UUID> ids = dataAccessor.list(bgpId);
         for (UUID id : ids) {
@@ -75,14 +60,13 @@ public class AdRouteDaoImpl implements AdRouteDao {
         return adRoutes;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.AdRouteDao#delete(java.util.UUID)
-     */
     @Override
     public void delete(UUID id) throws StateAccessException {
         dataAccessor.delete(id);
+    }
+
+    @Override
+    public void update(AdRoute adRoute) throws StateAccessException {
+        throw new UnsupportedOperationException();
     }
 }

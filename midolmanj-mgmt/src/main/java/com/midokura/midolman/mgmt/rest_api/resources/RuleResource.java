@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,8 @@ public class RuleResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.ruleAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -173,7 +175,7 @@ public class RuleResource {
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator)
-                throws StateAccessException {
+                throws StateAccessException, InvalidStateOperationException {
 
             rule.setChainId(chainId);
             if (rule.getPosition() == 0) {
@@ -192,17 +194,17 @@ public class RuleResource {
             }
 
             RuleDao dao = daoFactory.getRuleDao();
-            UUID jumpChainID = null;
             if (rule.getJumpChainName() != null) {
                 ChainDao chainDao = daoFactory.getChainDao();
                 Chain chain = chainDao.get(chainId);
-                Chain jumpChain = chainDao.get(chain.getTenantId(),
+                Chain jumpChain = chainDao.findByName(chain.getTenantId(),
                         rule.getJumpChainName());
-                jumpChainID = jumpChain.getId();
+                rule.setJumpChainId(jumpChain.getId());
             }
+
             UUID id = null;
             try {
-                id = dao.create(rule, jumpChainID);
+                id = dao.create(rule);
             } catch (RuleIndexOutOfBoundsException e) {
                 throw new BadRequestHttpException("Invalid rule position.");
             }
@@ -240,7 +242,7 @@ public class RuleResource {
             }
 
             RuleDao dao = daoFactory.getRuleDao();
-            List<Rule> rules = dao.list(chainId);
+            List<Rule> rules = dao.findByChain(chainId);
             if (rules != null) {
                 for (UriResource resource : rules) {
                     resource.setBaseUri(uriInfo.getBaseUri());

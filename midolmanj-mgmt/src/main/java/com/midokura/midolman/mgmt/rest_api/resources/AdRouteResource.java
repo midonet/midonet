@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,8 @@ public class AdRouteResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.adRouteAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -148,7 +150,7 @@ public class AdRouteResource {
         /**
          * Handler for creating BGP advertised route.
          *
-         * @param chain
+         * @param adRoute
          *            AdRoute object.
          * @param uriInfo
          *            Object that holds the request URI data.
@@ -168,7 +170,8 @@ public class AdRouteResource {
                 MediaType.APPLICATION_JSON })
         public Response create(AdRoute adRoute, @Context UriInfo uriInfo,
                 @Context SecurityContext context, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+                @Context Authorizer authorizer)
+                throws StateAccessException, InvalidStateOperationException {
 
             if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, bgpId)) {
                 throw new ForbiddenHttpException(
@@ -212,7 +215,7 @@ public class AdRouteResource {
             }
 
             AdRouteDao dao = daoFactory.getAdRouteDao();
-            List<AdRoute> adRoutes = dao.list(bgpId);
+            List<AdRoute> adRoutes = dao.findByBgp(bgpId);
             if (adRoutes != null) {
                 for (UriResource resource : adRoutes) {
                     resource.setBaseUri(uriInfo.getBaseUri());

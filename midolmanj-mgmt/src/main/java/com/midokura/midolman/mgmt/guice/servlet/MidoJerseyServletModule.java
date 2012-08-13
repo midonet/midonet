@@ -4,6 +4,7 @@
 package com.midokura.midolman.mgmt.guice.servlet;
 
 import com.midokura.midolman.mgmt.guice.config.ConfigModule;
+import com.midokura.midolman.mgmt.guice.data.DataStoreModule;
 import com.midokura.midolman.mgmt.guice.jaxrs.JaxrsModule;
 import com.midokura.midolman.mgmt.guice.rest.RestApiModule;
 import com.sun.jersey.guice.JerseyServletModule;
@@ -29,6 +30,9 @@ public class MidoJerseyServletModule extends JerseyServletModule {
 
         // Install REST API bindings
         install(new RestApiModule());
+
+        // Install data store module
+        install(new DataStoreModule());
 
         // Install JAX-RS bindings
         install(new JaxrsModule());

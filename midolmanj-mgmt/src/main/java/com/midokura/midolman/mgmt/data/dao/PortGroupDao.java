@@ -13,37 +13,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * PortGroup DAO interface.
  */
-public interface PortGroupDao {
-
-    /**
-     * Create a new port group.
-     *
-     * @param group
-     *            PortGroup object to create.
-     * @return new group's UUID.
-     * @throws com.midokura.midolman.state.StateAccessException
-     *             Data access error.
-     */
-    UUID create(PortGroup group) throws StateAccessException;
-
-    /**
-     * Delete a port group.
-     *
-     * @param id
-     *            ID of the PortGroup to delete.
-     * @throws com.midokura.midolman.state.StateAccessException
-     *             Data access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * @param id
-     *            ID of the group to get.
-     * @return PortGroup object.
-     * @throws com.midokura.midolman.state.StateAccessException
-     *             Data access error.
-     */
-    PortGroup get(UUID id) throws StateAccessException;
+public interface PortGroupDao extends GenericDao<PortGroup, UUID> {
 
     /**
      * @param tenantId
@@ -54,7 +24,8 @@ public interface PortGroupDao {
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      */
-    PortGroup get(String tenantId, String name) throws StateAccessException;
+    PortGroup findByName(String tenantId, String name)
+            throws StateAccessException;
 
     /**
      * List all of a tenant's PortGroups
@@ -65,6 +36,6 @@ public interface PortGroupDao {
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      */
-    List<PortGroup> list(String tenantId) throws StateAccessException;
+    List<PortGroup> findByTenant(String tenantId) throws StateAccessException;
 
 }

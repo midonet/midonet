@@ -14,40 +14,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Data access class for Rule.
  */
-public interface RuleDao {
-
-    /**
-     * Create a Rule.
-     *
-     * @param rule
-     *            Rule to create.
-     * @return Rule ID.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    UUID create(Rule rule, UUID jumpChainID)
-            throws RuleIndexOutOfBoundsException, StateAccessException;
-
-    /**
-     * Delete a Rule.
-     *
-     * @param id
-     *            ID of the Rule to delete.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get a Rule.
-     *
-     * @param id
-     *            ID of the Rule to get.
-     * @return Route object.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    Rule get(UUID id) throws StateAccessException;
+public interface RuleDao extends GenericDao<Rule, UUID> {
 
     /**
      * List Rules.
@@ -56,5 +23,5 @@ public interface RuleDao {
      * @throws StateAccessException
      *             Data Access error.
      */
-    List<Rule> list(UUID chainId) throws StateAccessException;
+    List<Rule> findByChain(UUID chainId) throws StateAccessException;
 }

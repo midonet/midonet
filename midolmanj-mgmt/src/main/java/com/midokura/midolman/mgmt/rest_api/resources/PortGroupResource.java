@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,8 @@ public class PortGroupResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.portGroupAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -167,7 +169,8 @@ public class PortGroupResource {
         public Response create(PortGroup group, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException, InvalidStateOperationException {
 
             group.setTenantId(tenantID);
 
@@ -220,7 +223,7 @@ public class PortGroupResource {
             }
 
             PortGroupDao dao = daoFactory.getPortGroupDao();
-            List<PortGroup> groups = dao.list(tenantID);
+            List<PortGroup> groups = dao.findByTenant(tenantID);
             if (groups != null) {
                 for (UriResource resource : groups) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -263,7 +266,7 @@ public class PortGroupResource {
             }
 
             PortGroupDao dao = daoFactory.getPortGroupDao();
-            PortGroup group = dao.get(tenantID, name);
+            PortGroup group = dao.findByName(tenantID, name);
             if (group != null) {
                 group.setBaseUri(uriInfo.getBaseUri());
             }

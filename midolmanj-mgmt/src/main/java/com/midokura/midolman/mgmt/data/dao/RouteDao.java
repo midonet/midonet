@@ -13,39 +13,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Data access class for routes.
  */
-public interface RouteDao {
-
-    /**
-     * Create a route.
-     *
-     * @param route
-     *            Route to create.
-     * @return Route ID.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    UUID create(Route route) throws StateAccessException;
-
-    /**
-     * Delete a route.
-     *
-     * @param id
-     *            ID of the route to delete.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get a route.
-     *
-     * @param id
-     *            ID of the route to get.
-     * @return Route object.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    Route get(UUID id) throws StateAccessException;
+public interface RouteDao extends GenericDao<Route, UUID> {
 
     /**
      * List routes.
@@ -56,6 +24,6 @@ public interface RouteDao {
      * @throws StateAccessException
      *             Data Access error.
      */
-    List<Route> list(UUID routerId) throws StateAccessException;
+    List<Route> findByRouter(UUID routerId) throws StateAccessException;
 
 }

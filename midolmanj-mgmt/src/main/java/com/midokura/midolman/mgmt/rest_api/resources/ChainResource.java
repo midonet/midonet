@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,8 @@ public class ChainResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.chainAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -185,7 +187,7 @@ public class ChainResource {
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator)
-                throws StateAccessException {
+                throws StateAccessException, InvalidStateOperationException {
 
             chain.setTenantId(tenantId);
 
@@ -238,7 +240,7 @@ public class ChainResource {
             }
 
             ChainDao dao = daoFactory.getChainDao();
-            List<Chain> chains = dao.list(tenantId);
+            List<Chain> chains = dao.findByTenant(tenantId);
             if (chains != null) {
                 for (UriResource resource : chains) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -281,7 +283,7 @@ public class ChainResource {
             }
 
             ChainDao dao = daoFactory.getChainDao();
-            Chain chain = dao.get(tenantId, name);
+            Chain chain = dao.findByName(tenantId, name);
             if (chain != null) {
                 chain.setBaseUri(uriInfo.getBaseUri());
             }

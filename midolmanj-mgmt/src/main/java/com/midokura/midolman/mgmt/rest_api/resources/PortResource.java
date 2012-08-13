@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,8 @@ public class PortResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -164,7 +166,7 @@ public class PortResource {
     public void update(@PathParam("id") UUID id, Port port,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer, @Context Validator validator)
-            throws StateAccessException {
+            throws StateAccessException, InvalidStateOperationException {
 
         port.setId(id);
 
@@ -186,8 +188,8 @@ public class PortResource {
      *
      * @param id
      *            Port ID from the request.
-     * @param peerId
-     *            Peer port ID.
+     * @param input
+     *            Input
      * @param context
      *            Object that holds the security data.
      * @param daoFactory
@@ -306,7 +308,8 @@ public class PortResource {
         public Response create(BridgePort port, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException, InvalidStateOperationException {
 
             port.setDeviceId(bridgeId);
 
@@ -359,7 +362,7 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            List<Port> ports = dao.listBridgePorts(bridgeId);
+            List<Port> ports = dao.findByBridge(bridgeId);
             if (ports != null) {
                 for (UriResource resource : ports) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -416,7 +419,7 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            List<Port> ports = dao.listBridgePeerPorts(bridgeId);
+            List<Port> ports = dao.findPeersByBridge(bridgeId);
             if (ports != null) {
                 for (UriResource resource : ports) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -465,7 +468,8 @@ public class PortResource {
         public Response create(RouterPort port, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException, InvalidStateOperationException {
 
             port.setDeviceId(routerId);
 
@@ -518,7 +522,7 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            List<Port> ports = dao.listRouterPorts(routerId);
+            List<Port> ports = dao.findByRouter(routerId);
             if (ports != null) {
                 for (UriResource resource : ports) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -575,7 +579,7 @@ public class PortResource {
             }
 
             PortDao dao = daoFactory.getPortDao();
-            List<Port> ports = dao.listRouterPeerPorts(routerId);
+            List<Port> ports = dao.findPeersByRouter(routerId);
             if (ports != null) {
                 for (UriResource resource : ports) {
                     resource.setBaseUri(uriInfo.getBaseUri());

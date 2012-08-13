@@ -14,30 +14,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Port data accessor interface.
  */
-public interface PortDao {
-
-    /**
-     * Create a port.
-     *
-     * @param port
-     *            Port object to create.
-     * @return New port ID
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    UUID create(Port port) throws StateAccessException;
-
-    /**
-     * Delete a port.
-     *
-     * @param id
-     *            ID of the port to delete.
-     * @throws StateAccessException
-     *             Data access error.
-     * @throws PortInUseException
-     *             Attempt to delete a used port.
-     */
-    void delete(UUID id) throws StateAccessException, PortInUseException;
+public interface PortDao extends GenericDao<Port, UUID> {
 
     /**
      * Check if a port exists.
@@ -51,24 +28,13 @@ public interface PortDao {
     boolean exists(UUID id) throws StateAccessException;
 
     /**
-     * Get a port.
-     *
-     * @param id
-     *            ID of the port to get.
-     * @return Port object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    Port get(UUID id) throws StateAccessException;
-
-    /**
      * Get Port by AdRoute.
      *
      * @param adRouteId
      * @return
      * @throws StateAccessException
      */
-    Port getByAdRoute(UUID adRouteId) throws StateAccessException;
+    Port findByAdRoute(UUID adRouteId) throws StateAccessException;
 
     /**
      * Get Port by BGP.
@@ -77,7 +43,7 @@ public interface PortDao {
      * @return
      * @throws StateAccessException
      */
-    Port getByBgp(UUID bgpId) throws StateAccessException;
+    Port findByBgp(UUID bgpId) throws StateAccessException;
 
     /**
      * Get Port by VPN.
@@ -86,7 +52,7 @@ public interface PortDao {
      * @return
      * @throws StateAccessException
      */
-    Port getByVpn(UUID vpnId) throws StateAccessException;
+    Port findByVpn(UUID vpnId) throws StateAccessException;
 
     /**
      * Link two logical ports
@@ -109,7 +75,7 @@ public interface PortDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Port> listBridgePorts(UUID bridgeId) throws StateAccessException;
+    List<Port> findByBridge(UUID bridgeId) throws StateAccessException;
 
     /**
      * Get bridge peer ports.
@@ -118,7 +84,7 @@ public interface PortDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Port> listBridgePeerPorts(UUID bridgeId) throws StateAccessException;
+    List<Port> findPeersByBridge(UUID bridgeId) throws StateAccessException;
 
     /**
      * Get router ports.
@@ -129,7 +95,7 @@ public interface PortDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Port> listRouterPorts(UUID routerId) throws StateAccessException;
+    List<Port> findByRouter(UUID routerId) throws StateAccessException;
 
     /**
      * Get router peer ports.
@@ -138,7 +104,7 @@ public interface PortDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Port> listRouterPeerPorts(UUID routerId) throws StateAccessException;
+    List<Port> findPeersByRouter(UUID routerId) throws StateAccessException;
 
     /**
      * Unlink two logical ports
@@ -149,12 +115,4 @@ public interface PortDao {
      */
     void unlink(UUID id) throws StateAccessException;
 
-    /**
-     * Update the Port whose ID is specified in the Port DTO.
-     *
-     * @param port
-     *            New port configuration.
-     * @throws StateAccessException
-     */
-    void update(Port port) throws StateAccessException;
 }

@@ -35,7 +35,7 @@ public class ChainNameConstraintValidator implements
 
         Chain chain = null;
         try {
-            chain = dao.get(value.getTenantId(), value.getName());
+            chain = dao.findByName(value.getTenantId(), value.getName());
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");

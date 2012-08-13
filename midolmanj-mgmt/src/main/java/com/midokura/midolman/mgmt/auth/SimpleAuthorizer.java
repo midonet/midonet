@@ -66,7 +66,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByAdRoute(id);
+        Tenant tenant = tenantDao.findByAdRoute(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.adRouteAuthorized exiting: allowed={}",
@@ -91,7 +91,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByBgp(id);
+        Tenant tenant = tenantDao.findByBgp(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.bgpAuthorized exiting: allowed={}", allowed);
@@ -115,7 +115,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByBridge(id);
+        Tenant tenant = tenantDao.findByBridge(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.bridgeAuthorized exiting: allowed={}",
@@ -140,7 +140,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByChain(id);
+        Tenant tenant = tenantDao.findByChain(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.chainAuthorized exiting: allowed={}",
@@ -157,7 +157,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByChain(id);
+        Tenant tenant = tenantDao.findByChain(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.portGroupAuthorized exiting: allowed={}",
@@ -182,7 +182,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByPort(id);
+        Tenant tenant = tenantDao.findByPort(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.portAuthorized exiting: allowed={}",
@@ -207,7 +207,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByRoute(id);
+        Tenant tenant = tenantDao.findByRoute(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.routeAuthorized exiting: allowed={}",
@@ -235,12 +235,12 @@ public class SimpleAuthorizer implements Authorizer {
         }
 
         // Allow if both routers belong to the user.
-        Tenant routerTenant = tenantDao.getByRouter(id);
+        Tenant routerTenant = tenantDao.findByRouter(id);
         if (!AuthChecker.isUserPrincipal(context, routerTenant.getId())) {
             return false;
         }
 
-        Tenant peerRouterTenant = tenantDao.getByRouter(peerId);
+        Tenant peerRouterTenant = tenantDao.findByRouter(peerId);
         boolean allowed = routerTenant.getId().equals(peerRouterTenant.getId());
 
         log.debug("SimpleAuthorizer.routerLinkAuthorized exiting: allowed={}",
@@ -258,12 +258,12 @@ public class SimpleAuthorizer implements Authorizer {
         }
 
         // Allow if both devices belong to the user.
-        Tenant routerTenant = tenantDao.getByRouter(routerId);
+        Tenant routerTenant = tenantDao.findByRouter(routerId);
         if (!AuthChecker.isUserPrincipal(context, routerTenant.getId())) {
             return false;
         }
 
-        Tenant bridgeTenant = tenantDao.getByBridge(bridgeId);
+        Tenant bridgeTenant = tenantDao.findByBridge(bridgeId);
         return routerTenant.getId().equals(bridgeTenant.getId());
     }
 
@@ -284,7 +284,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByRouter(id);
+        Tenant tenant = tenantDao.findByRouter(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.routerAuthorized exiting: allowed={}",
@@ -309,7 +309,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByRule(id);
+        Tenant tenant = tenantDao.findByRule(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.ruleAuthorized exiting: allowed={}",
@@ -374,7 +374,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (AuthChecker.isAdmin(context)) {
             return true;
         }
-        Tenant tenant = tenantDao.getByVpn(id);
+        Tenant tenant = tenantDao.findByVpn(id);
         boolean allowed = AuthChecker.isUserPrincipal(context, tenant.getId());
 
         log.debug("SimpleAuthorizer.vpnAuthorized exiting: allowed={}", allowed);

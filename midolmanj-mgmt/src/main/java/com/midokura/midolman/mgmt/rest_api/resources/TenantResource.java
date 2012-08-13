@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,10 +77,12 @@ public class TenantResource {
             MediaType.APPLICATION_JSON })
     public Response create(Tenant tenant, @Context SecurityContext context,
             @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to create tenant.");
+            throw new ForbiddenHttpException(
+                    "Not authorized to create tenant.");
         }
 
         TenantDao dao = daoFactory.getTenantDao();
@@ -107,10 +110,12 @@ public class TenantResource {
     @Path("{id}")
     public void delete(@PathParam("id") String id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to delete tenant.");
+            throw new ForbiddenHttpException(
+                    "Not authorized to delete tenant.");
         }
 
         TenantDao dao = daoFactory.getTenantDao();
@@ -199,7 +204,7 @@ public class TenantResource {
         }
 
         TenantDao dao = daoFactory.getTenantDao();
-        List<Tenant> tenants = dao.list();
+        List<Tenant> tenants = dao.findAll();
         if (tenants != null) {
             for (UriResource resource : tenants) {
                 resource.setBaseUri(uriInfo.getBaseUri());

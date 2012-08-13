@@ -13,44 +13,9 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Data access class for BGP.
- *
- * @version 1.6 29 Nov 2011
- * @author Yoshi Tamura
  */
 
-public interface BgpDao {
-
-    /**
-     * Create a BGP.
-     *
-     * @param BGP
-     *            BGP to create.
-     * @return BGP ID.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    UUID create(Bgp bgp) throws StateAccessException;
-
-    /**
-     * Delete a BGP.
-     *
-     * @param id
-     *            ID of the BGP to delete.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get a BGP.
-     *
-     * @param id
-     *            ID of the BGP to get.
-     * @return Route object.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    Bgp get(UUID id) throws StateAccessException;
+public interface BgpDao extends GenericDao <Bgp, UUID>{
 
     /**
      * Get the BGP of the AdRoute with the given ID.
@@ -61,7 +26,7 @@ public interface BgpDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Bgp getByAdRoute(UUID adRouteId) throws StateAccessException;
+    Bgp findByAdRoute(UUID adRouteId) throws StateAccessException;
 
     /**
      * List BGPs.
@@ -70,6 +35,6 @@ public interface BgpDao {
      * @throws StateAccessException
      *             Data Access error.
      */
-    List<Bgp> list(UUID portId) throws StateAccessException;
+    List<Bgp> findByPort(UUID portId) throws StateAccessException;
 
 }

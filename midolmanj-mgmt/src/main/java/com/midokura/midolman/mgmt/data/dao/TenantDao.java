@@ -13,67 +13,35 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Tenant DAO.
  */
-public interface TenantDao {
-
-    /**
-     * Create a new tenant.
-     *
-     * @param tenant
-     *            Tenant DTO.
-     * @return ID of the new tenant.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    String create(Tenant tenant) throws StateAccessException;
-
-    /**
-     * Delete a tenant.
-     *
-     * @param id
-     *            ID of the tenant to delete.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    void delete(String id) throws StateAccessException;
-
-    /**
-     * Get the tenant with the speicfied ID.
-     *
-     * @param id
-     *            Tenant ID
-     * @return Tenant object
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    Tenant get(String id) throws StateAccessException;
+public interface TenantDao extends GenericDao<Tenant, String> {
 
     /**
      * @param adRouteId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByAdRoute(UUID adRouteId) throws StateAccessException;
+    Tenant findByAdRoute(UUID adRouteId) throws StateAccessException;
 
     /**
      * @param bgpId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByBgp(UUID bgpId) throws StateAccessException;
+    Tenant findByBgp(UUID bgpId) throws StateAccessException;
 
     /**
      * @param bridgeId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByBridge(UUID bridgeId) throws StateAccessException;
+    Tenant findByBridge(UUID bridgeId) throws StateAccessException;
 
     /**
      * @param chainId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByChain(UUID chainId) throws StateAccessException;
+    Tenant findByChain(UUID chainId) throws StateAccessException;
 
     /**
      *
@@ -81,42 +49,42 @@ public interface TenantDao {
      * @return
      * @throws StateAccessException
      */
-    Tenant getByPortGroup(UUID groupId) throws StateAccessException;
+    Tenant findByPortGroup(UUID groupId) throws StateAccessException;
 
     /**
      * @param portId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByPort(UUID portId) throws StateAccessException;
+    Tenant findByPort(UUID portId) throws StateAccessException;
 
     /**
      * @param routeId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByRoute(UUID routeId) throws StateAccessException;
+    Tenant findByRoute(UUID routeId) throws StateAccessException;
 
     /**
      * @param routerId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByRouter(UUID routerId) throws StateAccessException;
+    Tenant findByRouter(UUID routerId) throws StateAccessException;
 
     /**
      * @param ruleId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByRule(UUID ruleId) throws StateAccessException;
+    Tenant findByRule(UUID ruleId) throws StateAccessException;
 
     /**
      * @param vpnId
      * @return
      * @throws StateAccessException
      */
-    Tenant getByVpn(UUID vpnId) throws StateAccessException;
+    Tenant findByVpn(UUID vpnId) throws StateAccessException;
 
     /**
      * Get all the Tenant objects.
@@ -125,5 +93,5 @@ public interface TenantDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Tenant> list() throws StateAccessException;
+    List<Tenant> findAll() throws StateAccessException;
 }

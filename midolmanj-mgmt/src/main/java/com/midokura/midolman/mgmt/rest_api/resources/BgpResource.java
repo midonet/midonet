@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +71,8 @@ public class BgpResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -159,7 +161,7 @@ public class BgpResource {
         /**
          * Handler for creating BGP.
          *
-         * @param chain
+         * @param bgp
          *            BGP object.
          * @param uriInfo
          *            Object that holds the request URI data.
@@ -180,7 +182,7 @@ public class BgpResource {
         public Response create(Bgp bgp, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer)
-                throws StateAccessException {
+                throws StateAccessException, InvalidStateOperationException {
 
             if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
                 throw new ForbiddenHttpException(
@@ -222,7 +224,7 @@ public class BgpResource {
                         "Not authorized to view these BGPs.");
             }
             BgpDao dao = daoFactory.getBgpDao();
-            List<Bgp> bgps = dao.list(portId);
+            List<Bgp> bgps = dao.findByPort(portId);
             if (bgps != null) {
                 for (UriResource resource : bgps) {
                     resource.setBaseUri(uriInfo.getBaseUri());

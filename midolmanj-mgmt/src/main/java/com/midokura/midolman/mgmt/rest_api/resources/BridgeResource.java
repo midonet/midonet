@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,8 @@ public class BridgeResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -210,7 +212,7 @@ public class BridgeResource {
     public void update(@PathParam("id") UUID id, Bridge bridge,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer, @Context Validator validator)
-            throws StateAccessException {
+            throws StateAccessException, InvalidStateOperationException {
 
         bridge.setId(id);
 
@@ -269,7 +271,7 @@ public class BridgeResource {
         public Response create(Bridge bridge, @Context SecurityContext context,
                 @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
                 @Context Authorizer authorizer, @Context Validator validator)
-                throws StateAccessException {
+                throws StateAccessException, InvalidStateOperationException {
 
             bridge.setTenantId(tenantId);
 
@@ -322,7 +324,7 @@ public class BridgeResource {
             }
 
             BridgeDao dao = daoFactory.getBridgeDao();
-            List<Bridge> bridges = dao.list(tenantId);
+            List<Bridge> bridges = dao.findByTenant(tenantId);
             if (bridges != null) {
                 for (UriResource resource : bridges) {
                     resource.setBaseUri(uriInfo.getBaseUri());

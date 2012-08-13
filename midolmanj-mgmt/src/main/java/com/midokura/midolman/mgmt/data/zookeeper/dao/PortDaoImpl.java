@@ -74,13 +74,6 @@ public class PortDaoImpl implements PortDao {
         this.vpnDao = vpnDao;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#create(com.midokura.midolman
-     * .mgmt.data.dto.Port)
-     */
     @Override
     public UUID create(Port port) throws StateAccessException {
         log.debug("PortDaoImpl.create entered: port={}", port);
@@ -93,13 +86,9 @@ public class PortDaoImpl implements PortDao {
         return id;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#delete(java.util.UUID)
-     */
     @Override
-    public void delete(UUID id) throws StateAccessException, PortInUseException {
+    public void delete(UUID id)
+            throws StateAccessException, PortInUseException {
         log.debug("PortDaoImpl.delete entered: id={}", id);
 
         Port port = get(id);
@@ -114,11 +103,6 @@ public class PortDaoImpl implements PortDao {
         log.debug("PortDaoImpl.delete exiting.");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#exists(java.util.UUID)
-     */
     @Override
     public boolean exists(UUID id) throws StateAccessException {
         log.debug("PortDaoImpl.exists entered: id={}", id);
@@ -129,11 +113,40 @@ public class PortDaoImpl implements PortDao {
         return exists;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#get(java.util.UUID)
-     */
+    @Override
+    public Port findByAdRoute(UUID adRouteId) throws StateAccessException {
+        log.debug("PortDaoImpl.findByAdRoute entered: adRouteId={}",
+                adRouteId);
+
+        Bgp bgp = bgpDao.findByAdRoute(adRouteId);
+        Port port = get(bgp.getPortId());
+
+        log.debug("PortDaoImpl.getByAdRoute exiting: port={}", port);
+        return port;
+    }
+
+    @Override
+    public Port findByBgp(UUID bgpId) throws StateAccessException {
+        log.debug("PortDaoImpl.findByBgp entered: bgpId={}", bgpId);
+
+        Bgp bgp = bgpDao.get(bgpId);
+        Port port = get(bgp.getPortId());
+
+        log.debug("PortDaoImpl.findByBgp exiting: port={}", port);
+        return port;
+    }
+
+    @Override
+    public Port findByVpn(UUID vpnId) throws StateAccessException {
+        log.debug("PortDaoImpl.findByVpn entered: vpnId={}", vpnId);
+
+        Vpn vpn = vpnDao.get(vpnId);
+        Port port = get(vpn.getPublicPortId());
+
+        log.debug("PortDaoImpl.findByVpn exiting: port={}", port);
+        return port;
+    }
+
     @Override
     public Port get(UUID id) throws StateAccessException {
         log.debug("PortDaoImpl.get entered: id={}", id);
@@ -148,62 +161,6 @@ public class PortDaoImpl implements PortDao {
         return port;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#getByAdRoute(java.util.UUID)
-     */
-    @Override
-    public Port getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("PortDaoImpl.getByAdRoute entered: adRouteId={}",
-                adRouteId);
-
-        Bgp bgp = bgpDao.getByAdRoute(adRouteId);
-        Port port = get(bgp.getPortId());
-
-        log.debug("PortDaoImpl.getByAdRoute exiting: port={}", port);
-        return port;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#getByBgp(java.util.UUID)
-     */
-    @Override
-    public Port getByBgp(UUID bgpId) throws StateAccessException {
-        log.debug("PortDaoImpl.getByBgp entered: bgpId={}", bgpId);
-
-        Bgp bgp = bgpDao.get(bgpId);
-        Port port = get(bgp.getPortId());
-
-        log.debug("PortDaoImpl.getByBgp exiting: port={}", port);
-        return port;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#getByVpn(java.util.UUID)
-     */
-    @Override
-    public Port getByVpn(UUID vpnId) throws StateAccessException {
-        log.debug("PortDaoImpl.getByVpn entered: vpnId={}", vpnId);
-
-        Vpn vpn = vpnDao.get(vpnId);
-        Port port = get(vpn.getPublicPortId());
-
-        log.debug("PortDaoImpl.getByVpn exiting: port={}", port);
-        return port;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.PortDao#link(java.util.UUID,
-     * java.util.UUID)
-     */
     @Override
     public void link(UUID id, UUID peerId) throws StateAccessException,
             PortInUseException {
@@ -245,16 +202,8 @@ public class PortDaoImpl implements PortDao {
         log.debug("PortDaoImpl.link exiting");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePorts(java.util
-     * .UUID)
-     */
     @Override
-    public List<Port> listBridgePorts(UUID bridgeId)
-            throws StateAccessException {
+    public List<Port> findByBridge(UUID bridgeId) throws StateAccessException {
         log.debug("PortDaoImpl.listBridgePorts entered: bridgeId={}",
                 bridgeId);
 
@@ -274,15 +223,8 @@ public class PortDaoImpl implements PortDao {
         return ports;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#listBridgePeerPorts(java.
-     * util.UUID)
-     */
     @Override
-    public List<Port> listBridgePeerPorts(UUID bridgeId)
+    public List<Port> findPeersByBridge(UUID bridgeId)
             throws StateAccessException {
         log.debug("PortDaoImpl.listBridgePeerPorts entered: bridgeId={}",
                 bridgeId);
@@ -300,16 +242,8 @@ public class PortDaoImpl implements PortDao {
         return logicalPorts;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#listRouterPorts(java.util
-     * .UUID)
-     */
     @Override
-    public List<Port> listRouterPorts(UUID routerId)
-            throws StateAccessException {
+    public List<Port> findByRouter(UUID routerId) throws StateAccessException {
         log.debug("PortDaoImpl.listRouterPorts entered: routerId={}",
                 routerId);
 
@@ -324,21 +258,14 @@ public class PortDaoImpl implements PortDao {
         return ports;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.PortDao#listRouterPeerPorts(java.
-     * util.UUID)
-     */
     @Override
-    public List<Port> listRouterPeerPorts(UUID routerId)
+    public List<Port> findPeersByRouter(UUID routerId)
             throws StateAccessException {
         log.debug("PortDaoImpl.listRouterPeerPorts entered: routerId={}",
                 routerId);
 
         // TODO: Find more efficient way to do this.
-        List<Port> ports = listRouterPorts(routerId);
+        List<Port> ports = findByRouter(routerId);
         List<Port> logicalPorts = getPeerLogicalPorts(ports);
 
         log.debug("PortDaoImpl.listRouterPeerPorts exiting: port count={}",

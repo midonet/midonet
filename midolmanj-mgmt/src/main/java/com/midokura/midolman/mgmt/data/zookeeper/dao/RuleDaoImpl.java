@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
@@ -33,34 +34,17 @@ public class RuleDaoImpl implements RuleDao {
         this.dataAccessor = dataAccessor;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RuleDao#create(com.midokura.midolman
-     * .mgmt.data.dto.Rule)
-     */
-    @Override
-    public UUID create(Rule rule, UUID jumpChainID)
-            throws RuleIndexOutOfBoundsException, StateAccessException {
-        return dataAccessor.create(rule.toZkRule(jumpChainID));
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RuleDao#delete(java.util.UUID)
-     */
     @Override
     public void delete(UUID id) throws StateAccessException {
         dataAccessor.delete(id);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RuleDao#get(java.util.UUID)
-     */
+    @Override
+    public UUID create(Rule rule)
+            throws StateAccessException, RuleIndexOutOfBoundsException {
+        return dataAccessor.create(rule.toZkRule());
+    }
+
     @Override
     public Rule get(UUID id) throws StateAccessException {
         try {
@@ -70,13 +54,15 @@ public class RuleDaoImpl implements RuleDao {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RuleDao#list(java.util.UUID)
-     */
     @Override
-    public List<Rule> list(UUID chainId) throws StateAccessException {
+    public void update(Rule obj)
+            throws StateAccessException, InvalidStateOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public List<Rule> findByChain(UUID chainId) throws StateAccessException {
         List<Rule> rules = new ArrayList<Rule>();
         Set<UUID> ruleIds = dataAccessor.getRuleIds(chainId);
         for (UUID ruleId : ruleIds) {

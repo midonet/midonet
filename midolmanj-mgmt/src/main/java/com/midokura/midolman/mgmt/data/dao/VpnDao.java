@@ -12,41 +12,8 @@ import com.midokura.midolman.state.StateAccessException;
 
 /**
  * Data access class for VPN.
- * @author Yoshi Tamura
  */
-public interface VpnDao {
-
-    /**
-     * Create a VPN.
-     *
-     * @param VPN
-     *            VPN to create.
-     * @return VPN ID.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    UUID create(Vpn vpn) throws StateAccessException;
-
-    /**
-     * Delete a VPN.
-     *
-     * @param id
-     *            ID of the VPN to delete.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get a VPN.
-     *
-     * @param id
-     *            ID of the VPN to get.
-     * @return Route object.
-     * @throws StateAccessException
-     *             Data Access error.
-     */
-    Vpn get(UUID id) throws StateAccessException;
+public interface VpnDao extends GenericDao <Vpn, UUID> {
 
     /**
      * List VPNs.
@@ -55,6 +22,6 @@ public interface VpnDao {
      * @throws StateAccessException
      *             Data Access error.
      */
-    List<Vpn> list(UUID portId) throws StateAccessException;
+    List<Vpn> findByPort(UUID portId) throws StateAccessException;
 
 }

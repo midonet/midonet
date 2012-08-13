@@ -119,90 +119,11 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         return bridge;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.BridgeDao#get(java.lang.String,
-     * java.lang.String)
-     */
-    @Override
-    public Bridge get(String tenantId, String name) throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.get entered: tenantId=" + tenantId
-                + ", name=" + name);
-
-        Bridge bridge = null;
-        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
-        if (zkDao.exists(path)) {
-            byte[] data = zkDao.get(path);
-            BridgeNameMgmtConfig nameConfig = serializer.deserialize(data,
-                    BridgeNameMgmtConfig.class);
-            bridge = get(nameConfig.id);
-        }
-
-        log.debug("BridgeZkDaoImpl.get exiting: bridge={}", bridge);
-        return bridge;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BridgeDao#getByPort(java.util.UUID)
-     */
-    @Override
-    public Bridge getByPort(UUID portId) throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.getByPort entered: portId={}", portId);
-
-        Port port = portDao.get(portId);
-        if (!(port instanceof BridgePort)) {
-            return null;
-        }
-        Bridge bridge = get(port.getDeviceId());
-
-        log.debug("BridgeZkDaoImpl.getByPort exiting: bridge={}", bridge);
-        return bridge;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.BridgeDao#list(java.lang.String)
-     */
-    @Override
-    public List<Bridge> list(String tenantId) throws StateAccessException {
-        log.debug("BridgeZkDaoImpl.list entered: tenantId={}", tenantId);
-
-        String path = pathBuilder.getTenantBridgeNamesPath(tenantId);
-        Set<String> names = zkDao.getChildren(path, null);
-        List<Bridge> bridges = new ArrayList<Bridge>();
-        for (String name : names) {
-            bridges.add(get(tenantId, name));
-        }
-
-        log.debug("BridgeZkDaoImpl.list exiting: bridges count={}",
-                bridges.size());
-        return bridges;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
-     * (java.util.UUID)
-     */
     @Override
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
         return prepareDelete(get(id));
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.BridgeZkDao#prepareDelete
-     * (com.midokura.midolman.mgmt.data.dto.Bridge)
-     */
     @Override
     public List<Op> prepareDelete(Bridge bridge) throws StateAccessException {
 
@@ -215,13 +136,6 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         return ops;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.BridgeDao#update(com.midokura.midolman
-     * .mgmt.data.dto.Bridge)
-     */
     @Override
     public void update(Bridge bridge) throws StateAccessException {
         log.debug("BridgeZkDaoImpl.update entered: bridge={}", bridge);
@@ -255,5 +169,55 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         }
 
         log.debug("BridgeZkDaoImpl.update exiting");
+    }
+
+    @Override
+    public Bridge findByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.findByName entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        Bridge bridge = null;
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            BridgeNameMgmtConfig nameConfig = serializer.deserialize(data,
+                    BridgeNameMgmtConfig.class);
+            bridge = get(nameConfig.id);
+        }
+
+        log.debug("BridgeZkDaoImpl.findByName exiting: bridge={}", bridge);
+        return bridge;
+    }
+
+    @Override
+    public Bridge findByPort(UUID portId) throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.findByPort entered: portId={}", portId);
+
+        Port port = portDao.get(portId);
+        if (!(port instanceof BridgePort)) {
+            return null;
+        }
+        Bridge bridge = get(port.getDeviceId());
+
+        log.debug("BridgeZkDaoImpl.findByPort exiting: bridge={}", bridge);
+        return bridge;
+    }
+
+    @Override
+    public List<Bridge> findByTenant(String tenantId) throws StateAccessException {
+        log.debug("BridgeZkDaoImpl.findByTenant entered: tenantId={}",
+                tenantId);
+
+        String path = pathBuilder.getTenantBridgeNamesPath(tenantId);
+        Set<String> names = zkDao.getChildren(path, null);
+        List<Bridge> bridges = new ArrayList<Bridge>();
+        for (String name : names) {
+            bridges.add(findByName(tenantId, name));
+        }
+
+        log.debug("BridgeZkDaoImpl.findByTenant exiting: bridges count={}",
+                bridges.size());
+        return bridges;
     }
 }

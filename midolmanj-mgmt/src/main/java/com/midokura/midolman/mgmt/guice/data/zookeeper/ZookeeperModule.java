@@ -12,10 +12,14 @@ import com.midokura.midolman.state.ZkConnection;
  */
 public class ZookeeperModule extends AbstractModule {
 
+
+
     @Override
     protected void configure() {
 
         install(new ZookeeperConnectionModule());
+
+        // Allow Directory to be mocked and specified from configuration
 
 
     }

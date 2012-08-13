@@ -149,15 +149,15 @@ public class ChainZkDaoImpl implements ChainZkDao {
         return chain;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#get(java.lang.String,
-     * java.lang.String)
-     */
     @Override
-    public Chain get(String tenantId, String name) throws StateAccessException {
-        log.debug("ChainZkDaoImpl.get entered: tenantId=" + tenantId
+    public void update(Chain obj) throws StateAccessException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Chain findByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("ChainZkDaoImpl.findByName entered: tenantId=" + tenantId
                 + ", name=" + name);
 
         Chain chain = null;
@@ -169,42 +169,35 @@ public class ChainZkDaoImpl implements ChainZkDao {
             chain = get(nameConfig.id);
         }
 
-        log.debug("ChainZkDaoImpl.get existing: chain={}", chain);
+        log.debug("ChainZkDaoImpl.findByName existing: chain={}", chain);
         return chain;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.ChainDao#getByRule(java.util.UUID)
-     */
     @Override
-    public Chain getByRule(UUID ruleId) throws StateAccessException {
-        log.debug("ChainZkDaoImpl.getByRule entered: ruleId={}", ruleId);
+    public Chain findByRule(UUID ruleId) throws StateAccessException {
+        log.debug("ChainZkDaoImpl.findByRule entered: ruleId={}", ruleId);
 
         Rule rule = ruleDao.get(ruleId);
         Chain chain = get(rule.getChainId());
 
-        log.debug("ChainZkDaoImpl.getByRule exiting: chain={}", chain);
+        log.debug("ChainZkDaoImpl.findByRule exiting: chain={}", chain);
         return chain;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.ChainDao#list(java.lang.String)
-     */
     @Override
-    public List<Chain> list(String tenantId) throws StateAccessException {
-        log.debug("ChainZkDaoImpl.list entered: tenantId={}", tenantId);
+    public List<Chain> findByTenant(String tenantId)
+            throws StateAccessException {
+        log.debug("ChainZkDaoImpl.findByTenant entered: tenantId={}", tenantId);
 
         String path = pathBuilder.getTenantChainNamesPath(tenantId);
         Set<String> names = zkDao.getChildren(path, null);
         List<Chain> chains = new ArrayList<Chain>();
         for (String name : names) {
-            chains.add(get(tenantId, name));
+            chains.add(findByName(tenantId, name));
         }
+
+        log.debug("ChainZkDaoImpl.findByTenant exiting: num of chains={}",
+                chains.size());
         return chains;
     }
 }

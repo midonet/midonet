@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +75,8 @@ public class RouteResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.routeAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -143,7 +145,7 @@ public class RouteResource {
         /**
          * Constructor your own route
          *
-         * @param UUID
+         * @param routerId
          *            routerId ID of a router.
          */
         public RouterRouteResource(UUID routerId) {
@@ -153,7 +155,7 @@ public class RouteResource {
         /**
          * Handler for creating a router route.
          *
-         * @param router
+         * @param route
          *            Route object.
          * @param uriInfo
          *            Object that holds the request URI data.
@@ -174,7 +176,8 @@ public class RouteResource {
         public Response create(Route route, @Context UriInfo uriInfo,
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator) throws StateAccessException {
+                @Context Validator validator)
+                throws StateAccessException, InvalidStateOperationException {
 
             route.setRouterId(routerId);
 
@@ -227,7 +230,7 @@ public class RouteResource {
             }
 
             RouteDao dao = daoFactory.getRouteDao();
-            List<Route> routes = dao.list(routerId);
+            List<Route> routes = dao.findByRouter(routerId);
             if (routes != null) {
                 for (UriResource resource : routes) {
                     resource.setBaseUri(uriInfo.getBaseUri());

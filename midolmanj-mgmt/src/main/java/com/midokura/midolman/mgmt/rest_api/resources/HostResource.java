@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class HostResource {
         throws ForbiddenHttpException, StateAccessException {
 
         HostDao dao = daoFactory.getHostDao();
-        List<Host> hosts = dao.list();
+        List<Host> hosts = dao.findAll();
         for (Host host : hosts) {
             host.setBaseUri(uriInfo.getBaseUri());
         }
@@ -102,7 +103,7 @@ public class HostResource {
     public Response delete(@PathParam("id") UUID id,
                            @Context SecurityContext context,
                            @Context DaoFactory daoFactory)
-        throws StateAccessException {
+            throws StateAccessException, InvalidStateOperationException {
 
         HostDao dao = daoFactory.getHostDao();
         try {

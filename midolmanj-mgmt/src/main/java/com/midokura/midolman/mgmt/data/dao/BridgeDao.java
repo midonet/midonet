@@ -13,39 +13,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Bridge DAO interface.
  */
-public interface BridgeDao {
-
-    /**
-     * Create a new Bridge.
-     *
-     * @param bridge
-     *            Bridge to create.
-     * @return The new UUID.
-     * @throws StateAccessException
-     *             Data access exception.
-     */
-    UUID create(Bridge bridge) throws StateAccessException;
-
-    /**
-     * Delete the bridge with the given ID.
-     *
-     * @param id
-     *            Bridge ID
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get the bridge with the given ID.
-     *
-     * @param id
-     *            ID of th bridge object.
-     * @return Bridge object.
-     * @throws StateAccessException
-     *             Data access exception.
-     */
-    Bridge get(UUID id) throws StateAccessException;
+public interface BridgeDao extends GenericDao<Bridge, UUID> {
 
     /**
      * Get a bridge by tenant ID and bridge name.
@@ -56,7 +24,8 @@ public interface BridgeDao {
      *            bridge name
      * @return Bridge DTO
      */
-    Bridge get(String tenantId, String name) throws StateAccessException;
+    Bridge findByName(String tenantId, String name) throws
+            StateAccessException;
 
     /**
      * Get brige by port.
@@ -67,7 +36,7 @@ public interface BridgeDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Bridge getByPort(UUID portId) throws StateAccessException;
+    Bridge findByPort(UUID portId) throws StateAccessException;
 
     /**
      * List bridges.
@@ -78,16 +47,6 @@ public interface BridgeDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Bridge> list(String tenantId) throws StateAccessException;
-
-    /**
-     * Update a bridge.
-     *
-     * @param bridge
-     *            Bridge to update
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    void update(Bridge bridge) throws StateAccessException;
+    List<Bridge> findByTenant(String tenantId) throws StateAccessException;
 
 }

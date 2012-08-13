@@ -41,6 +41,11 @@ public class HostDaoImpl implements HostDao {
     }
 
     @Override
+    public UUID create(Host obj) throws StateAccessException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Host get(UUID id) throws StateAccessException {
         Host host = null;
 
@@ -64,7 +69,12 @@ public class HostDaoImpl implements HostDao {
     }
 
     @Override
-    public List<Host> list() throws StateAccessException {
+    public void update(Host obj) throws StateAccessException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Host> findAll() throws StateAccessException {
         Collection<UUID> ids = zkDao.getHostIds();
 
         List<Host> hosts = new ArrayList<Host>();

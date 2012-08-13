@@ -15,25 +15,8 @@ import com.midokura.midolman.state.StateAccessException;
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 1/30/12
  */
-public interface HostDao {
+public interface HostDao extends GenericDao<Host, UUID> {
 
-    /**
-     * Delete a host.
-     *
-     * @param id ID of the host we want to delete.
-     * @throws StateAccessException if a data access error occurs or the host
-     *                              entry can't be deleted because it's alive.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * Get a host information.
-     *
-     * @param id ID of the host we want to get.
-     * @return Host object.
-     * @throws StateAccessException if a data access error occurs.
-     */
-    Host get(UUID id) throws StateAccessException;
 
     /**
      * List hosts.
@@ -41,7 +24,7 @@ public interface HostDao {
      * @return A list of Host objects (that can be modified).
      * @throws StateAccessException if a data access error occurs.
      */
-    List<Host> list() throws StateAccessException;
+    List<Host> findAll() throws StateAccessException;
 
     /**
      * Removes an interface description from a host.

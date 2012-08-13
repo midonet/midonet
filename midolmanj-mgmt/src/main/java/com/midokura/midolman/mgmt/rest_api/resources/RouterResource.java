@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,8 @@ public class RouterResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.routerAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -199,7 +201,7 @@ public class RouterResource {
             @Context SecurityContext context, @Context DaoFactory daoFactory,
             @Context Authorizer authorizer,
             @Context Validator validator)
-            throws StateAccessException {
+            throws StateAccessException, InvalidStateOperationException {
 
         router.setId(id);
 
@@ -259,7 +261,7 @@ public class RouterResource {
                 @Context SecurityContext context,
                 @Context DaoFactory daoFactory, @Context Authorizer authorizer,
                 @Context Validator validator)
-                throws StateAccessException {
+                throws StateAccessException, InvalidStateOperationException {
 
             router.setTenantId(tenantId);
 
@@ -312,7 +314,7 @@ public class RouterResource {
             }
 
             RouterDao dao = daoFactory.getRouterDao();
-            List<Router> routers = dao.list(tenantId);
+            List<Router> routers = dao.findByTenant(tenantId);
             if (routers != null) {
                 for (UriResource resource : routers) {
                     resource.setBaseUri(uriInfo.getBaseUri());

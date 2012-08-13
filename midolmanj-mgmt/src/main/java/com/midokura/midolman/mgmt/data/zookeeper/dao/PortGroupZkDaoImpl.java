@@ -91,9 +91,30 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
     }
 
     @Override
-    public PortGroup get(String tenantId, String name)
+    public void update(PortGroup obj)
+            throws StateAccessException, InvalidDataOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+        return prepareDelete(get(id));
+    }
+
+    @Override
+    public List<Op> prepareDelete(PortGroup group) throws StateAccessException {
+
+        List<Op> ops = zkDao.prepareDelete(group.getId());
+        String path = pathBuilder.getTenantPortGroupNamePath(
+                group.getTenantId(), group.getName());
+        ops.add(zkDao.getDeleteOp(path));
+        return ops;
+    }
+
+    @Override
+    public PortGroup findByName(String tenantId, String name)
             throws StateAccessException {
-        log.debug("PortGroupZkDaoImpl.get entered: tenantId=" + tenantId
+        log.debug("PortGroupZkDaoImpl.findByName entered: tenantId=" + tenantId
                 + ", name=" + name);
 
         PortGroup group = null;
@@ -110,44 +131,17 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
     }
 
     @Override
-    public List<PortGroup> list(String tenantId) throws StateAccessException {
-        log.debug("PortGroupZkDaoImpl.list entered: tenantId={}", tenantId);
+    public List<PortGroup> findByTenant(String tenantId)
+            throws StateAccessException {
+        log.debug("PortGroupZkDaoImpl.findByTenant entered: tenantId={}",
+                tenantId);
 
         String path = pathBuilder.getTenantPortGroupNamesPath(tenantId);
         Set<String> names = zkDao.getChildren(path, null);
         List<PortGroup> groups = new ArrayList<PortGroup>();
         for (String name : names) {
-            groups.add(get(tenantId, name));
+            groups.add(findByName(tenantId, name));
         }
         return groups;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroup#prepareDelete
-     * (java.util.UUID)
-     */
-    @Override
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
-        return prepareDelete(get(id));
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.PortGroupZkDao#prepareDelete
-     * (com.midokura.midolman.mgmt.data.dto.PortGroup)
-     */
-    @Override
-    public List<Op> prepareDelete(PortGroup group) throws StateAccessException {
-
-        List<Op> ops = zkDao.prepareDelete(group.getId());
-        String path = pathBuilder.getTenantPortGroupNamePath(
-                group.getTenantId(), group.getName());
-        ops.add(zkDao.getDeleteOp(path));
-        return ops;
     }
 }

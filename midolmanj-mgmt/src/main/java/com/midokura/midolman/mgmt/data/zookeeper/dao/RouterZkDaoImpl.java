@@ -62,13 +62,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
         this.routeDao = routeDao;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#create(com.midokura.midolman
-     * .mgmt.data.dto.Router)
-     */
     @Override
     public UUID create(Router router) throws StateAccessException {
         log.debug("RouterZkDaoImpl.create entered: router={}", router);
@@ -91,11 +84,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
         return router.getId();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RouterDao#delete(java.util.UUID)
-     */
     @Override
     public void delete(UUID id) throws StateAccessException {
         log.debug("RouterZkDaoImpl.delete entered: id={}", id);
@@ -106,12 +94,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
         log.debug("RouterZkDaoImpl.delete exiting.");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RouterDao#get(java.util.UUID,
-     * boolean)
-     */
     @Override
     public Router get(UUID id) throws StateAccessException {
         log.debug("RouterZkDaoImpl.get entered: id={}", id);
@@ -126,161 +108,11 @@ public class RouterZkDaoImpl implements RouterZkDao {
         return router;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RouterDao#get(java.lang.String,
-     * java.lang.String)
-     */
-    @Override
-    public Router get(String tenantId, String name) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.get entered: tenantId=" + tenantId
-                + ", name=" + name);
-
-        Router router = null;
-        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
-        if (zkDao.exists(path)) {
-            byte[] data = zkDao.get(path);
-            RouterNameMgmtConfig nameConfig = serializer.deserialize(data,
-                    RouterNameMgmtConfig.class);
-            router = get(nameConfig.id);
-        }
-
-        log.debug("RouterZkDaoImpl.get exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByAdRoute(java.util.
-     * UUID)
-     */
-    @Override
-    public Router getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByAdRoute entered: adRouteId={}",
-                adRouteId);
-
-        Port port = portDao.getByAdRoute(adRouteId);
-        Router router = get(port.getDeviceId());
-
-        log.debug("RouterZkDaoImpl.getByAdRoute exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByBgp(java.util.UUID)
-     */
-    @Override
-    public Router getByBgp(UUID bgpId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByBgp entered: bgpId={}", bgpId);
-
-        Port port = portDao.getByBgp(bgpId);
-        Router router = get(port.getDeviceId());
-
-        log.debug("RouterZkDaoImpl.getByBgp exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByPort(java.util.UUID)
-     */
-    @Override
-    public Router getByPort(UUID portId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByPort entered: portId={}", portId);
-
-        Port port = portDao.get(portId);
-        if (!(port instanceof RouterPort)) {
-            return null;
-        }
-        Router router = get(port.getDeviceId());
-
-        log.debug("RouterZkDaoImpl.getByPort exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByRoute(java.util.UUID)
-     */
-    @Override
-    public Router getByRoute(UUID routeId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByRoute entered: routeId={}", routeId);
-
-        Route route = routeDao.get(routeId);
-        Router router = get(route.getRouterId());
-
-        log.debug("RouterZkDaoImpl.getByRoute exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#getByVpn(java.util.UUID)
-     */
-    @Override
-    public Router getByVpn(UUID vpnId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.getByVpn entered: vpnId={}", vpnId);
-
-        Port port = portDao.getByVpn(vpnId);
-        Router router = get(port.getDeviceId());
-
-        log.debug("RouterZkDaoImpl.getByVpn exiting: router={}", router);
-        return router;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RouterDao#list(java.lang.String,
-     * boolean)
-     */
-    @Override
-    public List<Router> list(String tenantId) throws StateAccessException {
-        log.debug("RouterZkDaoImpl.list entered: tenantId={}", tenantId);
-
-        String path = pathBuilder.getTenantRouterNamesPath(tenantId);
-        Set<String> names = zkDao.getChildren(path, null);
-        List<Router> routers = new ArrayList<Router>();
-        for (String name : names) {
-            routers.add(get(tenantId, name));
-        }
-
-        log.debug("RouterZkDaoImpl.list exiting: routers count={}",
-                routers.size());
-        return routers;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao#prepareDelete
-     * (java.util.UUID)
-     */
     @Override
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
         return prepareDelete(get(id));
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.zookeeper.RouterZkDao#prepareDelete
-     * (com.midokura.midolman.mgmt.data.dto.Router)
-     */
     @Override
     public List<Op> prepareDelete(Router router) throws StateAccessException {
 
@@ -293,13 +125,6 @@ public class RouterZkDaoImpl implements RouterZkDao {
         return ops;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.RouterDao#update(com.midokura.midolman
-     * .mgmt.data.dto.Router)
-     */
     @Override
     public void update(Router router) throws StateAccessException {
         log.debug("RouterZkDaoImpl.update entered: router={}", router);
@@ -333,5 +158,101 @@ public class RouterZkDaoImpl implements RouterZkDao {
         }
 
         log.debug("RouterZkDaoImpl.update exiting");
+    }
+
+    @Override
+    public Router findByName(String tenantId, String name)
+            throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByName entered: tenantId=" + tenantId
+                + ", name=" + name);
+
+        Router router = null;
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
+        if (zkDao.exists(path)) {
+            byte[] data = zkDao.get(path);
+            RouterNameMgmtConfig nameConfig = serializer.deserialize(data,
+                    RouterNameMgmtConfig.class);
+            router = get(nameConfig.id);
+        }
+
+        log.debug("RouterZkDaoImpl.findByName exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public Router findByAdRoute(UUID adRouteId) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByAdRoute entered: adRouteId={}",
+                adRouteId);
+
+        Port port = portDao.findByAdRoute(adRouteId);
+        Router router = get(port.getDeviceId());
+
+        log.debug("RouterZkDaoImpl.findByAdRoute exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public Router findByBgp(UUID bgpId) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByBgp entered: bgpId={}", bgpId);
+
+        Port port = portDao.findByBgp(bgpId);
+        Router router = get(port.getDeviceId());
+
+        log.debug("RouterZkDaoImpl.findByBgp exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public Router findByPort(UUID portId) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByPort entered: portId={}", portId);
+
+        Port port = portDao.get(portId);
+        if (!(port instanceof RouterPort)) {
+            return null;
+        }
+        Router router = get(port.getDeviceId());
+
+        log.debug("RouterZkDaoImpl.findByPort exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public Router findByRoute(UUID routeId) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByRoute entered: routeId={}", routeId);
+
+        Route route = routeDao.get(routeId);
+        Router router = get(route.getRouterId());
+
+        log.debug("RouterZkDaoImpl.findByRoute exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public Router findByVpn(UUID vpnId) throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByVpn entered: vpnId={}", vpnId);
+
+        Port port = portDao.findByVpn(vpnId);
+        Router router = get(port.getDeviceId());
+
+        log.debug("RouterZkDaoImpl.findByVpn exiting: router={}", router);
+        return router;
+    }
+
+    @Override
+    public List<Router> findByTenant(String tenantId)
+            throws StateAccessException {
+        log.debug("RouterZkDaoImpl.findByTenant entered: tenantId={}",
+                tenantId);
+
+        String path = pathBuilder.getTenantRouterNamesPath(tenantId);
+        Set<String> names = zkDao.getChildren(path, null);
+        List<Router> routers = new ArrayList<Router>();
+        for (String name : names) {
+            routers.add(findByName(tenantId, name));
+        }
+
+        log.debug("RouterZkDaoImpl.findByTenant exiting: routers count={}",
+                routers.size());
+        return routers;
     }
 }

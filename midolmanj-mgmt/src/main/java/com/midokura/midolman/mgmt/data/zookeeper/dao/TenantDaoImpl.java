@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,25 +110,25 @@ public class TenantDaoImpl implements TenantDao {
         List<Op> ops = new ArrayList<Op>();
 
         // Remove routers
-        List<Router> routers = routerZkDao.list(id);
+        List<Router> routers = routerZkDao.findByTenant(id);
         for (Router router : routers) {
             ops.addAll(routerZkDao.prepareDelete(router));
         }
 
         // Remove bridges
-        List<Bridge> bridges = bridgeZkDao.list(id);
+        List<Bridge> bridges = bridgeZkDao.findByTenant(id);
         for (Bridge bridge : bridges) {
             ops.addAll(bridgeZkDao.prepareDelete(bridge));
         }
 
         // Remove chains
-        List<Chain> chains = chainZkDao.list(id);
+        List<Chain> chains = chainZkDao.findByTenant(id);
         for (Chain chain : chains) {
             ops.addAll(chainZkDao.prepareDelete(chain));
         }
 
         // Remove port groups
-        List<PortGroup> groups = portGroupZkDao.list(id);
+        List<PortGroup> groups = portGroupZkDao.findByTenant(id);
         for (PortGroup group : groups) {
             ops.addAll(portGroupZkDao.prepareDelete(group));
         }
@@ -161,186 +162,133 @@ public class TenantDaoImpl implements TenantDao {
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByAdRoute(java.util.
-     * UUID)
-     */
     @Override
-    public Tenant getByAdRoute(UUID adRouteId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByAdRoute entered: adRouteId={}", adRouteId);
+    public void update(Tenant obj)
+            throws StateAccessException, InvalidStateOperationException {
+        throw new UnsupportedOperationException();
+    }
 
-        Router router = routerZkDao.getByAdRoute(adRouteId);
+    @Override
+    public Tenant findByAdRoute(UUID adRouteId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByAdRoute entered: adRouteId={}",
+                adRouteId);
+
+        Router router = routerZkDao.findByAdRoute(adRouteId);
         Tenant tenant = get(router.getTenantId());
 
-        log.debug("TenantDaoImpl.getByAdRoute exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByAdRoute exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByBgp(java.util.UUID)
-     */
     @Override
-    public Tenant getByBgp(UUID bgpId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByBgp entered: bgpId={}", bgpId);
+    public Tenant findByBgp(UUID bgpId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByBgp entered: bgpId={}", bgpId);
 
-        Router router = routerZkDao.getByBgp(bgpId);
+        Router router = routerZkDao.findByBgp(bgpId);
         Tenant tenant = get(router.getTenantId());
 
-        log.debug("TenantDaoImpl.getByBgp exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByBgp exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByBridge(java.util.UUID)
-     */
     @Override
-    public Tenant getByBridge(UUID bridgeId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByBridge entered: bridgeId={}", bridgeId);
+    public Tenant findByBridge(UUID bridgeId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByBridge entered: bridgeId={}", bridgeId);
 
         Bridge bridge = bridgeZkDao.get(bridgeId);
         Tenant tenant = get(bridge.getTenantId());
 
-        log.debug("TenantDaoImpl.getByBridge exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByBridge exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByChain(java.util.UUID)
-     */
     @Override
-    public Tenant getByChain(UUID chainId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByChain entered: chainId={}", chainId);
+    public Tenant findByChain(UUID chainId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByChain entered: chainId={}", chainId);
 
         Chain chain = chainZkDao.get(chainId);
         Tenant tenant = get(chain.getTenantId());
 
-        log.debug("TenantDaoImpl.getByChain exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByChain exiting: tenant={}", tenant);
         return tenant;
     }
 
     @Override
-    public Tenant getByPortGroup(UUID groupId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByPortGroup entered: groupId={}", groupId);
+    public Tenant findByPortGroup(UUID groupId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByPortGroup entered: groupId={}", groupId);
 
         PortGroup group = portGroupZkDao.get(groupId);
         Tenant tenant = get(group.getTenantId());
 
-        log.debug("TenantDaoImpl.getByPortGroup exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByPortGroup exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByPort(java.util.UUID)
-     */
     @Override
-    public Tenant getByPort(UUID portId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByRouterPort entered: portId={}", portId);
+    public Tenant findByPort(UUID portId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByPort entered: portId={}", portId);
 
         String tenantId = null;
-        Router router = routerZkDao.getByPort(portId);
+        Router router = routerZkDao.findByPort(portId);
         if (router == null) {
-            Bridge bridge = bridgeZkDao.getByPort(portId);
+            Bridge bridge = bridgeZkDao.findByPort(portId);
             tenantId = bridge.getTenantId();
         } else {
             tenantId = router.getTenantId();
         }
         Tenant tenant = get(tenantId);
 
-        log.debug("TenantDaoImpl.getByRouterPort exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByPort exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByRoute(java.util.UUID)
-     */
     @Override
-    public Tenant getByRoute(UUID routeId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByRoute entered: routeId={}", routeId);
+    public Tenant findByRoute(UUID routeId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByRoute entered: routeId={}", routeId);
 
-        Router router = routerZkDao.getByRoute(routeId);
+        Router router = routerZkDao.findByRoute(routeId);
         Tenant tenant = get(router.getTenantId());
 
-        log.debug("TenantDaoImpl.getByRoute exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByRoute exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByRouter(java.util.UUID)
-     */
     @Override
-    public Tenant getByRouter(UUID routerId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByRouter entered: routerId={}", routerId);
+    public Tenant findByRouter(UUID routerId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByRouter entered: routerId={}", routerId);
 
         Router router = routerZkDao.get(routerId);
         Tenant tenant = get(router.getTenantId());
 
-        log.debug("TenantDaoImpl.getByRouter exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByRouter exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByRule(java.util.UUID)
-     */
     @Override
-    public Tenant getByRule(UUID ruleId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByRule entered: ruleId={}", ruleId);
+    public Tenant findByRule(UUID ruleId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByRule entered: ruleId={}", ruleId);
 
-        Chain chain = chainZkDao.getByRule(ruleId);
+        Chain chain = chainZkDao.findByRule(ruleId);
         Tenant tenant = get(chain.getTenantId());
 
-        log.debug("TenantDaoImpl.getByRule exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByRule exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#getByVpn(java.util.UUID)
-     */
     @Override
-    public Tenant getByVpn(UUID vpnId) throws StateAccessException {
-        log.debug("TenantDaoImpl.getByVpn entered: vpnId={}", vpnId);
+    public Tenant findByVpn(UUID vpnId) throws StateAccessException {
+        log.debug("TenantDaoImpl.findByVpn entered: vpnId={}", vpnId);
 
-        Router router = routerZkDao.getByVpn(vpnId);
+        Router router = routerZkDao.findByVpn(vpnId);
         Tenant tenant = get(router.getTenantId());
 
-        log.debug("TenantDaoImpl.getByVpn exiting: tenant={}", tenant);
+        log.debug("TenantDaoImpl.findByVpn exiting: tenant={}", tenant);
         return tenant;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.TenantDao#list()
-     */
     @Override
-    public List<Tenant> list() throws StateAccessException {
-        log.debug("TenantDaoImpl.list entered.");
+    public List<Tenant> findAll() throws StateAccessException {
+        log.debug("TenantDaoImpl.findAll entered.");
 
         String path = pathBuilder.getTenantsPath();
         Set<String> ids = zkDao.getChildren(path, null);
@@ -349,7 +297,7 @@ public class TenantDaoImpl implements TenantDao {
             tenants.add(get(id));
         }
 
-        log.debug("TenantDaoImpl.list exiting: ids count={}", ids.size());
+        log.debug("TenantDaoImpl.findAll exiting: ids count={}", ids.size());
         return tenants;
     }
 }

@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.midokura.midolman.state.InvalidStateOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,8 @@ public class VpnResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id,
             @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+            @Context Authorizer authorizer)
+            throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.vpnAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -146,7 +148,7 @@ public class VpnResource {
         /**
          * Handler for creating a VPN record.
          *
-         * @param chain
+         * @param vpn
          *            VPN object.
          * @param uriInfo
          *            Object that holds the request URI data.
@@ -165,8 +167,9 @@ public class VpnResource {
         @Consumes({ VendorMediaType.APPLICATION_VPN_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Vpn vpn, @Context UriInfo uriInfo,
-                @Context SecurityContext context, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+                @Context SecurityContext context,
+                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+                throws StateAccessException, InvalidStateOperationException {
 
             if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
                 throw new ForbiddenHttpException(
@@ -177,7 +180,8 @@ public class VpnResource {
             vpn.setPublicPortId(portId);
             UUID id = dao.create(vpn);
             return Response.created(
-                    ResourceUriBuilder.getVpn(uriInfo.getBaseUri(), id)).build();
+                    ResourceUriBuilder.getVpn(
+                            uriInfo.getBaseUri(), id)).build();
         }
 
         /**
@@ -209,7 +213,7 @@ public class VpnResource {
             }
 
             VpnDao dao = daoFactory.getVpnDao();
-            List<Vpn> vpns = dao.list(portId);
+            List<Vpn> vpns = dao.findByPort(portId);
             if (vpns != null) {
                 for (UriResource resource : vpns) {
                     resource.setBaseUri(uriInfo.getBaseUri());

@@ -87,6 +87,7 @@ public class Rule extends UriResource {
     private short tpDstEnd;
     private boolean invTpDst = false;
     private String jumpChainName = null;
+    private UUID jumpChainId;
     private String flowAction = null;
     private NatTarget[] natTargets = {};
 
@@ -148,6 +149,7 @@ public class Rule extends UriResource {
             this.flowAction = Rule.getActionString(zkRule.action);
             this.type = natRule.dnat ? Rule.RevDNAT : Rule.RevSNAT;
         } else {
+            this.jumpChainId = ((JumpRule) zkRule).jumpToChainID;
             this.jumpChainName = ((JumpRule) zkRule).jumpToChainName;
             this.type = Rule.Jump;
         }
@@ -699,6 +701,21 @@ public class Rule extends UriResource {
     }
 
     /**
+     * @return the jumpChainId
+     */
+    public UUID getJumpChainId() {
+        return jumpChainId;
+    }
+
+    /**
+     * @param jumpChainId
+     *            the jumpChainName to set
+     */
+    public void setJumpChainId(UUID jumpChainId) {
+        this.jumpChainId = jumpChainId;
+    }
+
+    /**
      * @return the flowAction
      */
     public String getFlowAction() {
@@ -881,7 +898,7 @@ public class Rule extends UriResource {
         return targets.toArray(new NatTarget[ruleTargets.size()]);
     }
 
-    public com.midokura.midolman.rules.Rule toZkRule(UUID jumpChainID) {
+    public com.midokura.midolman.rules.Rule toZkRule() {
         Condition cond = makeCondition();
         String type = this.getType();
         Action action = getAction(type);
@@ -899,7 +916,7 @@ public class Rule extends UriResource {
                     type.equals(Rule.RevDNAT));
         } else {
             // Jump
-            r = new JumpRule(cond, jumpChainID, getJumpChainName());
+            r = new JumpRule(cond, getJumpChainId(), getJumpChainName());
         }
         r.chainId = chainId;
         r.position = position;
@@ -952,7 +969,7 @@ public class Rule extends UriResource {
 
     @Override
     public String toString() {
-        return "dto.Rule: " + toZkRule(null).toString();
+        return "dto.Rule: " + toZkRule().toString();
     }
 
     public static class NatTarget {

@@ -13,37 +13,7 @@ import com.midokura.midolman.state.StateAccessException;
 /**
  * Chain DAO interface.
  */
-public interface ChainDao {
-
-    /**
-     * Create a new chain.
-     *
-     * @param chain
-     *            Chain object to create.
-     * @return Chain object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    UUID create(Chain chain) throws StateAccessException;
-
-    /**
-     * Delete a chain.
-     *
-     * @param id
-     *            ID of the chain to delete.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    void delete(UUID id) throws StateAccessException;
-
-    /**
-     * @param id
-     *            ID of the chain to get.
-     * @return Chain object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
-    Chain get(UUID id) throws StateAccessException;
+public interface ChainDao extends GenericDao<Chain, UUID> {
 
     /**
      * @param tenantId
@@ -54,7 +24,7 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Chain get(String tenantId, String name) throws StateAccessException;
+    Chain findByName(String tenantId, String name) throws StateAccessException;
 
     /**
      * Get Chain by rule ID.
@@ -65,7 +35,7 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    Chain getByRule(UUID ruleId) throws StateAccessException;
+    Chain findByRule(UUID ruleId) throws StateAccessException;
 
     /**
      * @param tenantId
@@ -74,5 +44,6 @@ public interface ChainDao {
      * @throws StateAccessException
      *             Data access error.
      */
-    List<Chain> list(String tenantId) throws StateAccessException;
+    List<Chain> findByTenant(String tenantId) throws StateAccessException;
+
 }

@@ -67,13 +67,14 @@ public class RouteDaoImpl implements RouteDao {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.RouteDao#list(java.util.UUID)
-     */
     @Override
-    public List<Route> list(UUID routerId) throws StateAccessException {
+    public void update(Route obj)
+            throws StateAccessException, InvalidDataOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Route> findByRouter(UUID routerId) throws StateAccessException {
         List<Route> routeList = new ArrayList<Route>();
         List<UUID> routeIds = dataAccessor.list(routerId);
         for (UUID routeId : routeIds) {

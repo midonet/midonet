@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.data.zookeeper;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.config.ZookeeperConfig;
+import com.midokura.midolman.mgmt.data.DataStoreService;
 import com.midokura.midolman.state.ZkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Zookeeper service
  */
-public class ZookeeperService extends AbstractService {
+public class ZookeeperService extends DataStoreService {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZookeeperService.class);
