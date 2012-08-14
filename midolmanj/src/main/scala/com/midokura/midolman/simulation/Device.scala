@@ -2,8 +2,6 @@
 
 package com.midokura.midolman.simulation
 
-import com.midokura.midolman.vrn.{PacketContext, PortMatch}
-
 abstract class ProcessResult()
 
 // TODO(jlm): Should we have DropResult include how wide a drop rule to use?
