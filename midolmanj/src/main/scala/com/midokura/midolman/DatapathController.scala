@@ -66,54 +66,191 @@ object DatapathController {
         Initialize()
     }
 
+    /**
+     * Reply sent back to the sender of the Initialize message when the basic
+     * initialization of the datapath is complete.
+     */
     case class InitializationComplete()
 
+
+    /**
+     * Message sent to the [[com.midokura.midolman.FlowController]] actor to let
+     * it know that it can install the the packetIn hook inside the datapath.
+     *
+     * @param datapath the active datapath
+     */
+    case class DatapathReady(datapath: Datapath)
+
+    /**
+     * Will trigger an internal port creation operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.PortInternalOpReply]]
+     * message in return.
+     *
+     * @param port the port information
+     */
     case class CreatePortInternal(port: InternalPort)
         extends CreatePortOp[InternalPort]
 
-    case class CreatePortNetdev(port: NetDevPort)
-        extends CreatePortOp[NetDevPort]
-
-    case class CreateTunnelPatch(port: PatchTunnelPort)
-        extends CreatePortOp[PatchTunnelPort]
-
-    case class CreateTunnelGre(port: GreTunnelPort)
-        extends CreatePortOp[GreTunnelPort]
-
-    case class CreateTunnelCapwap(port: CapWapTunnelPort)
-        extends CreatePortOp[CapWapTunnelPort]
-
+    /**
+     * Will trigger an internal port delete operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.PortInternalOpReply]]
+     * message when the operation is completed.
+     *
+     * @param port the port information
+     */
     case class DeletePortInternal(port: InternalPort)
         extends DeletePortOp[InternalPort]
 
-    case class DeletePortNetdev(port: NetDevPort)
-        extends DeletePortOp[NetDevPort]
-
-    case class DeleteTunnelPatch(port: PatchTunnelPort)
-        extends DeletePortOp[PatchTunnelPort]
-
-    case class DeleteTunnelGre(port: GreTunnelPort)
-        extends DeletePortOp[GreTunnelPort]
-
-    case class DeleteTunnelCapwap(port: CapWapTunnelPort)
-        extends DeletePortOp[CapWapTunnelPort]
-
+    /**
+     * Reply message that is sent when a [[com.midokura.midolman.DatapathController.CreatePortInternal]]
+     * or [[com.midokura.midolman.DatapathController.DeletePortInternal]]
+     * operation completes. It contains the operation type, the port data
+     * (updated or the original) and any error or timeout if the operation failed.
+     *
+     * @param port the internal port data
+     * @param op the operation type
+     * @param timeout true if the operation timed out
+     * @param error non null if the underlying layer has thrown exceptions
+     */
     case class PortInternalOpReply(port: InternalPort, op: PortOperation.Value,
                                    timeout: Boolean, error: NetlinkException)
         extends PortOpReply[InternalPort]
 
+    /**
+     * Will trigger an netdev port creation operation. The sender will
+     * receive an `PortNetdevOpReply` message in return.
+     *
+     * @param port the port information
+     */
+    case class CreatePortNetdev(port: NetDevPort)
+        extends CreatePortOp[NetDevPort]
+
+    /**
+     * Will trigger an netdev port deletion operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.PortNetdevOpReply]]
+     * message in return.
+     *
+     * @param port the port information
+     */
+    case class DeletePortNetdev(port: NetDevPort)
+        extends DeletePortOp[NetDevPort]
+
+    /**
+     * Reply message that is sent when a [[com.midokura.midolman.DatapathController.CreatePortNetdev]]
+     * or [[com.midokura.midolman.DatapathController.DeletePortNetdev]]
+     * operation completes. It contains the operation type, the port data
+     * (updated or the original) and any error or timeout if the operation failed.
+     *
+     * @param port the internal port data
+     * @param op the operation type
+     * @param timeout true if the operation timed out
+     * @param error non null if the underlying layer has thrown exceptions
+     */
     case class PortNetdevOpReply(port: NetDevPort, op: PortOperation.Value,
                                  timeout: Boolean, error: NetlinkException)
         extends PortOpReply[NetDevPort]
 
+    /**
+     * Will trigger an `patch` tunnel creation operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelPatchOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class CreateTunnelPatch(port: PatchTunnelPort)
+        extends CreatePortOp[PatchTunnelPort]
+
+    /**
+     * Will trigger an `patch` tunnel deletion operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelPatchOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class DeleteTunnelPatch(port: PatchTunnelPort)
+        extends DeletePortOp[PatchTunnelPort]
+
+    /**
+     * Reply message that is sent when a [[com.midokura.midolman.DatapathController.CreateTunnelPatch]]
+     * or [[com.midokura.midolman.DatapathController.DeleteTunnelPatch]]
+     * operation completes. It contains the operation type, the port data
+     * (updated or the original) and any error or timeout if the operation failed.
+     *
+     * @param port the internal port data
+     * @param op the operation type
+     * @param timeout true if the operation timed out
+     * @param error non null if the underlying layer has thrown exceptions
+     */
     case class TunnelPatchOpReply(port: PatchTunnelPort, op: PortOperation.Value,
                                   timeout: Boolean, error: NetlinkException)
         extends PortOpReply[PatchTunnelPort]
 
+    /**
+     * Will trigger an `gre` tunnel creation operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelGreOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class CreateTunnelGre(port: GreTunnelPort)
+        extends CreatePortOp[GreTunnelPort]
+
+    /**
+     * Will trigger an `gre` tunnel deletion operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelGreOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class DeleteTunnelGre(port: GreTunnelPort)
+        extends DeletePortOp[GreTunnelPort]
+
+    /**
+     * Reply message that is sent when a [[com.midokura.midolman.DatapathController.CreateTunnelGre]]
+     * or [[com.midokura.midolman.DatapathController.DeleteTunnelGre]]
+     * operation completes. It contains the operation type, the port data
+     * (updated or the original) and any error or timeout if the operation failed.
+     *
+     * @param port the internal port data
+     * @param op the operation type
+     * @param timeout true if the operation timed out
+     * @param error non null if the underlying layer has thrown exceptions
+     */
     case class TunnelGreOpReply(port: GreTunnelPort, op: PortOperation.Value,
                                 timeout: Boolean, error: NetlinkException)
         extends PortOpReply[GreTunnelPort]
 
+    /**
+     * Will trigger an `capwap` tunnel creation operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelCapwapOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class CreateTunnelCapwap(port: CapWapTunnelPort)
+        extends CreatePortOp[CapWapTunnelPort]
+
+    /**
+     * Will trigger an `capwap` tunnel deletion operation. The sender will
+     * receive an [[com.midokura.midolman.DatapathController.TunnelCapwapOpReply]]
+     * message in return.
+     *
+     * @param port the tunnel port information
+     */
+    case class DeleteTunnelCapwap(port: CapWapTunnelPort)
+        extends DeletePortOp[CapWapTunnelPort]
+
+    /**
+     * Reply message that is sent when a [[com.midokura.midolman.DatapathController.CreateTunnelCapwap]]
+     * or [[com.midokura.midolman.DatapathController.DeleteTunnelCapwap]]
+     * operation completes. It contains the operation type, the port data
+     * (updated or the original) and any error or timeout if the operation failed.
+     *
+     * @param port the internal port data
+     * @param op the operation type
+     * @param timeout true if the operation timed out
+     * @param error non null if the underlying layer has thrown exceptions
+     */
     case class TunnelCapwapOpReply(port: CapWapTunnelPort, op: PortOperation.Value,
                                    timeout: Boolean, error: NetlinkException)
         extends PortOpReply[CapWapTunnelPort]
@@ -123,7 +260,6 @@ object DatapathController {
     case class DeleteFlow(flow: KernelFlow)
 
     case class SendPacket(packet: Packet)
-
 }
 
 
@@ -200,9 +336,12 @@ class DatapathController() extends Actor {
         super.preStart()
         ComponentInjectorHolder.inject(this)
 
-        virtualToPhysicalMapper = context.actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
-        virtualTopology = context.actorFor("/user/%s" format VirtualTopologyActor.Name)
-        flowController = context.actorFor("/user/%s" format FlowController.Name)
+        virtualToPhysicalMapper =
+            context.actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
+        virtualTopology =
+            context.actorFor("/user/%s" format VirtualTopologyActor.Name)
+        flowController =
+            context.actorFor("/user/%s" format FlowController.Name)
 
         context.become(DatapathInitializationActor)
     }
@@ -234,13 +373,11 @@ class DatapathController() extends Actor {
             initializer = sender
             virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
 
-        case m: InitializationComplete =>
-            if (sender == self) {
-                log.info("Initialization complete. Starting to act as a controller")
-                installPacketInHandler()
-                become(DatapathControllerActor)
-                initializer forward m
-            }
+        case m: InitializationComplete if (sender == self) =>
+            log.info("Initialization complete. Starting to act as a controller")
+            flowController ! DatapathController.DatapathReady(datapath)
+            become(DatapathControllerActor)
+            initializer forward m
 
         /**
          * Reply messages reaction
@@ -251,29 +388,17 @@ class DatapathController() extends Actor {
         case LocalPortsReply(ports) =>
             doDatapathPortsUpdate(ports)
 
-        case newPortOp: CreatePortOp[Port[_, _]] =>
-            if (sender == self)
-                createDatapathPort(sender, newPortOp.port)
+        case createPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
+            createDatapathPort(sender, createPortOp.port)
 
-        case delPortOp: DeletePortOp[Port[_, _]] =>
-            if (sender == self)
-                deleteDatapathPort(sender, delPortOp.port)
+        case deletePortOp: DeletePortOp[Port[_, _]] if (sender == self) =>
+            deleteDatapathPort(sender, deletePortOp.port)
 
-        case opReply: PortOpReply[Port[_, _]] =>
-            if (sender == self)
-                handlePortOperationReply(opReply)
+        case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
+            handlePortOperationReply(opReply)
 
-        case value =>
-            log.info("(behaving as InitializationActor). Not handling message: " + value)
-    }
-
-    def doHandlePacketIn(packet: Packet) {
-        val translatedPacket =
-            new Packet()
-                .setData(packet.getData)
-                .setMatch(translate(packet.getMatch))
-
-        flowController ! PacketIn(translatedPacket)
+        case m =>
+            log.info("(behaving as InitializationActor). Not handling message: " + m)
     }
 
     val DatapathControllerActor: Receive = {
@@ -308,7 +433,16 @@ class DatapathController() extends Actor {
          * internally posted replies reactions
          */
         case _PacketIn(packet) =>
-            doHandlePacketIn(packet)
+            handlePacketIn(packet)
+    }
+
+    def handlePacketIn(packet: Packet) {
+        val translatedPacket =
+            new Packet()
+                .setData(packet.getData)
+                .setMatch(translate(packet.getMatch))
+
+        flowController ! PacketIn(translatedPacket)
     }
 
     def handleInstallFlow(flow: KernelFlow) {
