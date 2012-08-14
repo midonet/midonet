@@ -5,6 +5,7 @@ package com.midokura.midolman.vrn
 import akka.actor.Actor
 import java.util.UUID
 import com.midokura.midolman.openflow.MidoMatch
+import com.midokura.packets.Ethernet
 
 
 class PortMatch(var port: UUID, var mmatch: MidoMatch) extends Cloneable { 
@@ -13,23 +14,25 @@ class PortMatch(var port: UUID, var mmatch: MidoMatch) extends Cloneable {
     }
 }
 
-case class SimulatePacket(ingress: PortMatch)
+class PacketContext(var port: UUID, var mmatch: MidoMatch,
+                    val packet: Ethernet) { }
+
+case class SimulatePacket(ingress: PacketContext)
 case class SimulationResult(result: ProcessResult)
 
 class Coordinator extends Actor {
-    def doProcess(ingress: PortMatch): ProcessResult = {
-        var currentPortMatch = ingress.clone
+    def doProcess(pktContext: PacketContext): ProcessResult = {
         while (true) {
             // TODO(jlm): Check for too long loop
-            val currentFE = deviceOfPort(currentPortMatch.port)
-            val result = currentFE.process(currentPortMatch) 
+            val currentFE = deviceOfPort(pktContext.port)
+            val result = currentFE.process(pktContext) 
             result match {
                 case ForwardResult(nextPortMatch) =>
-                    currentPortMatch.mmatch = nextPortMatch.mmatch
+                    pktContext.mmatch = nextPortMatch.mmatch
                     val peerPort = peerOfPort(nextPortMatch.port)
                     if (peerPort == null)
                         return result
-                    currentPortMatch.port = peerPort
+                    pktContext.port = peerPort
                 case _ => return result
             }
         }
