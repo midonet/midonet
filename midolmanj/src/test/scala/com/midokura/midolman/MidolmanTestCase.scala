@@ -21,10 +21,10 @@ import akka.pattern.ask
 import com.midokura.sdn.dp.{Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
-import com.midokura.midostore.module.MidoStoreModule
-import com.midokura.midostore.services.MidostoreSetupService
-import com.midokura.midostore.MidostoreClient
+import com.midokura.midonet.cluster.MidostoreClient
 import java.util.UUID
+import com.midokura.midonet.cluster.module.MidoStoreModule
+import com.midokura.midonet.cluster.services.MidostoreSetupService
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
 

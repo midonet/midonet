@@ -17,7 +17,7 @@ import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.state.ZookeeperConnectionWatcher;
-import com.midokura.midostore.MidostoreClient;
+import com.midokura.midonet.cluster.MidostoreClient;
 
 /**
  * Main midolman configuration module

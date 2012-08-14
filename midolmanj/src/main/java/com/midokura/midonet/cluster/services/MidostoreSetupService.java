@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midostore.services;
+package com.midokura.midonet.cluster.services;
 
 import javax.inject.Inject;
 

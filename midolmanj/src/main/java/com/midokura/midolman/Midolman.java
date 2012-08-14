@@ -49,7 +49,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.util.Cache;
 import com.midokura.midolman.vrn.VRNController;
-import com.midokura.midostore.module.MidoStoreModule;
+import com.midokura.midonet.cluster.module.MidoStoreModule;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
 import com.midokura.util.eventloop.SelectListener;

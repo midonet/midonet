@@ -2,15 +2,11 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midostore;
+package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
 import com.midokura.midolman.util.Callback1;
-import com.midokura.midostore.PortBuilders.ExteriorBridgePortBuilder;
-import com.midokura.midostore.PortBuilders.ExteriorRouterPortBuilder;
-import com.midokura.midostore.PortBuilders.InteriorBridgePortBuilder;
-import com.midokura.midostore.PortBuilders.InteriorRouterPortBuilder;
 
 public interface MidostoreClient {
 
@@ -27,13 +23,13 @@ public interface MidostoreClient {
 
     void getType(UUID portID, Callback1<PortType> cb);
 
-    void getPort(UUID portID, InteriorBridgePortBuilder builder);
+    void getPort(UUID portID, PortBuilders.InteriorBridgePortBuilder builder);
 
-    void getPort(UUID portID, ExteriorBridgePortBuilder builder);
+    void getPort(UUID portID, PortBuilders.ExteriorBridgePortBuilder builder);
 
-    void getPort(UUID portID, InteriorRouterPortBuilder builder);
+    void getPort(UUID portID, PortBuilders.InteriorRouterPortBuilder builder);
 
-    void getPort(UUID portID, ExteriorRouterPortBuilder builder);
+    void getPort(UUID portID, PortBuilders.ExteriorRouterPortBuilder builder);
 
     void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder);
 

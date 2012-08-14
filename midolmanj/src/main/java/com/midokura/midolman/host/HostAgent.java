@@ -6,16 +6,14 @@ package com.midokura.midolman.host;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.midokura.midolman.config.MidolmanConfig;
+
 import com.midokura.midolman.guice.config.ConfigProviderModule;
-import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.host.services.HostAgentService;
-import com.midokura.midolman.host.services.HostService;
-import com.midokura.midostore.module.MidoStoreModule;
+import com.midokura.midonet.cluster.module.MidoStoreModule;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

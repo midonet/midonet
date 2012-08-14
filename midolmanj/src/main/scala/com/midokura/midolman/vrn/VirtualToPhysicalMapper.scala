@@ -7,7 +7,7 @@ import akka.actor.{ActorRef, Actor}
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midostore.{LocalStateBuilder, MidostoreClient}
+import com.midokura.midonet.cluster.{MidostoreClient, LocalStateBuilder}
 import com.midokura.midolman.guice.ComponentInjectorHolder
 
 object VirtualToPhysicalMapper {

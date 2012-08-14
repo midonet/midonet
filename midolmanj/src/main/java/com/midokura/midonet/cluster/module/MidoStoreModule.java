@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midostore.module;
+package com.midokura.midonet.cluster.module;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -26,9 +26,9 @@ import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midostore.LocalMidostoreClient;
-import com.midokura.midostore.MidostoreClient;
-import com.midokura.midostore.services.MidostoreSetupService;
+import com.midokura.midonet.cluster.LocalMidostoreClient;
+import com.midokura.midonet.cluster.MidostoreClient;
+import com.midokura.midonet.cluster.services.MidostoreSetupService;
 
 public class MidoStoreModule extends PrivateModule {
 

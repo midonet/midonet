@@ -39,7 +39,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midostore.module.MidoStoreModule;
+import com.midokura.midonet.cluster.module.MidoStoreModule;
 import static com.midokura.midolman.host.state.HostDirectory.Interface;
 
 public class DefaultInterfaceDataUpdaterTest {

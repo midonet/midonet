@@ -1,8 +1,6 @@
-package com.midokura.midostore;/*
+package com.midokura.midonet.cluster;/*
  * Copyright 2012 Midokura Europe SARL
  */
-
-import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
 

@@ -1,4 +1,4 @@
-package com.midokura.midostore;/*
+package com.midokura.midonet.cluster;/*
  * Copyright 2012 Midokura Europe SARL
  */
 

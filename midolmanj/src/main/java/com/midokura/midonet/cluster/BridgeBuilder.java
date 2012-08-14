@@ -2,9 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midostore;
-
-import java.util.UUID;
+package com.midokura.midonet.cluster;
 
 public interface BridgeBuilder extends ForwardingElementBuilder {
     void setTunnelKey(long key);
