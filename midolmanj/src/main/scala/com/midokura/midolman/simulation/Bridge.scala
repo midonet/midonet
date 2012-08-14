@@ -3,13 +3,14 @@
  */
 package com.midokura.midolman.simulation
 
+import akka.dispatch.{Promise, ExecutionContext}
 import scala.collection.mutable
 import java.util.UUID
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, IPv4}
 import org.slf4j.LoggerFactory
-import com.midokura.midolman.vrn._
 import com.midokura.midonet.cluster.client.MacLearningTable
+import com.midokura.util.functors.Callback1
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
@@ -35,7 +36,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
     def canEqual(other: Any) = other.isInstanceOf[Bridge]
 
-    override def process(ingress: PacketContext): ProcessResult = {
+    override def process(ingress: PacketContext,
+                         ec: ExecutionContext): ProcessResult = {
         val srcDlAddress = new MAC(ingress.mmatch.getDataLayerSource)
         val dstDlAddress = new MAC(ingress.mmatch.getDataLayerDestination)
 
@@ -66,16 +68,15 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         } else {
             // L2 unicast
             // Is dst MAC in macPortMap? (learned)
-            macPortMap.get(dstDlAddress) match {
-                case Some(port: UUID) => outPortID = port
-                case None =>
-                    // Is dst MAC a logical port's MAC?
-                    rtrMacToLogicalPortId.get(dstDlAddress) match {
-                        case Some(port: UUID) => outPortID = port
-                        case None =>
-                            // If neither learned nor logical, flood.
-                            outPortID = id
-                    }
+            outPortID = getPortOfMac(dstDlAddress, ec)
+            if (outPortID == null) {
+                // Is dst MAC a logical port's MAC?
+                rtrMacToLogicalPortId.get(dstDlAddress) match {
+                    case Some(port: UUID) => outPortID = port
+                    case None =>
+                        // If neither learned nor logical, flood.
+                        outPortID = id
+                }
             }
         }
 
@@ -94,5 +95,15 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
     private def increaseMacPortFlowCount(mac: MAC, port: UUID) {
         //XXX
+    }
+
+    private def getPortOfMac(mac: MAC, ec: ExecutionContext): UUID = {
+        val rv = Promise[UUID]()(ec)
+        macPortMap.get(mac, new Callback1[UUID] {
+            def call(port: UUID) {
+                rv.complete(Right(port))
+            }
+        })
+        rv.value.get.right.get
     }
 }

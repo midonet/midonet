@@ -26,7 +26,7 @@ class Coordinator extends Actor {
         while (true) {
             // TODO(jlm): Check for too long loop
             val currentFE = deviceOfPort(pktContext.port)
-            val result = currentFE.process(pktContext)
+            val result = currentFE.process(pktContext, context.dispatcher)
             result match {
                 case ForwardResult(nextPortMatch) =>
                     pktContext.mmatch = nextPortMatch.mmatch

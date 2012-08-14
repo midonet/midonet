@@ -3,19 +3,19 @@
  */
 package com.midokura.midolman.simulation
 
-import org.slf4j.LoggerFactory
+import akka.dispatch.ExecutionContext
 import java.util.UUID
+import org.slf4j.LoggerFactory
+
 import com.midokura.midolman.state.zkManagers.RouterZkManager
-import com.midokura.midolman.layer3.RoutingTable
+import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, ICMP, IPv4}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
-MaterializedRouterPortConfig,
-RouterPortConfig}
+                                                  MaterializedRouterPortConfig,
+                                                  RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
-import com.midokura.midolman.layer3.Route
-import com.midokura.midolman.vrn._
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
@@ -24,7 +24,8 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
-    override def process(ingress: PacketContext): ProcessResult = {
+    override def process(ingress: PacketContext,
+                         ec: ExecutionContext): ProcessResult = {
         val hwDst = new MAC(ingress.mmatch.getDataLayerDestination)
         val rtrPortCfg: RouterPortConfig = getRouterPortConfig(ingress.port)
         if (rtrPortCfg == null) {
