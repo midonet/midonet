@@ -45,7 +45,7 @@ public class HostModule extends PrivateModule {
                 .asEagerSingleton();
 
         // TODO: uncomment this when the direct dependency on HostZKManager has been removed
-        // requireBinding(MidostoreClient.class);
+        // requireBinding(Client.class);
         requireBinding(HostZkManager.class);
         bind(HostCommandWatcher.class);
         bind(HostInterfaceWatcher.class);

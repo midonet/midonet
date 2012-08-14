@@ -13,7 +13,8 @@ import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import com.midokura.midolman.host.guice.HostAgentModule;
 import com.midokura.midolman.host.services.HostAgentService;
-import com.midokura.midonet.cluster.module.MidoStoreModule;
+import com.midokura.midolman.guice.cluster.ClusterClientModule;
+
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public class HostAgent {
                 new DatapathModule(),
                 new ReactorModule(),
                 new HostAgentModule(),
-                new MidoStoreModule());
+                new ClusterClientModule());
 
         injector.getInstance(HostAgentService.class).startAndWait();
 

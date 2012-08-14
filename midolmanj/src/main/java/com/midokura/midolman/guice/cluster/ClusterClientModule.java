@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midonet.cluster.module;
+package com.midokura.midolman.guice.cluster;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -26,14 +26,14 @@ import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midonet.cluster.LocalMidostoreClient;
-import com.midokura.midonet.cluster.MidostoreClient;
+import com.midokura.midonet.cluster.Client;
+import com.midokura.midonet.cluster.LocalClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 
-public class MidoStoreModule extends PrivateModule {
+public class ClusterClientModule extends PrivateModule {
 
     private static final Logger log = LoggerFactory
-        .getLogger(MidoStoreModule.class);
+        .getLogger(ClusterClientModule.class);
 
     @Override
     protected void configure() {
@@ -43,10 +43,10 @@ public class MidoStoreModule extends PrivateModule {
 
         bindManagers();
 
-        bind(MidostoreClient.class)
-            .to(LocalMidostoreClient.class)
+        bind(Client.class)
+            .to(LocalClientImpl.class)
             .asEagerSingleton();
-        expose(MidostoreClient.class);
+        expose(Client.class);
 
         bind(MidostoreSetupService.class).in(Singleton.class);
         expose(MidostoreSetupService.class);

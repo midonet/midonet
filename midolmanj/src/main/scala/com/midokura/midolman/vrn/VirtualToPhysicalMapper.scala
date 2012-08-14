@@ -7,7 +7,8 @@ import akka.actor.{ActorRef, Actor}
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midonet.cluster.{MidostoreClient, LocalStateBuilder}
+import com.midokura.midonet.cluster.client.LocalStateBuilder
+import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.guice.ComponentInjectorHolder
 
 object VirtualToPhysicalMapper {
@@ -63,7 +64,7 @@ class VirtualToPhysicalMapper extends Actor {
     val log = Logging(context.system, this)
 
     @Inject
-    val midoStore: MidostoreClient = null
+    val midoStore: Client = null
 
     //
     private var localPortsActors = Map[UUID, ActorRef]()

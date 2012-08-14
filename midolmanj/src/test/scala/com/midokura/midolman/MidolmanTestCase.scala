@@ -4,6 +4,7 @@
 package com.midokura.midolman
 
 import guice._
+import cluster.ClusterClientModule
 import guice.config.MockConfigProviderModule
 import guice.datapath.MockDatapathModule
 import guice.zookeeper.MockZookeeperConnectionModule
@@ -21,9 +22,8 @@ import akka.pattern.ask
 import com.midokura.sdn.dp.{Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
-import com.midokura.midonet.cluster.MidostoreClient
+import com.midokura.midonet.cluster.Client
 import java.util.UUID
-import com.midokura.midonet.cluster.module.MidoStoreModule
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
@@ -43,8 +43,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         injector.getInstance(classOf[MidolmanActorsService]).system
     }
 
-    protected def midoStore(): MidostoreClient = {
-        injector.getInstance(classOf[MidostoreClient])
+    protected def midoStore(): Client = {
+        injector.getInstance(classOf[Client])
     }
 
     protected def hostId(): UUID = {
@@ -64,7 +64,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
             new MockZookeeperConnectionModule(),
 
             new ReactorModule(),
-            new MidoStoreModule(),
+            new ClusterClientModule(),
             new MidolmanActorsModule(),
             new MidolmanModule()
         )

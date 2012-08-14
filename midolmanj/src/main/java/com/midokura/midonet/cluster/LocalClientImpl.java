@@ -17,11 +17,16 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.util.Callback1;
+import com.midokura.midonet.cluster.client.BridgeBuilder;
+import com.midokura.midonet.cluster.client.ChainBuilder;
+import com.midokura.midonet.cluster.client.LocalStateBuilder;
+import com.midokura.midonet.cluster.client.PortBuilders;
+import com.midokura.midonet.cluster.client.RouterBuilder;
 
-public class LocalMidostoreClient implements MidostoreClient {
+public class LocalClientImpl implements Client {
 
     private static final Logger log = LoggerFactory
-        .getLogger(LocalMidostoreClient.class);
+        .getLogger(LocalClientImpl.class);
 
     @Inject
     HostZkManager hostZkManager;
@@ -29,7 +34,7 @@ public class LocalMidostoreClient implements MidostoreClient {
     @Inject
     BgpZkManager bgpZkManager;
 
-    public LocalMidostoreClient() {
+    public LocalClientImpl() {
         int a = 10;
     }
 

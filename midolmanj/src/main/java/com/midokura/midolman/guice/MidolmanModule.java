@@ -17,7 +17,7 @@ import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.state.ZookeeperConnectionWatcher;
-import com.midokura.midonet.cluster.MidostoreClient;
+import com.midokura.midonet.cluster.Client;
 
 /**
  * Main midolman configuration module
@@ -34,7 +34,7 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
         expose(MidolmanConfig.class);
 
-        requireBinding(MidostoreClient.class);
+        requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
 
