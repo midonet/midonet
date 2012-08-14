@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import akka.actor.{Props, ActorRef, Actor}
 import java.util.UUID
@@ -9,37 +9,47 @@ import collection.mutable
 import scala.Some
 
 import com.midokura.midolman.state.zkManagers._
-import com.midokura.packets.{IPv4, IntIPv4}
-import com.midokura.midolman.state.Directory
+import com.midokura.packets.IntIPv4
 import com.midokura.midolman.guice.ComponentInjectorHolder
 import javax.inject.Inject
 import com.midokura.midolman.config.MidolmanConfig
 import akka.event.Logging
+import com.midokura.midolman.simulation.{Chain, Bridge, Router}
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
  * state of a device and, optionally, notifications when the state changes.
  */
 sealed trait DeviceRequest
+
 case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
+
 case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
+
 case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
+
 case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
 // TODO(ross): why trait if there's no implementation?
 sealed trait Unsubscribe
+
 case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
+
 case class ChainUnsubscribe(id: UUID) extends Unsubscribe
+
 case class PortUnsubscribe(id: UUID) extends Unsubscribe
+
 case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
 case class SetPortLocal(id: UUID, local: Boolean)
+
 // These types are used to inform the device that a port is local
 case class SetBridgePortLocal(devId: UUID, portId: UUID, local: Boolean)
+
 case class SetRouterPortLocal(devId: UUID, portId: UUID, local: Boolean)
 
 object VirtualTopologyActor {
-    val Name:String = "VirtualTopologyActor"
+    val Name: String = "VirtualTopologyActor"
 }
 
 class VirtualTopologyActor() extends Actor {
@@ -61,12 +71,12 @@ class VirtualTopologyActor() extends Actor {
     private val localPorts = mutable.Set[UUID]()
     val log = Logging(context.system, this)
 
-//    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
-//    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
-//    private val portStateMgr = new PortZkManager(dir, zkBasePath)
-//    private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
-//    private val routeStateMgr = new RouteZkManager(dir, zkBasePath)
-//    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
+    //    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
+    //    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
+    //    private val portStateMgr = new PortZkManager(dir, zkBasePath)
+    //    private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
+    //    private val routeStateMgr = new RouteZkManager(dir, zkBasePath)
+    //    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
 
     @Inject
     var bridgeStateMgr: BridgeZkManager = null
@@ -111,8 +121,8 @@ class VirtualTopologyActor() extends Actor {
         }
         log.info("check requester for update")
         if (update) {
-             log.info("Adding requester to subscribed clients")
-             idToSubscribers(id).add(sender)
+            log.info("Adding requester to subscribed clients")
+            idToSubscribers(id).add(sender)
         }
     }
 
@@ -124,7 +134,7 @@ class VirtualTopologyActor() extends Actor {
             client ! device
         }
         for (client <- idToUnansweredClients(id))
-            // Avoid notifying the subscribed clients twice.
+        // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
                 log.info("Send unanswered client the device update.")
                 client ! device
@@ -135,7 +145,7 @@ class VirtualTopologyActor() extends Actor {
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
         def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
             case Some(actorSet) => actorSet.remove(actor)
-            case None => ;
+            case None =>;
         }
         remove(idToUnansweredClients.get(id))
         remove(idToSubscribers.get(id))
@@ -164,7 +174,7 @@ class VirtualTopologyActor() extends Actor {
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)
         case RouterUnsubscribe(id) => unsubscribe(id, sender)
-        case bridge : Bridge =>
+        case bridge: Bridge =>
             log.info("Received Bridge")
             updated(bridge.id, bridge, idToBridge)
         case chain: Chain => updated(chain.id, chain, idToChain)

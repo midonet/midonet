@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import java.util.UUID
 import collection.mutable
@@ -13,6 +13,7 @@ import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.util.JSONSerializer
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
+import com.midokura.midolman.simulation.Router
 
 class RouterManager(id: UUID, val mgr: RouterZkManager,
                     val routeMgr: RouteZkManager)
@@ -27,6 +28,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     refreshTableRoutes()
 
     case object RefreshTableRoutes
+
     val tableRoutesCb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.
@@ -35,6 +37,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     }
 
     case class RefreshLocalPortRoutes(val portId: UUID)
+
     def makePortRoutesCallback(portId: UUID): Runnable = {
         new Runnable() {
             def run() {
@@ -62,7 +65,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             val newRouteIdSet = mutable.Set[UUID]()
             localPortToRouteIDs.put(portId, newRouteIdSet)
             for (rtID <- routeMgr.listPortRoutes(
-                    portId, makePortRoutesCallback(portId))) {
+                portId, makePortRoutesCallback(portId))) {
                 newRouteIdSet.add(rtID)
                 if (!oldRouteIdSet(rtID)) {
                     // It's a new route: write it to the shared routing table
@@ -97,7 +100,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                         for (rtID <- routeIdSet)
                             rtableDirectory.delete("/" + new String(
                                 serializer.objToBytes(idToRoute(rtID))))
-                    case None => ; // This should never happen?
+                    case None =>; // This should never happen?
                 }
             }
         }
@@ -117,11 +120,17 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     }
 
     override def getInFilterID() = {
-        cfg match { case null => null; case _ => cfg.inboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.inboundFilter
+        }
     }
 
     override def getOutFilterID() = {
-        cfg match { case null => null; case _ => cfg.outboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.outboundFilter
+        }
     }
 
     override def receive() = super.receive orElse {

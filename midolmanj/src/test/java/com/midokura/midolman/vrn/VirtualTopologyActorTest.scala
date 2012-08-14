@@ -24,6 +24,7 @@ import com.midokura.midolman.Setup
 import akka.util.Duration
 import com.midokura.midonet.cluster
 import com.midokura.midolman.guice.cluster.ClusterClientModule
+import com.midokura.midolman.simulation.Bridge
 
 //class VirtualTopologyActorTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpec with MustMatchers with BeforeAndAfterAll {
   trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll with BeforeAndAfter {

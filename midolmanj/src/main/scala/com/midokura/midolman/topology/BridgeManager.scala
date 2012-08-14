@@ -1,11 +1,12 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import java.util.UUID
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
+import com.midokura.midolman.simulation.Bridge
 
 class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     extends DeviceManager(id) {
@@ -22,14 +23,20 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     }
 
     override def getInFilterID() = {
-        cfg match { case null => null; case _ => cfg.inboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.inboundFilter
+        }
     }
 
     override def getOutFilterID() = {
-        cfg match { case null => null; case _ => cfg.outboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.outboundFilter
+        }
     }
 
     override def receive() = super.receive orElse {
-        case SetBridgePortLocal(_, portId, local) => ; // TODO
+        case SetBridgePortLocal(_, portId, local) =>; // TODO
     }
 }

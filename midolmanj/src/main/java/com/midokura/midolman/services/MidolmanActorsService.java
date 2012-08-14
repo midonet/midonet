@@ -5,11 +5,9 @@ package com.midokura.midolman.services;
 
 import java.util.concurrent.TimeUnit;
 
-import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.actor.UntypedActorFactory;
 import akka.dispatch.Await;
 import akka.dispatch.Future;
 import akka.pattern.Patterns;
@@ -20,15 +18,15 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.vrn.VirtualToPhysicalMapper;
-import com.midokura.midolman.vrn.VirtualTopologyActor;
-import static com.midokura.packets.IntIPv4.fromString;
+import com.midokura.midolman.topology.VirtualToPhysicalMapper;
+import com.midokura.midolman.topology.VirtualTopologyActor;
+
+
+import static akka.pattern.Patterns.gracefulStop;
 
 /**
  * Midolman actors coordinator internal service.

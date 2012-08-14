@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.simulation
 
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -11,10 +11,11 @@ import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, ICMP, IPv4}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
-                                                  MaterializedRouterPortConfig,
-                                                  RouterPortConfig}
+MaterializedRouterPortConfig,
+RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.vrn._
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
@@ -30,14 +31,14 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             log.error("Could not get configuration for port " + ingress.port)
             return new DropResult()
         }
-        if (ingress.mmatch.getDataLayerType != IPv4.ETHERTYPE && 
-                ingress.mmatch.getDataLayerType != ARP.ETHERTYPE)
+        if (ingress.mmatch.getDataLayerType != IPv4.ETHERTYPE &&
+            ingress.mmatch.getDataLayerType != ARP.ETHERTYPE)
             return new NotIPv4Result()
 
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (ingress.mmatch.getDataLayerType == ARP.ETHERTYPE &&
-                    ingress.mmatch.getNetworkProtocol == ARP.OP_REQUEST) {
+                ingress.mmatch.getNetworkProtocol == ARP.OP_REQUEST) {
                 processArpRequest(ingress.packet, ingress.port, rtrPortCfg)
                 return new ConsumedResult()
             } else
@@ -47,7 +48,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         if (hwDst != rtrPortCfg.getHwAddr) {
             // Not addressed to us, log.warn and drop.
             log.warn("{} neither broadcast nor inPort's MAC ({})", hwDst,
-                      rtrPortCfg.getHwAddr)
+                rtrPortCfg.getHwAddr)
             return new DropResult()
         }
 
@@ -85,16 +86,16 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         if (rt.nextHop == Route.NextHop.REJECT) {
             sendIcmp(ingress, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return new DropResult()
-        }       
+        }
         if (rt.nextHop != Route.NextHop.PORT) {
             log.error("Routing table lookup for {} returned invalid nextHop " +
-                      "of {}", nwDst, rt.nextHop)
+                "of {}", nwDst, rt.nextHop)
             // TODO(jlm, pino): Should this be an exception?
-            return new DropResult()    
+            return new DropResult()
         }
         if (rt.nextHopPort == null) {
             log.error("Routing table lookup for {} forwarded to port null.",
-                      nwDst)
+                nwDst)
             // TODO(pino): should we remove this route?
             return new DropResult()
         }
@@ -104,7 +105,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         val outPortCfg = getRouterPortConfig(rt.nextHopPort)
         if (outPortCfg == null) {
             log.error("Can't find the configuration for the egress port {}",
-                      rt.nextHopPort)
+                rt.nextHopPort)
             return new DropResult()
         }
         val outPortIP = new IntIPv4(outPortCfg.portAddr)
@@ -120,7 +121,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             case logCfg: LogicalRouterPortConfig =>
                 if (logCfg.peerId == null) {
                     log.warn("Packet forwarded to dangling logical port {}",
-                             rt.nextHopPort)
+                        rt.nextHopPort)
                     sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
                     return new DropResult()
                 }
@@ -128,14 +129,14 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 if (peerMac != null) {
                     matchOut.setDataLayerDestination(peerMac)
                     return new ForwardResult(new PortMatch(rt.nextHopPort,
-                                                           matchOut))
+                        matchOut))
                 }
-                // TODO(jlm,pino): Should not having the peerMac be an error?
+            // TODO(jlm,pino): Should not having the peerMac be an error?
             case _ => /* Fall through to ARP'ing below. */
         }
         var nextHopIP: Int = rt.nextHopGateway
         if (nextHopIP == 0 || nextHopIP == -1)
-            nextHopIP = matchOut.getNetworkDestination  /* Last hop */
+            nextHopIP = matchOut.getNetworkDestination /* Last hop */
         val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP)
         if (nextHopMac != null) {
             matchOut.setDataLayerDestination(nextHopMac)
@@ -168,7 +169,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     }
 
     private def sendIcmpEchoReply(context: PacketContext,
-                                  rtrPortCfg: RouterPortConfig) { 
+                                  rtrPortCfg: RouterPortConfig) {
         //XXX
     }
 
@@ -193,19 +194,19 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 // Shifts by 32 in java are no-ops (see
                 // http://www.janeg.ca/scjp/oper/shift.html), so special case
                 // nwLength=0 <=> shift=32 to always match.
-                if ((nextHopIP >>> shift) != 
-                                (mPortConfig.localNwAddr >>> shift) &&
-                        shift != 32) {
+                if ((nextHopIP >>> shift) !=
+                    (mPortConfig.localNwAddr >>> shift) &&
+                    shift != 32) {
                     log.warn("getMacForIP: cannot get MAC for {} - address " +
-                         "not in network segment of port {} ({}/{})",
-                         Array[Object](nwAddr, portID,
-                                       mPortConfig.localNwAddr.toString,
-                                       mPortConfig.localNwLength.toString))
+                        "not in network segment of port {} ({}/{})",
+                        Array[Object](nwAddr, portID,
+                            mPortConfig.localNwAddr.toString,
+                            mPortConfig.localNwLength.toString))
                     return null
                 }
             case _ => /* Fall through */
-         }
-         //XXX: Get entry from actor-aware ArpTable.
-         return null
+        }
+        //XXX: Get entry from actor-aware ArpTable.
+        return null
     }
 }

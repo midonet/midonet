@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.vrn.dp
+package com.midokura.midolman.datapath
 
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.netlink.NetlinkMessage
@@ -14,7 +14,7 @@ import java.util.UUID
  *
  * @param portId is the virtual network port (or portSet) identifier.
  */
-class FlowActionVrnPortOutput(portId:UUID) extends FlowAction[FlowActionVrnPortOutput] {
+class FlowActionVrnPortOutput(portId: UUID) extends FlowAction[FlowActionVrnPortOutput] {
 
     def getKey = null
 

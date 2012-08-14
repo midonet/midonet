@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import akka.actor.{ActorRef, Actor}
 import java.util.UUID
@@ -137,5 +137,6 @@ class VirtualToPhysicalMapper extends Actor {
     private case class ExpectingDatapath() extends ExpectingState
 
     private case class ExpectingPorts() extends ExpectingState
+
 }
 

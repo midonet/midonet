@@ -1,11 +1,12 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import java.util.UUID
 import akka.actor.Actor
 import akka.event.Logging
+import com.midokura.midolman.simulation.Chain
 
 abstract class DeviceManager(val id: UUID) extends Actor {
     val log = Logging(context.system, this)
@@ -13,6 +14,7 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     updateConfig();
 
     case object Refresh
+
     val cb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.
@@ -74,8 +76,11 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     }
 
     def chainsUpdated(): Unit
+
     def getInFilterID(): UUID
+
     def getOutFilterID(): UUID
+
     def refreshConfig(): Unit
 
     override def receive = {

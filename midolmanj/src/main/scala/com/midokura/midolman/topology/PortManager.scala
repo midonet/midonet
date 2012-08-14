@@ -1,12 +1,12 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import java.util.UUID
 import com.midokura.midolman.state.zkManagers.PortZkManager
 import com.midokura.midolman.state.PortDirectory.{BridgePortConfig,
-        MaterializedRouterPortConfig, LogicalBridgePortConfig}
+MaterializedRouterPortConfig, LogicalBridgePortConfig}
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.state.PortConfig
 
@@ -67,11 +67,17 @@ class PortManager(id: UUID, val mgr: PortZkManager,
     }
 
     override def getInFilterID() = {
-        cfg match { case null => null; case _ => cfg.inboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.inboundFilter
+        }
     }
 
     override def getOutFilterID() = {
-        cfg match { case null => null; case _ => cfg.outboundFilter }
+        cfg match {
+            case null => null;
+            case _ => cfg.outboundFilter
+        }
     }
 
     override def receive() = super.receive orElse {

@@ -7,12 +7,12 @@ import akka.actor.{ActorRef, Actor}
 import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
-import datapath.ErrorHandlingCallback
+import datapath.{FlowKeyVrnPort, FlowActionVrnPortOutput, ErrorHandlingCallback}
 import flows.{FlowActions, FlowKeys, FlowAction}
 import guice.ComponentInjectorHolder
 import ports._
-import vrn.dp.{FlowActionVrnPortOutput, FlowKeyVrnPort}
-import vrn.{VirtualTopologyActor, VirtualToPhysicalMapper}
+import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
+import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.google.inject.Inject
 import akka.event.Logging

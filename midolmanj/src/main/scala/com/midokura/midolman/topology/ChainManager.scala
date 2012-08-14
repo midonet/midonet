@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.vrn
+package com.midokura.midolman.topology
 
 import akka.actor.Actor
 import collection.JavaConversions._
@@ -10,6 +10,7 @@ import java.util.UUID
 import com.midokura.midolman.state.zkManagers.{ChainZkManager, RuleZkManager}
 import com.midokura.midolman.rules.{JumpRule, Rule}
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
+import com.midokura.midolman.simulation.Chain
 
 class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
                    val ruleMgr: RuleZkManager) extends Actor {
@@ -19,6 +20,7 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
     updateRules()
 
     case object Refresh
+
     val cb: Runnable = new Runnable() {
         def run() {
             // CAREFUL: this is not run on this Actor's thread.
@@ -54,7 +56,7 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
                 idToRefCount.remove(ruleId)
                 idToChain.remove(ruleId) match {
                     case None => waitingForChains -= 1
-                    case Some(chain) => ; // do nothing
+                    case Some(chain) =>; // do nothing
                 }
             }
         }
@@ -69,18 +71,18 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
         rules = mutable.MutableList[Rule]()
         for (ruleIds <- ruleIds) {
             rules += (idToRule.get(ruleIds) match {
-                    case None =>
-                        val r = ruleMgr.get(ruleIds)
-                        idToRule.put(ruleIds, r)
-                        if (r.isInstanceOf[JumpRule])
-                            incrChainRefCount(
-                                r.asInstanceOf[JumpRule].jumpToChainID)
-                        r // return the rule
-                    case Some(rule) => rule
+                case None =>
+                    val r = ruleMgr.get(ruleIds)
+                    idToRule.put(ruleIds, r)
+                    if (r.isInstanceOf[JumpRule])
+                        incrChainRefCount(
+                            r.asInstanceOf[JumpRule].jumpToChainID)
+                    r // return the rule
+                case Some(rule) => rule
             })
         }
         // Sort the rule array
-        rules.sortWith( (l: Rule, r: Rule) => l.compareTo(r) < 0 )
+        rules.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
 
         // Throw away Rules we no longer need.
         val filter = (kv: (UUID, Rule)) => ruleIds.contains(kv._1)
@@ -100,7 +102,7 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
 
     private def chainUpdate(chain: Chain): Unit = {
         idToRefCount.get(chain.id) match {
-            case None => ; // we don't care about this chain anymore
+            case None =>; // we don't care about this chain anymore
             case Some(count) =>
                 idToRule.put(chain.id, chain) match {
                     case None =>
@@ -108,7 +110,7 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
                         if (0 == waitingForChains)
                             context.actorFor("..").tell(
                                 new Chain(id, rules.toList, idToChain.toMap))
-                    case _ => ; // Nothing else to do.
+                    case _ =>; // Nothing else to do.
                 }
         }
     }
