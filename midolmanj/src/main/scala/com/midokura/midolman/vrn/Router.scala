@@ -20,8 +20,8 @@ import com.midokura.midolman.layer3.Route
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
              val inFilter: Chain, val outFilter: Chain) extends Device {
 
-    val log = LoggerFactory.getLogger(classOf[Router])
-    val loadBalancer = new LoadBalancer(rTable)
+    private val log = LoggerFactory.getLogger(classOf[Router])
+    private val loadBalancer = new LoadBalancer(rTable)
 
     override def process(ingress: PacketContext): ProcessResult = {
         val hwDst = new MAC(ingress.mmatch.getDataLayerDestination)
