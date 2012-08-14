@@ -6,14 +6,14 @@ multiprocessing where desired.  At the same time, we have to ensure that
 these multiple threads don't interfere with each other's execution and
 make their state inconsistent or undefined.  We have two kinds of state
 in midonet's virtual network equipment:  Those that change based on
-packets received (the MAC-Port map and the ARP cache) and those that
-aren't affected by traffic (the topology information, the routing
+packets received (the MAC-Port map, MAC flow count, and ARP cache) and those
+that aren't affected by traffic (the topology information, the routing
 tables).  To avoid contention on the non-traffic-updating state, we
 handle it with a read-copy-update (RCU) mechanism, where each forwarding
 element object has a consistent, immutable view of the state.  As an
 RCU mechanism wouldn't show objects the updates caused by traffic, we
-place traffic-affected state in state management actors which enforce
-consistency.
+place traffic-affected state in the cluster storage service or in state
+management actors which enforce consistency.
 
 ## Actors library
 
@@ -28,7 +28,7 @@ When the `SimulationController` actor receives an `onPacketIn` call
 from the `DatapathController`, it checks to see if there's already
 a simulation outstanding for this flow, and defers the packet if 
 so.<sup>1</sup>
-If not, it spawns off a `SimulationProcess` actor which performs the
+If not, it spawns off a `Coordinator` actor which performs the
 networking simulation and returns the packet changes to perform for
 that flow.  When a simulation returns, the `SimulationController`
 instructs the `DatapathController` to install a rule implementing the
@@ -39,28 +39,27 @@ The `SimulationController` and `DatapathController` run in the same actor,
 and the `DatapathController` design is described in [the Midolman Daemon
 Design Overview](design-overview.md).
 
-### SimulationProcess
+### Coordinator
 
-This is an actor which forms the execution context for the `VRNCoordinator`.
-As the coordinator encounters new forwarding elements, the `SimulationProcess`
-will acquire objects simulating those forwarding elements for the
-coordinator from the `VirtualTopologyManager`.
+This is an actor which forms the execution context for the network simulation.
+As the `Coordinator` encounters new forwarding elements, it will acquire
+objects simulating those forwarding elements from the `VirtualTopologyManager`.
 
 ### VirtualTopologyManager
 
 This is an actor responsible for giving forwarding element instances to
-the `SimulationProcess` actors.  Each forwarding element instance will
-contain RCU-style immutable copies of non-traffic-updated data it uses
+the `Coordinator` actors.  Each forwarding element instance will contain
+RCU-style immutable copies of non-traffic-updated data it uses
 and a reference to an actor managing the traffic-updated data which is
 shared across all instances of that forwarding element.
 
 The `VirtualTopologyManager` will keep a map of forwarding element IDs to
-forwarding element objects.  When a `SimulationProcess` requests a forwarding
+forwarding element objects.  When a `Coordinator` requests a forwarding
 element the `VirtualTopologyManager` has, it will simply provide it to the
 `SimulationProcess`.  Otherwise, it will construct a `ForwardingElementManager`
 and ask it to provide the required forwarding element object, which the
 `VirtualTopologyManager` will store in its map and provide to any waiting
-`SimulationProcess`es.  The `ForwardingElementManager`s will provide new
+`Coordinator`s.  The `ForwardingElementManager`s will provide new
 forwarding element objects with updated RCU data to the
 `VirtualTopologyManager` as needed, and occasionally informing it that a
 forwarding element has been deleted, these notifications causing the
@@ -76,7 +75,27 @@ new forwarding element object using the updated data and provides it to
 the `VirtualTopologyManager`.
 
 
-## ARP Cache
+## Traffic-dynamic state
+
+There are three pieces of state which are updated dynamically as flows
+are processed (not as configuration changes):  The ARP cache, the MAC-Port
+map, and the MAC flow count.  The ARP cache and MAC-Port map are shared
+across daemons, and so are managed by the cluster service.  The calls to
+this service are thread-safe and take callbacks.  When a forwarding element
+needs to get data from the cluster service, the FE will set up an Akka
+`Promise` which will be completed by the callback method, then query for
+the data, then await the `Promise`'s completion for the queried data.
+The MAC flow count is daemon-local, and will be managed by the 
+`VirtualTopologyManager`'s actor.  When a `ForwardingElementManager`
+constructs a forwarding element using any of this dynamic state, it will
+pass an object reference handing the state to the forwarding element's
+constructor, with all the RCU copies of that forwarding element instance
+getting a reference to the same object, but an instance of a *different*
+forwarding element will get a different state management object.  (E.g.,
+different routers don't share ARP caches, but changing a router's config --
+triggering generation of a new RCU copy -- doesn't reset the ARP cache.)
+
+### ARP Cache
 
 The ARP Cache is traffic-updated (specifically, ARP-reply-updated) data
 managed by Midostore and used by the `Router` class.  All instances of
@@ -118,7 +137,7 @@ the Virtual-Physical Mapping.)
 
 ### Footnotes
 
-<sup>1</sup> The FlowController will intercept any packets making it through
+<sup>1</sup> The `FlowController` will intercept any packets making it through
 the netlink connection which match an exact (kernel) flow match for another
 packet which is being processed.  However, if another packet of the flow 
 doesn't trigger an exact match (eg, TTL differed), then it will make it up
