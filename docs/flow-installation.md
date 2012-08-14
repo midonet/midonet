@@ -43,7 +43,14 @@ numbers into VIF port UUID's so we forward the _PacketIn(Packet)_ to the
  _DatapathController_ actor.
 
 The actor must keep track of duplicate packets (packets that match the same exact
-flow but which are in the process of being simulated)
+flow but which are in the process of being simulated).
+
+There was a question about what we should do with the TTL, Fragmentation, TypeOfService
+ fields inside a kernel flow match: should we erase them or just leave them for
+ the simulation to use in the future. Dan thought we should remove them but in
+ the end (because we want to minimize the reparsing of the packets and because
+ some of the devices might use those fields) we decided to let them in the match
+ anyway.
 
 #### DatapathController (packet-in code path)
 
