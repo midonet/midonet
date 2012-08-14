@@ -8,13 +8,16 @@ import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.simulation.Bridge
 
+
 class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     extends DeviceManager(id) {
     private var cfg: BridgeConfig = null;
 
     override def chainsUpdated() = {
         log.info("chains updated")
-        context.actorFor("..").tell(new Bridge(id, cfg, inFilter, outFilter))
+        context.actorFor("..").tell(
+                new Bridge(id, cfg, null /* XXX: MacPortMap */,
+                           inFilter, outFilter))
     }
 
     override def refreshConfig() = {

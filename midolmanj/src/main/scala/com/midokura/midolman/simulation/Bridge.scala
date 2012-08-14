@@ -9,24 +9,25 @@ import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, IPv4}
 import org.slf4j.LoggerFactory
 import com.midokura.midolman.vrn._
-import scala.Some
+import com.midokura.midonet.cluster.client.MacLearningTable
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
+             val macPortMap: MacLearningTable,
              val inFilter: Chain, val outFilter: Chain) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
 
     private val rtrMacToLogicalPortId = new mutable.HashMap[MAC, UUID]()
     private val rtrIpToMac = new mutable.HashMap[IntIPv4, MAC]()
-    private val macPortMap = new mutable.HashMap[MAC, UUID]() //XXX: No
 
     override def hashCode = id.hashCode()
 
     override def equals(other: Any) = other match {
         case that: Bridge =>
             (that canEqual this) &&
-                (this.id == that.id) && (this.cfg == that.cfg) && (this.inFilter == that.inFilter) &&
+                (this.id == that.id) && (this.cfg == that.cfg) &&
+                (this.inFilter == that.inFilter) &&
                 (this.outFilter == that.outFilter)
         case _ =>
             false
