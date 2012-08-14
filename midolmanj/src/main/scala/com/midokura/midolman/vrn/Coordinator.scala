@@ -14,20 +14,24 @@ class PortMatch(var port: UUID, var mmatch: MidoMatch) extends Cloneable {
 }
 
 case class SimulatePacket(ingress: PortMatch)
-case class SimulationResult(egress: PortMatch)
+case class SimulationResult(result: ProcessResult)
 
 class Coordinator extends Actor {
-    def doProcess(ingress: PortMatch): PortMatch = {
+    def doProcess(ingress: PortMatch): ProcessResult = {
         var currentPortMatch = ingress.clone
         while (true) {
             // TODO(jlm): Check for too long loop
             val currentFE = deviceOfPort(currentPortMatch.port)
-            val nextPortMatch = currentFE.process(currentPortMatch)
-            currentPortMatch.mmatch = nextPortMatch.mmatch
-            val peerPort = peerOfPort(nextPortMatch.port)
-            if (peerPort == null)
-                return currentPortMatch
-            currentPortMatch.port = peerPort
+            val result = currentFE.process(currentPortMatch) 
+            result match {
+                case ForwardResult(nextPortMatch) =>
+                    currentPortMatch.mmatch = nextPortMatch.mmatch
+                    val peerPort = peerOfPort(nextPortMatch.port)
+                    if (peerPort == null)
+                        return result
+                    currentPortMatch.port = peerPort
+                case _ => return result
+            }
         }
         return null
     }
