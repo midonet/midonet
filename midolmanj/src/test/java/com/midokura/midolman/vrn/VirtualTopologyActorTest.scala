@@ -8,8 +8,7 @@ import com.google.inject.{Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import akka.actor.ActorSystem
 import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
-import com.midokura.midolman.guice.datapath.MockOvsDatapathConnectionProvider
-import com.midokura.midolman.guice.{ComponentInjectorHolder}
+import com.midokura.midolman.guice.ComponentInjectorHolder
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.config.{TypedConfigModule, MockConfigProviderModule}
@@ -17,14 +16,14 @@ import com.midokura.midolman.config.MidolmanConfig
 import akka.testkit.{TestProbe, TestActorRef}
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import java.util.{Set, List, UUID}
-import com.midokura.midolman.state.{MockDirectory, ZkManager, Directory}
-import org.apache.zookeeper.{KeeperException, CreateMode, OpResult, Op}
+import com.midokura.midolman.state.{ZkManager, Directory}
+import org.apache.zookeeper.CreateMode
 import com.midokura.midolman.Setup
 import akka.util.Duration
 import com.midokura.midonet.cluster
 import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.simulation.Bridge
+import com.midokura.midolman.topology.{BridgeRequest, VirtualTopologyActor}
 
 //class VirtualTopologyActorTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpec with MustMatchers with BeforeAndAfterAll {
   trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll with BeforeAndAfter {
@@ -86,16 +85,16 @@ import com.midokura.midolman.simulation.Bridge
   override def afterAll {
     //system.shutdown()
   }
-
-  }
+}
 
 class VirtualTopologyProbe extends TestProbe(ActorSystem("testsystem")){
 
-    def expectBridge(x: Bridge) = {
+    def expectBridge(x: Bridge) {
 
     }
 
 }
+
 class X extends VirtualTopologyActorTest {
   def testFirst() {
     implicit val system = ActorSystem("testsystem")
