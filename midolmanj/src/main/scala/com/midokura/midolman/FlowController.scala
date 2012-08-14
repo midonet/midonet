@@ -7,12 +7,13 @@ import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
 import java.util.UUID
 
-import com.midokura.sdn.dp.{Flow => KernelFlow,
-                                     FlowMatch => KernelMatch, Packet}
+import com.midokura.sdn.dp.{Flow => KernelFlow, FlowMatch => KernelMatch,
+                            Packet}
 import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
                                WildcardFlowTable}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.sdn.dp.flows.FlowAction
+
 
 object FlowController {
     val Name = "FlowController"
@@ -20,10 +21,8 @@ object FlowController {
     case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
 			       packet: Option[Packet])
     case class RemoveWildcardFlow(fmatch: MidoMatch)
-
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]],
                           outPorts: Set[UUID])
-
     case class Consume(packet: Packet)
 
     // Callback argument should not block.
@@ -31,6 +30,7 @@ object FlowController {
 
     case class PacketIn(packet: Packet)
 }
+
 
 class FlowController(val wildcardFlowManager: WildcardFlowTable,
                          val exactFlowManager: NetlinkFlowTable) extends Actor {
