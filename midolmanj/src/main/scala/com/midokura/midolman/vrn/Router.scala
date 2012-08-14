@@ -11,6 +11,7 @@ import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, ICMP, IPv4}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
+                                                  MaterializedRouterPortConfig,
                                                   RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midolman.layer3.Route
@@ -161,7 +162,9 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     }
 
     private def isIcmpEchoRequest(mmatch: MidoMatch): Boolean = {
-        return false  //XXX
+        mmatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER &&
+            (mmatch.getTransportSource & 0xff) == ICMP.TYPE_ECHO_REQUEST &&
+            (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
     }
 
     private def sendIcmpEchoReply(context: PacketContext,
@@ -178,6 +181,31 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     }
 
     private def getMacForIP(portID: UUID, nextHopIP: Int): MAC = {
-        null //XXX
+        val nwAddr = new IntIPv4(nextHopIP)
+        val rtrPortConfig = getRouterPortConfig(portID)
+        if (rtrPortConfig == null) {
+            log.error("cannot get configuration for port {}", portID)
+            return null
+        }
+        rtrPortConfig match {
+            case mPortConfig: MaterializedRouterPortConfig =>
+                val shift = 32 - mPortConfig.localNwLength
+                // Shifts by 32 in java are no-ops (see
+                // http://www.janeg.ca/scjp/oper/shift.html), so special case
+                // nwLength=0 <=> shift=32 to always match.
+                if ((nextHopIP >>> shift) != 
+                                (mPortConfig.localNwAddr >>> shift) &&
+                        shift != 32) {
+                    log.warn("getMacForIP: cannot get MAC for {} - address " +
+                         "not in network segment of port {} ({}/{})",
+                         Array[Object](nwAddr, portID,
+                                       mPortConfig.localNwAddr.toString,
+                                       mPortConfig.localNwLength.toString))
+                    return null
+                }
+            case _ => /* Fall through */
+         }
+         //XXX: Get entry from actor-aware ArpTable.
+         return null
     }
 }
