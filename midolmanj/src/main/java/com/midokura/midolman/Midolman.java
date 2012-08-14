@@ -47,7 +47,7 @@ import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.VRNController;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.packets.IntIPv4;

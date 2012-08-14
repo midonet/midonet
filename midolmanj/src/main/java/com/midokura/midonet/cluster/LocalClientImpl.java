@@ -16,7 +16,7 @@ import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;

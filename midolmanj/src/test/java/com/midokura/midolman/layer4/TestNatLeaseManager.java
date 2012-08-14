@@ -24,7 +24,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 
 public class TestNatLeaseManager {

@@ -4,11 +4,13 @@
  * Copyright (c) 2012 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.util;
+package com.midokura.cassandra;
 
 import me.prettyprint.hector.api.exceptions.HectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.cache.Cache;
 
 
 public class CassandraCache implements Cache {

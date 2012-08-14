@@ -6,7 +6,7 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;

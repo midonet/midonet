@@ -25,7 +25,7 @@ import com.midokura.midolman.test.Host;
 import com.midokura.midolman.test.Router;
 import com.midokura.midolman.test.RouterPort;
 import com.midokura.midolman.test.VirtualNetwork;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 
 

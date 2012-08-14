@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midolman.util;
+package com.midokura.cache;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -10,7 +10,10 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
+
+import com.midokura.cache.CacheException;
 import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.CacheFactory;
 import com.midokura.midolman.config.MidolmanConfig;
 
 public class TestCacheFactory {

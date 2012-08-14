@@ -10,7 +10,7 @@ import scala.collection.Map
 import org.apache.zookeeper.KeeperException
 
 import com.midokura.midolman.state.Directory
-import com.midokura.midolman.util.Callback1
+import com.midokura.util.functors.Callback1
 
 
 abstract class ReplicatedMap[K, V](zkDir: Directory) {

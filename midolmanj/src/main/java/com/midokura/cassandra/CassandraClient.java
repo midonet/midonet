@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman.util;
+package com.midokura.cassandra;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;

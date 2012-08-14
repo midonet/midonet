@@ -27,7 +27,7 @@ import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortToIntNwAddrMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 import static com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 

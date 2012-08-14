@@ -23,8 +23,8 @@ import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.util.Cache;
-import com.midokura.midolman.util.CacheWithPrefix;
+import com.midokura.cache.Cache;
+import com.midokura.cache.CacheWithPrefix;
 import com.midokura.midolman.vrn.VRNControllerIface;
 
 

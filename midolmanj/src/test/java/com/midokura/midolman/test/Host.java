@@ -19,7 +19,7 @@ import com.midokura.packets.MAC;
 import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.VRNController;
 
 

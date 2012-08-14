@@ -4,14 +4,18 @@
  * Copyright (c) 2012 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.util;
+package com.midokura.midolman;
 
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.cache.Cache;
+import com.midokura.cache.CacheException;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.cassandra.CassandraCache;
+import com.midokura.memcache.MemcacheCache;
 
 public class CacheFactory {
     private static final Logger log =
@@ -24,7 +28,7 @@ public class CacheFactory {
      *
      * @param config configuration for the Cache object
      * @return a Cache object
-     * @throws CacheException if an error occurs
+     * @throws com.midokura.cache.CacheException if an error occurs
      */
     public static Cache create(MidolmanConfig config)
         throws CacheException {

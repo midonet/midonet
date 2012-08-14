@@ -5,14 +5,12 @@
 package com.midokura.midolman.util;
 
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 
+import com.midokura.cache.Cache;
+import com.midokura.midolman.CacheFactory;
 import com.midokura.util.Percentile;
 
 /**

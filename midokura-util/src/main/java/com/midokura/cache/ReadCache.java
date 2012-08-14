@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midolman.util;
+package com.midokura.cache;
 
 /**
  * A cache whose client has no control over the values stored in the cache

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.GMTTime;
-import com.midokura.midolman.util.CassandraClient;
+import com.midokura.cassandra.CassandraClient;
 
 public class CassandraStore implements Store {
 

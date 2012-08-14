@@ -25,7 +25,7 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.packets.IPv4;
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
 
 public class NatLeaseManager implements NatMapping {

@@ -50,7 +50,7 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
 

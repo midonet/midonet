@@ -4,7 +4,7 @@ package com.midokura.midonet.cluster.client;/*
 
 import java.util.UUID;
 
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 import com.midokura.packets.MAC;
 
 /*

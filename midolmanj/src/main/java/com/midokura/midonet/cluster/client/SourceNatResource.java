@@ -3,9 +3,8 @@ package com.midokura.midonet.cluster.client;/*
  */
 
 import java.util.NavigableSet;
-import java.util.UUID;
 
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 
 public interface SourceNatResource {
     void getSnatBlocks(int ip, Callback1<NavigableSet<Integer>> cb);

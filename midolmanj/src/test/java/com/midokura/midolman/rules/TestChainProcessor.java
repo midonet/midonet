@@ -26,7 +26,7 @@ import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.vrn.ForwardInfo;
 

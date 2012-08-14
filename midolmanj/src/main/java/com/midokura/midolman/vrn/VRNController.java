@@ -65,7 +65,7 @@ import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnType;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.packets.ARP;
 import com.midokura.packets.DHCP;
 import com.midokura.packets.Ethernet;

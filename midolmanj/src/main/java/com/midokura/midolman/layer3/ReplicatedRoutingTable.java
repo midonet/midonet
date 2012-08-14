@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
-import com.midokura.midolman.util.Callback0;
+import com.midokura.util.functors.Callback0;
 import com.midokura.midolman.util.JSONSerializer;
 
 public class ReplicatedRoutingTable {

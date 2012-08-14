@@ -1,4 +1,4 @@
-package com.midokura.midolman.util;
+package com.midokura.memcache;
 
 import java.net.InetSocketAddress;
 import java.io.IOException;
@@ -12,6 +12,8 @@ import net.spy.memcached.MemcachedClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.cache.Cache;
 
 
 public class MemcacheCache implements Cache {

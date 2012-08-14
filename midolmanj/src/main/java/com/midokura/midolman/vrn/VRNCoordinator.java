@@ -23,7 +23,7 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 
 public class VRNCoordinator implements ForwardingElement {
 

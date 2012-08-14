@@ -4,7 +4,7 @@
  * Copyright (c) 2012 Midokura KK. All rights reserved.
  */
 
-package com.midokura.midolman.util;
+package com.midokura.cache;
 
 public class CacheException extends RuntimeException {
 

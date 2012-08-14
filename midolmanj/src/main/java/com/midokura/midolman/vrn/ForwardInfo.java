@@ -15,7 +15,7 @@ import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
-import com.midokura.midolman.util.Cache;
+import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
 

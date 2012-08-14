@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman.util;
+package com.midokura.cache;
 
 public interface Cache {
 

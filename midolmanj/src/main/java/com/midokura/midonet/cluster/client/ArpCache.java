@@ -2,9 +2,7 @@ package com.midokura.midonet.cluster.client;/*
  * Copyright 2012 Midokura Europe SARL
  */
 
-import java.util.UUID;
-
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
 

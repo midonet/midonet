@@ -11,6 +11,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import com.midokura.cassandra.CassandraCache;
+
 public class TestCassandraCache extends TestCache {
 
     @BeforeClass

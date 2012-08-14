@@ -39,7 +39,7 @@ import com.midokura.midolman.rules.*;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
-import com.midokura.midolman.util.Callback1;
+import com.midokura.util.functors.Callback1;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.vrn.ForwardInfo;

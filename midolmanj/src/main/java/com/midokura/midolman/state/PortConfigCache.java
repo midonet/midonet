@@ -14,11 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.util.eventloop.Reactor;
-import com.midokura.midolman.util.Callback1;
-import com.midokura.midolman.util.LoadingCache;
+import com.midokura.util.functors.Callback1;
+import com.midokura.cache.LoadingCache;
 
 /**
- * An implementation of {@link com.midokura.midolman.util.LoadingCache} that
+ * An implementation of {@link com.midokura.cache.LoadingCache} that
  * stores UUID/PortConfig entries.
  *
  * This class uses ZooKeeper watchers to get notifications when its PortConfigs
