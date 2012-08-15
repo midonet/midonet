@@ -10,13 +10,14 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, IPv4}
+import com.midokura.midolman.topology.MacFlowCount
 import com.midokura.midonet.cluster.client.MacLearningTable
+import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.util.functors.Callback1
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
-             val macPortMap: MacLearningTable,
+             val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
              val inFilter: Chain, val outFilter: Chain) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
@@ -84,7 +85,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
-            increaseMacPortFlowCount(srcDlAddress, ingress.port)
+            flowCount.increment(srcDlAddress, ingress.port)
             //XXX: Flow Removal notifications so we can dec the flow count
             //XXX: Pino has some ideas on this he's going to write up.
         }
@@ -94,10 +95,6 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         // XXX: Add to traversed elements list if flooding.
 
         return new ForwardResult(new PortMatch(outPortID, matchOut))
-    }
-
-    private def increaseMacPortFlowCount(mac: MAC, port: UUID) {
-        //XXX
     }
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext): UUID = {

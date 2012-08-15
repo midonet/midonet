@@ -4,19 +4,33 @@
 package com.midokura.midolman.topology
 
 import java.util.UUID
+
+import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import com.midokura.midolman.simulation.Bridge
+import com.midokura.midonet.cluster.client.MacLearningTable
+import com.midokura.packets.MAC
 
+
+/* The MacFlowCount is called from the Coordinators' actors and dispatches
+ * to the VirtualTopologyActor to get/modify the flow counts.  */
+trait MacFlowCount {
+    def getCount(mac: MAC, port: UUID): Int
+    def increment(mac: MAC, port: UUID): Unit
+    def decrement(mac: MAC, port: UUID): Unit
+}
 
 class BridgeManager(id: UUID, val mgr: BridgeZkManager)
-    extends DeviceManager(id) {
-    private var cfg: BridgeConfig = null;
+        extends DeviceManager(id) {
+    private var cfg: BridgeConfig = null
+
+    private val flowCounts: MacFlowCount = null         //XXX
+    private val macPortMap: MacLearningTable = null     //XXX
 
     override def chainsUpdated() = {
         log.info("chains updated")
         context.actorFor("..").tell(
-                new Bridge(id, cfg, null /* XXX: MacPortMap */,
+                new Bridge(id, cfg, macPortMap, flowCounts,
                            inFilter, outFilter))
     }
 
@@ -40,6 +54,6 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     }
 
     override def receive() = super.receive orElse {
-        case SetBridgePortLocal(_, portId, local) =>; // TODO
+        case SetBridgePortLocal(_, portId, local) => // TODO XXX
     }
 }
