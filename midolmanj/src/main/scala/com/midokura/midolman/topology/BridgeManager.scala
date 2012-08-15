@@ -34,8 +34,6 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     private val flowCounts = new MacFlowCountImpl
     private val flowCountMap = new mutable.HashMap[(MAC, UUID), Int]()
 
-    def getFlowCountsTEST() = flowCounts
-
     override def chainsUpdated() = {
         log.info("chains updated")
         context.actorFor("..").tell(
