@@ -2,31 +2,34 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman.vrn
+package com.midokura.midolman
+
+import akka.actor.ActorSystem
+import akka.testkit.{TestProbe, TestActorRef}
+import akka.util.Duration
 
 import com.google.inject.{Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
-import akka.actor.ActorSystem
+import org.apache.zookeeper.CreateMode
 import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
-import com.midokura.midolman.guice.ComponentInjectorHolder
-import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import com.midokura.midolman.guice.reactor.ReactorModule
-import com.midokura.midolman.guice.config.{TypedConfigModule, MockConfigProviderModule}
+
 import com.midokura.midolman.config.MidolmanConfig
-import akka.testkit.{TestProbe, TestActorRef}
+import com.midokura.midolman.guice.ComponentInjectorHolder
+import com.midokura.midolman.guice.cluster.ClusterClientModule
+import com.midokura.midolman.guice.config.{TypedConfigModule,
+                                           MockConfigProviderModule}
+import com.midokura.midolman.guice.reactor.ReactorModule
+import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.state.{ZkManager, Directory}
-import org.apache.zookeeper.CreateMode
-import com.midokura.midolman.Setup
-import akka.util.Duration
-import com.midokura.midonet.cluster
-import com.midokura.midolman.guice.cluster.ClusterClientModule
-import com.midokura.midolman.simulation.Bridge
+import com.midokura.midolman.simulation.{Bridge => SimBridge}
 import com.midokura.midolman.topology.{BridgeRequest, VirtualTopologyActor}
+import com.midokura.midonet.cluster
 
-//class VirtualTopologyActorTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpec with MustMatchers with BeforeAndAfterAll {
-  trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll with BeforeAndAfter {
+
+trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll
+         with BeforeAndAfter {
     var injector: Injector = null
     val zkRoot = "/test/v3/midolman"
 
@@ -89,7 +92,7 @@ import com.midokura.midolman.topology.{BridgeRequest, VirtualTopologyActor}
 
 class VirtualTopologyProbe extends TestProbe(ActorSystem("testsystem")){
 
-    def expectBridge(x: Bridge) {
+    def expectBridge(x: SimBridge) {
 
     }
 
@@ -113,9 +116,9 @@ class X extends VirtualTopologyActorTest {
     val bridgeCfg = new BridgeConfig()
     // set gre key sequentially
     bridgeCfg.greKey = 1
-    probe.expectMsg(new Bridge(bridgeId, bridgeCfg, null, null))
+    probe.expectMsg(new SimBridge(bridgeId, bridgeCfg, null, null, null))
     val foo = probe.receiveOne(Duration.Undefined)
-    val mao = new Bridge(bridgeId, bridgeCfg, null, null)
+    val mao = new SimBridge(bridgeId, bridgeCfg, null, null, null)
     if(foo == mao){
         val pp = 0
     }
