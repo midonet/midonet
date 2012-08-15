@@ -25,6 +25,7 @@ trait MacFlowCount {
     def decrement(mac: MAC, port: UUID): Unit
 }
 
+
 class BridgeManager(id: UUID, val mgr: BridgeZkManager)
         extends DeviceManager(id) {
     private var cfg: BridgeConfig = null
@@ -32,6 +33,8 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
     private val macPortMap: MacLearningTable = null     //XXX
     private val flowCounts = new MacFlowCountImpl
     private val flowCountMap = new mutable.HashMap[(MAC, UUID), Int]()
+
+    def getFlowCountsTEST() = flowCounts
 
     override def chainsUpdated() = {
         log.info("chains updated")

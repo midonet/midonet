@@ -116,10 +116,13 @@ class X extends VirtualTopologyActorTest {
     val bridgeCfg = new BridgeConfig()
     // set gre key sequentially
     bridgeCfg.greKey = 1
-    probe.expectMsg(new SimBridge(bridgeId, bridgeCfg, null, null, null))
+    val flowCounts = bridgeMgr().getFlowCountsTEST
+    probe.expectMsg(new SimBridge(bridgeId, bridgeCfg, null, flowCounts,
+                                  null, null))
     val foo = probe.receiveOne(Duration.Undefined)
-    val mao = new SimBridge(bridgeId, bridgeCfg, null, null, null)
-    if(foo == mao){
+    val mao = new SimBridge(bridgeId, bridgeCfg, null, flowCounts,
+                             null, null)
+    if (foo == mao) {
         val pp = 0
     }
 
