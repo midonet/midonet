@@ -194,12 +194,12 @@ class VirtualTopologyActor() extends Actor {
             manageDevice(brPortLocalMsg.devId,
                 (x: UUID) => new BridgeManager(x, bridgeStateMgr))
             context.actorFor("./" + brPortLocalMsg.devId.toString())
-                .forward(brPortLocalMsg)
+                   .forward(brPortLocalMsg)
         case rtrPortLocalMsg: SetRouterPortLocal =>
             manageDevice(rtrPortLocalMsg.devId,
                 (x: UUID) =>
                     new RouterManager(x, routerStateMgr, routeStateMgr))
             context.actorFor("./" + rtrPortLocalMsg.devId.toString())
-                .forward(rtrPortLocalMsg)
+                   .forward(rtrPortLocalMsg)
     }
 }
