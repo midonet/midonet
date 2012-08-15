@@ -103,19 +103,21 @@ a particular virtual router will share the same ARP Cache, which will
 handle ARP replies and generate ARP requests.
 
 When a `Router` requires the MAC for an IP address, it queries its ARP cache,
-which will suspend the `SimulationProcess` actor the `Router` is running in
-until the ARP Cache replies.  When a `Router` receives an ARP reply addressed
-to it, it sends it to its ARP Cache and instructs the `VRNCoordinator` that
+which will suspend the `Controller` actor the `Router` is running in until
+the ARP Cache replies.  When a `Router` receives an ARP reply addressed
+to it, it sends it to its ARP Cache and instructs the `Coordinator` that
 it has consumed the packet.
 
 If the ARP Cache has an entry for a requested IP address, it returns it
-immediately.  If it does not, it records the waiting actor and the address
+immediately.  If it does not, it records the waiting callback and the address
 it's waiting on, and produces an ARP request and instructs the
-`SimulationController` to emit it.  If Midostore is notified of an entry
-for an outstanding address, it sends that entry to every actor waiting
-for it.  When `MidostoreClient` receives an ARP reply from the `Router`
-object, it updates the ARP Cache with the data from that reply and sends
-it to any actors waiting on it.
+`DatapathController` to emit it.  If the cluster service is notified of an
+entry for an outstanding address, it sends that entry to every callback
+waiting for it.  When the cluster service Client receives an ARP reply from
+the `Router` object, it updates the ARP Cache with the data from that reply
+and sends it to any callbacks waiting on it.  These callbacks complete the
+`Promise`s the `Coordinator` actors are waiting on, and so the Routers
+resume their simulations.
 
 ## Chains
 
