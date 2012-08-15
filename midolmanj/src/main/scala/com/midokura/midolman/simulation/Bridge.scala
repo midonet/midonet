@@ -3,12 +3,14 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.{Promise, ExecutionContext}
+import akka.dispatch.{Await, Promise, ExecutionContext}
+import akka.util.duration._
 import scala.collection.mutable
 import java.util.UUID
+import org.slf4j.LoggerFactory
+
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, IPv4}
-import org.slf4j.LoggerFactory
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.util.functors.Callback1
 
@@ -84,6 +86,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             increaseMacPortFlowCount(srcDlAddress, ingress.port)
             //XXX: Flow Removal notifications so we can dec the flow count
+            //XXX: Pino has some ideas on this he's going to write up.
         }
 
         //XXX: apply egress (post-bridging) chain
@@ -104,6 +107,6 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                 rv.complete(Right(port))
             }
         })
-        rv.value.get.right.get
+        Await.result(rv, 1 minute)
     }
 }
