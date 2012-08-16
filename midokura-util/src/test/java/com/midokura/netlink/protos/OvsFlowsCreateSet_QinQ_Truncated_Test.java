@@ -51,7 +51,7 @@ public class OvsFlowsCreateSet_QinQ_Truncated_Test
 
     @Override
     protected List<FlowAction<?>> flowActions() {
-	return Arrays.<FlowAction<?>>asList(FlowActions.output(513));
+        return Arrays.<FlowAction<?>>asList(FlowActions.output(513));
     }
 
     @Test

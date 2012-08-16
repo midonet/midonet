@@ -1,14 +1,16 @@
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.packets.*;
-import com.midokura.midonet.functional_test.utils.Tap;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
+import com.midokura.midonet.functional_test.utils.Tap;
+import com.midokura.packets.ARP;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.LLDP;
+import com.midokura.packets.MAC;
 import static com.midokura.util.process.ProcessHelper.newProcess;
 
 
@@ -99,7 +101,7 @@ public class TapWrapper {
             if (0 == numRead) {
                 if (timeSlept >= maxSleepMillis) {
                     //log.debug("Returning null after receiving {} bytes",
-                    //		buf.position());
+                    // buf.position());
                     return null;
                 }
                 try {

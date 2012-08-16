@@ -29,8 +29,8 @@
     <param-value>/midonet/v1</param-value>
   </context-param>
   <context-param>
-  	 <param-name>cassandra-servers</param-name>
-  	 <param-value>localhost:2181</param-value>
+    <param-name>cassandra-servers</param-name>
+    <param-value>localhost:2181</param-value>
   </context-param>
   <!-- The following parameters should match the ones in midolman.conf
   <context-param>

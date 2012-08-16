@@ -41,7 +41,7 @@ public class ProcessOutputDrainer {
     public void drainOutput(DrainTarget drainTarget, boolean wait) {
 
         Thread stdoutThread =
-	        new Thread(
+            new Thread(
                 new InputStreamDrainer(process.getInputStream(),
                                        drainTarget, false));
         stdoutThread.start();

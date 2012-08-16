@@ -370,8 +370,8 @@ public class HostDirectory {
     }
 
     public static class VirtualPortMapping {
-	    UUID virtualPortId;
-	    String localDeviceName;
+        UUID virtualPortId;
+        String localDeviceName;
 
         public VirtualPortMapping() {
         }

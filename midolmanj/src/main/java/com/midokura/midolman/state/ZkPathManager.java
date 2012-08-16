@@ -887,18 +887,18 @@ public class ZkPathManager {
 
 
     public String getHostVrnMappingsPath(UUID hostId) {
-	return getHostPath(hostId) + "/vrnMappings";
+        return getHostPath(hostId) + "/vrnMappings";
     }
 
     public String getHostVrnPortMappingsPath(UUID hostIdentifier) {
-	return getHostVrnMappingsPath(hostIdentifier) + "/ports";
+        return getHostVrnMappingsPath(hostIdentifier) + "/ports";
     }
 
     public String getHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
-	return getHostVrnPortMappingsPath(hostIdentifier) + "/" + virtualPortId;
+        return getHostVrnPortMappingsPath(hostIdentifier) + "/" + virtualPortId;
     }
 
     public String getHostVrnDatapathMappingPath(UUID hostIdentifier) {
-	return getHostVrnMappingsPath(hostIdentifier) + "/datapath";
+        return getHostVrnMappingsPath(hostIdentifier) + "/datapath";
     }
 }

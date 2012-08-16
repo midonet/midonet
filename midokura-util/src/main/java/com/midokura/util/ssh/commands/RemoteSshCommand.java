@@ -6,7 +6,6 @@ package com.midokura.util.ssh.commands;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.jcraft.jsch.UserInfo;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -18,7 +17,7 @@ public class RemoteSshCommand {
     private SshSession sshSession;
 
     public RemoteSshCommand(SshSession sshSession) {
-	this.sshSession = sshSession;
+        this.sshSession = sshSession;
     }
 
     protected void customizeChannel(SshExecChannel channel) {
@@ -35,12 +34,12 @@ public class RemoteSshCommand {
             channel.setCommand(command);
             customizeChannel(channel);
 
-            InputStream remoteInputStream = channel.getInputStream(); 
+            InputStream remoteInputStream = channel.getInputStream();
             channel.connect(timeout);
 
             return IOUtils.toString(remoteInputStream, "UTF-8");
-	} finally {
+        } finally {
             channel.disconnect();
-	}
+        }
     }
 }

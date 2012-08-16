@@ -95,18 +95,18 @@ protected[quagga] object ZebraProtocol {
                                                       4 * 2 + 1 * 3).toByte
 
     // c.f. /usr/include/net/if.h
-    final val IFF_UP	      = 0x1
+    final val IFF_UP          = 0x1
     final val IFF_BROADCAST   = 0x2
-    final val IFF_DEBUG	      = 0x4
+    final val IFF_DEBUG       = 0x4
     final val IFF_LOOPBACK    = 0x8
     final val IFF_POINTOPOINT = 0x10
     final val IFF_NOTRAILERS  = 0x20
     final val IFF_RUNNING     = 0x40
-    final val IFF_NOARP	      = 0x80
+    final val IFF_NOARP       = 0x80
     final val IFF_PROMISC     = 0x100
     final val IFF_ALLMULTI    = 0x200
     final val IFF_MASTER      = 0x400
-    final val IFF_SLAVE	      = 0x800
+    final val IFF_SLAVE       = 0x800
     final val IFF_MULTICAST   = 0x1000
     final val IFF_PORTSEL     = 0x2000
     final val IFF_AUTOMEDIA   = 0x4000

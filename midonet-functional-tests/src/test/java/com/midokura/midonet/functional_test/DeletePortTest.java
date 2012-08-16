@@ -148,7 +148,7 @@ public class DeletePortTest {
 
     @Test
     public void testPortDelete()
-	throws InterruptedException, MalformedPacketException {
+        throws InterruptedException, MalformedPacketException {
         short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
         short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
         short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));

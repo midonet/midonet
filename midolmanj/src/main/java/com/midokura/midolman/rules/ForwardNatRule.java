@@ -7,17 +7,17 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.layer4.NatMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
-import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.util.Net;
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
@@ -175,12 +175,12 @@ public class ForwardNatRule extends NatRule {
 
     // Getter for JSON serialization supporting readable IP addresses
     public String getFloatingIpAddr() {
-    	return Net.convertIntAddressToString(this.floatingIpAddr);
+        return Net.convertIntAddressToString(this.floatingIpAddr);
     }
 
     // Setter for JSON serialization supporting readable IP addresses
     public void setFloatingIpAddr(String addr) {
-    	this.floatingIpAddr = Net.convertStringAddressToInt(addr);
+        this.floatingIpAddr = Net.convertStringAddressToInt(addr);
     }
 
     @Override

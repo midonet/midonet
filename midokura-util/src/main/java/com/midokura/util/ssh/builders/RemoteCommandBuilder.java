@@ -5,9 +5,8 @@ package com.midokura.util.ssh.builders;
 
 import java.io.IOException;
 
-import com.midokura.util.ssh.commands.RemoteSshCommand;
 import com.midokura.util.ssh.SshHelper;
-import com.midokura.util.ssh.jsch.PasswordCredentialsUserInfo;
+import com.midokura.util.ssh.commands.RemoteSshCommand;
 
 /**
  * Command builder for a shell command executed via a ssh connection.
@@ -37,6 +36,6 @@ public class RemoteCommandBuilder
     public String run(int timeout) throws IOException {
         return
             new RemoteSshCommand(open(timeout))
-	         .execute(command, timeout);
+                .execute(command, timeout);
     }
 }

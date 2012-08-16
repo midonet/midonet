@@ -46,19 +46,19 @@ place in the *OSI model*, produced by ISO's Open Systems Interconnections
 group.  From bottom to top, the layers are:
 
 - Layer 1 or physical layer:
-	This describes how signals are translated into digital values.
+    This describes how signals are translated into digital values.
 - Layer 2 or data link layer:
-	This describes how traffic is sent over a link.
+    This describes how traffic is sent over a link.
 - Layer 3 or network layer:
-	This describes how traffic is forwarded over a network.
+    This describes how traffic is forwarded over a network.
 - Layer 4 or transport layer:
-	This describes how data streams are segmented and multiplexed.
+    This describes how data streams are segmented and multiplexed.
 - Layer 5 or session layer:
-	This describes how connections are started, stopped, and managed.
+    This describes how connections are started, stopped, and managed.
 - Layer 6 or presentation layer:
-	This describes how the data sent is encoded.
+    This describes how the data sent is encoded.
 - Layer 7 or application layer:
-	This describes end-user relevant data.
+    This describes end-user relevant data.
 
 These layers shouldn't be taken too seriously:  They don't have clear
 boundaries, and many protocols span layer boundaries.  The OSI model

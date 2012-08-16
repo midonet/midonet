@@ -27,19 +27,19 @@ public class NatTarget {
     /* Custom accessors for Jackson serialization with more readable IPs. */
 
     public String getNwStart() {
-    	return Net.convertIntAddressToString(this.nwStart);
+        return Net.convertIntAddressToString(this.nwStart);
     }
 
     public void setNwStart(String addr) {
-    	this.nwStart = Net.convertStringAddressToInt(addr);
+        this.nwStart = Net.convertStringAddressToInt(addr);
     }
 
     public String getNwEnd() {
-    	return Net.convertIntAddressToString(this.nwEnd);
+        return Net.convertIntAddressToString(this.nwEnd);
     }
 
     public void setNwEnd(String addr) {
-    	this.nwEnd = Net.convertStringAddressToInt(addr);
+        this.nwEnd = Net.convertStringAddressToInt(addr);
     }
 
     @Override

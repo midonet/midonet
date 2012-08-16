@@ -361,10 +361,10 @@ public class HostZkManager extends ZkManager {
             String errorItemPath =
                 pathManager.getHostCommandErrorLogPath(hostId, logId);
 
-	    if (exists(errorItemPath)) {
+            if (exists(errorItemPath)) {
                 byte[] data = get(errorItemPath);
                 return serializer.deserialize(data,
-					      HostDirectory.ErrorLogItem.class);
+                                              HostDirectory.ErrorLogItem.class);
             }
 
             return null;
@@ -395,18 +395,18 @@ public class HostZkManager extends ZkManager {
     }
 
     public String getVirtualDatapathMapping(UUID hostIdentifier)
-	throws StateAccessException {
+        throws StateAccessException {
 
-	String hostVrnDatapathMappingPath =
-	    pathManager.getHostVrnDatapathMappingPath(hostIdentifier);
+        String hostVrnDatapathMappingPath =
+            pathManager.getHostVrnDatapathMappingPath(hostIdentifier);
 
-	if (!exists(hostVrnDatapathMappingPath)) {
-	    return "midonet";
-	}
+        if (!exists(hostVrnDatapathMappingPath)) {
+            return "midonet";
+        }
 
-	return serializer.deserialize(
-	    get(hostVrnDatapathMappingPath),
-	    String.class);
+        return serializer.deserialize(
+            get(hostVrnDatapathMappingPath),
+            String.class);
     }
 
     public Set<HostDirectory.VirtualPortMapping> getVirtualPortMappings(UUID hostIdentifier)

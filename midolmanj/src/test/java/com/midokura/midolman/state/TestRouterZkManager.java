@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.midokura.midolman.state.zkManagers.ChainZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.layer3.Router;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.util.eventloop.MockReactor;
 
 public class TestRouterZkManager {
 
@@ -168,8 +168,8 @@ public class TestRouterZkManager {
             // Now delete the router
             routerMgr.delete(rtrId);
         } catch (Exception e) {
-	        e.printStackTrace();
-	        Assert.fail("failed");
+            e.printStackTrace();
+            Assert.fail("failed");
         } finally {
             ;
         }

@@ -52,7 +52,7 @@ public class Packet {
     }
 
     public Packet setMatch(@Nonnull FlowMatch match) {
-	this.match = match;
+        this.match = match;
         return this;
     }
 
@@ -72,7 +72,7 @@ public class Packet {
 
     public Packet addAction(FlowAction<?> action) {
         if (this.actions == null)
-	    this.actions = new ArrayList<FlowAction<?>>();
+            this.actions = new ArrayList<FlowAction<?>>();
 
         this.actions.add(action);
         return this;

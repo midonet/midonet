@@ -125,7 +125,7 @@ public class VmSshTest {
             vm.startup();
             assertThat("The Machine should have been started", vm.isRunning());
 
-	    sshSession = SshHelper.newSession()
+            sshSession = SshHelper.newSession()
                               .onHost("192.168.231.2")
                               .withCredentials("ubuntu", "ubuntu")
                               .open(30*1000);
@@ -147,7 +147,7 @@ public class VmSshTest {
 
         } finally {
             if (sshSession != null) {
-	        sshSession.disconnect();
+                sshSession.disconnect();
             }
             vm.shutdown();
         }
@@ -161,7 +161,7 @@ public class VmSshTest {
 
             assertThat("The Machine should have been started", vm.isRunning());
 
-	    sshSession = SshHelper.newSession()
+            sshSession = SshHelper.newSession()
                               .onHost("192.168.231.2")
                               .withCredentials("ubuntu", "ubuntu")
                               .open(60*1000);
@@ -206,7 +206,7 @@ public class VmSshTest {
 
         } finally {
             if (sshSession != null) {
-	        sshSession.disconnect();
+                sshSession.disconnect();
             }
             vm.shutdown();
         }

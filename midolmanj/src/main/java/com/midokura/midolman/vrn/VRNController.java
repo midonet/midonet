@@ -17,9 +17,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.GreZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
@@ -40,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.actors.threadpool.Arrays;
 
+import com.midokura.cache.Cache;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.CookieMonster;
 import com.midokura.midolman.DhcpHandler;
@@ -54,18 +52,20 @@ import com.midokura.midolman.portservice.VpnPortAgent;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
 import com.midokura.midolman.state.IPv4Set;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
+import com.midokura.midolman.state.zkManagers.GreZkManager;
+import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnType;
-import com.midokura.cache.Cache;
 import com.midokura.packets.ARP;
 import com.midokura.packets.DHCP;
 import com.midokura.packets.Ethernet;
@@ -792,7 +792,7 @@ public class VRNController extends AbstractController
         for (Short outPortNum : outPorts) {
             short out = outPortNum.shortValue();
             /* See OpenFlow 1.0, enum ofp_port {...
-             * OFPP_IN_PORT	= 0xfff8,
+             * OFPP_IN_PORT = 0xfff8,
              * Send the packet out the input port. This virtual port must be
              * explicitly used in order to send back out of the input port.
              */

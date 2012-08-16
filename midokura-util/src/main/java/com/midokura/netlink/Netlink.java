@@ -46,7 +46,7 @@ public interface Netlink {
         // Return the complete table instead of a single entry.
         NLM_F_ROOT(0x100),
         // Return all entries matching criteria passed
-        // in message content.	Not implemented yet.
+        // in message content. Not implemented yet.
         NLM_F_MATCH(0x200),
         // Return an atomic snapshot of the table.
         NLM_F_ATOMIC(0x400),

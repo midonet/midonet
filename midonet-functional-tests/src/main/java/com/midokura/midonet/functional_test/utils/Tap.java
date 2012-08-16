@@ -32,8 +32,8 @@ public class Tap {
     public static final int IFF_NO_PI = 0x1000;
 
     /* ioctls.h */
-    public static final int SIOCGIFHWADDR = 0x8927;        /* Get hardware address		*/
-    public static final int SIOCSIFHWADDR = 0x8924;        /* set hardware address 	*/
+    public static final int SIOCGIFHWADDR = 0x8927;        /* Get hardware address */
+    public static final int SIOCSIFHWADDR = 0x8924;        /* set hardware address */
 
     /* fcntl.h */
     public static final int O_RDONLY = 0;

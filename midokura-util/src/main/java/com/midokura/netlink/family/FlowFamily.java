@@ -37,9 +37,9 @@ public class FlowFamily extends Netlink.CommandFamily<FlowFamily.Cmd, FlowFamily
     public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
 
         /* Sequence of OVS_KEY_ATTR_* attributes. */
-	public static final AttrKey<List<FlowKey<?>>> KEY = attrNested(1);
+        public static final AttrKey<List<FlowKey<?>>> KEY = attrNested(1);
         /* Nested OVS_ACTION_ATTR_* attributes. */
-	public static final AttrKey<List<FlowAction<?>>> ACTIONS = attrNested(2);
+        public static final AttrKey<List<FlowAction<?>>> ACTIONS = attrNested(2);
         /* struct ovs_flow_stats. */
         public static final AttrKey<FlowStats> STATS = attr(3);
         /* 8-bit OR'd TCP flags. */
