@@ -5,9 +5,11 @@ package com.midokura.midolman.services;
 
 import java.util.concurrent.TimeUnit;
 
+import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.UntypedActorFactory;
 import akka.dispatch.Await;
 import akka.dispatch.Future;
 import akka.pattern.Patterns;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.DatapathController;
+import com.midokura.midolman.FlowController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
@@ -45,11 +48,12 @@ public class MidolmanActorsService extends AbstractService {
     @Inject
     Injector injector;
 
-    ActorSystem actorSystem;
+    protected ActorSystem actorSystem;
 
     ActorRef virtualTopologyActor;
     ActorRef datapathControllerActor;
     ActorRef virtualToPhysicalActor;
+    ActorRef flowControllerActor;
 
     @Override
     protected void doStart() {
@@ -60,14 +64,24 @@ public class MidolmanActorsService extends AbstractService {
         log.debug("Creating actors system.");
         actorSystem = ActorSystem.create("midolmanActors");
 
-        virtualTopologyActor = startActor(getVirtualTopologyProps(),
-                                          VirtualTopologyActor.Name());
+        virtualTopologyActor =
+            startActor(
+                getGuiceAwareFactory(VirtualTopologyActor.class),
+                VirtualTopologyActor.Name());
 
-        virtualToPhysicalActor = startActor(getVirtualToPhysicalProps(),
-                                            VirtualToPhysicalMapper.Name());
+        virtualToPhysicalActor =
+            startActor(
+                getGuiceAwareFactory(VirtualToPhysicalMapper.class),
+                VirtualToPhysicalMapper.Name());
 
-        datapathControllerActor = startActor(getDatapathControllerProps(),
-                                             DatapathController.Name());
+        datapathControllerActor =
+            startActor(
+                getGuiceAwareFactory(DatapathController.class),
+                DatapathController.Name());
+
+        flowControllerActor =
+            startActor(getGuiceAwareFactory(FlowController.class),
+                       FlowController.Name());
 
         notifyStarted();
         log.info("Actors system started");
@@ -79,6 +93,7 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(datapathControllerActor);
             stopActor(virtualTopologyActor);
             stopActor(virtualToPhysicalActor);
+            stopActor(flowControllerActor);
 
             log.debug("Stopping the actor system");
             actorSystem.shutdown();
@@ -89,16 +104,8 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    private Props getDatapathControllerProps() {
-        return new Props(DatapathController.class);
-    }
-
-    private Props getVirtualTopologyProps() {
-        return new Props(VirtualTopologyActor.class);
-    }
-
-    private Props getVirtualToPhysicalProps() {
-        return new Props(VirtualToPhysicalMapper.class);
+    private Props getGuiceAwareFactory(Class<? extends Actor> actorClass) {
+        return new Props(new GuiceActorFactory(injector, actorClass));
     }
 
     private void stopActor(ActorRef actorRef) {
@@ -115,18 +122,23 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    protected ActorRef startActor(Props actorProps, String actorName) {
+    private ActorRef startActor(Props actorProps, String actorName) {
         ActorRef actorRef = null;
 
         try {
             log.debug("Starting actor {}", actorName);
-            actorRef = actorSystem.actorOf(actorProps, actorName);
+            actorRef = makeActorRef(actorProps, actorName);
+
             log.debug("Started at {}", actorRef);
         } catch (Exception e) {
             log.error("Failed {}", e);
         }
 
         return actorRef;
+    }
+
+    protected ActorRef makeActorRef(Props actorProps, String actorName) {
+        return actorSystem.actorOf(actorProps, actorName);
     }
 
     public void initProcessing() throws Exception {
@@ -142,5 +154,21 @@ public class MidolmanActorsService extends AbstractService {
 
     public ActorSystem system() {
         return actorSystem;
+    }
+
+    private static class GuiceActorFactory implements UntypedActorFactory {
+
+        Class<? extends Actor> actorClass;
+        Injector injector;
+
+        private GuiceActorFactory(Injector injector, Class<? extends Actor> actorClass) {
+            this.injector = injector;
+            this.actorClass = actorClass;
+        }
+
+        @Override
+        public Actor create() {
+            return injector.getInstance(actorClass);
+        }
     }
 }

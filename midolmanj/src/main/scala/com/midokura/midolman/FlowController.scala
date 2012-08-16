@@ -2,22 +2,30 @@
 
 package com.midokura.midolman
 
-import akka.actor.Actor
+import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
+import guice.ComponentInjectorHolder
 import java.util.UUID
 
-import com.midokura.sdn.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Packet}
+import com.midokura.sdn.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Datapath, Packet}
+
 import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
-                               WildcardFlowTable}
+WildcardFlowTable}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.sdn.dp.flows.FlowAction
+import javax.inject.Inject
+import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.netlink.Callback
+import com.midokura.netlink.exceptions.NetlinkException
+import akka.event.Logging
 
 object FlowController {
     val Name = "FlowController"
 
     case class AddWildcardFlow(wFlow: WildcardFlow, outPorts: Set[UUID],
-			       packet: Option[Packet])
+                               packet: Option[Packet])
+
     case class RemoveWildcardFlow(fmatch: MidoMatch)
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]],
@@ -27,74 +35,37 @@ object FlowController {
 
     // Callback argument should not block.
     case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
-
-    case class PacketIn(packet: Packet)
 }
 
-class FlowController(val wildcardFlowManager: WildcardFlowTable,
-                         val exactFlowManager: NetlinkFlowTable) extends Actor {
-    import FlowController._
+class FlowController extends Actor {
 
-    private var packetInCallback: (Packet, UUID) => Unit = null
+    import FlowController._
+    import context._
+
+    val log = Logging(context.system, this)
 
     private val pendedMatches: MultiMap[KernelMatch, Packet] =
         new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
 
-    // Send this message to myself when I get the NL packetIn callback
-//    case class PacketIn(packet: Packet)
-    // Callback invoked from select-loop thread context.
-    // TODO(pino, jlm): register this callback
-    // XXX
-//    def onPacketIn(packet: Packet) {
-//        self ! PacketIn(packet)
-//    }
+    @Inject
+    var datapathConnection: OvsDatapathConnection = null
 
-    private def doPacketIn(packet: Packet) {
-        // First check if packet matches an exact flow, in case
-        // the PacketIn notify crossed the flow's install message.
-        val exactFlow = exactFlowManager.get(packet)
-        if (exactFlow != null) {
-            // XXX
-            // TODO: packetOut(packet, exactFlow)
-            return
-        }
+    @Inject
+    var wildcardFlowManager: WildcardFlowTable = null
 
-        // Query the WildcardFlowTable
-        val wFlow = wildcardFlowManager.matchPacket(packet)
-        if (wFlow != null) {
-            val kFlow = new KernelFlow().
-                setMatch(packet.getMatch).setActions(wFlow.actions)
-            val evictedFlows = exactFlowManager.add(wFlow, kFlow)
-            // XXX
-            // TODO: installFlow(kFlow, packet)
-            wildcardFlowManager.markUnused(evictedFlows.fst)
-            for (kernelFlow <- evictedFlows.snd) {
-                // XXX
-                // TODO: removeFlow(kernelFlow)
-            }
-        } else if(packetInCallback != null) {
-            val kernelMatch = packet.getMatch
-            if (pendedMatches.get(kernelMatch) == None) {
-                // XXX
-                // TODO: translate the Packet's inPort to a UUID
-                val inPortID: UUID = null
-                packetInCallback(packet, inPortID)
-            }
-            pendedMatches.addBinding(kernelMatch, packet)
-        }
-    }
+    @Inject
+    var exactFlowManager: NetlinkFlowTable = null
 
-    def installPacketInHook() {
-        // TODO: install a local packet int hook that will post messages to self
+    def datapathController() {
+        actorFor("/user/%s" format DatapathController.Name)
     }
 
     def receive = {
-
         case DatapathController.DatapathReady(datapath) =>
-            installPacketInHook()
+            installPacketInHook(datapath)
 
-        case PacketIn(packet) =>
-            doPacketIn(packet)
+        case packetIn(packet) =>
+            handlePacketIn(packet)
 
         case AddWildcardFlow(wildcardFlow, outPorts, packetOption) =>
             // TODO(pino, jlm): translate the outPorts to output actions and
@@ -130,9 +101,65 @@ class FlowController(val wildcardFlowManager: WildcardFlowTable,
             pendedMatches.remove(kernelMatch)
 
         case RemoveWildcardFlow(fmatch) => //XXX
-        case SendPacket(data, actions, outPorts) => //XXX
-        case RegisterPacketInListener(callback) =>
-            packetInCallback = callback
 
+        case SendPacket(data, actions, outPorts) => //XXX
+    }
+
+    /**
+     * Internal message posted by the netlink callback hook when a new packet not
+     * matching any flows appears on one of the datapath ports.
+     *
+     * @param packet the packet data
+     */
+    case class packetIn(packet: Packet)
+
+    private def handlePacketIn(packet: Packet) {
+        // First check if packet matches an exact flow, in case
+        // the PacketIn notify crossed the flow's install message.
+        val exactFlow = exactFlowManager.get(packet)
+        if (exactFlow != null) {
+            // XXX
+            // TODO: packetOut(packet, exactFlow)
+            return
+        }
+
+        // Query the WildcardFlowTable
+        val wFlow = wildcardFlowManager.matchPacket(packet)
+        if (wFlow != null) {
+            val kFlow = new KernelFlow()
+                .setMatch(packet.getMatch)
+                .setActions(wFlow.actions)
+
+            val evictedFlows = exactFlowManager.add(wFlow, kFlow)
+            // XXX
+            // TODO: installFlow(kFlow, packet)
+            wildcardFlowManager.markUnused(evictedFlows.fst)
+            for (kernelFlow <- evictedFlows.snd) {
+                // XXX
+                // TODO: removeFlow(kernelFlow)
+            }
+        } else {
+            val kernelMatch = packet.getMatch
+            if (pendedMatches.get(kernelMatch) == None) {
+                datapathController() ! DatapathController.PacketIn(packet)
+            }
+
+            pendedMatches.addBinding(kernelMatch, packet)
+        }
+    }
+
+    private def installPacketInHook(datapath: Datapath) {
+        log.info("Installing packet in handler")
+        // TODO: try to make this cleaner (right now we are just waiting for
+        // the install future thus blocking the current thread).
+        datapathConnection.datapathsSetNotificationHandler(datapath, new Callback[Packet] {
+            def onSuccess(data: Packet) {
+                self ! packetIn(data)
+            }
+
+            def onTimeout() {}
+
+            def onError(e: NetlinkException) {}
+        }).get()
     }
 }

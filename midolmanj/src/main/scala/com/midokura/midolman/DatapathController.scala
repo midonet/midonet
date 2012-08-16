@@ -7,9 +7,8 @@ import akka.actor.{ActorRef, Actor}
 import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
-import datapath.{FlowKeyVrnPort, FlowActionVrnPortOutput, ErrorHandlingCallback}
+import datapath.ErrorHandlingCallback
 import flows.{FlowActions, FlowKeys, FlowAction}
-import guice.ComponentInjectorHolder
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
@@ -260,6 +259,8 @@ object DatapathController {
     case class DeleteFlow(flow: KernelFlow)
 
     case class SendPacket(packet: Packet)
+
+    case class PacketIn(packet:Packet)
 }
 
 
@@ -309,19 +310,26 @@ class DatapathController() extends Actor {
 
     import DatapathController._
     import VirtualToPhysicalMapper._
-    import FlowController._
     import context._
 
-    val log = Logging(context.system, this)
+    val log = Logging(system, this)
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null
 
     val hostId = UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
 
-    var flowController: ActorRef = null
-    var virtualTopology: ActorRef = null
-    var virtualToPhysicalMapper: ActorRef = null
+    private def flowController(): ActorRef =  {
+        actorFor("/user/%s" format FlowController.Name)
+    }
+
+    private def virtualTopology(): ActorRef =  {
+        actorFor("/user/%s" format VirtualTopologyActor.Name)
+    }
+
+    private def virtualToPhysicalMapper(): ActorRef =  {
+        actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
+    }
 
     var datapath: Datapath = null
 
@@ -332,55 +340,40 @@ class DatapathController() extends Actor {
     val localPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
     val knownPortsByName: mutable.Set[String] = mutable.Set()
 
-    override def preStart() {
-        super.preStart()
-        ComponentInjectorHolder.inject(this)
-
-        virtualToPhysicalMapper =
-            context.actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
-        virtualTopology =
-            context.actorFor("/user/%s" format VirtualTopologyActor.Name)
-        flowController =
-            context.actorFor("/user/%s" format FlowController.Name)
-
-        context.become(DatapathInitializationActor)
-    }
-
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
 
     protected def receive = null
 
-    def installPacketInHandler() {
-        datapathConnection.datapathsSetNotificationHandler(datapath, new NetlinkCallback[Packet] {
-            def onSuccess(data: Packet) {
-                self ! _PacketIn(data)
-            }
+    override def preStart() {
+        super.preStart()
+        context.become(DatapathInitializationActor)
 
-            def onTimeout() {}
-
-            def onError(e: NetlinkException) {}
-        }).get()
+        log.info("FlowController address: {} " + flowController)
     }
 
     val DatapathInitializationActor: Receive = {
 
         /**
-         * External message reaction
+         * Initialization request message
          */
         case Initialize() =>
             initializer = sender
             virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
 
+        /**
+         * Initialization complete (sent by self) and we forward the reply to
+         * the actual guy that requested initialization.
+         */
         case m: InitializationComplete if (sender == self) =>
-            log.info("Initialization complete. Starting to act as a controller")
-            flowController ! DatapathController.DatapathReady(datapath)
+            log.info("Initialization complete. Starting to act as a controller.")
             become(DatapathControllerActor)
+            flowController ! DatapathController.DatapathReady(datapath)
             initializer forward m
 
         /**
-         * Reply messages reaction
+         * Handle replies for local state queries.
          */
         case LocalDatapathReply(wantedDatapath) =>
             readDatapathInformation(wantedDatapath)
@@ -388,15 +381,24 @@ class DatapathController() extends Actor {
         case LocalPortsReply(ports) =>
             doDatapathPortsUpdate(ports)
 
+        /**
+         * Handle personal create port requests
+         */
         case createPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
             createDatapathPort(sender, createPortOp.port)
 
+        /**
+         * Handle personal delete port requests
+         */
         case deletePortOp: DeletePortOp[Port[_, _]] if (sender == self) =>
             deleteDatapathPort(sender, deletePortOp.port)
 
         case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
             handlePortOperationReply(opReply)
 
+        /**
+         * Log unhandled messages.
+         */
         case m =>
             log.info("(behaving as InitializationActor). Not handling message: " + m)
     }

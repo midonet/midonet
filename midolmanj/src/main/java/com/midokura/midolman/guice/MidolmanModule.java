@@ -29,17 +29,17 @@ public class MidolmanModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(ConfigProvider.class);
-        bind(MidolmanConfig.class)
-            .toProvider(MidolmanConfigProvider.class)
-            .asEagerSingleton();
-        expose(MidolmanConfig.class);
-
         requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
+
+        bind(MidolmanConfig.class)
+            .toProvider(MidolmanConfigProvider.class)
+            .asEagerSingleton();
+        expose(MidolmanConfig.class);
 
         Named watcherAnnotation = Names.named(ZKConnectionProvider.WATCHER_NAME_TAG);
 

@@ -15,10 +15,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     import scala.collection.JavaConversions._
     import DatapathController._
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-    }
-
     def testDatapathEmptyDefault() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
