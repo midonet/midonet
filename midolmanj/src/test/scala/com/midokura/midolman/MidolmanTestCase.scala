@@ -5,10 +5,11 @@ package com.midokura.midolman
 
 import guice._
 import cluster.ClusterClientModule
+import guice.actors.TestableMidolmanActorsModule
 import guice.config.MockConfigProviderModule
 import guice.datapath.MockDatapathModule
 import guice.zookeeper.MockZookeeperConnectionModule
-import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
+import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Suite, BeforeAndAfterAll}
 import com.google.inject.{AbstractModule, Module, Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import com.midokura.netlink.protos.OvsDatapathConnection
@@ -25,9 +26,11 @@ import collection.mutable
 import com.midokura.midonet.cluster.Client
 import java.util.UUID
 import com.midokura.midonet.cluster.services.MidostoreSetupService
-import akka.testkit.{TestProbe, TestActorRef}
+import akka.testkit._
+import java.util.concurrent.LinkedBlockingDeque
+import akka.testkit.TestActor.{AutoPilot, Message}
 
-trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter {
+trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter with OneInstancePerTest {
 
     var injector: Injector = null
 
@@ -66,6 +69,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
     }
 
+    val probesByName = mutable.Map[String, TestKit]()
+    val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
+
     protected def getModules(config: HierarchicalConfiguration): Iterable[Module] = {
         List(
             new MockConfigProviderModule(config),
@@ -74,18 +80,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
 
             new ReactorModule(),
             new ClusterClientModule(),
-            new MidolmanModule(),
-            new AbstractModule {
-                def configure() {
-                    bind(classOf[MidolmanActorsService])
-                        .toInstance(new TestActorsService())
-                }
-            }
+            new TestableMidolmanActorsModule(probesByName, actorsByName),
+            new MidolmanModule()
         )
     }
 
-    def topActor[A <: Actor](name: String): TestActorRef[A] = {
-        actors().actorFor(actors() / name).asInstanceOf[TestActorRef[A]]
+    def topActor[A <: Actor](name: String): ActorRef = {
+        actors().actorFor(actors() / name)
     }
 
     protected def sendReply[T](actor: ActorRef, msg: Object): T = {
@@ -108,17 +109,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         portsByName
     }
 
-    class TestActorsService extends MidolmanActorsService {
-        protected override def makeActorRef(actorProps: Props, actorName: String): ActorRef = {
-            implicit val system = actorSystem
-            val probe = TestProbe()
-            TestActorRef(actorProps, actorName)
-//            system.actorOf(new Props(new UntypedActorFactory {
-//                def create(): Actor = {
-//                    probe.testActor
-//                }
-//            }), actorName)
-//            probe.ref
-        }
+    protected def probeByName(name:String):TestKit = {
+        probesByName(name)
+    }
+
+    protected def actorByName[A <: Actor](name: String):TestActorRef[A] = {
+        actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 }

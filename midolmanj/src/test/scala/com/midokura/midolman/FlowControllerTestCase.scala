@@ -4,8 +4,7 @@
 package com.midokura.midolman
 
 import org.scalatest.matchers.ShouldMatchers
-import scala.Right
-import com.midokura.sdn.dp.Packet
+import akka.dispatch.Await
 
 class FlowControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
@@ -14,27 +13,24 @@ class FlowControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     import akka.util.duration._
 
     def testDatapathEmptyDefault() {
+
         initializeDatapath()
 
-//        val datapath = dpConn().datapathsGet("midonet").get()
+        val datapathReady =
+            probeByName(FlowController.Name)
+                .expectMsgType[DatapathController.DatapathReady]
 
-        val flowActor = topActor[FlowController](FlowController.Name)
-        val actor:FlowController = flowActor.underlyingActor
-
-        flowActor ! actor.packetIn(new Packet())
+        datapathReady should not be (null)
+        datapathReady.datapath should not be (null)
     }
 
-    private def initializeDatapath() {
-        implicit val timeout = Timeout(1 second)
-        val initialization = topActor(DatapathController.Name) ? DatapathController.Initialize()
+    protected def initializeDatapath() {
+        val timeout = Timeout(1 second)
 
-        val result = initialization.value.get match {
-            case Right(DatapathController.InitializationComplete()) ⇒
-                true
-            case _ =>
-                false
-        }
+        val futureResult = ask(topActor(DatapathController.Name), DatapathController.Initialize())(timeout)
+        val result = Await.result(futureResult, timeout.duration)
+                        .asInstanceOf[DatapathController.InitializationComplete]
 
-        result should be(true)
+        result should not be (null)
     }
 }

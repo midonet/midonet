@@ -349,8 +349,6 @@ class DatapathController() extends Actor {
     override def preStart() {
         super.preStart()
         context.become(DatapathInitializationActor)
-
-        log.info("FlowController address: {} " + flowController)
     }
 
     val DatapathInitializationActor: Receive = {
