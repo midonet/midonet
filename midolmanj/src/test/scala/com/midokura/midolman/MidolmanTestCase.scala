@@ -55,7 +55,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     before {
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
-
             asJavaIterable(getModules(config))
         )
 

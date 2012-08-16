@@ -56,7 +56,7 @@ class FlowController extends Actor {
     @Inject
     var exactFlowManager: NetlinkFlowTable = null
 
-    def datapathController() {
+    def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
     }
 
