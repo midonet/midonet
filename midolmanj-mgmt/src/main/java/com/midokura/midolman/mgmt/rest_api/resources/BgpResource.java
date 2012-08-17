@@ -4,74 +4,74 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.BgpDao;
+import com.midokura.midolman.mgmt.data.dto.Bgp;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource.BgpAdRouteResource;
+import com.midokura.midolman.state.InvalidStateOperationException;
+import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import com.midokura.midolman.state.InvalidStateOperationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.BgpDao;
-import com.midokura.midolman.mgmt.data.dto.Bgp;
-import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource.BgpAdRouteResource;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Root resource class for bgps.
  */
+@RequestScoped
 public class BgpResource {
-    /*
-     * Implements REST API end points for bgps.
-     */
 
     private final static Logger log = LoggerFactory
             .getLogger(BgpResource.class);
+
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final BgpDao dao;
+    private final ResourceFactory factory;
+
+    @Inject
+    public BgpResource(UriInfo uriInfo, SecurityContext context,
+                       Authorizer authorizer, BgpDao dao,
+                       ResourceFactory factory) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.dao = dao;
+        this.factory = factory;
+    }
 
     /**
      * Handler to deleting BGP.
      *
      * @param id
      *            BGP ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
@@ -79,7 +79,6 @@ public class BgpResource {
                     "Not authorized to delete this BGP.");
         }
 
-        BgpDao dao = daoFactory.getBgpDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -93,14 +92,6 @@ public class BgpResource {
      *
      * @param id
      *            BGP ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @return A BGP object.
@@ -110,15 +101,13 @@ public class BgpResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
             MediaType.APPLICATION_JSON })
-    public Bgp get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+    public Bgp get(@PathParam("id") UUID id) throws StateAccessException {
 
         if (!authorizer.bgpAuthorized(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException("Not authorized to view this BGP.");
+            throw new ForbiddenHttpException(
+                    "Not authorized to view this BGP.");
         }
 
-        BgpDao dao = daoFactory.getBgpDao();
         Bgp bgp = dao.get(id);
         if (bgp == null) {
             throw new NotFoundHttpException(
@@ -138,24 +127,32 @@ public class BgpResource {
      */
     @Path("/{id}" + ResourceUriBuilder.AD_ROUTES)
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
-        return new BgpAdRouteResource(id);
+        return factory.getBgpAdRouteResource(id);
     }
 
     /**
      * Sub-resource class for port's BGP.
      */
+    @RequestScoped
     public static class PortBgpResource {
 
         private final UUID portId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final BgpDao dao;
 
-        /**
-         * Constructor
-         *
-         * @param portId
-         *            ID of a port.
-         */
-        public PortBgpResource(UUID portId) {
+        @Inject
+        public PortBgpResource(UriInfo uriInfo,
+                               SecurityContext context,
+                               Authorizer authorizer,
+                               BgpDao dao,
+                               @Assisted UUID portId) {
             this.portId = portId;
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.dao = dao;
         }
 
         /**
@@ -163,14 +160,6 @@ public class BgpResource {
          *
          * @param bgp
          *            BGP object.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param context
-         *            Object that holds the security data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @returns Response object with 201 status code set if successful.
@@ -179,16 +168,14 @@ public class BgpResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_BGP_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(Bgp bgp, @Context UriInfo uriInfo,
-                @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+        public Response create(Bgp bgp)
                 throws StateAccessException, InvalidStateOperationException {
 
             if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add BGP to this port.");
             }
-            BgpDao dao = daoFactory.getBgpDao();
+
             bgp.setPortId(portId);
             UUID id = dao.create(bgp);
             return Response.created(
@@ -199,14 +186,6 @@ public class BgpResource {
         /**
          * Handler to getting a list of BGPs.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @return A list of BGP objects.
@@ -215,15 +194,13 @@ public class BgpResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Bgp> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Bgp> list() throws StateAccessException {
 
             if (!authorizer.portAuthorized(context, AuthAction.READ, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these BGPs.");
             }
-            BgpDao dao = daoFactory.getBgpDao();
+
             List<Bgp> bgps = dao.findByPort(portId);
             if (bgps != null) {
                 for (UriResource resource : bgps) {

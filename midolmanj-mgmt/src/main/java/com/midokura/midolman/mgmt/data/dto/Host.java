@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12

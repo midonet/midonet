@@ -4,54 +4,56 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.UUID;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.data.dao.HostDao;
+import com.midokura.midolman.mgmt.data.dto.Host;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.state.InvalidStateOperationException;
+import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.HostDao;
-import com.midokura.midolman.mgmt.data.dto.Host;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
  */
+@RequestScoped
 public class HostResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(HostResource.class);
 
+    private final UriInfo uriInfo;
+    private final HostDao dao;
+    private final ResourceFactory factory;
+
+    @Inject
+    public HostResource(UriInfo uriInfo, HostDao dao,
+                        ResourceFactory factory) {
+        this.uriInfo = uriInfo;
+        this.dao = dao;
+        this.factory = factory;
+    }
+
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<Host> list(@Context SecurityContext context,
-                           @Context UriInfo uriInfo,
-                           @Context DaoFactory daoFactory)
+    public List<Host> list()
         throws ForbiddenHttpException, StateAccessException {
 
-        HostDao dao = daoFactory.getHostDao();
         List<Host> hosts = dao.findAll();
         for (Host host : hosts) {
             host.setBaseUri(uriInfo.getBaseUri());
@@ -63,9 +65,6 @@ public class HostResource {
      * Handler to getting a host information.
      *
      * @param id         Host ID from the request.
-     * @param context    Object that holds the security data.
-     * @param uriInfo    Object that holds the request URI data.
-     * @param daoFactory Data access factory object.
      * @return A Host object.
      * @throws StateAccessException Data access error.
      */
@@ -74,11 +73,9 @@ public class HostResource {
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_HOST_JSON,
                   MediaType.APPLICATION_JSON})
-    public Host get(@PathParam("id") UUID id, @Context SecurityContext context,
-                    @Context UriInfo uriInfo, @Context DaoFactory daoFactory)
+    public Host get(@PathParam("id") UUID id)
         throws StateAccessException {
 
-        HostDao dao = daoFactory.getHostDao();
         Host host = dao.get(id);
         if (host != null) {
             host.setBaseUri(uriInfo.getBaseUri());
@@ -91,8 +88,6 @@ public class HostResource {
      * Handler to deleting a host.
      *
      * @param id         Host ID from the request.
-     * @param context    Object that holds the security data.
-     * @param daoFactory Data access factory object.
      * @return Response object with 204 status code set if successful and 403 is
      *         the deletion could not be executed.
      * @throws StateAccessException Data access error.
@@ -100,12 +95,9 @@ public class HostResource {
     @DELETE
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
-    public Response delete(@PathParam("id") UUID id,
-                           @Context SecurityContext context,
-                           @Context DaoFactory daoFactory)
+    public Response delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        HostDao dao = daoFactory.getHostDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -127,7 +119,7 @@ public class HostResource {
     @Path("/{id}" + ResourceUriBuilder.INTERFACES)
     public InterfaceResource getInterfaceResource(
         @PathParam("id") UUID hostId) {
-        return new InterfaceResource(hostId);
+        return factory.getInterfaceResource(hostId);
     }
 
     /**
@@ -139,6 +131,6 @@ public class HostResource {
     @Path("/{id}" + ResourceUriBuilder.COMMANDS)
     public HostCommandResource getHostCommandsResource(
         @PathParam("id") UUID hostId) {
-        return new HostCommandResource(hostId);
+        return factory.getHostCommandsResource(hostId);
     }
 }

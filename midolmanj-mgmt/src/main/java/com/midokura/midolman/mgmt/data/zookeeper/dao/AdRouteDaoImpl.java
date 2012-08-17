@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
@@ -19,8 +20,6 @@ import javax.naming.OperationNotSupportedException;
 
 /**
  * Data access class for advertising route.
- *
- * @author Yoshi Tamura
  */
 public class AdRouteDaoImpl implements AdRouteDao {
 
@@ -32,6 +31,7 @@ public class AdRouteDaoImpl implements AdRouteDao {
      * @param dataAccessor
      *            　　AdRoute data accessor.
      */
+    @Inject
     public AdRouteDaoImpl(AdRouteZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }

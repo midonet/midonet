@@ -4,7 +4,7 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -46,7 +46,7 @@ public class TestCorsHeaders extends JerseyTest {
                                      .get(0);
         log.debug("Access-Control-Allow-Headers: {}", allowHeaders);
         assertTrue(allowHeaders.contains("Origin"));
-        assertTrue(allowHeaders.contains("HTTP_X_AUTH_TOKEN"));
+        assertTrue(allowHeaders.contains("X-Auth-Token"));
         assertTrue(allowHeaders.contains("Content-Type"));
         assertTrue(allowHeaders.contains("Accept"));
         String allowMethods = headers.get("Access-Control-Allow-Methods")
@@ -62,7 +62,7 @@ public class TestCorsHeaders extends JerseyTest {
 
         // Test GET method returns expected response headers.
         response = resource.type(APPLICATION_TENANT_JSON)
-                           .header("HTTP_X_AUTH_TOKEN", "999888777666")
+                           .header("X-Auth-Token", "999888777666")
                            .get(ClientResponse.class);
         String body = response.getEntity(String.class);
         log.debug("status: {}", response.getStatus());

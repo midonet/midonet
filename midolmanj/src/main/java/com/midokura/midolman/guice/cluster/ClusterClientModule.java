@@ -12,6 +12,7 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.state.zkManagers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,9 @@ public class ClusterClientModule extends PrivateModule {
         managers.add(BridgeZkManager.class);
         managers.add(ChainZkManager.class);
         managers.add(PortZkManager.class);
+        managers.add(AdRouteZkManager.class);
+        managers.add(VpnZkManager.class);
+        managers.add(PortGroupZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
             bind(managerClass)

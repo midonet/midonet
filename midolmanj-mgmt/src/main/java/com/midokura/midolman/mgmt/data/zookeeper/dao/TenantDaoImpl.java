@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class TenantDaoImpl implements TenantDao {
      * @param portGroupZkDao
      *            PortGroupZkDao object
      */
+    @Inject
     public TenantDaoImpl(ZkManager zkDao, PathBuilder pathBuilder,
             BridgeZkDao bridgeZkDao, RouterZkDao routerZkDao,
             ChainZkDao chainZkDao, PortGroupZkDao portGroupZkDao) {
@@ -65,13 +67,6 @@ public class TenantDaoImpl implements TenantDao {
         this.portGroupZkDao = portGroupZkDao;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#create(com.midokura.midolman
-     * .mgmt.data.dto.Tenant)
-     */
     @Override
     public String create(Tenant tenant) throws StateAccessException {
         log.debug("TenantDaoImpl.create entered: tenant={}", tenant);
@@ -97,12 +92,6 @@ public class TenantDaoImpl implements TenantDao {
         return tenant.getId();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.data.dao.TenantDao#delete(java.lang.String)
-     */
     @Override
     public void delete(String id) throws StateAccessException {
         log.debug("TenantDaoImpl.delete entered: id={}", id);
@@ -143,11 +132,6 @@ public class TenantDaoImpl implements TenantDao {
         log.debug("TenantDaoImpl.delete exiting.");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dao.TenantDao#get(java.lang.String)
-     */
     @Override
     public Tenant get(String id) throws StateAccessException {
         log.debug("TenantDaoImpl.get entered: id={}", id);

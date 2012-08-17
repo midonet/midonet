@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class RouterZkDaoImpl implements RouterZkDao {
      * @param routeDao
      *            RouteDao object
      */
+    @Inject
     public RouterZkDaoImpl(RouterZkManager zkDao, PathBuilder pathBuilder,
             ZkConfigSerializer serializer, PortDao portDao, RouteDao routeDao) {
         this.zkDao = zkDao;

@@ -4,8 +4,8 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_RULE_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -71,6 +73,11 @@ public class TestRule {
 
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
                     .create("tenant1", "chain1", c1).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameters
@@ -144,6 +151,11 @@ public class TestRule {
                 DtoPortGroup portGroup = topology.getPortGroup(portGroupTag);
                 rule.setPortGroup(portGroup.getId());
             }
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameterized.Parameters

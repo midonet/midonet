@@ -4,47 +4,56 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.UUID;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.HostDao;
+import com.midokura.midolman.mgmt.data.dto.HostCommand;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.HostDao;
-import com.midokura.midolman.mgmt.data.dto.HostCommand;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 2/23/12
  */
+@RequestScoped
 public class HostCommandResource {
 
     private final static Logger log =
         LoggerFactory.getLogger(HostCommandResource.class);
 
     private final UUID hostId;
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final HostDao dao;
 
-    public HostCommandResource(UUID hostId) {
+    @Inject
+    public HostCommandResource(UriInfo uriInfo,
+                               SecurityContext context,
+                               Authorizer authorizer,
+                               HostDao dao,
+                               @Assisted UUID hostId) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.dao = dao;
         this.hostId = hostId;
     }
 
@@ -52,17 +61,12 @@ public class HostCommandResource {
     @PermitAll
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<HostCommand> list(@Context SecurityContext context,
-                                  @Context UriInfo uriInfo,
-                                  @Context DaoFactory daoFactory,
-                                  @Context Authorizer authorizer)
+    public List<HostCommand> list()
         throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
             throw new ForbiddenHttpException("Not authorized to view hosts.");
         }
-
-        HostDao dao = daoFactory.getHostDao();
 
         List<HostCommand> hostCommands = dao.listCommands(hostId);
         if (hostCommands != null) {
@@ -77,10 +81,6 @@ public class HostCommandResource {
      * Handler for getting a host command information.
      *
      * @param id         Command ID from the request.
-     * @param context    Object that holds the security data.
-     * @param uriInfo    Object that holds the request URI data.
-     * @param daoFactory Data access factory object.
-     * @param authorizer Authorizer object.
      * @return A Host object.
      * @throws StateAccessException  Data access error.
      */
@@ -89,11 +89,7 @@ public class HostCommandResource {
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_JSON,
                   MediaType.APPLICATION_JSON})
-    public HostCommand get(@PathParam("id") Integer id,
-                           @Context SecurityContext context,
-                           @Context UriInfo uriInfo,
-                           @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer)
+    public HostCommand get(@PathParam("id") Integer id)
         throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
@@ -101,9 +97,7 @@ public class HostCommandResource {
                 "Not authorized to view this command.");
         }
 
-        HostDao hostDao = daoFactory.getHostDao();
-
-        HostCommand host = hostDao.getCommand(hostId, id);
+        HostCommand host = dao.getCommand(hostId, id);
         host.setBaseUri(uriInfo.getBaseUri());
         return host;
     }
@@ -112,9 +106,6 @@ public class HostCommandResource {
      * Handler to deleting a host command object.
      *
      * @param id         Command ID from the request.
-     * @param context    Object that holds the security data.
-     * @param daoFactory Data access factory object.
-     * @param authorizer Authorizer object.
      * @return Response object with 204 status code set if successful and 403
      *         is the deletion could not be executed.
      * @throws StateAccessException  Data access error.
@@ -122,10 +113,7 @@ public class HostCommandResource {
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
-    public Response delete(@PathParam("id") Integer id,
-                           @Context SecurityContext context,
-                           @Context DaoFactory daoFactory,
-                           @Context Authorizer authorizer)
+    public Response delete(@PathParam("id") Integer id)
         throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
@@ -133,9 +121,8 @@ public class HostCommandResource {
                 "Not authorized to delete this bridge.");
         }
 
-        HostDao hostDao = daoFactory.getHostDao();
         try {
-            hostDao.deleteCommand(hostId, id);
+            dao.deleteCommand(hostId, id);
         } catch (NoStatePathException e) {
             // Deleting a non-existing record is OK.
             log.warn("The resource does not exist", e);

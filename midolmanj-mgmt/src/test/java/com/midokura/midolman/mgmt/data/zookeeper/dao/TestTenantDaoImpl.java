@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.data.zookeeper.dao;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -16,11 +17,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dto.Tenant;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.BridgeZkDao;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.ChainZkDao;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.PortGroupZkDao;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.RouterZkDao;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.TenantDaoImpl;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.ZkManager;
 

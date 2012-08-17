@@ -4,66 +4,97 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import com.midokura.midolman.mgmt.auth.NoAuthClient;
+import com.google.inject.servlet.GuiceFilter;
+import com.midokura.midolman.mgmt.auth.AuthConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.ExtendedZookeeperConfig;
+import com.midokura.midolman.mgmt.http.CorsConfig;
 import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.servlet.AuthFilter;
-import com.midokura.midolman.mgmt.servlet.CrossOriginResourceSharingFilter;
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
+import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+
+import java.net.URI;
+import java.util.UUID;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
-    static final Map<String, String> corsFilterInitParams =
-        new HashMap<String, String>();
-    static {
-        config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
-        corsFilterInitParams.put("Access-Control-Allow-Origin", "*");
-        corsFilterInitParams.put("Access-Control-Allow-Headers",
-                                 "Origin, HTTP_X_AUTH_TOKEN, Content-Type, " +
-                                 "Accept");
-        corsFilterInitParams.put("Access-Control-Allow-Methods",
-                                 "GET, POST, PUT, DELETE, OPTIONS");
-        corsFilterInitParams.put("Access-Control-Expose-Headers",
-                                 "Location");
-    }
 
-    static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
-    static {
-        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
-                NoAuthClient.class.getName());
-    }
+    // Cassandra settings
+    public static final String cassandraCluster = "midonet";
+    public static final String monitoringCassandraKeyspace =
+            "midonet_monitoring_keyspace";
+    public static final String monitoringCassandraColumnFamily =
+            "midonet_monitoring_column_family";
+    public final static String cassandraServers = "127.0.0.1:9171";
+    public final static String CASSANDRA_SERVERS = "cassandra-servers";
+    public final static String CASSANDRA_CLUSTER = "cassandra-cluster";
+    public final static String MONITORING_CASSANDRA_KEYSPACE =
+            "monitoring-cassandra_keyspace";
+    public final static String MONITORING_CASSANDRA_COLUMN_FAMILY =
+            "monitoring-cassandra_column_family";
+    public final static String MONITORING_CASSANDRA_REPLICATION_FACTOR =
+            "monitoring-cassandra_replication_factor";
+    public final static String MONITORING_CASSANDRA_EXPIRATION_TIMEOUT =
+            "monitoring-cassandra_expiration_timeout";
+    public static int replicationFactor = 1;
+    public static int ttlInSecs = 1000;
 
     static final WebAppDescriptor.Builder getBuilder() {
+
+        // Start the cassandra server.  Calling this multiple times does not
+        // do anything.
+        try {
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        } catch (Exception ex) {
+            throw new RuntimeException("Could not start Cassandra");
+        }
+
+        config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+
         return new WebAppDescriptor.Builder()
-            .addFilter(AuthFilter.class, "auth", authFilterInitParams)
-            .addFilter(CrossOriginResourceSharingFilter.class, "cors",
-                       corsFilterInitParams)
-            .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
-            .initParam("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
-            .initParam("com.sun.jersey.spi.container.ContainerResponseFilters",
-                    "com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter")
-            .initParam("javax.ws.rs.Application",
-                    "com.midokura.midolman.mgmt.rest_api.RestApplication")
-            .initParam("com.sun.jersey.spi.container.ResourceFilters",
-                    "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
-            .contextParam("datastore_service",
-                    "com.midokura.midolman.mgmt.data.MockDaoFactory")
-            .contextParam("authorizer",
-                    "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
-            .contextParam("version", "1.0")
-            .contextParam("zk_conn_string", "").contextParam("zk_timeout", "0")
-            .contextParam("zk_root", "/test/midolman")
-            .contextPath("/test").clientConfig(config);
+                .contextListenerClass(JerseyGuiceServletContextListener.class)
+                .filterClass(GuiceFilter.class)
+                .servletPath("/")
+                .contextParam(
+                        getConfigKey(RestApiConfig.GROUP_NAME,
+                                RestApiConfig.VERSION_KEY), "1")
+                .contextParam(
+                        getConfigKey(CorsConfig.GROUP_NAME,
+                                CorsConfig.ALLOW_ORIGIN_KEY), "*")
+                .contextParam(
+                        getConfigKey(CorsConfig.GROUP_NAME,
+                                CorsConfig.ALLOW_HEADERS_KEY),
+                        "Origin, X-Auth-Token, Content-Type, Accept")
+                .contextParam(
+                        getConfigKey(CorsConfig.GROUP_NAME,
+                                CorsConfig.ALLOW_METHODS_KEY),
+                        "GET, POST, PUT, DELETE, OPTIONS")
+                .contextParam(
+                        getConfigKey(CorsConfig.GROUP_NAME,
+                                CorsConfig.EXPOSE_HEADERS_KEY), "Location")
+                .contextParam(
+                        getConfigKey(AuthConfig.GROUP_NAME,
+                                AuthConfig.USE_MOCK_KEY), "true")
+                .contextParam(
+                        getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
+                                ExtendedZookeeperConfig.USE_MOCK_KEY), "true")
+                .contextParam(
+                        getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
+                                "midolman_root_key"), "/test/midolman")
+                .contextParam(CASSANDRA_SERVERS, cassandraServers)
+                .contextParam(CASSANDRA_CLUSTER, cassandraCluster)
+                .contextParam(MONITORING_CASSANDRA_KEYSPACE,
+                        monitoringCassandraKeyspace)
+                .contextParam(MONITORING_CASSANDRA_COLUMN_FAMILY,
+                        monitoringCassandraColumnFamily)
+                .contextParam(MONITORING_CASSANDRA_REPLICATION_FACTOR,
+                        "" + replicationFactor)
+                .contextParam(MONITORING_CASSANDRA_EXPIRATION_TIMEOUT,
+                        "" + ttlInSecs)
+                .contextPath("/test").clientConfig(config);
     }
 
     static final AppDescriptor appDesc = getBuilder().build();
@@ -71,5 +102,9 @@ public class FuncTest {
     public static UUID getUuidFromLocation(URI location) {
         String[] tmp = location.toString().split("/");
         return UUID.fromString(tmp[tmp.length - 1]);
+    }
+
+    public static String getConfigKey(String section, String key) {
+        return section + "-" + key;
     }
 }

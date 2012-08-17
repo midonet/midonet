@@ -15,6 +15,8 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.StatePathExistsException;
 import com.midokura.midolman.state.ZkManager;
 
+import javax.inject.Inject;
+
 /**
  * ZooKeeper data access manager for application-wide operations.
  */
@@ -33,6 +35,7 @@ public class ApplicationDaoImpl implements ApplicationDao {
      * @param pathService
      *            ZooKeeper path helper service.
      */
+    @Inject
     public ApplicationDaoImpl(ZkManager zkDao, PathService pathService) {
         this.zkDao = zkDao;
         this.pathService = pathService;

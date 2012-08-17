@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,7 @@ public class PortDaoImpl implements PortDao {
      * @param vpnDao
      *            VpnDao object.
      */
+    @Inject
     public PortDaoImpl(PortZkManager zkDao, BgpDao bgpDao, VpnDao vpnDao) {
         this.zkDao = zkDao;
         this.bgpDao = bgpDao;

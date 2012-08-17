@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.jaxrs.validation.constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.jaxrs.validation.MessageProperty;
@@ -17,6 +18,7 @@ public class RouterNameConstraintValidator implements
 
     private final RouterDao dao;
 
+    @Inject
     public RouterNameConstraintValidator(RouterDao dao) {
         this.dao = dao;
     }

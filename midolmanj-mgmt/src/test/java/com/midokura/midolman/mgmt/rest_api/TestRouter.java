@@ -4,8 +4,8 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -63,6 +65,11 @@ public class TestRouter {
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
                     .create("tenant1", "chain1", chain1)
                     .create("tenant1", "chain2", chain2).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -166,6 +173,11 @@ public class TestRouter {
                     .create("tenant1", "router1", r).build();
         }
 
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
         @Parameters
         public static Collection<Object[]> data() {
 
@@ -244,6 +256,11 @@ public class TestRouter {
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
                     .create("tenant1", "router1", r1)
                     .create("tenant1", "router2", r2).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameters

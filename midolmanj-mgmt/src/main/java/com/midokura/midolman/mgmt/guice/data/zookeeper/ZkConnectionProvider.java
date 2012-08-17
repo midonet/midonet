@@ -5,7 +5,7 @@ package com.midokura.midolman.mgmt.guice.data.zookeeper;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.midokura.midolman.mgmt.config.ZookeeperConfig;
+import com.midokura.midolman.mgmt.data.zookeeper.ExtendedZookeeperConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.ZookeeperConnWatcher;
 import com.midokura.midolman.state.ZkConnection;
 import org.apache.zookeeper.Watcher;
@@ -15,26 +15,38 @@ import org.slf4j.LoggerFactory;
 /**
  * ZkConnection provider
  */
-public class ZkConnectionProvider implements Provider<ZkConnection> {
+public class ZkConnectionProvider implements Provider<ZkConnection>  {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZkConnectionProvider.class);
 
-    private final ZookeeperConfig config;
+    private final ExtendedZookeeperConfig config;
 
     @Inject
-    public ZkConnectionProvider(ZookeeperConfig config) {
+    public ZkConnectionProvider(ExtendedZookeeperConfig config) {
         this.config = config;
     }
 
     @Override
     public ZkConnection get() {
-        log.debug("ZkConnectionProvider.get: entered.");
+        log.debug("ZkConnectionProvider.get: entered.  Mock? ",
+                config.getUseMock());
 
         ZkConnection conn = new ZkConnection(config.getZooKeeperHosts(),
             config.getZooKeeperSessionTimeout(), null);
-        Watcher watcher = new ZookeeperConnWatcher(conn);
+        Watcher watcher = new ZookeeperConnWatcher(conn, config);
         conn.setWatcher(watcher);
+
+        // When mocking, don't open the connection.  Can't return null here
+        // because other modules don't allow null.
+        if(!config.getUseMock()) {
+            try {
+                conn.open();
+            } catch (Exception e) {
+                throw new RuntimeException("ZK connection could not be opened.",
+                        e);
+            }
+        }
 
         log.debug("ZkConnectionProvider.get: exiting.");
         return conn;

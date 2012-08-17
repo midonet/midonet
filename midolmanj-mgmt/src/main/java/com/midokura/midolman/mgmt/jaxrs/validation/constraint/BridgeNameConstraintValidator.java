@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.jaxrs.validation.constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.jaxrs.validation.MessageProperty;
@@ -17,6 +18,7 @@ public class BridgeNameConstraintValidator implements
 
     private final BridgeDao dao;
 
+    @Inject
     public BridgeNameConstraintValidator(BridgeDao dao) {
         this.dao = dao;
     }
@@ -47,7 +49,7 @@ public class BridgeNameConstraintValidator implements
         }
 
         try {
-            bridge = dao.get(tenantId, value.getName());
+            bridge = dao.findByName(tenantId, value.getName());
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");

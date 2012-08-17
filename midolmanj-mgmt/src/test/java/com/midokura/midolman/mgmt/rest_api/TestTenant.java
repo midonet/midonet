@@ -4,11 +4,13 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -40,6 +42,11 @@ public class TestTenant {
             // Just create an application
             topology = new Topology.Builder(dtoResource).build();
 
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test

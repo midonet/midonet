@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -29,6 +30,7 @@ public class VpnDaoImpl implements VpnDao {
      * @param dataAccessor
      *            VPN data accessor.
      */
+    @Inject
     public VpnDaoImpl(VpnZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }

@@ -4,17 +4,19 @@
 
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +57,11 @@ public class TestDHCP extends JerseyTest {
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
                 .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+    }
+
+    @After
+    public void resetDirectory() throws Exception {
+        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

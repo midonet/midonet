@@ -4,16 +4,11 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.UUID;
-
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.VpnDao;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.state.NoStatePathException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,12 +16,11 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.VpnDao;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.state.NoStatePathException;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestVpnResource {
@@ -35,9 +29,6 @@ public class TestVpnResource {
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SecurityContext context;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private DaoFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Authorizer auth;
@@ -50,8 +41,7 @@ public class TestVpnResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new VpnResource();
-        doReturn(dao).when(factory).getVpnDao();
+        testObject = new VpnResource(uriInfo, context, auth, dao);
     }
 
     @Test(expected = ForbiddenHttpException.class)
@@ -62,7 +52,7 @@ public class TestVpnResource {
                 id);
 
         // Execute
-        testObject.delete(id, context, factory, auth);
+        testObject.delete(id);
     }
 
     @Test
@@ -74,7 +64,7 @@ public class TestVpnResource {
         doThrow(NoStatePathException.class).when(dao).delete(id);
 
         // Execute
-        testObject.delete(id, context, factory, auth);
+        testObject.delete(id);
 
         // Verify
         verify(dao, times(1)).delete(id);
@@ -88,6 +78,6 @@ public class TestVpnResource {
                 id);
 
         // Execute
-        testObject.get(id, context, uriInfo, factory, auth);
+        testObject.get(id);
     }
 }

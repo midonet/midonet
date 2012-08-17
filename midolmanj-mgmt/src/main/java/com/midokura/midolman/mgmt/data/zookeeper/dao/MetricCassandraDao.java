@@ -4,20 +4,16 @@
 
 package com.midokura.midolman.mgmt.data.zookeeper.dao;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.MetricDao;
 import com.midokura.midolman.mgmt.data.dto.Metric;
 import com.midokura.midolman.mgmt.data.dto.MetricQuery;
 import com.midokura.midolman.mgmt.data.dto.MetricQueryResponse;
-import com.midokura.midolman.monitoring.store.CassandraStore;
+import com.midokura.midolman.monitoring.store.Store;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Dao for querying the metric data in Cassandra
@@ -28,9 +24,10 @@ public class MetricCassandraDao implements MetricDao {
     private final static Logger log = LoggerFactory
         .getLogger(MetricCassandraDao.class);
 
-    private final CassandraStore store;
+    private final Store store;
 
-    public MetricCassandraDao(CassandraStore store) {
+    @Inject
+    public MetricCassandraDao(Store store) {
         this.store = store;
     }
 

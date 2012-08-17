@@ -4,81 +4,79 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.data.dto.Bridge;
+import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeGroupSequence;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePeerPortResource;
+import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
+import com.midokura.midolman.state.InvalidStateOperationException;
+import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import com.midokura.midolman.state.InvalidStateOperationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.BridgeDao;
-import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeGroupSequence;
-import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePeerPortResource;
-import com.midokura.midolman.mgmt.rest_api.resources.PortResource.BridgePortResource;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Root resource class for Virtual bridges.
  */
+@RequestScoped
 public class BridgeResource {
-    /*
-     * Implements REST API end points for bridges.
-     */
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeResource.class);
+
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final Validator validator;
+    private final BridgeDao dao;
+    private final ResourceFactory factory;
+
+    @Inject
+    public BridgeResource(UriInfo uriInfo, SecurityContext context,
+                          Authorizer authorizer, Validator validator,
+                          BridgeDao dao, ResourceFactory factory) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.validator = validator;
+        this.dao = dao;
+        this.factory = factory;
+    }
 
     /**
      * Handler to deleting a bridge.
      *
      * @param id
      *            Bridge ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, id)) {
@@ -86,7 +84,6 @@ public class BridgeResource {
                     "Not authorized to delete this bridge.");
         }
 
-        BridgeDao dao = daoFactory.getBridgeDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -100,14 +97,6 @@ public class BridgeResource {
      *
      * @param id
      *            Bridge ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @return A Bridge object.
@@ -117,9 +106,7 @@ public class BridgeResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
-    public Bridge get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context UriInfo uriInfo,
-            @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+    public Bridge get(@PathParam("id") UUID id)
             throws StateAccessException {
 
         if (!authorizer.bridgeAuthorized(context, AuthAction.READ, id)) {
@@ -127,7 +114,6 @@ public class BridgeResource {
                     "Not authorized to view this bridge.");
         }
 
-        BridgeDao dao = daoFactory.getBridgeDao();
         Bridge bridge = dao.get(id);
         if (bridge == null) {
             throw new NotFoundHttpException(
@@ -147,7 +133,7 @@ public class BridgeResource {
      */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public BridgePortResource getPortResource(@PathParam("id") UUID id) {
-        return new BridgePortResource(id);
+        return factory.getBridgePortResource(id);
     }
 
     /**
@@ -160,7 +146,7 @@ public class BridgeResource {
     @Path("/{id}" + ResourceUriBuilder.FILTER_DB)
     public BridgeFilterDbResource getBridgeFilterDbResource(
             @PathParam("id") UUID id) {
-        return new BridgeFilterDbResource(id);
+        return factory.getBridgeFilterDbResource(id);
     }
 
     /**
@@ -172,7 +158,7 @@ public class BridgeResource {
      */
     @Path("/{id}" + ResourceUriBuilder.DHCP)
     public BridgeDhcpResource getBridgeDhcpResource(@PathParam("id") UUID id) {
-        return new BridgeDhcpResource(id);
+        return factory.getBridgeDhcpResource(id);
     }
 
     /**
@@ -183,9 +169,9 @@ public class BridgeResource {
      * @returns BridgePeerPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
-    public BridgePeerPortResource BridgePeerPortResource(
+    public BridgePeerPortResource getBridgePeerPortResource(
             @PathParam("id") UUID id) {
-        return new BridgePeerPortResource(id);
+        return factory.getBridgePeerPortResource(id);
     }
 
     /**
@@ -195,12 +181,6 @@ public class BridgeResource {
      *            Bridge ID from the request.
      * @param bridge
      *            Bridge object.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
@@ -209,9 +189,7 @@ public class BridgeResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
-    public void update(@PathParam("id") UUID id, Bridge bridge,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer, @Context Validator validator)
+    public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException, InvalidStateOperationException {
 
         bridge.setId(id);
@@ -226,24 +204,34 @@ public class BridgeResource {
             throw new ForbiddenHttpException(
                     "Not authorized to update this bridge.");
         }
-        BridgeDao dao = daoFactory.getBridgeDao();
         dao.update(bridge);
     }
 
     /**
      * Sub-resource class for tenant's virtual switch.
      */
+    @RequestScoped
     public static class TenantBridgeResource {
 
-        private String tenantId = null;
+        private final String tenantId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final BridgeDao dao;
 
-        /**
-         * Constructor.
-         *
-         * @param tenantId
-         *            UUID of a tenant.
-         */
-        public TenantBridgeResource(String tenantId) {
+        @Inject
+        public TenantBridgeResource(UriInfo uriInfo,
+                                    SecurityContext context,
+                                    Authorizer authorizer,
+                                    Validator validator,
+                                    BridgeDao dao,
+                                    @Assisted String tenantId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dao = dao;
             this.tenantId = tenantId;
         }
 
@@ -252,14 +240,6 @@ public class BridgeResource {
          *
          * @param bridge
          *            Bridge object.
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @returns Response object with 201 status code set if successful.
@@ -268,9 +248,7 @@ public class BridgeResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(Bridge bridge, @Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer, @Context Validator validator)
+        public Response create(Bridge bridge)
                 throws StateAccessException, InvalidStateOperationException {
 
             bridge.setTenantId(tenantId);
@@ -287,7 +265,6 @@ public class BridgeResource {
                         "Not authorized to add bridge to this tenant.");
             }
 
-            BridgeDao dao = daoFactory.getBridgeDao();
             UUID id = dao.create(bridge);
             return Response.created(
                     ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))
@@ -297,14 +274,6 @@ public class BridgeResource {
         /**
          * Handler to list tenant bridges.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @return A list of Bridge objects.
@@ -313,9 +282,7 @@ public class BridgeResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Bridge> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Bridge> list() throws StateAccessException {
 
             if (!authorizer
                     .tenantAuthorized(context, AuthAction.READ, tenantId)) {
@@ -323,7 +290,6 @@ public class BridgeResource {
                         "Not authorized to view bridges of this tenant.");
             }
 
-            BridgeDao dao = daoFactory.getBridgeDao();
             List<Bridge> bridges = dao.findByTenant(tenantId);
             if (bridges != null) {
                 for (UriResource resource : bridges) {

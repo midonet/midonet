@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ public class BgpDaoImpl implements BgpDao {
      * @param adRouteDao
      *            AdRoute DAO
      */
+    @Inject
     public BgpDaoImpl(BgpZkManager dataAccessor, AdRouteDao adRouteDao) {
         this.dataAccessor = dataAccessor;
         this.adRouteDao = adRouteDao;

@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeExtended;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.IsUniqueBridgeName;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 
 /**

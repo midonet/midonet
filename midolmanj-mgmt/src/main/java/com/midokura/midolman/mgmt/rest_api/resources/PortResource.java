@@ -4,91 +4,92 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import com.midokura.midolman.state.InvalidStateOperationException;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.PortInUseException;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.resources.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.rest_api.resources.VpnResource.PortVpnResource;
+import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Root resource class for ports.
  */
+@RequestScoped
 public class PortResource {
-    /*
-     * Implements REST API endpoints for ports.
-     */
 
     private final static Logger log = LoggerFactory
             .getLogger(PortResource.class);
+
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final Validator validator;
+    private final PortDao dao;
+    private final ResourceFactory factory;
+
+    @Inject
+    public PortResource(UriInfo uriInfo, SecurityContext context,
+                        Authorizer authorizer, Validator validator,
+                        PortDao dao, ResourceFactory factory) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.validator = validator;
+        this.dao = dao;
+        this.factory = factory;
+    }
 
     /**
      * Handler to deleting a port.
      *
      * @param id
      *            Port ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
-     * @throws StateAccessException
+  * @throws StateAccessException
      *             Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this port.");
         }
-        PortDao dao = daoFactory.getPortDao();
+
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -105,14 +106,6 @@ public class PortResource {
      *
      * @param id
      *            Port ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @return A Port object.
@@ -122,16 +115,13 @@ public class PortResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public Port get(@PathParam("id") UUID id, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+    public Port get(@PathParam("id") UUID id) throws StateAccessException {
 
         if (!authorizer.portAuthorized(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this port.");
         }
 
-        PortDao dao = daoFactory.getPortDao();
         Port port = dao.get(id);
         if (port == null) {
             throw new NotFoundHttpException(
@@ -149,12 +139,6 @@ public class PortResource {
      *            Port ID from the request.
      * @param port
      *            Port object.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
@@ -163,9 +147,7 @@ public class PortResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public void update(@PathParam("id") UUID id, Port port,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer, @Context Validator validator)
+    public void update(@PathParam("id") UUID id, Port port)
             throws StateAccessException, InvalidStateOperationException {
 
         port.setId(id);
@@ -179,7 +161,6 @@ public class PortResource {
             throw new ForbiddenHttpException(
                     "Not authorized to update this port.");
         }
-        PortDao dao = daoFactory.getPortDao();
         dao.update(port);
     }
 
@@ -190,12 +171,6 @@ public class PortResource {
      *            Port ID from the request.
      * @param input
      *            Input
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
@@ -204,9 +179,8 @@ public class PortResource {
     @Path("{id}/link")
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public void link(@PathParam("id") UUID id, JSONObject input,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+    public void link(@PathParam("id") UUID id, JSONObject input)
+            throws StateAccessException {
 
         // Make sure that peerPortId was explicitly specified.
         if (!input.containsKey("peerId")) {
@@ -232,7 +206,6 @@ public class PortResource {
                     "Not authorized to link these ports.");
         }
 
-        PortDao dao = daoFactory.getPortDao();
         if (peerId != null) {
             try {
                 dao.link(id, peerId);
@@ -254,7 +227,7 @@ public class PortResource {
      */
     @Path("/{id}" + ResourceUriBuilder.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
-        return new PortBgpResource(id);
+        return factory.getPortBgpResource(id);
     }
 
     /**
@@ -266,37 +239,40 @@ public class PortResource {
      */
     @Path("/{id}" + ResourceUriBuilder.VPN)
     public PortVpnResource getVpnResource(@PathParam("id") UUID id) {
-        return new PortVpnResource(id);
+        return factory.getPortVpnResource(id);
     }
 
     /**
      * Sub-resource class for bridge's ports.
      */
+    @RequestScoped
     public static class BridgePortResource {
 
         private final UUID bridgeId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final PortDao dao;
 
-        /**
-         * Constructor.
-         *
-         * @param bridgeId
-         *            UUID of a bridge.
-         */
-        public BridgePortResource(UUID bridgeId) {
+        @Inject
+        public BridgePortResource(UriInfo uriInfo,
+                                  SecurityContext context,
+                                  Authorizer authorizer,
+                                  Validator validator,
+                                  PortDao dao,
+                                  @Assisted UUID bridgeId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dao = dao;
             this.bridgeId = bridgeId;
         }
 
         /**
          * Handler to create a bridge port.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @returns Response object with 201 status code set if successful.
@@ -305,10 +281,7 @@ public class PortResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(BridgePort port, @Context UriInfo uriInfo,
-                @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator)
+        public Response create(BridgePort port)
                 throws StateAccessException, InvalidStateOperationException {
 
             port.setDeviceId(bridgeId);
@@ -325,7 +298,6 @@ public class PortResource {
                         "Not authorized to add port to this bridge.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             UUID id = dao.create(port);
             return Response.created(
                     ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
@@ -335,14 +307,6 @@ public class PortResource {
         /**
          * Handler to list bridge ports.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @return A list of Port objects.
@@ -351,9 +315,7 @@ public class PortResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
 
             if (!authorizer
                     .bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
@@ -361,7 +323,6 @@ public class PortResource {
                         "Not authorized to view these ports.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             List<Port> ports = dao.findByBridge(bridgeId);
             if (ports != null) {
                 for (UriResource resource : ports) {
@@ -375,31 +336,31 @@ public class PortResource {
     /**
      * Sub-resource class for bridge's peer ports.
      */
+    @RequestScoped
     public static class BridgePeerPortResource {
 
         private final UUID bridgeId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final PortDao dao;
 
-        /**
-         * Constructor.
-         *
-         * @param bridgeId
-         *            UUID of a bridge.
-         */
-        public BridgePeerPortResource(UUID bridgeId) {
+        @Inject
+        public BridgePeerPortResource(UriInfo uriInfo,
+                                      SecurityContext context,
+                                      Authorizer authorizer,
+                                      PortDao dao,
+                                      @Assisted UUID bridgeId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.dao = dao;
             this.bridgeId = bridgeId;
         }
 
         /**
          * Handler to list bridge peer ports.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @return A list of Port objects.
@@ -408,9 +369,7 @@ public class PortResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
 
             if (!authorizer
                     .bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
@@ -418,7 +377,6 @@ public class PortResource {
                         "Not authorized to view these ports.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             List<Port> ports = dao.findPeersByBridge(bridgeId);
             if (ports != null) {
                 for (UriResource resource : ports) {
@@ -432,31 +390,34 @@ public class PortResource {
     /**
      * Sub-resource class for router's ports.
      */
+    @RequestScoped
     public static class RouterPortResource {
 
         private final UUID routerId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final PortDao dao;
 
-        /**
-         * Constructor.
-         *
-         * @param routerId
-         *            UUID of a router.
-         */
-        public RouterPortResource(UUID routerId) {
+        @Inject
+        public RouterPortResource(UriInfo uriInfo,
+                                  SecurityContext context,
+                                  Authorizer authorizer,
+                                  Validator validator,
+                                  PortDao dao,
+                                  @Assisted UUID routerId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dao = dao;
             this.routerId = routerId;
         }
 
         /**
          * Handler to create a router port.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @returns Response object with 201 status code set if successful.
@@ -465,10 +426,7 @@ public class PortResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(RouterPort port, @Context UriInfo uriInfo,
-                @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator)
+        public Response create(RouterPort port)
                 throws StateAccessException, InvalidStateOperationException {
 
             port.setDeviceId(routerId);
@@ -485,7 +443,6 @@ public class PortResource {
                         "Not authorized to add port to this router.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             UUID id = dao.create(port);
             return Response.created(
                     ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
@@ -495,15 +452,6 @@ public class PortResource {
         /**
          * Handler to list router ports.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
-         * @throws StateAccessException
          *             Data access error.
          * @return A list of Port objects.
          */
@@ -511,9 +459,7 @@ public class PortResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
 
             if (!authorizer
                     .routerAuthorized(context, AuthAction.READ, routerId)) {
@@ -521,7 +467,6 @@ public class PortResource {
                         "Not authorized to view these ports.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             List<Port> ports = dao.findByRouter(routerId);
             if (ports != null) {
                 for (UriResource resource : ports) {
@@ -535,31 +480,31 @@ public class PortResource {
     /**
      * Sub-resource class for router peer ports.
      */
+    @RequestScoped
     public static class RouterPeerPortResource {
 
         private final UUID routerId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final PortDao dao;
 
-        /**
-         * Constructor.
-         *
-         * @param routerId
-         *            UUID of a router.
-         */
-        public RouterPeerPortResource(UUID routerId) {
+        @Inject
+        public RouterPeerPortResource(UriInfo uriInfo,
+                                      SecurityContext context,
+                                      Authorizer authorizer,
+                                      PortDao dao,
+                                      @Assisted UUID routerId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.dao = dao;
             this.routerId = routerId;
         }
 
         /**
          * Handler to list router peer ports.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws StateAccessException
          *             Data access error.
          * @return A list of Port objects.
@@ -568,9 +513,7 @@ public class PortResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<Port> list() throws StateAccessException {
 
             if (!authorizer
                     .routerAuthorized(context, AuthAction.READ, routerId)) {
@@ -578,7 +521,6 @@ public class PortResource {
                         "Not authorized to view these ports.");
             }
 
-            PortDao dao = daoFactory.getPortDao();
             List<Port> ports = dao.findPeersByRouter(routerId);
             if (ports != null) {
                 for (UriResource resource : ports) {

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Rule;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -30,6 +31,7 @@ public class RuleDaoImpl implements RuleDao {
      * @param dataAccessor
      *            Rule data accessor.
      */
+    @Inject
     public RuleDaoImpl(RuleZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }

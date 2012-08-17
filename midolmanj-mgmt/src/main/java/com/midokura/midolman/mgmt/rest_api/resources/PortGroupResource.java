@@ -3,74 +3,72 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.AuthRole;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
+import com.midokura.midolman.mgmt.data.dto.PortGroup;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import com.midokura.midolman.state.InvalidStateOperationException;
+import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import com.midokura.midolman.state.InvalidStateOperationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.PortGroupDao;
-import com.midokura.midolman.mgmt.data.dto.PortGroup;
-import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.state.NoStatePathException;
-import com.midokura.midolman.state.StateAccessException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Root resource class for port groups.
  */
+@RequestScoped
 public class PortGroupResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupResource.class);
+
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final PortGroupDao dao;
+
+
+    @Inject
+    public PortGroupResource(UriInfo uriInfo, SecurityContext context,
+                          Authorizer authorizer, PortGroupDao dao) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.dao = dao;
+    }
 
     /**
      * Handler to deleting a port group.
      *
      * @param id
      *            PortGroup ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.portGroupAuthorized(context, AuthAction.WRITE, id)) {
@@ -78,7 +76,6 @@ public class PortGroupResource {
                     "Not authorized to delete this port group.");
         }
 
-        PortGroupDao dao = daoFactory.getPortGroupDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -92,14 +89,6 @@ public class PortGroupResource {
      *
      * @param id
      *            PortGroup ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
      * @return A PortGroup object.
@@ -108,9 +97,7 @@ public class PortGroupResource {
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_PORTGROUP_JSON })
-    public PortGroup get(@PathParam("id") UUID id,
-            @Context SecurityContext context, @Context UriInfo uriInfo,
-            @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+    public PortGroup get(@PathParam("id") UUID id)
             throws StateAccessException {
 
         if (!authorizer.portGroupAuthorized(context, AuthAction.READ, id)) {
@@ -118,7 +105,6 @@ public class PortGroupResource {
                     "Not authorized to view this port group.");
         }
 
-        PortGroupDao dao = daoFactory.getPortGroupDao();
         PortGroup group = dao.get(id);
         if (group == null) {
             throw new NotFoundHttpException(
@@ -132,18 +118,29 @@ public class PortGroupResource {
     /**
      * Sub-resource class for tenant's port groups.
      */
+    @RequestScoped
     public static class TenantPortGroupResource {
 
-        private final String tenantID;
+        private final String tenantId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final PortGroupDao dao;
 
-        /**
-         * Constructor
-         *
-         * @param tenantID
-         *            ID of a tenant.
-         */
-        public TenantPortGroupResource(String tenantID) {
-            this.tenantID = tenantID;
+        @Inject
+        public TenantPortGroupResource(UriInfo uriInfo,
+                                       SecurityContext context,
+                                       Authorizer authorizer,
+                                       Validator validator,
+                                       PortGroupDao dao,
+                                       @Assisted String tenantId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dao = dao;
+            this.tenantId = tenantId;
         }
 
         /**
@@ -151,14 +148,6 @@ public class PortGroupResource {
          *
          * @param group
          *            PortGroup object.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param context
-         *            Object that holds the security data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws com.midokura.midolman.state.StateAccessException
          *             Data access error.
          * @returns Response object with 201 status code set if successful.
@@ -166,13 +155,10 @@ public class PortGroupResource {
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON })
-        public Response create(PortGroup group, @Context UriInfo uriInfo,
-                @Context SecurityContext context,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer,
-                @Context Validator validator)
+        public Response create(PortGroup group)
                 throws StateAccessException, InvalidStateOperationException {
 
-            group.setTenantId(tenantID);
+            group.setTenantId(tenantId);
 
             Set<ConstraintViolation<PortGroup>> violations = validator
                     .validate(group);
@@ -181,12 +167,11 @@ public class PortGroupResource {
             }
 
             if (!authorizer.tenantAuthorized(context, AuthAction.WRITE,
-                    tenantID)) {
+                    tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add PortGroup to this tenant.");
             }
 
-            PortGroupDao dao = daoFactory.getPortGroupDao();
             UUID id = dao.create(group);
             return Response.created(
                     ResourceUriBuilder.getPortGroup(uriInfo.getBaseUri(), id))
@@ -196,14 +181,6 @@ public class PortGroupResource {
         /**
          * Handler to getting a collection of PortGroups.
          *
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws com.midokura.midolman.state.StateAccessException
          *             Data access error.
          * @return A list of PortGroup objects.
@@ -212,18 +189,15 @@ public class PortGroupResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<PortGroup> list(@Context SecurityContext context,
-                @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-                @Context Authorizer authorizer) throws StateAccessException {
+        public List<PortGroup> list() throws StateAccessException {
 
             if (!authorizer
-                    .tenantAuthorized(context, AuthAction.READ, tenantID)) {
+                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these port groups.");
             }
 
-            PortGroupDao dao = daoFactory.getPortGroupDao();
-            List<PortGroup> groups = dao.findByTenant(tenantID);
+            List<PortGroup> groups = dao.findByTenant(tenantId);
             if (groups != null) {
                 for (UriResource resource : groups) {
                     resource.setBaseUri(uriInfo.getBaseUri());
@@ -237,14 +211,6 @@ public class PortGroupResource {
          *
          * @param name
          *            Group name from the request.
-         * @param context
-         *            Object that holds the security data.
-         * @param uriInfo
-         *            Object that holds the request URI data.
-         * @param daoFactory
-         *            Data access factory object.
-         * @param authorizer
-         *            Authorizer object.
          * @throws com.midokura.midolman.state.StateAccessException
          *             Data access error.
          * @return A PortGroup object.
@@ -254,19 +220,16 @@ public class PortGroupResource {
         @Path("{name}")
         @Produces({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
                 MediaType.APPLICATION_JSON })
-        public PortGroup get(@PathParam("name") String name,
-                @Context SecurityContext context, @Context UriInfo uriInfo,
-                @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+        public PortGroup get(@PathParam("name") String name)
                 throws StateAccessException {
 
             if (!authorizer
-                    .tenantAuthorized(context, AuthAction.READ, tenantID)) {
+                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view the PortGroups of this tenant.");
             }
 
-            PortGroupDao dao = daoFactory.getPortGroupDao();
-            PortGroup group = dao.findByName(tenantID, name);
+            PortGroup group = dao.findByName(tenantId, name);
             if (group != null) {
                 group.setBaseUri(uriInfo.getBaseUri());
             }

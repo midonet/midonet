@@ -4,8 +4,9 @@
 package com.midokura.midolman.mgmt.guice.jaxrs;
 
 import com.google.inject.AbstractModule;
-import com.midokura.midolman.mgmt.config.RestApiConfig;
 import com.midokura.midolman.mgmt.jaxrs.ThrowableMapper;
+import com.midokura.midolman.mgmt.jaxrs.WebApplicationExceptionMapper;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.rest_api.resources.ApplicationResource;
 
@@ -20,6 +21,7 @@ public class JaxrsModule extends AbstractModule {
         requireBinding(RestApiConfig.class);
 
         bind(ApplicationResource.class);
+        bind(WebApplicationExceptionMapper.class).asEagerSingleton();
         bind(ThrowableMapper.class).asEagerSingleton();
         bind(WildCardJacksonJaxbJsonProvider.class).asEagerSingleton();
 

@@ -4,69 +4,65 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import java.util.List;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import com.midokura.midolman.state.InvalidStateOperationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
 import com.midokura.midolman.mgmt.data.dao.TenantDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.rest_api.resources.BridgeResource.TenantBridgeResource;
 import com.midokura.midolman.mgmt.rest_api.resources.ChainResource.TenantChainResource;
 import com.midokura.midolman.mgmt.rest_api.resources.PortGroupResource.TenantPortGroupResource;
 import com.midokura.midolman.mgmt.rest_api.resources.RouterResource.TenantRouterResource;
+import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.List;
 
 /**
  * Root resource class for tenants.
  */
+@RequestScoped
 public class TenantResource {
-    /*
-     * Implements REST API endpoints for tenants.
-     */
 
     private final static Logger log = LoggerFactory
             .getLogger(TenantResource.class);
+
+    private final SecurityContext context;
+    private final UriInfo uriInfo;
+    private final Authorizer authorizer;
+    private final TenantDao dao;
+    private final ResourceFactory factory;
+
+    @Inject
+    public TenantResource(UriInfo uriInfo, SecurityContext context,
+                          Authorizer authorizer, TenantDao dao,
+                          ResourceFactory factory) {
+        this.context = context;
+        this.uriInfo = uriInfo;
+        this.authorizer = authorizer;
+        this.dao = dao;
+        this.factory = factory;
+    }
 
     /**
      * Handler for creating a tenant.
      *
      * @param tenant
      *            Tenant object.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @returns Response object with 201 status code set if successful.
@@ -75,9 +71,7 @@ public class TenantResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(Tenant tenant, @Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public Response create(Tenant tenant)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.isAdmin(context)) {
@@ -85,7 +79,6 @@ public class TenantResource {
                     "Not authorized to create tenant.");
         }
 
-        TenantDao dao = daoFactory.getTenantDao();
         String id = dao.create(tenant);
         return Response.created(
                 ResourceUriBuilder.getTenant(uriInfo.getBaseUri(), id)).build();
@@ -96,21 +89,13 @@ public class TenantResource {
      *
      * @param id
      *            Tenant ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") String id,
-            @Context SecurityContext context, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer)
+    public void delete(@PathParam("id") String id)
             throws StateAccessException, InvalidStateOperationException {
 
         if (!authorizer.isAdmin(context)) {
@@ -118,7 +103,6 @@ public class TenantResource {
                     "Not authorized to delete tenant.");
         }
 
-        TenantDao dao = daoFactory.getTenantDao();
         try {
             dao.delete(id);
         } catch (NoStatePathException e) {
@@ -136,7 +120,7 @@ public class TenantResource {
      */
     @Path("/{id}" + ResourceUriBuilder.BRIDGES)
     public TenantBridgeResource getBridgeResource(@PathParam("id") String id) {
-        return new TenantBridgeResource(id);
+        return factory.getTenantBridgeResource(id);
     }
 
     /**
@@ -148,7 +132,7 @@ public class TenantResource {
      */
     @Path("/{id}" + ResourceUriBuilder.CHAINS)
     public TenantChainResource getChainResource(@PathParam("id") String id) {
-        return new TenantChainResource(id);
+        return factory.getTenantChainResource(id);
     }
 
     /**
@@ -161,7 +145,7 @@ public class TenantResource {
     @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
     public TenantPortGroupResource getPortGroupResource(
             @PathParam("id") String id) {
-        return new TenantPortGroupResource(id);
+        return factory.getTenantPortGroupResource(id);
     }
 
     /**
@@ -173,20 +157,12 @@ public class TenantResource {
      */
     @Path("/{id}" + ResourceUriBuilder.ROUTERS)
     public TenantRouterResource getRouterResource(@PathParam("id") String id) {
-        return new TenantRouterResource(id);
+        return factory.getTenantRouterResource(id);
     }
 
     /**
      * Handler for listing all the tenants.
      *
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @returns A list of Tenant objects.
@@ -195,15 +171,12 @@ public class TenantResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<Tenant> list(@Context SecurityContext context,
-            @Context UriInfo uriInfo, @Context DaoFactory daoFactory,
-            @Context Authorizer authorizer) throws StateAccessException {
+    public List<Tenant> list() throws StateAccessException {
 
         if (!authorizer.isAdmin(context)) {
             throw new ForbiddenHttpException("Not authorized to view tenants.");
         }
 
-        TenantDao dao = daoFactory.getTenantDao();
         List<Tenant> tenants = dao.findAll();
         if (tenants != null) {
             for (UriResource resource : tenants) {
@@ -218,14 +191,6 @@ public class TenantResource {
      *
      * @param id
      *            Tenant ID from the request.
-     * @param context
-     *            Object that holds the security data.
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @param daoFactory
-     *            Data access factory object.
-     * @param authorizer
-     *            Authorizer object.
      * @throws StateAccessException
      *             Data access error.
      * @return A Tenant object.
@@ -235,16 +200,13 @@ public class TenantResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_TENANT_JSON,
             MediaType.APPLICATION_JSON })
-    public Tenant get(@PathParam("id") String id,
-            @Context SecurityContext context, @Context UriInfo uriInfo,
-            @Context DaoFactory daoFactory, @Context Authorizer authorizer)
+    public Tenant get(@PathParam("id") String id)
             throws StateAccessException {
 
         if (!authorizer.tenantAuthorized(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException("Not authorized to view tenants.");
         }
 
-        TenantDao dao = daoFactory.getTenantDao();
         Tenant tenant = dao.get(id);
         if (tenant == null) {
             throw new NotFoundHttpException(

@@ -3,6 +3,8 @@
  */
 package com.midokura.midolman.mgmt.auth;
 
+import com.midokura.midolman.mgmt.auth.UserIdentity;
+
 import java.security.Principal;
 
 import javax.ws.rs.core.Context;

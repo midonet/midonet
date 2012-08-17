@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper;
 
+import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.ZkConnection;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -17,15 +18,17 @@ public class ZookeeperConnWatcher implements Watcher {
     private final static Logger log = LoggerFactory
             .getLogger(ZookeeperConnWatcher.class);
 
-    private ZkConnection conn = null;
+    private ZkConnection conn;
+    private final ZookeeperConfig config;
 
-    public ZookeeperConnWatcher(ZkConnection conn) {
+    public ZookeeperConnWatcher(ZkConnection conn, ZookeeperConfig config) {
         this.conn = conn;
+        this.config = config;
     }
 
     @Override
     synchronized public void process(WatchedEvent watchedEvent) {
-        log.debug("ConnectionWatcher.process: Entered with event {}",
+        log.debug("ZookeeperConnWatcher.process: Entered with event {}",
                 watchedEvent.getState());
 
         // The ZK client re-connects automatically. However, after it
@@ -34,10 +37,18 @@ public class ZookeeperConnWatcher implements Watcher {
         if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired
                 && conn != null) {
             conn.close();
-            conn = null;
+
+            conn = new ZkConnection(config.getZooKeeperHosts(),
+                    config.getZooKeeperSessionTimeout(), this);
+            try {
+                conn.open();
+            } catch (Exception e) {
+                throw new RuntimeException("Zookeeper could not be " +
+                        "restarted", e);
+            }
         }
 
-        log.debug("ConnectionWatcher.process: Exiting");
+        log.debug("ZookeeperConnWatcher.process: Exiting");
     }
 
 }

@@ -4,11 +4,11 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTE_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -105,6 +107,11 @@ public class TestRoute {
 
             testRouterPortId = FuncTest.getUuidFromLocation(response
                     .getLocation());
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -246,6 +253,11 @@ public class TestRoute {
 
             topology = new Topology.Builder(dtoResource).create("tenant1", t)
                     .create("tenant1", "router1", r).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameters

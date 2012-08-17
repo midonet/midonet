@@ -1,17 +1,16 @@
 package com.midokura.midonet.functional_test.mocks;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.inject.servlet.GuiceFilter;
+import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.sun.jersey.test.framework.spi.container.TestContainerFactory;
@@ -19,7 +18,6 @@ import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestCo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.auth.NoAuthClient;
 import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
 import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
@@ -41,9 +39,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.servlet.AuthFilter;
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
@@ -54,44 +50,30 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     private static AtomicInteger portSeed = new AtomicInteger(3181);
     private int currentPort;
 
-    private static final Map<String, String> authFilterInitParams =
-        new HashMap<String, String>();
-
-    static {
-        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
-                                 NoAuthClient.class.getName());
-    }
-
     public static WebAppDescriptor.Builder getAppDescriptorBuilder(boolean mockZK) {
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
 
         return new WebAppDescriptor.Builder()
-            .addFilter(AuthFilter.class, "auth", authFilterInitParams)
-            .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
-            .initParam(
-                "com.sun.jersey.spi.container.ContainerRequestFilters",
-                "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
-            .initParam(
-                "com.sun.jersey.spi.container.ContainerResponseFilters",
-                "com.midokura.midolman.mgmt.rest_api.resources.ExceptionFilter")
-            .initParam("javax.ws.rs.Application",
-                       "com.midokura.midolman.mgmt.rest_api.RestApplication")
-            .initParam(
-                "com.sun.jersey.spi.container.ResourceFilters",
-                "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
-            .contextParam("authorizer",
-                          "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
-            .contextParam("version", "1.0")
-            .contextParam("datastore_service",
-                          mockZK
-                              ? "com.midokura.midolman.mgmt.data.MockDaoFactory"
-                              : "com.midokura.midolman.mgmt.data.zookeeper.ZooKeeperDaoFactory")
-            .contextParam("zk_conn_string", "127.0.0.1:2181")
-            .contextParam("zk_timeout", "10000")
-            .contextParam("zk_root", "/smoketest/midonet")
-            .contextPath("/test")
-            .clientConfig(clientConfig);
+                .contextListenerClass(JerseyGuiceServletContextListener.class)
+                .filterClass(GuiceFilter.class)
+                .servletPath("/")
+                .contextParam("rest_api-version", "1")
+                .contextParam("cors-access_control_allow_origin", "*")
+                .contextParam("cors-access_control_allow_headers",
+                        "Origin, X-Auth-Token, Content-Type, Accept")
+                .contextParam("cors-access_control_allow_methods",
+                        "GET, POST, PUT, DELETE, OPTIONS")
+                .contextParam("cors-access_control-expose_headers",
+                        "Location")
+                .contextParam("auth-use_mock", "true")
+                .contextParam("zookeeper-midolman_root_key",
+                        "/smoketest/midonet")
+                .contextParam("zookeeper-zookeeper_hosts", "127.0.0.1:2181")
+                .contextParam("zookeeper-session_timeout", "10000")
+                .contextParam("zookeeper-use_mock", mockZK ? "true" : "false")
+                .contextPath("/test")
+                .clientConfig(clientConfig);
     }
 
     public MockMidolmanMgmt(boolean mockZK) {

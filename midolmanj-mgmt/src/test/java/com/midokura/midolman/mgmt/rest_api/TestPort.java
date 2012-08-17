@@ -4,7 +4,7 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -19,6 +19,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -104,6 +106,11 @@ public class TestPort {
                     .create("tenant1", "router1", r).build();
         }
 
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
         @Parameters
         public static Collection<Object[]> data() {
 
@@ -179,6 +186,11 @@ public class TestPort {
                     .create("tenant1", "chain1", c1)
                     .create("tenant1", "chain2", c2)
                     .create("tenant1", "bridge1", b).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -315,6 +327,11 @@ public class TestPort {
                     .create("tenant1", "chain1", c1)
                     .create("tenant1", "chain2", c2)
                     .create("tenant1", "router1", r).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -482,6 +499,11 @@ public class TestPort {
                             new DtoLogicalBridgePort())
                     .create("bridge1", "bridge1Port2",
                             new DtoLogicalBridgePort()).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test

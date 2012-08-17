@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.dao;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
@@ -31,6 +32,7 @@ public class HostDaoImpl implements HostDao {
 
     private final HostZkManager zkDao;
 
+    @Inject
     public HostDaoImpl(HostZkManager zkDao) {
         this.zkDao = zkDao;
     }

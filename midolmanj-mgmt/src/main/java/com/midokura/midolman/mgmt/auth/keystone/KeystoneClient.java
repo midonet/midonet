@@ -6,10 +6,10 @@ package com.midokura.midolman.mgmt.auth.keystone;
 import java.io.IOException;
 import java.util.Iterator;
 
-import javax.servlet.FilterConfig;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.inject.Inject;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
@@ -22,7 +22,6 @@ import com.midokura.midolman.mgmt.auth.AuthException;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.InvalidTokenException;
 import com.midokura.midolman.mgmt.auth.UserIdentity;
-import com.midokura.midolman.mgmt.config.InvalidConfigException;
 import com.midokura.util.StringUtil;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -37,66 +36,28 @@ public class KeystoneClient implements AuthClient {
     private final static Logger log = LoggerFactory
             .getLogger(KeystoneClient.class);
 
-    private final String protocol;
-    private final String host;
-    private final int port;
-    private final String adminRole;
-    private final String tenantAdminRole;
-    private final String tenantUserRole;
-    private final String adminToken;
-    private final String serviceUrl;
+    private final KeystoneConfig config;
 
     public static final String KEYSTONE_TOKEN_HEADER_KEY = "X-Auth-Token";
-    public static final String KEYSTONE_PROTOCOL_CONFIG_KEY = "keystone_service_protocol";
-    public static final String KEYSTONE_HOST_CONFIG_KEY = "keystone_service_host";
-    public static final String KEYSTONE_PORT_CONFIG_KEY = "keystone_service_port";
-    public static final String KEYSTONE_ADMIN_ROLE_CONFIG_KEY = "keystone_admin_role";
-    public static final String KEYSTONE_TENANT_ADMIN_ROLE_CONFIG_KEY = "keystone_tenant_admin_role";
-    public static final String KEYSTONE_TENANT_USER_ROLE_CONFIG_KEY = "keystone_tenant_user_role";
-    public static final String KEYSTONE_ADMIN_TOKEN_KEY = "keystone_admin_token";
 
     /**
-     * Create a KeystoneClient object from a FilterConfig object.
+     * Create a KeystoneClient object from a KeystoneConfig object.
      *
-     * @param filterConfig
-     *            FilterConfig object.
+     * @param config
+     *            KeystoneConfig object.
      */
-    public KeystoneClient(FilterConfig config) {
-        log.debug("KeystoneClient: entered constructor.");
-
-        try {
-            this.protocol = config
-                    .getInitParameter(KEYSTONE_PROTOCOL_CONFIG_KEY);
-            this.host = config.getInitParameter(KEYSTONE_HOST_CONFIG_KEY);
-            this.port = Integer.parseInt(config
-                    .getInitParameter(KEYSTONE_PORT_CONFIG_KEY));
-            this.adminRole = config.getInitParameter(
-                    KEYSTONE_ADMIN_ROLE_CONFIG_KEY).toLowerCase();
-            this.tenantAdminRole = config.getInitParameter(
-                    KEYSTONE_TENANT_ADMIN_ROLE_CONFIG_KEY).toLowerCase();
-            this.tenantUserRole = config.getInitParameter(
-                    KEYSTONE_TENANT_USER_ROLE_CONFIG_KEY).toLowerCase();
-            this.adminToken = config.getInitParameter(KEYSTONE_ADMIN_TOKEN_KEY);
-        } catch (Exception ex) {
-            throw new InvalidConfigException(
-                    "Cannot instantiate KeystoneClient from the config ", ex);
-        }
-
-        this.serviceUrl = new StringBuilder(protocol).append("://")
-                .append(host).append(":").append(Integer.toString(port))
-                .append("/v2.0").toString();
-
-        log.debug("KeystoneClient: exiting constructor.  url={}",
-                this.serviceUrl);
+    @Inject
+    public KeystoneClient(KeystoneConfig config) {
+        this.config = config;
     }
 
     private String convertToAuthRole(String role) {
         String roleLowerCase = role.toLowerCase();
-        if (roleLowerCase.equals(this.adminRole)) {
+        if (roleLowerCase.equals(getAdminRole())) {
             return AuthRole.ADMIN;
-        } else if (roleLowerCase.equals(this.tenantAdminRole)) {
+        } else if (roleLowerCase.equals(getTenantAdminRole())) {
             return AuthRole.TENANT_ADMIN;
-        } else if (roleLowerCase.equals(this.tenantUserRole)) {
+        } else if (roleLowerCase.equals(getTenantUserRole())) {
             return AuthRole.TENANT_USER;
         } else {
             // Unknown roles are ignored.
@@ -108,56 +69,59 @@ public class KeystoneClient implements AuthClient {
      * @return the protocol
      */
     public String getProtocol() {
-        return protocol;
+        return config.getServiceProtocol();
     }
 
     /**
      * @return the host
      */
     public String getHost() {
-        return host;
+        return config.getServiceHost();
     }
 
     /**
      * @return the port
      */
     public int getPort() {
-        return port;
+        return config.getServicePort();
     }
 
     /**
      * @return the adminRole
      */
     public String getAdminRole() {
-        return adminRole;
+        return config.getAdminRole();
     }
 
     /**
      * @return the tenantAdminRole
      */
     public String getTenantAdminRole() {
-        return tenantAdminRole;
+        return config.getTenantAdminRole();
     }
 
     /**
      * @return the tenantUserRole
      */
     public String getTenantUserRole() {
-        return tenantUserRole;
+        return config.getTenantUserRole();
     }
 
     /**
      * @return the serviceUrl
      */
     public String getServiceUrl() {
-        return serviceUrl;
+        return new StringBuilder(getProtocol()).append("://")
+                .append(getHost()).append(":").append(
+                        Integer.toString(getPort()))
+                .append("/v2.0").toString();
     }
 
     /**
      * @return the adminToken
      */
     public String getAdminToken() {
-        return adminToken;
+        return config.getAdminToken();
     }
 
     /**
@@ -222,13 +186,6 @@ public class KeystoneClient implements AuthClient {
         return user;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.auth.AuthClient#getUserIdentityByToken(java
-     * .lang.String)
-     */
     @Override
     public UserIdentity getUserIdentityByToken(String token)
             throws AuthException {
@@ -240,14 +197,14 @@ public class KeystoneClient implements AuthClient {
             throw new InvalidTokenException("No token was passed in.");
         }
 
-        String url = new StringBuilder(this.serviceUrl).append("/tokens/")
+        String url = new StringBuilder(getServiceUrl()).append("/tokens/")
                 .append(token).toString();
         Client client = Client.create();
         WebResource resource = client.resource(url);
         String response = null;
         try {
             response = resource.accept(MediaType.APPLICATION_JSON)
-                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
+                    .header(KEYSTONE_TOKEN_HEADER_KEY, getAdminToken())
                     .get(String.class);
         } catch (UniformInterfaceException e) {
             if (e.getResponse().getStatus() == Response.Status.NOT_FOUND
@@ -259,8 +216,7 @@ public class KeystoneClient implements AuthClient {
             throw new KeystoneServerException("Keystone server error.", e);
         } catch (ClientHandlerException e) {
             throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Url="
-                            + this.serviceUrl, e);
+                    "Could not connect to Keystone server. Url=" + url, e);
         }
 
         return parseJson(response);

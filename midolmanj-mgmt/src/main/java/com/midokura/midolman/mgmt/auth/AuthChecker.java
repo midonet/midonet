@@ -4,6 +4,8 @@
  */
 package com.midokura.midolman.mgmt.auth;
 
+import com.midokura.midolman.mgmt.auth.AuthRole;
+
 import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;

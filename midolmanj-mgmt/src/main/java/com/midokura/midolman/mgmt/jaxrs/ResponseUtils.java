@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response;
 
 import com.midokura.midolman.mgmt.data.dto.ErrorEntity;
 import com.midokura.midolman.mgmt.data.dto.ValidationErrorEntity;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
 
 /**
  * Utility methods for Response class.

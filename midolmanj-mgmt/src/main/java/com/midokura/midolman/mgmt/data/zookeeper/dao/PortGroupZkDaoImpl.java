@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,9 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
      * @param pathBuilder
      *            PathBuilder object to get path data.
      */
-    public PortGroupZkDaoImpl(PortGroupZkManager zkDao, PathBuilder pathBuilder) {
+    @Inject
+    public PortGroupZkDaoImpl(PortGroupZkManager zkDao,
+                              PathBuilder pathBuilder) {
         this.zkDao = zkDao;
         this.pathBuilder = pathBuilder;
         this.serializer = new ZkConfigSerializer(new JsonJaxbSerializer());
@@ -91,8 +94,7 @@ public class PortGroupZkDaoImpl implements PortGroupZkDao {
     }
 
     @Override
-    public void update(PortGroup obj)
-            throws StateAccessException, InvalidDataOperationException {
+    public void update(PortGroup obj) throws StateAccessException {
         throw new UnsupportedOperationException();
     }
 

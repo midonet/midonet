@@ -4,16 +4,11 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.UUID;
-
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
+import com.midokura.midolman.mgmt.auth.AuthAction;
+import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.data.dao.BridgeDao;
+import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
+import com.midokura.midolman.state.NoStatePathException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,12 +16,12 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.data.DaoFactory;
-import com.midokura.midolman.mgmt.data.dao.BridgeDao;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.state.NoStatePathException;
+import javax.validation.Validator;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestBridgeResource {
@@ -37,10 +32,13 @@ public class TestBridgeResource {
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private DaoFactory factory;
+    private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Authorizer auth;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private Validator validator;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private UriInfo uriInfo;
@@ -50,8 +48,8 @@ public class TestBridgeResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new BridgeResource();
-        doReturn(dao).when(factory).getBridgeDao();
+        testObject = new BridgeResource(uriInfo, context, auth, validator, dao,
+                factory);
     }
 
     @Test(expected = ForbiddenHttpException.class)
@@ -62,7 +60,7 @@ public class TestBridgeResource {
                 id);
 
         // Execute
-        testObject.delete(id, context, factory, auth);
+        testObject.delete(id);
     }
 
     @Test
@@ -74,7 +72,7 @@ public class TestBridgeResource {
         doThrow(NoStatePathException.class).when(dao).delete(id);
 
         // Execute
-        testObject.delete(id, context, factory, auth);
+        testObject.delete(id);
 
         // Verify
         verify(dao, times(1)).delete(id);
@@ -88,6 +86,6 @@ public class TestBridgeResource {
                 id);
 
         // Execute
-        testObject.get(id, context, uriInfo, factory, auth);
+        testObject.get(id);
     }
 }

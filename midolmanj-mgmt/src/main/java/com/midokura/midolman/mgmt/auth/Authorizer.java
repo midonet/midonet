@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;
 
+import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.state.StateAccessException;
 
 /**

@@ -6,6 +6,7 @@ package com.midokura.midolman.mgmt.jaxrs.validation.constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
 import com.midokura.midolman.mgmt.jaxrs.validation.MessageProperty;
@@ -17,6 +18,7 @@ public class ChainNameConstraintValidator implements
 
     private final ChainDao dao;
 
+    @Inject
     public ChainNameConstraintValidator(ChainDao dao) {
         this.dao = dao;
     }

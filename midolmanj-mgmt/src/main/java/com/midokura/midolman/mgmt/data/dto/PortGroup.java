@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupNameMgmtConfig;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 
 /**

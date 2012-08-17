@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
      * @param portDao
      *            PortDao object.
      */
+    @Inject
     public BridgeZkDaoImpl(BridgeZkManager zkDao, PathBuilder pathBuilder,
             ZkConfigSerializer serializer, PortDao portDao) {
         this.zkDao = zkDao;

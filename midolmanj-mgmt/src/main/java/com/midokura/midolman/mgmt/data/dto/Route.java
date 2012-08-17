@@ -20,7 +20,7 @@ import com.midokura.midolman.layer3.Route.NextHop;
 import com.midokura.midolman.mgmt.data.dto.Route.RouteExtended;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.AllowedValue;
 import com.midokura.midolman.mgmt.jaxrs.validation.annotation.NextHopPortNotNull;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.util.Net;
 import com.midokura.util.StringUtil;
 

@@ -8,7 +8,8 @@ import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 
 /**
  * Tenant DTO.

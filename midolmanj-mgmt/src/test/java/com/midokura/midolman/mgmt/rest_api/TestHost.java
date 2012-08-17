@@ -3,49 +3,31 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_HOST_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.core.UriBuilder;
-
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
+import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.packets.MAC;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.test.framework.AppDescriptor;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.mgmt.auth.NoAuthClient;
-import com.midokura.midolman.mgmt.data.StaticMockDaoFactory;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
-import com.midokura.midolman.mgmt.servlet.AuthFilter;
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
-import com.midokura.packets.MAC;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.ZkPathManager;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import javax.ws.rs.core.UriBuilder;
+import java.net.InetAddress;
+import java.util.UUID;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class TestHost extends JerseyTest {
 
@@ -55,12 +37,6 @@ public class TestHost extends JerseyTest {
     private ZkPathManager pathManager;
     private Directory rootDirectory;
 
-    static final Map<String, String> authFilterInitParams = new HashMap<String, String>();
-    static {
-        authFilterInitParams.put(ServletSupport.AUTH_CLIENT_CONFIG_KEY,
-                NoAuthClient.class.getName());
-    }
-
     public TestHost() {
         super(createWebApp());
 
@@ -68,30 +44,9 @@ public class TestHost extends JerseyTest {
     }
 
     private static AppDescriptor createWebApp() {
-        return
-            new WebAppDescriptor.Builder()
-                .addFilter(AuthFilter.class, "auth", authFilterInitParams)
-                .initParam(JSONConfiguration.FEATURE_POJO_MAPPING, "true")
-                .initParam(
-                    "com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter")
-                .initParam("javax.ws.rs.Application",
-                           "com.midokura.midolman.mgmt.rest_api.RestApplication")
-                .initParam(
-                    "com.sun.jersey.spi.container.ResourceFilters",
-                    "com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory")
-                .contextParam("version", "1")
-                .contextParam("datastore_service",
-                              "com.midokura.midolman.mgmt.data.StaticMockDaoFactory")
-                .contextParam("authorizer",
-                              "com.midokura.midolman.mgmt.auth.SimpleAuthorizer")
-                .contextParam("zk_conn_string", "")
-                .contextParam("zk_timeout", "0")
-                .contextParam("zk_root", ZK_ROOT_MIDOLMAN)
-                .contextParam("zk_mgmt_root", "/test/midolman-mgmt")
-                .contextPath("/test")
-                .clientConfig(FuncTest.config)
-                .build();
+
+        return FuncTest.getBuilder().build();
+
     }
 
     // This one also tests Create with given tenant ID string
@@ -100,15 +55,14 @@ public class TestHost extends JerseyTest {
         resource().type(VendorMediaType.APPLICATION_JSON)
             .get(ClientResponse.class);
 
-        rootDirectory = StaticMockDaoFactory.getFactoryInstance()
-                                            .getDirectory();
+        rootDirectory = StaticMockDirectory.getDirectoryInstance();
 
         hostManager = new HostZkManager(rootDirectory, "/test/midolman");
     }
 
     @After
     public void resetDirectory() throws Exception {
-        StaticMockDaoFactory.clearFactoryInstance();
+        StaticMockDirectory.clearDirectoryInstance();
     }
 
 

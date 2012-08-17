@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class DhcpDaoImpl implements DhcpDao {
 
     private final BridgeDhcpZkManager dhcpMgr;
 
+    @Inject
     public DhcpDaoImpl(BridgeDhcpZkManager dhcpMgr) {
         this.dhcpMgr = dhcpMgr;
     }

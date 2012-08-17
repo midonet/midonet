@@ -5,13 +5,11 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import com.google.inject.Inject;
-import com.midokura.midolman.mgmt.config.AppConfig;
-import com.midokura.midolman.mgmt.config.InvalidConfigException;
-import com.midokura.midolman.mgmt.config.RestApiConfig;
+import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.core.VendorMediaType;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,24 +17,29 @@ import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 /**
  * The top application resource class.
  */
+@RequestScoped
 @Path(ResourceUriBuilder.ROOT)
 public class ApplicationResource {
 
     private final static Logger log =
             LoggerFactory.getLogger(ApplicationResource.class);
 
+    private final UriInfo uriInfo;
     private final RestApiConfig config;
+    private final ResourceFactory factory;
 
     @Inject
-    public ApplicationResource(RestApiConfig config) {
+    public ApplicationResource(UriInfo uriInfo, RestApiConfig config,
+                               ResourceFactory factory) {
+        this.uriInfo = uriInfo;
         this.config = config;
+        this.factory = factory;
     }
 
     /**
@@ -46,7 +49,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.TENANTS)
     public TenantResource getTenantResource() {
-        return new TenantResource();
+        return factory.getTenantResource();
     }
 
     /**
@@ -56,7 +59,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.ROUTERS)
     public RouterResource getRouterResource() {
-        return new RouterResource();
+        return factory.getRouterResource();
     }
 
     /**
@@ -66,7 +69,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.BRIDGES)
     public BridgeResource getBridgeResource() {
-        return new BridgeResource();
+        return factory.getBridgeResource();
     }
 
     /**
@@ -76,7 +79,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.PORTS)
     public PortResource getPortResource() {
-        return new PortResource();
+        return factory.getPortResource();
     }
 
     /**
@@ -86,7 +89,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.ROUTES)
     public RouteResource getRouteResource() {
-        return new RouteResource();
+        return factory.getRouteResource();
     }
 
     /**
@@ -96,7 +99,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.CHAINS)
     public ChainResource getChainResource() {
-        return new ChainResource();
+        return factory.getChainResource();
     }
 
     /**
@@ -106,7 +109,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.PORT_GROUPS)
     public PortGroupResource getPortGroupResource() {
-        return new PortGroupResource();
+        return factory.getPortGroupResource();
     }
 
     /**
@@ -116,7 +119,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.RULES)
     public RuleResource getRuleResource() {
-        return new RuleResource();
+        return factory.getRuleResource();
     }
 
     /**
@@ -126,7 +129,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.BGP)
     public BgpResource getBgpResource() {
-        return new BgpResource();
+        return factory.getBgpResource();
     }
 
     /**
@@ -136,7 +139,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.AD_ROUTES)
     public AdRouteResource getAdRouteResource() {
-        return new AdRouteResource();
+        return factory.getAdRouteResource();
     }
 
     /**
@@ -146,7 +149,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.VPN)
     public VpnResource getVpnResource() {
-        return new VpnResource();
+        return factory.getVpnResource();
     }
 
     /**
@@ -156,7 +159,7 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.HOSTS)
     public HostResource getHostResource() {
-        return new HostResource();
+        return factory.getHostResource();
     }
 
     /**
@@ -166,23 +169,18 @@ public class ApplicationResource {
      */
     @Path(ResourceUriBuilder.METRICS)
     public MonitoringResource getMonitoringQueryResource() {
-        return new MonitoringResource();
+        return factory.getMonitoringQueryResource();
     }
 
     /**
      * Handler for getting root application resources.
      *
-     * @param uriInfo
-     *            Object that holds the request URI data.
-     * @throws InvalidConfigException
-     *             Missing configuration parameter.
      * @return An Application object.
      */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
-    public Application get(@Context UriInfo uriInfo)
-            throws InvalidConfigException {
+    public Application get() {
         log.debug("ApplicationResource: entered: " + uriInfo);
 
         Application a = new Application(uriInfo.getBaseUri());

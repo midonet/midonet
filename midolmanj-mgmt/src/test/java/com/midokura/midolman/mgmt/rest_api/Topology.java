@@ -3,13 +3,13 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.APPLICATION_TENANT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +28,7 @@ import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -210,7 +211,7 @@ public class Topology {
 
         public Topology build() {
 
-            this.app = resource.getWebResource().path("")
+           this.app = resource.getWebResource().path("/")
                     .type(APPLICATION_JSON).get(DtoApplication.class);
 
             for (Map.Entry<String, DtoTenant> entry : tenants.entrySet()) {

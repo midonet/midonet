@@ -12,6 +12,8 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+
 /**
  * ZooKeeper path service
  */
@@ -27,6 +29,7 @@ public class PathService {
      * @param pathBuilder
      *            ZooKeeper path builder service.
      */
+    @Inject
     public PathService(PathBuilder pathBuilder) {
         this.pathBuilder = pathBuilder;
     }

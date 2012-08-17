@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.state.NoStatePathException;
@@ -27,6 +28,7 @@ public class RouteDaoImpl implements RouteDao {
      * @param dataAccessor
      *            Route data accessor.
      */
+    @Inject
     public RouteDaoImpl(RouteZkManager dataAccessor) {
         this.dataAccessor = dataAccessor;
     }
@@ -68,8 +70,7 @@ public class RouteDaoImpl implements RouteDao {
     }
 
     @Override
-    public void update(Route obj)
-            throws StateAccessException, InvalidDataOperationException {
+    public void update(Route obj) throws StateAccessException {
         throw new UnsupportedOperationException();
     }
 

@@ -9,15 +9,18 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.client.*;
+import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.midokura.midolman.mgmt.rest_api.core.VendorMediaType.*;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -96,6 +99,11 @@ public class TestAdRoute extends JerseyTest {
 
         adRoutesUri = bgp.getAdRoutes();
         log.debug("adRoute {}", adRoutesUri);
+    }
+
+    @After
+    public void resetDirectory() throws Exception {
+        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

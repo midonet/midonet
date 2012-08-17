@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.data.dao;
 import java.util.List;
 import java.util.UUID;
 
+import com.midokura.midolman.mgmt.data.dao.GenericDao;
 import com.midokura.midolman.mgmt.data.dto.Tenant;
 import com.midokura.midolman.state.StateAccessException;
 

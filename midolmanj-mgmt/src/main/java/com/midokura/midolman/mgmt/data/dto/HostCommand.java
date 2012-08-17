@@ -7,7 +7,7 @@ import java.net.URI;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.rest_api.core.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 
 /**
  * Class encapsulating the commands that should be executed by a node agent into

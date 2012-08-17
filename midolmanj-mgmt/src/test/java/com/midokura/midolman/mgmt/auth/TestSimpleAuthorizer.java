@@ -4,10 +4,7 @@
  */
 package com.midokura.midolman.mgmt.auth;
 
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
@@ -18,6 +15,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -35,29 +33,29 @@ public class TestSimpleAuthorizer {
 
     @Before
     public void setUp() throws Exception {
-        this.tenantDaoMock = mock(TenantDao.class);
-        this.authorizer = spy(new SimpleAuthorizer(tenantDaoMock));
-        this.contextMock = mock(SecurityContext.class);
+        this.tenantDaoMock = Mockito.mock(TenantDao.class);
+        this.authorizer = Mockito.spy(new SimpleAuthorizer(tenantDaoMock));
+        this.contextMock = Mockito.mock(SecurityContext.class);
         PowerMockito.mockStatic(AuthChecker.class);
     }
 
     @Test
     public void testIsAdminTrue() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.isAdmin(contextMock);
         Assert.assertTrue(result);
     }
 
     @Test
     public void testIsAdminFalse() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
         boolean result = authorizer.isAdmin(contextMock);
         Assert.assertFalse(result);
     }
 
     @Test
     public void testAdRouteAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.adRouteAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -68,9 +66,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByAdRoute(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByAdRoute(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.adRouteAuthorized(contextMock,
@@ -84,9 +82,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByAdRoute(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByAdRoute(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.adRouteAuthorized(contextMock,
@@ -97,7 +95,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testBgpAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.bgpAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -108,9 +106,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByBgp(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByBgp(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.bgpAuthorized(contextMock,
@@ -124,9 +122,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByBgp(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByBgp(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.bgpAuthorized(contextMock,
@@ -137,7 +135,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testBridgeAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.bridgeAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -148,9 +146,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByBridge(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByBridge(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.bridgeAuthorized(contextMock,
@@ -164,9 +162,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByBridge(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByBridge(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.bridgeAuthorized(contextMock,
@@ -177,7 +175,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testChainAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.chainAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -188,9 +186,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByChain(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByChain(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.chainAuthorized(contextMock,
@@ -204,9 +202,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByChain(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByChain(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.chainAuthorized(contextMock,
@@ -217,7 +215,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testPortAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.portAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -228,9 +226,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByPort(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByPort(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.portAuthorized(contextMock,
@@ -244,9 +242,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByPort(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByPort(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.portAuthorized(contextMock,
@@ -257,7 +255,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testRouteAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.routeAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -268,9 +266,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRoute(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRoute(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.routeAuthorized(contextMock,
@@ -284,9 +282,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRoute(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRoute(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.routeAuthorized(contextMock,
@@ -297,7 +295,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testRouterAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.routerAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -308,9 +306,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRouter(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRouter(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.routerAuthorized(contextMock,
@@ -324,9 +322,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRouter(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRouter(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.routerAuthorized(contextMock,
@@ -337,7 +335,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testRuleAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.ruleAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -348,9 +346,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRule(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRule(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.ruleAuthorized(contextMock,
@@ -364,9 +362,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRule(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRule(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.ruleAuthorized(contextMock,
@@ -377,7 +375,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testTenantAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.tenantAuthorized(contextMock,
                 AuthAction.WRITE, "foo");
         Assert.assertTrue(result);
@@ -387,8 +385,8 @@ public class TestSimpleAuthorizer {
     public void testTenantAuthorizedOwnerWrite() throws Exception {
         String id = "foo";
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        when(AuthChecker.isUserPrincipal(contextMock, id)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, id)).thenReturn(true);
 
         boolean result = authorizer.tenantAuthorized(contextMock,
                 AuthAction.WRITE, id);
@@ -400,8 +398,8 @@ public class TestSimpleAuthorizer {
     public void testTenantAuthorizedNonOwnerWrite() throws Exception {
         String id = "foo";
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        when(AuthChecker.isUserPrincipal(contextMock, id)).thenReturn(false);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, id)).thenReturn(false);
 
         boolean result = authorizer.tenantAuthorized(contextMock,
                 AuthAction.WRITE, id);
@@ -412,7 +410,7 @@ public class TestSimpleAuthorizer {
     @Test
     public void testVifAuthorizedWriteTrue() throws Exception {
         UUID portId = UUID.randomUUID();
-        doReturn(true).when(authorizer).portAuthorized(contextMock,
+        Mockito.doReturn(true).when(authorizer).portAuthorized(contextMock,
                 AuthAction.WRITE, portId);
 
         boolean result = authorizer.vifAuthorized(contextMock,
@@ -424,7 +422,7 @@ public class TestSimpleAuthorizer {
     @Test
     public void testVifAuthorizedWriteFalse() throws Exception {
         UUID portId = UUID.randomUUID();
-        doReturn(false).when(authorizer).portAuthorized(contextMock,
+        Mockito.doReturn(false).when(authorizer).portAuthorized(contextMock,
                 AuthAction.WRITE, portId);
 
         boolean result = authorizer.vifAuthorized(contextMock,
@@ -435,7 +433,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testVpnAuthorizedAdminWrite() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.vpnAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID());
         Assert.assertTrue(result);
@@ -446,9 +444,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByVpn(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByVpn(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(true);
 
         boolean result = authorizer.vpnAuthorized(contextMock,
@@ -462,9 +460,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByVpn(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByVpn(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.vpnAuthorized(contextMock,
@@ -475,7 +473,7 @@ public class TestSimpleAuthorizer {
 
     @Test
     public void testRouterLinkAuthorizedProvider() throws Exception {
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(true);
         boolean result = authorizer.routerLinkAuthorized(contextMock,
                 AuthAction.WRITE, UUID.randomUUID(), UUID.randomUUID());
         Assert.assertTrue(result);
@@ -486,9 +484,9 @@ public class TestSimpleAuthorizer {
         Tenant tenant = new Tenant("foo");
         UUID id = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant).when(tenantDaoMock).getByRouter(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant).when(tenantDaoMock).findByRouter(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant.getId()))
                 .thenReturn(false);
 
         boolean result = authorizer.routerLinkAuthorized(contextMock,
@@ -504,11 +502,11 @@ public class TestSimpleAuthorizer {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant1).when(tenantDaoMock).getByRouter(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant1).when(tenantDaoMock).findByRouter(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
                 .thenReturn(true);
-        doReturn(tenant2).when(tenantDaoMock).getByRouter(peerId);
+        Mockito.doReturn(tenant2).when(tenantDaoMock).findByRouter(peerId);
 
         boolean result = authorizer.routerLinkAuthorized(contextMock,
                 AuthAction.WRITE, id, peerId);
@@ -523,11 +521,11 @@ public class TestSimpleAuthorizer {
         UUID id = UUID.randomUUID();
         UUID peerId = UUID.randomUUID();
 
-        when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
-        doReturn(tenant1).when(tenantDaoMock).getByRouter(id);
-        when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
+        Mockito.when(AuthChecker.isAdmin(contextMock)).thenReturn(false);
+        Mockito.doReturn(tenant1).when(tenantDaoMock).findByRouter(id);
+        Mockito.when(AuthChecker.isUserPrincipal(contextMock, tenant1.getId()))
                 .thenReturn(true);
-        doReturn(tenant2).when(tenantDaoMock).getByRouter(peerId);
+        Mockito.doReturn(tenant2).when(tenantDaoMock).findByRouter(peerId);
 
         boolean result = authorizer.routerLinkAuthorized(contextMock,
                 AuthAction.WRITE, id, peerId);

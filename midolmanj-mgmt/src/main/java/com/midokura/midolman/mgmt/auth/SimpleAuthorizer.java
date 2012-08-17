@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ public class SimpleAuthorizer implements Authorizer {
      * @param tenantDao
      *            Tenant DAO.
      */
+    @Inject
     public SimpleAuthorizer(TenantDao tenantDao) {
         this.tenantDao = tenantDao;
     }
