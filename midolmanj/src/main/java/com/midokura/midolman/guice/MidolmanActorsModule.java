@@ -12,8 +12,8 @@ import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
-import com.midokura.sdn.flows.NetlinkFlowTable;
-import com.midokura.sdn.flows.WildcardFlowTable;
+import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.sdn.flows.FlowManager;
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so
@@ -26,6 +26,7 @@ public class MidolmanActorsModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
+        requireBinding(OvsDatapathConnection.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
@@ -35,8 +36,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(DatapathController.class).in(Singleton.class);
         bind(FlowController.class).in(Singleton.class);
 
-        bind(NetlinkFlowTable.class);
-        bind(WildcardFlowTable.class);
+        bind(FlowManager.class);
     }
 
     protected void bindMidolmanActorsService() {

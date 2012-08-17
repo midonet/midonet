@@ -15,14 +15,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.util.Net;
+import com.midokura.netlink.Callback;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkSelectorProvider;
+import com.midokura.netlink.exceptions.NetlinkException;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.packets.MAC;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.Packet;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
 import com.midokura.util.eventloop.SelectListener;
@@ -116,6 +119,23 @@ public class Client {
         log.info("Installed flow: {}, ",
                  conn.flowsCreate(datapath, new Flow().setMatch(flowMatch()))
                      .get());
+
+        conn.datapathsSetNotificationHandler(datapath, new Callback<Packet>() {
+            @Override
+            public void onSuccess(Packet data) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            public void onTimeout() {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            public void onError(NetlinkException e) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+        }).get();
 
         log.info("Waiting before flushing");
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));

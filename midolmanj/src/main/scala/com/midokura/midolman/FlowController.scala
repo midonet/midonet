@@ -10,8 +10,7 @@ import java.util.UUID
 
 import com.midokura.sdn.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Datapath, Packet}
 
-import com.midokura.sdn.flows.{NetlinkFlowTable, WildcardFlow,
-WildcardFlowTable}
+import com.midokura.sdn.flows.{FlowManager, WildcardFlow}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.sdn.dp.flows.FlowAction
 import javax.inject.Inject
@@ -32,9 +31,6 @@ object FlowController {
                           outPorts: Set[UUID])
 
     case class Consume(packet: Packet)
-
-    // Callback argument should not block.
-    case class RegisterPacketInListener(callback: (Packet, UUID) => Unit)
 }
 
 class FlowController extends Actor {
@@ -51,10 +47,7 @@ class FlowController extends Actor {
     var datapathConnection: OvsDatapathConnection = null
 
     @Inject
-    var wildcardFlowManager: WildcardFlowTable = null
-
-    @Inject
-    var exactFlowManager: NetlinkFlowTable = null
+    var flowManager: FlowManager = null
 
     def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
@@ -77,7 +70,7 @@ class FlowController extends Actor {
                 val pendedPackets = pendedMatches.remove(kernelMatch)
                 val kernelFlow = new KernelFlow()
                 kernelFlow.setMatch(packet.getMatch)
-                kernelFlow.setActions(wildcardFlow.actions)
+                kernelFlow.setActions(wildcardFlow.getActions)
                 // XXX
                 // TODO: installFlow(kernelFlow)
                 // Send pended packets out the new rule
@@ -87,14 +80,15 @@ class FlowController extends Actor {
                         // TODO: packetOut(unpendedPacket, kernelFlow)
                     }
             }
-            val evictedWcFlows = wildcardFlowManager.add(wildcardFlow)
-            val evictedKernelFlows = (
+            // TODO(pino): is the datapath flow table reaching its limit?
+            flowManager.add(wildcardFlow)
+            /*val evictedKernelFlows = (
                 (Set[KernelFlow]() /: evictedWcFlows)
                     (_ ++ exactFlowManager.removeByWildcard(_)))
             for (kernelFlow <- evictedKernelFlows) {
                 // XXX
                 // TODO: removeFlow(kernelFlow.getMatch)
-            }
+            }*/
 
         case Consume(packet) =>
             val kernelMatch = packet.getMatch
@@ -116,7 +110,7 @@ class FlowController extends Actor {
     private def handlePacketIn(packet: Packet) {
         // First check if packet matches an exact flow, in case
         // the PacketIn notify crossed the flow's install message.
-        val exactFlow = exactFlowManager.get(packet)
+        val exactFlow = flowManager.createDpFlow(packet.getMatch)
         if (exactFlow != null) {
             // XXX
             // TODO: packetOut(packet, exactFlow)
@@ -124,20 +118,20 @@ class FlowController extends Actor {
         }
 
         // Query the WildcardFlowTable
-        val wFlow = wildcardFlowManager.matchPacket(packet)
+        val wFlow = flowManager.createDpFlow(packet.getMatch)
         if (wFlow != null) {
             val kFlow = new KernelFlow()
                 .setMatch(packet.getMatch)
-                .setActions(wFlow.actions)
+                .setActions(wFlow.getActions)
 
-            val evictedFlows = exactFlowManager.add(wFlow, kFlow)
+            val evictedFlows = flowManager.add(null, null)
             // XXX
             // TODO: installFlow(kFlow, packet)
-            wildcardFlowManager.markUnused(evictedFlows.fst)
-            for (kernelFlow <- evictedFlows.snd) {
+            //wildcardFlowManager.markUnused(evictedFlows.fst)
+            //for (kernelFlow <- evictedFlows.snd) {
                 // XXX
                 // TODO: removeFlow(kernelFlow)
-            }
+            //}
         } else {
             val kernelMatch = packet.getMatch
             if (pendedMatches.get(kernelMatch) == None) {

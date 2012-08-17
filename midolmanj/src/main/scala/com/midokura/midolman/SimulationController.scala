@@ -4,13 +4,14 @@ package com.midokura.midolman
 
 import akka.actor.{ActorRef, Actor}
 
-import com.midokura.sdn.flows.{WildcardFlow, MidoMatch}
+import openflow.MidoMatch
+import com.midokura.sdn.flows.{WildcardFlow}
 import java.util.UUID
 import com.midokura.packets.Ethernet
 import collection.mutable
 import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume, RegisterPacketInListener}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume}
 import com.midokura.midolman.FlowController.SendPacket
 
 case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
@@ -21,7 +22,7 @@ case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
 
 class SimulationController(val fController: ActorRef) extends Actor {
 
-    fController ! RegisterPacketInListener(packetInCallback)
+    //fController ! RegisterPacketInListener(packetInCallback)
 
     case class PacketIn(packet: Packet, vportID: UUID)
 

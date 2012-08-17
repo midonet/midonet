@@ -855,11 +855,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         NetlinkMessage message = newMessage()
             .addValue(datapathId)
             .addAttrNested(PacketFamily.AttrKey.KEY)
-            .addAttrs(flowMatch.getKeys())
-            .build()
+                .addAttrs(flowMatch.getKeys())
+                .build()
             .addAttrNested(PacketFamily.AttrKey.ACTIONS)
-            .addAttrs(packet.getActions())
-            .build()
+                .addAttrs(packet.getActions())
+                .build()
             .build();
 
         newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)
