@@ -7,14 +7,17 @@ import java.util.UUID;
 
 import com.midokura.packets.MAC;
 import com.midokura.util.functors.Callback1;
-import com.midokura.util.functors.Callback2;
+import com.midokura.util.functors.Callback3;
 
 /*
  * Non-blocking.
  */
 public interface MacLearningTable {
     void get(MAC mac, Callback1<UUID> cb);
+
     void add(MAC mac, UUID portID);
+
     void remove(MAC mac, UUID portID);
-    void notify(Callback2<MAC, UUID> cb);
+
+    void notify(Callback3<MAC, UUID, UUID> cb);
 }

@@ -8,14 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.inject.Inject;
+import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.zkManagers.*;
+
+import com.google.inject.name.Names;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
@@ -30,6 +37,7 @@ import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.LocalClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
+import com.midokura.util.eventloop.Reactor;
 
 public class ClusterClientModule extends PrivateModule {
 
@@ -41,6 +49,9 @@ public class ClusterClientModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(Directory.class);
+
+        requireBinding(Key.get(Reactor.class, Names.named(
+            ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
 
         bindManagers();
 

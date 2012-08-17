@@ -7,22 +7,43 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
+import javax.inject.Named;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MacPortMap;
+import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.util.functors.Callback1;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;
+import com.midokura.midonet.cluster.client.MacLearningTable;
 import com.midokura.midonet.cluster.client.PortBuilders;
 import com.midokura.midonet.cluster.client.RouterBuilder;
+import com.midokura.packets.MAC;
+import com.midokura.util.eventloop.Reactor;
+import com.midokura.util.functors.Callback1;
+import com.midokura.util.functors.Callback3;
 
+/**
+ * Implementation of the Cluster.Client using ZooKeeper
+ * Assumption:
+ * - No cache, the caller of this class will have to implement its own cache
+ * - Only one builder for UUID is allowed
+ * - Right now it's single-threaded, we don't assure a thread-safe behaviour
+ */
 public class LocalClientImpl implements Client {
 
     private static final Logger log = LoggerFactory
@@ -34,12 +55,30 @@ public class LocalClientImpl implements Client {
     @Inject
     BgpZkManager bgpZkManager;
 
-    public LocalClientImpl() {
-        int a = 10;
-    }
+    @Inject
+    BridgeZkManager bridgeMgr;
+
+    @Inject
+    ZookeeperConfig zkConfig;
+
+    @Inject
+    Directory dir;
+
+    /**
+     * We inject it because we want to use the same {@link Reactor} as {@link ZkDirectory}
+     */
+    @Inject
+    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    Reactor reactorLoop;
+
+    Map<UUID, BridgeBuilder> bridgeBuilderMap = new ConcurrentHashMap<UUID, BridgeBuilder>();
+    Map<UUID, BridgeZkManager.BridgeConfig> bridgeMap = new ConcurrentHashMap<UUID, BridgeZkManager.BridgeConfig>();
 
     @Override
     public void getBridge(UUID bridgeID, BridgeBuilder builder) {
+        // asynchronous call, we will process it later
+        bridgeBuilderMap.put(bridgeID, builder);
+        reactorLoop.submit(getBridgeConf(bridgeID, builder));
     }
 
     @Override
@@ -56,20 +95,24 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getPort(UUID portID, PortBuilders.InteriorBridgePortBuilder builder) {
+    public void getPort(UUID portID,
+                        PortBuilders.InteriorBridgePortBuilder builder) {
     }
 
     @Override
-    public void getPort(UUID portID, PortBuilders.ExteriorBridgePortBuilder builder) {
+    public void getPort(UUID portID,
+                        PortBuilders.ExteriorBridgePortBuilder builder) {
         builder.start().setTunnelKey(1l).build();
     }
 
     @Override
-    public void getPort(UUID portID, PortBuilders.InteriorRouterPortBuilder builder) {
+    public void getPort(UUID portID,
+                        PortBuilders.InteriorRouterPortBuilder builder) {
     }
 
     @Override
-    public void getPort(UUID portID, PortBuilders.ExteriorRouterPortBuilder builder) {
+    public void getPort(UUID portID,
+                        PortBuilders.ExteriorRouterPortBuilder builder) {
 
     }
 
@@ -77,7 +120,8 @@ public class LocalClientImpl implements Client {
         new HashMap<UUID, LocalStateBuilder>();
 
     @Override
-    public void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder) {
+    public void getLocalStateFor(UUID hostIdentifier,
+                                 LocalStateBuilder builder) {
         localStateBuilders.put(hostIdentifier, builder);
         triggerUpdate(hostIdentifier);
     }
@@ -118,7 +162,8 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void setLocalVrnPortMapping(UUID hostIdentifier, UUID portId, String tapName) {
+    public void setLocalVrnPortMapping(UUID hostIdentifier, UUID portId,
+                                       String tapName) {
         try {
             hostZkManager.addVirtualPortMapping(hostIdentifier,
                                                 new HostDirectory.VirtualPortMapping(
@@ -138,4 +183,145 @@ public class LocalClientImpl implements Client {
             log.error("Exception: ", e);
         }
     }
+
+    Runnable getBridgeConf(final UUID id,
+                           final BridgeBuilder builder) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                BridgeZkManager.BridgeConfig config = null;
+                try {
+                    config = bridgeMgr.get(id, watchBridge(id));
+                } catch (StateAccessException e) {
+                    // TODO send error message?
+                    log.error("Cannot retrieve the configuration for bridge {}",
+                              id, e);
+                }
+
+                if (config != null) {
+                    MacPortMap macPortMap = null;
+
+                    // we don't need to get the macPortMap again if it's an update
+                    if (!bridgeMap.containsKey(id)) {
+                        try {
+                            ZkPathManager pathManager = new ZkPathManager(
+                                zkConfig.getMidolmanRootKey());
+                            macPortMap = new MacPortMap(dir.getSubDirectory(
+                                pathManager.getBridgeMacPortsPath(id)));
+                        } catch (KeeperException e) {
+                            log.error(
+                                "Error retrieving MacPortTable for bridge {}",
+                                id, e);
+                        }
+                        if (macPortMap != null)
+                            macPortMap.start();
+                    }
+                    bridgeMap.put(id, config);
+                    buildBridgeFromConfig(id, config, builder, macPortMap);
+                }
+            }
+        };
+
+    }
+
+
+    Runnable watchBridge(final UUID id) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                // return fast and update later
+                reactorLoop.submit(getBridgeConf(id,
+                                                 (BridgeBuilder) bridgeBuilderMap
+                                                     .get(id)));
+            }
+        };
+    }
+
+    void buildBridgeFromConfig(UUID id, BridgeZkManager.BridgeConfig config,
+                               BridgeBuilder builder, MacPortMap macPortMap) {
+
+        builder.setID(id)
+               .setInFilter(config.inboundFilter)
+               .setOutFilter(config.outboundFilter);
+        builder.setTunnelKey(config.greKey);
+        builder.setMacLearningTable(new MacLearningTableImpl(macPortMap) {
+        });
+        // TODO(ross) check what's missing, MacLearningTable?
+        builder.build();
+
+    }
+
+    class MacLearningTableImpl implements MacLearningTable {
+
+        MacPortMap map;
+
+        MacLearningTableImpl(MacPortMap map) {
+            this.map = map;
+        }
+
+        @Override
+        public void get(final MAC mac, final Callback1<UUID> cb) {
+            reactorLoop.submit(new Runnable() {
+                @Override
+                public void run() {
+                    cb.call(map.get(mac));
+                }
+            });
+        }
+
+        @Override
+        public void add(final MAC mac, final UUID portID) {
+
+            reactorLoop.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        map.put(mac, portID);
+                    } catch (Exception e) {
+                        log.error("Failed adding mac {} to port {}",
+                                  new Object[]{mac, portID, e});
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void remove(final MAC mac, final UUID portID) {
+            reactorLoop.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        map.removeIfOwner(mac);
+                    } catch (Exception e) {
+                        log.error("Failed removing mac {} from port {}",
+                                  new Object[]{mac, portID, e});
+                    }
+                }
+            });
+
+        }
+
+
+        @Override
+        public void notify(final Callback3<MAC, UUID, UUID> cb) {
+            reactorLoop.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    map.addWatcher(new ReplicatedMap.Watcher<MAC, UUID>() {
+                        @Override
+                        public void processChange(MAC key, UUID oldValue,
+                                                  UUID newValue) {
+                            cb.call(key, oldValue, newValue);
+                        }
+                    });
+                }
+            });
+
+        }
+    }
+
 }
