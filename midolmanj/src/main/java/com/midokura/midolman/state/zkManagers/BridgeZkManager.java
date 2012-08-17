@@ -191,6 +191,11 @@ public class BridgeZkManager extends ZkManager {
         BridgeConfig oldConfig = get(id);
         // Have the inbound or outbound filter changed?
         boolean dataChanged = false;
+        if (!oldConfig.name.equals(config.name)) {
+            log.debug("The name of bridge {} changed from {} to {}", new Object[]{id, oldConfig.name, config.name});
+            dataChanged = true;
+        }
+
         UUID id1 = oldConfig.inboundFilter;
         UUID id2 = config.inboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {

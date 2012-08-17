@@ -119,10 +119,24 @@ public class TestBridge {
                     bridgeUri, APPLICATION_BRIDGE_JSON, resBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge.getId());
+            assertEquals(updatedBridge.getName(), "bridge1-modified");
             assertEquals(resBridge.getTenantId(), updatedBridge.getTenantId());
             assertEquals(resBridge.getInboundFilterId(),
                     updatedBridge.getInboundFilterId());
             assertEquals(resBridge.getOutboundFilterId(),
+                    updatedBridge.getOutboundFilterId());
+
+            //Update the bridge updatedBridge (name only)
+            updatedBridge.setName("bridge1-modified2");
+            DtoBridge updatedBridge2 = dtoResource.putAndVerifyNoContent(
+                    bridgeUri, APPLICATION_BRIDGE_JSON, updatedBridge,
+                    DtoBridge.class);
+            assertNotNull(updatedBridge2.getId());
+            assertEquals(updatedBridge2.getName(), "bridge1-modified2");
+            assertEquals(updatedBridge2.getTenantId(), updatedBridge.getTenantId());
+            assertEquals(updatedBridge2.getInboundFilterId(),
+                    updatedBridge.getInboundFilterId());
+            assertEquals(updatedBridge2.getOutboundFilterId(),
                     updatedBridge.getOutboundFilterId());
 
             // Delete the bridge
