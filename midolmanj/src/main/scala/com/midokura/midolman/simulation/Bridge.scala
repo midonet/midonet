@@ -86,13 +86,20 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingress.port)
-            //XXX: Flow Removal notifications so we can dec the flow count
-            //XXX: Pino has some ideas on this he's going to write up.
+            //XXX: Flow Removal notifications so we can dec the flow count --
+            //XXX: -- Pino has some ideas on this he's going to write up.
+            val oldPortID = getPortOfMac(srcDlAddress, ec)
+            if (ingress.port != oldPortID) {
+                log.debug("MAC {} moved from port {} to {}.",
+                          Array[Object](srcDlAddress, oldPortID, ingress.port))
+                //XXX: Invalidate (or move?) the obsoleted flows.
+                macPortMap.add(srcDlAddress, ingress.port)
+            }
         }
 
         //XXX: apply egress (post-bridging) chain
 
-        // XXX: Add to traversed elements list if flooding.
+        //XXX: Add to traversed elements list if flooding.
 
         return new ForwardResult(new PortMatch(outPortID, matchOut))
     }

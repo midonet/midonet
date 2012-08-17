@@ -76,7 +76,9 @@ class BridgeManager(id: UUID, val mgr: BridgeZkManager)
         case FlowIncrement(mac, port) =>
             flowCountMap.get((mac, port)) match {
                 case Some(int: Int) => flowCountMap.put((mac, port), int+1)
-                case None => flowCountMap.put((mac, port), 1)
+                case None =>
+                    flowCountMap.put((mac, port), 1)
+                    //XXX: Remove any delayed deletes for this MAC/port
             }
 
         case FlowDecrement(mac, port) =>
