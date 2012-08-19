@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.netlink.NetlinkMessage.AttrKey;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKey;
 
 public class WildcardFlow {
     short priority; // used to choose among many matching flows
-    Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>> match =
-            new HashMap<FlowKey.FlowKeyAttr<?>, FlowKey<?>>();
+    Set<FlowKey<?>> match =
+            new HashSet<FlowKey<?>>();
     List<FlowAction<?>> actions;
 
     final long creationTimeMillis;
@@ -28,7 +28,7 @@ public class WildcardFlow {
 
     public WildcardFlow(List<FlowAction<?>> actions, long creationTimeMillis,
                         long hardExpirationMillis, long idleExpirationMillis,
-                        Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>> match,
+                        Set<FlowKey<?>> match,
                         short priority) {
         this.actions = actions;
         this.creationTimeMillis = creationTimeMillis;
@@ -41,7 +41,7 @@ public class WildcardFlow {
 
     public WildcardFlow(List<FlowAction<?>> actions,
                        long hardExpirationMillis, long idleExpirationMillis,
-                       Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>> match,
+                       Set<FlowKey<?>> match,
                        short priority) {
         this.actions = actions;
         this.creationTimeMillis = System.currentTimeMillis();
@@ -72,7 +72,7 @@ public class WildcardFlow {
         return lastUsedTimeMillis;
     }
 
-    public Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>> getMatch() {
+    public Set<FlowKey<?>> getMatch() {
         return match;
     }
 

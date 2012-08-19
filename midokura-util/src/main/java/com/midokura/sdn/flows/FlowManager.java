@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.tools.javac.util.Pair;
-
+import com.midokura.netlink.NetlinkMessage.AttrKey;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
@@ -23,6 +22,8 @@ import com.midokura.sdn.dp.flows.FlowKey;
 // not thread-safe
 // TODO(pino): document this
 // TODO(pino): implement eviction of wildcard flows
+// TODO(pino): implement flow removal notification. Keep in mind that during
+// TODO:       simulation, the match for the installed flow is not yet known.
 public class FlowManager {
 
     /* The wildcard flow table is a map of wildcard match to wildcard flow
@@ -30,7 +31,7 @@ public class FlowManager {
      */
     private class WildcardFlowTable extends
             HashMap<
-                    Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>>,
+                    Set<FlowKey<?>>,
                     WildcardFlow> {}
 
     /* The FlowManager needs one WildcardFlowTable for every wildcard pattern.
@@ -38,8 +39,8 @@ public class FlowManager {
      * Each wildcard pattern is the set of FlowKeyAttr that must be matched
      * exactly.
      */
-    private Map<Set<FlowKey.FlowKeyAttr<?>>, WildcardFlowTable> wildcardTables =
-            new HashMap<Set<FlowKey.FlowKeyAttr<?>>, WildcardFlowTable>();
+    private Map<Set<AttrKey<?>>, WildcardFlowTable> wildcardTables =
+            new HashMap<Set<AttrKey<?>>, WildcardFlowTable>();
 
     /* The datapath flow table is a map of datapath FlowMatch to a list of
      * FlowActions. The wildcard flow table is a LinkedHashMap so that we
@@ -80,7 +81,7 @@ public class FlowManager {
      */
     public boolean add(WildcardFlow wildFlow) {
         // Get the WildcardFlowTable for this wild flow's pattern.
-        Set<FlowKey.FlowKeyAttr<?>> pattern = wildFlow.match.keySet();
+        Set<AttrKey<?>> pattern = getRequiredAttrKeys(wildFlow);
         WildcardFlowTable wildTable = wildcardTables.get(pattern);
         if (null == wildTable) {
             wildTable = new WildcardFlowTable();
@@ -92,6 +93,13 @@ public class FlowManager {
             return true;
         }
         return false;
+    }
+
+    private Set<AttrKey<?>> getRequiredAttrKeys(WildcardFlow wildFlow) {
+        Set<AttrKey<?>> attrKeys = new HashSet<AttrKey<?>>();
+        for (FlowKey<?> key : wildFlow.getMatch())
+            attrKeys.add(key.getKey());
+        return attrKeys;
     }
 
     /**
@@ -127,10 +135,21 @@ public class FlowManager {
             dpFlowToWildFlow.remove(flowMatch);
             dpFlowTable.remove(flowMatch);
         }
-        // Get the WildcardFlowTable for this wild flow's pattern.
-        Set<FlowKey.FlowKeyAttr<?>> pattern = wildFlow.match.keySet();
-        wildcardTables.get(pattern).remove(wildFlow.match);
+        // Get the WildcardFlowTable for this wild flow's pattern and remove
+        // the wild flow.
+        wildcardTables.get(getRequiredAttrKeys(wildFlow))
+                .remove(wildFlow.match);
         return removedDpFlows;
+    }
+
+    /**
+     * If a datapth flow matching this FlowMatch was already computed, return
+     * its actions. Else null.
+     * @param flowMatch
+     * @return
+     */
+    public List<FlowAction<?>> getActionsForDpFlow(FlowMatch flowMatch) {
+        return dpFlowTable.get(flowMatch);
     }
 
     /**
@@ -149,11 +168,30 @@ public class FlowManager {
             return new Flow().setMatch(flowMatch).setActions(actions);
         // Iterate through the WildcardFlowTables to find candidate wild flows.
         WildcardFlow wildcardFlow = null;
-        for (Map.Entry<Set<FlowKey.FlowKeyAttr<?>>, WildcardFlowTable> wTable :
+        for (Map.Entry<Set<AttrKey<?>>, WildcardFlowTable> wTableEntry :
             wildcardTables.entrySet()) {
-
+            WildcardFlowTable table = wTableEntry.getValue();
+            Set<AttrKey<?>> pattern = wTableEntry.getKey();
+            Set<FlowKey<?>> wildMatch =
+                    getWildMatchForDpFlow(flowMatch, pattern);
+            if (null != wildMatch) {
+                WildcardFlow candidate = table.get(wildMatch);
+                if (null != candidate &&
+                        candidate.priority < wildcardFlow.priority)
+                    wildcardFlow = candidate;
+            }
         }
-        return null;
+        if (null != wildcardFlow) {
+            Flow dpFlow = new Flow().setMatch(flowMatch)
+                    .setActions(wildcardFlow.getActions());
+            dpFlowTable.put(flowMatch, wildcardFlow.getActions());
+            dpFlowToWildFlow.put(flowMatch, wildcardFlow);
+            wildFlowToDpFlows.get(wildcardFlow).add(flowMatch);
+            return dpFlow;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -167,10 +205,17 @@ public class FlowManager {
      * FlowMatch has all the FlowKeys specified in the 'requiredKeys' set.
      * Otherwise, null.
      */
-    private Map<FlowKey.FlowKeyAttr<?>, FlowKey<?>> getWildMatchForDpFlow(
-            FlowMatch flowMatch, Set<FlowKey.FlowKeyAttr<?>> requiredKeys) {
-        // TODO(pino): populate the map with values from the FlowMatch. If
-        return new HashMap<FlowKey.FlowKeyAttr<?>, FlowKey<?>>();
+    private Set<FlowKey<?>> getWildMatchForDpFlow(
+            FlowMatch flowMatch, Set<AttrKey<?>> requiredKeys) {
+        Set<AttrKey<?>> foundKeys = new HashSet<AttrKey<?>>();
+        Set<FlowKey<?>> wildMatch = new HashSet<FlowKey<?>>();
+        for (FlowKey<?> key : flowMatch.getKeys()) {
+            if (requiredKeys.contains(key.getKey())) {
+                foundKeys.add(key.getKey());
+                wildMatch.add(key);
+            }
+        }
+        return (foundKeys.equals(requiredKeys))? wildMatch : null;
     }
 
 }

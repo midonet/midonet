@@ -8,7 +8,7 @@ import collection.mutable.{HashMap, MultiMap, Set}
 import guice.ComponentInjectorHolder
 import java.util.UUID
 
-import com.midokura.sdn.dp.{Flow => KernelFlow, FlowMatch => KernelMatch, Datapath, Packet}
+import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
 
 import com.midokura.sdn.flows.{FlowManager, WildcardFlow}
 import com.midokura.midolman.openflow.MidoMatch
@@ -39,9 +39,10 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
+    val maxDpFlows = 0;
 
-    private val pendedMatches: MultiMap[KernelMatch, Packet] =
-        new HashMap[KernelMatch, Set[Packet]] with MultiMap[KernelMatch, Packet]
+    private val pendedMatches: MultiMap[FlowMatch, Packet] =
+        new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
 
     @Inject
     var datapathConnection: OvsDatapathConnection = null
@@ -68,7 +69,7 @@ class FlowController extends Actor {
                 val packet = packetOption.get
                 val kernelMatch = packet.getMatch
                 val pendedPackets = pendedMatches.remove(kernelMatch)
-                val kernelFlow = new KernelFlow()
+                val kernelFlow = new Flow()
                 kernelFlow.setMatch(packet.getMatch)
                 kernelFlow.setActions(wildcardFlow.getActions)
                 // XXX
@@ -83,7 +84,7 @@ class FlowController extends Actor {
             // TODO(pino): is the datapath flow table reaching its limit?
             flowManager.add(wildcardFlow)
             /*val evictedKernelFlows = (
-                (Set[KernelFlow]() /: evictedWcFlows)
+                (Set[Flow]() /: evictedWcFlows)
                     (_ ++ exactFlowManager.removeByWildcard(_)))
             for (kernelFlow <- evictedKernelFlows) {
                 // XXX
@@ -108,37 +109,36 @@ class FlowController extends Actor {
     case class packetIn(packet: Packet)
 
     private def handlePacketIn(packet: Packet) {
-        // First check if packet matches an exact flow, in case
-        // the PacketIn notify crossed the flow's install message.
-        val exactFlow = flowManager.createDpFlow(packet.getMatch)
-        if (exactFlow != null) {
-            // XXX
-            // TODO: packetOut(packet, exactFlow)
+        // In case the PacketIn notify raced a flow rule installation, see if
+        // the flowManager already has a match.
+        val actions = flowManager.getActionsForDpFlow(packet.getMatch);
+        if (actions != null) {
+            // XXX TODO: packetOut(packet, exactFlow)
             return
         }
-
-        // Query the WildcardFlowTable
-        val wFlow = flowManager.createDpFlow(packet.getMatch)
-        if (wFlow != null) {
-            val kFlow = new KernelFlow()
-                .setMatch(packet.getMatch)
-                .setActions(wFlow.getActions)
-
-            val evictedFlows = flowManager.add(null, null)
-            // XXX
-            // TODO: installFlow(kFlow, packet)
-            //wildcardFlowManager.markUnused(evictedFlows.fst)
-            //for (kernelFlow <- evictedFlows.snd) {
-                // XXX
-                // TODO: removeFlow(kernelFlow)
-            //}
-        } else {
-            val kernelMatch = packet.getMatch
-            if (pendedMatches.get(kernelMatch) == None) {
+        // Otherwise, try to create a datapath flow based on an existing
+        // wildcard flow.
+        val dpFlow = flowManager.createDpFlow(packet.getMatch)
+        if (dpFlow != null) {
+            // Check whether some existing datapath flows will need to be
+            // evicted to make space for the new one.
+            if (flowManager.getNumDpFlows > maxDpFlows) {
+                // Evict 1000 datapath flows.
+                for (dpFlow <- flowManager.removeOldestDpFlows(1000)) {
+                    // XXX TODO: remove each flow via the Netlink API
+                }
+            }
+            // XXX TODO: installFlow(kFlow, packet)
+            return
+        }
+        else {
+            // Otherwise, pass the packetIn up to the next layer for handling.
+            // Keep track of these packets so that for every FlowMatch, only
+            // one such call goes to the next layer.
+            if (pendedMatches.get(packet.getMatch) == None) {
                 datapathController() ! DatapathController.PacketIn(packet)
             }
-
-            pendedMatches.addBinding(kernelMatch, packet)
+            pendedMatches.addBinding(packet.getMatch, packet)
         }
     }
 
