@@ -84,14 +84,14 @@ public class LocalClientImplTest {
         initializeZKStructure();
         Setup.createZkDirectoryStructure(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
-            new BridgeZkManager.BridgeConfig());
+            new BridgeZkManager.BridgeConfig("test", null, null));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
         client.getBridge(bridgeId, bridgeBuilder);
         Thread.sleep(2000);
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(),
                    equalTo(1));
         // let's cause a bridge update
-        getBridgeZkManager().update(bridgeId, new BridgeZkManager.BridgeConfig(
+        getBridgeZkManager().update(bridgeId, new BridgeZkManager.BridgeConfig("test1",
             UUID.randomUUID(), UUID.randomUUID()));
         Thread.sleep(2000);
         assertThat("Bridge update was notified",
