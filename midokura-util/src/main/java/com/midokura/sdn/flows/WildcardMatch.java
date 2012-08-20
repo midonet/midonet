@@ -10,7 +10,7 @@ import java.util.UUID;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 
-public interface MidoMatch<T extends MidoMatch<T>> {
+public interface WildcardMatch<T extends WildcardMatch<T>> {
 
     enum Field {
         InputPortNumber,
