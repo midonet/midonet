@@ -22,8 +22,6 @@ import akka.util.duration._
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
 import java.lang
-import com.sun.deploy.pings.Pings
-import com.midokura.midolman.Messages.Pong
 
 /**
  * Holder object that keeps the external message definitions
