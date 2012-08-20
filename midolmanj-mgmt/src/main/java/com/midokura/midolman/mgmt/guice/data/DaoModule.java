@@ -4,7 +4,7 @@
 package com.midokura.midolman.mgmt.guice.data;
 
 import com.google.inject.AbstractModule;
-import com.midokura.midolman.guice.cluster.ClusterClientModule;
+import com.midokura.midolman.mgmt.guice.data.zookeeper.MgmtClusterClientModule;
 import com.midokura.midolman.mgmt.guice.data.zookeeper.ZookeeperDaoModule;
 
 /**
@@ -16,7 +16,7 @@ public class DaoModule extends AbstractModule {
     protected void configure() {
 
         // Install Cluster client
-        install(new ClusterClientModule());
+        install(new MgmtClusterClientModule());
 
         // Install ZK DAO
         install(new ZookeeperDaoModule());
