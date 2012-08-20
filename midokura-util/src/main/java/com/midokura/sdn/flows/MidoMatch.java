@@ -4,12 +4,34 @@
 
 package com.midokura.sdn.flows;
 
+import java.util.EnumSet;
 import java.util.UUID;
 
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 
 public interface MidoMatch<T extends MidoMatch<T>> {
+
+    enum Field {
+        InputPortNumber,
+        InputPortID,
+        TunnelID,
+        EthernetSource,
+        EthernetDestination,
+        EtherType,
+        NetworkSource,
+        NetworkDestination,
+        NetworkProtocol,
+        IsIPv4Fragment,
+        TransportSource,
+        TransportDestination
+    }
+
+    /**
+     *
+     * @return the set of Fields that have been set in this instance.
+     */
+    EnumSet<Field> getUsedFields();
 
     T setInputPortNumber(short inputPortNumber);
     Short getInputPortNumber();
