@@ -45,32 +45,49 @@ launch the VM, but right before the VM is launched, Nova provides a hook in
 the code path that gives vendors a place to insert their plugin code to 
 configure the vNICs on the host.  This plugin code is called a VIF driver, and 
 it is in this driver that Nova must coordinate with MidoNet to effectively plug 
-the VM into the MidoNet virtual bridge port that was created earlier.
+the VM into the MidoNet virtual bridge port.
 
 The first thing the VIF driver must do is to create a tap interface on the
-host, which represents the vNIC on the VM.  This is a responsibility of Nova,
-but it has to also inform Midolman that one of its virtual ports is now
-mapped to a tap interface on a host.  This is accomplished by invoking the
-following MidoNet API:
+host, which represents the vNIC on the VM.  While the creation of the tap
+interface is a responsibility of Nova, the creation of a datapath port to
+effectively plug the tap into on the host is a responsibility of the Midolman
+agent.  In order for the VIF drive to request the Midolman agent to create the
+datapath port, it must invoke a REST API call to the Midolman API server.
 
-POST /ports/<portId>/attach_interface 
-{ 'hostId': <hostId>, 'interface': 'tap0' }
 
-Where 'tap0' is the name of the tap Nova created, portId is the virtual port
-ID of Midolman, and hostId is the host identifier stored in Midolman.  This
-API alerts Midolman to set up the local networking resources.  Keep in mind
-that the URI above is just an example;  The actual URI has to be discovered
-from the 'attach_interface' field of the Port media type response entity.
+## Midolman API
+
+The URI for associating a virtual port to a host's interface is retrieved from
+making the following GET calls:
+
+GET / 
+=> {"hosts": <hostsUri>, ...}
+
+GET <hostsUri>
+=> [{"hostId": <hostId>, "map_interface_to_port": <mapInterfaceToPortUri>, ...},
+    ...]
+
+Where the first GET call retrieves the URI to get all the hosts in the system
+(<hostsUri>) and the second GET call retrieves the URI to map an interface to a
+virtual port (<mapInterfaceToPortUri>) for each host in the system.  Once you
+have this URI, you can POST to create the mapping:
+
+POST <mapInterfaceToPortUri>
+=> {"portId": <portId>, "interfaceName": <interfaceName>}
+
+Where <interfaceName> is the name of the tap that Nova created, <portId> is the
+virtual port ID of Midolman.  A successful call to this API alerts Midolman to
+set up the datapath port on the host. 
 
 ## Zookeeper
 
-'attach_interface' API creates the following entries in Zookeeper:
+'map_interface_and_port' API creates the following entries in Zookeeper:
 
-- /hosts/<hostId>/ports/<portId> -> { <portId>, <interfaceName> }
+- /hosts/<hostId>/vrnMappings/ports/<portId> -> { <portId>, <interfaceName> }
 
-This mapping indicates the association of virtual ports to host interfaces.
-Midolman agents watch the ZK changes of the host that it is running on.  When
-it is notified of the mapping, it begins the operations to set up the
+This mapping indicates the association of a virtual port to an interface of a
+host.  Midolman agents watch the ZK changes of the host that it is running on.
+When it is notified of the mapping, it begins the operations to set up the
 datapath port on the host that corresponds to the mapped virtual port.
  
 - /ports/<portId> -> { ..., <hostId> } 
