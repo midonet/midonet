@@ -3,130 +3,179 @@
 */
 package com.midokura.sdn.flows;
 
+import java.util.EnumSet;
 import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 
-public class WildcardMatchImpl implements MidoMatch<WildcardMatchImpl> {
+public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
+
+    EnumSet<Field> fields = EnumSet.noneOf(Field.class);
+
+    private Short inputPortNumber;
+    private UUID inputPortID;
+    private Long tunnelID;
+    private MAC ethernetSource;
+    private MAC ethernetDestination;
+    private Short etherType;
+    private IntIPv4 networkSource;
+    private IntIPv4 networkDestination;
+    private Byte networkProtocol;
+    private Boolean isIPv4Fragment;
+    private Short transportSource;
+    private Short transportDestination;
 
     @Override
-    public WildcardMatchImpl setInputPortNumber(short inputPortNumber) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    @Nonnull
+    public EnumSet<Field> getUsedFields() {
+        return fields;
     }
 
     @Override
+    public WildcardMatchImpl setInputPortNumber(short inputPortNumber) {
+        fields.add(Field.InputPortNumber);
+        this.inputPortNumber = inputPortNumber;
+        return this;
+    }
+
+    @Override
+    @Nullable
     public Short getInputPortNumber() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return inputPortNumber;
     }
 
     @Override
     public WildcardMatchImpl setInputPortUUID(UUID inputPortID) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.InputPortID);
+        this.inputPortID = inputPortID;
+        return this;
     }
 
     @Override
     public UUID getInputPortID() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return inputPortID;
     }
 
     @Override
     public WildcardMatchImpl setTunnelID(long tunnelID) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        this.tunnelID = tunnelID;
+        fields.add(Field.TunnelID);
+        return this;
     }
 
     @Override
     public Long getTunnelID() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return tunnelID;
     }
 
     @Override
     public WildcardMatchImpl setEthernetSource(MAC addr) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.EthernetSource);
+        this.ethernetSource = addr;
+        return this;
     }
 
     @Override
     public MAC getEthernetSource() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return this.ethernetSource;
     }
 
     @Override
     public WildcardMatchImpl setEthernetDestination(MAC addr) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.EthernetDestination);
+        this.ethernetDestination = addr;
+        return this;
     }
 
     @Override
     public MAC getEthernetDestination() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return ethernetDestination;
     }
 
     @Override
     public WildcardMatchImpl setEtherType(short etherType) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.EtherType);
+        this.etherType = etherType;
+        return this;
     }
 
     @Override
     public Short getEtherType() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return etherType;
     }
 
     @Override
     public WildcardMatchImpl setNetworkSource(IntIPv4 addr) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.NetworkSource);
+        this.networkSource = addr;
+        return this;
     }
 
     @Override
     public IntIPv4 getNetworkSource() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return networkSource;
     }
 
     @Override
     public WildcardMatchImpl setNetworkDestination(IntIPv4 addr) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.NetworkDestination);
+        this.networkDestination = addr;
+        return this;
     }
 
     @Override
     public IntIPv4 getNetworkDestination() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return networkDestination;
     }
 
     @Override
     public WildcardMatchImpl setNetworkProtocol(byte networkProtocol) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.NetworkProtocol);
+        this.networkProtocol = networkProtocol;
+        return this;
     }
 
     @Override
     public Byte getNetworkProtocol() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return networkProtocol;
     }
 
     @Override
     public WildcardMatchImpl setIsIPv4Fragment(boolean isFragment) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.IsIPv4Fragment);
+        this.isIPv4Fragment = isFragment;
+        return this;
     }
 
     @Override
     public Boolean getIsIPv4Fragment() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return isIPv4Fragment;
     }
 
     @Override
     public WildcardMatchImpl setTransportSource(short transportSource) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.TransportSource);
+        this.transportSource = transportSource;
+        return this;
     }
 
     @Override
     public Short getTransportSource() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return transportSource;
     }
 
     @Override
     public WildcardMatchImpl setTransportDestination(short transportDestination) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        fields.add(Field.TransportDestination);
+        this.transportDestination = transportDestination;
+        return this;
     }
 
     @Override
     public Short getTransportDestination() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return transportDestination;
     }
 }

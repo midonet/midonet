@@ -7,6 +7,8 @@ package com.midokura.sdn.flows;
 import java.util.EnumSet;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 
@@ -34,38 +36,38 @@ public interface WildcardMatch<T extends WildcardMatch<T>> {
     EnumSet<Field> getUsedFields();
 
     T setInputPortNumber(short inputPortNumber);
-    Short getInputPortNumber();
+    @Nullable Short getInputPortNumber();
 
     T setInputPortUUID(UUID inputPortID);
-    UUID getInputPortID();
+    @Nullable UUID getInputPortID();
 
     T setTunnelID(long tunnelID);
-    Long getTunnelID();
+    @Nullable Long getTunnelID();
 
     T setEthernetSource(MAC addr);
-    MAC getEthernetSource();
+    @Nullable MAC getEthernetSource();
 
     T setEthernetDestination(MAC addr);
-    MAC getEthernetDestination();
+    @Nullable MAC getEthernetDestination();
 
     T setEtherType(short etherType);
-    Short getEtherType();
+    @Nullable Short getEtherType();
 
     T setNetworkSource(IntIPv4 addr);
-    IntIPv4 getNetworkSource();
+    @Nullable IntIPv4 getNetworkSource();
 
     T setNetworkDestination(IntIPv4 addr);
-    IntIPv4 getNetworkDestination();
+    @Nullable IntIPv4 getNetworkDestination();
 
     T setNetworkProtocol(byte networkProtocol);
-    Byte getNetworkProtocol();
+    @Nullable Byte getNetworkProtocol();
 
     T setIsIPv4Fragment(boolean isFragment);
-    Boolean getIsIPv4Fragment();
+    @Nullable Boolean getIsIPv4Fragment();
 
     T setTransportSource(short transportSource);
-    Short getTransportSource();
+    @Nullable Short getTransportSource();
 
     T setTransportDestination(short transportDestination);
-    Short getTransportDestination();
+    @Nullable Short getTransportDestination();
 }

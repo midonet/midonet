@@ -3,10 +3,13 @@
 */
 package com.midokura.sdn.flows;
 
+import java.util.List;
+
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowKey;
+import com.midokura.sdn.dp.flows.FlowKeyEncap;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
 import com.midokura.sdn.dp.flows.FlowKeyEthernet;
 import com.midokura.sdn.dp.flows.FlowKeyIPv4;
@@ -21,14 +24,23 @@ import com.midokura.sdn.dp.flows.FlowKeyVLAN;
  */
 public class WildcardMatches {
 
-    public static MidoMatch<?> fromFlowMatch(FlowMatch match) {
+    public static WildcardMatch<?> fromFlowMatch(FlowMatch match) {
         return fromFlowMatch(match, new WildcardMatchImpl());
     }
 
-    public static <Match extends MidoMatch<Match>> Match fromFlowMatch(FlowMatch match, Match wildcardMatch) {
-        for (FlowKey<?> flowKey : match.getKeys()) {
+    public static <Match extends WildcardMatch<Match>> Match fromFlowMatch(FlowMatch match, Match wildcardMatch) {
+        List<FlowKey<?>> flowKeys = match.getKeys();
+        processMatchKeys(wildcardMatch, flowKeys);
+
+        return wildcardMatch;
+    }
+
+    private static void processMatchKeys(WildcardMatch<?> wildcardMatch, List<FlowKey<?>> flowKeys) {
+        for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
                 case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
+                    FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
+                    processMatchKeys(wildcardMatch, encap.getKeys());
                     break;
 
                 case 2: // FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
@@ -36,36 +48,38 @@ public class WildcardMatches {
 
                 case 3: // FlowKeyAttr<FlowKeyInPort> IN_PORT = attr(3);
                     FlowKeyInPort inPort = as(flowKey, FlowKeyInPort.class);
+
                     wildcardMatch.setInputPortNumber((short) inPort.getInPort());
                     break;
 
                 case 4: // FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
                     FlowKeyEthernet ethernet = as(flowKey, FlowKeyEthernet.class);
 
-                    wildcardMatch.setEthernetSource(new MAC(ethernet.getSrc()));
-                    wildcardMatch.setEthernetDestination(
-                        new MAC(ethernet.getDst()));
+                    wildcardMatch
+                        .setEthernetSource(new MAC(ethernet.getSrc()))
+                        .setEthernetDestination(new MAC(ethernet.getDst()));
                     break;
 
-                case 5:
+                case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
                     FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
-
                     break;
 
-                case 6:
+                case 6: // FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
                     FlowKeyEtherType etherType = as(flowKey, FlowKeyEtherType.class);
 
-                    wildcardMatch.setEtherType(etherType.getEtherType());
+                    wildcardMatch
+                        .setEtherType(etherType.getEtherType());
                     break;
 
                 case 7: // FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
                     FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
 
-                    wildcardMatch.setNetworkSource(new IntIPv4(ipv4.getSrc()));
-                    wildcardMatch.setNetworkDestination(
-                        new IntIPv4(ipv4.getDst()));
-                    wildcardMatch.setNetworkProtocol(ipv4.getProto());
-                    wildcardMatch.setIsIPv4Fragment(ipv4.getFrag() == 1);
+                    wildcardMatch
+                        .setNetworkSource(new IntIPv4(ipv4.getSrc()))
+                        .setNetworkDestination(new IntIPv4(ipv4.getDst()))
+                        .setNetworkProtocol(ipv4.getProto())
+                        .setIsIPv4Fragment(ipv4.getFrag() == 1);
+
                     break;
 
                 case 8: // FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
@@ -74,15 +88,17 @@ public class WildcardMatches {
                 case 9: //FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
                     FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
 
-                    wildcardMatch.setTransportSource(tcp.getSrc());
-                    wildcardMatch.setTransportDestination(tcp.getDst());
+                    wildcardMatch
+                        .setTransportSource(tcp.getSrc())
+                        .setTransportDestination(tcp.getDst());
                     break;
 
                 case 10: // FlowKeyAttr<FlowKeyUDP> UDP = attr(10);
                     FlowKeyUDP udp = as(flowKey, FlowKeyUDP.class);
 
-                    wildcardMatch.setTransportSource(udp.getUdpSrc());
-                    wildcardMatch.setTransportDestination(udp.getUdpDst());
+                    wildcardMatch
+                        .setTransportSource(udp.getUdpSrc())
+                        .setTransportDestination(udp.getUdpDst());
                     break;
 
                 case 11: // FlowKeyAttr<FlowKeyICMP> ICMP = attr(11);
@@ -104,8 +120,6 @@ public class WildcardMatches {
                     break;
             }
         }
-
-        return wildcardMatch;
     }
 
     private static <Key extends FlowKey<Key>> Key as(FlowKey<?> flowKey, Class<Key> type) {
