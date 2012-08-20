@@ -8,7 +8,7 @@ import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
 import datapath.ErrorHandlingCallback
-import flows.{FlowActions, FlowKeys, FlowAction}
+import flows.{FlowKeyInPort, FlowActions, FlowKeys, FlowAction}
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
@@ -331,6 +331,10 @@ class DatapathController() extends Actor {
         actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
     }
 
+    private def simulationController(): ActorRef =  {
+        actorFor("/user/%s" format SimulationController.Name)
+    }
+
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
@@ -433,6 +437,9 @@ class DatapathController() extends Actor {
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
+        case PacketIn(packet) =>
+            handleFlowPacketIn(packet)
+
 //        case SendPacket(packet) =>
 //            handleSendPacket(packet)
 
@@ -441,6 +448,15 @@ class DatapathController() extends Actor {
          */
         case _PacketIn(packet) =>
             handlePacketIn(packet)
+    }
+
+    def handleFlowPacketIn(packet: Packet) {
+        val translatedPacket =
+            new Packet()
+                .setData(packet.getData)
+                .setMatch(translateReverse(packet.getMatch))
+
+         simulationController() ! PacketIn(translatedPacket)
     }
 
     def handlePacketIn(packet: Packet) {
@@ -477,6 +493,23 @@ class DatapathController() extends Actor {
 
             def handleError(ex: NetlinkException, timeout: Boolean) {}
         })
+    }
+
+    private def translateReverse(flowMatch: FlowMatch): FlowMatch = {
+        val translatedFlowMatch = new FlowMatch()
+
+        for (flowKey <- flowMatch.getKeys) {
+            flowKey match {
+                case vrnPort: FlowKeyInPort =>
+                    val portNo: Short = vrnPort.getInPort.toShort
+                    translatedFlowMatch.addKey(
+                        new FlowKeyVrnPort(localToVifPorts(portNo)))
+                case value =>
+                    translatedFlowMatch.addKey(value)
+            }
+        }
+
+        translatedFlowMatch
     }
 
     private def translate(flowMatch: FlowMatch): FlowMatch = {

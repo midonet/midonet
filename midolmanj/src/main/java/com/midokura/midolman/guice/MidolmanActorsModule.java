@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
+import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
@@ -35,6 +36,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(VirtualToPhysicalMapper.class).in(Singleton.class);
         bind(DatapathController.class).in(Singleton.class);
         bind(FlowController.class).in(Singleton.class);
+        bind(SimulationController.class).in(Singleton.class);
 
         bind(FlowManager.class);
     }

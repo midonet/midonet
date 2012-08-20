@@ -39,7 +39,7 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-    val maxDpFlows = 0;
+    val maxDpFlows = 0
 
     private val pendedMatches: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
@@ -111,7 +111,7 @@ class FlowController extends Actor {
     private def handlePacketIn(packet: Packet) {
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
-        val actions = flowManager.getActionsForDpFlow(packet.getMatch);
+        val actions = flowManager.getActionsForDpFlow(packet.getMatch)
         if (actions != null) {
             // XXX TODO: packetOut(packet, exactFlow)
             return

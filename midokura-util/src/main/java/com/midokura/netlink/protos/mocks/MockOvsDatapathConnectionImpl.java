@@ -76,6 +76,10 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
         operationCallback.onSuccess(true);
     }
 
+    public void triggerPacketIn(@Nonnull Packet packet) {
+        notificationHandler.onSuccess(packet);
+    }
+
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback, long timeoutMillis) {
         callback.onSuccess(datapaths);
