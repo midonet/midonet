@@ -14,7 +14,7 @@ import java.util.UUID
  *
  * @param portId is the virtual network port from which this packet come.
  */
-class FlowKeyVrnPort(portId: UUID) extends FlowKey[FlowKeyVrnPort] {
+class FlowKeyVrnPort(val portId: UUID) extends FlowKey[FlowKeyVrnPort] {
 
     def getKey = null
 
@@ -23,4 +23,20 @@ class FlowKeyVrnPort(portId: UUID) extends FlowKey[FlowKeyVrnPort] {
     def serialize(builder: BaseBuilder[_, _]) {}
 
     def deserialize(message: NetlinkMessage) = false
+
+    override def toString:String = {
+        "FlowKeyVrnPort{portId='%s'}" format portId.toString
+    }
+
+    override def hashCode(): Int = {
+        portId.hashCode()
+    }
+
+    override def equals(obj: Any): Boolean = {
+        obj match {
+            case port: FlowKeyVrnPort =>
+                port.portId == portId
+            case _ => false
+        }
+    }
 }
