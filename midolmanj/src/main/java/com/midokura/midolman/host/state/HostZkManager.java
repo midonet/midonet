@@ -472,10 +472,16 @@ public class HostZkManager extends ZkManager {
     public void addVirtualPortMapping(UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
         throws StateAccessException {
 
-        String virtualMappingPath = pathManager.getHostVrnMappingsPath(
-            hostIdentifier);
-
         List<Op> operations = new ArrayList<Op>();
+
+        String hostPath = pathManager.getHostPath(hostIdentifier);
+        if (!exists(hostPath)) {
+            operations.add(getPersistentCreateOp(hostPath, null));
+        }
+
+        String virtualMappingPath =
+            pathManager.getHostVrnMappingsPath(hostIdentifier);
+
 
         if (!exists(virtualMappingPath)) {
             operations.add(getPersistentCreateOp(virtualMappingPath, null));

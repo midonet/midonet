@@ -22,6 +22,8 @@ import akka.util.duration._
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
 import java.lang
+import com.sun.deploy.pings.Pings
+import com.midokura.midolman.Messages.Pong
 
 /**
  * Holder object that keeps the external message definitions
@@ -358,6 +360,7 @@ class DatapathController() extends Actor {
          */
         case Initialize() =>
             initializer = sender
+            log.info("Initialize from: " + sender)
             virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
 
         /**
@@ -394,6 +397,9 @@ class DatapathController() extends Actor {
         case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
             handlePortOperationReply(opReply)
 
+        case Messages.Ping(value) =>
+            sender ! Messages.Pong(value)
+
         /**
          * Log unhandled messages.
          */
@@ -425,6 +431,9 @@ class DatapathController() extends Actor {
 
         case InstallFlow(flow) =>
             handleInstallFlow(flow)
+
+        case Messages.Ping(value) =>
+            sender ! Messages.Pong(value)
 
 //        case SendPacket(packet) =>
 //            handleSendPacket(packet)

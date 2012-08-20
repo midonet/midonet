@@ -101,6 +101,7 @@ class VirtualToPhysicalMapper extends Actor {
                 case ExpectingDatapath() =>
                     callingActor ! LocalDatapathReply(localHostData(host)._1)
                 case ExpectingPorts() =>
+                    log.info("Telling: " + callingActor + " to: " + LocalPortsReply(localHostData(host)._2))
                     callingActor ! LocalPortsReply(localHostData(host)._2)
             }
         }

@@ -19,7 +19,6 @@ import akka.actor._
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
 import akka.util.duration._
-import akka.pattern.ask
 import com.midokura.sdn.dp.{Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
@@ -27,8 +26,6 @@ import com.midokura.midonet.cluster.Client
 import java.util.UUID
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import akka.testkit._
-import java.util.concurrent.LinkedBlockingDeque
-import akka.testkit.TestActor.{AutoPilot, Message}
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter with OneInstancePerTest {
 
@@ -89,11 +86,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         actors().actorFor(actors() / name)
     }
 
-    protected def sendReply[T](actor: ActorRef, msg: Object): T = {
+    protected def ask[T](actor: ActorRef, msg: Object): T = {
         val t = Timeout(1 second)
-        val replyPromise: Future[Any] = ask(actor, msg)(t)
+        val promise= akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
 
-        Await.result(replyPromise, t.duration).asInstanceOf[T]
+        Await.result(promise, t.duration)
     }
 
     def datapathPorts(datapath: Datapath): mutable.Map[String, Port[_, _]] = {
@@ -115,5 +112,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
 
     protected def actorByName[A <: Actor](name: String):TestActorRef[A] = {
         actorsByName(name).asInstanceOf[TestActorRef[A]]
+    }
+
+    protected def initializeDatapath(): DatapathController.InitializationComplete = {
+        ask[DatapathController.InitializationComplete](
+                topActor(DatapathController.Name), DatapathController.Initialize())
+    }
+
+    protected def dpController(): TestActorRef[DatapathController] = {
+        actorByName(DatapathController.Name)
     }
 }

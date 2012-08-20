@@ -3,12 +3,14 @@
 */
 package com.midokura.midolman
 
+import guice.actors.OutgoingMessage
 import org.scalatest.matchers.ShouldMatchers
-import org.apache.commons.configuration.HierarchicalConfiguration
 import akka.actor.ActorRef
 import com.midokura.sdn.dp.{Ports, Datapath}
 import collection.mutable
 import java.util.UUID
+import topology.VirtualToPhysicalMapper
+import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest, LocalDatapathRequest, LocalDatapathReply}
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
@@ -21,7 +23,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        val reply = ask[InitializationComplete](dpController, Initialize())
         reply should not be (null)
 
         // validate the final datapath state
@@ -42,7 +44,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        val reply = ask[InitializationComplete](dpController, Initialize())
         reply should not be (null)
 
         // validate the final datapath state
@@ -65,7 +67,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        val reply = ask[InitializationComplete](dpController, Initialize())
         reply should not be (null)
 
         // validate the final datapath state
@@ -94,7 +96,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().portsEnumerate(dp).get() should have size 3
 
         // send initialization message and wait
-        val reply = sendReply[InitializationComplete](dpController, Initialize())
+        val reply = ask[InitializationComplete](dpController, Initialize())
         reply should not be (null)
 
         // validate the final datapath state
@@ -110,14 +112,16 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testDatapathBasicOperations() {
-        val dpController: ActorRef = topActor(DatapathController.Name)
-
         midoStore().setLocalVrnDatapath(hostId, "test")
-        val reply: AnyRef = sendReply[InitializationComplete](dpController, Initialize())
-        reply should not be (null)
 
-        var portReply = sendReply[PortNetdevOpReply](dpController, CreatePortNetdev(Ports.newNetDevPort("netdev")))
-        portReply should not be (null)
+        initializeDatapath() should not be (null)
+
+        var opReply =
+            ask[PortNetdevOpReply](
+                topActor(DatapathController.Name),
+                CreatePortNetdev(Ports.newNetDevPort("netdev")))
+
+        opReply should not be (null)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -130,11 +134,54 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should contain key ("test")
         ports should contain key ("netdev")
 
-        portReply = sendReply[PortNetdevOpReply](dpController, DeletePortNetdev(portReply.port))
-        portReply should not be (null)
+        opReply =
+            ask[PortNetdevOpReply](
+                topActor(DatapathController.Name),
+                DeletePortNetdev(opReply.port))
+        opReply should not be (null)
 
         ports = datapathPorts(datapaths.head)
         ports should have size 1
         ports should contain key ("test")
+    }
+
+    def testInternalControllerState() {
+        val vifPort = UUID.randomUUID()
+        midoStore().setLocalVrnPortMapping(hostId, vifPort, "port1")
+
+        initializeDatapath() should not be (null)
+
+        val dpProbe = probeByName(DatapathController.Name)
+        dpProbe.expectMsg(new Initialize)
+        dpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[InitializationComplete] should not be null
+
+        dpController().underlyingActor.vifPorts should contain key(vifPort)
+        dpController().underlyingActor.vifPorts should contain value ("port1")
+
+        val vtpProbe = probeByName(VirtualToPhysicalMapper.Name)
+        vtpProbe.expectMsgClass(classOf[LocalDatapathRequest]) should not be null
+        vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalDatapathReply] should not be null
+        vtpProbe.expectMsgClass(classOf[LocalPortsRequest]) should not be null
+        vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply] should not be null
+
+        val vifPort_2nd = UUID.randomUUID()
+        midoStore().setLocalVrnPortMapping(hostId(), vifPort_2nd, "port2")
+
+        val reply = vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply]
+
+        reply should not be null
+        reply.ports should contain key (vifPort)
+        reply.ports should contain key (vifPort_2nd)
+
+        reply.ports should contain value ("port1")
+        reply.ports should contain value ("port2")
+
+        // make sure that all the messages before this are processes by the actor
+        // (even the internal ones). This should act as a memory barrier
+        ask[Messages.Pong](
+            topActor(DatapathController.Name), Messages.Ping(null))
+
+        dpController().underlyingActor.vifPorts should contain key(vifPort_2nd)
+        dpController().underlyingActor.vifPorts should contain value ("port2")
     }
 }
