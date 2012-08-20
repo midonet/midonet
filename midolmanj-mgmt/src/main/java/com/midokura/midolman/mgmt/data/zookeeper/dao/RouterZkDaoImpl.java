@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import com.midokura.midolman.mgmt.data.dto.*;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -17,10 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
-import com.midokura.midolman.mgmt.data.dto.Port;
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.RouterPort;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
@@ -145,11 +142,14 @@ public class RouterZkDaoImpl implements RouterZkDao {
         // Update index if the name changed
         if (!router.getName().equals(oldConfig.name)) {
 
-            String path = pathBuilder.getTenantRouterNamePath(
-                    router.getTenantId(), oldConfig.name);
+            String tenantId = oldConfig.properties.get(
+                    ConfigProperty.TENANT_ID);
+
+            String path = pathBuilder.getTenantRouterNamePath(tenantId,
+                    oldConfig.name);
             ops.add(zkDao.getDeleteOp(path));
 
-            path = pathBuilder.getTenantRouterNamePath(router.getTenantId(),
+            path = pathBuilder.getTenantRouterNamePath(tenantId,
                     router.getName());
             byte[] data = serializer.serialize(router.toNameMgmtConfig());
             ops.add(zkDao.getPersistentCreateOp(path, data));

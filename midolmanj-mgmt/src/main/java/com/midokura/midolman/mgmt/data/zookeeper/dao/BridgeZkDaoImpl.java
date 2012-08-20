@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import com.midokura.midolman.mgmt.data.dto.ConfigProperty;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,11 +157,14 @@ public class BridgeZkDaoImpl implements BridgeZkDao {
         // Update index if the name changed
         if (!bridge.getName().equals(oldConfig.name)) {
 
-            String path = pathBuilder.getTenantBridgeNamePath(
-                    bridge.getTenantId(), oldConfig.name);
+            String tenantId = oldConfig.properties.get(
+                    ConfigProperty.TENANT_ID);
+
+            String path = pathBuilder.getTenantBridgeNamePath(tenantId,
+                    oldConfig.name);
             ops.add(zkDao.getDeleteOp(path));
 
-            path = pathBuilder.getTenantBridgeNamePath(bridge.getTenantId(),
+            path = pathBuilder.getTenantBridgeNamePath(tenantId,
                     bridge.getName());
             byte[] data = serializer.serialize(bridge.toNameMgmtConfig());
             ops.add(zkDao.getPersistentCreateOp(path, data));
