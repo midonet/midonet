@@ -7,6 +7,7 @@ package com.midokura.sdn.flows;
 import java.util.EnumSet;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.midokura.packets.IntIPv4;
@@ -38,25 +39,25 @@ public interface WildcardMatch<T extends WildcardMatch<T>> {
     T setInputPortNumber(short inputPortNumber);
     @Nullable Short getInputPortNumber();
 
-    T setInputPortUUID(UUID inputPortID);
+    T setInputPortUUID(@Nonnull UUID inputPortID);
     @Nullable UUID getInputPortID();
 
     T setTunnelID(long tunnelID);
     @Nullable Long getTunnelID();
 
-    T setEthernetSource(MAC addr);
+    T setEthernetSource(@Nonnull MAC addr);
     @Nullable MAC getEthernetSource();
 
-    T setEthernetDestination(MAC addr);
+    T setEthernetDestination(@Nonnull MAC addr);
     @Nullable MAC getEthernetDestination();
 
     T setEtherType(short etherType);
     @Nullable Short getEtherType();
 
-    T setNetworkSource(IntIPv4 addr);
+    T setNetworkSource(@Nonnull IntIPv4 addr);
     @Nullable IntIPv4 getNetworkSource();
 
-    T setNetworkDestination(IntIPv4 addr);
+    T setNetworkDestination(@Nonnull IntIPv4 addr);
     @Nullable IntIPv4 getNetworkDestination();
 
     T setNetworkProtocol(byte networkProtocol);

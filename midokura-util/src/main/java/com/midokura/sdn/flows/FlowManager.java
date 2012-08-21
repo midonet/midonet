@@ -5,6 +5,7 @@
 package com.midokura.sdn.flows;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,18 +30,13 @@ public class FlowManager {
     /* The wildcard flow table is a map of wildcard match to wildcard flow
      * where the wildcard match itself is a map of FlowKeyAttr to FlowKey.
      */
-    private class WildcardFlowTable extends
-            HashMap<
-                    Set<FlowKey<?>>,
-                    WildcardFlow> {}
-
     /* The FlowManager needs one WildcardFlowTable for every wildcard pattern.
      * The wildcardTables structure maps wildcard pattern to WildcardFlowTable.
      * Each wildcard pattern is the set of FlowKeyAttr that must be matched
      * exactly.
      */
-    private Map<Set<AttrKey<?>>, WildcardFlowTable> wildcardTables =
-            new HashMap<Set<AttrKey<?>>, WildcardFlowTable>();
+    private Map<EnumSet<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> wildcardTables =
+            new HashMap<EnumSet<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>();
 
     /* The datapath flow table is a map of datapath FlowMatch to a list of
      * FlowActions. The wildcard flow table is a LinkedHashMap so that we
@@ -81,10 +77,11 @@ public class FlowManager {
      */
     public boolean add(WildcardFlow wildFlow) {
         // Get the WildcardFlowTable for this wild flow's pattern.
-        Set<AttrKey<?>> pattern = getRequiredAttrKeys(wildFlow);
-        WildcardFlowTable wildTable = wildcardTables.get(pattern);
+        EnumSet<WildcardMatch.Field> pattern =
+                wildFlow.getMatch().getUsedFields();
+        Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.get(pattern);
         if (null == wildTable) {
-            wildTable = new WildcardFlowTable();
+            wildTable = new HashMap<WildcardMatch, WildcardFlow>();
             wildcardTables.put(pattern, wildTable);
         }
         if (!wildTable.containsKey(wildFlow.match)) {
@@ -93,13 +90,6 @@ public class FlowManager {
             return true;
         }
         return false;
-    }
-
-    private Set<AttrKey<?>> getRequiredAttrKeys(WildcardFlow wildFlow) {
-        Set<AttrKey<?>> attrKeys = new HashSet<AttrKey<?>>();
-        for (FlowKey<?> key : wildFlow.getMatch())
-            attrKeys.add(key.getKey());
-        return attrKeys;
     }
 
     /**
@@ -137,7 +127,7 @@ public class FlowManager {
         }
         // Get the WildcardFlowTable for this wild flow's pattern and remove
         // the wild flow.
-        wildcardTables.get(getRequiredAttrKeys(wildFlow))
+        wildcardTables.get(wildFlow.getMatch().getUsedFields())
                 .remove(wildFlow.match);
         return removedDpFlows;
     }
@@ -168,17 +158,22 @@ public class FlowManager {
             return new Flow().setMatch(flowMatch).setActions(actions);
         // Iterate through the WildcardFlowTables to find candidate wild flows.
         WildcardFlow wildcardFlow = null;
-        for (Map.Entry<Set<AttrKey<?>>, WildcardFlowTable> wTableEntry :
+        WildcardMatch flowWildMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        for (Map.Entry<EnumSet<WildcardMatch.Field>,
+                Map<WildcardMatch, WildcardFlow>> wTableEntry :
             wildcardTables.entrySet()) {
-            WildcardFlowTable table = wTableEntry.getValue();
-            Set<AttrKey<?>> pattern = wTableEntry.getKey();
-            Set<FlowKey<?>> wildMatch =
-                    getWildMatchForDpFlow(flowMatch, pattern);
+            Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
+            EnumSet<WildcardMatch.Field> pattern = wTableEntry.getKey();
+            ProjectedWildcardMatch wildMatch = WildcardMatches.project(
+                    pattern, flowWildMatch);
             if (null != wildMatch) {
                 WildcardFlow candidate = table.get(wildMatch);
-                if (null != candidate &&
-                        candidate.priority < wildcardFlow.priority)
-                    wildcardFlow = candidate;
+                if (null != candidate) {
+                    if (null == wildcardFlow)
+                        wildcardFlow = candidate;
+                    else if (candidate.priority < wildcardFlow.priority)
+                        wildcardFlow = candidate;
+                }
             }
         }
         if (null != wildcardFlow) {

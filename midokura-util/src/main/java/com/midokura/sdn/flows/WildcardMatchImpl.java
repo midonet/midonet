@@ -48,7 +48,7 @@ public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
     }
 
     @Override
-    public WildcardMatchImpl setInputPortUUID(UUID inputPortID) {
+    public WildcardMatchImpl setInputPortUUID(@Nonnull UUID inputPortID) {
         fields.add(Field.InputPortID);
         this.inputPortID = inputPortID;
         return this;
@@ -72,7 +72,7 @@ public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
     }
 
     @Override
-    public WildcardMatchImpl setEthernetSource(MAC addr) {
+    public WildcardMatchImpl setEthernetSource(@Nonnull MAC addr) {
         fields.add(Field.EthernetSource);
         this.ethernetSource = addr;
         return this;
@@ -84,7 +84,7 @@ public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
     }
 
     @Override
-    public WildcardMatchImpl setEthernetDestination(MAC addr) {
+    public WildcardMatchImpl setEthernetDestination(@Nonnull MAC addr) {
         fields.add(Field.EthernetDestination);
         this.ethernetDestination = addr;
         return this;
@@ -108,7 +108,7 @@ public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
     }
 
     @Override
-    public WildcardMatchImpl setNetworkSource(IntIPv4 addr) {
+    public WildcardMatchImpl setNetworkSource(@Nonnull IntIPv4 addr) {
         fields.add(Field.NetworkSource);
         this.networkSource = addr;
         return this;
@@ -120,7 +120,7 @@ public class WildcardMatchImpl implements WildcardMatch<WildcardMatchImpl> {
     }
 
     @Override
-    public WildcardMatchImpl setNetworkDestination(IntIPv4 addr) {
+    public WildcardMatchImpl setNetworkDestination(@Nonnull IntIPv4 addr) {
         fields.add(Field.NetworkDestination);
         this.networkDestination = addr;
         return this;

@@ -39,7 +39,9 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-    val maxDpFlows = 0
+    // TODO(pino): set the maxDpFlows by actually checking the datapath.
+    // TODO(pino): is one million too high?
+    val maxDpFlows = 1000 * 1000;
 
     private val pendedMatches: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]

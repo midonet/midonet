@@ -3,26 +3,32 @@
 */
 package com.midokura.sdn.flows;
 
+import java.util.EnumSet;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import com.midokura.packets.ARP;
+import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
+import com.midokura.packets.TCP;
+import com.midokura.packets.UDP;
 import com.midokura.sdn.dp.FlowMatch;
-import com.midokura.sdn.dp.flows.FlowKey;
-import com.midokura.sdn.dp.flows.FlowKeyEncap;
-import com.midokura.sdn.dp.flows.FlowKeyEtherType;
-import com.midokura.sdn.dp.flows.FlowKeyEthernet;
-import com.midokura.sdn.dp.flows.FlowKeyIPv4;
-import com.midokura.sdn.dp.flows.FlowKeyInPort;
-import com.midokura.sdn.dp.flows.FlowKeyTCP;
-import com.midokura.sdn.dp.flows.FlowKeyTunnelID;
-import com.midokura.sdn.dp.flows.FlowKeyUDP;
-import com.midokura.sdn.dp.flows.FlowKeyVLAN;
+import com.midokura.sdn.dp.flows.*;
 
 /**
  * Class that provides an easy ways of building WildcardFlow objects.
  */
 public class WildcardMatches {
+
+    @Nullable
+    public static ProjectedWildcardMatch project(EnumSet<WildcardMatch.Field> fields, WildcardMatch<?> source) {
+        if (!source.getUsedFields().containsAll(fields))
+            return null;
+
+        return new ProjectedWildcardMatch(fields, source);
+    }
 
     public static WildcardMatch<?> fromFlowMatch(FlowMatch match) {
         return fromFlowMatch(match, new WildcardMatchImpl());
@@ -39,8 +45,8 @@ public class WildcardMatches {
         for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
                 case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
-                    FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
-                    processMatchKeys(wildcardMatch, encap.getKeys());
+                    //FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
+                    //processMatchKeys(wildcardMatch, encap.getKeys());
                     break;
 
                 case 2: // FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
@@ -61,7 +67,7 @@ public class WildcardMatches {
                     break;
 
                 case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
-                    FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
+                    //FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
                     break;
 
                 case 6: // FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
@@ -90,7 +96,9 @@ public class WildcardMatches {
 
                     wildcardMatch
                         .setTransportSource(tcp.getSrc())
-                        .setTransportDestination(tcp.getDst());
+                        .setTransportDestination(tcp.getDst())
+                        .setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+
                     break;
 
                 case 10: // FlowKeyAttr<FlowKeyUDP> UDP = attr(10);
@@ -98,16 +106,30 @@ public class WildcardMatches {
 
                     wildcardMatch
                         .setTransportSource(udp.getUdpSrc())
-                        .setTransportDestination(udp.getUdpDst());
+                        .setTransportDestination(udp.getUdpDst())
+                        .setNetworkProtocol(UDP.PROTOCOL_NUMBER);
+
                     break;
 
                 case 11: // FlowKeyAttr<FlowKeyICMP> ICMP = attr(11);
+                    FlowKeyICMP icmp = as(flowKey, FlowKeyICMP.class);
+
+                    wildcardMatch
+                            .setTransportSource(icmp.getType())
+                            .setTransportDestination(icmp.getCode())
+                            .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+
                     break;
 
                 case 12: // FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);
                     break;
 
                 case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
+                    FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
+                    wildcardMatch
+                            .setNetworkSource(new IntIPv4(arp.getSip()))
+                            .setNetworkDestination(new IntIPv4(arp.getTip()))
+                            .setEtherType(ARP.ETHERTYPE);
                     break;
 
                 case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
