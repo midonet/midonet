@@ -221,7 +221,16 @@ public class RouterZkManager extends ZkManager {
                     new Object[] { id, id1, id2 });
             dataChanged = true;
         }
+        String name1 = oldConfig.name;
+        String name2 = config.name;
+        if (name1 == null ? name2 != null : !name1.equals(name2))  {
+            log.debug("The name of router {} changed from {} to {}",
+                      new Object[] { id, name1, name2 });
+            dataChanged = true;
+        }
         if (dataChanged) {
+            config.properties.clear();
+            config.properties.putAll(oldConfig.properties);
             return Op.setData(pathManager.getRouterPath(id),
                     serializer.serialize(config), -1);
         }
