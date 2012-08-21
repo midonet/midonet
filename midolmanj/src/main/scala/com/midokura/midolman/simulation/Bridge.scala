@@ -32,7 +32,9 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             (that canEqual this) &&
                 (this.id == that.id) && (this.cfg == that.cfg) &&
                 (this.inFilter == that.inFilter) &&
-                (this.outFilter == that.outFilter)
+                (this.outFilter == that.outFilter) &&
+                (this.macPortMap == that.macPortMap) &&
+                (this.flowCount == that.flowCount)
         case _ =>
             false
     }
@@ -91,7 +93,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             val oldPortID = getPortOfMac(srcDlAddress, ec)
             if (ingress.port != oldPortID) {
                 log.debug("MAC {} moved from port {} to {}.",
-                          Array[Object](srcDlAddress, oldPortID, ingress.port))
+                    Array[Object](srcDlAddress, oldPortID, ingress.port))
                 //XXX: Invalidate (or move?) the obsoleted flows.
                 macPortMap.add(srcDlAddress, ingress.port)
             }

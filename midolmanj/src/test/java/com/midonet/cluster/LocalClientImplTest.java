@@ -38,8 +38,7 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
-import com.midokura.midonet.cluster.client.Builder;
-import com.midokura.midonet.cluster.client.DeviceBuilder;
+import com.midokura.midonet.cluster.client.ForwardingElementBuilder;
 import com.midokura.midonet.cluster.client.MacLearningTable;
 import com.midokura.midonet.cluster.client.SourceNatResource;
 import com.midokura.packets.MAC;
@@ -103,8 +102,10 @@ public class LocalClientImplTest {
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(),
                    equalTo(1));
         // let's cause a bridge update
-        getBridgeZkManager().update(bridgeId, new BridgeZkManager.BridgeConfig("test1",
-            UUID.randomUUID(), UUID.randomUUID()));
+        getBridgeZkManager().update(bridgeId,
+                                    new BridgeZkManager.BridgeConfig("test1",
+                                                                     UUID.randomUUID(),
+                                                                     UUID.randomUUID()));
         Thread.sleep(2000);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));
@@ -225,22 +226,22 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public DeviceBuilder setID(UUID id) {
+        public ForwardingElementBuilder setID(UUID id) {
             return this;
         }
 
         @Override
-        public DeviceBuilder setInFilter(UUID filterID) {
+        public ForwardingElementBuilder setInFilter(UUID filterID) {
             return this;
         }
 
         @Override
-        public DeviceBuilder setOutFilter(UUID filterID) {
+        public ForwardingElementBuilder setOutFilter(UUID filterID) {
             return this;
         }
 
         @Override
-        public Builder start() {
+        public ForwardingElementBuilder start() {
             return this;
         }
 

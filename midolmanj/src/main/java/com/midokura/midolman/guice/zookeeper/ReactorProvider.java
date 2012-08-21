@@ -13,10 +13,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.util.eventloop.Reactor;
 
 public class ReactorProvider implements Provider<Reactor> {
+
+    private static final Logger log = LoggerFactory
+        .getLogger(ReactorProvider.class);
 
     @Override
     public Reactor get() {

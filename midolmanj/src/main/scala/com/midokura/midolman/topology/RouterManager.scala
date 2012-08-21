@@ -114,7 +114,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                 new Router(id, cfg, rTable, inFilter, outFilter));
     }
 
-    override def refreshConfig() = {
+    override def updateConfig() = {
         // TODO(pino): make this non-blocking.
         cfg = mgr.get(id, cb)
     }

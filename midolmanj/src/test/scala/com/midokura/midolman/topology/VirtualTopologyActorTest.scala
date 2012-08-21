@@ -1,19 +1,18 @@
+package com.midokura.midolman.topology
+
 /*
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman
-
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestActorRef}
 import akka.util.Duration
-
+import com.midokura.midolman.simulation.Bridge
 import com.google.inject.{Guice, Injector}
-import config.{ZookeeperConfig, MidolmanConfig}
+import com.midokura.midolman.config.{MidolmanConfig, ZookeeperConfig}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.zookeeper.CreateMode
 import org.scalatest.{BeforeAndAfter, Suite, BeforeAndAfterAll}
-import com.midokura.midolman.guice.ComponentInjectorHolder
 import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.{TypedConfigModule,
 MockConfigProviderModule}
@@ -22,10 +21,10 @@ import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.state.{ZkManager, Directory}
-import com.midokura.midolman.simulation.{Bridge => SimBridge}
-import com.midokura.midolman.topology.{BridgeRequest, VirtualTopologyActor}
 import com.midokura.midonet.cluster
 import java.util.Arrays
+import com.midokura.midolman.Setup
+import com.midokura.midolman.guice.ComponentInjectorHolder
 
 
 trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll
@@ -39,18 +38,7 @@ with BeforeAndAfter {
             Arrays.asList(new HierarchicalConfiguration.Node
             ("midolman_root_key", zkRoot)))
         config
-
-
     }
-
-    /*
-    protected def dpConn(): OvsDatapathConnection = {
-      injector.getInstance(classOf[OvsDatapathConnection])
-    }
-
-    protected def actors(): ActorSystem = {
-      injector.getInstance(classOf[MidolmanActorsService]).system
-    }*/
 
     protected def midoStore(): cluster.Client = {
         injector.getInstance(classOf[cluster.Client])
@@ -78,7 +66,7 @@ with BeforeAndAfter {
             new ReactorModule(),
             new ClusterClientModule()
         )
-
+        ComponentInjectorHolder.setInjector(injector)
         /*injector.getInstance(classOf[MidolmanService]).startAndWait()
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()*/
     }
@@ -91,13 +79,12 @@ with BeforeAndAfter {
 class X extends VirtualTopologyActorTest {
     def testFirst() {
         implicit val system = ActorSystem("testsystem")
-        val actorRef = TestActorRef(new VirtualTopologyActor())
+        val actorRef = TestActorRef(new VirtualTopologyActor)
         val probe = TestProbe()
         initializeZKStructure()
         Setup.createZkDirectoryStructure(zkDir(), zkRoot)
 
         // TODO waiting
-
 
         // create bridge
         val bridgeId = bridgeMgr().create(new BridgeConfig())
@@ -106,16 +93,13 @@ class X extends VirtualTopologyActorTest {
         val bridgeCfg = new BridgeConfig()
         // set gre key sequentially
         bridgeCfg.greKey = 1
-        //probe.expectMsg(new SimBridge(bridgeId, bridgeCfg, null, null,
+        //probe.expectMsg(new Bridge(bridgeId, bridgeCfg, null, null,
         //                              null, null))
-        val foo = probe.receiveOne(Duration.Undefined)
-        val mao = new SimBridge(bridgeId, bridgeCfg, null, null,
-            null, null)
-        if (foo == mao) {
-            val pp = 0
-        }
+        val receivedBridge = probe.receiveOne(Duration.Undefined)
+        val expectedBridge = new Bridge(bridgeId, bridgeCfg, null, null, null, null)
+        assert(receivedBridge == expectedBridge)
 
-        val bar = 2
+
     }
 
     def initializeZKStructure() {

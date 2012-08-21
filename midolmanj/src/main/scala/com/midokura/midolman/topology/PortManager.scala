@@ -62,7 +62,7 @@ class PortManager(id: UUID, val mgr: PortZkManager,
 
     override def chainsUpdated = makeNewPort
 
-    override def refreshConfig() = {
+    override def updateConfig() = {
         cfg = mgr.get(id, cb)
     }
 

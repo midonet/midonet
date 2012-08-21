@@ -7,6 +7,7 @@ import java.util.UUID
 import akka.actor.Actor
 import akka.event.Logging
 import com.midokura.midolman.simulation.Chain
+import com.midokura.midonet.cluster.client.{ForwardingElementBuilder, Builder, DeviceBuilder}
 
 abstract class DeviceManager(val id: UUID) extends Actor {
     val log = Logging(context.system, this)
@@ -24,8 +25,8 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     var inFilter: Chain = null;
     var outFilter: Chain = null;
 
-    private def updateConfig(): Unit = {
-        refreshConfig()
+
+    private def configUpdated(): Unit = {
         // TODO(pino): deal with null newCfg
 
         // Unsubscribe from old inFilter if changed.
@@ -51,6 +52,7 @@ abstract class DeviceManager(val id: UUID) extends Actor {
         }
 
         if (!waitingForChains) chainsUpdated()
+
     }
 
     private def updateChain(chain: Chain): Unit = {
@@ -81,10 +83,18 @@ abstract class DeviceManager(val id: UUID) extends Actor {
 
     def getOutFilterID(): UUID
 
-    def refreshConfig(): Unit
+    def updateConfig(): Unit
 
     override def receive = {
         case Refresh => updateConfig()
         case chain: Chain => updateChain(chain)
     }
+
+    //class abstract ConcreteBuilder extends
+    trait DeviceBuilderImpl[Builder <: DeviceBuilder[Builder]] extends DeviceBuilder[Builder] {
+        def build() {
+            configUpdated()
+        }
+    }
+
 }

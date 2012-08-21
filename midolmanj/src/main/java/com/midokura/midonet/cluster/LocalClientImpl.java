@@ -79,6 +79,7 @@ public class LocalClientImpl implements Client {
         // asynchronous call, we will process it later
         bridgeBuilderMap.put(bridgeID, builder);
         reactorLoop.submit(getBridgeConf(bridgeID, builder));
+        log.info("getBridge {}", bridgeID);
     }
 
     @Override
@@ -190,6 +191,7 @@ public class LocalClientImpl implements Client {
 
             @Override
             public void run() {
+                log.info("Updating configuration for bridge {}", id);
                 BridgeZkManager.BridgeConfig config = null;
                 try {
                     config = bridgeMgr.get(id, watchBridge(id));
@@ -219,6 +221,7 @@ public class LocalClientImpl implements Client {
                     }
                     bridgeMap.put(id, config);
                     buildBridgeFromConfig(id, config, builder, macPortMap);
+                    log.info("Update configuration for bridge {}", id);
                 }
             }
         };
@@ -234,6 +237,7 @@ public class LocalClientImpl implements Client {
                 reactorLoop.submit(getBridgeConf(id,
                                                  (BridgeBuilder) bridgeBuilderMap
                                                      .get(id)));
+                log.info("Added watcher for bridge {}", id);
             }
         };
     }
@@ -241,13 +245,12 @@ public class LocalClientImpl implements Client {
     void buildBridgeFromConfig(UUID id, BridgeZkManager.BridgeConfig config,
                                BridgeBuilder builder, MacPortMap macPortMap) {
 
-        builder.setID(id)
-               .setInFilter(config.inboundFilter)
+        //builder.setID(id)
+        builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.greKey);
         builder.setMacLearningTable(new MacLearningTableImpl(macPortMap) {
         });
-        // TODO(ross) check what's missing, MacLearningTable?
         builder.build();
 
     }
@@ -268,6 +271,7 @@ public class LocalClientImpl implements Client {
                     cb.call(map.get(mac));
                 }
             });
+            log.info("Got mac {}", mac);
         }
 
         @Override
@@ -285,6 +289,8 @@ public class LocalClientImpl implements Client {
                     }
                 }
             });
+            log.info("Added mac {} to port {} for bridge {}",
+                     new Object[]{mac, portID});
         }
 
         @Override

@@ -15,6 +15,7 @@ import javax.inject.Inject
 import com.midokura.midolman.config.MidolmanConfig
 import akka.event.Logging
 import com.midokura.midolman.simulation.{Chain, Bridge, Router}
+import com.midokura.midonet.cluster.Client
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -71,15 +72,8 @@ class VirtualTopologyActor() extends Actor {
     private val localPorts = mutable.Set[UUID]()
     val log = Logging(context.system, this)
 
-    //    private val bridgeStateMgr = new BridgeZkManager(dir, zkBasePath)
-    //    private val chainStateMgr = new ChainZkManager(dir, zkBasePath)
-    //    private val portStateMgr = new PortZkManager(dir, zkBasePath)
-    //    private val routerStateMgr = new RouterZkManager(dir, zkBasePath)
-    //    private val routeStateMgr = new RouteZkManager(dir, zkBasePath)
-    //    private val ruleStateMgr = new RuleZkManager(dir, zkBasePath)
-
-    @Inject
-    var bridgeStateMgr: BridgeZkManager = null
+    //@Inject
+    //var bridgeStateMgr: BridgeZkManager = null
     @Inject
     var portStateMgr: PortZkManager = null
     @Inject
@@ -90,6 +84,9 @@ class VirtualTopologyActor() extends Actor {
     var routeStateMgr: RouteZkManager = null
     @Inject
     var routerStateMgr: RouterZkManager = null
+
+    @Inject
+    var clusterClient: Client = null
 
     //@Inject
     //var greZK: GreZkManager = null
@@ -157,7 +154,7 @@ class VirtualTopologyActor() extends Actor {
 
     def receive = {
         case BridgeRequest(id, update) =>
-            manageDevice(id, (x: UUID) => new BridgeManager(x, bridgeStateMgr))
+            manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient))
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
             manageDevice(id, (x: UUID) =>
@@ -192,14 +189,14 @@ class VirtualTopologyActor() extends Actor {
             }
         case brPortLocalMsg: SetBridgePortLocal =>
             manageDevice(brPortLocalMsg.devId,
-                (x: UUID) => new BridgeManager(x, bridgeStateMgr))
+                (x: UUID) => new BridgeManager(x, clusterClient))
             context.actorFor("./" + brPortLocalMsg.devId.toString())
-                   .forward(brPortLocalMsg)
+                .forward(brPortLocalMsg)
         case rtrPortLocalMsg: SetRouterPortLocal =>
             manageDevice(rtrPortLocalMsg.devId,
                 (x: UUID) =>
                     new RouterManager(x, routerStateMgr, routeStateMgr))
             context.actorFor("./" + rtrPortLocalMsg.devId.toString())
-                   .forward(rtrPortLocalMsg)
+                .forward(rtrPortLocalMsg)
     }
 }
