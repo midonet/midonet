@@ -3,9 +3,8 @@
 */
 package com.midokura.sdn.flows;
 
-import java.util.EnumSet;
 import java.util.List;
-
+import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.midokura.packets.ARP;
@@ -15,7 +14,16 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.sdn.dp.FlowMatch;
-import com.midokura.sdn.dp.flows.*;
+import com.midokura.sdn.dp.flows.FlowKey;
+import com.midokura.sdn.dp.flows.FlowKeyARP;
+import com.midokura.sdn.dp.flows.FlowKeyEtherType;
+import com.midokura.sdn.dp.flows.FlowKeyEthernet;
+import com.midokura.sdn.dp.flows.FlowKeyICMP;
+import com.midokura.sdn.dp.flows.FlowKeyIPv4;
+import com.midokura.sdn.dp.flows.FlowKeyInPort;
+import com.midokura.sdn.dp.flows.FlowKeyTCP;
+import com.midokura.sdn.dp.flows.FlowKeyTunnelID;
+import com.midokura.sdn.dp.flows.FlowKeyUDP;
 
 /**
  * Class that provides an easy ways of building WildcardFlow objects.
@@ -23,25 +31,24 @@ import com.midokura.sdn.dp.flows.*;
 public class WildcardMatches {
 
     @Nullable
-    public static ProjectedWildcardMatch project(EnumSet<WildcardMatch.Field> fields, WildcardMatch<?> source) {
+    public static ProjectedWildcardMatch project(Set<WildcardMatch.Field> fields, WildcardMatch source) {
         if (!source.getUsedFields().containsAll(fields))
             return null;
 
         return new ProjectedWildcardMatch(fields, source);
     }
 
-    public static WildcardMatch<?> fromFlowMatch(FlowMatch match) {
-        return fromFlowMatch(match, new WildcardMatchImpl());
+    public static WildcardMatch fromFlowMatch(FlowMatch match) {
+        return fromFlowMatch(match, new WildcardMatch());
     }
 
-    public static <Match extends WildcardMatch<Match>> Match fromFlowMatch(FlowMatch match, Match wildcardMatch) {
+    public static WildcardMatch fromFlowMatch(FlowMatch match, WildcardMatch wildcardMatch) {
         List<FlowKey<?>> flowKeys = match.getKeys();
         processMatchKeys(wildcardMatch, flowKeys);
-
         return wildcardMatch;
     }
 
-    private static void processMatchKeys(WildcardMatch<?> wildcardMatch, List<FlowKey<?>> flowKeys) {
+    private static void processMatchKeys(WildcardMatch wildcardMatch, List<FlowKey<?>> flowKeys) {
         for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
                 case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
