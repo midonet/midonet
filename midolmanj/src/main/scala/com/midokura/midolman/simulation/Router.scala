@@ -37,14 +37,15 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             return new DropResult()
         }
         if (ingress.mmatch.getDataLayerType != IPv4.ETHERTYPE &&
-            ingress.mmatch.getDataLayerType != ARP.ETHERTYPE)
+                ingress.mmatch.getDataLayerType != ARP.ETHERTYPE)
             return new NotIPv4Result()
 
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (ingress.mmatch.getDataLayerType == ARP.ETHERTYPE &&
-                ingress.mmatch.getNetworkProtocol == ARP.OP_REQUEST) {
-                processArpRequest(ingress.packet, ingress.port, rtrPortCfg)
+                    ingress.mmatch.getNetworkProtocol == ARP.OP_REQUEST) {
+                processArpRequest(ingress.packet.getPayload.asInstanceOf[ARP],
+                                  ingress.port, rtrPortCfg)
                 return new ConsumedResult()
             } else
                 return new DropResult()
@@ -53,14 +54,15 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         if (hwDst != rtrPortCfg.getHwAddr) {
             // Not addressed to us, log.warn and drop.
             log.warn("{} neither broadcast nor inPort's MAC ({})", hwDst,
-                rtrPortCfg.getHwAddr)
+                     rtrPortCfg.getHwAddr)
             return new DropResult()
         }
 
         if (ingress.mmatch.getDataLayerType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
             if (ingress.mmatch.getNetworkProtocol == ARP.OP_REPLY) {
-                processArpReply(ingress.packet, ingress.port, rtrPortCfg)
+                processArpReply(ingress.packet.getPayload.asInstanceOf[ARP],
+                                ingress.port, rtrPortCfg)
                 return new ConsumedResult()
             } else
                 return new DropResult()
@@ -157,14 +159,34 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         null //XXX
     }
 
-    private def processArpRequest(pkt: Ethernet, portID: UUID,
+    private def processArpRequest(pkt: ARP, portID: UUID,
                                   rtrPortCfg: RouterPortConfig) {
         //XXX
     }
 
-    private def processArpReply(pkt: Ethernet, portID: UUID,
+    private def processArpReply(pkt: ARP, portID: UUID,
                                 rtrPortCfg: RouterPortConfig) {
-        //XXX
+        // Verify the reply:  It's addressed to our MAC & IP, and is about
+        // the MAC for an IPv4 address.
+        if (pkt.getHardwareType != ARP.HW_TYPE_ETHERNET ||
+                pkt.getProtocolType != ARP.PROTO_TYPE_IP) {
+            log.debug("Router {} ignoring ARP reply on port {} because hwtype "+
+                      "wasn't Ethernet or prototype wasn't IPv4.", id, portID)
+            return
+        }
+        val tpa: Int = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
+        val tha: MAC = pkt.getTargetHardwareAddress
+        if (tpa != rtrPortCfg.portAddr || tha != rtrPortCfg.getHwAddr) {
+            log.debug("Router {} ignoring ARP reply on port {} because tpa or "+
+                      "tha doesn't match.", id, portID)
+            return
+        }
+        // Question:  Should we check if the ARP reply disagrees with an
+        // existing cache entry and make noise if so?
+
+        val sha: MAC = pkt.getSenderHardwareAddress
+        val spa = new IntIPv4(pkt.getSenderProtocolAddress)
+        arpTable.add(spa, sha)
     }
 
     private def isIcmpEchoRequest(mmatch: MidoMatch): Boolean = {
