@@ -5,7 +5,6 @@
 package com.midokura.sdn.flows;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,8 +34,8 @@ public class FlowManager {
      * Each wildcard pattern is the set of FlowKeyAttr that must be matched
      * exactly.
      */
-    private Map<EnumSet<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> wildcardTables =
-            new HashMap<EnumSet<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>();
+    private Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> wildcardTables =
+            new HashMap<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>();
 
     /* The datapath flow table is a map of datapath FlowMatch to a list of
      * FlowActions. The wildcard flow table is a LinkedHashMap so that we
@@ -77,7 +76,7 @@ public class FlowManager {
      */
     public boolean add(WildcardFlow wildFlow) {
         // Get the WildcardFlowTable for this wild flow's pattern.
-        EnumSet<WildcardMatch.Field> pattern =
+        Set<WildcardMatch.Field> pattern =
                 wildFlow.getMatch().getUsedFields();
         Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.get(pattern);
         if (null == wildTable) {
@@ -159,11 +158,11 @@ public class FlowManager {
         // Iterate through the WildcardFlowTables to find candidate wild flows.
         WildcardFlow wildcardFlow = null;
         WildcardMatch flowWildMatch = WildcardMatches.fromFlowMatch(flowMatch);
-        for (Map.Entry<EnumSet<WildcardMatch.Field>,
+        for (Map.Entry<Set<WildcardMatch.Field>,
                 Map<WildcardMatch, WildcardFlow>> wTableEntry :
             wildcardTables.entrySet()) {
             Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
-            EnumSet<WildcardMatch.Field> pattern = wTableEntry.getKey();
+            Set<WildcardMatch.Field> pattern = wTableEntry.getKey();
             ProjectedWildcardMatch wildMatch = WildcardMatches.project(
                     pattern, flowWildMatch);
             if (null != wildMatch) {
