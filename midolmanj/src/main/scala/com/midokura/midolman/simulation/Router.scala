@@ -12,14 +12,17 @@ import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, ICMP, IPv4}
 import com.midokura.packets.ICMP.UNREACH_CODE
+import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   MaterializedRouterPortConfig,
                                                   RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
+import com.midokura.midonet.cluster.client.ArpCache
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
-             val inFilter: Chain, val outFilter: Chain) extends Device {
+             val arpTable: ArpCache, val inFilter: Chain,
+             val outFilter: Chain) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
@@ -196,8 +199,8 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 // http://www.janeg.ca/scjp/oper/shift.html), so special case
                 // nwLength=0 <=> shift=32 to always match.
                 if ((nextHopIP >>> shift) !=
-                    (mPortConfig.localNwAddr >>> shift) &&
-                    shift != 32) {
+                        (mPortConfig.localNwAddr >>> shift) &&
+                        shift != 32) {
                     log.warn("getMacForIP: cannot get MAC for {} - address " +
                         "not in network segment of port {} ({}/{})",
                         Array[Object](nwAddr, portID,
@@ -207,7 +210,12 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 }
             case _ => /* Fall through */
         }
-        //XXX: Get entry from actor-aware ArpTable.
+        val entry: ArpCacheEntry = getArpTableEntry(nwAddr)
+        
         return null
+    }
+
+    def getArpTableEntry(ipAddr: IntIPv4): ArpCacheEntry = {
+        null  //XXX
     }
 }

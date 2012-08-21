@@ -3,31 +3,36 @@
  */
 package com.midokura.midolman.topology
 
-import java.util.UUID
 import collection.mutable
 import collection.JavaConversions._
+import java.util.UUID
 
 import org.apache.zookeeper.CreateMode
 
-import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
 import com.midokura.midolman.layer3.{Route, RoutingTable}
-import com.midokura.midolman.util.JSONSerializer
-import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.midolman.simulation.Router
+import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
+import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
+import com.midokura.midolman.util.JSONSerializer
+import com.midokura.midonet.cluster.client.ArpCache
+
 
 class RouterManager(id: UUID, val mgr: RouterZkManager,
                     val routeMgr: RouteZkManager)
-    extends DeviceManager(id) {
+        extends DeviceManager(id) {
     private val rtableDirectory = mgr.getRoutingTableDirectory(id)
     private val serializer = new JSONSerializer()
-
     private var cfg: RouterConfig = null
     private var rTable: RoutingTable = null
     private val localPortToRouteIDs = mutable.Map[UUID, mutable.Set[UUID]]()
     private val idToRoute = mutable.Map[UUID, Route]()
-    refreshTableRoutes()
+    private val arpCache: ArpCache = null  //XXX
 
     case object RefreshTableRoutes
+
+    // Initialization:  Get the routing table data from the cluster.
+    refreshTableRoutes()
+
 
     val tableRoutesCb: Runnable = new Runnable() {
         def run() {
@@ -111,7 +116,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     private def makeNewRouter() = {
         if (chainsReady() && null != rTable)
             context.actorFor("..").tell(
-                new Router(id, cfg, rTable, inFilter, outFilter));
+                new Router(id, cfg, rTable, arpCache, inFilter, outFilter));
     }
 
     override def updateConfig() = {
