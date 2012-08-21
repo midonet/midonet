@@ -28,6 +28,8 @@ public class MAC implements Cloneable {
         address = rhs.address.clone();
     }
 
+
+    @Override
     public MAC clone() {
         return new MAC(this);
     }
@@ -72,5 +74,4 @@ public class MAC implements Cloneable {
                ((address[3]&0xff) << 8) |
                ((address[4] ^ address[5])&0xff);
     }
-
 }

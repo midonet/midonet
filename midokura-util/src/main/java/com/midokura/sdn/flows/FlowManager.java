@@ -13,11 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.midokura.netlink.NetlinkMessage.AttrKey;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
-import com.midokura.sdn.dp.flows.FlowKey;
 
 // not thread-safe
 // TODO(pino): document this
