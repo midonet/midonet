@@ -14,9 +14,7 @@ import com.midokura.packets.MAC;
 
 public interface PortBuilders {
 
-    interface PortBuilder<
-        ConcretePortBuilder extends PortBuilder<ConcretePortBuilder>
-        >
+    interface PortBuilder<ConcretePortBuilder>
         extends DeviceBuilder<ConcretePortBuilder> {
 
         ConcretePortBuilder setDeviceID(UUID id);
@@ -24,7 +22,7 @@ public interface PortBuilders {
         ConcretePortBuilder setPortGroupIDs(Set<UUID> portGroupIDs);
     }
 
-    interface ExteriorPortBuilder<Builder extends ExteriorPortBuilder<Builder>>
+    interface ExteriorPortBuilder<Builder>
         extends PortBuilder<Builder> {
         Builder setTunnelKey(long tunnelKey);
     }
@@ -33,7 +31,7 @@ public interface PortBuilders {
         void setPeerID(UUID peerID);
     }
 
-    interface RouterPortBuilder<B extends PortBuilder<B>> extends PortBuilder<B> {
+    interface RouterPortBuilder<B> extends PortBuilder<B> {
         B setNetAddr(IPv4 ipAddr);
 
         B setPortAddr(IPv4 ipAddr);
@@ -41,7 +39,7 @@ public interface PortBuilders {
         void setMac(MAC mac);
     }
 
-    interface BridgePortBuilder<C extends BridgePortBuilder<C>> extends PortBuilder<C> {
+    interface BridgePortBuilder<C> extends PortBuilder<C> {
     }
 
     interface InteriorBridgePortBuilder
@@ -59,8 +57,7 @@ public interface PortBuilders {
 
     interface ExteriorRouterPortBuilder
         extends ExteriorPortBuilder<ExteriorRouterPortBuilder>,
-                RouterPortBuilder<ExteriorRouterPortBuilder>
-    {
+                RouterPortBuilder<ExteriorRouterPortBuilder> {
         ExteriorRouterPortBuilder setBgps(Set<BGP> bgps);
     }
 

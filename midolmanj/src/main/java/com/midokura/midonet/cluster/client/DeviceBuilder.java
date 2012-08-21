@@ -4,9 +4,7 @@ package com.midokura.midonet.cluster.client;/*
 
 import java.util.UUID;
 
-public interface DeviceBuilder<
-        ConcreteDeviceBulder extends DeviceBuilder<ConcreteDeviceBulder>
-    >
+public interface DeviceBuilder<ConcreteDeviceBulder>
     extends Builder<ConcreteDeviceBulder> {
 
     ConcreteDeviceBulder setID(UUID id);

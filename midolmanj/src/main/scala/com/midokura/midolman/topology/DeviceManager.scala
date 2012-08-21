@@ -91,7 +91,7 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     }
 
     //class abstract ConcreteBuilder extends
-    trait DeviceBuilderImpl[Builder <: DeviceBuilder[Builder]] extends DeviceBuilder[Builder] {
+    trait DeviceBuilderImpl[Builder] extends DeviceBuilder[Builder] {
         def build() {
             configUpdated()
         }
