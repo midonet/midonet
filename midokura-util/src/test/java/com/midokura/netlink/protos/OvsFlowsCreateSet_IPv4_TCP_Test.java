@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.packets.MAC;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowActions;
@@ -43,7 +44,7 @@ public class OvsFlowsCreateSet_IPv4_TCP_Test
     protected FlowMatch flowMatch() {
         return new FlowMatch()
             .addKey(inPort(0))
-            .addKey(ethernet(macFromString("ae:b3:77:8d:a1:48"),
+            .addKey(ethernet(MAC.fromString("ae:b3:77:8d:a1:48").getAddress(),
                              macFromString("33:33:00:00:00:16")))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
             .addKey(

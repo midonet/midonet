@@ -19,7 +19,7 @@ public class WildcardMatch {
 
     public enum Field {
         InputPortNumber,
-        InputPortID,
+        InputPortUUID,
         TunnelID,
         EthernetSource,
         EthernetDestination,
@@ -41,7 +41,7 @@ public class WildcardMatch {
     }
 
     private Short inputPortNumber;
-    private UUID inputPortID;
+    private UUID inputPortUUID;
     private Long tunnelID;
     private MAC ethernetSource;
     private MAC ethernetDestination;
@@ -66,14 +66,14 @@ public class WildcardMatch {
     }
 
     public WildcardMatch setInputPortUUID(@Nonnull UUID inputPortID) {
-        usedFields.add(Field.InputPortID);
-        this.inputPortID = inputPortID;
+        usedFields.add(Field.InputPortUUID);
+        this.inputPortUUID = inputPortID;
         return this;
     }
 
     @Nullable
-    public UUID getInputPortID() {
-        return inputPortID;
+    public UUID getInputPortUUID() {
+        return inputPortUUID;
     }
 
     @Nonnull
@@ -200,70 +200,126 @@ public class WildcardMatch {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || !(o instanceof WildcardMatch)) return false;
 
         WildcardMatch that = (WildcardMatch) o;
 
-        if (etherType != null ? !etherType.equals(
-            that.etherType) : that.etherType != null) return false;
-        if (ethernetDestination != null ? !ethernetDestination.equals(
-            that.ethernetDestination) : that.ethernetDestination != null)
-            return false;
-        if (ethernetSource != null ? !ethernetSource.equals(
-            that.ethernetSource) : that.ethernetSource != null) return false;
-        if (inputPortID != null ? !inputPortID.equals(
-            that.inputPortID) : that.inputPortID != null) return false;
-        if (inputPortNumber != null ? !inputPortNumber.equals(
-            that.inputPortNumber) : that.inputPortNumber != null) return false;
-        if (isIPv4Fragment != null ? !isIPv4Fragment.equals(
-            that.isIPv4Fragment) : that.isIPv4Fragment != null) return false;
-        if (networkDestination != null ? !networkDestination.equals(
-            that.networkDestination) : that.networkDestination != null)
-            return false;
-        if (networkProtocol != null ? !networkProtocol.equals(
-            that.networkProtocol) : that.networkProtocol != null) return false;
-        if (networkSource != null ? !networkSource.equals(
-            that.networkSource) : that.networkSource != null) return false;
-        if (transportDestination != null ? !transportDestination.equals(
-            that.transportDestination) : that.transportDestination != null)
-            return false;
-        if (transportSource != null ? !transportSource.equals(
-            that.transportSource) : that.transportSource != null) return false;
-        if (tunnelID != null ? !tunnelID.equals(
-            that.tunnelID) : that.tunnelID != null) return false;
-        if (usedFields != null ? !usedFields.equals(
-            that.usedFields) : that.usedFields != null) return false;
+        for (Field field : getUsedFields()) {
+            switch (field) {
+                case EtherType:
+                    if (!isEqual(etherType, that.etherType))
+                        return false;
+                    break;
+
+                case IsIPv4Fragment:
+                    if (!isEqual(isIPv4Fragment, that.isIPv4Fragment))
+                        return false;
+                    break;
+
+                case EthernetDestination:
+                    if (!isEqual(ethernetDestination, that.ethernetDestination))
+                        return false;
+                    break;
+
+                case EthernetSource:
+                    if (!isEqual(ethernetSource, that.ethernetSource))
+                        return false;
+                    break;
+
+                case TransportDestination:
+                    if (!isEqual(transportDestination, that.transportDestination))
+                        return false;
+                    break;
+
+                case TransportSource:
+                    if (!isEqual(transportSource, that.transportSource))
+                        return false;
+                    break;
+
+                case InputPortUUID:
+                    if (!isEqual(inputPortUUID, that.inputPortUUID))
+                        return false;
+                    break;
+
+                case InputPortNumber:
+                    if (!isEqual(inputPortNumber, that.inputPortNumber))
+                        return false;
+                    break;
+
+                case NetworkDestination:
+                    if (!isEqual(networkDestination, that.networkDestination))
+                        return false;
+                    break;
+
+                case NetworkSource:
+                    if (!isEqual(networkSource, that.networkSource))
+                        return false;
+                    break;
+
+                case NetworkProtocol:
+                    if (!isEqual(networkProtocol, that.networkProtocol))
+                        return false;
+                    break;
+
+                case TunnelID:
+                    if (!isEqual(tunnelID, that.tunnelID))
+                        return false;
+
+                    break;
+            }
+        }
 
         return true;
     }
 
+    private <T> boolean isEqual(T a, T b) {
+        return a != null ? a.equals(b) : b == null;
+    }
+
     @Override
     public int hashCode() {
-        int result = usedFields != null ? usedFields.hashCode() : 0;
-        result = 31 * result +
-            (inputPortNumber != null ? inputPortNumber.hashCode() : 0);
-        result = 31 * result +
-            (inputPortID != null ? inputPortID.hashCode() : 0);
-        result = 31 * result +
-            (tunnelID != null ? tunnelID.hashCode() : 0);
-        result = 31 * result +
-            (ethernetSource != null ? ethernetSource.hashCode() : 0);
-        result = 31 * result +
-            (ethernetDestination != null ? ethernetDestination.hashCode() : 0);
-        result = 31 * result +
-            (etherType != null ? etherType.hashCode() : 0);
-        result = 31 * result +
-            (networkSource != null ? networkSource.hashCode() : 0);
-        result = 31 * result +
-            (networkDestination != null ? networkDestination.hashCode() : 0);
-        result = 31 * result +
-            (networkProtocol != null ? networkProtocol.hashCode() : 0);
-        result = 31 * result +
-            (isIPv4Fragment != null ? isIPv4Fragment.hashCode() : 0);
-        result = 31 * result +
-            (transportSource != null ? transportSource.hashCode() : 0);
-        result = 31 * result +
-            (transportDestination != null ? transportDestination.hashCode() : 0);
+        int result = getUsedFields().hashCode();
+        for (Field field : getUsedFields()) {
+            switch (field) {
+                case EtherType:
+                    result = 31 * result + etherType.hashCode();
+                    break;
+                case IsIPv4Fragment:
+                    result = 31 * result + isIPv4Fragment.hashCode();
+                    break;
+                case EthernetDestination:
+                    result = 31 * result + ethernetDestination.hashCode();
+                    break;
+                case EthernetSource:
+                    result = 31 * result + ethernetSource.hashCode();
+                    break;
+                case TransportDestination:
+                    result = 31 * result + transportDestination.hashCode();
+                    break;
+                case TransportSource:
+                    result = 31 * result + transportSource.hashCode();
+                    break;
+                case InputPortUUID:
+                    result = 31 * result + inputPortUUID.hashCode();
+                    break;
+                case InputPortNumber:
+                    result = 31 * result + inputPortNumber.hashCode();
+                    break;
+                case NetworkDestination:
+                    result = 31 * result + networkDestination.hashCode();
+                    break;
+                case NetworkSource:
+                    result = 31 * result + networkSource.hashCode();
+                    break;
+                case NetworkProtocol:
+                    result = 31 * result + networkProtocol.hashCode();
+                    break;
+                case TunnelID:
+                    result = 31 * result + tunnelID.hashCode();
+                    break;
+            }
+        }
+
         return result;
     }
 }
