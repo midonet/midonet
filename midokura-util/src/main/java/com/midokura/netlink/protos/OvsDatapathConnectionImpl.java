@@ -713,6 +713,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
+    protected void _doFlowsDelete(@Nonnull final Datapath datapath,
+                                  @Nonnull final Flow flow,
+                                  @Nonnull final Callback<Flow> callback,
+                                  final long timeoutMillis) {
+        // XXX TODO(pino): implement me!
+    }
+
+        @Override
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match,
                                @Nonnull Callback<Flow> callback, long timeoutMillis) {
 

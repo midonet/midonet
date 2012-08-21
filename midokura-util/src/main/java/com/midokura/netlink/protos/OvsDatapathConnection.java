@@ -708,6 +708,46 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
 
+    public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
+                                    @Nonnull final Flow flow) {
+        ValueFuture<Flow> flowFuture = ValueFuture.create();
+        flowsDelete(datapath, flow, wrapFuture(flowFuture));
+        return flowFuture;
+    }
+
+    /**
+     * Callback based api for deleting a flow.
+     *
+     * @param datapath the name of the datapath
+     * @param flow     the flow that we want to install
+     * @param callback a callback which will receive the installed flow
+     */
+    public void flowsDelete(@Nonnull final Datapath datapath,
+                            @Nonnull final Flow flow,
+                            @Nonnull final Callback<Flow> callback) {
+        flowsDelete(datapath, flow, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for deleting a flow.
+     *
+     * @param datapath      the name of the datapath
+     * @param flow          the flow that we want to install
+     * @param callback      the callback which will receive the installed flow
+     * @param timeoutMillis the amount of time we should wait for the response
+     */
+    public void flowsDelete(@Nonnull final Datapath datapath,
+                            @Nonnull final Flow flow,
+                            @Nonnull final Callback<Flow> callback,
+                            long timeoutMillis) {
+        _doFlowsDelete(datapath, flow, callback, timeoutMillis);
+    }
+
+    protected abstract void _doFlowsDelete(@Nonnull final Datapath datapath,
+                                           @Nonnull final Flow flow,
+                                           @Nonnull final Callback<Flow> callback,
+                                           final long timeout);
+
     /**
      * Future based api for retrieving a flow.
      *

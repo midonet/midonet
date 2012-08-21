@@ -166,7 +166,7 @@ public class FlowManager {
                 wildcardTables.entrySet()) {
             Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
             Set<WildcardMatch.Field> pattern = wTableEntry.getKey();
-            ProjectedWildcardMatch projectedFlowMatch = WildcardMatches.project(
+            WildcardMatch projectedFlowMatch = WildcardMatches.project(
                     pattern, flowWildMatch);
             WildcardFlow nextWFlowCandidate = table.get(projectedFlowMatch);
             if (null != nextWFlowCandidate) {

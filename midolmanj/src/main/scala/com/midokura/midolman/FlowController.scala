@@ -6,6 +6,7 @@ import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
 import config.MidolmanConfig
+import datapath.ErrorHandlingCallback
 import java.util.UUID
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
@@ -39,12 +40,14 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-    var maxDpFlows = 100;
+    var datapath: Datapath = null
+    var maxDpFlows = 0
+    var dpFlowRemoveBatchSize = 0
 
     @Inject
     var midolmanConfig:MidolmanConfig = null
 
-    private val pendedMatches: MultiMap[FlowMatch, Packet] =
+    private val dpMatchToPendedPackets: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
 
     @Inject
@@ -66,34 +69,53 @@ class FlowController extends Actor {
     }
 
     def receive = {
-        case DatapathController.DatapathReady(datapath) =>
-            installPacketInHook(datapath)
+        case DatapathController.DatapathReady(dp) =>
+            if (null == datapath) {
+                datapath = dp
+                installPacketInHook()
+            }
 
         case packetIn(packet) =>
             handlePacketIn(packet)
 
         case AddWildcardFlow(wildcardFlow, outPorts, packetOption) =>
-            // TODO(pino, jlm): translate the outPorts to output actions and
-            // TODO:            append them to the wildcardFlow's action list.
-            // XXX
+            if (!flowManager.add(wildcardFlow))
+                log.error("FlowManager failed to install wildcard flow {}",
+                          wildcardFlow)
+
             if (packetOption != None) {
                 val packet = packetOption.get
-                val kernelMatch = packet.getMatch
-                val pendedPackets = pendedMatches.remove(kernelMatch)
-                val kernelFlow = new Flow()
-                kernelFlow.setMatch(packet.getMatch)
-                kernelFlow.setActions(wildcardFlow.getActions)
-                // XXX
-                // TODO: installFlow(kernelFlow)
-                // Send pended packets out the new rule
-                if (pendedPackets != None)
+                val pendedPackets =
+                    dpMatchToPendedPackets.remove(packet.getMatch)
+                val dpFlow = new Flow().
+                    setMatch(packet.getMatch).
+                    setActions(wildcardFlow.getActions)
+
+                datapathConnection.flowsCreate(datapath, dpFlow,
+                    new ErrorHandlingCallback[Flow] {
+                        def onSuccess(data: Flow) {}
+
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error(ex,
+                                "Failed to install a flow {} due to {}", dpFlow,
+                                if (timeout) "timeout" else "error")
+                        }
+                    })
+
+                // Check whether the datapath's flow table is reaching the limit
+                manageDPFlowTableSpace()
+
+                // Send all pended packets with the same action list (unless
+                // the action list is empty, which is equivalent to dropping)
+                if (pendedPackets != None
+                    && wildcardFlow.getActions.size() > 0) {
                     for (unpendedPacket <- pendedPackets.get) {
-                        // XXX
-                        // TODO: packetOut(unpendedPacket, kernelFlow)
+                        unpendedPacket.setActions(wildcardFlow.getActions)
+                        datapathConnection.packetsExecute(
+                            datapath, unpendedPacket)
                     }
+                }
             }
-            // TODO(pino): is the datapath flow table reaching its limit?
-            flowManager.add(wildcardFlow)
             /*val evictedKernelFlows = (
                 (Set[Flow]() /: evictedWcFlows)
                     (_ ++ exactFlowManager.removeByWildcard(_)))
@@ -104,7 +126,7 @@ class FlowController extends Actor {
 
         case Consume(packet) =>
             val kernelMatch = packet.getMatch
-            pendedMatches.remove(kernelMatch)
+            dpMatchToPendedPackets.remove(kernelMatch)
 
         case RemoveWildcardFlow(fmatch) => //XXX
 
@@ -118,6 +140,27 @@ class FlowController extends Actor {
      * @param packet the packet data
      */
     case class packetIn(packet: Packet)
+
+    private def manageDPFlowTableSpace() {
+        if (flowManager.getNumDpFlows > maxDpFlows - 5) {
+            // TODO(pino): FlowManager should not remove the candidates until
+            // TODO:       they're removed from the Datapath.
+            for (flowMatch <-
+                 flowManager.removeOldestDpFlows(dpFlowRemoveBatchSize)) {
+                val flow = new Flow().setMatch(flowMatch)
+                datapathConnection.flowsDelete(datapath, flow,
+                    new ErrorHandlingCallback[Flow] {
+                        def onSuccess(data: Flow) {}
+
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error(ex,
+                                "Failed to remove a flow {} due to {}", flow,
+                                if (timeout) "timeout" else "error")
+                        }
+                    })
+            }
+        }
+    }
 
     private def handlePacketIn(packet: Packet) {
         // In case the PacketIn notify raced a flow rule installation, see if
@@ -146,14 +189,14 @@ class FlowController extends Actor {
             // Otherwise, pass the packetIn up to the next layer for handling.
             // Keep track of these packets so that for every FlowMatch, only
             // one such call goes to the next layer.
-            if (pendedMatches.get(packet.getMatch) == None) {
+            if (dpMatchToPendedPackets.get(packet.getMatch) == None) {
                 datapathController() ! DatapathController.PacketIn(packet)
             }
-            pendedMatches.addBinding(packet.getMatch, packet)
+            dpMatchToPendedPackets.addBinding(packet.getMatch, packet)
         }
     }
 
-    private def installPacketInHook(datapath: Datapath) {
+    private def installPacketInHook(): Unit = {
         log.info("Installing packet in handler")
         // TODO: try to make this cleaner (right now we are just waiting for
         // the install future thus blocking the current thread).

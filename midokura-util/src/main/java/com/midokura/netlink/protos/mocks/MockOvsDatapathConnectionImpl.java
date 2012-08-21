@@ -269,6 +269,11 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
+    protected void _doFlowsDelete(@Nonnull Datapath datapath, @Nonnull Flow flow, @Nonnull Callback<Flow> callback, long timeout) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match, @Nonnull Callback<Flow> callback, long timeout) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
