@@ -12,12 +12,7 @@ import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-
-import com.midokura.midolman.config.ZookeeperConfig;
-import com.midokura.midolman.state.zkManagers.*;
-
 import com.google.inject.name.Names;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +21,17 @@ import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.LocalClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
@@ -81,6 +79,7 @@ public class ClusterClientModule extends PrivateModule {
         managers.add(PortGroupZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
+            //noinspection unchecked
             bind(managerClass)
                 .toProvider(new ZkManagerProvider(managerClass))
                 .asEagerSingleton();

@@ -23,11 +23,11 @@ import static com.midokura.sdn.dp.flows.FlowKeys.ethernet;
 import static com.midokura.sdn.dp.flows.FlowKeys.inPort;
 import static com.midokura.sdn.dp.flows.FlowKeys.vlan;
 
-public class OvsFlowsCreateSet_QinQ_Test
+public class OvsFlowsCreateSet_VLAN_Test
     extends OvsFlowsCreateSetMatchTest {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateSet_QinQ_Test.class);
+        .getLogger(OvsFlowsCreateSet_VLAN_Test.class);
 
     @Before
     public void setUp() throws Exception {

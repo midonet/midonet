@@ -14,7 +14,7 @@ import java.util.UUID
  *
  * @param portId is the virtual network port (or portSet) identifier.
  */
-class FlowActionVrnPortOutput(portId: UUID) extends FlowAction[FlowActionVrnPortOutput] {
+class FlowActionVrnPortOutput(val portId: UUID) extends FlowAction[FlowActionVrnPortOutput] {
 
     def getKey = null
 
@@ -23,4 +23,20 @@ class FlowActionVrnPortOutput(portId: UUID) extends FlowAction[FlowActionVrnPort
     def serialize(builder: BaseBuilder[_, _]) {}
 
     def deserialize(message: NetlinkMessage) = true
+
+    override def toString:String = {
+        "FlowActionVrnPortOutput{portId='%s'}" format portId.toString
+    }
+
+    override def hashCode(): Int = {
+        portId.hashCode()
+    }
+
+    override def equals(obj: Any): Boolean = {
+        obj match {
+            case port: FlowActionVrnPortOutput =>
+                port.portId == portId
+            case _ => false
+        }
+    }
 }

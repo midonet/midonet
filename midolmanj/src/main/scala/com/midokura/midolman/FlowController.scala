@@ -5,7 +5,7 @@ package com.midokura.midolman
 import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
-import guice.ComponentInjectorHolder
+import config.MidolmanConfig
 import java.util.UUID
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
@@ -39,7 +39,10 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-    val maxDpFlows = 0;
+    var maxDpFlows = 100;
+
+    @Inject
+    var midolmanConfig:MidolmanConfig = null
 
     private val pendedMatches: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
@@ -52,6 +55,14 @@ class FlowController extends Actor {
 
     def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
+    }
+
+
+    override def preStart() {
+        super.preStart()
+
+        maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
+
     }
 
     def receive = {
@@ -111,7 +122,7 @@ class FlowController extends Actor {
     private def handlePacketIn(packet: Packet) {
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
-        val actions = flowManager.getActionsForDpFlow(packet.getMatch);
+        val actions = flowManager.getActionsForDpFlow(packet.getMatch)
         if (actions != null) {
             // XXX TODO: packetOut(packet, exactFlow)
             return

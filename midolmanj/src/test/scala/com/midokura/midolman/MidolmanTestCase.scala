@@ -5,7 +5,7 @@ package com.midokura.midolman
 
 import guice._
 import cluster.ClusterClientModule
-import guice.actors.TestableMidolmanActorsModule
+import guice.actors.{OutgoingMessage, TestableMidolmanActorsModule}
 import guice.config.MockConfigProviderModule
 import guice.datapath.MockDatapathModule
 import guice.zookeeper.MockZookeeperConnectionModule
@@ -19,15 +19,18 @@ import akka.actor._
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
 import akka.util.duration._
-import com.midokura.sdn.dp.{Port, Datapath}
+import com.midokura.sdn.dp.{Packet, Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
 import com.midokura.midonet.cluster.Client
 import java.util.UUID
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import akka.testkit._
+import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
+import com.midokura.midolman.DatapathController.{InitializationComplete, Initialize}
+import org.scalatest.matchers.ShouldMatchers
 
-trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter with OneInstancePerTest {
+trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
 
     var injector: Injector = null
 
@@ -115,11 +118,33 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
     }
 
     protected def initializeDatapath(): DatapathController.InitializationComplete = {
-        ask[DatapathController.InitializationComplete](
-                topActor(DatapathController.Name), DatapathController.Initialize())
+        val result = ask[InitializationComplete](
+            topActor(DatapathController.Name), DatapathController.Initialize())
+
+        dpProbe().expectMsgType[Initialize] should not be null
+        dpProbe().expectMsgType[OutgoingMessage] should not be null
+
+        result
+    }
+
+    protected def triggerPacketIn(packet:Packet) {
+        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].triggerPacketIn(packet)
     }
 
     protected def dpController(): TestActorRef[DatapathController] = {
         actorByName(DatapathController.Name)
     }
+
+    protected def dpProbe(): TestKit = {
+        probeByName(DatapathController.Name)
+    }
+
+    protected def flowProbe(): TestKit = {
+        probeByName(FlowController.Name)
+    }
+
+    protected def simProbe(): TestKit = {
+        probeByName(SimulationController.Name)
+    }
+
 }

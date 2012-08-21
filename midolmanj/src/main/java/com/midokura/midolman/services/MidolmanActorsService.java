@@ -20,16 +20,15 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
+import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
-
-
-import static akka.pattern.Patterns.gracefulStop;
 
 /**
  * Midolman actors coordinator internal service.
@@ -54,6 +53,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef datapathControllerActor;
     ActorRef virtualToPhysicalActor;
     ActorRef flowControllerActor;
+    ActorRef simulationControllerActor;
 
     @Override
     protected void doStart() {
@@ -83,6 +83,10 @@ public class MidolmanActorsService extends AbstractService {
             startActor(getGuiceAwareFactory(FlowController.class),
                        FlowController.Name());
 
+        simulationControllerActor =
+            startActor(getGuiceAwareFactory(SimulationController.class),
+                       SimulationController.Name());
+
         notifyStarted();
         log.info("Actors system started");
     }
@@ -94,6 +98,7 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(virtualTopologyActor);
             stopActor(virtualToPhysicalActor);
             stopActor(flowControllerActor);
+            stopActor(simulationControllerActor);
 
             log.debug("Stopping the actor system");
             actorSystem.shutdown();
@@ -157,7 +162,6 @@ public class MidolmanActorsService extends AbstractService {
     }
 
     private static class GuiceActorFactory implements UntypedActorFactory {
-
         Class<? extends Actor> actorClass;
         Injector injector;
 

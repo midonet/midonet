@@ -13,21 +13,33 @@ import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume}
 import com.midokura.midolman.FlowController.SendPacket
+import akka.event.Logging
 
-case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
-                          outPorts: mutable.Set[UUID], packet: Packet,
-                          generated: Boolean)
+object SimulationController {
 
-case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
+    val Name = "SimulationController"
 
-class SimulationController(val fController: ActorRef) extends Actor {
+    case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
+                              outPorts: mutable.Set[UUID], packet: Packet,
+                              generated: Boolean)
 
-    //fController ! RegisterPacketInListener(packetInCallback)
+    case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
+}
+
+class SimulationController() extends Actor {
+    import SimulationController._
+    import context._
+
+    val log = Logging(context.system, this)
 
     case class PacketIn(packet: Packet, vportID: UUID)
 
     def packetInCallback(packet: Packet, id: UUID) {
         self ! PacketIn(packet, id)
+    }
+
+    protected def fController():ActorRef = {
+        actorFor("/user/%s" format FlowController.Name)
     }
 
     def receive = {

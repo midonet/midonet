@@ -40,6 +40,10 @@ public class FlowKeyInPort implements FlowKey<FlowKeyInPort> {
         return this;
     }
 
+    public int getInPort() {
+        return this.portNo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

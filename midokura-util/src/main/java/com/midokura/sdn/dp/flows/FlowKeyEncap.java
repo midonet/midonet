@@ -10,12 +10,9 @@ import java.util.List;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
 public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
 
-    List<FlowKey> keys = new ArrayList<FlowKey>();
+    List<FlowKey<?>> keys = new ArrayList<FlowKey<?>>();
 
     @Override
     public NetlinkMessage.AttrKey<FlowKeyEncap> getKey() {
@@ -76,11 +73,11 @@ public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
             '}';
     }
 
-    public List<FlowKey> getKeys() {
+    public List<FlowKey<?>> getKeys() {
         return keys;
     }
 
-    public FlowKeyEncap setKeys(List<FlowKey> keys) {
+    public FlowKeyEncap setKeys(List<FlowKey<?>> keys) {
         this.keys = keys;
         return this;
     }
