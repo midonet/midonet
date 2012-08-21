@@ -3,21 +3,22 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.ExecutionContext
+import akka.dispatch.{Await, Promise, ExecutionContext}
+import akka.util.duration._
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.state.zkManagers.RouterZkManager
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
-import com.midokura.packets.{MAC, IntIPv4, ARP, Ethernet, ICMP, IPv4}
+import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.UNREACH_CODE
-import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   MaterializedRouterPortConfig,
                                                   RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midonet.cluster.client.ArpCache
+import com.midokura.util.functors.Callback1
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
@@ -141,7 +142,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         var nextHopIP: Int = rt.nextHopGateway
         if (nextHopIP == 0 || nextHopIP == -1)
             nextHopIP = matchOut.getNetworkDestination /* Last hop */
-        val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP)
+        val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP, ec)
         if (nextHopMac != null) {
             matchOut.setDataLayerDestination(nextHopMac)
             return new ForwardResult(new PortMatch(rt.nextHopPort, matchOut))
@@ -185,7 +186,8 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         null //XXX
     }
 
-    private def getMacForIP(portID: UUID, nextHopIP: Int): MAC = {
+    private def getMacForIP(portID: UUID, nextHopIP: Int,
+                            ec: ExecutionContext): MAC = {
         val nwAddr = new IntIPv4(nextHopIP)
         val rtrPortConfig = getRouterPortConfig(portID)
         if (rtrPortConfig == null) {
@@ -210,12 +212,16 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 }
             case _ => /* Fall through */
         }
-        val entry: ArpCacheEntry = getArpTableEntry(nwAddr)
-        
-        return null
+        return getArpTableEntry(nwAddr, ec)
     }
 
-    def getArpTableEntry(ipAddr: IntIPv4): ArpCacheEntry = {
-        null  //XXX
+    def getArpTableEntry(ipAddr: IntIPv4, ec: ExecutionContext): MAC = {
+        val rv = Promise[MAC]()(ec)
+        arpTable.get(ipAddr, new Callback1[MAC] {
+            def call(mac: MAC) {
+                rv.complete(Right(mac))
+            }
+        })
+        Await.result(rv, 1 minute)
     }
 }
