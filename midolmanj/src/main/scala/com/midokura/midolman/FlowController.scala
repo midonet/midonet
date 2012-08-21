@@ -11,7 +11,7 @@ import java.util.UUID
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
 
-import com.midokura.sdn.flows.{FlowManager, WildcardFlow}
+import com.midokura.sdn.flows.{WildcardMatches, FlowManager, WildcardFlow}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.sdn.dp.flows.FlowAction
 import javax.inject.Inject
@@ -184,13 +184,14 @@ class FlowController extends Actor {
             }
             // XXX TODO: installFlow(kFlow, packet)
             return
-        }
-        else {
+        } else {
             // Otherwise, pass the packetIn up to the next layer for handling.
             // Keep track of these packets so that for every FlowMatch, only
             // one such call goes to the next layer.
             if (dpMatchToPendedPackets.get(packet.getMatch) == None) {
-                datapathController() ! DatapathController.PacketIn(packet)
+                datapathController() !
+                    DatapathController.PacketIn(packet,
+                        WildcardMatches.fromFlowMatch(packet.getMatch))
             }
             dpMatchToPendedPackets.addBinding(packet.getMatch, packet)
         }

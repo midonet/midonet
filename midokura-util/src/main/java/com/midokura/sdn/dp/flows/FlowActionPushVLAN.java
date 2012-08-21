@@ -36,7 +36,7 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionPushVLAN> getKey() {
-        return FlowActionKey.PUSH_VLAN;
+        return FlowActionAttr.PUSH_VLAN;
     }
 
     @Override

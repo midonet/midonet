@@ -19,7 +19,7 @@ public class FlowActionPopVLAN implements FlowAction<FlowActionPopVLAN> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionPopVLAN> getKey() {
-        return FlowActionKey.POP_VLAN;
+        return FlowActionAttr.POP_VLAN;
     }
 
     @Override

@@ -6,42 +6,39 @@ package com.midokura.sdn.dp.flows;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BuilderAware;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAware, NetlinkMessage.Attr<Action> {
 
-    public static class FlowActionKey<Action extends FlowAction> extends
+    public static class FlowActionAttr<Action extends FlowAction> extends
                                                         NetlinkMessage.AttrKey<Action> {
 
         /** u32 port number. */
-        public static final FlowActionKey<FlowActionOutput> OUTPUT = attr(1);
+        public static final FlowActionAttr<FlowActionOutput> OUTPUT = attr(1);
 
         /** Nested OVS_USERSPACE_ATTR_*. */
-        public static final FlowActionKey<FlowActionUserspace> USERSPACE = attrNest(2);
+        public static final FlowActionAttr<FlowActionUserspace> USERSPACE = attrNest(2);
 
         /** One nested OVS_KEY_ATTR_*. */
-        public static final FlowActionKey<FlowActionSetKey> SET = attrNest(3);
+        public static final FlowActionAttr<FlowActionSetKey> SET = attrNest(3);
 
         /** struct ovs_action_push_vlan. */
-        public static final FlowActionKey<FlowActionPushVLAN> PUSH_VLAN = attr(4);
+        public static final FlowActionAttr<FlowActionPushVLAN> PUSH_VLAN = attr(4);
 
-        /* No argument. */
-        public static final FlowActionKey<FlowActionPopVLAN> POP_VLAN = attr(5);
+        /** No argument. */
+        public static final FlowActionAttr<FlowActionPopVLAN> POP_VLAN = attr(5);
 
-        /* Nested OVS_SAMPLE_ATTR_*. */
-        public static final FlowActionKey<FlowActionSample> SAMPLE = attrNest(6);
+        /** Nested OVS_SAMPLE_ATTR_*. */
+        public static final FlowActionAttr<FlowActionSample> SAMPLE = attrNest(6);
 
-        private FlowActionKey(int id, boolean nested) {
+        private FlowActionAttr(int id, boolean nested) {
             super(id, nested);
         }
 
-        static <T extends FlowAction> FlowActionKey<T> attr(int id) {
-            return new FlowActionKey<T>(id, false);
+        static <T extends FlowAction> FlowActionAttr<T> attr(int id) {
+            return new FlowActionAttr<T>(id, false);
         }
 
-        static <T extends FlowAction> FlowActionKey<T> attrNest(int id) {
-            return new FlowActionKey<T>(id, true);
+        static <T extends FlowAction> FlowActionAttr<T> attrNest(int id) {
+            return new FlowActionAttr<T>(id, true);
         }
     }
 

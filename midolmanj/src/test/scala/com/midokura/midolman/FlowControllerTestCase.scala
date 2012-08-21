@@ -10,8 +10,6 @@ import com.midokura.sdn.dp.flows.{FlowKey, FlowKeys}
 import org.apache.commons.configuration.HierarchicalConfiguration
 
 class FlowControllerTestCase extends MidolmanTestCase {
-    import scala.collection.JavaConversions._
-
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
@@ -37,11 +35,11 @@ class FlowControllerTestCase extends MidolmanTestCase {
 
         packetIn should not be null
         packetIn.packet should not be null
+        packetIn.wildcardMatch should not be null
 
-        val packet = simProbe().expectMsgType[PacketIn].packet
+        val packetInMsg = simProbe().expectMsgType[PacketIn]
 
-        val keys:Seq[FlowKey[_]] = packet.getMatch.getKeys
-        val a = 10
-//        keys should contain  (new FlowKeyVrnPort(vifPort))
+        packetInMsg.wildcardMatch should not be null
+        packetInMsg.wildcardMatch.getInputPortUUID should be (vifPort)
     }
 }

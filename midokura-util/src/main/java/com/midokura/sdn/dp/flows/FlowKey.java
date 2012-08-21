@@ -6,9 +6,6 @@ package com.midokura.sdn.dp.flows;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BuilderAware;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, NetlinkMessage.Attr<Key> {
 
     public static class FlowKeyAttr<T extends FlowKey> extends

@@ -22,6 +22,8 @@ import akka.util.duration._
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
 import java.lang
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.sdn.flows.WildcardMatch.Field
 
 /**
  * Holder object that keeps the external message definitions
@@ -260,7 +262,7 @@ object DatapathController {
 
     case class SendPacket(packet: Packet)
 
-    case class PacketIn(packet:Packet)
+    case class PacketIn(packet:Packet, wildcardMatch:WildcardMatch)
 }
 
 
@@ -437,39 +439,27 @@ class DatapathController() extends Actor {
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
-        case PacketIn(packet) =>
-            handleFlowPacketIn(packet)
+        case PacketIn(packet, wildcard) =>
+            handleFlowPacketIn(packet, wildcard)
 
 //        case SendPacket(packet) =>
 //            handleSendPacket(packet)
-
-        /**
-         * internally posted replies reactions
-         */
-        case _PacketIn(packet) =>
-            handlePacketIn(packet)
     }
 
-    def handleFlowPacketIn(packet: Packet) {
-        val translatedPacket =
-            new Packet()
-                .setData(packet.getData)
-                .setMatch(translateReverse(packet.getMatch))
+    def handleFlowPacketIn(packet: Packet, wildcard: WildcardMatch) {
+        wildcard.getInputPortNumber match {
+            case port:java.lang.Short =>
+                wildcard.setInputPortUUID(dpPortToVifId(port))
+        }
 
-         simulationController() ! PacketIn(translatedPacket)
+        simulationController() ! PacketIn(packet, wildcard)
     }
 
-    def handlePacketIn(packet: Packet) {
-        val translatedPacket =
-            new Packet()
-                .setData(packet.getData)
-                .setMatch(translate(packet.getMatch))
-
-        flowController ! PacketIn(translatedPacket)
+    private def dpPortToVifId(port: Short): UUID = {
+        localToVifPorts(port)
     }
 
     def handleInstallFlow(flow: KernelFlow) {
-
         flow.setActions(translate(flow.getActions))
         flow.setMatch(translate(flow.getMatch))
         datapathConnection.flowsCreate(datapath, flow, new ErrorHandlingCallback[Flow] {
@@ -493,23 +483,6 @@ class DatapathController() extends Actor {
 
             def handleError(ex: NetlinkException, timeout: Boolean) {}
         })
-    }
-
-    private def translateReverse(flowMatch: FlowMatch): FlowMatch = {
-        val translatedFlowMatch = new FlowMatch()
-
-        for (flowKey <- flowMatch.getKeys) {
-            flowKey match {
-                case vrnPort: FlowKeyInPort =>
-                    val portNo: Short = vrnPort.getInPort.toShort
-                    translatedFlowMatch.addKey(
-                        new FlowKeyVrnPort(localToVifPorts(portNo)))
-                case value =>
-                    translatedFlowMatch.addKey(value)
-            }
-        }
-
-        translatedFlowMatch
     }
 
     private def translate(flowMatch: FlowMatch): FlowMatch = {

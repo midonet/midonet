@@ -10,7 +10,7 @@ import com.midokura.netlink.messages.BaseBuilder;
 
 public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
 
-    FlowKey flowKey;
+    FlowKey<?> flowKey;
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -37,7 +37,7 @@ public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionSetKey> getKey() {
-        return FlowActionKey.SET;
+        return FlowActionAttr.SET;
     }
 
     @Override

@@ -32,7 +32,7 @@ public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionUserspace> getKey() {
-        return FlowActionKey.USERSPACE;
+        return FlowActionAttr.USERSPACE;
     }
 
     @Override

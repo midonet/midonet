@@ -64,7 +64,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionSample> getKey() {
-        return FlowActionKey.SAMPLE;
+        return FlowActionAttr.SAMPLE;
     }
 
     @Override

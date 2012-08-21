@@ -28,7 +28,7 @@ public class FlowActionOutput implements FlowAction<FlowActionOutput> {
 
     @Override
     public NetlinkMessage.AttrKey<FlowActionOutput> getKey() {
-        return FlowActionKey.OUTPUT;
+        return FlowActionAttr.OUTPUT;
     }
 
     @Override
