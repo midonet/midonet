@@ -7,9 +7,16 @@ import com.midokura.sdn.dp.{FlowMatch, Packet}
 import com.midokura.midolman.DatapathController.PacketIn
 import java.util.UUID
 import com.midokura.sdn.dp.flows.{FlowKey, FlowKeys}
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 class FlowControllerTestCase extends MidolmanTestCase {
     import scala.collection.JavaConversions._
+
+
+    override protected def fillConfig(config: HierarchicalConfiguration) = {
+        config.setProperty("datapath.max_flow_count", "10")
+        super.fillConfig(config)
+    }
 
     def testDatapathEmptyDefault() {
 

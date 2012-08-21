@@ -5,7 +5,7 @@ package com.midokura.midolman
 import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
-import guice.ComponentInjectorHolder
+import config.MidolmanConfig
 import java.util.UUID
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
@@ -39,9 +39,10 @@ class FlowController extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-    // TODO(pino): set the maxDpFlows by actually checking the datapath.
-    // TODO(pino): is one million too high?
-    val maxDpFlows = 1000 * 1000;
+    var maxDpFlows = 100;
+
+    @Inject
+    var midolmanConfig:MidolmanConfig = null
 
     private val pendedMatches: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
@@ -54,6 +55,14 @@ class FlowController extends Actor {
 
     def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
+    }
+
+
+    override def preStart() {
+        super.preStart()
+
+        maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
+
     }
 
     def receive = {
