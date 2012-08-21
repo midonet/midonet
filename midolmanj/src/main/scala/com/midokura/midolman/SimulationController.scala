@@ -52,7 +52,7 @@ class SimulationController() extends Actor {
                     // TODO(pino, jlm): diff matches to build action list
                     // XXX
                     val actions: List[FlowAction[_]] = null
-                    fController ! SendPacket(packet.getData, actions, outPorts)
+                    fController ! SendPacket(packet.getData, actions)
                 }
                 // Else, do nothing, the packet is dropped.
             }
@@ -62,8 +62,7 @@ class SimulationController() extends Actor {
                 // TODO(pino, jlm): compute the WildcardFlow, including actions
                 // XXX
                 val wildcardFlow: WildcardFlow = null
-                fController ! AddWildcardFlow(wildcardFlow, outPorts,
-                    Some(packet))
+                fController ! AddWildcardFlow(wildcardFlow, Some(packet))
             }
         case PacketIn(packet, vportID) =>
             // TODO(pino, jlm): launchNewSimulation(packet, vportID)
