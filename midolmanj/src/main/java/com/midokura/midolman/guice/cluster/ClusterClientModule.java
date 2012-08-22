@@ -20,18 +20,9 @@ import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
-import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.ChainZkManager;
-import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.LocalClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
@@ -58,6 +49,9 @@ public class ClusterClientModule extends PrivateModule {
             .asEagerSingleton();
         expose(Client.class);
 
+        bind(PortConfigCache.class)
+            .toProvider(new PortConfigCacheProvider())
+            .asEagerSingleton();
         bind(MidostoreSetupService.class).in(Singleton.class);
         expose(MidostoreSetupService.class);
     }
@@ -86,6 +80,24 @@ public class ClusterClientModule extends PrivateModule {
             expose(managerClass);
         }
     }
+
+    private static class PortConfigCacheProvider
+        implements Provider<PortConfigCache> {
+
+        @Inject
+        Directory directory;
+
+        @Inject
+        ZookeeperConfig config;
+
+        @Inject
+        Reactor reactor;
+
+        @Override
+        public PortConfigCache get() {
+            return new PortConfigCache(reactor, directory, config.getMidolmanRootKey());
+        }
+    } 
 
     private static class ZkManagerProvider<T extends ZkManager>
         implements Provider<T> {

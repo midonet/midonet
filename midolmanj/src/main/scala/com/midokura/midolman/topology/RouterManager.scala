@@ -50,6 +50,13 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     private val arpWaiters = new mutable.HashMap[IntIPv4, 
                                                  mutable.Set[ActorRef]] with
                                  mutable.MultiMap[IntIPv4, ActorRef]
+    // 1. take if from the client
+    // 2. wrap it so that if the entry is not there you can arp and deliver the answer
+    // 2.1 checktimeout
+    // 3. add it to the table
+    // When the Router does arpCacheWrapper.get is will block, synchronous call until it
+    //gets an answer, check Await.result(self ? GetFlowCount(mac, port),   in bridge
+
 
     case object RefreshTableRoutes
 

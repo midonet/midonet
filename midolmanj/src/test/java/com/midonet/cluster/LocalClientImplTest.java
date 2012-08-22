@@ -4,23 +4,23 @@
 
 package com.midonet.cluster;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.midokura.midolman.Setup;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
@@ -270,6 +270,12 @@ public class LocalClientImplTest {
         @Override
         public void setMacLearningTable(MacLearningTable table) {
             mlTable = table; 
+        }
+
+        @Override
+        public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
+                                       Map<IntIPv4, MAC> rtrIpToMac) {
+            //To change body of implemented methods use File | Settings | File Templates.
         }
 
         @Override
