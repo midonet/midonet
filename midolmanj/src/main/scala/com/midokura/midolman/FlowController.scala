@@ -28,6 +28,9 @@ object FlowController {
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
     case class Consume(packet: Packet)
+
+    case class InvalidateFlowByTag(tag: AnyRef)
+
 }
 
 class FlowController extends Actor {
@@ -41,7 +44,7 @@ class FlowController extends Actor {
     var dpFlowRemoveBatchSize = 0
 
     @Inject
-    var midolmanConfig:MidolmanConfig = null
+    var midolmanConfig: MidolmanConfig = null
 
     private val dpMatchToPendedPackets: MultiMap[FlowMatch, Packet] =
         new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]

@@ -94,7 +94,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             if (ingress.port != oldPortID) {
                 log.debug("MAC {} moved from port {} to {}.",
                     Array[Object](srcDlAddress, oldPortID, ingress.port))
-                //XXX: Invalidate (or move?) the obsoleted flows.
+                //The flows that reflect the old MAC port entry will be removed
+                // by the BridgeManager
                 macPortMap.add(srcDlAddress, ingress.port)
             }
         }

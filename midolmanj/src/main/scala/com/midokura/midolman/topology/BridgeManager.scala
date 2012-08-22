@@ -12,10 +12,10 @@ import java.util.UUID
 
 import com.midokura.packets.MAC
 import com.midokura.midonet.cluster.Client
-import com.midokura.util.functors.{Callback1, Callback3}
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midonet.cluster.client._
+import com.midokura.util.functors.Callback3
 
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
@@ -88,12 +88,29 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
         case FlowDecrement(mac, port) =>
             flowCountMap.get((mac, port)) match {
-                case Some(1) => flowCountMap.remove((mac, port))
+                case Some(1) => {
+                    flowCountMap.remove((mac, port))
+                    macPortMap.remove(mac, port)
+                }
                 case Some(int: Int) => flowCountMap.put((mac, port), int - 1)
                 case None =>
                     log.error("Decrement of nonexistant flow count {} {}",
                         mac, port)
             }
+    }
+
+    private class MacTableNotifyCallBack extends Callback3[MAC, UUID, UUID] {
+        def call(mac: MAC, oldPort: UUID, newPort: UUID) {
+
+            //1. MAC was deleted
+            //2. the MAC moved from port-x to port-y
+            //3. MAC was added
+            /*if ((newPort == null) ||
+                (oldPort != null && newPort != null)){
+                //TODO(ross): send message tagged MAC+oldPort to Datapath Controller to invalidate MAC
+                // if oldport is null it takes care of flooded flows
+            }*/
+        }
     }
 
     private class MacFlowCountImpl extends MacFlowCount {
@@ -119,17 +136,16 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         }
 
         def setMacLearningTable(table: MacLearningTable) {
-            // check if we should override it
+            // check if we should overwrite it
             if (table != null) {
                 macPortMap = table
+                macPortMap.notify(new MacTableNotifyCallBack)
             }
         }
 
         def setSourceNatResource(resource: SourceNatResource) {}
 
-        def setID(id: UUID) = null
-
-        //useless TODO(ross): delete it
+        def setID(id: UUID) = null //useless TODO(ross): delete it
 
 
         def setInFilter(filterID: UUID) = {
@@ -144,6 +160,5 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
         def start() = null
     }
-
 
 }
