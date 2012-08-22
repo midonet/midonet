@@ -2,7 +2,7 @@
 
 package com.midokura.midolman.simulation
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 import akka.event.Logging
 import collection.mutable
 
@@ -14,7 +14,9 @@ import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
 import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume, SendPacket}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume,
+                                             SendPacket}
+
 
 object Coordinator {
     trait Action
@@ -61,8 +63,7 @@ object Coordinator {
  *                                  via which the packet egresses the device.
  */
 class Coordinator(val origMatch: WildcardMatch, val packet: Array[Byte],
-                  val generatedPacketEgressPort: UUID) extends Actor
-{
+                  val generatedPacketEgressPort: UUID) extends Actor {
     import Coordinator._
     private val log = Logging(context.system, this)
     private val origEthernetPkt = Ethernet.deserialize(packet)
@@ -75,21 +76,18 @@ class Coordinator(val origMatch: WildcardMatch, val packet: Array[Byte],
             "virtual device's exterior port. Match: {}; Packet: {}",
             origMatch, origEthernetPkt)
         // XXX TODO(pino): kill this actor.
-        }
-        else {
+        } else {
             //origIngressPort = virtualTopologyManager().ask(
             //    PortRequest(origMatch.getInputPortUUID, false /* no update */))
         }
-    }
-    else {
+    } else {
         if (origMatch.getInputPortUUID != null) {
             log.error("Coordinator cannot simulate a flow that both " +
                 "egressed a virtual device's interior port and ingressed a " +
                 "virtual device's exterior port. Match: {}; Packet: {}",
                 origMatch, origEthernetPkt)
             // XXX TODO(pino): kill this actor.
-        }
-        else {
+        } else {
             //origEgressPort = virtualTopologyManager().ask(
             //    PortRequest(origMatch.getInputPortUUID, false /* no update */))
         }

@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.topology
 
+import akka.actor.ActorRef
 import akka.dispatch.{Await, ExecutionContext, Promise}
 import akka.pattern.{ask, AskTimeoutException}
 import akka.util.Timeout
@@ -46,6 +47,9 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     private val arpTable = new ArpTableImpl
     private val ARP_STALE_MILLIS: Long = 1800 * 1000
     private val ARP_EXPIRATION_MILLIS: Long = 3600 * 1000
+    private val arpWaiters = new mutable.HashMap[IntIPv4, 
+                                                 mutable.Set[ActorRef]] with
+                                 mutable.MultiMap[IntIPv4, ActorRef]
 
     case object RefreshTableRoutes
 
@@ -173,13 +177,17 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             arpCache.add(ip, entry)
             // XXX: Remove any scheduled ARP retries.
             // XXX: Reschedule the ARP expiration.
-            // XXX: Trigger any actors waiting from WaitForArpEntrys
+
+            // Trigger any actors waiting from WaitForArpEntrys
+            arpWaiters.remove(ip) match {
+                case Some(waiters) => waiters map { _ ! mac }
+                case None => /* do nothing */
+            }
         case ArpForAddress(ip) =>
             // XXX: Ignore if already ARP'ing for this address.
             // XXX: Send an ARP and schedule retries.
         case WaitForArpEntry(ip) =>
-            // XXX: Record sender to be sent the mac when we get an
-            // SetArpEntry for this address.
+            arpWaiters.addBinding(ip, sender)
     }
 
     private class ArpTableImpl extends ArpTable {
