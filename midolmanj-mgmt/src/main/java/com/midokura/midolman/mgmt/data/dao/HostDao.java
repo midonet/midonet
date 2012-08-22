@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
+import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -77,7 +78,8 @@ public interface HostDao extends GenericDao<Host, UUID> {
     /**
      * It will list all the network interface commands registered for this host.
      *
-     * @param hostId is the host id for which we want to commands to be retrieved.
+     * @param hostId is the host id for which we want to commands to be
+     *               retrieved.
      *
      * @return the list of currently known command objects.
      */
@@ -102,4 +104,37 @@ public interface HostDao extends GenericDao<Host, UUID> {
      * @param id     is the id of the command that we want to have removed
      */
     void deleteCommand(UUID hostId, Integer id) throws StateAccessException;
+
+    /**
+     * Associates a host's interface to a virtual port.
+     *
+     * @param map         Host interface - port map
+     *
+     * @throws StateAccessException if the data store access fails
+     */
+    void createHostInterfacePortMap(HostInterfacePortMap map)
+            throws StateAccessException;
+
+    /**
+     * Disassociates a host's interface from a virtual port.
+     *
+     * @param hostId         ID of the host
+     * @param portId         ID of the virtual port
+     *
+     * @throws StateAccessException if the data store access fails
+     */
+    void deleteHostInterfacePortMap(UUID hostId, UUID portId)
+            throws StateAccessException;
+
+    /**
+     * Get the list of host interface maps.
+     *
+     * @param hostId  ID of the host to query on.
+     * @return        A list of HostInterfaceMap objects
+     *
+     * @throws StateAccessException if the data store access fails
+     */
+    List<HostInterfacePortMap> findHostInterfaceMaps(UUID hostId)
+            throws StateAccessException;
+
 }

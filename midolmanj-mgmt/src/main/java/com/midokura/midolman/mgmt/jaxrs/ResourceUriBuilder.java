@@ -34,6 +34,7 @@ public class ResourceUriBuilder {
     public static final String COMMANDS = "/commands";
     public static final String METRICS = "/metrics";
     public static final String LINK = "/link";
+    public static final String INTERFACE_PORT_MAP = "/interface_port_map";
 
     private ResourceUriBuilder() {
     }
@@ -265,6 +266,11 @@ public class ResourceUriBuilder {
     public static URI getHostCommand(URI baseUri, UUID hostId, Integer id) {
         return UriBuilder.fromUri(getHostCommands(baseUri, hostId))
                 .path(id.toString()).build();
+    }
+
+    public static URI getHostInterfacePortMap(URI baseUri, UUID hostId) {
+        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(
+                INTERFACE_PORT_MAP).build();
     }
 
     public static URI getPortGroups(URI baseUri) {

@@ -207,12 +207,25 @@ public class PortDirectory {
 
     public static class MaterializedBridgePortConfig extends BridgePortConfig {
 
+        public UUID hostId;
+        public String interfaceName;
+
         public MaterializedBridgePortConfig(UUID device_id) {
             super(device_id);
         }
 
         // Default constructor for the Jackson deserialization
         public MaterializedBridgePortConfig() { super(); }
+
+        public UUID getHostId() { return hostId; }
+        public void setHostId(UUID hostId) {
+            this.hostId = hostId;
+        }
+
+        public String getInterfaceName() { return interfaceName; }
+        public void setInterfaceName(String interfaceName) {
+            this.interfaceName = interfaceName;
+        }
 
         @Override
         public boolean equals(Object other) {
@@ -222,6 +235,18 @@ public class PortDirectory {
                 return true;
             if (!(other instanceof MaterializedBridgePortConfig))
                 return false;
+
+            MaterializedBridgePortConfig that =
+                    (MaterializedBridgePortConfig) other;
+            if (hostId != null ? !hostId.equals(that.hostId) :
+                    that.hostId != null)
+                return false;
+
+            if (interfaceName != null ?
+                    !interfaceName.equals(that.interfaceName) :
+                    that.interfaceName != null)
+                return false;
+
             return super.equals(other);
         }
     }
@@ -229,6 +254,8 @@ public class PortDirectory {
     public static class MaterializedRouterPortConfig extends RouterPortConfig {
         public int localNwAddr;
         public int localNwLength;
+        public UUID hostId;
+        public String interfaceName;
         public transient Set<BGP> bgps;
 
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
@@ -253,6 +280,16 @@ public class PortDirectory {
             this.localNwAddr = Net.convertStringAddressToInt(addr);
         }
 
+        public UUID getHostId() { return hostId; }
+        public void setHostId(UUID hostId) {
+            this.hostId = hostId;
+        }
+
+        public String getInterfaceName() { return interfaceName; }
+        public void setInterfaceName(String interfaceName) {
+            this.interfaceName = interfaceName;
+        }
+
         public Set<BGP> getBgps() { return bgps; }
         public void setBgps(Set<BGP> bgps) { this.bgps = bgps; }
 
@@ -266,6 +303,16 @@ public class PortDirectory {
                 return false;
             MaterializedRouterPortConfig port = MaterializedRouterPortConfig.class
                     .cast(other);
+
+            if (hostId != null ? !hostId.equals(port.hostId) :
+                    port.hostId != null)
+                return false;
+
+            if (interfaceName != null ?
+                    !interfaceName.equals(port.interfaceName) :
+                    port.interfaceName != null)
+                return false;
+
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength && portAddr == port.portAddr
                     && getRoutes().equals(port.getRoutes())
@@ -280,6 +327,8 @@ public class PortDirectory {
             sb.append(super.toString());
             sb.append(", localNwAddr=").append(IPv4.fromIPv4Address(localNwAddr));
             sb.append(", localNwLength=").append(localNwLength);
+            sb.append(", hostId=").append(hostId);
+            sb.append(", interfaceName=").append(interfaceName);
             sb.append(", bgps={");
             if (null != bgps) {
                 for (BGP b : bgps)

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import static com.midokura.midolman.host.state.HostDirectory.Command;
 
 /**
@@ -33,8 +33,12 @@ public class HostZkManager extends ZkManager {
     private final static Logger log =
         LoggerFactory.getLogger(HostZkManager.class);
 
+    private final PortZkManager portZkManager;
+
+
     public HostZkManager(Directory zk, String basePath) {
         super(zk, basePath);
+        this.portZkManager = new PortZkManager(zk, basePath);
     }
 
     public HostDirectory.Metadata getHostMetadata(UUID id)
@@ -472,6 +476,13 @@ public class HostZkManager extends ZkManager {
     public void addVirtualPortMapping(UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
         throws StateAccessException {
 
+        // Make sure that the portID is valid
+        UUID portId = portMapping.getVirtualPortId();
+        if (!portZkManager.exists(portId)) {
+            throw new IllegalArgumentException(
+                    "Port with ID " + portId + " does not exist");
+        }
+
         List<Op> operations = new ArrayList<Op>();
 
         String hostPath = pathManager.getHostPath(hostIdentifier);
@@ -496,8 +507,7 @@ public class HostZkManager extends ZkManager {
         }
 
         String hostVrnPortMappingPath =
-            pathManager.getHostVrnPortMappingPath(hostIdentifier,
-                                                  portMapping.getVirtualPortId());
+            pathManager.getHostVrnPortMappingPath(hostIdentifier, portId);
 
         if (exists(hostVrnPortMappingPath)) {
             operations.add(getDeleteOp(hostVrnPortMappingPath));
@@ -508,6 +518,10 @@ public class HostZkManager extends ZkManager {
                 hostVrnPortMappingPath,
                 serializer.serialize(portMapping)));
 
+        // Update the port config with host/interface
+        operations.add(getMapUpdatePortOp(portId, hostIdentifier,
+                portMapping.getLocalDeviceName()));
+
         multi(operations);
     }
 
@@ -517,8 +531,40 @@ public class HostZkManager extends ZkManager {
         String virtualMappingPath =
             pathManager.getHostVrnPortMappingPath(hostIdentifier, portId);
 
+        List<Op> operations = new ArrayList<Op>();
         if (exists(virtualMappingPath)) {
-            delete(virtualMappingPath);
+
+            operations.add(getDeleteOp(virtualMappingPath));
+
+            // Update the port config
+            operations.add(getMapUpdatePortOp(portId, null, null));
+
+            multi(operations);
         }
+
+    }
+
+    private Op getMapUpdatePortOp(UUID portId, UUID hostIdentifier,
+            String localDeviceName) throws StateAccessException {
+
+        PortConfig port = portZkManager.get(portId);
+        if(port instanceof PortDirectory.MaterializedBridgePortConfig){
+            ((PortDirectory.MaterializedBridgePortConfig) port).setHostId(
+                    hostIdentifier);
+            ((PortDirectory.MaterializedBridgePortConfig) port)
+                    .setInterfaceName(localDeviceName);
+        } else if (port instanceof PortDirectory.MaterializedRouterPortConfig){
+            ((PortDirectory.MaterializedRouterPortConfig) port).setHostId(
+                    hostIdentifier);
+            ((PortDirectory.MaterializedRouterPortConfig) port)
+                    .setInterfaceName(localDeviceName);
+        } else {
+            throw new UnsupportedOperationException(
+                    "Cannot bind interface to a logical port");
+        }
+
+        String portPath = pathManager.getPortPath(portId);
+        return getSetDataOp(portPath, serializer.serialize(port));
+
     }
 }

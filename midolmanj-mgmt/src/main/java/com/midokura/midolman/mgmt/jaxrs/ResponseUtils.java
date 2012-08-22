@@ -49,6 +49,7 @@ public class ResponseUtils {
             Set<ConstraintViolation<T>> violations) {
         ValidationErrorEntity errors = new ValidationErrorEntity();
         errors.setMessage("Validation error(s) found");
+        errors.setCode(Response.Status.BAD_REQUEST.getStatusCode());
         List<Map<String, String>> messages = new ArrayList<Map<String, String>>(
                 violations.size());
         for (ConstraintViolation<T> c : violations) {

@@ -10,6 +10,7 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.Host;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
+import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.packets.MAC;
@@ -17,10 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
@@ -289,6 +287,42 @@ public class HostDaoImpl implements HostDao {
     public void deleteCommand(UUID hostId, Integer id)
             throws StateAccessException {
         zkDao.deleteHostCommand(hostId, id);
+    }
+
+    @Override
+    public void createHostInterfacePortMap(HostInterfacePortMap map)
+            throws StateAccessException {
+
+        HostDirectory.VirtualPortMapping mapping =
+                new HostDirectory.VirtualPortMapping(map.getPortId(),
+                        map.getInterfaceName());
+        zkDao.addVirtualPortMapping(map.getHostId(), mapping);
+
+    }
+
+    @Override
+    public void deleteHostInterfacePortMap(UUID hostId, UUID portId)
+            throws StateAccessException {
+
+        zkDao.removeVirtualPortMapping(hostId, portId);
+
+    }
+
+    @Override
+    public List<HostInterfacePortMap> findHostInterfaceMaps(UUID hostId)
+            throws StateAccessException {
+
+        Set<HostDirectory.VirtualPortMapping> zkMaps =
+                zkDao.getVirtualPortMappings(hostId);
+
+        List<HostInterfacePortMap> maps = new ArrayList<HostInterfacePortMap>
+                (zkMaps.size());
+
+        for(HostDirectory.VirtualPortMapping zkMap : zkMaps) {
+            maps.add(new HostInterfacePortMap(hostId, zkMap));
+        }
+
+        return maps;
     }
 
     @Override

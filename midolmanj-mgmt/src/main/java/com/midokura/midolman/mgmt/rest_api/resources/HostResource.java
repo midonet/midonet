@@ -9,7 +9,12 @@ import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.Host;
+import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
+import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap
+        .HostInterfacePortMapCreateGroup;
+import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.BadRequestHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -19,11 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -37,13 +45,15 @@ public class HostResource {
 
     private final UriInfo uriInfo;
     private final HostDao dao;
+    private final Validator validator;
     private final ResourceFactory factory;
 
     @Inject
-    public HostResource(UriInfo uriInfo, HostDao dao,
+    public HostResource(UriInfo uriInfo, HostDao dao,  Validator validator,
                         ResourceFactory factory) {
         this.uriInfo = uriInfo;
         this.dao = dao;
+        this.validator = validator;
         this.factory = factory;
     }
 
@@ -110,6 +120,64 @@ public class HostResource {
         return Response.noContent().build();
     }
 
+    @POST
+    @RolesAllowed({AuthRole.ADMIN})
+    @Consumes({ VendorMediaType.APPLICATION_HOST_JSON,
+            MediaType.APPLICATION_JSON })
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    public Response createHostInterfacePortMap(@PathParam("id") UUID id,
+                                               HostInterfacePortMap map)
+            throws StateAccessException {
+
+        map.setHostId(id);
+
+        Set<ConstraintViolation<HostInterfacePortMap>> violations =
+                validator.validate(map, HostInterfacePortMapCreateGroup.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dao.createHostInterfacePortMap(map);
+
+    	return Response.noContent().build();
+    }
+
+    @DELETE
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    public void deleteHostInterfacePortMap(@PathParam("id") UUID id,
+                                           HostInterfacePortMap map)
+            throws StateAccessException {
+
+        map.setHostId(id);
+
+        Set<ConstraintViolation<HostInterfacePortMap>> violations =
+                validator.validate(map);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dao.deleteHostInterfacePortMap(id, map.getPortId());
+    }
+
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<HostInterfacePortMap> getHostInterfacePortMaps(
+            @PathParam("id") UUID id) throws StateAccessException {
+
+        List<HostInterfacePortMap> maps = dao.findHostInterfaceMaps(id);
+        if (maps != null) {
+            for (UriResource map : maps) {
+                map.setBaseUri(uriInfo.getBaseUri());
+            }
+        }
+
+        return maps;
+    }
+
     /**
      * Interface resource locator for hosts.
      *
@@ -118,7 +186,8 @@ public class HostResource {
      */
     @Path("/{id}" + ResourceUriBuilder.INTERFACES)
     public InterfaceResource getInterfaceResource(
-        @PathParam("id") UUID hostId) {
+            @PathParam("id") UUID hostId) {
+
         return factory.getInterfaceResource(hostId);
     }
 

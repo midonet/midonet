@@ -371,6 +371,13 @@ public class PortZkManager extends ZkManager {
         log.debug("Preparing to delete: {}", path);
         ops.add(Op.delete(path, -1));
 
+        // Remove the reference from the port interface mapping
+        if(config.getHostId() != null) {
+            path = pathManager.getHostVrnPortMappingPath(config.getHostId(),
+                    id);
+            ops.add(Op.delete(path, -1));
+        }
+
         // Get common router port deletion operations
         ops.addAll(prepareRouterPortDelete(id, config));
 
@@ -404,6 +411,14 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(pathManager.getBridgePortPath(config.device_id, id),
                 -1));
+
+        // Remove the reference from the port interface mapping
+        if(config.getHostId() != null) {
+            String path = pathManager.getHostVrnPortMappingPath(
+                    config.getHostId(), id);
+            ops.add(Op.delete(path, -1));
+        }
+
         ops.addAll(prepareBridgePortDelete(id, config));
 
         // Delete the GRE key
