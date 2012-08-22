@@ -48,7 +48,8 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
                 // This interface is not a datapath port
-                log.debug("Exception thrown while retrieving the result: "
+                log.debug("Exception thrown while retrieving the result for " +
+                        "interface " + interfaceDescription.getName() + ": "
                         + ex.getCause());
                 // Try the next one
                 continue;
