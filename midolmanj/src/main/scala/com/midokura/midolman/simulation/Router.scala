@@ -186,7 +186,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
 
         val sha: MAC = pkt.getSenderHardwareAddress
         val spa = new IntIPv4(pkt.getSenderProtocolAddress)
-        arpTable.add(spa, sha)
+        arpTable.add(spa, null /*XXX: sha*/)
     }
 
     private def isIcmpEchoRequest(mmatch: MidoMatch): Boolean = {
@@ -238,12 +238,6 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     }
 
     def getArpTableEntry(ipAddr: IntIPv4, ec: ExecutionContext): MAC = {
-        val rv = Promise[MAC]()(ec)
-        arpTable.get(ipAddr, new Callback1[MAC] {
-            def call(mac: MAC) {
-                rv.complete(Right(mac))
-            }
-        })
-        Await.result(rv, 1 minute)
+        null  //XXX
     }
 }

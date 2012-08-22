@@ -19,7 +19,7 @@ import com.midokura.util.functors.Callback3
 
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
-* to the BridgeManager's actor to get/modify the flow counts.  */
+ * to the BridgeManager's actor to get/modify the flow counts.  */
 trait MacFlowCount {
     def getCount(mac: MAC, port: UUID): Int
 
@@ -129,7 +129,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         }
     }
 
-    class BridgeBuilderImpl extends BridgeBuilder with DeviceBuilderImpl[ForwardingElementBuilder] {
+    class BridgeBuilderImpl extends BridgeBuilder
+            with DeviceBuilderImpl[ForwardingElementBuilder] {
 
         def setTunnelKey(key: Long) {
             cfg.greKey = key.toInt
@@ -146,7 +147,6 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         def setSourceNatResource(resource: SourceNatResource) {}
 
         def setID(id: UUID) = null //useless TODO(ross): delete it
-
 
         def setInFilter(filterID: UUID) = {
             cfg.inboundFilter = filterID
