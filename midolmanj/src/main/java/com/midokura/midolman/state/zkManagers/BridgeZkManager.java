@@ -189,10 +189,14 @@ public class BridgeZkManager extends ZkManager {
     public Op prepareUpdate(UUID id, BridgeConfig config)
             throws StateAccessException {
         BridgeConfig oldConfig = get(id);
-        // Have the inbound or outbound filter changed?
+        // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
-        if (!oldConfig.name.equals(config.name)) {
-            log.debug("The name of bridge {} changed from {} to {}", new Object[]{id, oldConfig.name, config.name});
+
+        if ((oldConfig.name == null && config.name != null) ||
+                (oldConfig.name != null && config.name == null) ||
+                !oldConfig.name.equals(config.name)) {
+            log.debug("The name of bridge {} changed from {} to {}",
+                    new Object[]{id, oldConfig.name, config.name});
             dataChanged = true;
         }
 
