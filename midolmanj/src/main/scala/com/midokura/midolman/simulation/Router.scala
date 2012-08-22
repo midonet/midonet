@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
+import com.midokura.midolman.topology.ArpTable
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
@@ -21,7 +22,7 @@ import com.midokura.midolman.simulation.Coordinator.{ForwardResult, ConsumedResu
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
-             val arpTable: ArpCache, val inFilter: Chain,
+             val arpTable: ArpTable, val inFilter: Chain,
              val outFilter: Chain) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Router])
@@ -187,7 +188,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
 
         val sha: MAC = pkt.getSenderHardwareAddress
         val spa = new IntIPv4(pkt.getSenderProtocolAddress)
-        arpTable.add(spa, null /*XXX: sha*/)
+        arpTable.set(spa, sha)
     }
 
     private def isIcmpEchoRequest(mmatch: MidoMatch): Boolean = {
@@ -234,10 +235,6 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 }
             case _ => /* Fall through */
         }
-        return getArpTableEntry(nwAddr, ec)
-    }
-
-    def getArpTableEntry(ipAddr: IntIPv4, ec: ExecutionContext): MAC = {
-        null  //XXX
+        return arpTable.get(nwAddr, ec)
     }
 }

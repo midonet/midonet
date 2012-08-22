@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.{Await, Promise, ExecutionContext}
+import akka.dispatch.{Await, ExecutionContext, Promise}
 import akka.util.duration._
 import scala.collection.mutable
 import java.util.UUID
