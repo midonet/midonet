@@ -38,10 +38,8 @@ public class ZookeeperConnWatcher implements Watcher {
                 && conn != null) {
             conn.close();
 
-            conn = new ZkConnection(config.getZooKeeperHosts(),
-                    config.getZooKeeperSessionTimeout(), this);
             try {
-                conn.open();
+                conn.reopen();
             } catch (Exception e) {
                 throw new RuntimeException("Zookeeper could not be " +
                         "restarted", e);

@@ -44,22 +44,43 @@ public class ZkConnection implements Watcher {
         connected = false;
     }
 
-    public synchronized void open() throws Exception {
-        if (null == zk) {
-            connecting = true;
-            zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
-        }
-        while (connecting) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                log.warn("open", e);
+    public void open() throws Exception {
+        synchronized (this) {
+            if (null == zk) {
+                connecting = true;
+                zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
             }
+            while (connecting) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    log.warn("open", e);
+                }
+            }
+            if (!connected)
+                throw new Exception("Cannot open ZooKeeper session.");
         }
-        if (!connected)
-            throw new Exception("Cannot open ZooKeeper session.");
-
         log.info("Connected to ZooKeeper with session {}", zk.getSessionId());
+    }
+
+    public void reopen() throws Exception {
+        synchronized (this) {
+            if (null == zk || zk.getState() != ZooKeeper.States.CLOSED)
+                return;
+            connecting = true;
+            connected = false;
+            zk = new ZooKeeper(zkHosts, sessionTimeoutMillis, this);
+            while (connecting) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    log.warn("reopen", e);
+                }
+            }
+            if (!connected)
+                throw new Exception("Cannot reopen ZooKeeper session.");
+        }
+        log.info("Reconnected to ZooKeeper with session {}", zk.getSessionId());
     }
 
     public synchronized void close() {
@@ -91,11 +112,17 @@ public class ZkConnection implements Watcher {
     }
 
     public Directory getRootDirectory() {
-        return new ZkDirectory(this.zk, "", Ids.OPEN_ACL_UNSAFE, reactor);
+        return new ZkDirectory(this, "", Ids.OPEN_ACL_UNSAFE, reactor);
     }
 
-    public ZooKeeper getZooKeeper() {
-        return this.zk;
+    public ZooKeeper getZooKeeper()  {
+        synchronized (this) {
+            if (zk == null) {
+                // what can I do?
+                log.error("ZooKeeper session is not open yet");
+            }
+            return zk;
+        }
     }
 
     public void setWatcher(Watcher watcher) {
