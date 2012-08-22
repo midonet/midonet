@@ -26,7 +26,7 @@ object FlowController {
                                callbacks: Set[Callback1[WildcardMatch]],
                                tags: Set[AnyRef])
 
-    case class RemoveWildcardFlow(tag: AnyRef)
+    case class RemoveWildcardFlow(tag: WildcardFlow)
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
@@ -79,7 +79,7 @@ class FlowController extends Actor {
         case packetIn(packet) =>
             handlePacketIn(packet)
 
-        case AddWildcardFlow(wildcardFlow, packetOption) =>
+        case AddWildcardFlow(wildcardFlow, packetOption, null, null) =>
             handleNewWildcardFlow(wildcardFlow, packetOption)
 
         case Consume(packet) =>
@@ -102,7 +102,7 @@ class FlowController extends Actor {
             }
 
         case SendPacket(data, actions) =>
-            if (actions.size() > 0) {
+            if (actions.size > 0) {
                 val packet = new Packet().
                     setMatch(new FlowMatch).
                     setData(data).setActions(actions)
