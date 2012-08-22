@@ -9,14 +9,14 @@ import java.util.UUID
 import com.midokura.sdn.dp.flows.{FlowKey, FlowKeys}
 import org.apache.commons.configuration.HierarchicalConfiguration
 
-class FlowControllerTestCase extends MidolmanTestCase {
+class PacketInWorkflowTestCase extends MidolmanTestCase {
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
         super.fillConfig(config)
     }
 
-    def testDatapathEmptyDefault() {
+    def testDatapathPacketIn() {
 
         val vifPort = UUID.randomUUID()
         midoStore().setLocalVrnPortMapping(hostId, vifPort, "port")

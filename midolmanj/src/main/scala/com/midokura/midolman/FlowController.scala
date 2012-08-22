@@ -10,20 +10,23 @@ import datapath.ErrorHandlingCallback
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
 
-import com.midokura.sdn.flows.{WildcardMatches, FlowManager, WildcardFlow}
+import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches, FlowManager, WildcardFlow}
 import com.midokura.sdn.dp.flows.FlowAction
 import javax.inject.Inject
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import akka.event.Logging
+import com.midokura.util.functors.Callback1
 
 object FlowController {
     val Name = "FlowController"
 
-    case class AddWildcardFlow(wFlow: WildcardFlow, packet: Option[Packet])
+    case class AddWildcardFlow(wFlow: WildcardFlow, packet: Option[Packet],
+                               callbacks: Set[Callback1[WildcardMatch]],
+                               tags: Set[AnyRef])
 
-    case class RemoveWildcardFlow(wMatch: WildcardFlow)
+    case class RemoveWildcardFlow(tag: AnyRef)
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
@@ -58,7 +61,6 @@ class FlowController extends Actor {
     def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
     }
-
 
     override def preStart() {
         super.preStart()
@@ -102,8 +104,8 @@ class FlowController extends Actor {
         case SendPacket(data, actions) =>
             if (actions.size() > 0) {
                 val packet = new Packet().
-                                    setMatch(new FlowMatch).
-                                    setData(data).setActions(actions)
+                    setMatch(new FlowMatch).
+                    setData(data).setActions(actions)
                 datapathConnection.packetsExecute(datapath, packet,
                     new ErrorHandlingCallback[java.lang.Boolean] {
                         def onSuccess(data: java.lang.Boolean) {}
@@ -196,7 +198,7 @@ class FlowController extends Actor {
     }
 
     private def handleNewWildcardFlow(
-                wildcardFlow: WildcardFlow, packetOption: Option[Packet]) {
+                                         wildcardFlow: WildcardFlow, packetOption: Option[Packet]) {
         if (!flowManager.add(wildcardFlow))
             log.error("FlowManager failed to install wildcard flow {}",
                 wildcardFlow)

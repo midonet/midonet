@@ -5,23 +5,23 @@ package com.midokura.midolman
 import akka.actor.{ActorRef, Actor}
 
 import openflow.MidoMatch
-import com.midokura.sdn.flows.{WildcardFlow}
+import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
 import java.util.UUID
 import com.midokura.packets.Ethernet
 import collection.mutable
 import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume}
-import com.midokura.midolman.FlowController.SendPacket
+import com.midokura.midolman.FlowController.{RemoveWildcardFlow, AddWildcardFlow, Consume, SendPacket}
 import akka.event.Logging
+import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
 
 object SimulationController {
 
     val Name = "SimulationController"
 
-    case class SimulationDone(originalMatch: MidoMatch, finalMatch: MidoMatch,
-                              outPorts: mutable.Set[UUID], packet: Packet,
-                              generated: Boolean)
+    case class SimulationDone(originalMatch: WildcardMatch, finalMatch: WildcardMatch,
+                              outPorts: mutable.Set[UUID], packet: Packet, generated: Boolean)
 
     case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
 }
@@ -32,19 +32,29 @@ class SimulationController() extends Actor {
 
     val log = Logging(context.system, this)
 
-    case class PacketIn(packet: Packet, vportID: UUID)
-
-    def packetInCallback(packet: Packet, id: UUID) {
-        self ! PacketIn(packet, id)
-    }
-
     protected def fController():ActorRef = {
         actorFor("/user/%s" format FlowController.Name)
     }
 
+    protected def datapathController():ActorRef = {
+        actorFor("/user/%s" format DatapathController.Name)
+    }
+
     def receive = {
-        case SimulationDone(originalMatch, finalMatch, outPorts,
-                packet, generated) =>
+
+        case PacketIn(packet, wildcardMatch) =>
+            // TODO(pino, jlm): launchNewSimulation(packet, vportID)
+            // XXX
+
+        case SimulationDone(origMatch, finalMatch, outPorts, packet, generated) =>
+            // when it gets this message it can generated one or more of the following messages to the datapathContoller or to self.
+            // datapathController ! AddWildcardFlow(...)
+            // datapathController ! SendPacket(...)
+            // self ! PacketIn()
+
+            // if (connectionTracked)
+            //  ClusterClient.installConnectionTrackingBlobs();
+
             // Emtpy or null outPorts indicates Drop rule.
             // Null finalMatch indicates that the packet was consumed.
             if (generated) {
@@ -52,24 +62,21 @@ class SimulationController() extends Actor {
                     // TODO(pino, jlm): diff matches to build action list
                     // XXX
                     val actions: List[FlowAction[_]] = null
-                    fController ! SendPacket(packet.getData, actions)
+                    datapathController() ! SendPacket(packet.getData, actions)
                 }
                 // Else, do nothing, the packet is dropped.
-            }
-            else if (finalMatch == null)
+            } else if (finalMatch == null) {
                 fController ! Consume(packet)
-            else {
+            } else {
                 // TODO(pino, jlm): compute the WildcardFlow, including actions
                 // XXX
                 val wildcardFlow: WildcardFlow = null
-                fController ! AddWildcardFlow(wildcardFlow, Some(packet))
+                datapathController ! AddWildcardFlow(wildcardFlow, Some(packet), null, null)
             }
-        case PacketIn(packet, vportID) =>
-            // TODO(pino, jlm): launchNewSimulation(packet, vportID)
-            // XXX
+
         case EmitGeneratedPacket(vportID, frame) =>
             // TODO(pino, jlm): do a new simulation.
             // XXX
+            // self ! PacketIn(new Packet())
     }
-
 }
