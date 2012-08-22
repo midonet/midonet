@@ -30,16 +30,18 @@ import com.midokura.midolman.guice.config.MockConfigProviderModule;
 import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule;
+import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midonet.cluster.Client;
+import com.midokura.midonet.cluster.client.ArpCache;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ForwardingElementBuilder;
 import com.midokura.midonet.cluster.client.MacLearningTable;
+import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.midonet.cluster.client.SourceNatResource;
 import com.midokura.packets.MAC;
 import com.midokura.util.functors.Callback1;
@@ -66,6 +68,10 @@ public class LocalClientImplTest {
     BridgeZkManager getBridgeZkManager() {
         return injector.getInstance(BridgeZkManager.class);
     }
+    
+    RouterZkManager getRouterZkManager() {
+        return injector.getInstance(RouterZkManager.class);
+    }
 
     Directory zkDir() {
         return injector.getInstance(Directory.class);
@@ -86,7 +92,6 @@ public class LocalClientImplTest {
         injector.injectMembers(this);
 
     }
-
 
     @Test
     public void getBridgeTest()
@@ -109,6 +114,29 @@ public class LocalClientImplTest {
         Thread.sleep(2000);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));
+
+    }
+
+    @Test
+    public void getRouterTest()
+        throws StateAccessException, InterruptedException, KeeperException {
+
+        initializeZKStructure();
+        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        UUID routerId = getRouterZkManager().create(); 
+        TestRouterBuilder routerBuilder = new TestRouterBuilder();
+        client.getRouter(routerId, routerBuilder);
+        Thread.sleep(2000);
+        assertThat("Build is called", routerBuilder.getBuildCallsCount(),
+                   equalTo(1));
+        // let's cause a router update
+        getRouterZkManager().update(routerId,
+                                    new RouterZkManager.RouterConfig("test1",
+                                                                     UUID.randomUUID(),
+                                                                     UUID.randomUUID()));
+        Thread.sleep(2000);
+        assertThat("Router update was notified",
+                   routerBuilder.getBuildCallsCount(), equalTo(2));
 
     }
     
@@ -260,4 +288,64 @@ public class LocalClientImplTest {
         }
 
     }
+    
+    class TestRouterBuilder implements RouterBuilder {
+        int buildCallsCount = 0;
+        
+        public int getBuildCallsCount() {
+            return buildCallsCount;
+        }
+
+        @Override
+        public void setSourceNatResource(SourceNatResource resource) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public ForwardingElementBuilder setID(UUID id) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public ForwardingElementBuilder setInFilter(UUID filterID) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public ForwardingElementBuilder setOutFilter(UUID filterID) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void build() {
+            buildCallsCount++; 
+        }
+
+        @Override
+        public ForwardingElementBuilder start() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void setArpCache(ArpCache table) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void addRoute(Route rt) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void removeRoute(Route rt) {
+            // TODO Auto-generated method stub
+            
+        }}
 }

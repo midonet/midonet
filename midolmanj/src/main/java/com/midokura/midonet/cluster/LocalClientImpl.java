@@ -4,6 +4,7 @@
 package com.midokura.midonet.cluster;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +20,10 @@ import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.layer3.RoutingTable;
+import com.midokura.midolman.state.ArpCacheEntry;
+import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.ReplicatedMap;
@@ -26,12 +31,16 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import com.midokura.midonet.cluster.client.ArpCache;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;
 import com.midokura.midonet.cluster.client.MacLearningTable;
 import com.midokura.midonet.cluster.client.PortBuilders;
 import com.midokura.midonet.cluster.client.RouterBuilder;
+import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
@@ -59,6 +68,9 @@ public class LocalClientImpl implements Client {
     BridgeZkManager bridgeMgr;
 
     @Inject
+    RouterZkManager routerMgr;
+    
+    @Inject
     ZookeeperConfig zkConfig;
 
     @Inject
@@ -70,9 +82,14 @@ public class LocalClientImpl implements Client {
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
-
+    
+    // bridge maps
     Map<UUID, BridgeBuilder> bridgeBuilderMap = new ConcurrentHashMap<UUID, BridgeBuilder>();
     Map<UUID, BridgeZkManager.BridgeConfig> bridgeMap = new ConcurrentHashMap<UUID, BridgeZkManager.BridgeConfig>();
+    
+    // router maps
+    Map<UUID, RouterBuilder> routerBuilderMap = new ConcurrentHashMap<UUID, RouterBuilder>();
+    Map<UUID, RouterZkManager.RouterConfig> routerMap = new ConcurrentHashMap<UUID, RouterZkManager.RouterConfig>();
 
     @Override
     public void getBridge(UUID bridgeID, BridgeBuilder builder) {
@@ -84,6 +101,10 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getRouter(UUID routerID, RouterBuilder builder) {
+        // asynchronous call, we will process it later
+        routerBuilderMap.put(routerID, builder);
+        reactorLoop.submit(getRouterConf(routerID, builder));
+        log.info("getRouter {}", routerID);
     }
 
     @Override
@@ -228,6 +249,55 @@ public class LocalClientImpl implements Client {
 
     }
 
+    /**
+     * Get the conf for a router.
+     * @param id
+     * @param builder
+     * @return
+     */
+    Runnable getRouterConf(final UUID id,
+                           final RouterBuilder builder) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                log.info("Updating configuration for router {}", id);
+                RouterZkManager.RouterConfig config = null;
+                try {
+                    config = routerMgr.get(id, watchRouter(id));
+                } catch (StateAccessException e) {
+                    log.error("Cannot retrieve the configuration for bridge {}",
+                              id, e);
+                }
+
+                if (config != null) {
+                    // TODO see if we really need these here (see updates) 
+                    RoutingTable routingTable = null; 
+                    ArpTable arpTable = null; 
+                    if (!routerMap.containsKey(id)) {
+                        try {
+                            
+                            arpTable = new ArpTable(routerMgr.getArpTableDirectory(id)); 
+                            
+                            
+                            
+                        } catch (StateAccessException e) {
+                            log.error(
+                                "Error retrieving MacPortTable for bridge {}",
+                                id, e);
+                        }
+                        if (arpTable != null)
+                            arpTable.start();
+                    }
+                    routerMap.put(id, config);
+                    buildRouterFromConfig(id, config, builder, arpTable);
+                    log.info("Update configuration for bridge {}", id);
+                }
+            }
+        };
+
+    }
+
 
     Runnable watchBridge(final UUID id) {
         return new Runnable() {
@@ -238,6 +308,19 @@ public class LocalClientImpl implements Client {
                                                  (BridgeBuilder) bridgeBuilderMap
                                                      .get(id)));
                 log.info("Added watcher for bridge {}", id);
+            }
+        };
+    }
+    
+    Runnable watchRouter(final UUID id) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                // return fast and update later
+                reactorLoop.submit(getRouterConf(id,
+                                                 (RouterBuilder) routerBuilderMap
+                                                     .get(id)));
+                log.info("Added watcher for router {}", id);
             }
         };
     }
@@ -253,6 +336,68 @@ public class LocalClientImpl implements Client {
         });
         builder.build();
 
+    }
+    
+    void buildRouterFromConfig(UUID id, RouterZkManager.RouterConfig config,
+                               RouterBuilder builder, ArpTable arpTable) {
+
+        builder.setInFilter(config.inboundFilter)
+               .setOutFilter(config.outboundFilter);
+        
+        builder.setArpCache(new ArpCacheImpl(arpTable)); 
+        
+        builder.build();
+
+    }
+    
+    class ArpCacheImpl implements ArpCache {
+
+        ArpTable arpTable; 
+       
+        ArpCacheImpl(ArpTable arpTable) {
+            this.arpTable = arpTable; 
+        }
+        
+        @Override
+        public void get(final IntIPv4 ipAddr, final Callback1<MAC> cb) {
+           reactorLoop.submit( new Runnable() {
+
+            @Override
+            public void run() {
+               cb.call(arpTable.get(ipAddr).macAddr); 
+            }}) ; 
+        }
+
+        @Override
+        public void add(final IntIPv4 ipAddr, final MAC entry) {
+           reactorLoop.submit( new Runnable() {
+
+            @Override
+            public void run() {
+                // TODO filling this ? 
+                ArpCacheEntry arpCacheEntry = new ArpCacheEntry(entry, 0, 0, 0);
+                try {
+                    arpTable.put(ipAddr, arpCacheEntry);
+                } catch (Exception e) {
+                   log.error("Failed adding ARP entry. IP: {} MAC: {}", new Object[]{ipAddr, entry});  
+                } 
+            }}) ; 
+        }
+
+        @Override
+        public void remove(final IntIPv4 ipAddr) {
+           reactorLoop.submit(new Runnable() {
+
+            @Override
+            public void run() {
+               try {
+                arpTable.removeIfOwner(ipAddr);
+            } catch (Exception e) {
+                log.error("Could not remove Arp entry for IP: {}", ipAddr); 
+            }  
+            }}); 
+        }
+        
     }
 
     class MacLearningTableImpl implements MacLearningTable {
