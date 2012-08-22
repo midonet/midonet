@@ -14,6 +14,8 @@ import com.midokura.midolman.topology.MacFlowCount
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.util.functors.Callback1
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.simulation.Coordinator.{ForwardResult, DropResult}
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
@@ -41,25 +43,28 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
     def canEqual(other: Any) = other.isInstanceOf[Bridge]
 
-    override def process(ingress: PacketContext,
-                         ec: ExecutionContext): ProcessResult = {
-        val srcDlAddress = new MAC(ingress.mmatch.getDataLayerSource)
-        val dstDlAddress = new MAC(ingress.mmatch.getDataLayerDestination)
+    override def process(ingressMatch: WildcardMatch,
+                         packet: Ethernet,
+                         coordinator: Coordinator,
+                         ec: ExecutionContext)
+            : Coordinator.Action = {
+        val srcDlAddress = ingressMatch.getEthernetSource
+        val dstDlAddress = ingressMatch.getEthernetDestination
 
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(srcDlAddress))
             return new DropResult()
 
-        var matchOut = ingress.mmatch.clone
+        var matchOut: WildcardMatch = null // TODO
         var outPortID: UUID = null
 
         //XXX: Call ingress (pre-bridging) chain
 
         if (Ethernet.isMcast(dstDlAddress)) {
             // L2 Multicast
-            val nwDst = new IntIPv4(ingress.mmatch.getNetworkDestination)
+            val nwDst = ingressMatch.getNetworkDestination
             if (Ethernet.isBroadcast(dstDlAddress) &&
-                ingress.mmatch.getDataLayerType == ARP.ETHERTYPE &&
+                ingressMatch.getEtherType == ARP.ETHERTYPE &&
                 rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 val rtrMAC: MAC = rtrIpToMac.get(nwDst).get
@@ -87,16 +92,16 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
-            flowCount.increment(srcDlAddress, ingress.port)
+            flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
             //XXX: Flow Removal notifications so we can dec the flow count --
             //XXX: -- Pino has some ideas on this he's going to write up.
             val oldPortID = getPortOfMac(srcDlAddress, ec)
-            if (ingress.port != oldPortID) {
+            if (ingressMatch.getInputPortUUID != oldPortID) {
                 log.debug("MAC {} moved from port {} to {}.",
-                    Array[Object](srcDlAddress, oldPortID, ingress.port))
+                    Array[Object](srcDlAddress, oldPortID, ingressMatch.getInputPortUUID))
                 //The flows that reflect the old MAC port entry will be removed
                 // by the BridgeManager
-                macPortMap.add(srcDlAddress, ingress.port)
+                macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
             }
         }
 
@@ -104,7 +109,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         //XXX: Add to traversed elements list if flooding.
 
-        return new ForwardResult(new PortMatch(outPortID, matchOut))
+        return new ForwardResult(outPortID, matchOut)
     }
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext): UUID = {

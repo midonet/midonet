@@ -3,12 +3,10 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.{Await, Promise, ExecutionContext}
-import akka.util.duration._
+import akka.dispatch.ExecutionContext
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.state.zkManagers.RouterZkManager
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
@@ -18,7 +16,8 @@ import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midonet.cluster.client.ArpCache
-import com.midokura.util.functors.Callback1
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.simulation.Coordinator.{ForwardResult, ConsumedResult, NotIPv4Result, DropResult}
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
@@ -28,24 +27,27 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
-    override def process(ingress: PacketContext,
-                         ec: ExecutionContext): ProcessResult = {
-        val hwDst = new MAC(ingress.mmatch.getDataLayerDestination)
-        val rtrPortCfg: RouterPortConfig = getRouterPortConfig(ingress.port)
+    override def process(ingressMatch: WildcardMatch,
+                         packet: Ethernet,
+                         coordinator: Coordinator,
+                         ec: ExecutionContext)
+            : Coordinator.Action = {
+        val hwDst = ingressMatch.getEthernetDestination
+        val rtrPortCfg: RouterPortConfig = getRouterPortConfig(ingressMatch.getInputPortUUID)
         if (rtrPortCfg == null) {
-            log.error("Could not get configuration for port " + ingress.port)
+            log.error("Could not get configuration for port " + ingressMatch.getInputPortUUID)
             return new DropResult()
         }
-        if (ingress.mmatch.getDataLayerType != IPv4.ETHERTYPE &&
-                ingress.mmatch.getDataLayerType != ARP.ETHERTYPE)
+        if (ingressMatch.getEtherType != IPv4.ETHERTYPE &&
+                ingressMatch.getEtherType != ARP.ETHERTYPE)
             return new NotIPv4Result()
 
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
-            if (ingress.mmatch.getDataLayerType == ARP.ETHERTYPE &&
-                    ingress.mmatch.getNetworkProtocol == ARP.OP_REQUEST) {
-                processArpRequest(ingress.packet.getPayload.asInstanceOf[ARP],
-                                  ingress.port, rtrPortCfg)
+            if (ingressMatch.getEtherType == ARP.ETHERTYPE &&
+                    ingressMatch.getNetworkProtocol == ARP.OP_REQUEST) {
+                processArpRequest(packet.getPayload.asInstanceOf[ARP],
+                                  ingressMatch.getInputPortUUID, rtrPortCfg)
                 return new ConsumedResult()
             } else
                 return new DropResult()
@@ -58,22 +60,22 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             return new DropResult()
         }
 
-        if (ingress.mmatch.getDataLayerType == ARP.ETHERTYPE) {
+        if (ingressMatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
-            if (ingress.mmatch.getNetworkProtocol == ARP.OP_REPLY) {
-                processArpReply(ingress.packet.getPayload.asInstanceOf[ARP],
-                                ingress.port, rtrPortCfg)
+            if (ingressMatch.getNetworkProtocol == ARP.OP_REPLY) {
+                processArpReply(packet.getPayload.asInstanceOf[ARP],
+                                ingressMatch.getInputPortUUID, rtrPortCfg)
                 return new ConsumedResult()
             } else
                 return new DropResult()
         }
 
-        val nwDst = new IntIPv4(ingress.mmatch.getNetworkDestination)
+        val nwDst = ingressMatch.getNetworkDestination
         val inPortIP = new IntIPv4(rtrPortCfg.portAddr)
         if (nwDst == inPortIP) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
-            if (isIcmpEchoRequest(ingress.mmatch)) {
-                sendIcmpEchoReply(ingress, rtrPortCfg)
+            if (isIcmpEchoRequest(null /* XXX TODO(pino): ingressMatch */)) {
+                // XXX TODO(pino): sendIcmpEchoReply(ingress, rtrPortCfg)
                 return new ConsumedResult()
             } else
                 return new DropResult()
@@ -81,17 +83,17 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
 
         // XXX: Apply the pre-routing (ingress) chain
 
-        val rt: Route = loadBalancer.lookup(ingress.mmatch)
+        val rt: Route = null // XXX TODO(pino): loadBalancer.lookup(ingressMatch)
         if (rt == null) {
             // No route to network
-            sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
+            // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
             return new DropResult()
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
             return new DropResult()
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
-            sendIcmp(ingress, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+            // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return new DropResult()
         }
         if (rt.nextHop != Route.NextHop.PORT) {
@@ -120,34 +122,33 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             // Drop.  TODO(jlm,pino): Should we check for ICMP echos?
             return new DropResult()
         }
-        var matchOut = ingress.mmatch.clone
+        var matchOut: WildcardMatch = null // ingressMatch.clone
         // Set HWSrc
-        matchOut.setDataLayerSource(outPortCfg.getHwAddr)
+        matchOut.setEthernetSource(outPortCfg.getHwAddr)
         // Set HWDst
         outPortCfg match {
             case logCfg: LogicalRouterPortConfig =>
                 if (logCfg.peerId == null) {
                     log.warn("Packet forwarded to dangling logical port {}",
                         rt.nextHopPort)
-                    sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
+                    // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
                     return new DropResult()
                 }
                 val peerMac = getPeerMac(logCfg)
                 if (peerMac != null) {
-                    matchOut.setDataLayerDestination(peerMac)
-                    return new ForwardResult(new PortMatch(rt.nextHopPort,
-                        matchOut))
+                    matchOut.setEthernetDestination(peerMac)
+                    return ForwardResult(rt.nextHopPort, matchOut)
                 }
             // TODO(jlm,pino): Should not having the peerMac be an error?
             case _ => /* Fall through to ARP'ing below. */
         }
         var nextHopIP: Int = rt.nextHopGateway
         if (nextHopIP == 0 || nextHopIP == -1)
-            nextHopIP = matchOut.getNetworkDestination /* Last hop */
+            nextHopIP = matchOut.getNetworkDestination.addressAsInt() /* Last hop */
         val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP, ec)
         if (nextHopMac != null) {
-            matchOut.setDataLayerDestination(nextHopMac)
-            return new ForwardResult(new PortMatch(rt.nextHopPort, matchOut))
+            matchOut.setEthernetDestination(nextHopMac)
+            return new ForwardResult(rt.nextHopPort, matchOut)
         } else {
             // Couldn't get the MAC.  getMacForIP will send any ICPM !H,
             // so here we just drop.
@@ -195,12 +196,11 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
     }
 
-    private def sendIcmpEchoReply(context: PacketContext,
-                                  rtrPortCfg: RouterPortConfig) {
+    private def sendIcmpEchoReply(rtrPortCfg: RouterPortConfig) {
         //XXX
     }
 
-    private def sendIcmp(context: PacketContext, code: UNREACH_CODE) {
+    private def sendIcmp(code: UNREACH_CODE) {
         //XXX
     }
 

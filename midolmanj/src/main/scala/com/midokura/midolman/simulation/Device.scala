@@ -3,18 +3,14 @@
 package com.midokura.midolman.simulation
 
 import akka.dispatch.ExecutionContext
-
-
-abstract class ProcessResult()
-
-// TODO(jlm): Should we have DropResult include how wide a drop rule to use?
-//            Then we could fold in NotIPv4Result
-case class DropResult() extends ProcessResult
-case class NotIPv4Result() extends ProcessResult
-case class ConsumedResult() extends ProcessResult
-case class ForwardResult(portmatch: PortMatch) extends ProcessResult
-
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.packets.Ethernet
 
 trait Device {
-    def process(context: PacketContext, ec: ExecutionContext): ProcessResult
+    // The ingressMatch contains the UUID of this device's ingress port.
+    def process(ingressMatch: WildcardMatch,
+                packet: Ethernet,
+                coordinator: Coordinator,
+                ec: ExecutionContext)
+            : Coordinator.Action
 }

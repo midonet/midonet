@@ -33,7 +33,6 @@ import com.midokura.midolman.util.Net;
 public class Ethernet extends BasePacket {
     private static String HEXES = "0123456789ABCDEF";
 
-
     /**
      * Mininum number of octets for an Ethernet packet header, without the
      * optional fields.  Preamble and frame check sequence are not included.
@@ -194,6 +193,14 @@ public class Ethernet extends BasePacket {
             Arrays.fill(data, bb.position(), data.length, (byte)0x0);
         }
         return data;
+    }
+
+    public static Ethernet deserialize(byte[] data)
+            throws MalformedPacketException {
+        ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
+        Ethernet ethPkt = new Ethernet();
+        ethPkt.deserialize(bb);
+        return ethPkt;
     }
 
     @Override

@@ -58,6 +58,13 @@ class FlowController extends Actor {
     @Inject
     var flowManager: FlowManager = null
 
+    val tagToFlows: MultiMap[AnyRef, WildcardFlow] =
+        new HashMap[AnyRef, Set[WildcardFlow]]
+            with MultiMap[AnyRef, WildcardFlow]
+    val flowToTags: MultiMap[WildcardFlow, AnyRef] =
+        new HashMap[WildcardFlow, Set[AnyRef]]
+            with MultiMap[WildcardFlow, AnyRef]
+
     def datapathController(): ActorRef = {
         actorFor("/user/%s" format DatapathController.Name)
     }
@@ -79,26 +86,19 @@ class FlowController extends Actor {
         case packetIn(packet) =>
             handlePacketIn(packet)
 
-        case AddWildcardFlow(wildcardFlow, packetOption, null, null) =>
+        case AddWildcardFlow(wildcardFlow, packetOption, callbacks, tags) =>
             handleNewWildcardFlow(wildcardFlow, packetOption)
 
         case Consume(packet) =>
             dpMatchToPendedPackets.remove(packet.getMatch)
 
-        case RemoveWildcardFlow(wMatch) =>
-            val removedDpFlowMatches = flowManager.remove(wMatch)
-            for (flowMatch <- removedDpFlowMatches) {
-                val flow = new Flow().setMatch(flowMatch)
-                datapathConnection.flowsDelete(datapath, flow,
-                    new ErrorHandlingCallback[Flow] {
-                        def onSuccess(data: Flow) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to remove a flow {} due to {}", flow,
-                                if (timeout) "timeout" else "error")
-                        }
-                    })
+        case RemoveWildcardFlow(tag) =>
+            val flowsOption = tagToFlows.get(tag)
+            flowsOption match {
+                case None =>
+                case Some(flowSet) =>
+                    for (wildFlow <- flowSet)
+                        removeWildcardFlow(wildFlow)
             }
 
         case SendPacket(data, actions) =>
@@ -126,6 +126,24 @@ class FlowController extends Actor {
      * @param packet the packet data
      */
     case class packetIn(packet: Packet)
+
+    private def removeWildcardFlow(wildFlow: WildcardFlow) = {
+        val removedDpFlowMatches = flowManager.remove(wildFlow)
+        for (flowMatch <- removedDpFlowMatches) {
+            val flow = new Flow().setMatch(flowMatch)
+            datapathConnection.flowsDelete(datapath, flow,
+                new ErrorHandlingCallback[Flow] {
+                    def onSuccess(data: Flow) {}
+
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error(ex,
+                            "Failed to remove a flow {} due to {}", flow,
+                            if (timeout) "timeout" else "error")
+                    }
+                })
+        }
+        // TODO(pino): update tagToFlows and flowToTags
+    }
 
     private def manageDPFlowTableSpace() {
         if (flowManager.getNumDpFlows > maxDpFlows - 5) {

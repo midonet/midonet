@@ -20,8 +20,7 @@ object SimulationController {
 
     val Name = "SimulationController"
 
-    case class SimulationDone(originalMatch: WildcardMatch, finalMatch: WildcardMatch,
-                              outPorts: mutable.Set[UUID], packet: Packet, generated: Boolean)
+    case class SimulationDone(origMatch: WildcardMatch, packet: Array[Byte])
 
     case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
 }
@@ -42,11 +41,7 @@ class SimulationController() extends Actor {
 
     def receive = {
 
-        case PacketIn(packet, wildcardMatch) =>
-            // TODO(pino, jlm): launchNewSimulation(packet, vportID)
-            // XXX
-
-        case SimulationDone(origMatch, finalMatch, outPorts, packet, generated) =>
+        case sim: SimulationDone =>
             // when it gets this message it can generated one or more of the following messages to the datapathContoller or to self.
             // datapathController ! AddWildcardFlow(...)
             // datapathController ! SendPacket(...)
@@ -57,7 +52,7 @@ class SimulationController() extends Actor {
 
             // Emtpy or null outPorts indicates Drop rule.
             // Null finalMatch indicates that the packet was consumed.
-            if (generated) {
+            /*if (generated) {
                 if (null != finalMatch) {
                     // TODO(pino, jlm): diff matches to build action list
                     // XXX
@@ -72,7 +67,7 @@ class SimulationController() extends Actor {
                 // XXX
                 val wildcardFlow: WildcardFlow = null
                 datapathController ! AddWildcardFlow(wildcardFlow, Some(packet), null, null)
-            }
+            } */
 
         case EmitGeneratedPacket(vportID, frame) =>
             // TODO(pino, jlm): do a new simulation.
