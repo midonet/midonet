@@ -64,7 +64,7 @@ GET /
 => {"hosts": <hostsUri>, ...}
 
 GET <hostsUri>
-=> [{"hostId": <hostId>, "interface_port_map": <interfacePortMapUri>, ...},
+=> [{"hostId": <hostId>, "interfacePortMap": <interfacePortMapUri>, ...},
     ...]
 
 Where the first GET call retrieves the URI to get all the hosts in the system
