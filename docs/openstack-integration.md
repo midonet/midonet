@@ -64,24 +64,59 @@ GET /
 => {"hosts": <hostsUri>, ...}
 
 GET <hostsUri>
-=> [{"hostId": <hostId>, "map_interface_to_port": <mapInterfaceToPortUri>, ...},
+=> [{"hostId": <hostId>, "interface_port_map": <interfacePortMapUri>, ...},
     ...]
 
 Where the first GET call retrieves the URI to get all the hosts in the system
 (<hostsUri>) and the second GET call retrieves the URI to map an interface to a
-virtual port (<mapInterfaceToPortUri>) for each host in the system.  Once you
+virtual port (<interfacePortMapUri>) for each host in the system.  Once you
 have this URI, you can POST to create the mapping:
 
-POST <mapInterfaceToPortUri>
-=> {"portId": <portId>, "interfaceName": <interfaceName>}
+POST <interfacePortMapUri>
+
+Request:
+{"portId": <portId>, "interfaceName": <interfaceName>}
+
+Response Status Codes:
+200: Success
+400: Bad port ID
+500: Server error
 
 Where <interfaceName> is the name of the tap that Nova created, <portId> is the
 virtual port ID of Midolman.  A successful call to this API alerts Midolman to
 set up the datapath port on the host. 
 
+To delete a mapping, send a request to the same URI with DELETE verb:
+
+DELETE <interfacePortMapUri>
+
+Request:
+{"portId": <portId>}
+
+Response Status Codes:
+204: Success
+400: Bad port ID
+500: Server error
+
+To retrieve all the mappings in a host, do a GET on the URI:
+
+GET <interfacePortMapUri>
+
+Response:
+=> [{"portId": "foo", "interfaceName": "bar"},
+    {"portId": "bar", "interfaceName": "baz"},
+    ...]
+
+Response Status Codes:
+200: Success
+500: Server error
+
+Also, when a port is deleted, its mapping is also deleted.
+
+
 ## Zookeeper
 
-'map_interface_and_port' API creates the following entries in Zookeeper:
+'interface_port_map' API creates the following entries in Zookeeper:
 
 - /hosts/<hostId>/vrnMappings/ports/<portId> -> { <portId>, <interfaceName> }
 
@@ -90,7 +125,8 @@ host.  Midolman agents watch the ZK changes of the host that it is running on.
 When it is notified of the mapping, it begins the operations to set up the
 datapath port on the host that corresponds to the mapped virtual port.
  
-- /ports/<portId> -> { ..., <hostId> } 
+- /ports/<portId> -> { ..., <hostId>, <interfaceName> } 
 
-This entry indicates to Midolman the location of the virtual port.
+The hostId and interfaceName fields of a port configuration are set to the
+supplied values when mapping occurs, and set to null when unmapping occurs.
 
