@@ -16,6 +16,7 @@ import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
@@ -53,6 +54,7 @@ public class ClusterClientModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(Directory.class);
+        requireBinding(MidolmanConfig.class);
 
         requireBinding(Key.get(Reactor.class, Names.named(
             ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));

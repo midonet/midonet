@@ -10,10 +10,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.inject.Inject;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.midokura.midolman.config.ZookeeperConfig;
+import com.google.inject.Provider;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
@@ -24,9 +26,12 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
 
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.MockConfigProviderModule;
 import com.midokura.midolman.guice.datapath.MockDatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
@@ -39,9 +44,6 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midolman.guice.cluster.ClusterClientModule;
-
-
 import static com.midokura.midolman.host.state.HostDirectory.Interface;
 
 public class DefaultInterfaceDataUpdaterTest {
@@ -75,6 +77,22 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockDatapathModule(),
             new ReactorModule(),
             new HostModule(),
+            new AbstractModule() {
+                @Override
+                protected void configure() {
+                    bind(MidolmanConfig.class)
+                        .toProvider(new Provider<MidolmanConfig>() {
+                            @Inject
+                            ConfigProvider configProvider;
+
+                            @Override
+                            public MidolmanConfig get() {
+                                return configProvider.getConfig(
+                                    MidolmanConfig.class);
+                            }
+                        });
+                }
+            },
             new ClusterClientModule());
 
         directory = cleanDirectory;
