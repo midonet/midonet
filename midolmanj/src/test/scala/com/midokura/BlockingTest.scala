@@ -18,6 +18,7 @@ package com.midokura
 
 import akka.actor.ActorSystem
 import akka.dispatch.{Await, Promise}
+import akka.dispatch.Future.flow
 import akka.testkit.CallingThreadDispatcher
 import akka.util.duration._
 import compat.Platform
@@ -34,7 +35,6 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
 
     val config = ConfigFactory.parseString("""
         akka.actor.default-dispatcher {
-            # type="akka.testkit.CallingThreadDispatcherConfigurator"
             executor = "fork-join-executor"
             fork-join-executor {
                 parallelism-max = 1
@@ -43,18 +43,27 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     """)
     val system = ActorSystem("BlockingTest", ConfigFactory.load(config))
     val initialDelay = 1000L
+    val op2Start = 1500L
     val sleepTime = 5300L
-    val margin = 100L
+    val margin = 150L
 
     // Hack:  Class variable used to record thunk-completion time.
     // Relies on each test having its own instance of BlockingTest.
     @volatile var time3 = 0L
 
-    private def spawnPromiseThread(promise: Promise[Int]) {
+    private def spawnFlowPromiseThread(promise: Promise[Int]) {
         spawn {    
             Thread.sleep(initialDelay+sleepTime)
-            promise.complete(Right(1234))
-            Thread.sleep(6000)
+            flow {
+                promise.success(1234)
+            }(system.dispatcher)
+        }
+    }
+
+    private def spawnRawPromiseThread(promise: Promise[Int]) {
+        spawn {
+            Thread.sleep(initialDelay+sleepTime)
+            promise.success(1234)
         }
     }
 
@@ -63,7 +72,7 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         checkForBlocking(promise, () => { 
             Thread.sleep(sleepTime)
             time3 = Platform.currentTime
-        }, true)
+        }, true, (_) => ())
     }
 
     def testAwaitResult() {
@@ -71,33 +80,44 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         checkForBlocking(promise, () => {
             Await.result(promise, 7 seconds)
             time3 = Platform.currentTime
-        }, true)
+        }, true, spawnRawPromiseThread)
     }
 
     def testNoOp() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise,
                          () => (time3 = Platform.currentTime+sleepTime),
-                         false)
+                         false, (_) => ())
+    }
+
+    // This fails, because the thunk never stops waiting for the promise.
+    def IGNOREtestFlowBlock {
+        val promise = Promise[Int]()(system.dispatcher)
+        checkForBlocking(promise, () => flow {
+            promise()
+            time3 = Platform.currentTime
+        }(system.dispatcher), false, spawnFlowPromiseThread)
     }
 
     private def checkForBlocking(promise: Promise[Int],
-                                 thunk: () => Unit, expectBlocking: Boolean) {
+                                 thunk: () => Unit, expectBlocking: Boolean,
+                                 threadSpawner: (Promise[Int]) => Unit) {
         Thread.sleep(1000)
         val start = Platform.currentTime
         @volatile var time1 = start-1
         @volatile var time2 = start-1
+        time3 = start-1
         var elapsed = 0L
         assert(system.dispatcher.id != CallingThreadDispatcher.Id)
         system.scheduler.scheduleOnce(initialDelay milliseconds) { 
             time1 = Platform.currentTime 
             thunk()
         }
-        system.scheduler.scheduleOnce(1500 milliseconds) { 
+        system.scheduler.scheduleOnce(op2Start milliseconds) { 
             time2 = Platform.currentTime 
         }
 
-        spawnPromiseThread(promise)
+        threadSpawner(promise)
 
         // The executor's one thread runs the first scheduled operation, and has
         // to wait for it to complete before it can run the second scheduled
@@ -118,8 +138,8 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         if (expectBlocking) {
             elapsed should be === -1
         } else {
-            elapsed should be >= 1500L
-            elapsed should be <= 1600L
+            elapsed should be >= op2Start
+            elapsed should be <= op2Start + margin
         }
         Thread.sleep(6000)
         if (expectBlocking) {
