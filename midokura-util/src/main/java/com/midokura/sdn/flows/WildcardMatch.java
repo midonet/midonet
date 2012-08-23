@@ -60,14 +60,29 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetInputPortNumber() {
+        usedFields.remove(Field.InputPortNumber);
+        this.inputPortNumber = null;
+        return this;
+    }
+
     @Nullable
     public Short getInputPortNumber() {
         return inputPortNumber;
     }
 
+    @Nonnull
     public WildcardMatch setInputPortUUID(@Nonnull UUID inputPortID) {
         usedFields.add(Field.InputPortUUID);
         this.inputPortUUID = inputPortID;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetInputPortUUID() {
+        usedFields.remove(Field.InputPortUUID);
+        this.inputPortUUID = null;
         return this;
     }
 
@@ -80,6 +95,13 @@ public class WildcardMatch implements Cloneable {
     public WildcardMatch setTunnelID(long tunnelID) {
         this.tunnelID = tunnelID;
         usedFields.add(Field.TunnelID);
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetTunnelID() {
+        usedFields.remove(Field.TunnelID);
+        this.tunnelID = null;
         return this;
     }
 
@@ -96,6 +118,13 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetEthernetSource() {
+        usedFields.remove(Field.EthernetSource);
+        this.ethernetSource = null;
+        return this;
+    }
+
     @Nullable
     public MAC getEthernetSource() {
         return ethernetSource;
@@ -105,6 +134,13 @@ public class WildcardMatch implements Cloneable {
     public WildcardMatch setEthernetDestination(@Nonnull MAC addr) {
         usedFields.add(Field.EthernetDestination);
         this.ethernetDestination = addr;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetEthernetDestination() {
+        usedFields.remove(Field.EthernetDestination);
+        this.ethernetDestination = null;
         return this;
     }
 
@@ -120,6 +156,13 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetEtherType() {
+        usedFields.remove(Field.EtherType);
+        this.etherType = null;
+        return this;
+    }
+
     @Nullable
     public Short getEtherType() {
         return etherType;
@@ -129,6 +172,13 @@ public class WildcardMatch implements Cloneable {
     public WildcardMatch setNetworkSource(@Nonnull IntIPv4 addr) {
         usedFields.add(Field.NetworkSource);
         this.networkSource = addr;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetNetworkSource() {
+        usedFields.remove(Field.NetworkSource);
+        this.networkSource = null;
         return this;
     }
 
@@ -144,6 +194,13 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetNetworkDestination() {
+        usedFields.remove(Field.NetworkDestination);
+        this.networkDestination = null;
+        return this;
+    }
+
     @Nullable
     public IntIPv4 getNetworkDestination() {
         return networkDestination;
@@ -153,6 +210,13 @@ public class WildcardMatch implements Cloneable {
     public WildcardMatch setNetworkProtocol(byte networkProtocol) {
         usedFields.add(Field.NetworkProtocol);
         this.networkProtocol = networkProtocol;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetNetworkProtocol() {
+        usedFields.remove(Field.NetworkProtocol);
+        this.networkProtocol = null;
         return this;
     }
 
@@ -168,6 +232,13 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetIsIPv4Fragment() {
+        usedFields.remove(Field.IsIPv4Fragment);
+        this.isIPv4Fragment = null;
+        return this;
+    }
+
     @Nullable
     public Boolean getIsIPv4Fragment() {
         return isIPv4Fragment;
@@ -180,6 +251,13 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
+    @Nonnull
+    public WildcardMatch unsetTransportSource() {
+        usedFields.remove(Field.TransportSource);
+        this.transportSource = null;
+        return this;
+    }
+
     @Nullable
     public Short getTransportSource() {
         return transportSource;
@@ -189,6 +267,13 @@ public class WildcardMatch implements Cloneable {
     public WildcardMatch setTransportDestination(short transportDestination) {
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetTransportDestination() {
+        usedFields.remove(Field.TransportDestination);
+        this.transportDestination = null;
         return this;
     }
 
