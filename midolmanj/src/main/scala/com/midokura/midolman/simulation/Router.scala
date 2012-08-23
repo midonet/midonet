@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.ExecutionContext
+import akka.dispatch.{ExecutionContext, Future}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
@@ -30,12 +30,13 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     override def process(ingressMatch: WildcardMatch,
                          packet: Ethernet,
                          pktContext: PacketContext,
-                         ec: ExecutionContext)
-            : Action = {
+                         ec: ExecutionContext): Action = {
         val hwDst = ingressMatch.getEthernetDestination
-        val rtrPortCfg: RouterPortConfig = getRouterPortConfig(ingressMatch.getInputPortUUID)
+        val rtrPortCfg: RouterPortConfig = getRouterPortConfig(
+                            ingressMatch.getInputPortUUID)
         if (rtrPortCfg == null) {
-            log.error("Could not get configuration for port " + ingressMatch.getInputPortUUID)
+            log.error("Could not get configuration for port {}",
+                      ingressMatch.getInputPortUUID)
             return new DropAction()
         }
         if (ingressMatch.getEtherType != IPv4.ETHERTYPE &&
@@ -145,7 +146,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         var nextHopIP: Int = rt.nextHopGateway
         if (nextHopIP == 0 || nextHopIP == -1)
             nextHopIP = matchOut.getNetworkDestination.addressAsInt() /* Last hop */
-        val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP, ec)
+        val nextHopMac = new MAC()//XXX getMacForIP(rt.nextHopPort, nextHopIP, ec)
         if (nextHopMac != null) {
             matchOut.setEthernetDestination(nextHopMac)
             return new ForwardAction(rt.nextHopPort)
@@ -209,12 +210,12 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
     }
 
     private def getMacForIP(portID: UUID, nextHopIP: Int,
-                            ec: ExecutionContext): MAC = {
+                            ec: ExecutionContext): Option[Future[MAC]] = {
         val nwAddr = new IntIPv4(nextHopIP)
         val rtrPortConfig = getRouterPortConfig(portID)
         if (rtrPortConfig == null) {
             log.error("cannot get configuration for port {}", portID)
-            return null
+            return None
         }
         rtrPortConfig match {
             case mPortConfig: MaterializedRouterPortConfig =>
@@ -230,10 +231,10 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                         Array[Object](nwAddr, portID,
                             mPortConfig.localNwAddr.toString,
                             mPortConfig.localNwLength.toString))
-                    return null
+                    return None
                 }
             case _ => /* Fall through */
         }
-        return arpTable.get(nwAddr, ec)
+        return Some(arpTable.get(nwAddr, ec))
     }
 }

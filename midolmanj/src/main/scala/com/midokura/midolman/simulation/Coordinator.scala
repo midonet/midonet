@@ -3,6 +3,7 @@
 package com.midokura.midolman.simulation
 
 import akka.actor.{Actor, ActorRef}
+import akka.dispatch.ExecutionContext
 import akka.event.Logging
 import collection.mutable
 
@@ -16,15 +17,11 @@ import com.midokura.util.functors.Callback0
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume,
                                              SendPacket}
-import akka.dispatch.ExecutionContext
 
 
 object Coordinator {
     trait Action
-    // TODO(jlm): Should we have DropAction include how wide a drop rule to use?
-    //            Then we could fold in NotIPv4Action
-    // (pino): I wouldn't. The device may not know all the fields that mattered,
-    //         and I would like to make that mechanism more generic.
+
     case class DropAction() extends Action
     // NotIPv4Action implies a DROP flow. However, it differs from DropAction
     // in that the installed flow match can have all fields >L2 wildcarded.
@@ -68,15 +65,14 @@ object Coordinator {
          * traversal of the virtual network. Use the context to subscribe
          * for notifications on the removal of any resulting flows, or to tag
          * any resulting flows for indexing.
-         * @param ec TODO(jlm): document this the execution context.
+         * @param ec the Coordinator actor's execution context.
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
         def process(pktMatch: WildcardMatch,
                     packet: Ethernet,
                     pktContext: PacketContext,
-                    ec: ExecutionContext)
-        : Coordinator.Action
+                    ec: ExecutionContext): Action
     }
 
 }

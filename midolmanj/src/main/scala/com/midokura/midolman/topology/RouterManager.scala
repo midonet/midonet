@@ -4,7 +4,8 @@
 package com.midokura.midolman.topology
 
 import akka.actor.ActorRef
-import akka.dispatch.{Await, ExecutionContext, Promise}
+import akka.dispatch.{Await, ExecutionContext, Future, Promise}
+import akka.dispatch.Future.flow
 import akka.pattern.{ask, AskTimeoutException}
 import akka.util.Timeout
 import akka.util.duration._
@@ -29,7 +30,7 @@ import com.midokura.util.functors.Callback1
 /* The ArpTable is called from the Coordinators' actors and dispatches
  * to the RouterManager's actor to send and schedule ARPs. */
 trait ArpTable {
-    def get(ip: IntIPv4, ec: ExecutionContext): MAC
+    def get(ip: IntIPv4, ec: ExecutionContext): Future[MAC]
     def set(ip: IntIPv4, mac: MAC)
 }
 
@@ -121,8 +122,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             if (local) {
                 localPortToRouteIDs.put(portId, mutable.Set[UUID]())
                 refreshLocalPortRoutes(portId)
-            }
-            else {
+            } else {
                 localPortToRouteIDs.remove(portId) match {
                     case Some(routeIdSet) =>
                         for (rtID <- routeIdSet)
@@ -191,33 +191,33 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     }
 
     private class ArpTableImpl extends ArpTable {
-        def get(ip: IntIPv4, ec: ExecutionContext): MAC = {
+        def get(ip: IntIPv4, ec: ExecutionContext): Future[MAC] = {
             implicit val timeout = Timeout(1 minute)
             val promise = Promise[ArpCacheEntry]()(ec)
+            val rv = Promise[MAC]()(ec)
             arpCache.get(ip, new Callback1[ArpCacheEntry] {
                 def call(value: ArpCacheEntry) {
                     promise.complete(Right(value))
                 }
             })
-            val entry = Await.result(promise, timeout.duration)
-            val now = Platform.currentTime
-            if (entry == null || entry.stale < now)
-                self ! ArpForAddress(ip)
-            if (entry != null && entry.expiry >= now)
-                return entry.macAddr
+            //val entry = Await.result(promise, timeout.duration)
+            //val entry: ArpCacheEntry << promise
+            flow {
+                val now = Platform.currentTime
+                val entry = promise()
+                if (entry == null || entry.stale < now)
+                    self ! ArpForAddress(ip)
+                if (entry != null && entry.expiry >= now)
+                    rv.complete(Right(entry.macAddr))
+                else {
+                    // There's no arpCache entry, or it's expired.
+                    // Wait for the arpCache to become populated by an ARP reply.
 
-            // There's no arpCache entry, or it's expired.
-            // Wait for the arpCache to become populated by an ARP reply.
-
-            // TODO(jlm): When the Await suspends, which execution context
-            // is suspended?  Do we need to pass in the Coordinator's EC
-            // to avoid suspending a JVM thread?
-            try {
-                return Await.result(self ? WaitForArpEntry(ip),
-                                    timeout.duration).asInstanceOf[MAC]
-            } catch {
-                case _: AskTimeoutException => return null
-            }
+                    rv.complete(Right(self.ask(WaitForArpEntry(ip)).asInstanceOf[Future[MAC]]()))
+                    //XXX: Timeout ?
+                }
+            }(ec)
+            return rv
         }
 
         def set(ip: IntIPv4, mac: MAC) {
