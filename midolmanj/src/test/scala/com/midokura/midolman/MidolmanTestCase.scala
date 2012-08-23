@@ -3,34 +3,41 @@
 */
 package com.midokura.midolman
 
-import guice._
-import cluster.ClusterClientModule
-import guice.actors.{OutgoingMessage, TestableMidolmanActorsModule}
-import guice.config.MockConfigProviderModule
-import guice.datapath.MockDatapathModule
-import guice.zookeeper.MockZookeeperConnectionModule
-import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Suite, BeforeAndAfterAll}
-import com.google.inject.{AbstractModule, Module, Guice, Injector}
-import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.netlink.protos.OvsDatapathConnection
-import reactor.ReactorModule
-import services.{MidolmanActorsService, MidolmanService}
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import java.util.UUID
+
+import akka.testkit._
 import akka.actor._
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
 import akka.util.duration._
-import com.midokura.sdn.dp.{Packet, Port, Datapath}
-import scala.collection.JavaConversions._
-import collection.mutable
-import com.midokura.midonet.cluster.Client
-import java.util.UUID
-import com.midokura.midonet.cluster.services.MidostoreSetupService
-import akka.testkit._
-import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.midolman.DatapathController.{InitializationComplete, Initialize}
-import org.scalatest.matchers.ShouldMatchers
+import guice._
+import guice.actors.{OutgoingMessage, TestableMidolmanActorsModule}
+import guice.config.MockConfigProviderModule
+import guice.datapath.MockDatapathModule
+import guice.zookeeper.MockZookeeperConnectionModule
 
-trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
+import com.google.inject.{AbstractModule, Module, Guice, Injector}
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Suite,
+                      BeforeAndAfterAll}
+
+import com.midokura.midolman.DatapathController.{InitializationComplete,
+                                                 Initialize}
+import com.midokura.midolman.services.{MidolmanActorsService, MidolmanService}
+import com.midokura.midolman.guice.cluster.ClusterClientModule
+import com.midokura.midolman.guice.reactor.ReactorModule
+import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.services.MidostoreSetupService
+import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
+import com.midokura.sdn.dp.{Packet, Port, Datapath}
+
+
+trait MidolmanTestCase extends Suite with BeforeAndAfterAll
+             with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
 
     var injector: Injector = null
 

@@ -10,7 +10,10 @@ import com.midokura.sdn.dp.{Ports, Datapath}
 import collection.mutable
 import java.util.UUID
 import topology.VirtualToPhysicalMapper
-import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest, LocalDatapathRequest, LocalDatapathReply}
+import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest,
+                                         LocalDatapathRequest,
+                                         LocalDatapathReply}
+
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
