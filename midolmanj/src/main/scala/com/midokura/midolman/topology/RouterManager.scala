@@ -200,10 +200,8 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                     promise.complete(Right(value))
                 }
             })
-            //val entry = Await.result(promise, timeout.duration)
-            //val entry: ArpCacheEntry << promise
+            val now = Platform.currentTime
             flow {
-                val now = Platform.currentTime
                 val entry = promise()
                 if (entry == null || entry.stale < now)
                     self ! ArpForAddress(ip)
@@ -211,10 +209,8 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                     rv.complete(Right(entry.macAddr))
                 else {
                     // There's no arpCache entry, or it's expired.
-                    // Wait for the arpCache to become populated by an ARP reply.
-
-                    rv.complete(Right(self.ask(WaitForArpEntry(ip)).asInstanceOf[Future[MAC]]()))
-                    //XXX: Timeout ?
+                    // Wait for the arpCache to become populated by an ARP reply
+                    rv << self.ask(WaitForArpEntry(ip)).mapTo[MAC]
                 }
             }(ec)
             return rv
