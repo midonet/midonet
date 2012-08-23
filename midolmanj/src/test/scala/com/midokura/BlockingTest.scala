@@ -30,33 +30,51 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
 
     val config = ConfigFactory.parseString("""
         akka.actor.default-dispatcher {
-            type="akka.testkit.CallingThreadDispatcherConfigurator"
+            # type="akka.testkit.CallingThreadDispatcherConfigurator"
+            executor = "fork-join-executor"
+            fork-join-executor {
+                parallelism-max = 1
+            }
         }
     """)
     val system = ActorSystem("BlockingTest", ConfigFactory.load(config))
+    //val system = ActorSystem("BlockingTest")
 
     def testOneThread() {
         Thread.sleep(1000)
         val start = Platform.currentTime
-        var setTime = start-1
+        @volatile var time1 = start-1
+        @volatile var time2 = start-1
         var elapsed: Long = 0
         val promise = Promise[Int]()(system.dispatcher)
-        system.dispatcher.id should be === CallingThreadDispatcher.Id
+        //system.dispatcher.id should be === CallingThreadDispatcher.Id
+        assert(system.dispatcher.id != CallingThreadDispatcher.Id)
         system.scheduler.scheduleOnce(1000 milliseconds) { 
-            setTime = Platform.currentTime 
+            time1 = Platform.currentTime 
+            Thread.sleep(5300)
         }
-        elapsed = setTime - start
+        system.scheduler.scheduleOnce(1500 milliseconds) { 
+            time2 = Platform.currentTime 
+        }
+        //new Thread { Thread.sleep(3000); promise.complete(Right(1234)) }
+        elapsed = time1 - start
+        elapsed should be === -1
+        elapsed = time2 - start
         elapsed should be === -1
         elapsed = Platform.currentTime - start
         elapsed should be > 0L
         elapsed should be < 100L
-        new Thread { Thread.sleep(3000); promise.complete(Right(1234)) }
         //Await.result(promise, 4000 milliseconds)
-        Thread.sleep(4000)
-        elapsed = setTime - start
+        Thread.sleep(2000)
+        elapsed = time1 - start
+        elapsed should be >= 1000L
+        elapsed should be <= 1100L
+        elapsed = time2 - start
         elapsed should be === -1
-        //elapsed should be > 19L
-        //elapsed should be <= 21L
+        Thread.sleep(6000)
+        elapsed = time2 - start
+        elapsed should be >= 6300L
+        elapsed should be <= 6400L
     }
 
 }
