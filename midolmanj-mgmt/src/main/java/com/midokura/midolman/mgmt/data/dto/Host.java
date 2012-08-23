@@ -90,4 +90,16 @@ public class Host extends UriResource {
             return null;
         }
     }
+
+    /**
+     * @return the interface port map URI
+     */
+    public URI getInterfacePortMap() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getHostInterfacePortMap(getBaseUri(),
+                    id);
+        } else {
+            return null;
+        }
+    }
 }
