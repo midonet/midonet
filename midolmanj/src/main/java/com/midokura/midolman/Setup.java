@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.util.Sudo;
 
 public class Setup {
@@ -62,7 +62,7 @@ public class Setup {
     }
 
     private static List<String> getTopLevelPaths(String basePath) {
-        ZkPathManager pathMgr = new ZkPathManager(basePath);
+        PathBuilder pathMgr = new PathBuilder(basePath);
         List<String> paths = new ArrayList<String>();
         paths.add(pathMgr.getAdRoutesPath());
         paths.add(pathMgr.getBgpPath());
@@ -82,6 +82,7 @@ public class Setup {
         paths.add(pathMgr.getAgentVpnPath());
         paths.add(pathMgr.getPortGroupsPath());
         paths.add(pathMgr.getHostsPath());
+        paths.add(pathMgr.getTenantsPath());
         return paths;
     }
 

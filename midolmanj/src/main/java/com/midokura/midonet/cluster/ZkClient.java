@@ -97,22 +97,6 @@ public class ZkClient implements Client {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
-    public void setLocalVrnDatapath(UUID hostIdentifier, String datapathName) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void setLocalVrnPortMapping(UUID hostInterface, UUID portId,
-                                       String tapName) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void removeLocalPortMapping(UUID hostIdentifier, UUID portId) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     interface ClusterTask extends Runnable {
         public UUID getId();
     }
