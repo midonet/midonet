@@ -55,17 +55,22 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     }
 
     def testThreadSleep() {
+        val promise = Promise[Int]()(system.dispatcher)
+        checkForBlocking(promise, () => Thread.sleep(sleepTime))
+    }
+
+    private def checkForBlocking(promise: Promise[Int],
+                                 thunk: () => Unit) {
         Thread.sleep(1000)
         val start = Platform.currentTime
         @volatile var time1 = start-1
         @volatile var time2 = start-1
         @volatile var time3 = start-1
         var elapsed = 0L
-        val promise = Promise[Int]()(system.dispatcher)
         assert(system.dispatcher.id != CallingThreadDispatcher.Id)
         system.scheduler.scheduleOnce(initialDelay milliseconds) { 
             time1 = Platform.currentTime 
-            Thread.sleep(sleepTime)
+            thunk()
             time3 = Platform.currentTime
         }
         system.scheduler.scheduleOnce(1500 milliseconds) { 
