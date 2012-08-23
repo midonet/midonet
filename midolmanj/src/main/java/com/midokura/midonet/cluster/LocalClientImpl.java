@@ -272,15 +272,11 @@ public class LocalClientImpl implements Client {
 
                 if (config != null) {
                     // TODO see if we really need these here (see updates) 
-                    RoutingTable routingTable = null; 
+                    //RoutingTable routingTable = null; 
                     ArpTable arpTable = null; 
                     if (!routerMap.containsKey(id)) {
                         try {
-                            
                             arpTable = new ArpTable(routerMgr.getArpTableDirectory(id)); 
-                            
-                            
-                            
                         } catch (StateAccessException e) {
                             log.error(
                                 "Error retrieving MacPortTable for bridge {}",
@@ -341,11 +337,8 @@ public class LocalClientImpl implements Client {
     void buildRouterFromConfig(UUID id, RouterZkManager.RouterConfig config,
                                RouterBuilder builder, ArpTable arpTable) {
 
-        builder.setInFilter(config.inboundFilter)
-               .setOutFilter(config.outboundFilter);
-        
+        builder.setInFilter(config.inboundFilter).setOutFilter(config.outboundFilter);
         builder.setArpCache(new ArpCacheImpl(arpTable)); 
-        
         builder.build();
 
     }

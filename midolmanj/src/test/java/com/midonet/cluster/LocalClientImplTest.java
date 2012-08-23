@@ -43,6 +43,7 @@ import com.midokura.midonet.cluster.client.ForwardingElementBuilder;
 import com.midokura.midonet.cluster.client.MacLearningTable;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.midonet.cluster.client.SourceNatResource;
+import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.util.functors.Callback1;
 import com.midokura.util.functors.Callback3;
@@ -135,6 +136,30 @@ public class LocalClientImplTest {
                                                                      UUID.randomUUID(),
                                                                      UUID.randomUUID()));
         Thread.sleep(2000);
+        assertThat("Router update was notified",
+                   routerBuilder.getBuildCallsCount(), equalTo(2));
+
+    }
+   
+    @Test
+    public void ArpCacheTest() throws InterruptedException, KeeperException, StateAccessException {
+        initializeZKStructure();
+        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        UUID routerId = getRouterZkManager().create(); 
+        TestRouterBuilder routerBuilder = new TestRouterBuilder();
+        client.getRouter(routerId, routerBuilder);
+        Thread.sleep(2000);
+        assertThat("Build is called", routerBuilder.getBuildCallsCount(),
+                   equalTo(1));
+        
+        IntIPv4 ipAddr = IntIPv4.fromString("192.168.0.0_24");
+        MAC macEntry = MAC.random();
+        // add an entry in the arp cache. 
+        routerBuilder.addNewArpEntry(ipAddr, macEntry); 
+        
+        Thread.sleep(2000);
+        
+        assertEquals(macEntry, routerBuilder.getArpEntryForIp(ipAddr)); 
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(2));
 
@@ -291,6 +316,28 @@ public class LocalClientImplTest {
     
     class TestRouterBuilder implements RouterBuilder {
         int buildCallsCount = 0;
+        ArpCache arpCache; 
+        
+        private Logger log = LoggerFactory.getLogger(TestRouterBuilder.class);
+
+        public void addNewArpEntry(IntIPv4 ipAddr, MAC entry) {
+            arpCache.add(ipAddr, entry); 
+        }
+        
+        public MAC getArpEntryForIp(IntIPv4 ipAddr) {
+            final MAC[] result = new MAC[0]; 
+            arpCache.get(ipAddr, new Callback1<MAC>() {
+                @Override
+                public void call(MAC v) {
+                    result[0] = v; 
+                }
+            }); 
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            } 
+            return result[0]; 
+        }
         
         public int getBuildCallsCount() {
             return buildCallsCount;
@@ -304,20 +351,17 @@ public class LocalClientImplTest {
 
         @Override
         public ForwardingElementBuilder setID(UUID id) {
-            // TODO Auto-generated method stub
-            return null;
+            return this; 
         }
 
         @Override
         public ForwardingElementBuilder setInFilter(UUID filterID) {
-            // TODO Auto-generated method stub
-            return null;
+            return this; 
         }
 
         @Override
         public ForwardingElementBuilder setOutFilter(UUID filterID) {
-            // TODO Auto-generated method stub
-            return null;
+            return this; 
         }
 
         @Override
@@ -327,14 +371,12 @@ public class LocalClientImplTest {
 
         @Override
         public ForwardingElementBuilder start() {
-            // TODO Auto-generated method stub
-            return null;
+            return this;
         }
 
         @Override
         public void setArpCache(ArpCache table) {
-            // TODO Auto-generated method stub
-            
+           arpCache = table;  
         }
 
         @Override
