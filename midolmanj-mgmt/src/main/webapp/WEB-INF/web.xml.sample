@@ -99,7 +99,7 @@
   <!-- The following parameters should match the ones in midolman.conf -->
   <context-param>
     <param-name>cassandra-servers</param-name>
-    <param-value>localhost:2181</param-value>
+    <param-value>localhost:9160</param-value>
   </context-param>
   <context-param>
     <param-name>cassandra-cluster</param-name>
