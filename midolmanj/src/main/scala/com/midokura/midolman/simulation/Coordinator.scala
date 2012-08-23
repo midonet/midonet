@@ -16,18 +16,69 @@ import com.midokura.util.functors.Callback0
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.midolman.FlowController.{AddWildcardFlow, Consume,
                                              SendPacket}
+import akka.dispatch.ExecutionContext
 
 
 object Coordinator {
     trait Action
-    // TODO(jlm): Should we have DropResult include how wide a drop rule to use?
-    //            Then we could fold in NotIPv4Result
+    // TODO(jlm): Should we have DropAction include how wide a drop rule to use?
+    //            Then we could fold in NotIPv4Action
     // (pino): I wouldn't. The device may not know all the fields that mattered,
     //         and I would like to make that mechanism more generic.
-    case class DropResult() extends Action
-    case class NotIPv4Result() extends Action
-    case class ConsumedResult() extends Action
-    case class ForwardResult(outPort: UUID, outMatch: WildcardMatch) extends Action
+    case class DropAction() extends Action
+    // NotIPv4Action implies a DROP flow. However, it differs from DropAction
+    // in that the installed flow match can have all fields >L2 wildcarded.
+    // TODO(pino): make the installed flow computation smarter so that it
+    // TODO:       wildcards any field that wasn't used by the simulation. Then
+    // TODO:       remove NotIPv4Action
+    case class NotIPv4Action() extends Action
+    case class ConsumedAction() extends Action
+    case class ForwardAction(outPort: UUID) extends Action
+
+    trait PacketContext {
+        // This set will store the callback to call when this flow is removed
+        private val flowRemovedCallbacks = mutable.Set[Callback0]()
+        def addFlowRemovedCallback(cb: Callback0) {
+            flowRemovedCallbacks.add(cb)
+        }
+        // This Set will store the tags by which the flow should be indexed
+        // The index can be used to remove flows associated with the given tag
+        private val flowTags = mutable.Set[Any]()
+        def addFlowTag(tag: Any) {
+            flowTags.add(tag)
+        }
+    }
+
+    trait Device {
+        /**
+         * Process a packet described by the given match object. Note that the
+         * Ethernet packet is the one originally ingressed the virtual network
+         * - it does not reflect the changes made by other devices' handling of
+         * the packet (whereas the match object does).
+         *
+         * @param pktMatch The wildcard match that describes the packet's
+         * fields at the time it ingresses the device. This match contains the
+         * UUID of the ingress port; it can be accessed via getInputPortUUID.
+         * The implementation of process should modify the pktMatch to reflect
+         * how the device would modify the packet during handling/forwarding.
+         * @param packet The original packet that ingressed the virtual network,
+         * which may be different from the packet that actually arrives at this
+         * device.
+         * @param pktContext The context for the simulation of this packet's
+         * traversal of the virtual network. Use the context to subscribe
+         * for notifications on the removal of any resulting flows, or to tag
+         * any resulting flows for indexing.
+         * @param ec TODO(jlm): document this the execution context.
+         * @return An instance of Action that reflects what the device would do
+         * after handling this packet (e.g. drop it, consume it, forward it).
+         */
+        def process(pktMatch: WildcardMatch,
+                    packet: Ethernet,
+                    pktContext: PacketContext,
+                    ec: ExecutionContext)
+        : Coordinator.Action
+    }
+
 }
 
 /**
@@ -63,7 +114,8 @@ object Coordinator {
  *                                  via which the packet egresses the device.
  */
 class Coordinator(val origMatch: WildcardMatch, val packet: Array[Byte],
-                  val generatedPacketEgressPort: UUID) extends Actor {
+                  val generatedPacketEgressPort: UUID)
+        extends Actor with Coordinator.PacketContext {
     import Coordinator._
     private val log = Logging(context.system, this)
     private val origEthernetPkt = Ethernet.deserialize(packet)
@@ -91,17 +143,6 @@ class Coordinator(val origMatch: WildcardMatch, val packet: Array[Byte],
             //origEgressPort = virtualTopologyManager().ask(
             //    PortRequest(origMatch.getInputPortUUID, false /* no update */))
         }
-    }
-    // This set will store the callback to call when this flow is removed
-    private val flowRemovedCallbacks = mutable.Set[Callback0]()
-    def addFlowRemovedCallback(cb: Callback0) {
-        flowRemovedCallbacks.add(cb)
-    }
-    // This Set will store the tags by which the flow should be indexed
-    // The index can be used to remove flows associated with the given tag
-    private val flowTags = mutable.Set[Any]()
-    def addFlowTag(tag: Any) {
-        flowTags.add(tag)
     }
 
     def isInternallyGenerated: Boolean = { generatedPacketEgressPort != null }
@@ -140,7 +181,7 @@ class Coordinator(val origMatch: WildcardMatch, val packet: Array[Byte],
             val currentFE = deviceOfPort(wFlowMatch.getInputPortUUID)
             //val result = currentFE.process(pktContext, context.dispatcher)
             /* XXX TODO(pino): result match {
-                case ForwardResult(outPortID, outMatch) =>
+                case ForwardAction(outPortID, outMatch) =>
                     pktContext.mmatch = nextPortMatch.mmatch
                     val peerPort = peerOfPort(nextPortMatch.port)
                     if (peerPort == null)

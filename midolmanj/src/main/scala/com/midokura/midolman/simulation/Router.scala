@@ -16,9 +16,8 @@ import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   MaterializedRouterPortConfig,
                                                   RouterPortConfig}
 import com.midokura.midolman.openflow.MidoMatch
-import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.simulation.Coordinator.{ForwardResult, ConsumedResult, NotIPv4Result, DropResult}
+import com.midokura.midolman.simulation.Coordinator._
 
 
 class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
@@ -30,18 +29,18 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
 
     override def process(ingressMatch: WildcardMatch,
                          packet: Ethernet,
-                         coordinator: Coordinator,
+                         pktContext: PacketContext,
                          ec: ExecutionContext)
-            : Coordinator.Action = {
+            : Action = {
         val hwDst = ingressMatch.getEthernetDestination
         val rtrPortCfg: RouterPortConfig = getRouterPortConfig(ingressMatch.getInputPortUUID)
         if (rtrPortCfg == null) {
             log.error("Could not get configuration for port " + ingressMatch.getInputPortUUID)
-            return new DropResult()
+            return new DropAction()
         }
         if (ingressMatch.getEtherType != IPv4.ETHERTYPE &&
                 ingressMatch.getEtherType != ARP.ETHERTYPE)
-            return new NotIPv4Result()
+            return new NotIPv4Action()
 
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
@@ -49,16 +48,16 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                     ingressMatch.getNetworkProtocol == ARP.OP_REQUEST) {
                 processArpRequest(packet.getPayload.asInstanceOf[ARP],
                                   ingressMatch.getInputPortUUID, rtrPortCfg)
-                return new ConsumedResult()
+                return new ConsumedAction()
             } else
-                return new DropResult()
+                return new DropAction()
         }
 
         if (hwDst != rtrPortCfg.getHwAddr) {
             // Not addressed to us, log.warn and drop.
             log.warn("{} neither broadcast nor inPort's MAC ({})", hwDst,
                      rtrPortCfg.getHwAddr)
-            return new DropResult()
+            return new DropAction()
         }
 
         if (ingressMatch.getEtherType == ARP.ETHERTYPE) {
@@ -66,9 +65,9 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             if (ingressMatch.getNetworkProtocol == ARP.OP_REPLY) {
                 processArpReply(packet.getPayload.asInstanceOf[ARP],
                                 ingressMatch.getInputPortUUID, rtrPortCfg)
-                return new ConsumedResult()
+                return new ConsumedAction()
             } else
-                return new DropResult()
+                return new DropAction()
         }
 
         val nwDst = ingressMatch.getNetworkDestination
@@ -77,9 +76,9 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
             if (isIcmpEchoRequest(null /* XXX TODO(pino): ingressMatch */)) {
                 // XXX TODO(pino): sendIcmpEchoReply(ingress, rtrPortCfg)
-                return new ConsumedResult()
+                return new ConsumedAction()
             } else
-                return new DropResult()
+                return new DropAction()
         }
 
         // XXX: Apply the pre-routing (ingress) chain
@@ -88,26 +87,26 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         if (rt == null) {
             // No route to network
             // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
-            return new DropResult()
+            return new DropAction()
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
-            return new DropResult()
+            return new DropAction()
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
             // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_FILTER_PROHIB)
-            return new DropResult()
+            return new DropAction()
         }
         if (rt.nextHop != Route.NextHop.PORT) {
             log.error("Routing table lookup for {} returned invalid nextHop " +
                 "of {}", nwDst, rt.nextHop)
             // TODO(jlm, pino): Should this be an exception?
-            return new DropResult()
+            return new DropAction()
         }
         if (rt.nextHopPort == null) {
             log.error("Routing table lookup for {} forwarded to port null.",
                 nwDst)
             // TODO(pino): should we remove this route?
-            return new DropResult()
+            return new DropAction()
         }
 
         // XXX: Apply post-routing (egress) chain.
@@ -116,12 +115,12 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         if (outPortCfg == null) {
             log.error("Can't find the configuration for the egress port {}",
                 rt.nextHopPort)
-            return new DropResult()
+            return new DropAction()
         }
         val outPortIP = new IntIPv4(outPortCfg.portAddr)
         if (nwDst == outPortIP) {
             // Drop.  TODO(jlm,pino): Should we check for ICMP echos?
-            return new DropResult()
+            return new DropAction()
         }
         var matchOut: WildcardMatch = null // ingressMatch.clone
         // Set HWSrc
@@ -133,12 +132,12 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                     log.warn("Packet forwarded to dangling logical port {}",
                         rt.nextHopPort)
                     // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
-                    return new DropResult()
+                    return new DropAction()
                 }
                 val peerMac = getPeerMac(logCfg)
                 if (peerMac != null) {
                     matchOut.setEthernetDestination(peerMac)
-                    return ForwardResult(rt.nextHopPort, matchOut)
+                    return ForwardAction(rt.nextHopPort)
                 }
             // TODO(jlm,pino): Should not having the peerMac be an error?
             case _ => /* Fall through to ARP'ing below. */
@@ -149,11 +148,11 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
         val nextHopMac = getMacForIP(rt.nextHopPort, nextHopIP, ec)
         if (nextHopMac != null) {
             matchOut.setEthernetDestination(nextHopMac)
-            return new ForwardResult(rt.nextHopPort, matchOut)
+            return new ForwardAction(rt.nextHopPort)
         } else {
             // Couldn't get the MAC.  getMacForIP will send any ICPM !H,
             // so here we just drop.
-            return new DropResult()
+            return new DropAction()
         }
     }
 

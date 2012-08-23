@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 
-public class WildcardMatch {
+public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 
@@ -321,5 +321,14 @@ public class WildcardMatch {
         }
 
         return result;
+    }
+
+    /**
+     * Implement clonable interface
+     */
+    @Override
+    public WildcardMatch clone() {
+        // XXX TODO(pino): implement me!
+        return null;
     }
 }

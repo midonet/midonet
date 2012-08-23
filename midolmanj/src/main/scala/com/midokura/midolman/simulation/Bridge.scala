@@ -15,7 +15,7 @@ import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.util.functors.Callback1
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.simulation.Coordinator.{ForwardResult, DropResult}
+import com.midokura.midolman.simulation.Coordinator._
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
@@ -45,7 +45,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
     override def process(ingressMatch: WildcardMatch,
                          packet: Ethernet,
-                         coordinator: Coordinator,
+                         packetContext: PacketContext,
                          ec: ExecutionContext)
             : Coordinator.Action = {
         val srcDlAddress = ingressMatch.getEthernetSource
@@ -53,7 +53,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(srcDlAddress))
-            return new DropResult()
+            return new DropAction()
 
         var matchOut: WildcardMatch = null // TODO
         var outPortID: UUID = null
@@ -109,7 +109,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         //XXX: Add to traversed elements list if flooding.
 
-        return new ForwardResult(outPortID, matchOut)
+        return new ForwardAction(outPortID)
     }
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext): UUID = {
