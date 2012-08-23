@@ -22,7 +22,7 @@ import akka.util.duration._
 import com.midokura.sdn.dp.{Packet, Port, Datapath}
 import scala.collection.JavaConversions._
 import collection.mutable
-import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.{DataClient, Client}
 import java.util.UUID
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import akka.testkit._
@@ -47,8 +47,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll with BeforeAndAfter 
         injector.getInstance(classOf[MidolmanActorsService]).system
     }
 
-    protected def midoStore(): Client = {
+    protected def clusterClient(): Client = {
         injector.getInstance(classOf[Client])
+    }
+
+    protected def clusterDataClient(): DataClient = {
+        injector.getInstance(classOf[DataClient])
     }
 
     protected def hostId(): UUID = {

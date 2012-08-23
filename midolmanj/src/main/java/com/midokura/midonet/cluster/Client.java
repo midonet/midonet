@@ -15,7 +15,6 @@ import com.midokura.midonet.cluster.client.RouterBuilder;
 
 public interface Client {
 
-
     enum PortType {
         InteriorBridge, ExteriorBridge, InteriorRouter, ExteriorRouter
     }
@@ -38,9 +37,9 @@ public interface Client {
 
     void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder);
 
-    void setLocalVrnDatapath(UUID hostIdentifier, String datapathName);
-
-    void setLocalVrnPortMapping(UUID hostInterface, UUID portId, String tapName);
-
-    void removeLocalPortMapping(UUID hostIdentifier, UUID portId);
+//    void setLocalVrnDatapath(UUID hostIdentifier, String datapathName);
+//
+//    void setLocalVrnPortMapping(UUID hostInterface, UUID portId, String tapName);
+//
+//    void removeLocalPortMapping(UUID hostIdentifier, UUID portId);
 }

@@ -19,7 +19,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
     def testDatapathPacketIn() {
 
         val vifPort = UUID.randomUUID()
-        midoStore().setLocalVrnPortMapping(hostId, vifPort, "port")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort, "port")
 
         initializeDatapath() should not be (null)
 
@@ -35,11 +35,11 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         packetIn should not be null
         packetIn.packet should not be null
-        packetIn.wildcardMatch should not be null
+        packetIn.wMatch should not be null
 
         val packetInMsg = simProbe().expectMsgType[PacketIn]
 
-        packetInMsg.wildcardMatch should not be null
-        packetInMsg.wildcardMatch.getInputPortUUID should be (vifPort)
+        packetInMsg.wMatch should not be null
+        packetInMsg.wMatch.getInputPortUUID should be (vifPort)
     }
 }

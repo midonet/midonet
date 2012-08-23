@@ -60,13 +60,13 @@ public class LocalClientImpl implements Client {
 
     @Inject
     RouterZkManager routerMgr;
-    
+
     @Inject
     ZookeeperConfig zkConfig;
 
     @Inject
     Directory dir;
-    
+
     @Inject
     PortZkManager portMgr;
 
@@ -77,7 +77,7 @@ public class LocalClientImpl implements Client {
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
-    
+
     // bridge maps
     Map<UUID, BridgeBuilder> bridgeBuilderMap = new ConcurrentHashMap<UUID, BridgeBuilder>();
 
@@ -144,17 +144,6 @@ public class LocalClientImpl implements Client {
         triggerUpdate(hostIdentifier);
     }
 
-    @Override
-    public void setLocalVrnDatapath(UUID hostIdentifier, String datapathName) {
-        try {
-            hostZkManager.addVirtualDatapathMapping(hostIdentifier,
-                                                    datapathName);
-            triggerUpdate(hostIdentifier);
-        } catch (StateAccessException e) {
-            log.error("Exception: ", e);
-        }
-    }
-
     private void triggerUpdate(UUID hostIdentifier) {
         try {
 
@@ -174,29 +163,6 @@ public class LocalClientImpl implements Client {
             }
 
             builder.build();
-        } catch (StateAccessException e) {
-            log.error("Exception: ", e);
-        }
-    }
-
-    @Override
-    public void setLocalVrnPortMapping(UUID hostIdentifier, UUID portId,
-                                       String tapName) {
-        try {
-            hostZkManager.addVirtualPortMapping(hostIdentifier,
-                                                new HostDirectory.VirtualPortMapping(
-                                                    portId, tapName));
-            triggerUpdate(hostIdentifier);
-        } catch (StateAccessException e) {
-            log.error("Exception: ", e);
-        }
-    }
-
-    @Override
-    public void removeLocalPortMapping(UUID hostIdentifier, UUID portId) {
-        try {
-            hostZkManager.removeVirtualPortMapping(hostIdentifier, portId);
-            triggerUpdate(hostIdentifier);
         } catch (StateAccessException e) {
             log.error("Exception: ", e);
         }
@@ -268,10 +234,10 @@ public class LocalClientImpl implements Client {
                 }
 
                 if (config != null) {
-                    ArpTable arpTable = null; 
+                    ArpTable arpTable = null;
                     if (!isUpdate) {
                         try {
-                            arpTable = new ArpTable(routerMgr.getArpTableDirectory(id)); 
+                            arpTable = new ArpTable(routerMgr.getArpTableDirectory(id));
                         } catch (StateAccessException e) {
                             log.error(
                                 "Error retrieving MacPortTable for bridge {}",
@@ -301,7 +267,7 @@ public class LocalClientImpl implements Client {
             }
         };
     }
-    
+
     Runnable watchRouter(final UUID id) {
         return new Runnable() {
             @Override
@@ -374,32 +340,32 @@ public class LocalClientImpl implements Client {
         builder.build();
 
     }
-    
+
     void buildRouterFromConfig(UUID id, RouterZkManager.RouterConfig config,
                                RouterBuilder builder, ArpTable arpTable) {
 
         builder.setInFilter(config.inboundFilter).setOutFilter(config.outboundFilter);
-        builder.setArpCache(new ArpCacheImpl(arpTable)); 
+        builder.setArpCache(new ArpCacheImpl(arpTable));
         builder.build();
 
     }
-    
+
     class ArpCacheImpl implements ArpCache {
 
-        ArpTable arpTable; 
-       
+        ArpTable arpTable;
+
         ArpCacheImpl(ArpTable arpTable) {
-            this.arpTable = arpTable; 
+            this.arpTable = arpTable;
         }
-        
+
         @Override
         public void get(final IntIPv4 ipAddr, final Callback1<ArpCacheEntry> cb) {
            reactorLoop.submit( new Runnable() {
 
             @Override
             public void run() {
-               cb.call(arpTable.get(ipAddr)); 
-            }}) ; 
+               cb.call(arpTable.get(ipAddr));
+            }}) ;
         }
 
         @Override
@@ -411,9 +377,9 @@ public class LocalClientImpl implements Client {
                 try {
                     arpTable.put(ipAddr, entry);
                 } catch (Exception e) {
-                   log.error("Failed adding ARP entry. IP: {} MAC: {}", new Object[]{ipAddr, entry});  
-                } 
-            }}) ; 
+                   log.error("Failed adding ARP entry. IP: {} MAC: {}", new Object[]{ipAddr, entry});
+                }
+            }}) ;
         }
 
         @Override
@@ -425,11 +391,11 @@ public class LocalClientImpl implements Client {
                try {
                 arpTable.removeIfOwner(ipAddr);
             } catch (Exception e) {
-                log.error("Could not remove Arp entry for IP: {}", ipAddr); 
-            }  
-            }}); 
+                log.error("Could not remove Arp entry for IP: {}", ipAddr);
+            }
+            }});
         }
-        
+
     }
 
     class MacLearningTableImpl implements MacLearningTable {
@@ -506,7 +472,7 @@ public class LocalClientImpl implements Client {
 
         }
     }
-    
+
     class LogicalPortWatcher implements Runnable {
         UUID bridgeID;
         BridgeBuilder builder;
@@ -520,5 +486,4 @@ public class LocalClientImpl implements Client {
                 updateLogicalPorts(builder, bridgeID);
             }
     }
-
 }
