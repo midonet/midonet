@@ -1,14 +1,17 @@
 // Copyright 2012 Midokura Inc.
 
 /*
- * Test plan:  Create dispatcher with single thread
- *         (Verify it's a single thread by:
- *                 Scheduling an operation in 10 ms, sleeping for 20ms, verify
- *                 operation doesn't happen until 20ms, not 10ms.)
- * Schedule operation in 10ms.
- * Wait on a future.
- * Complete future in 20ms.
- * Verify operation happened in 10ms with flow block, but in 20ms with Await.
+ * Test plan:
+ *    - Create executor with single thread.
+ *    - Schedule operations on the executor for T+1.0s and T+1.5s.
+ *    - The first operation records its start time, waits for 5.3s,
+ *          and records its stop time.
+ *    - The second operation only records its start time.
+ *
+ * If the first operation's wait blocked the thread, then the second
+ * operation's recorded time will be 6.3s, but if it only blocked the
+ * execution context and returned the thread to the executor, the recorded
+ * time will be 1.5s.
  */
 
 package com.midokura
@@ -44,9 +47,6 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     val margin = 100L
 
     private def spawnPromiseThread(promise: Promise[Int]) {
-        /*
-        val thread = new Thread {
-        */
         spawn {    
             Thread.sleep(initialDelay+sleepTime)
             promise.complete(Right(1234))
@@ -62,7 +62,6 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         @volatile var time3 = start-1
         var elapsed = 0L
         val promise = Promise[Int]()(system.dispatcher)
-        //system.dispatcher.id should be === CallingThreadDispatcher.Id
         assert(system.dispatcher.id != CallingThreadDispatcher.Id)
         system.scheduler.scheduleOnce(initialDelay milliseconds) { 
             time1 = Platform.currentTime 
@@ -94,6 +93,9 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         elapsed should be === -1
         Thread.sleep(6000)
         elapsed = time2 - start
+        elapsed should be >= initialDelay + sleepTime
+        elapsed should be <= initialDelay + sleepTime + margin
+        elapsed = time3 - start
         elapsed should be >= initialDelay + sleepTime
         elapsed should be <= initialDelay + sleepTime + margin
     }
