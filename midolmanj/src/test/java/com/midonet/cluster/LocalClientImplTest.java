@@ -4,24 +4,23 @@
 
 package com.midonet.cluster;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.util.Arrays;
 import java.util.UUID;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
-
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.midokura.midolman.Setup;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
@@ -31,6 +30,7 @@ import com.midokura.midolman.guice.config.TypedConfigModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
@@ -50,8 +50,6 @@ import com.midokura.util.functors.Callback3;
 
 public class LocalClientImplTest {
     
-    private Logger log = LoggerFactory.getLogger(LocalClientImplTest.class);
-
     @Inject
     Client client;
     Injector injector = null;
@@ -153,15 +151,15 @@ public class LocalClientImplTest {
                    equalTo(1));
         
         IntIPv4 ipAddr = IntIPv4.fromString("192.168.0.0_24");
-        MAC macEntry = MAC.random();
+        ArpCacheEntry arpEntry = new ArpCacheEntry(MAC.random(), 0, 0, 0); 
         // add an entry in the arp cache. 
-        routerBuilder.addNewArpEntry(ipAddr, macEntry); 
+        routerBuilder.addNewArpEntry(ipAddr, arpEntry); 
         
         Thread.sleep(2000);
         
-        assertEquals(macEntry, routerBuilder.getArpEntryForIp(ipAddr)); 
+        assertEquals(arpEntry, routerBuilder.getArpEntryForIp(ipAddr)); 
         assertThat("Router update was notified",
-                   routerBuilder.getBuildCallsCount(), equalTo(2));
+                   routerBuilder.getBuildCallsCount(), equalTo(1));
 
     }
     
@@ -318,17 +316,15 @@ public class LocalClientImplTest {
         int buildCallsCount = 0;
         ArpCache arpCache; 
         
-        private Logger log = LoggerFactory.getLogger(TestRouterBuilder.class);
-
-        public void addNewArpEntry(IntIPv4 ipAddr, MAC entry) {
+        public void addNewArpEntry(IntIPv4 ipAddr, ArpCacheEntry entry) {
             arpCache.add(ipAddr, entry); 
         }
         
-        public MAC getArpEntryForIp(IntIPv4 ipAddr) {
-            final MAC[] result = new MAC[0]; 
-            arpCache.get(ipAddr, new Callback1<MAC>() {
+        public ArpCacheEntry getArpEntryForIp(IntIPv4 ipAddr) {
+            final ArpCacheEntry[] result = new ArpCacheEntry[1]; 
+            arpCache.get(ipAddr, new Callback1<ArpCacheEntry>() {
                 @Override
-                public void call(MAC v) {
+                public void call(ArpCacheEntry v) {
                     result[0] = v; 
                 }
             }); 

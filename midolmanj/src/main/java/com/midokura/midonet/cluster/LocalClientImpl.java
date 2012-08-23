@@ -4,11 +4,11 @@
 package com.midokura.midonet.cluster;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -20,19 +20,17 @@ import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.layer3.RoutingTable;
 import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import com.midokura.midonet.cluster.client.ArpCache;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
@@ -271,8 +269,6 @@ public class LocalClientImpl implements Client {
                 }
 
                 if (config != null) {
-                    // TODO see if we really need these here (see updates) 
-                    //RoutingTable routingTable = null; 
                     ArpTable arpTable = null; 
                     if (!routerMap.containsKey(id)) {
                         try {
@@ -287,7 +283,7 @@ public class LocalClientImpl implements Client {
                     }
                     routerMap.put(id, config);
                     buildRouterFromConfig(id, config, builder, arpTable);
-                    log.info("Update configuration for bridge {}", id);
+                    log.info("Update configuration for router {}", id);
                 }
             }
         };
@@ -352,25 +348,23 @@ public class LocalClientImpl implements Client {
         }
         
         @Override
-        public void get(final IntIPv4 ipAddr, final Callback1<MAC> cb) {
+        public void get(final IntIPv4 ipAddr, final Callback1<ArpCacheEntry> cb) {
            reactorLoop.submit( new Runnable() {
 
             @Override
             public void run() {
-               cb.call(arpTable.get(ipAddr).macAddr); 
+               cb.call(arpTable.get(ipAddr)); 
             }}) ; 
         }
 
         @Override
-        public void add(final IntIPv4 ipAddr, final MAC entry) {
+        public void add(final IntIPv4 ipAddr, final ArpCacheEntry entry) {
            reactorLoop.submit( new Runnable() {
 
             @Override
             public void run() {
-                // TODO filling this ? 
-                ArpCacheEntry arpCacheEntry = new ArpCacheEntry(entry, 0, 0, 0);
                 try {
-                    arpTable.put(ipAddr, arpCacheEntry);
+                    arpTable.put(ipAddr, entry);
                 } catch (Exception e) {
                    log.error("Failed adding ARP entry. IP: {} MAC: {}", new Object[]{ipAddr, entry});  
                 } 
