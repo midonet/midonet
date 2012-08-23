@@ -627,41 +627,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doFlowsFlush(@Nonnull final Datapath datapath,
-                                          @Nonnull final Callback<Boolean> callback,
-                                          long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
-
-        if (datapathId == 0) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The datapath to dump flows for needs a valid datapath id"));
-            return;
-        }
-
-        NetlinkMessage message = newMessage()
-            .addValue(datapathId)
-            .build();
-
-        newRequest(flowFamily, FlowFamily.Cmd.DEL)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Boolean>() {
-                    @Override
-                    public Boolean apply(@Nullable List<ByteBuffer> input) {
-                        return Boolean.TRUE;
-                    }
-                })
-            .withTimeout(timeoutMillis)
-            .send();
-    }
-
-    @Override
     protected void _doFlowsCreate(@Nonnull final Datapath datapath,
                                   @Nonnull final Flow flow,
                                   @Nonnull final Callback<Flow> callback,
@@ -717,10 +682,90 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull final Flow flow,
                                   @Nonnull final Callback<Flow> callback,
                                   final long timeoutMillis) {
-        // XXX TODO(pino): implement me!
+        if (!validateState(callback))
+            return;
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+            return;
+        }
+
+        FlowMatch match = flow.getMatch();
+
+        if ( match == null ) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The flow to delete should have a non null FlowMatch attached"));
+            return;
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .addAttrNested(AttrKey.KEY)
+                .addAttrs(match.getKeys())
+                .build()
+            .build();
+
+        newRequest(flowFamily, FlowFamily.Cmd.DEL)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Flow>() {
+                    @Override
+                    public Flow apply(@Nullable List<ByteBuffer> input) {
+                        if (input == null || input.size() == 0 ||
+                            input.get(0) == null)
+                            return null;
+
+                        return deserializeFlow(input.get(0), datapathId);
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
     }
 
-        @Override
+
+    @Override
+    protected void _doFlowsFlush(@Nonnull final Datapath datapath,
+                                 @Nonnull final Callback<Boolean> callback,
+                                 long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+            return;
+        }
+
+        NetlinkMessage message = newMessage()
+            .addValue(datapathId)
+            .build();
+
+        newRequest(flowFamily, FlowFamily.Cmd.DEL)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
+            .withPayload(message.getBuffer())
+            .withCallback(
+                callback,
+                new Function<List<ByteBuffer>, Boolean>() {
+                    @Override
+                    public Boolean apply(@Nullable List<ByteBuffer> input) {
+                        return Boolean.TRUE;
+                    }
+                })
+            .withTimeout(timeoutMillis)
+            .send();
+    }
+
+    @Override
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match,
                                @Nonnull Callback<Flow> callback, long timeoutMillis) {
 
