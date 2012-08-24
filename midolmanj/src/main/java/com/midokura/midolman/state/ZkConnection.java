@@ -54,7 +54,7 @@ public class ZkConnection implements Watcher {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    log.warn("open", e);
+                    log.warn("While opening a new ZooKeeper session", e);
                 }
             }
             if (!connected)
@@ -74,7 +74,8 @@ public class ZkConnection implements Watcher {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    log.warn("reopen", e);
+                    log.warn("While opening a new ZK session after expiration",
+                             e);
                 }
             }
             if (!connected)
@@ -90,7 +91,7 @@ public class ZkConnection implements Watcher {
             try {
                 zk.close();
             } catch (InterruptedException e) {
-                log.warn("close", e);
+                log.warn("While closing a ZK session", e);
             }
             // Don't reset zk to null. The class is not meant to be re-used.
         }
