@@ -20,6 +20,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.dispatch.{Await, Promise}
 import akka.dispatch.Future.flow
 import akka.event.Logging
+import akka.pattern.pipe
 import akka.testkit.CallingThreadDispatcher
 import akka.util.duration._
 import compat.Platform
@@ -111,11 +112,19 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     }
 
     // This fails, because the thunk never stops waiting for the promise.
-    def IGNOREtestFlowBlock {
+    def IGNOREtestFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, () => flow {
-            time3UpdatingActor ! promise()
-        }(system.dispatcher), false, spawnFlowPromiseThread)
+        checkForBlocking(promise, () => {
+            Await.result(flow {
+                time3UpdatingActor ! promise()
+            }(system.dispatcher), 8 seconds)
+        }, true, spawnFlowPromiseThread)
+    }
+
+    def testPipeTo() {
+        val promise = Promise[Int]()(system.dispatcher)
+        checkForBlocking(promise, () => (promise pipeTo time3UpdatingActor),
+                         false, spawnRawPromiseThread)
     }
 
     private def checkForBlocking(promise: Promise[Int],
