@@ -4,7 +4,7 @@
 package com.midokura.midolman.topology
 
 import akka.actor.ActorRef
-import akka.dispatch.{Await, ExecutionContext, Future, Promise}
+import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.pattern.{ask, AskTimeoutException}
 import akka.util.Timeout
@@ -197,7 +197,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             val rv = Promise[MAC]()(ec)
             arpCache.get(ip, new Callback1[ArpCacheEntry] {
                 def call(value: ArpCacheEntry) {
-                    promise.complete(Right(value))
+                    promise.success(value)
                 }
             })
             val now = Platform.currentTime
@@ -206,7 +206,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                 if (entry == null || entry.stale < now)
                     self ! ArpForAddress(ip)
                 if (entry != null && entry.expiry >= now)
-                    rv.complete(Right(entry.macAddr))
+                    rv.success(entry.macAddr)
                 else {
                     // There's no arpCache entry, or it's expired.
                     // Wait for the arpCache to become populated by an ARP reply

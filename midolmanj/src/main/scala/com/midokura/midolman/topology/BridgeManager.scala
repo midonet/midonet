@@ -137,7 +137,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         }
 
         def getCount(mac: MAC, port: UUID): Int = {
-            implicit val timeout = Timeout(1 millisecond)
+            implicit val timeout = Timeout(10 milliseconds)
             // GetFlowCount immediately returns, so Await is safe here.
             Await.result(self ? GetFlowCount(mac, port),
                 timeout.duration).asInstanceOf[Int]

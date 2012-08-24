@@ -3,28 +3,29 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.{Await, ExecutionContext, Promise}
+import akka.dispatch.{Await, ExecutionContext, Future, Promise}
 import akka.util.duration._
 import scala.collection.mutable
+import scala.util.continuations.cps
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
+import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
+import com.midokura.midolman.topology.{MacFlowCount, 
+                                       RemoveFlowCallbackGenerator}
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.util.functors.{Callback0, Callback1}
-import com.midokura.midolman.topology.{RemoveFlowCallbackGenerator, MacFlowCount}
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
              val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
              val inFilter: Chain, val outFilter: Chain,
-             val flowRemovedCallbackGen : RemoveFlowCallbackGenerator,
-             val rtrMacToLogicalPortId : mutable.Map[MAC, UUID],
-             val rtrIpToMac : mutable.Map[IntIPv4, MAC]
-                ) extends Device {
+             val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
+             val rtrMacToLogicalPortId: mutable.Map[MAC, UUID],
+             val rtrIpToMac: mutable.Map[IntIPv4, MAC]) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
 
@@ -48,20 +49,26 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                          packet: Ethernet,
                          packetContext: PacketContext,
                          ec: ExecutionContext)
-            : Coordinator.Action = {
+            : Coordinator.Action @cps[Future[_]] = {
+        // Drop the packet if its L2 source is a multicast address.
+        if (Ethernet.isMcast(ingressMatch.getEthernetSource))
+            new DropAction
+        else
+            normalProcess(ingressMatch, packet, packetContext, ec)
+    }
+
+    def normalProcess(ingressMatch: WildcardMatch, packet: Ethernet,
+                      packetContext: PacketContext, ec: ExecutionContext) = {
         val srcDlAddress = ingressMatch.getEthernetSource
         val dstDlAddress = ingressMatch.getEthernetDestination
-
-        // Drop the packet if its L2 source is a multicast address.
-        if (Ethernet.isMcast(srcDlAddress))
-            return new DropAction()
 
         var matchOut: WildcardMatch = null // TODO
         var outPortID: UUID = null
 
         //XXX: Call ingress (pre-bridging) chain
 
-        if (Ethernet.isMcast(dstDlAddress)) {
+        Ethernet.isMcast(dstDlAddress) match {
+          case true =>
             // L2 Multicast
             val nwDst = ingressMatch.getNetworkDestination
             if (Ethernet.isBroadcast(dstDlAddress) &&
@@ -76,7 +83,9 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                 log.info("flooding to port set {}", id)
                 outPortID = id
             }
-        } else {
+            // TODO(jlm): Ugly.  Is there a better way?
+            (): Unit @cps[Future[Any]]
+          case false =>
             // L2 unicast
             // Is dst MAC in macPortMap? (learned)
             outPortID = getPortOfMac(dstDlAddress, ec)
@@ -92,7 +101,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         }
 
         // Learn the src MAC unless it's a logical port's.
-        if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
+        rtrMacToLogicalPortId.contains(srcDlAddress) match {
+          case false =>
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
             val oldPortID = getPortOfMac(srcDlAddress, ec)
             if (ingressMatch.getInputPortUUID != oldPortID) {
@@ -115,16 +125,16 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         //XXX: Add to traversed elements list if flooding.
 
-        return new ForwardAction(outPortID)
+        new ForwardAction(outPortID)
     }
 
-    private def getPortOfMac(mac: MAC, ec: ExecutionContext): UUID = {
+    private def getPortOfMac(mac: MAC, ec: ExecutionContext) = {
         val rv = Promise[UUID]()(ec)
         macPortMap.get(mac, new Callback1[UUID] {
             def call(port: UUID) {
-                rv.complete(Right(port))
+                rv.success(port)
             }
         })
-        Await.result(rv, 1 minute)
+        rv()
     }
 }

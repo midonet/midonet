@@ -3,9 +3,10 @@
 package com.midokura.midolman.simulation
 
 import akka.actor.{Actor, ActorRef}
-import akka.dispatch.ExecutionContext
+import akka.dispatch.{ExecutionContext, Future}
 import akka.event.Logging
 import collection.mutable
+import util.continuations.cps
 
 import java.util.UUID
 
@@ -72,7 +73,7 @@ object Coordinator {
         def process(pktMatch: WildcardMatch,
                     packet: Ethernet,
                     pktContext: PacketContext,
-                    ec: ExecutionContext): Action
+                    ec: ExecutionContext): Action @cps[Future[_]]
     }
 
 }
