@@ -38,27 +38,6 @@ public class TestRouter {
 
     public static class TestRouterCrud extends JerseyTest {
 
-        private static class RouterConfig {
-            private UUID id;
-            private String name;
-
-            public UUID getId() {
-                return id;
-            }
-
-            public void setId(UUID id) {
-                this.id = id;
-            }
-
-            public String getName() {
-                return name;
-            }
-
-            public void setName(String name) {
-                this.name = name;
-            }
-        }
-
         private DtoWebResource dtoResource;
         private Topology topology;
 
@@ -147,16 +126,7 @@ public class TestRouter {
                     updatedRouter.getInboundFilterId());
             assertEquals(resRouter.getOutboundFilterId(),
                     updatedRouter.getOutboundFilterId());
-
-            // FIXME: The following tests are running with not ZkDirectory
-            // but MockDirectory and may not detect errors in ZkDirectory.
-            RouterConfig[] routerConfigs =
-                dtoResource.getAndVerifyOk(routersUri,
-                    APPLICATION_ROUTER_COLLECTION_JSON,
-                    RouterConfig[].class);
-            assertEquals(1, routerConfigs.length);
-            assertEquals(resRouter.getId(), routerConfigs[0].getId());
-            assertEquals(resRouter.getName(), routerConfigs[0].getName());
+            assertEquals(resRouter.getName(), updatedRouter.getName());
 
             // Delete the router
             dtoResource.deleteAndVerifyNoContent(routerUri,
