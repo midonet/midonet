@@ -8,6 +8,8 @@ package com.midokura.midonet.cluster.client;
  */
 public interface Builder<ConcreteBuilder> {
     ConcreteBuilder start();
-
+    // TODO(rossella, pino): implement deleted() which informs the builder that
+    // TODO:                 the entity has been completely removed from storage
+    // void deleted();
     void build();
 }
