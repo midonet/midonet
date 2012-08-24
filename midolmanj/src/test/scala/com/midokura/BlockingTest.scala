@@ -17,7 +17,7 @@
 package com.midokura
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.dispatch.{Await, Promise}
+import akka.dispatch.{Await, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.event.Logging
 import akka.pattern.pipe
@@ -184,6 +184,36 @@ class BlockingTest extends Suite with ShouldMatchers {
         Thread.sleep(6500)
         timer.elapsed should be >= initialDelay + sleepTime
         timer.elapsed should be <= initialDelay + sleepTime + margin
+    }
+
+    def testFutureApplyBare() = {
+        val timer = new Timer
+        val promise = Promise[Int]()(system.dispatcher)
+        val inner = () => { promise(); timer.stop }
+        spawnPromiseThread(promise)
+        inner()
+        timer.elapsed should be >= initialDelay + sleepTime
+        timer.elapsed should be <= initialDelay + sleepTime + margin
+    }
+
+    def testFutureApplyExternalMethod() {
+        val timer = new Timer
+        val promise = Promise[Int]()(system.dispatcher)
+        spawnPromiseThread(promise)
+        flow {
+            externalMethod(promise, timer)
+        }(system.dispatcher)
+        timer.elapsed should be === -1
+        Thread.sleep(6500)
+        timer.elapsed should be >= initialDelay + sleepTime
+        timer.elapsed should be <= initialDelay + sleepTime + margin
+    }
+
+    // This requires that the method's return type include the @cps annotations
+    // to Unit from the method's body.
+    private def externalMethod(future: Future[Int], timer: Timer) = {
+        future()
+        timer.stop
     }
 
 }
