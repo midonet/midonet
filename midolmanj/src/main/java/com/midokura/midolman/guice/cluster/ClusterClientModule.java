@@ -16,10 +16,14 @@ import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PathBuilder;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
@@ -32,8 +36,11 @@ import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.Client;
+import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.LocalClientImpl;
+import com.midokura.midonet.cluster.LocalDataClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.util.eventloop.Reactor;
 
@@ -47,9 +54,12 @@ public class ClusterClientModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(Directory.class);
+        requireBinding(MidolmanConfig.class);
 
         requireBinding(Key.get(Reactor.class, Names.named(
             ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+
+        bind(PathBuilder.class);
 
         bindManagers();
 
@@ -58,6 +68,17 @@ public class ClusterClientModule extends PrivateModule {
             .asEagerSingleton();
         expose(Client.class);
 
+        bind(DataClient.class)
+            .to(LocalDataClientImpl.class)
+            .asEagerSingleton();
+        expose(DataClient.class);
+
+        bind(ZkConfigSerializer.class)
+            .toInstance(new ZkConfigSerializer(new JSONSerializer()));
+
+        bind(PortConfigCache.class)
+            .toProvider(new PortConfigCacheProvider())
+            .asEagerSingleton();
         bind(MidostoreSetupService.class).in(Singleton.class);
         expose(MidostoreSetupService.class);
     }
@@ -84,6 +105,24 @@ public class ClusterClientModule extends PrivateModule {
                 .toProvider(new ZkManagerProvider(managerClass))
                 .asEagerSingleton();
             expose(managerClass);
+        }
+    }
+
+    private static class PortConfigCacheProvider
+        implements Provider<PortConfigCache> {
+
+        @Inject
+        Directory directory;
+
+        @Inject
+        ZookeeperConfig config;
+
+        @Inject
+        Reactor reactor;
+
+        @Override
+        public PortConfigCache get() {
+            return new PortConfigCache(reactor, directory, config.getMidolmanRootKey());
         }
     }
 

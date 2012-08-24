@@ -61,37 +61,37 @@ The URI for associating a virtual port to a host's interface is retrieved from
 making the following GET calls:
 
 GET / 
-=> {"hosts": <hostsUri>, ...}
+=> {"hosts": &lt;hostsUri&gt;, ...}
 
-GET <hostsUri>
-=> [{"hostId": <hostId>, "interface_port_map": <interfacePortMapUri>, ...},
+GET &lt;hostsUri>
+=> [{"hostId": &lt;hostId&gt;, "interfacePortMap": &lt;interfacePortMapUri&gt;, ...},
     ...]
 
 Where the first GET call retrieves the URI to get all the hosts in the system
-(<hostsUri>) and the second GET call retrieves the URI to map an interface to a
-virtual port (<interfacePortMapUri>) for each host in the system.  Once you
+(&lt;hostsUri>) and the second GET call retrieves the URI to map an interface to a
+virtual port (&lt;interfacePortMapUri&gt;) for each host in the system.  Once you
 have this URI, you can POST to create the mapping:
 
-POST <interfacePortMapUri>
+POST &lt;interfacePortMapUri&gt;
 
 Request:
-{"portId": <portId>, "interfaceName": <interfaceName>}
+{"portId": &lt;portId&gt;, "interfaceName": &lt;interfaceName&gt;}
 
 Response Status Codes:
 200: Success
 400: Bad port ID
 500: Server error
 
-Where <interfaceName> is the name of the tap that Nova created, <portId> is the
-virtual port ID of Midolman.  A successful call to this API alerts Midolman to
+Where &lt;interfaceName&gt; is the name of the tap that Nova created, &lt;portId&gt; 
+is the virtual port ID of Midolman.  A successful call to this API alerts Midolman to
 set up the datapath port on the host. 
 
 To delete a mapping, send a request to the same URI with DELETE verb:
 
-DELETE <interfacePortMapUri>
+DELETE &lt;interfacePortMapUri&gt;
 
 Request:
-{"portId": <portId>}
+{"portId": &lt;portId&gt;}
 
 Response Status Codes:
 204: Success
@@ -100,12 +100,12 @@ Response Status Codes:
 
 To retrieve all the mappings in a host, do a GET on the URI:
 
-GET <interfacePortMapUri>
+GET &lt;interfacePortMapUri&gt;
 
 Response:
-=> [{"portId": "foo", "interfaceName": "bar"},
-    {"portId": "bar", "interfaceName": "baz"},
-    ...]
+[{"portId": "foo", "interfaceName": "bar"},
+ {"portId": "bar", "interfaceName": "baz"},
+ ...]
 
 Response Status Codes:
 200: Success
@@ -118,14 +118,14 @@ Also, when a port is deleted, its mapping is also deleted.
 
 'interface_port_map' API creates the following entries in Zookeeper:
 
-- /hosts/<hostId>/vrnMappings/ports/<portId> -> { <portId>, <interfaceName> }
+- /hosts/&lt;hostId&gt;/vrnMappings/ports/&lt;portId&gt; -> { &lt;portId&gt;, &lt;interfaceName&gt; }
 
 This mapping indicates the association of a virtual port to an interface of a
 host.  Midolman agents watch the ZK changes of the host that it is running on.
 When it is notified of the mapping, it begins the operations to set up the
 datapath port on the host that corresponds to the mapped virtual port.
  
-- /ports/<portId> -> { ..., <hostId>, <interfaceName> } 
+- /ports/&lt;portId&gt; -> { ..., &lt;hostId&gt;, &lt;interfaceName&gt; } 
 
 The hostId and interfaceName fields of a port configuration are set to the
 supplied values when mapping occurs, and set to null when unmapping occurs.

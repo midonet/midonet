@@ -10,7 +10,10 @@ import com.midokura.sdn.dp.{Ports, Datapath}
 import collection.mutable
 import java.util.UUID
 import topology.VirtualToPhysicalMapper
-import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest, LocalDatapathRequest, LocalDatapathReply}
+import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest,
+                                         LocalDatapathRequest,
+                                         LocalDatapathReply}
+
 
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
@@ -40,7 +43,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     def testDatapathEmpty() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
-        midoStore().setLocalVrnDatapath(hostId, "test")
+        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
@@ -61,8 +64,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     def testDatapathEmptyOnePort() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
-        midoStore().setLocalVrnDatapath(hostId, "test")
-        midoStore().setLocalVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, UUID.randomUUID(), "port1")
 
         dpConn().datapathsEnumerate().get() should have size 0
 
@@ -85,8 +88,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     def testDatapathExistingMore() {
         val dpController: ActorRef = topActor(DatapathController.Name)
 
-        midoStore().setLocalVrnDatapath(hostId, "test")
-        midoStore().setLocalVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, UUID.randomUUID(), "port1")
 
         val dp = dpConn().datapathsCreate("test").get()
         dpConn().portsCreate(dp, Ports.newNetDevPort("port2")).get()
@@ -112,7 +115,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testDatapathBasicOperations() {
-        midoStore().setLocalVrnDatapath(hostId, "test")
+
+        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
 
         initializeDatapath() should not be (null)
 
@@ -147,7 +151,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     def testInternalControllerState() {
         val vifPort = UUID.randomUUID()
-        midoStore().setLocalVrnPortMapping(hostId, vifPort, "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort, "port1")
 
         initializeDatapath() should not be (null)
 
@@ -165,7 +169,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply] should not be null
 
         val vifPort_2nd = UUID.randomUUID()
-        midoStore().setLocalVrnPortMapping(hostId(), vifPort_2nd, "port2")
+        clusterDataClient().hostsAddVrnPortMapping(hostId(), vifPort_2nd, "port2")
 
         val reply = vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply]
 

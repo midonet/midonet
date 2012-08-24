@@ -7,15 +7,19 @@ import akka.dispatch.Await
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
-import scala.collection.mutable
-import java.util.UUID
 
-import com.midokura.packets.MAC
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midonet.cluster.client._
-import com.midokura.util.functors.Callback3
+import com.midokura.midolman.openflow.MidoMatch
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.FlowController
+import akka.actor.{ActorRef, Actor}
+import com.midokura.packets.{IntIPv4, MAC}
+import java.util.{Map, UUID}
+import com.midokura.util.functors.{Callback0, Callback1, Callback3}
+import collection.{JavaConversions, mutable}
 
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
@@ -28,6 +32,10 @@ trait MacFlowCount {
     def decrement(mac: MAC, port: UUID): Unit
 }
 
+trait RemoveFlowCallbackGenerator {
+    def getCallback(mac: MAC,  port: UUID) : Callback0
+}
+
 
 class BridgeManager(id: UUID, val clusterClient: Client)
     extends DeviceManager(id) {
@@ -36,12 +44,21 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var macPortMap: MacLearningTable = null
     private val flowCounts = new MacFlowCountImpl
     private val flowCountMap = new mutable.HashMap[(MAC, UUID), Int]()
+    private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
+
+    private var rtrMacToLogicalPortId : mutable.Map[MAC, UUID] = null
+    private var rtrIpToMac : mutable.Map[IntIPv4, MAC] = null
+
+    def flowController(): ActorRef = {
+        context.actorFor("/user/%s" format FlowController.Name)
+    }
 
     override def chainsUpdated() = {
         log.info("chains updated")
         context.actorFor("..").tell(
             new Bridge(id, cfg, macPortMap, flowCounts,
-                inFilter, outFilter))
+                inFilter, outFilter, flowRemovedCallback, rtrMacToLogicalPortId,
+                rtrIpToMac))
     }
 
     override def updateConfig() = {
@@ -62,7 +79,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             case _ => cfg.outboundFilter
         }
     }
-
+    
     private case class FlowIncrement(mac: MAC, port: UUID)
 
     private case class FlowDecrement(mac: MAC, port: UUID)
@@ -104,12 +121,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
             //1. MAC was deleted
             //2. the MAC moved from port-x to port-y
-            //3. MAC was added
-            /*if ((newPort == null) ||
-                (oldPort != null && newPort != null)){
-                //TODO(ross): send message tagged MAC+oldPort to Datapath Controller to invalidate MAC
-                // if oldport is null it takes care of flooded flows
-            }*/
+            //3. MAC was added (delete the flow for the flood, oldPort = null)
+            flowController() ! FlowController.InvalidateFlowByTag((id, mac, oldPort))
         }
     }
 
@@ -159,6 +172,24 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         }
 
         def start() = null
+
+        def setLogicalPortsMap(newRtrMacToLogicalPortId: Map[MAC, UUID],
+                               newRtrIpToMac: Map[IntIPv4, MAC]) {
+            import JavaConversions._
+            rtrMacToLogicalPortId = newRtrMacToLogicalPortId
+            rtrIpToMac = newRtrIpToMac
+        }
     }
 
+    class RemoveFlowCallbackGeneratorImpl() extends RemoveFlowCallbackGenerator{
+        def getCallback(mac: MAC, port: UUID): Callback0 = {
+            new Callback0() {
+                def call() {
+                    // TODO(ross): check, is this the proper self, that is BridgeManager?
+                    // or it will be the self of the actor who execute this callback?
+                    self ! FlowDecrement(mac, port)
+                }
+            }
+        }
+    }
 }

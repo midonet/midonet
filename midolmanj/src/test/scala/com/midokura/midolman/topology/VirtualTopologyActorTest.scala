@@ -96,7 +96,8 @@ class X extends VirtualTopologyActorTest {
         //probe.expectMsg(new Bridge(bridgeId, bridgeCfg, null, null,
         //                              null, null))
         val receivedBridge = probe.receiveOne(Duration.Undefined)
-        val expectedBridge = new Bridge(bridgeId, bridgeCfg, null, null, null, null)
+        val expectedBridge = new Bridge(bridgeId, bridgeCfg, null, null, null,
+            null, null, null, null)
         assert(receivedBridge == expectedBridge)
 
 

@@ -22,11 +22,11 @@ import com.midokura.util.functors.Callback1
 object FlowController {
     val Name = "FlowController"
 
-    case class AddWildcardFlow(wFlow: WildcardFlow, packet: Option[Packet],
+    case class AddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
                                callbacks: Set[Callback1[WildcardMatch]],
                                tags: Set[AnyRef])
 
-    case class RemoveWildcardFlow(tag: WildcardFlow)
+    case class RemoveWildcardFlow(flow: WildcardFlow)
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 

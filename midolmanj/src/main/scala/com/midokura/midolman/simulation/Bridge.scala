@@ -10,22 +10,23 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import com.midokura.midolman.topology.MacFlowCount
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
-import com.midokura.util.functors.Callback1
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.simulation.Coordinator._
+import com.midokura.util.functors.{Callback0, Callback1}
+import com.midokura.midolman.topology.{RemoveFlowCallbackGenerator, MacFlowCount}
 
 
 class Bridge(val id: UUID, val cfg: BridgeConfig,
              val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
-             val inFilter: Chain, val outFilter: Chain) extends Device {
+             val inFilter: Chain, val outFilter: Chain,
+             val flowRemovedCallbackGen : RemoveFlowCallbackGenerator,
+             val rtrMacToLogicalPortId : mutable.Map[MAC, UUID],
+             val rtrIpToMac : mutable.Map[IntIPv4, MAC]
+                ) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
-
-    private val rtrMacToLogicalPortId = new mutable.HashMap[MAC, UUID]()
-    private val rtrIpToMac = new mutable.HashMap[IntIPv4, MAC]()
 
     override def hashCode = id.hashCode()
 
@@ -93,8 +94,6 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
-            //XXX: Flow Removal notifications so we can dec the flow count --
-            //XXX: -- Pino has some ideas on this he's going to write up.
             val oldPortID = getPortOfMac(srcDlAddress, ec)
             if (ingressMatch.getInputPortUUID != oldPortID) {
                 log.debug("MAC {} moved from port {} to {}.",
@@ -102,6 +101,12 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                 //The flows that reflect the old MAC port entry will be removed
                 // by the BridgeManager
                 macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
+                packetContext.addFlowRemovedCallback(
+                    flowRemovedCallbackGen.getCallback(srcDlAddress,
+                        ingressMatch.getInputPortUUID))
+                // Pass the tag to be used to index the flow
+                val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
+                packetContext.addFlowTag(tag)
             }
         }
 

@@ -10,17 +10,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PortSetMap;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -230,15 +229,9 @@ public class BridgeZkManager extends ZkManager {
     /**
      * Constructs a list of operations to perform in a bridge deletion.
      *
-     * @param entry
-     *            Bridge ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
      * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
      */
     public List<Op> prepareBridgeDelete(UUID id, BridgeConfig config)
             throws StateAccessException {
@@ -280,15 +273,10 @@ public class BridgeZkManager extends ZkManager {
      * @param bridge
      *            Bridge object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
-     * @throws com.midokura.midolman.state.ZkStateSerializationException
+     * @throws StateAccessException
      *             Serialization error occurred.
-     * @throws KeeperException
-     *             ZooKeeper error occurred.
-     * @throws InterruptedException
-     *             ZooKeeper was unresponsive.
      */
-    public UUID create(BridgeConfig bridge) throws StateAccessException,
-            ZkStateSerializationException {
+    public UUID create(BridgeConfig bridge) throws StateAccessException {
         UUID id = UUID.randomUUID();
         multi(prepareBridgeCreate(id, bridge));
         return id;
@@ -321,8 +309,6 @@ public class BridgeZkManager extends ZkManager {
      * @param id
      *            The ID of the bridge.
      * @return Bridge object found.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      */
     public BridgeConfig get(UUID id) throws StateAccessException {
         return get(id, null);
@@ -338,11 +324,9 @@ public class BridgeZkManager extends ZkManager {
      *            The watcher that gets notified when there is a change in the
      *            node.
      * @return Route object found.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      */
     public BridgeConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException {
         byte[] data = get(pathManager.getBridgePath(id), watcher);
         return serializer.deserialize(data, BridgeConfig.class);
     }
@@ -353,11 +337,8 @@ public class BridgeZkManager extends ZkManager {
      *
      * @param id
      *            ID of the bridge to delete.
-     * @throws ZkStateSerializationException
-     *             Serialization error occurred.
      */
-    public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+    public void delete(UUID id) throws StateAccessException {
         multi(prepareBridgeDelete(id));
     }
 

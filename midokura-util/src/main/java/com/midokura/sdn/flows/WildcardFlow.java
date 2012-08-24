@@ -74,4 +74,8 @@ public class WildcardFlow {
     public void setLastUsedTimeMillis(long lastUsedTimeMillis) {
         this.lastUsedTimeMillis = lastUsedTimeMillis;
     }
+
+    public void setActions(List<FlowAction<?>> actions) {
+        this.actions = actions;
+    }
 }

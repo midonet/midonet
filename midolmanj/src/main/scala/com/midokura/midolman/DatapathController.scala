@@ -16,14 +16,14 @@ import com.midokura.netlink.protos.OvsDatapathConnection
 import com.google.inject.Inject
 import akka.event.Logging
 import com.midokura.netlink.exceptions.NetlinkException
-import com.midokura.netlink.{Callback => NetlinkCallback}
 import collection.mutable
 import akka.util.duration._
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
 import java.lang
-import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.sdn.flows.WildcardMatch.Field
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.util.functors.Callback1
 
 /**
  * Holder object that keeps the external message definitions
@@ -262,7 +262,7 @@ object DatapathController {
 
     case class SendPacket(packet: Packet)
 
-    case class PacketIn(packet:Packet, wildcardMatch:WildcardMatch)
+    case class PacketIn(packet:Packet, wMatch:WildcardMatch)
 }
 
 
@@ -433,8 +433,8 @@ class DatapathController() extends Actor {
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
 
-        case InstallFlow(flow) =>
-            handleInstallFlow(flow)
+        case AddWildcardFlow(flow, packet, callbacks, tags) =>
+            handleAddWildcardFlow(flow, packet, callbacks, tags)
 
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
@@ -444,6 +444,54 @@ class DatapathController() extends Actor {
 
 //        case SendPacket(packet) =>
 //            handleSendPacket(packet)
+    }
+
+    def handleAddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
+                              callbacks: mutable.Set[Callback1[WildcardMatch]],
+                              tags: mutable.Set[AnyRef]) {
+        val flowMatch = flow.getMatch
+
+        vifToLocalPortNumber(flowMatch.getInputPortUUID) match {
+            case Some(portNo: Short) =>
+                flowMatch
+                    .setInputPortNumber(portNo)
+                    .unsetInputPortUUID()
+            case None =>
+        }
+
+        if (flow.getActions != null) {
+            var translatedActions = List[FlowAction[_]]()
+            for (action <- flow.getActions) {
+                action match {
+                    case a: FlowActionVrnPortOutput =>
+                        vifToLocalPortNumber(a.portId) match {
+                            case Some(p: Short) =>
+                                translatedActions ::= FlowActions.output(p)
+                            case _ =>
+                                translatedActions ::= action
+                        }
+                    case _ =>
+                        translatedActions ::= action
+                }
+            }
+
+            flow.setActions(translatedActions.toList)
+        }
+
+        // TODO: translate the port groups.
+
+        flowController() ! AddWildcardFlow(flow, packet, callbacks, tags)
+    }
+
+    def vifToLocalPortNumber(vif: UUID): Option[Short] = {
+        vifPorts.get(vif) match {
+            case Some(tapName: String) =>
+                localPorts.get(tapName) match {
+                    case Some(p: Port[_, _]) => Some[Short](p.getPortNo.shortValue())
+                    case _ => None
+                }
+            case _ => None
+        }
     }
 
     def handleFlowPacketIn(packet: Packet, wildcard: WildcardMatch) {
