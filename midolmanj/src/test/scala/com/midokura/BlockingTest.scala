@@ -16,9 +16,10 @@
 
 package com.midokura
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.dispatch.{Await, Promise}
 import akka.dispatch.Future.flow
+import akka.event.Logging
 import akka.testkit.CallingThreadDispatcher
 import akka.util.duration._
 import compat.Platform
@@ -30,8 +31,17 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 
+object BlockingTest {
+    var instanceNum = 0
+    def newInstanceName() = {
+        instanceNum += 1
+        "BlockingTest" + instanceNum
+    }
+}
+
 @RunWith(classOf[JUnitRunner])
 class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
+    import BlockingTest._
 
     val config = ConfigFactory.parseString("""
         akka.actor.default-dispatcher {
@@ -41,7 +51,7 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
             }
         }
     """)
-    val system = ActorSystem("BlockingTest", ConfigFactory.load(config))
+    val system = ActorSystem(newInstanceName, ConfigFactory.load(config))
     val initialDelay = 1000L
     val op2Start = 1500L
     val sleepTime = 5300L
@@ -50,6 +60,17 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     // Hack:  Class variable used to record thunk-completion time.
     // Relies on each test having its own instance of BlockingTest.
     @volatile var time3 = 0L
+    private val time3UpdatingActor = system.actorOf(Props(new Updater))
+    private class Updater extends Actor {
+        val log = Logging(system, this)
+
+        def receive = {
+            case 1234 => log.info("received #1234"); time3 = Platform.currentTime
+            case x => log.info("received other {}", x)
+        }
+
+        override def preStart() { log.info("Starting time3UpdatingActor.") }
+    }
 
     private def spawnFlowPromiseThread(promise: Promise[Int]) {
         spawn {    
@@ -71,15 +92,14 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, () => { 
             Thread.sleep(sleepTime)
-            time3 = Platform.currentTime
+            time3UpdatingActor ! 1234
         }, true, (_) => ())
     }
 
     def testAwaitResult() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, () => {
-            Await.result(promise, 7 seconds)
-            time3 = Platform.currentTime
+            time3UpdatingActor ! Await.result(promise, 7 seconds)
         }, true, spawnRawPromiseThread)
     }
 
@@ -94,8 +114,7 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     def IGNOREtestFlowBlock {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, () => flow {
-            promise()
-            time3 = Platform.currentTime
+            time3UpdatingActor ! promise()
         }(system.dispatcher), false, spawnFlowPromiseThread)
     }
 
@@ -141,7 +160,7 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
             elapsed should be >= op2Start
             elapsed should be <= op2Start + margin
         }
-        Thread.sleep(6000)
+        Thread.sleep(8000)
         if (expectBlocking) {
             elapsed = time2 - start
             elapsed should be >= initialDelay + sleepTime
