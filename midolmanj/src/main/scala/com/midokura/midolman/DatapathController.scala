@@ -260,9 +260,27 @@ object DatapathController {
 
     case class DeleteFlow(flow: KernelFlow)
 
+    /**
+     * Upon receiving this message, the DatapathController translates any
+     * actions that are not understood by the Netlink layer and then sends the
+     * packet to the kernel (who in turn executes the actions on the packet's
+     * data).
+     *
+     * @param packet The packet object that should be sent to the kernel. Here
+     *               is an example:
+     * {{{
+     * val outPortUUID = ...
+     * val pkt = new Packet()
+     * pkt.setData(data).addAction(new FlowActionVrnPortOutput())
+     * controller ! SendPacket(pkt)
+     * }}}
+     */
     case class SendPacket(packet: Packet)
 
+    {
+    }
     case class PacketIn(packet:Packet, wMatch:WildcardMatch)
+
 }
 
 

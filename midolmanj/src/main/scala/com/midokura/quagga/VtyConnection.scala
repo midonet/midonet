@@ -86,7 +86,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
             dropMessage
         }
         sendMessage(password)
-        // Consume password echo back.
+        // Drop password echo back.
         dropMessage
         enable
         connected = true

@@ -11,7 +11,7 @@ import com.midokura.packets.Ethernet
 import collection.mutable
 import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.midolman.FlowController.{RemoveWildcardFlow, AddWildcardFlow, Consume, SendPacket}
+import com.midokura.midolman.FlowController.{RemoveWildcardFlow, AddWildcardFlow, Drop, SendPacket}
 import akka.event.Logging
 import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
 import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
@@ -61,7 +61,7 @@ class SimulationController() extends Actor {
                 }
                 // Else, do nothing, the packet is dropped.
             } else if (finalMatch == null) {
-                fController ! Consume(packet)
+                fController ! Drop(packet)
             } else {
                 // TODO(pino, jlm): compute the WildcardFlow, including actions
                 // XXX

@@ -52,11 +52,11 @@ class PortManager(id: UUID, val mgr: PortZkManager,
             if (cfg.isInstanceOf[LogicalBridgePortConfig] ||
                 cfg.isInstanceOf[MaterializedRouterPortConfig])
                 context.actorFor("..").tell(
-                    new Port(id, cfg, inFilter, outFilter))
+                    null) //new Port(id, cfg, inFilter, outFilter))
             else if (null != locations)
                 context.actorFor("..").tell(
-                    new MaterializedPort(
-                        id, cfg, inFilter, outFilter, locations))
+                    null) //new MaterializedPort(
+                        //id, cfg, inFilter, outFilter, locations))
         }
     }
 

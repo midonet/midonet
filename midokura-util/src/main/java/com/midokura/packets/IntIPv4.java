@@ -43,6 +43,12 @@ public class IntIPv4 implements Cloneable {
         return address;
     }
 
+    public IntIPv4 getNetworkAddress() {
+        // Zero out any address bits beyond the mask.
+        int mask = -1 << (32 - maskLength);
+        return new IntIPv4(address & mask, maskLength);
+    }
+
     public int getMaskLength() {
         return maskLength;
     }

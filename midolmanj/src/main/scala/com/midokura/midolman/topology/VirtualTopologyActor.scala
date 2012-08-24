@@ -58,7 +58,7 @@ class VirtualTopologyActor() extends Actor {
 
     private val idToBridge = mutable.Map[UUID, Bridge]()
     private val idToChain = mutable.Map[UUID, Chain]()
-    private val idToPort = mutable.Map[UUID, Port]()
+    private val idToPort = mutable.Map[UUID, Port[_]]()
     private val idToRouter = mutable.Map[UUID, Router]()
 
     // TODO(pino): unload devices with no subscribers that haven't been used
@@ -175,7 +175,7 @@ class VirtualTopologyActor() extends Actor {
             log.info("Received Bridge")
             updated(bridge.id, bridge, idToBridge)
         case chain: Chain => updated(chain.id, chain, idToChain)
-        case port: Port => updated(port.id, port, idToPort)
+        case port: Port[_] => updated(port.id, port, idToPort)
         case router: Router => updated(router.id, router, idToRouter)
         case portLocalMsg: SetPortLocal =>
             if (localPorts(portLocalMsg.id) != portLocalMsg.local) {
