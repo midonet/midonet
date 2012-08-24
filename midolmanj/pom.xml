@@ -62,13 +62,13 @@
                         </goals>
                         <configuration>
                             <args>
+                                <arg>-P:continuations:enable</arg>
                                 <arg>-deprecation</arg>
                                 <arg>-unchecked</arg>
                                 <arg>-dependencyfile</arg>
                                 <arg>
                                     ${project.build.directory}/.scala_dependencies
                                 </arg>
-                                <arg>-P:continuations:enable</arg>
                             </args>
                             <compilerPlugins>
                                 <compilerPlugin>
@@ -79,12 +79,31 @@
                             </compilerPlugins>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>scala-compile-tests</id>
                         <phase>process-test-resources</phase>
                         <goals>
                             <goal>testCompile</goal>
                         </goals>
+                        <configuration>
+                            <args>
+                                <arg>-P:continuations:enable</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-dependencyfile</arg>
+                                <arg>
+                                    ${project.build.directory}/.scala_dependencies
+                                </arg>
+                            </args>
+                            <compilerPlugins>
+                                <compilerPlugin>
+                                    <groupId>org.scala-lang.plugins</groupId>
+                                    <artifactId>continuations</artifactId>
+                                    <version>${versions.scala.library}</version>
+                                </compilerPlugin>
+                            </compilerPlugins>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
