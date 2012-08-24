@@ -57,7 +57,6 @@ class BlockingTest extends Suite with ShouldMatchers {
     val sleepTime = 5300L
     val margin = 150L
 
-    //private val time3UpdatingActor = system.actorOf(Props(new Updater))
     private class Updater(val timer: Timer) extends Actor {
         val log = Logging(system, this)
 
@@ -69,16 +68,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         override def preStart() { log.info("Starting time3UpdatingActor.") }
     }
 
-    private def spawnFlowPromiseThread(promise: Promise[Int]) {
-        spawn {    
-            Thread.sleep(initialDelay+sleepTime)
-            flow {
-                promise.success(1234)
-            }(system.dispatcher)
-        }
-    }
-
-    private def spawnRawPromiseThread(promise: Promise[Int]) {
+    private def spawnPromiseThread(promise: Promise[Int]) {
         spawn {
             Thread.sleep(initialDelay+sleepTime)
             promise.success(1234)
@@ -90,14 +80,14 @@ class BlockingTest extends Suite with ShouldMatchers {
         checkForBlocking(promise, (actor) => { 
             Thread.sleep(sleepTime)
             actor ! 1234
-        }, true, (_) => ())
+        }, true)
     }
 
     def testAwaitResult() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, (actor) => {
             actor ! Await.result(promise, 7 seconds)
-        }, true, spawnRawPromiseThread)
+        }, true)
     }
 
     def testFlowBlock() {
@@ -106,19 +96,17 @@ class BlockingTest extends Suite with ShouldMatchers {
                          (actor) => flow {
                                         actor.tell(promise())
                                     }(system.dispatcher),
-                         false, spawnRawPromiseThread)
+                         false)
     }
 
     def testPipeTo() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, (actor) => (promise pipeTo actor),
-                         false, spawnRawPromiseThread)
+        checkForBlocking(promise, (actor) => (promise pipeTo actor), false)
     }
 
     private def checkForBlocking(promise: Promise[Int],
                                  thunk: (ActorRef) => Unit,
-                                 expectBlocking: Boolean,
-                                 threadSpawner: (Promise[Int]) => Unit) {
+                                 expectBlocking: Boolean) {
         val timer0 = new Timer
         val timer1 = new Timer
         val timer2 = new Timer
@@ -134,7 +122,7 @@ class BlockingTest extends Suite with ShouldMatchers {
             timer2.stop
         }
 
-        threadSpawner(promise)
+        spawnPromiseThread(promise)
 
         // The executor's one thread runs the first scheduled operation, and has
         // to wait for it to complete before it can run the second scheduled
