@@ -91,7 +91,7 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
     }
 
     // This fails, because the thunk never stops waiting for the promise.
-    def IGNOREtestFlowBlock {
+    def testFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, () => flow {
             promise()
