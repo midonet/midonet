@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
 import org.junit.After;
@@ -125,6 +126,7 @@ public class TestRouter {
                     updatedRouter.getInboundFilterId());
             assertEquals(resRouter.getOutboundFilterId(),
                     updatedRouter.getOutboundFilterId());
+            assertEquals(resRouter.getName(), updatedRouter.getName());
 
             // Delete the router
             dtoResource.deleteAndVerifyNoContent(routerUri,

@@ -100,7 +100,6 @@ class BlockingTest extends Suite with ShouldMatchers {
         }, true, spawnRawPromiseThread)
     }
 
-    // This fails, because the thunk never stops waiting for the promise.
     def testFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise,
