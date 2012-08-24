@@ -77,7 +77,7 @@ class BlockingTest extends Suite with ShouldMatchers {
 
     def testThreadSleep() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, (actor) => { 
+        checkForBlocking(promise, (actor) => {
             Thread.sleep(sleepTime)
             actor ! 1234
         }, true)
@@ -114,11 +114,11 @@ class BlockingTest extends Suite with ShouldMatchers {
         val time3UpdatingActor = system.actorOf(Props(new Updater(timer3)))
 
         assert(system.dispatcher.id != CallingThreadDispatcher.Id)
-        system.scheduler.scheduleOnce(initialDelay milliseconds) { 
+        system.scheduler.scheduleOnce(initialDelay milliseconds) {
             timer1.stop
             thunk(time3UpdatingActor)
         }
-        system.scheduler.scheduleOnce(op2Start milliseconds) { 
+        system.scheduler.scheduleOnce(op2Start milliseconds) {
             timer2.stop
         }
 
@@ -156,6 +156,34 @@ class BlockingTest extends Suite with ShouldMatchers {
         elapsed = timer3.elapsed
         elapsed should be >= initialDelay + sleepTime
         elapsed should be <= initialDelay + sleepTime + margin
+    }
+
+    def testFutureApplyDirect() {
+        val timer = new Timer
+        val promise = Promise[Int]()(system.dispatcher)
+        spawnPromiseThread(promise)
+        flow {
+            promise()
+            timer.stop
+        }(system.dispatcher)
+        timer.elapsed should be === -1
+        Thread.sleep(6500)
+        timer.elapsed should be >= initialDelay + sleepTime
+        timer.elapsed should be <= initialDelay + sleepTime + margin
+    }
+
+    def testFutureApplyIndirect() {
+        val timer = new Timer
+        val promise = Promise[Int]()(system.dispatcher)
+        val inner = () => { promise(); timer.stop }
+        spawnPromiseThread(promise)
+        flow {
+            inner()
+        }(system.dispatcher)
+        timer.elapsed should be === -1
+        Thread.sleep(6500)
+        timer.elapsed should be >= initialDelay + sleepTime
+        timer.elapsed should be <= initialDelay + sleepTime + margin
     }
 
 }
