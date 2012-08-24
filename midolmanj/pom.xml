@@ -68,7 +68,15 @@
                                 <arg>
                                     ${project.build.directory}/.scala_dependencies
                                 </arg>
+                                <arg>-P:continuations:enable</arg>
                             </args>
+                            <compilerPlugins>
+                                <compilerPlugin>
+                                    <groupId>org.scala-lang.plugins</groupId>
+                                    <artifactId>continuations</artifactId>
+                                    <version>${versions.scala.library}</version>
+                                </compilerPlugin>
+                            </compilerPlugins>
                         </configuration>
                     </execution>
                     <execution>
