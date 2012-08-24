@@ -122,7 +122,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             //1. MAC was deleted
             //2. the MAC moved from port-x to port-y
             //3. MAC was added (delete the flow for the flood, oldPort = null)
-            flowController() ! FlowController.InvalidateFlowByTag((id, mac, oldPort))
+            flowController() ! FlowController.InvalidateFlowByTag(
+                                   (id, mac, oldPort))
         }
     }
 
@@ -137,6 +138,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
         def getCount(mac: MAC, port: UUID): Int = {
             implicit val timeout = Timeout(1 millisecond)
+            // GetFlowCount immediately returns, so Await is safe here.
             Await.result(self ? GetFlowCount(mac, port),
                 timeout.duration).asInstanceOf[Int]
         }
@@ -185,8 +187,9 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         def getCallback(mac: MAC, port: UUID): Callback0 = {
             new Callback0() {
                 def call() {
-                    // TODO(ross): check, is this the proper self, that is BridgeManager?
-                    // or it will be the self of the actor who execute this callback?
+                    // TODO(ross): check, is this the proper self, that is
+                    // BridgeManager?  or it will be the self of the actor who 
+                    // execute this callback?
                     self ! FlowDecrement(mac, port)
                 }
             }

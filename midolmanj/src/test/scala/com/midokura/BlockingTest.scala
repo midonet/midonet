@@ -101,13 +101,13 @@ class BlockingTest extends Suite with ShouldMatchers {
     }
 
     // This fails, because the thunk never stops waiting for the promise.
-    def IGNOREtestFlowBlock() {
+    def testFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, (actor) => {
-            Await.result(flow {
-                actor ! promise()
-            }(system.dispatcher), 8 seconds)
-        }, true, spawnFlowPromiseThread)
+        checkForBlocking(promise,
+                         (actor) => flow {
+                                        actor ! promise()
+                                    }(system.dispatcher),
+                         false, spawnRawPromiseThread)
     }
 
     def testPipeTo() {

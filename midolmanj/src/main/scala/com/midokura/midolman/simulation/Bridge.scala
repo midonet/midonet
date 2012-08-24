@@ -65,8 +65,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             // L2 Multicast
             val nwDst = ingressMatch.getNetworkDestination
             if (Ethernet.isBroadcast(dstDlAddress) &&
-                ingressMatch.getEtherType == ARP.ETHERTYPE &&
-                rtrIpToMac.contains(nwDst)) {
+                    ingressMatch.getEtherType == ARP.ETHERTYPE &&
+                    rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 val rtrMAC: MAC = rtrIpToMac.get(nwDst).get
                 outPortID = rtrMacToLogicalPortId.get(rtrMAC).get
@@ -97,8 +97,9 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             val oldPortID = getPortOfMac(srcDlAddress, ec)
             if (ingressMatch.getInputPortUUID != oldPortID) {
                 log.debug("MAC {} moved from port {} to {}.",
-                    Array[Object](srcDlAddress, oldPortID, ingressMatch.getInputPortUUID))
-                //The flows that reflect the old MAC port entry will be removed
+                    Array[Object](srcDlAddress, oldPortID,
+                                  ingressMatch.getInputPortUUID))
+                // The flows that reflect the old MAC port entry will be removed
                 // by the BridgeManager
                 macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
                 packetContext.addFlowRemovedCallback(
