@@ -46,7 +46,7 @@ import com.midokura.midolman.util.JSONSerializer;
 
 public class TopologyChecker {
 
-    static ZooKeeper zk;
+    static ZkConnection zk;
     static final Semaphore available = new Semaphore(0);
 
     public static void main(String args[]) throws StateAccessException,
@@ -215,7 +215,7 @@ public class TopologyChecker {
             throws Exception {
         int magic = 3000; // FIXME
         System.out.println("Connecting to ZooKeeper at " + host + ":" + port);
-        zk = new ZooKeeper(host + ":" + port, magic, new Watcher() {
+        zk = new ZkConnection(host + ":" + port, magic, new Watcher() {
             @Override
             public synchronized void process(WatchedEvent event) {
                 if (event.getState() == KeeperState.Disconnected) {

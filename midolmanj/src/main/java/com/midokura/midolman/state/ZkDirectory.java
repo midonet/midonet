@@ -15,7 +15,6 @@ import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,7 @@ import com.midokura.util.eventloop.Reactor;
 public class ZkDirectory implements Directory {
     static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
 
-    public ZooKeeper zk;
+    public ZkConnection zk;
     private String basePath;
     private List<ACL> acl;
     private Reactor reactor;
@@ -36,7 +35,7 @@ public class ZkDirectory implements Directory {
      * @param acl the list of {@link ACL} the we need to use
      * @param reactor the delayed reactor loop
      */
-    public ZkDirectory(ZooKeeper zk, String basePath,
+    public ZkDirectory(ZkConnection zk, String basePath,
                        List<ACL> acl, Reactor reactor) {
         this.zk = zk;
         this.basePath = basePath;
@@ -54,7 +53,7 @@ public class ZkDirectory implements Directory {
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         String path = null;
-        path = zk.create(absPath, data, acl, mode);
+        path = zk.getZooKeeper().create(absPath, data, acl, mode);
         return path.substring(basePath.length());
     }
 
@@ -62,7 +61,7 @@ public class ZkDirectory implements Directory {
     public void update(String relativePath, byte[] data)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        zk.setData(absPath, data, -1);
+        zk.getZooKeeper().setData(absPath, data, -1);
     }
 
     private class MyWatcher implements Watcher {
@@ -87,8 +86,8 @@ public class ZkDirectory implements Directory {
     public byte[] get(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.getData(absPath, (null == watcher) ? null : new MyWatcher(
-                watcher), null);
+        return zk.getZooKeeper().getData(absPath, (null == watcher) ? null :
+            new MyWatcher(watcher), null);
     }
 
     @Override
@@ -99,7 +98,7 @@ public class ZkDirectory implements Directory {
         if (absPath.endsWith("/")) {
             absPath = absPath.substring(0, absPath.length() - 1);
         }
-        return new HashSet<String>(zk.getChildren(absPath,
+        return new HashSet<String>(zk.getZooKeeper().getChildren(absPath,
                 (null == watcher) ? null : new MyWatcher(watcher)));
     }
 
@@ -107,14 +106,14 @@ public class ZkDirectory implements Directory {
     public boolean has(String relativePath) throws KeeperException,
             InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.exists(absPath, null) != null;
+        return zk.getZooKeeper().exists(absPath, null) != null;
     }
 
     @Override
     public void delete(String relativePath) throws KeeperException,
             InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        zk.delete(absPath, -1);
+        zk.getZooKeeper().delete(absPath, -1);
     }
 
     @Override
@@ -134,11 +133,11 @@ public class ZkDirectory implements Directory {
     @Override
     public List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException {
-        return zk.multi(ops);
+        return zk.getZooKeeper().multi(ops);
     }
 
     @Override
     public long getSessionId() {
-        return zk.getSessionId();
+        return zk.getZooKeeper().getSessionId();
     }
 }
