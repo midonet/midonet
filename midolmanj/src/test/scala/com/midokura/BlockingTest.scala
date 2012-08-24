@@ -16,7 +16,7 @@
 
 package com.midokura
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.dispatch.{Await, Promise}
 import akka.dispatch.Future.flow
 import akka.event.Logging
@@ -27,22 +27,21 @@ import compat.Platform
 import concurrent.ops.spawn
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.scalatest.{OneInstancePerTest, Suite}
+import org.scalatest.Suite
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 
-object BlockingTest {
-    var instanceNum = 0
-    def newInstanceName() = {
-        instanceNum += 1
-        "BlockingTest" + instanceNum
-    }
+private class Timer {
+    var startTime = Platform.currentTime
+    var stopTime = startTime-1
+
+    def stop(): Unit = synchronized { stopTime = Platform.currentTime }
+    def elapsed(): Long = synchronized { stopTime - startTime }
 }
 
 @RunWith(classOf[JUnitRunner])
-class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
-    import BlockingTest._
+class BlockingTest extends Suite with ShouldMatchers {
 
     val config = ConfigFactory.parseString("""
         akka.actor.default-dispatcher {
@@ -52,21 +51,18 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
             }
         }
     """)
-    val system = ActorSystem(newInstanceName, ConfigFactory.load(config))
+    val system = ActorSystem("BlockingTest", ConfigFactory.load(config))
     val initialDelay = 1000L
     val op2Start = 1500L
     val sleepTime = 5300L
     val margin = 150L
 
-    // Hack:  Class variable used to record thunk-completion time.
-    // Relies on each test having its own instance of BlockingTest.
-    @volatile var time3 = 0L
-    private val time3UpdatingActor = system.actorOf(Props(new Updater))
-    private class Updater extends Actor {
+    //private val time3UpdatingActor = system.actorOf(Props(new Updater))
+    private class Updater(val timer: Timer) extends Actor {
         val log = Logging(system, this)
 
         def receive = {
-            case 1234 => log.info("received #1234"); time3 = Platform.currentTime
+            case 1234 => log.info("received #1234"); timer.stop
             case x => log.info("received other {}", x)
         }
 
@@ -91,58 +87,52 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
 
     def testThreadSleep() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, () => { 
+        checkForBlocking(promise, (actor) => { 
             Thread.sleep(sleepTime)
-            time3UpdatingActor ! 1234
+            actor ! 1234
         }, true, (_) => ())
     }
 
     def testAwaitResult() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, () => {
-            time3UpdatingActor ! Await.result(promise, 7 seconds)
+        checkForBlocking(promise, (actor) => {
+            actor ! Await.result(promise, 7 seconds)
         }, true, spawnRawPromiseThread)
-    }
-
-    def testNoOp() {
-        val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise,
-                         () => (time3 = Platform.currentTime+sleepTime),
-                         false, (_) => ())
     }
 
     // This fails, because the thunk never stops waiting for the promise.
     def IGNOREtestFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, () => {
+        checkForBlocking(promise, (actor) => {
             Await.result(flow {
-                time3UpdatingActor ! promise()
+                actor ! promise()
             }(system.dispatcher), 8 seconds)
         }, true, spawnFlowPromiseThread)
     }
 
     def testPipeTo() {
         val promise = Promise[Int]()(system.dispatcher)
-        checkForBlocking(promise, () => (promise pipeTo time3UpdatingActor),
+        checkForBlocking(promise, (actor) => (promise pipeTo actor),
                          false, spawnRawPromiseThread)
     }
 
     private def checkForBlocking(promise: Promise[Int],
-                                 thunk: () => Unit, expectBlocking: Boolean,
+                                 thunk: (ActorRef) => Unit,
+                                 expectBlocking: Boolean,
                                  threadSpawner: (Promise[Int]) => Unit) {
-        Thread.sleep(1000)
-        val start = Platform.currentTime
-        @volatile var time1 = start-1
-        @volatile var time2 = start-1
-        time3 = start-1
-        var elapsed = 0L
+        val timer0 = new Timer
+        val timer1 = new Timer
+        val timer2 = new Timer
+        val timer3 = new Timer
+        val time3UpdatingActor = system.actorOf(Props(new Updater(timer3)))
+
         assert(system.dispatcher.id != CallingThreadDispatcher.Id)
         system.scheduler.scheduleOnce(initialDelay milliseconds) { 
-            time1 = Platform.currentTime 
-            thunk()
+            timer1.stop
+            thunk(time3UpdatingActor)
         }
         system.scheduler.scheduleOnce(op2Start milliseconds) { 
-            time2 = Platform.currentTime 
+            timer2.stop
         }
 
         threadSpawner(promise)
@@ -151,18 +141,19 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         // to wait for it to complete before it can run the second scheduled
         // operation, late if the first op blocked.
 
-        elapsed = Platform.currentTime - start
+        timer0.stop
+        var elapsed: Long = timer0.elapsed
         elapsed should be >= 0L
         elapsed should be <= margin
-        elapsed = time1 - start
+        elapsed = timer1.elapsed
         elapsed should be === -1
-        elapsed = time2 - start
+        elapsed = timer2.elapsed
         elapsed should be === -1
         Thread.sleep(2000)
-        elapsed = time1 - start
+        elapsed = timer1.elapsed
         elapsed should be >= initialDelay
         elapsed should be <= initialDelay + margin
-        elapsed = time2 - start
+        elapsed = timer2.elapsed
         if (expectBlocking) {
             elapsed should be === -1
         } else {
@@ -171,11 +162,11 @@ class BlockingTest extends Suite with ShouldMatchers with OneInstancePerTest {
         }
         Thread.sleep(8000)
         if (expectBlocking) {
-            elapsed = time2 - start
+            elapsed = timer2.elapsed
             elapsed should be >= initialDelay + sleepTime
             elapsed should be <= initialDelay + sleepTime + margin
         }
-        elapsed = time3 - start
+        elapsed = timer3.elapsed
         elapsed should be >= initialDelay + sleepTime
         elapsed should be <= initialDelay + sleepTime + margin
     }
