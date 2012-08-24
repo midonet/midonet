@@ -104,7 +104,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise,
                          (actor) => flow {
-                                        actor ! promise()
+                                        actor.tell(promise())
                                     }(system.dispatcher),
                          false, spawnRawPromiseThread)
     }
