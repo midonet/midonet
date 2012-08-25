@@ -10,7 +10,8 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.DhcpDao;
 import com.midokura.midolman.mgmt.data.dto.DhcpSubnet;
 import com.midokura.midolman.mgmt.data.dto.RelativeUriResource;
@@ -50,7 +51,7 @@ public class BridgeDhcpResource {
     @Inject
     public BridgeDhcpResource(UriInfo uriInfo,
                               SecurityContext context,
-                              Authorizer authorizer,
+                              BridgeAuthorizer authorizer,
                               DhcpDao dao,
                               ResourceFactory factory,
                               @Assisted UUID bridgeId) {
@@ -88,7 +89,7 @@ public class BridgeDhcpResource {
             MediaType.APPLICATION_JSON })
     public Response create(DhcpSubnet subnet) throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to configure DHCP for this bridge.");
         }
@@ -122,7 +123,7 @@ public class BridgeDhcpResource {
             DhcpSubnet subnet)
             throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this bridge's dhcp config.");
         }
@@ -151,7 +152,7 @@ public class BridgeDhcpResource {
     public DhcpSubnet get(@PathParam("subnetAddr") IntIPv4 subnetAddr)
             throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this bridge's dhcp config.");
         }
@@ -175,7 +176,7 @@ public class BridgeDhcpResource {
     public void delete(@PathParam("subnetAddr") IntIPv4 subnetAddr)
             throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete dhcp configuration of "
                             + "this bridge.");
@@ -201,7 +202,7 @@ public class BridgeDhcpResource {
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON })
     public List<DhcpSubnet> list() throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view DHCP config of this bridge.");
         }

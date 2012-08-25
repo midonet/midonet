@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.mgmt.data.dto.PortGroup;
 import com.midokura.midolman.mgmt.data.dto.config.PortGroupNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
 import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
 import com.midokura.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;

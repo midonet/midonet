@@ -3,33 +3,24 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_JSON;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.util.UUID;
-
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.UUID;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(Enclosed.class)
 public class TestPortGroup {
@@ -49,24 +40,19 @@ public class TestPortGroup {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create two tenants
-            DtoTenant t1 = new DtoTenant();
-            t1.setId("tenant1-id");
-
-            DtoTenant t2 = new DtoTenant();
-            t2.setId("tenant2-id");
-
             // Create one bridge for tenant1
             DtoBridge bridge = new DtoBridge();
             bridge.setName("Bridge1");
+            bridge.setTenantId("tenant1-id");
 
             // Create one chain for tenant1
             DtoRuleChain chain = new DtoRuleChain();
             chain.setName("Chain1");
+            bridge.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t1)
-                    .create("tenant2", t2).create("tenant1", "bridge1", bridge)
-                    .create("tenant1", "chain1", chain).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("bridge1", bridge)
+                    .create("chain1", chain).build();
         }
 
         @After
@@ -77,38 +63,42 @@ public class TestPortGroup {
         @Test
         public void testCreateGetListDelete() {
 
-            DtoTenant tenant1 = topology.getTenant("tenant1");
-            DtoTenant tenant2 = topology.getTenant("tenant2");
+            DtoApplication app = topology.getApplication();
             DtoBridge bridge = topology.getBridge("bridge1");
             DtoRuleChain chain = topology.getChain("chain1");
 
             // Create a port group for Tenant1
             DtoPortGroup group1 = new DtoPortGroup();
             group1.setName("Group1");
-            group1 = dtoResource.postAndVerifyCreated(tenant1.getPortGroups(),
+            group1.setTenantId("tenant1-id");
+            group1 = dtoResource.postAndVerifyCreated(app.getPortGroups(),
                     APPLICATION_PORTGROUP_JSON, group1, DtoPortGroup.class);
             assertEquals("Group1", group1.getName());
-            assertEquals(tenant1.getId(), group1.getTenantId());
+            assertEquals("tenant1-id", group1.getTenantId());
 
             // Create another port group for Tenant1
             DtoPortGroup group2 = new DtoPortGroup();
             group2.setName("Group2");
-            group2 = dtoResource.postAndVerifyCreated(tenant1.getPortGroups(),
+            group2.setTenantId("tenant1-id");
+            group2 = dtoResource.postAndVerifyCreated(app.getPortGroups(),
                     APPLICATION_PORTGROUP_JSON, group2, DtoPortGroup.class);
             assertEquals("Group2", group2.getName());
-            assertEquals(tenant1.getId(), group2.getTenantId());
+            assertEquals("tenant1-id", group2.getTenantId());
 
             // Create a port group for Tenant2
             DtoPortGroup group3 = new DtoPortGroup();
             group3.setName("Group3");
-            group3 = dtoResource.postAndVerifyCreated(tenant2.getPortGroups(),
+            group3.setTenantId("tenant2-id");
+            group3 = dtoResource.postAndVerifyCreated(app.getPortGroups(),
                     APPLICATION_PORTGROUP_JSON, group3, DtoPortGroup.class);
             assertEquals("Group3", group3.getName());
-            assertEquals(tenant2.getId(), group3.getTenantId());
+            assertEquals("tenant2-id", group3.getTenantId());
 
             // List tenant1's groups
+            URI searchUri = UriBuilder.fromUri(app.getPortGroups()).queryParam(
+                    "tenant_id", "tenant1-id").build();
             DtoPortGroup[] groups = dtoResource
-                    .getAndVerifyOk(tenant1.getPortGroups(),
+                    .getAndVerifyOk(searchUri,
                             APPLICATION_PORTGROUP_COLLECTION_JSON,
                             DtoPortGroup[].class);
             assertThat("Tenant1 has 2 groups.", groups, arrayWithSize(2));
@@ -156,7 +146,7 @@ public class TestPortGroup {
 
             // There should now be only the second group.
             groups = dtoResource
-                    .getAndVerifyOk(tenant1.getPortGroups(),
+                    .getAndVerifyOk(searchUri,
                             APPLICATION_PORTGROUP_COLLECTION_JSON,
                             DtoPortGroup[].class);
             assertThat("We expect 1 listed group after the delete", groups,

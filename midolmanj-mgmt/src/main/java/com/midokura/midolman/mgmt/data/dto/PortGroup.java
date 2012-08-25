@@ -24,6 +24,8 @@ public class PortGroup extends UriResource {
     public static final int MAX_PORT_GROUP_NAME_LEN = 255;
 
     private UUID id = null;
+
+    @NotNull
     private String tenantId = null;
 
     @NotNull

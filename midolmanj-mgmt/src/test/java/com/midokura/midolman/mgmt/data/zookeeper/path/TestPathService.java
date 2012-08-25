@@ -17,6 +17,8 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.midokura.midolman.state.PathBuilder;
+
 @RunWith(MockitoJUnitRunner.class)
 public class TestPathService {
 
@@ -66,6 +68,5 @@ public class TestPathService {
         verify(pathBuilder).getAgentVpnPath();
         verify(pathBuilder).getHostsPath();
         verify(pathBuilder).getPortGroupsPath();
-        verify(pathBuilder).getTenantsPath();
     }
 }

@@ -9,7 +9,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.PortAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.VpnAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.VpnDao;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
 import com.midokura.midolman.mgmt.data.dto.Vpn;
@@ -49,7 +51,7 @@ public class VpnResource {
 
     @Inject
     public VpnResource(UriInfo uriInfo, SecurityContext context,
-                       Authorizer authorizer, VpnDao dao) {
+                       VpnAuthorizer authorizer, VpnDao dao) {
         this.context = context;
         this.uriInfo = uriInfo;
         this.authorizer = authorizer;
@@ -70,7 +72,7 @@ public class VpnResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.vpnAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this VPN.");
         }
@@ -99,7 +101,7 @@ public class VpnResource {
             MediaType.APPLICATION_JSON })
     public Vpn get(@PathParam("id") UUID id) throws StateAccessException {
 
-        if (!authorizer.vpnAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this VPN.");
         }
@@ -129,7 +131,7 @@ public class VpnResource {
         @Inject
         public PortVpnResource(UriInfo uriInfo,
                                SecurityContext context,
-                               Authorizer authorizer,
+                               PortAuthorizer authorizer,
                                VpnDao dao,
                                @Assisted UUID portId) {
             this.portId = portId;
@@ -155,7 +157,7 @@ public class VpnResource {
         public Response create(Vpn vpn)
                 throws StateAccessException, InvalidStateOperationException {
 
-            if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add VPN to this port.");
             }
@@ -180,7 +182,7 @@ public class VpnResource {
                 MediaType.APPLICATION_JSON })
         public List<Vpn> list() throws StateAccessException {
 
-            if (!authorizer.portAuthorized(context, AuthAction.READ, portId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these VPNs.");
             }

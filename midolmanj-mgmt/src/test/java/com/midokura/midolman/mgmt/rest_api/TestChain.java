@@ -3,22 +3,15 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.midokura.midolman.mgmt.data.dto.Chain;
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,15 +20,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(Enclosed.class)
 public class TestChain {
@@ -60,16 +54,13 @@ public class TestChain {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a chain - useful for checking duplicate name error
             DtoRuleChain c = new DtoRuleChain();
             c.setName("chain1-name");
+            c.setTenantId("tenant1");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", c).build();
         }
 
         @After
@@ -111,10 +102,11 @@ public class TestChain {
 
         @Test
         public void testBadInputCreate() {
-            DtoTenant tenant1 = topology.getTenant("tenant1");
+
+            DtoApplication app = topology.getApplication();
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    tenant1.getChains(), APPLICATION_CHAIN_JSON, chain);
+                    app.getChains(), APPLICATION_CHAIN_JSON, chain);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -123,8 +115,8 @@ public class TestChain {
 
     public static class TestChainCrud extends JerseyTest {
 
-        DtoTenant tenant1;
-        DtoTenant tenant2;
+        private DtoWebResource dtoResource;
+        private Topology topology;
 
         public TestChainCrud() {
             super(FuncTest.appDesc);
@@ -132,29 +124,11 @@ public class TestChain {
 
         @Before
         public void before() {
-            ClientResponse response;
 
-            DtoApplication app = new DtoApplication();
-            app = resource().path("").type(APPLICATION_JSON)
-                    .get(DtoApplication.class);
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
 
-            tenant1 = new DtoTenant();
-            tenant1.setId("ChainTenant1");
-            response = resource().uri(app.getTenants())
-                    .type(APPLICATION_TENANT_JSON)
-                    .post(ClientResponse.class, tenant1);
-            assertEquals("The tenant was created.", 201, response.getStatus());
-            tenant1 = resource().uri(response.getLocation())
-                    .accept(APPLICATION_TENANT_JSON).get(DtoTenant.class);
-
-            tenant2 = new DtoTenant();
-            tenant2.setId("ChainTenant2");
-            response = resource().uri(app.getTenants())
-                    .type(APPLICATION_TENANT_JSON)
-                    .post(ClientResponse.class, tenant2);
-            assertEquals("The tenant was created.", 201, response.getStatus());
-            tenant2 = resource().uri(response.getLocation())
-                    .accept(APPLICATION_TENANT_JSON).get(DtoTenant.class);
+            topology = new Topology.Builder(dtoResource).build();
         }
 
         @After
@@ -164,46 +138,52 @@ public class TestChain {
 
         @Test
         public void testCreateGetListDelete() {
+
+            DtoApplication app = topology.getApplication();
+
             ClientResponse response;
 
             // Create a rule chain for Tenant1
             DtoRuleChain ruleChain1 = new DtoRuleChain();
             ruleChain1.setName("Chain1");
-            response = resource().uri(tenant1.getChains())
+            ruleChain1.setTenantId("tenant1");
+            response = resource().uri(app.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain1);
             assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain1 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain1", ruleChain1.getName());
-            assertEquals(tenant1.getId(), ruleChain1.getTenantId());
+            assertEquals("tenant1", ruleChain1.getTenantId());
 
             // Create another rule chain for Tenant1
             DtoRuleChain ruleChain2 = new DtoRuleChain();
             ruleChain2.setName("Chain2");
-            response = resource().uri(tenant1.getChains())
+            ruleChain2.setTenantId("tenant1");
+            response = resource().uri(app.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain2);
             assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain2 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain2", ruleChain2.getName());
-            assertEquals(tenant1.getId(), ruleChain2.getTenantId());
+            assertEquals("tenant1", ruleChain2.getTenantId());
 
             // Create a rule chain for Tenant2
             DtoRuleChain ruleChain3 = new DtoRuleChain();
             ruleChain3.setName("Chain3");
-            response = resource().uri(tenant2.getChains())
+            ruleChain3.setTenantId("tenant2");
+            response = resource().uri(app.getChains())
                     .type(APPLICATION_CHAIN_JSON)
                     .post(ClientResponse.class, ruleChain3);
             assertEquals("The chain was created.", 201, response.getStatus());
             ruleChain3 = resource().uri(response.getLocation())
                     .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
             assertEquals("Chain3", ruleChain3.getName());
-            assertEquals(tenant2.getId(), ruleChain3.getTenantId());
+            assertEquals("tenant2", ruleChain3.getTenantId());
 
             // List tenant1's chains
-            response = resource().uri(tenant1.getChains())
+            response = resource().uri(app.getChains())
                     .accept(APPLICATION_CHAIN_COLLECTION_JSON)
                     .get(ClientResponse.class);
             assertEquals(200, response.getStatus());
@@ -233,7 +213,7 @@ public class TestChain {
                     ClientResponse.class);
             assertEquals(204, response.getStatus());
             // There should now be only the second chain.
-            response = resource().uri(tenant1.getChains())
+            response = resource().uri(app.getChains())
                     .accept(APPLICATION_CHAIN_COLLECTION_JSON)
                     .get(ClientResponse.class);
             assertEquals(200, response.getStatus());

@@ -30,9 +30,12 @@ public class Router extends UriResource {
     public static final int MAX_ROUTER_NAME_LEN = 255;
 
     private UUID id;
-    private String tenantId;
+
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+
+    @NotNull
+    private String tenantId;
 
     @NotNull
     @Size(min = MIN_ROUTER_NAME_LEN, max = MAX_ROUTER_NAME_LEN)

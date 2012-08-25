@@ -20,7 +20,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.ZkConfigSerializer;
 
 @RunWith(MockitoJUnitRunner.class)

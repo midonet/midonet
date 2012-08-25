@@ -7,17 +7,14 @@ package com.midokura.midolman.mgmt.rest_api.resources;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.data.dao.HostDao;
 import com.midokura.midolman.mgmt.data.dto.HostCommand;
 import com.midokura.midolman.mgmt.http.VendorMediaType;
-import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -41,32 +38,25 @@ public class HostCommandResource {
     private final UUID hostId;
     private final SecurityContext context;
     private final UriInfo uriInfo;
-    private final Authorizer authorizer;
     private final HostDao dao;
 
     @Inject
     public HostCommandResource(UriInfo uriInfo,
                                SecurityContext context,
-                               Authorizer authorizer,
                                HostDao dao,
                                @Assisted UUID hostId) {
         this.context = context;
         this.uriInfo = uriInfo;
-        this.authorizer = authorizer;
         this.dao = dao;
         this.hostId = hostId;
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<HostCommand> list()
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException("Not authorized to view hosts.");
-        }
 
         List<HostCommand> hostCommands = dao.listCommands(hostId);
         if (hostCommands != null) {
@@ -85,17 +75,12 @@ public class HostCommandResource {
      * @throws StateAccessException  Data access error.
      */
     @GET
-    @PermitAll
+    @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_JSON,
                   MediaType.APPLICATION_JSON})
     public HostCommand get(@PathParam("id") Integer id)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to view this command.");
-        }
 
         HostCommand host = dao.getCommand(hostId, id);
         host.setBaseUri(uriInfo.getBaseUri());
@@ -111,15 +96,10 @@ public class HostCommandResource {
      * @throws StateAccessException  Data access error.
      */
     @DELETE
-    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     public Response delete(@PathParam("id") Integer id)
         throws StateAccessException {
-
-        if (!authorizer.isAdmin(context)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to delete this bridge.");
-        }
 
         try {
             dao.deleteCommand(hostId, id);

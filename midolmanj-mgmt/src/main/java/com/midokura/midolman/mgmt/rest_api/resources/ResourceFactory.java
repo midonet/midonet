@@ -3,10 +3,7 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
-
-import com.midokura.midolman.mgmt.rest_api.resources.*;
 import com.midokura.packets.IntIPv4;
-
 import javax.ws.rs.PathParam;
 import java.util.UUID;
 
@@ -40,15 +37,6 @@ public interface ResourceFactory {
     HostResource getHostResource();
 
     MonitoringResource getMonitoringQueryResource();
-
-    BridgeResource.TenantBridgeResource getTenantBridgeResource(String id);
-
-    ChainResource.TenantChainResource getTenantChainResource(String id);
-
-    PortGroupResource.TenantPortGroupResource getTenantPortGroupResource(
-            String id);
-
-    RouterResource.TenantRouterResource getTenantRouterResource(String id);
 
     AdRouteResource.BgpAdRouteResource getBgpAdRouteResource(UUID id);
 

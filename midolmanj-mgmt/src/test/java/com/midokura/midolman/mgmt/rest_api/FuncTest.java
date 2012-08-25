@@ -97,7 +97,7 @@ public class FuncTest {
                 .contextPath("/test").clientConfig(config);
     }
 
-    static final AppDescriptor appDesc = getBuilder().build();
+    public static final AppDescriptor appDesc = getBuilder().build();
 
     public static UUID getUuidFromLocation(URI location) {
         String[] tmp = location.toString().split("/");

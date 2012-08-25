@@ -8,7 +8,6 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class Router {

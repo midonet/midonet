@@ -1,7 +1,6 @@
 package com.midokura.midonet.functional_test.topology;
 
 import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class RuleChain {

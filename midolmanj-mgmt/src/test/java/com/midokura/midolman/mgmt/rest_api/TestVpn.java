@@ -4,9 +4,9 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
@@ -25,12 +25,10 @@ import java.util.UUID;
 
 import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TestVpn extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(TestVpn.class);
-    private final String testTenantName = "TEST-TENANT";
     private final String testRouterName = "TEST-ROUTER";
 
     private WebResource resource;
@@ -48,26 +46,21 @@ public class TestVpn extends JerseyTest {
 
     @Before
     public void before() {
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
 
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString()
-                .endsWith("tenants/" + testTenantName));
+        DtoApplication app = resource().path("").accept(APPLICATION_JSON)
+                .get(DtoApplication.class);
 
         // Create a router.
         router.setName(testRouterName);
-        resource = resource().path("tenants/" + testTenantName + "/routers");
+        router.setTenantId("tenant1-id");
+        resource = resource().uri(app.getRouters());
         response = resource.type(APPLICATION_ROUTER_JSON).post(
                 ClientResponse.class, router);
 
         log.debug("router location: {}", response.getLocation());
         testRouterUri = response.getLocation();
+        router = resource().uri(testRouterUri).accept(
+                APPLICATION_ROUTER_JSON).get(DtoRouter.class);
 
         DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
         String portAddress = "180.214.47.66";
@@ -76,8 +69,7 @@ public class TestVpn extends JerseyTest {
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("180.214.47.64");
         port.setLocalNetworkLength(30);
-        resource = resource().uri(
-                UriBuilder.fromUri(testRouterUri).path("ports").build());
+        resource = resource().uri(router.getPorts());
         log.debug("port JSON {}", port.toString());
 
         response = resource.type(APPLICATION_PORT_JSON).post(
@@ -93,8 +85,7 @@ public class TestVpn extends JerseyTest {
         port.setPortAddress(portAddress);
         port.setLocalNetworkAddress("192.168.10.2");
         port.setLocalNetworkLength(30);
-        resource = resource().uri(
-                UriBuilder.fromUri(testRouterUri).path("ports").build());
+        resource = resource().uri(router.getPorts());
         response = resource.type(APPLICATION_PORT_JSON).post(
                 ClientResponse.class, port);
         log.debug("port JSON {}", port.toString());

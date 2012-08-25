@@ -9,7 +9,8 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.FilteringDbEntry;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -39,7 +40,7 @@ public class BridgeFilterDbResource {
     @Inject
     public BridgeFilterDbResource(UriInfo uriInfo,
                                   SecurityContext context,
-                                  Authorizer authorizer,
+                                  BridgeAuthorizer authorizer,
                                   PortDao portDao,
                                   @Assisted UUID bridgeId) {
         this.context = context;
@@ -61,7 +62,7 @@ public class BridgeFilterDbResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<FilteringDbEntry> list() throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view these ports.");
         }

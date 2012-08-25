@@ -12,6 +12,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.midokura.midolman.state.PathBuilder;
+
 public class TestPathHelper {
 
     @Test

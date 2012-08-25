@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.config.RouterNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;

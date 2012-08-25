@@ -40,7 +40,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantPortGroupNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantPortGroupNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantPortGroupNamePath(String tenantId,
+                                                       String name) {
         return buildTenantPortGroupNamesPath(tenantId).append("/").append(name);
     }
 
@@ -56,7 +57,8 @@ public class PathBuilder extends ZkPathManager {
     }
 
     private StringBuilder buildTenantPortGroupNamesPath(String tenantId) {
-        return buildTenantPath(tenantId).append("/").append(PORT_GROUP_NAMES_PATH);
+        return buildTenantPath(tenantId).append("/").append(
+                PORT_GROUP_NAMES_PATH);
     }
 
     /**
@@ -70,7 +72,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantChainNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantChainNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantChainNamePath(String tenantId,
+                                                   String name) {
         return buildTenantChainNamesPath(tenantId).append("/").append(name);
     }
 
@@ -98,7 +101,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantBridgeNamePath(tenantId, name).toString();
     }
 
-    public StringBuilder buildTenantBridgeNamePath(String tenantId, String name) {
+    public StringBuilder buildTenantBridgeNamePath(String tenantId,
+                                                   String name) {
         return buildTenantBridgeNamesPath(tenantId).append("/").append(name);
     }
 
@@ -124,7 +128,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantRouterNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantRouterNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantRouterNamePath(String tenantId,
+                                                    String name) {
         return buildTenantRouterNamesPath(tenantId).append("/").append(name);
     }
 

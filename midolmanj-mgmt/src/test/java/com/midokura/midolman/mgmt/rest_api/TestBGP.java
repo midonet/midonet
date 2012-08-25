@@ -5,13 +5,9 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import java.net.URI;
-import java.util.UUID;
-
 import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
 import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
 import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -22,14 +18,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.util.UUID;
+
 import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TestBGP extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(TestBGP.class);
-    private final String testTenantName = "TEST-TENANT";
+    private final String testTenantId = "TEST-TENANT";
     private final String testRouterName = "TEST-ROUTER";
 
     private WebResource resource;
@@ -47,20 +45,11 @@ public class TestBGP extends JerseyTest {
     // This one also tests Create with given tenant ID string
     @Before
     public void before() {
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId(testTenantName);
-
-        resource = resource().path("tenants");
-        response = resource.type(APPLICATION_TENANT_JSON).post(
-                ClientResponse.class, tenant);
-        log.debug("status: {}", response.getStatus());
-        log.debug("location: {}", response.getLocation());
-        assertEquals(201, response.getStatus());
-        assertTrue(response.getLocation().toString().endsWith("tenants/" + testTenantName));
 
         // Create a router.
         router.setName(testRouterName);
-        resource = resource().path("tenants/" + testTenantName + "/routers");
+        router.setTenantId(testTenantId);
+        resource = resource().path("/routers");
         response = resource.type(APPLICATION_ROUTER_JSON).post(
                 ClientResponse.class, router);
 

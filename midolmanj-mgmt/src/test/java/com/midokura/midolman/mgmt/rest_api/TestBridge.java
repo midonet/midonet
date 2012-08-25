@@ -4,18 +4,13 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,12 +19,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
@@ -49,21 +48,19 @@ public class TestBridge {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Prepare chains that can be used to set to port
             DtoRuleChain chain1 = new DtoRuleChain();
             chain1.setName("chain1");
+            chain1.setTenantId("tenant1");
 
             // Prepare another chain
             DtoRuleChain chain2 = new DtoRuleChain();
             chain2.setName("chain2");
+            chain2.setName("tenant1");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", chain1)
-                    .create("tenant1", "chain2", chain2).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", chain1)
+                    .create("chain2", chain2).build();
         }
 
         @After
@@ -74,13 +71,11 @@ public class TestBridge {
         @Test
         public void testCrud() throws Exception {
 
-            DtoTenant tenant1 = topology.getTenant("tenant1");
+            DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
 
-            // Verify that there is nothing
-            assertNotNull(tenant1);
-            URI bridgesUri = tenant1.getBridges();
+            URI bridgesUri = app.getBridges();
             assertNotNull(bridgesUri);
             DtoBridge[] bridges = dtoResource.getAndVerifyOk(bridgesUri,
                     APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
@@ -89,7 +84,7 @@ public class TestBridge {
             // Add a bridge
             DtoBridge bridge = new DtoBridge();
             bridge.setName("bridge1");
-            bridge.setTenantId(tenant1.getId());
+            bridge.setTenantId("tenant1");
             bridge.setInboundFilterId(chain1.getId());
             bridge.setOutboundFilterId(chain2.getId());
 
@@ -174,16 +169,13 @@ public class TestBridge {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a bridge - useful for checking duplicate name error
             DtoBridge b = new DtoBridge();
             b.setName("bridge1-name");
+            b.setTenantId("tenant1");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "bridge1", b).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("bridge1", b).build();
         }
 
         @After
@@ -224,10 +216,10 @@ public class TestBridge {
 
         @Test
         public void testBadInputCreate() {
-            DtoTenant t = topology.getTenant("tenant1");
+            DtoApplication app = topology.getApplication();
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    t.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
+                    app.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -254,21 +246,19 @@ public class TestBridge {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a bridge
             DtoBridge b1 = new DtoBridge();
             b1.setName("bridge1-name");
+            b1.setTenantId("tenant1");
 
             // Create another bridge - useful for checking duplicate name error
             DtoBridge b2 = new DtoBridge();
             b2.setName("bridge2-name");
+            b2.setTenantId("tenant1");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "bridge1", b1)
-                    .create("tenant1", "bridge2", b2).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("bridge1", b1)
+                    .create("bridge2", b2).build();
         }
 
         @After

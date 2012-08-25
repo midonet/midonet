@@ -8,8 +8,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.mgmt.auth.AuthClient;
-import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.auth.SimpleAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.*;
 import com.midokura.midolman.mgmt.auth.keystone.KeystoneConfig;
 
 /**
@@ -25,7 +24,17 @@ public class AuthModule extends AbstractModule {
         bind(AuthClient.class).toProvider(
                 AuthClientProvider.class).asEagerSingleton();
 
-        bind(Authorizer.class).to(SimpleAuthorizer.class).asEagerSingleton();
+        bind(AdRouteAuthorizer.class).asEagerSingleton();
+        bind(BgpAuthorizer.class).asEagerSingleton();
+        bind(BridgeAuthorizer.class).asEagerSingleton();
+        bind(ChainAuthorizer.class).asEagerSingleton();
+        bind(PortAuthorizer.class).asEagerSingleton();
+        bind(PortGroupAuthorizer.class).asEagerSingleton();
+        bind(RouteAuthorizer.class).asEagerSingleton();
+        bind(RouterAuthorizer.class).asEagerSingleton();
+        bind(RuleAuthorizer.class).asEagerSingleton();
+        bind(VpnAuthorizer.class).asEagerSingleton();
+
     }
 
     @Provides

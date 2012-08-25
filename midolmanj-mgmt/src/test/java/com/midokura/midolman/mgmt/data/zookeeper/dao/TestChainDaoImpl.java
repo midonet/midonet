@@ -19,7 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import com.midokura.midolman.state.ZkConfigSerializer;
 

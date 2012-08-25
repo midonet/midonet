@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+import com.midokura.midolman.state.PathBuilder;
+
 /**
  * ZooKeeper path service
  */
@@ -65,7 +67,6 @@ public class PathService {
         pathSet.add(pathBuilder.getAgentVpnPath());
         pathSet.add(pathBuilder.getHostsPath());
         pathSet.add(pathBuilder.getPortGroupsPath());
-        pathSet.add(pathBuilder.getTenantsPath());
 
         log.debug("PathService.getInitialPaths exiting: pathSet count={}",
                 pathSet.size());

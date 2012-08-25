@@ -5,11 +5,11 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RouterAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.RouterDao;
 import com.midokura.midolman.mgmt.data.dto.Router;
 import com.midokura.midolman.mgmt.data.dto.Router.RouterGroupSequence;
@@ -33,7 +33,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -56,7 +59,7 @@ public class RouterResource {
 
     @Inject
     public RouterResource(UriInfo uriInfo, SecurityContext context,
-                          Authorizer authorizer, Validator validator,
+                          RouterAuthorizer authorizer, Validator validator,
                           RouterDao dao, ResourceFactory factory) {
         this.context = context;
         this.uriInfo = uriInfo;
@@ -80,7 +83,7 @@ public class RouterResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.routerAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this router.");
         }
@@ -110,7 +113,7 @@ public class RouterResource {
     public Router get(@PathParam("id") UUID id)
             throws StateAccessException {
 
-        if (!authorizer.routerAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this router.");
         }
@@ -188,7 +191,7 @@ public class RouterResource {
             throw new BadRequestHttpException(violations);
         }
 
-        if (!authorizer.routerAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this router.");
         }
@@ -196,95 +199,72 @@ public class RouterResource {
     }
 
     /**
-     * Sub-resource class for tenant's virtual router.
+     * Handler for creating a tenant router.
+     *
+     * @param router
+     *            Router object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @returns Response object with 201 status code set if successful.
      */
-    @RequestScoped
-    public static class TenantRouterResource {
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response create(Router router)
+            throws StateAccessException, InvalidStateOperationException {
 
-        private final String tenantId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
-        private final Authorizer authorizer;
-        private final Validator validator;
-        private final RouterDao dao;
-
-        @Inject
-        public TenantRouterResource(UriInfo uriInfo,
-                                    SecurityContext context,
-                                    Authorizer authorizer,
-                                    Validator validator,
-                                    RouterDao dao,
-                                    @Assisted String tenantId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
-            this.authorizer = authorizer;
-            this.validator = validator;
-            this.dao = dao;
-            this.tenantId = tenantId;
+        Set<ConstraintViolation<Router>> violations = validator.validate(
+                router, RouterGroupSequence.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
         }
 
-        /**
-         * Handler for creating a tenant router.
-         *
-         * @param router
-         *            Router object.
-         * @throws StateAccessException
-         *             Data access error.
-         * @returns Response object with 201 status code set if successful.
-         */
-        @POST
-        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
-        @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
-                MediaType.APPLICATION_JSON })
-        public Response create(Router router)
-                throws StateAccessException, InvalidStateOperationException {
-
-            router.setTenantId(tenantId);
-
-            Set<ConstraintViolation<Router>> violations = validator.validate(
-                    router, RouterGroupSequence.class);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
-
-            if (!authorizer
-                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to add router to this tenant.");
-            }
-
-            UUID id = dao.create(router);
-            return Response.created(
-                    ResourceUriBuilder.getRouter(uriInfo.getBaseUri(), id))
-                    .build();
+        if (!Authorizer.isAdminOrOwner(context, router.getTenantId())) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to add router to this tenant.");
         }
 
-        /**
-         * Handler to list tenant routers.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Router objects.
-         */
-        @GET
-        @PermitAll
-        @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
-        public List<Router> list() throws StateAccessException {
-
-            if (!authorizer
-                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view routers of this tenant.");
-            }
-
-            List<Router> routers = dao.findByTenant(tenantId);
-            if (routers != null) {
-                for (UriResource resource : routers) {
-                    resource.setBaseUri(uriInfo.getBaseUri());
-                }
-            }
-            return routers;
-        }
+        UUID id = dao.create(router);
+        return Response.created(
+                ResourceUriBuilder.getRouter(uriInfo.getBaseUri(), id))
+                .build();
     }
+
+    /**
+     * Handler to list tenant routers.
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of Router objects.
+     */
+    @GET
+    @PermitAll
+    @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON })
+    public List<Router> list(@QueryParam("tenant_id") String tenantId)
+            throws StateAccessException {
+
+        if (tenantId == null) {
+            throw new BadRequestHttpException(
+                    "Currently tenant_id is required for search.");
+        }
+
+        // Tenant ID query string is a special parameter that is used to check
+        // authorization.
+        if (!Authorizer.isAdmin(context) && (tenantId == null ||
+                !Authorizer.isOwner(context, tenantId))) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view routers of this request.");
+        }
+
+        List<Router> routers = dao.findByTenant(tenantId);
+        if (routers != null) {
+            for (UriResource resource : routers) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+        }
+        return routers;
+    }
+
 }

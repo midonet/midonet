@@ -9,11 +9,9 @@ import com.google.inject.Provides;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.mgmt.data.dao.*;
 import com.midokura.midolman.mgmt.data.zookeeper.dao.*;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.mgmt.data.zookeeper.path.PathService;
 import com.midokura.midolman.mgmt.jaxrs.JsonJaxbSerializer;
-import com.midokura.midolman.mgmt.data.dao.TenantDao;
-import com.midokura.midolman.mgmt.data.zookeeper.dao.TenantDaoImpl;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
@@ -86,9 +84,6 @@ public class ZookeeperDaoModule extends AbstractModule {
         // Router
         bind(RouterDao.class).to(RouterZkDaoImpl.class).asEagerSingleton();
         bind(RouterZkDao.class).to(RouterZkDaoImpl.class).asEagerSingleton();
-
-        // Tenant
-        bind(TenantDao.class).to(TenantDaoImpl.class).asEagerSingleton();
 
     }
 

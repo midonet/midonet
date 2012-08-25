@@ -20,7 +20,7 @@ import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
 import com.midokura.midolman.mgmt.data.dto.config.BridgeNameMgmtConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.path.PathBuilder;
+import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.StateAccessException;

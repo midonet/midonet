@@ -9,7 +9,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.ChainAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RuleAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.ChainDao;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.data.dto.Chain;
@@ -32,7 +34,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +58,7 @@ public class RuleResource {
 
     @Inject
     public RuleResource(UriInfo uriInfo, SecurityContext context,
-                        Authorizer authorizer, RuleDao dao) {
+                        RuleAuthorizer authorizer, RuleDao dao) {
         this.context = context;
         this.uriInfo = uriInfo;
         this.authorizer = authorizer;
@@ -74,7 +79,7 @@ public class RuleResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.ruleAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this rule.");
         }
@@ -103,7 +108,7 @@ public class RuleResource {
             MediaType.APPLICATION_JSON })
     public Rule get(@PathParam("id") UUID id) throws StateAccessException {
 
-        if (!authorizer.ruleAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this rule.");
         }
@@ -135,7 +140,7 @@ public class RuleResource {
         @Inject
         public ChainRuleResource(UriInfo uriInfo,
                                  SecurityContext context,
-                                 Authorizer authorizer,
+                                 ChainAuthorizer authorizer,
                                  Validator validator,
                                  RuleDao dao,
                                  ChainDao chainDao,
@@ -176,8 +181,7 @@ public class RuleResource {
                 throw new BadRequestHttpException(violations);
             }
 
-            if (!authorizer.chainAuthorized(
-                    context, AuthAction.WRITE, chainId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, chainId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add port to this chain.");
             }
@@ -213,7 +217,7 @@ public class RuleResource {
                 MediaType.APPLICATION_JSON })
         public List<Rule> list() throws StateAccessException {
 
-            if (!authorizer.chainAuthorized(context, AuthAction.READ, chainId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, chainId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these rules.");
             }

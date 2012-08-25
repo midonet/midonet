@@ -6,7 +6,6 @@ package com.midokura.midonet.functional_test.mocks;
 import java.net.URI;
 
 import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
 
 public interface MidolmanMgmt {
 

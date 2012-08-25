@@ -4,30 +4,20 @@
 
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpOption121;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpSubnet;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.JerseyTest;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class TestDHCP extends JerseyTest {
 
@@ -41,17 +31,13 @@ public class TestDHCP extends JerseyTest {
     public void before() {
         ClientResponse response;
 
-        DtoTenant tenant = new DtoTenant();
-        tenant.setId("DhcpTenant");
-        response = resource().path("tenants").type(APPLICATION_TENANT_JSON)
-                .post(ClientResponse.class, tenant);
-        assertEquals("The tenant was created.", 201, response.getStatus());
-        tenant = resource().uri(response.getLocation())
-                .accept(APPLICATION_TENANT_JSON).get(DtoTenant.class);
+        DtoApplication app = resource().path("").accept(APPLICATION_JSON)
+                .get(DtoApplication.class);
 
         bridge = new DtoBridge();
         bridge.setName("br1234");
-        response = resource().uri(tenant.getBridges())
+        bridge.setTenantId("DhcpTenant");
+        response = resource().uri(app.getBridges())
                 .type(APPLICATION_BRIDGE_JSON)
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());

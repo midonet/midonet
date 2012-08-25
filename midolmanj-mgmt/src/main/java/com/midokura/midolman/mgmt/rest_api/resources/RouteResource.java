@@ -9,7 +9,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RouteAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RouterAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.RouteDao;
 import com.midokura.midolman.mgmt.data.dto.Route;
 import com.midokura.midolman.mgmt.data.dto.Route.RouteGroupSequence;
@@ -30,7 +32,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -54,7 +59,7 @@ public class RouteResource {
 
     @Inject
     public RouteResource(UriInfo uriInfo, SecurityContext context,
-                         Authorizer authorizer, RouteDao dao) {
+                         RouteAuthorizer authorizer, RouteDao dao) {
         this.context = context;
         this.uriInfo = uriInfo;
         this.authorizer = authorizer;
@@ -75,7 +80,7 @@ public class RouteResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.routeAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this route.");
         }
@@ -105,7 +110,7 @@ public class RouteResource {
     public Route get(@PathParam("id") UUID id)
             throws StateAccessException {
 
-        if (!authorizer.routeAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this route.");
         }
@@ -136,7 +141,7 @@ public class RouteResource {
         @Inject
         public RouterRouteResource(UriInfo uriInfo,
                                    SecurityContext context,
-                                   Authorizer authorizer,
+                                   RouterAuthorizer authorizer,
                                    Validator validator,
                                    RouteDao dao,
                                    @Assisted UUID routerId) {
@@ -172,8 +177,7 @@ public class RouteResource {
                 throw new BadRequestHttpException(violations);
             }
 
-            if (!authorizer.routerAuthorized(context, AuthAction.WRITE,
-                    routerId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add route to this router.");
             }
@@ -198,8 +202,7 @@ public class RouteResource {
         public List<Route> list()
                 throws StateAccessException {
 
-            if (!authorizer
-                    .routerAuthorized(context, AuthAction.READ, routerId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these routes.");
             }

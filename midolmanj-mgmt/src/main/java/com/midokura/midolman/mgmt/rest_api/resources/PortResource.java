@@ -9,7 +9,10 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BridgeAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.PortAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RouterAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.PortDao;
 import com.midokura.midolman.mgmt.data.dto.BridgePort;
 import com.midokura.midolman.mgmt.data.dto.Port;
@@ -61,7 +64,7 @@ public class PortResource {
 
     @Inject
     public PortResource(UriInfo uriInfo, SecurityContext context,
-                        Authorizer authorizer, Validator validator,
+                        PortAuthorizer authorizer, Validator validator,
                         PortDao dao, ResourceFactory factory) {
         this.context = context;
         this.uriInfo = uriInfo;
@@ -85,7 +88,7 @@ public class PortResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this port.");
         }
@@ -117,7 +120,7 @@ public class PortResource {
             MediaType.APPLICATION_JSON })
     public Port get(@PathParam("id") UUID id) throws StateAccessException {
 
-        if (!authorizer.portAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this port.");
         }
@@ -157,7 +160,7 @@ public class PortResource {
             throw new BadRequestHttpException(violations);
         }
 
-        if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this port.");
         }
@@ -199,9 +202,9 @@ public class PortResource {
             }
         }
 
-        if (!authorizer.portAuthorized(context, AuthAction.WRITE, id)
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)
                 || !authorizer
-                        .portAuthorized(context, AuthAction.WRITE, peerId)) {
+                        .authorize(context, AuthAction.WRITE, peerId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to link these ports.");
         }
@@ -258,7 +261,7 @@ public class PortResource {
         @Inject
         public BridgePortResource(UriInfo uriInfo,
                                   SecurityContext context,
-                                  Authorizer authorizer,
+                                  BridgeAuthorizer authorizer,
                                   Validator validator,
                                   PortDao dao,
                                   @Assisted UUID bridgeId) {
@@ -292,8 +295,7 @@ public class PortResource {
                 throw new BadRequestHttpException(violations);
             }
 
-            if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE,
-                    bridgeId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add port to this bridge.");
             }
@@ -317,8 +319,7 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public List<Port> list() throws StateAccessException {
 
-            if (!authorizer
-                    .bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these ports.");
             }
@@ -348,7 +349,7 @@ public class PortResource {
         @Inject
         public BridgePeerPortResource(UriInfo uriInfo,
                                       SecurityContext context,
-                                      Authorizer authorizer,
+                                      BridgeAuthorizer authorizer,
                                       PortDao dao,
                                       @Assisted UUID bridgeId) {
             this.context = context;
@@ -371,8 +372,7 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public List<Port> list() throws StateAccessException {
 
-            if (!authorizer
-                    .bridgeAuthorized(context, AuthAction.READ, bridgeId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these ports.");
             }
@@ -403,7 +403,7 @@ public class PortResource {
         @Inject
         public RouterPortResource(UriInfo uriInfo,
                                   SecurityContext context,
-                                  Authorizer authorizer,
+                                  RouterAuthorizer authorizer,
                                   Validator validator,
                                   PortDao dao,
                                   @Assisted UUID routerId) {
@@ -437,8 +437,7 @@ public class PortResource {
                 throw new BadRequestHttpException(violations);
             }
 
-            if (!authorizer.routerAuthorized(context, AuthAction.WRITE,
-                    routerId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add port to this router.");
             }
@@ -461,8 +460,7 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public List<Port> list() throws StateAccessException {
 
-            if (!authorizer
-                    .routerAuthorized(context, AuthAction.READ, routerId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these ports.");
             }
@@ -492,7 +490,7 @@ public class PortResource {
         @Inject
         public RouterPeerPortResource(UriInfo uriInfo,
                                       SecurityContext context,
-                                      Authorizer authorizer,
+                                      RouterAuthorizer authorizer,
                                       PortDao dao,
                                       @Assisted UUID routerId) {
             this.context = context;
@@ -515,8 +513,7 @@ public class PortResource {
                 MediaType.APPLICATION_JSON })
         public List<Port> list() throws StateAccessException {
 
-            if (!authorizer
-                    .routerAuthorized(context, AuthAction.READ, routerId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these ports.");
             }

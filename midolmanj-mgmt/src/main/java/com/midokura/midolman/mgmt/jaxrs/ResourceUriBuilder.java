@@ -4,17 +4,15 @@
  */
 package com.midokura.midolman.mgmt.jaxrs;
 
-import java.net.URI;
-import java.util.UUID;
+import com.midokura.packets.IntIPv4;
 
 import javax.ws.rs.core.UriBuilder;
-
-import com.midokura.packets.IntIPv4;
+import java.net.URI;
+import java.util.UUID;
 
 public class ResourceUriBuilder {
 
     public static final String ROOT = "/";
-    public static final String TENANTS = "/tenants";
     public static final String ROUTERS = "/routers";
     public static final String BRIDGES = "/bridges";
     public static final String FILTER_DB = "/filteringDB";
@@ -43,14 +41,6 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(baseUri).path(ROOT).build();
     }
 
-    public static URI getTenants(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(TENANTS).build();
-    }
-
-    public static URI getTenant(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenants(baseUri)).path(tenantId).build();
-    }
-
     public static URI getRouters(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(ROUTERS).build();
     }
@@ -60,21 +50,6 @@ public class ResourceUriBuilder {
                 .path(routerId.toString()).build();
     }
 
-    public static URI getTenantRouters(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(ROUTERS)
-                .build();
-    }
-
-    public static URI getTenantChains(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(CHAINS)
-                .build();
-    }
-
-    public static URI getTenantPortGroups(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
-                .path(PORT_GROUPS).build();
-    }
-
     public static URI getBridges(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(BRIDGES).build();
     }
@@ -82,11 +57,6 @@ public class ResourceUriBuilder {
     public static URI getBridge(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridges(baseUri))
                 .path(bridgeId.toString()).build();
-    }
-
-    public static URI getTenantBridges(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
-                .build();
     }
 
     public static URI getPorts(URI baseUri) {

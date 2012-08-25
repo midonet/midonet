@@ -9,7 +9,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.AdRouteAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BgpAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.AdRouteDao;
 import com.midokura.midolman.mgmt.data.dto.AdRoute;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
@@ -49,7 +51,7 @@ public class AdRouteResource {
 
     @Inject
     public AdRouteResource(UriInfo uriInfo, SecurityContext context,
-                           Authorizer authorizer, AdRouteDao dao) {
+                           AdRouteAuthorizer authorizer, AdRouteDao dao) {
         this.context = context;
         this.uriInfo = uriInfo;
         this.authorizer = authorizer;
@@ -70,7 +72,7 @@ public class AdRouteResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.adRouteAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this advertised route.");
         }
@@ -100,7 +102,7 @@ public class AdRouteResource {
     public AdRoute get(@PathParam("id") UUID id)
             throws StateAccessException {
 
-        if (!authorizer.adRouteAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this advertised route.");
         }
@@ -110,6 +112,7 @@ public class AdRouteResource {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
         }
+
         adRoute.setBaseUri(uriInfo.getBaseUri());
 
         return adRoute;
@@ -130,7 +133,7 @@ public class AdRouteResource {
         @Inject
         public BgpAdRouteResource(UriInfo uriInfo,
                                   SecurityContext context,
-                                  Authorizer authorizer,
+                                  BgpAuthorizer authorizer,
                                   AdRouteDao dao,
                                   @Assisted UUID bgpId) {
             this.bgpId = bgpId;
@@ -156,7 +159,7 @@ public class AdRouteResource {
         public Response create(AdRoute adRoute)
                 throws StateAccessException, InvalidStateOperationException {
 
-            if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, bgpId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, bgpId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add ad route to this BGP.");
             }
@@ -181,7 +184,7 @@ public class AdRouteResource {
                 MediaType.APPLICATION_JSON })
         public List<AdRoute> list() throws StateAccessException {
 
-            if (!authorizer.bgpAuthorized(context, AuthAction.READ, bgpId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, bgpId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these advertised routes.");
             }

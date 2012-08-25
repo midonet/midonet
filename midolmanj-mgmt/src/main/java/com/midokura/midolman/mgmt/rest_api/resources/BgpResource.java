@@ -9,7 +9,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BgpAuthorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.PortAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.BgpDao;
 import com.midokura.midolman.mgmt.data.dto.Bgp;
 import com.midokura.midolman.mgmt.data.dto.UriResource;
@@ -17,7 +19,8 @@ import com.midokura.midolman.mgmt.http.VendorMediaType;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.jaxrs.NotFoundHttpException;
 import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource.BgpAdRouteResource;
+import com.midokura.midolman.mgmt.rest_api.resources.AdRouteResource
+        .BgpAdRouteResource;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
@@ -51,7 +54,7 @@ public class BgpResource {
 
     @Inject
     public BgpResource(UriInfo uriInfo, SecurityContext context,
-                       Authorizer authorizer, BgpDao dao,
+                       BgpAuthorizer authorizer, BgpDao dao,
                        ResourceFactory factory) {
         this.context = context;
         this.uriInfo = uriInfo;
@@ -74,7 +77,7 @@ public class BgpResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.bgpAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this BGP.");
         }
@@ -103,7 +106,7 @@ public class BgpResource {
             MediaType.APPLICATION_JSON })
     public Bgp get(@PathParam("id") UUID id) throws StateAccessException {
 
-        if (!authorizer.bgpAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this BGP.");
         }
@@ -145,7 +148,7 @@ public class BgpResource {
         @Inject
         public PortBgpResource(UriInfo uriInfo,
                                SecurityContext context,
-                               Authorizer authorizer,
+                               PortAuthorizer authorizer,
                                BgpDao dao,
                                @Assisted UUID portId) {
             this.portId = portId;
@@ -171,7 +174,7 @@ public class BgpResource {
         public Response create(Bgp bgp)
                 throws StateAccessException, InvalidStateOperationException {
 
-            if (!authorizer.portAuthorized(context, AuthAction.WRITE, portId)) {
+            if (!authorizer.authorize(context, AuthAction.WRITE, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add BGP to this port.");
             }
@@ -196,7 +199,7 @@ public class BgpResource {
                 MediaType.APPLICATION_JSON })
         public List<Bgp> list() throws StateAccessException {
 
-            if (!authorizer.portAuthorized(context, AuthAction.READ, portId)) {
+            if (!authorizer.authorize(context, AuthAction.READ, portId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to view these BGPs.");
             }

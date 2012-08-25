@@ -5,11 +5,11 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.data.dto.Bridge;
 import com.midokura.midolman.mgmt.data.dto.Bridge.BridgeGroupSequence;
@@ -32,7 +32,10 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -55,7 +58,7 @@ public class BridgeResource {
 
     @Inject
     public BridgeResource(UriInfo uriInfo, SecurityContext context,
-                          Authorizer authorizer, Validator validator,
+                          BridgeAuthorizer authorizer, Validator validator,
                           BridgeDao dao, ResourceFactory factory) {
         this.context = context;
         this.uriInfo = uriInfo;
@@ -79,7 +82,7 @@ public class BridgeResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, InvalidStateOperationException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to delete this bridge.");
         }
@@ -109,7 +112,7 @@ public class BridgeResource {
     public Bridge get(@PathParam("id") UUID id)
             throws StateAccessException {
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.READ, id)) {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this bridge.");
         }
@@ -200,7 +203,7 @@ public class BridgeResource {
             throw new BadRequestHttpException(violations);
         }
 
-        if (!authorizer.bridgeAuthorized(context, AuthAction.WRITE, id)) {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this bridge.");
         }
@@ -208,95 +211,71 @@ public class BridgeResource {
     }
 
     /**
-     * Sub-resource class for tenant's virtual switch.
+     * Handler for creating a tenant bridge.
+     *
+     * @param bridge
+     *            Bridge object.
+     * @throws StateAccessException
+     *             Data access error.
+     * @returns Response object with 201 status code set if successful.
      */
-    @RequestScoped
-    public static class TenantBridgeResource {
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+            MediaType.APPLICATION_JSON })
+    public Response create(Bridge bridge)
+            throws StateAccessException, InvalidStateOperationException {
 
-        private final String tenantId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
-        private final Authorizer authorizer;
-        private final Validator validator;
-        private final BridgeDao dao;
-
-        @Inject
-        public TenantBridgeResource(UriInfo uriInfo,
-                                    SecurityContext context,
-                                    Authorizer authorizer,
-                                    Validator validator,
-                                    BridgeDao dao,
-                                    @Assisted String tenantId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
-            this.authorizer = authorizer;
-            this.validator = validator;
-            this.dao = dao;
-            this.tenantId = tenantId;
+        Set<ConstraintViolation<Bridge>> violations = validator.validate(
+                bridge, BridgeGroupSequence.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
         }
 
-        /**
-         * Handler for creating a tenant bridge.
-         *
-         * @param bridge
-         *            Bridge object.
-         * @throws StateAccessException
-         *             Data access error.
-         * @returns Response object with 201 status code set if successful.
-         */
-        @POST
-        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
-        @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
-                MediaType.APPLICATION_JSON })
-        public Response create(Bridge bridge)
-                throws StateAccessException, InvalidStateOperationException {
-
-            bridge.setTenantId(tenantId);
-
-            Set<ConstraintViolation<Bridge>> violations = validator.validate(
-                    bridge, BridgeGroupSequence.class);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
-
-            if (!authorizer.tenantAuthorized(context, AuthAction.WRITE,
-                    tenantId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to add bridge to this tenant.");
-            }
-
-            UUID id = dao.create(bridge);
-            return Response.created(
-                    ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))
-                    .build();
+        if (!Authorizer.isAdminOrOwner(context, bridge.getTenantId())) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to add bridge to this tenant.");
         }
 
-        /**
-         * Handler to list tenant bridges.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Bridge objects.
-         */
-        @GET
-        @PermitAll
-        @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
-        public List<Bridge> list() throws StateAccessException {
+        UUID id = dao.create(bridge);
+        return Response.created(
+                ResourceUriBuilder.getBridge(uriInfo.getBaseUri(), id))
+                .build();
+    }
 
-            if (!authorizer
-                    .tenantAuthorized(context, AuthAction.READ, tenantId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view bridges of this tenant.");
-            }
+    /**
+     * Handler to list tenant bridges.
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of Bridge objects.
+     */
+    @GET
+    @PermitAll
+    @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON })
+    public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
+            throws StateAccessException {
 
-            List<Bridge> bridges = dao.findByTenant(tenantId);
-            if (bridges != null) {
-                for (UriResource resource : bridges) {
-                    resource.setBaseUri(uriInfo.getBaseUri());
-                }
-            }
-            return bridges;
+        if (tenantId == null) {
+            throw new BadRequestHttpException(
+                    "Currently tenant_id is required for search.");
         }
+
+        // Tenant ID query string is a special parameter that is used to check
+        // authorization.
+        if (!Authorizer.isAdmin(context) && (tenantId == null ||
+                !Authorizer.isOwner(context, tenantId))) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to view bridges of this request.");
+        }
+
+        List<Bridge> bridges = dao.findByTenant(tenantId);
+        if (bridges != null) {
+            for (UriResource resource : bridges) {
+                resource.setBaseUri(uriInfo.getBaseUri());
+            }
+        }
+        return bridges;
     }
 }

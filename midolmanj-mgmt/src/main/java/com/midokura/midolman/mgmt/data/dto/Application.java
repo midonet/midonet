@@ -4,11 +4,10 @@
  */
 package com.midokura.midolman.mgmt.data.dto;
 
-import java.net.URI;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import java.net.URI;
 
 /**
  * Application DTO.
@@ -47,22 +46,55 @@ public class Application extends UriResource {
     }
 
     /**
-     * @return the tenants URI
+     * @return the hosts URI
      */
-    public URI getTenants() {
+    public URI getHosts() {
         if (getBaseUri() != null) {
-            return ResourceUriBuilder.getTenants(getBaseUri());
+            return ResourceUriBuilder.getHosts(getBaseUri());
         } else {
             return null;
         }
     }
 
     /**
-     * @return the hosts URI
+     * @return the bridges URI
      */
-    public URI getHosts() {
+    public URI getBridges() {
         if (getBaseUri() != null) {
-            return ResourceUriBuilder.getHosts(getBaseUri());
+            return ResourceUriBuilder.getBridges(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the chains URI
+     */
+    public URI getChains() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getChains(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the port groups URI
+     */
+    public URI getPortGroups() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPortGroups(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the routers URI
+     */
+    public URI getRouters() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getRouters(getBaseUri());
         } else {
             return null;
         }

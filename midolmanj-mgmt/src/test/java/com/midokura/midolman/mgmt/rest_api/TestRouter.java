@@ -4,19 +4,14 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import com.midokura.midolman.mgmt.data.dto.Router;
+import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,13 +20,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.midokura.midolman.mgmt.data.dto.Router;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(Enclosed.class)
 public class TestRouter {
@@ -51,21 +49,19 @@ public class TestRouter {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Prepare chains that can be used to set to port
             DtoRuleChain chain1 = new DtoRuleChain();
             chain1.setName("chain1");
+            chain1.setTenantId("tenant1-id");
 
             // Prepare another chain
             DtoRuleChain chain2 = new DtoRuleChain();
             chain2.setName("chain2");
+            chain1.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", chain1)
-                    .create("tenant1", "chain2", chain2).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", chain1)
+                    .create("chain2", chain2).build();
         }
 
         @After
@@ -76,13 +72,11 @@ public class TestRouter {
         @Test
         public void testCrud() throws Exception {
 
-            DtoTenant tenant1 = topology.getTenant("tenant1");
+            DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
 
-            // Verify that there is nothing
-            assertNotNull(tenant1);
-            URI routersUri = tenant1.getRouters();
+            URI routersUri = app.getRouters();
             assertNotNull(routersUri);
             DtoRouter[] routers = dtoResource.getAndVerifyOk(routersUri,
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
@@ -91,7 +85,7 @@ public class TestRouter {
             // Add a router
             DtoRouter router = new DtoRouter();
             router.setName("router1");
-            router.setTenantId(tenant1.getId());
+            router.setTenantId("tenant1-id");
             router.setInboundFilterId(chain1.getId());
             router.setOutboundFilterId(chain2.getId());
 
@@ -163,16 +157,13 @@ public class TestRouter {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router - useful for checking duplicate name error
             DtoRouter r = new DtoRouter();
             r.setName("router1-name");
+            r.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "router1", r).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", r).build();
         }
 
         @After
@@ -214,9 +205,9 @@ public class TestRouter {
 
         @Test
         public void testBadInputCreate() {
-            DtoTenant t = topology.getTenant("tenant1");
+            DtoApplication app = topology.getApplication();
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    t.getRouters(), APPLICATION_ROUTER_JSON, router);
+                    app.getRouters(), APPLICATION_ROUTER_JSON, router);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -243,10 +234,6 @@ public class TestRouter {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoRouter r1 = new DtoRouter();
             r1.setName("router1-name");
@@ -254,10 +241,11 @@ public class TestRouter {
             // Create another router - useful for checking duplicate name error
             DtoRouter r2 = new DtoRouter();
             r2.setName("router2-name");
+            r2.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "router1", r1)
-                    .create("tenant1", "router2", r2).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", r1)
+                    .create("router2", r2).build();
         }
 
         @After

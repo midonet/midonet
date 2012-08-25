@@ -4,20 +4,16 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.midokura.midolman.mgmt.data.dto.Rule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
+import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.midokura.packets.ARP;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,16 +24,13 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.Rule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.midokura.packets.ARP;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import java.net.URI;
+import java.util.*;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_RULE_JSON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(Enclosed.class)
 public class TestRule {
@@ -63,16 +56,13 @@ public class TestRule {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a chain
             DtoRuleChain c1 = new DtoRuleChain();
             c1.setName("chain1-name");
+            c1.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c1).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", c1).build();
         }
 
         @After
@@ -130,10 +120,6 @@ public class TestRule {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a chain
             DtoRuleChain c1 = new DtoRuleChain();
             c1.setName("chain1-name");
@@ -142,9 +128,9 @@ public class TestRule {
             DtoPortGroup pg1 = new DtoPortGroup();
             pg1.setName("portgroup1-name");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c1)
-                    .create("tenant1", "portgroup1", pg1).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", c1)
+                    .create("portgroup1", pg1).build();
 
             // Set the port group to the rule if it's instructed to do so.
             if (portGroupTag != null) {

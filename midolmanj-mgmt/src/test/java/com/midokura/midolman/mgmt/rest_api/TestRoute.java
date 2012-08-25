@@ -4,23 +4,12 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_ROUTE_JSON;
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import com.midokura.midolman.mgmt.data.dto.Route;
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,15 +20,12 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.Route;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import java.net.URI;
+import java.util.*;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(Enclosed.class)
 public class TestRoute {
@@ -48,7 +34,6 @@ public class TestRoute {
 
     public static class TestRouteCrud extends JerseyTest {
 
-        private final String testTenantName = "TEST-TENANT";
         private final String testRouterName = "TEST-ROUTER";
 
         private WebResource resource;
@@ -65,31 +50,24 @@ public class TestRoute {
 
         @Before
         public void before() {
-            DtoTenant tenant = new DtoTenant();
-            tenant.setId(testTenantName);
 
-            resource = resource().path("tenants");
-            response = resource.type(APPLICATION_TENANT_JSON).post(
-                    ClientResponse.class, tenant);
-            log.debug("status: {}", response.getStatus());
-            log.debug("location: {}", response.getLocation());
-            assertEquals(201, response.getStatus());
-            assertTrue(response.getLocation().toString()
-                    .endsWith("tenants/" + testTenantName));
+            DtoApplication app = resource().path("").accept(APPLICATION_JSON)
+                    .get(DtoApplication.class);
 
             // Create a router.
             router.setName(testRouterName);
-            resource = resource()
-                    .path("tenants/" + testTenantName + "/routers");
+            router.setTenantId("TEST-TENANT");
+            resource = resource().uri(app.getRouters());
             response = resource.type(APPLICATION_ROUTER_JSON).post(
                     ClientResponse.class, router);
 
             log.debug("router location: {}", response.getLocation());
             testRouterUri = response.getLocation();
+            router = resource().uri(router.getUri()).accept(
+                    APPLICATION_ROUTER_JSON).get(DtoRouter.class);
 
             // Create a materialized router port.
-            URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
-            log.debug("routerPortUri: {} ", routerPortUri);
+            log.debug("routerPortUri: {} ", router.getPorts());
             DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
             port.setNetworkAddress("10.0.0.0");
             port.setNetworkLength(24);
@@ -99,7 +77,7 @@ public class TestRoute {
             port.setVifId(UUID
                     .fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
-            response = resource().uri(routerPortUri)
+            response = resource().uri(router.getPorts())
                     .type(APPLICATION_PORT_JSON)
                     .post(ClientResponse.class, port);
             assertEquals(201, response.getStatus());
@@ -243,16 +221,13 @@ public class TestRoute {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoRouter r = new DtoRouter();
             r.setName("router1-name");
+            r.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "router1", r).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", r).build();
         }
 
         @After

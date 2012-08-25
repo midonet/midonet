@@ -32,6 +32,8 @@ public class Bridge extends UriResource {
     private UUID id;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+
+    @NotNull
     private String tenantId;
 
     @NotNull

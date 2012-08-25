@@ -5,7 +5,7 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.BridgeDao;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -35,7 +35,7 @@ public class TestBridgeResource {
     private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private Authorizer auth;
+    private BridgeAuthorizer auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Validator validator;
@@ -56,8 +56,7 @@ public class TestBridgeResource {
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).bridgeAuthorized(context, AuthAction.WRITE,
-                id);
+        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
 
         // Execute
         testObject.delete(id);
@@ -67,8 +66,7 @@ public class TestBridgeResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).bridgeAuthorized(context, AuthAction.WRITE,
-                id);
+        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
         doThrow(NoStatePathException.class).when(dao).delete(id);
 
         // Execute
@@ -82,8 +80,7 @@ public class TestBridgeResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).bridgeAuthorized(context, AuthAction.READ,
-                id);
+        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
 
         // Execute
         testObject.get(id);

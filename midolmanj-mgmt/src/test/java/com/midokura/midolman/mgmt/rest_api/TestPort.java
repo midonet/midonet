@@ -4,22 +4,10 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.ws.rs.core.Response;
-
+import com.midokura.midolman.mgmt.data.dto.client.*;
 import com.midokura.midolman.mgmt.data.zookeeper.StaticMockDirectory;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,19 +16,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
+import javax.ws.rs.core.Response;
+import java.util.*;
+
+import static com.midokura.midolman.mgmt.http.VendorMediaType.APPLICATION_PORT_JSON;
+import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class TestPort {
@@ -94,16 +74,13 @@ public class TestPort {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoRouter r = new DtoRouter();
             r.setName("router1-name");
+            r.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "router1", r).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", r).build();
         }
 
         @After
@@ -166,26 +143,25 @@ public class TestPort {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoBridge b = new DtoBridge();
             b.setName("bridge1-name");
+            b.setTenantId("tenant1-id");
 
             // Create a chain
             DtoRuleChain c1 = new DtoRuleChain();
             c1.setName("chain1-name");
+            c1.setTenantId("tenant1-id");
 
             // Create another chain
             DtoRuleChain c2 = new DtoRuleChain();
             c2.setName("chain2-name");
+            c1.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c1)
-                    .create("tenant1", "chain2", c2)
-                    .create("tenant1", "bridge1", b).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", c1)
+                    .create("chain2", c2)
+                    .create("bridge1", b).build();
         }
 
         @After
@@ -307,26 +283,25 @@ public class TestPort {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoRouter r = new DtoRouter();
             r.setName("router1-name");
+            r.setTenantId("tenant1-id");
 
             // Create a chain
             DtoRuleChain c1 = new DtoRuleChain();
             c1.setName("chain1-name");
+            c1.setTenantId("tenant1-id");
 
             // Create another chain
             DtoRuleChain c2 = new DtoRuleChain();
             c2.setName("chain2-name");
+            c2.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource).create("tenant1", t)
-                    .create("tenant1", "chain1", c1)
-                    .create("tenant1", "chain2", c2)
-                    .create("tenant1", "router1", r).build();
+            topology = new Topology.Builder(dtoResource)
+                    .create("chain1", c1)
+                    .create("chain2", c2)
+                    .create("router1", r).build();
         }
 
         @After
@@ -454,21 +429,20 @@ public class TestPort {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a tenant
-            DtoTenant t = new DtoTenant();
-            t.setId("tenant1-id");
-
             // Create a router
             DtoRouter r1 = new DtoRouter();
             r1.setName("router1-name");
+            r1.setTenantId("tenant1-id");
 
             // Create another router
             DtoRouter r2 = new DtoRouter();
             r2.setName("router2-name");
+            r2.setTenantId("tenant1-id");
 
             // Create a bridge
             DtoBridge b1 = new DtoBridge();
             b1.setName("bridge1-name");
+            b1.setTenantId("tenant1-id");
 
             // Create a logical router1 port
             DtoLogicalRouterPort r1Lp1 = createLogicalRouterPort(null, null,
@@ -487,10 +461,9 @@ public class TestPort {
                     "192.168.1.0", 24, "192.168.1.1");
 
             topology = new Topology.Builder(dtoResource)
-                    .create("tenant1", t)
-                    .create("tenant1", "router1", r1)
-                    .create("tenant1", "router2", r2)
-                    .create("tenant1", "bridge1", b1)
+                    .create("router1", r1)
+                    .create("router2", r2)
+                    .create("bridge1", b1)
                     .create("router1", "router1Port1", r1Lp1)
                     .create("router1", "router1Port2", r1Lp2)
                     .create("router2", "router2Port1", r2Lp1)

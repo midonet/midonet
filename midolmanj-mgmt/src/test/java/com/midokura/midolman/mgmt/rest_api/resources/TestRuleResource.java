@@ -5,7 +5,7 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.authorizer.RuleAuthorizer;
 import com.midokura.midolman.mgmt.data.dao.RuleDao;
 import com.midokura.midolman.mgmt.jaxrs.ForbiddenHttpException;
 import com.midokura.midolman.state.NoStatePathException;
@@ -31,7 +31,7 @@ public class TestRuleResource {
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private Authorizer auth;
+    private RuleAuthorizer auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private UriInfo uriInfo;
@@ -48,8 +48,7 @@ public class TestRuleResource {
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).ruleAuthorized(context, AuthAction.WRITE,
-                id);
+        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
 
         // Execute
         testObject.delete(id);
@@ -59,8 +58,7 @@ public class TestRuleResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).ruleAuthorized(context, AuthAction.WRITE,
-                id);
+        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
         doThrow(NoStatePathException.class).when(dao).delete(id);
 
         // Execute
@@ -74,8 +72,7 @@ public class TestRuleResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).ruleAuthorized(context, AuthAction.READ,
-                id);
+        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
 
         // Execute
         testObject.get(id);
