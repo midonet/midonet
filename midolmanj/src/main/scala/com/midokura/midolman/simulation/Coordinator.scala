@@ -143,15 +143,15 @@ class Coordinator {
             var currentIngressPort: Port[_] = null
             generatedPacketEgressPort match {
               case null =>
-                if (origMatch.getInputPortUUID == null) {
+                origMatch.getInputPortUUID match {
+                  case null =>
                     throw new IllegalArgumentException(
                         "Coordinator cannot simulate a flow that NEITHER " +
                         "egressed a virtual device's interior port NOR " +
                         "ingressed a virtual device's exterior port. Match: " +
                         "%s; Packet: %s".format(
                             origMatch.toString, origEthernetPkt.toString))
-                    (): Unit @cps[Future[Any]]
-                } else {
+                  case _ =>
                     origIngressPort = virtualTopologyManager.ask(
                         PortRequest(origMatch.getInputPortUUID, false)
                     )(Timeout(1 second)).mapTo[Port[_]].apply
@@ -165,12 +165,11 @@ class Coordinator {
                         PortRequest(generatedPacketEgressPort, false)
                     )(Timeout(1 second)).mapTo[Port[_]].apply match {
                       case _: ExteriorPort[_] =>
-                        val pkt = new Packet().setData(packet).
-                            addAction(new FlowActionVrnPortOutput(
-                                generatedPacketEgressPort))
+                        val pkt = new Packet().setData(packet).addAction(
+                                      new FlowActionVrnPortOutput(
+                                          generatedPacketEgressPort))
                         // TODO(pino): replace null with actions?
                         datapathController.tell(SendPacket(pkt.getData, null))
-                        //(): Unit @cps[Future[Any]]
                       case interiorPort: InteriorPort[_] =>
                         currentIngressPort = virtualTopologyManager.ask(
                             PortRequest(interiorPort.peerID, false)
@@ -179,7 +178,6 @@ class Coordinator {
                         throw new RuntimeException(
                             "Port %s neither interior nor exterior port"
                                 format port.id.toString)
-                        //(): Unit @cps[Future[Any]]
                     }
                   case _ =>
                     throw new IllegalArgumentException(
@@ -188,7 +186,6 @@ class Coordinator {
                         "ingressed a virtual device's exterior port. Match: " +
                         "%s; Packet: %s".format(
                             origMatch.toString, origEthernetPkt.toString))
-                    (): Unit @cps[Future[Any]]
                 }
             }
             val isInternallyGenerated = generatedPacketEgressPort != null
@@ -233,7 +230,9 @@ class Coordinator {
                             // XXX(pino): drop the SDN packet
                             flowController.tell(Drop(null))
                         }
-                        return
+                        //return  XXX: Set flag, 'return' from a flow block
+                        //    may not do what we want.
+                        (): Unit @cps[Future[Any]]
                     case _: DropAction =>
                         if (!isInternallyGenerated)
                             datapathController.tell(AddWildcardFlow(
@@ -242,7 +241,9 @@ class Coordinator {
                                 null /*XXX*/,
                                 null /*XXX*/
                             ))
-                        return
+                        //return  XXX: Set flag, 'return' from a flow block
+                        //    may not do what we want.
+                        (): Unit @cps[Future[Any]]
                     case _: NotIPv4Action =>
                         if (!isInternallyGenerated) {
                             val notIPv4Match = new WildcardMatch().
@@ -254,7 +255,9 @@ class Coordinator {
                             datapathController.tell(AddWildcardFlow(
                                 /* XXX */ null, null, null, null))
                         }
-                        return
+                        //return  XXX: Set flag, 'return' from a flow block
+                        //    may not do what we want.
+                        (): Unit @cps[Future[Any]]
                     case ForwardAction(outPortID) =>
                         // TODO(pino): apply the port's output filter
                         virtualTopologyManager.ask(
