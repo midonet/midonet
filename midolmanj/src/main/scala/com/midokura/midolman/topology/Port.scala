@@ -44,7 +44,7 @@ trait RouterPort[T <: RouterPort[T]] extends Port[T] {
     var portAddr: IntIPv4 = _
     var portMac: MAC = _
     def nwLength(): Int = portAddr.getMaskLength
-    def nwAddr(): IntIPv4 = portAddr
+    def nwAddr: IntIPv4 = portAddr.getNetworkAddress
     def setPortAddr(addr: IntIPv4): T = { this.portAddr = addr; self }
     def setPortMac(mac: MAC): T = { this.portMac = mac; self }
 

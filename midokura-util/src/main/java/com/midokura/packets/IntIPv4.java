@@ -5,7 +5,8 @@ package com.midokura.packets;
 
 import com.midokura.midolman.util.Net;
 
-// TODO(pino): this class should be renamed IPv4 and moved to MidokuraUtil.
+
+// TODO(pino): this class should be renamed IPv4Addr.
 public class IntIPv4 implements Cloneable {
     private int address;
     private int maskLength;
@@ -45,7 +46,12 @@ public class IntIPv4 implements Cloneable {
 
     public IntIPv4 getNetworkAddress() {
         // Zero out any address bits beyond the mask.
-        int mask = -1 << (32 - maskLength);
+        int mask;
+        // In Java, a shift by 32 is a no-op, so special case /0
+        if (maskLength == 0)
+            mask = 0;
+        else
+            mask = -1 << (32 - maskLength);
         return new IntIPv4(address & mask, maskLength);
     }
 
