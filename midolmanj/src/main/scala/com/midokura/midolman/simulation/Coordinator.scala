@@ -13,6 +13,7 @@ import akka.util.Timeout
 import akka.util.duration._
 
 import com.google.inject.Inject
+import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.topology._
 import com.midokura.packets.Ethernet
@@ -87,6 +88,8 @@ class Coordinator {
     @Inject
     var actors: MidolmanActorsService = _
 
+    private val log = LoggerFactory.getLogger(classOf[Coordinator])
+
     /**
      * Simulate a single packet moving through the virtual topology. A packet
      * begins its journey through the virtual topology in one of these ways:
@@ -127,84 +130,87 @@ class Coordinator {
                 (implicit ec: ExecutionContext): Unit = {
         val datapathController =
             actors.system.actorFor("/user/%s" format DatapathController.Name)
-
         val flowController =
             actors.system.actorFor("/user/%s" format FlowController.Name)
-
         val virtualTopologyManager =
             actors.system.actorFor("/user/%s" format VirtualTopologyActor.Name)
 
         // TODO(pino): if any topology object cannot be found, log an error.
-        flow {
-            val origEthernetPkt = Ethernet.deserialize(packet)
-            var origIngressPort: Port[_] = null
-            var currentIngressPort: Port[_] = null
-            var currentMatch = origMatch.clone
-            generatedPacketEgressPort match {
-              case null =>
-                origMatch.getInputPortUUID match {
-                  case null =>
+
+        val origEthernetPkt = Ethernet.deserialize(packet)
+        var currentIngressPortFuture: Future[Port[_]] = null
+        var currentMatch = origMatch.clone
+        val isInternallyGenerated = generatedPacketEgressPort != null
+
+        if (!isInternallyGenerated) {
+            origMatch.getInputPortUUID match {
+                case null =>
                     throw new IllegalArgumentException(
                         "Coordinator cannot simulate a flow that NEITHER " +
                         "egressed a virtual device's interior port NOR " +
                         "ingressed a virtual device's exterior port. Match: " +
                         "%s; Packet: %s".format(
                             origMatch.toString, origEthernetPkt.toString))
-                  case _ =>
-                    origIngressPort = virtualTopologyManager.ask(
+                case _ =>
+                    currentIngressPortFuture = virtualTopologyManager.ask(
                         PortRequest(origMatch.getInputPortUUID, false)
-                    )(Timeout(1 second)).mapTo[Port[_]].apply
-                    currentIngressPort = origIngressPort
-                }
-              case _ =>  // it IS a generated packet
-                origMatch.getInputPortUUID match {
-                  case null =>
-                    // TODO(pino): apply the port's output filter
-                    virtualTopologyManager.ask(
-                        PortRequest(generatedPacketEgressPort, false)
-                    )(Timeout(1 second)).mapTo[Port[_]].apply match {
-                      case _: ExteriorPort[_] =>
-                        val pkt = new Packet().setData(packet).addAction(
-                                      new FlowActionVrnPortOutput(
-                                          generatedPacketEgressPort))
-                        // TODO(pino): replace null with actions?
-                        datapathController.tell(SendPacket(pkt.getData, null))
-                      case interiorPort: InteriorPort[_] =>
-                        currentIngressPort = virtualTopologyManager.ask(
-                            PortRequest(interiorPort.peerID, false)
-                        )(Timeout(1 second)).mapTo[Port[_]].apply
-                      case port =>
-                        throw new RuntimeException(
-                            "Port %s neither interior nor exterior port"
-                                format port.id.toString)
-                    }
-                  case _ =>
-                    throw new IllegalArgumentException(
+                    )(Timeout(1 second)).mapTo[Port[_]]
+            }
+        } else if (origMatch.getInputPortUUID != null) {
+            throw new IllegalArgumentException(
                         "Coordinator cannot simulate a flow that BOTH " +
                         "egressed a virtual device's interior port AND " +
                         "ingressed a virtual device's exterior port. Match: " +
                         "%s; Packet: %s".format(
                             origMatch.toString, origEthernetPkt.toString))
+        } else {
+            // it IS a generated packet
+            // TODO(pino): apply the port's output filter
+            val egressPortFuture = virtualTopologyManager.ask(
+                PortRequest(generatedPacketEgressPort, false)
+            )(Timeout(1 second)).mapTo[Port[_]]
+            currentIngressPortFuture = egressPortFuture flatMap {
+                egressPort: Port[_] => egressPort match {
+                    case _: ExteriorPort[_] =>
+                        val pkt = new Packet().setData(packet).addAction(
+                                      new FlowActionVrnPortOutput(
+                                          generatedPacketEgressPort))
+                        // TODO(pino): replace null with actions?
+                        datapathController.tell(SendPacket(pkt.getData, null))
+                        // All done!
+                        null
+                    case interiorPort: InteriorPort[_] =>
+                        virtualTopologyManager.ask(
+                            PortRequest(interiorPort.peerID, false)
+                        )(Timeout(1 second)).mapTo[Port[_]]
+                    case port =>
+                        log.error("Port {} neither interior nor exterior port",
+                                  port)
+                        null
                 }
             }
-            val isInternallyGenerated = generatedPacketEgressPort != null
+        }
 
-            // Used to detect loops.
-            val traversedFEs = mutable.Map[UUID, Int]()
-            // depth of devices traversed in the simulation
-            val depth: Int = 0
+        if (currentIngressPortFuture == null)
+            return
 
-            // Used for connection tracking
-            val connectionTracked = false
-            val forwardFlow = false
-            // TODO(pino): val connectionCache
-            // Connection-tracking is not done for internally generated packets.
-            val ingressDeviceID: UUID = if (isInternallyGenerated)
-                null else origIngressPort.deviceID
+        // Used to detect loops.
+        val traversedFEs = mutable.Map[UUID, Int]()
+        // depth of devices traversed in the simulation
+        var depth: Int = 0
 
-            val pktContext = new PacketContext {}
+        // Used for connection tracking
+        val connectionTracked = false
+        val forwardFlow = false
+        // TODO(pino): val connectionCache
 
-            while (true) {
+        val pktContext = new PacketContext {}
+
+        flow {
+            var currentIngressPort = currentIngressPortFuture.apply
+            val ingressDeviceID: UUID = currentIngressPort.deviceID
+
+            while (currentIngressPort != null) {
                 // TODO(pino): check for too long loop
                 // TODO(pino): the port's input filter.
                 val currentDevice: Future[Device] = currentIngressPort match {
