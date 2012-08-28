@@ -10,20 +10,20 @@ import datapath.ErrorHandlingCallback
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
 
-import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches, FlowManager, WildcardFlow}
+import com.midokura.sdn.flows.{WildcardMatches, FlowManager, WildcardFlow}
 import com.midokura.sdn.dp.flows.FlowAction
 import javax.inject.Inject
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import akka.event.Logging
-import com.midokura.util.functors.Callback1
+import com.midokura.util.functors.Callback0
 
 object FlowController {
     val Name = "FlowController"
 
     case class AddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
-                               callbacks: Set[Callback1[WildcardMatch]],
+                               callbacks: Set[Callback0],
                                tags: Set[AnyRef])
 
     case class RemoveWildcardFlow(flow: WildcardFlow)

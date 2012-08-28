@@ -23,7 +23,7 @@ import java.util.UUID
 import java.lang
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.util.functors.Callback1
+import com.midokura.util.functors.{Callback0, Callback1}
 
 /**
  * Holder object that keeps the external message definitions
@@ -465,7 +465,7 @@ class DatapathController() extends Actor {
     }
 
     def handleAddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
-                              callbacks: mutable.Set[Callback1[WildcardMatch]],
+                              callbacks: mutable.Set[Callback0],
                               tags: mutable.Set[AnyRef]) {
         val flowMatch = flow.getMatch
 
