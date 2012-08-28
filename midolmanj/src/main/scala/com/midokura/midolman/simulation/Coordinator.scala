@@ -6,6 +6,7 @@ import collection.mutable
 import util.continuations.cps
 import java.util.UUID
 
+import akka.actor.ActorRef
 import akka.dispatch.{Future, ExecutionContext}
 import akka.dispatch.Future._
 import akka.pattern.ask
@@ -134,7 +135,6 @@ class Coordinator {
             actors.system.actorFor("/user/%s" format FlowController.Name)
         val virtualTopologyManager =
             actors.system.actorFor("/user/%s" format VirtualTopologyActor.Name)
-
         // TODO(pino): if any topology object cannot be found, log an error.
 
         val origEthernetPkt = Ethernet.deserialize(packet)
@@ -233,31 +233,9 @@ class Coordinator {
                 if (!action.isInstanceOf[ForwardAction]) {
                     currentIngressPort == null
 
-                    // An internally generated packet which wasn't emitted is
-                    // invisible to the datapath.
-                    if (!isInternallyGenerated) {
-                        action match {
-                            case _: ConsumedAction =>
-                                // XXX(pino): drop the SDN packet
-                                flowController.tell(Drop(null))
-                            case _: DropAction =>
-                                datapathController.tell(AddWildcardFlow(
-                                    null /*XXX*/, null /*XXX*/,
-                                    null /*XXX*/, null /*XXX*/
-                                ))
-                            case _: NotIPv4Action =>
-                                val notIPv4Match = new WildcardMatch().
-                                    setInputPortUUID(
-                                        origMatch.getInputPortUUID).
-                                    setEthernetSource(
-                                        origMatch.getEthernetSource).
-                                    setEthernetDestination(
-                                        origMatch.getEthernetDestination).
-                                    setEtherType(origMatch.getEtherType)
-                                datapathController.tell(AddWildcardFlow(
-                                    /* XXX */ null, null, null, null))
-                        }
-                    }
+                    handleNonForwardAction(action, isInternallyGenerated,
+                                           origMatch, datapathController,
+                                           flowController)
                     (): Unit @cps[Future[Any]]
                 } else {
                     // action is a ForwardAction
@@ -297,4 +275,36 @@ class Coordinator {
             } // end while loop
         }(ec) // end flow block
     } // end simulate method
+
+    private def handleNonForwardAction(action: Action,
+                                       isInternallyGenerated: Boolean,
+                                       origMatch: WildcardMatch,
+                                       datapathController: ActorRef,
+                                       flowController: ActorRef) {
+        // An internally generated packet which wasn't emitted is
+        // invisible to the datapath.
+        if (isInternallyGenerated)
+            return
+
+        action match {
+            case _: ConsumedAction =>
+                // XXX(pino): drop the SDN packet
+                flowController.tell(Drop(null))
+            case _: DropAction =>
+                datapathController.tell(AddWildcardFlow(
+                    null /*XXX*/, null /*XXX*/, null /*XXX*/, null /*XXX*/
+                ))
+            case _: NotIPv4Action =>
+                val notIPv4Match = 
+                    (new WildcardMatch()
+                        .setInputPortUUID(origMatch.getInputPortUUID)
+                        .setEthernetSource(origMatch.getEthernetSource)
+                        .setEthernetDestination(
+                                origMatch.getEthernetDestination)
+                        .setEtherType(origMatch.getEtherType))
+                datapathController.tell(AddWildcardFlow(
+                    /* XXX */ null, null, null, null))
+        }
+    }
+
 } // end Coordinator class
