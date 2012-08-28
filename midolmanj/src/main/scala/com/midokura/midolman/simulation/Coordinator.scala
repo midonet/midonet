@@ -4,6 +4,7 @@ package com.midokura.midolman.simulation
 
 import collection.mutable
 import util.continuations.cps
+import java.util.UUID
 
 import akka.dispatch.{Future, ExecutionContext}
 import akka.dispatch.Future._
@@ -12,8 +13,6 @@ import akka.util.Timeout
 import akka.util.duration._
 
 import com.google.inject.Inject
-
-import java.util.UUID
 
 import com.midokura.midolman.topology._
 import com.midokura.packets.Ethernet
@@ -79,7 +78,7 @@ object Coordinator {
         def process(pktMatch: WildcardMatch,
                     packet: Ethernet,
                     pktContext: PacketContext,
-                    ec: ExecutionContext): Action @cps[Future[_]]
+                    ec: ExecutionContext): Future[Action]
     }
 }
 
@@ -224,36 +223,40 @@ class Coordinator {
                 }
                 val action = currentDevice().process(
                     origMatch.clone, origEthernetPkt, pktContext, ec)
-                action match {
+                action() match {
                     case _: ConsumedAction =>
-                        if (!isInternallyGenerated) {
-                            // XXX(pino): drop the SDN packet
-                            flowController.tell(Drop(null))
+                        isInternallyGenerated match {
+                            case false =>
+                                // XXX(pino): drop the SDN packet
+                                flowController.tell(Drop(null))
                         }
                         //return  XXX: Set flag, 'return' from a flow block
                         //    may not do what we want.
                         (): Unit @cps[Future[Any]]
                     case _: DropAction =>
-                        if (!isInternallyGenerated)
-                            datapathController.tell(AddWildcardFlow(
-                                null /*XXX*/,
-                                null /*XXX*/,
-                                null /*XXX*/,
-                                null /*XXX*/
-                            ))
+                        isInternallyGenerated match {
+                            case false =>
+                                datapathController.tell(AddWildcardFlow(
+                                    null /*XXX*/, null /*XXX*/,
+                                    null /*XXX*/, null /*XXX*/
+                                ))
+                        }
                         //return  XXX: Set flag, 'return' from a flow block
                         //    may not do what we want.
                         (): Unit @cps[Future[Any]]
                     case _: NotIPv4Action =>
-                        if (!isInternallyGenerated) {
-                            val notIPv4Match = new WildcardMatch().
-                                setInputPortUUID(origMatch.getInputPortUUID).
-                                setEthernetSource(origMatch.getEthernetSource).
-                                setEthernetDestination(
-                                    origMatch.getEthernetDestination).
-                                setEtherType(origMatch.getEtherType)
-                            datapathController.tell(AddWildcardFlow(
-                                /* XXX */ null, null, null, null))
+                        isInternallyGenerated match {
+                            case false =>
+                                val notIPv4Match = new WildcardMatch().
+                                    setInputPortUUID(
+                                        origMatch.getInputPortUUID).
+                                    setEthernetSource(
+                                        origMatch.getEthernetSource).
+                                    setEthernetDestination(
+                                        origMatch.getEthernetDestination).
+                                    setEtherType(origMatch.getEtherType)
+                                datapathController.tell(AddWildcardFlow(
+                                    /* XXX */ null, null, null, null))
                         }
                         //return  XXX: Set flag, 'return' from a flow block
                         //    may not do what we want.

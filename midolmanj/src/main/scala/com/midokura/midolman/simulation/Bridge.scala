@@ -4,9 +4,9 @@
 package com.midokura.midolman.simulation
 
 import akka.dispatch.{Await, ExecutionContext, Future, Promise}
+import akka.dispatch.Future.flow
 import akka.util.duration._
 import scala.collection.mutable
-import scala.util.continuations.cps
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
@@ -49,10 +49,10 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                          packet: Ethernet,
                          packetContext: PacketContext,
                          ec: ExecutionContext)
-            : Coordinator.Action @cps[Future[_]] = {
+            : Future[Coordinator.Action] = {
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(ingressMatch.getEthernetSource))
-            new DropAction
+            Future { new DropAction }(ec)
         else
             normalProcess(ingressMatch, packet, packetContext, ec)
     }
@@ -63,7 +63,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         val dstDlAddress = ingressMatch.getEthernetDestination
 
         var matchOut: WildcardMatch = null // TODO
-        var outPortID: UUID = null
+        var outPortID: Future[UUID] = null
 
         //XXX: Call ingress (pre-bridging) chain
 
@@ -76,48 +76,50 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                     rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 val rtrMAC: MAC = rtrIpToMac.get(nwDst).get
-                outPortID = rtrMacToLogicalPortId.get(rtrMAC).get
+                outPortID = Future { rtrMacToLogicalPortId.get(rtrMAC).get }(ec)
             } else {
                 // Not an ARP request for a router's port's address.
                 // Flood to materialized ports only.
                 log.info("flooding to port set {}", id)
-                outPortID = id
+                outPortID = Future { id }(ec)
             }
-            // TODO(jlm): Ugly.  Is there a better way?
-            (): Unit @cps[Future[Any]]
           case false =>
             // L2 unicast
             // Is dst MAC in macPortMap? (learned)
-            outPortID = getPortOfMac(dstDlAddress, ec)
-            if (outPortID == null) {
-                // Is dst MAC a logical port's MAC?
-                rtrMacToLogicalPortId.get(dstDlAddress) match {
-                    case Some(port: UUID) => outPortID = port
-                    case None =>
-                        // If neither learned nor logical, flood.
-                        outPortID = id
-                }
-            }
+            val learnedPort = getPortOfMac(dstDlAddress, ec)
+            outPortID = flow {
+                val port = learnedPort()
+                if (port == null) {
+                    // Is dst MAC a logical port's MAC?
+                    rtrMacToLogicalPortId.get(dstDlAddress) match {
+                        case Some(logicalPort: UUID) => logicalPort
+                        /* If neither learned nor logical, flood. */
+                        case None => id
+                    }
+                } else
+                    port
+            }(ec)
         }
 
         // Learn the src MAC unless it's a logical port's.
-        rtrMacToLogicalPortId.contains(srcDlAddress) match {
-          case false =>
+        if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
-            val oldPortID = getPortOfMac(srcDlAddress, ec)
-            if (ingressMatch.getInputPortUUID != oldPortID) {
-                log.debug("MAC {} moved from port {} to {}.",
-                    Array[Object](srcDlAddress, oldPortID,
-                                  ingressMatch.getInputPortUUID))
-                // The flows that reflect the old MAC port entry will be removed
-                // by the BridgeManager
-                macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
-                packetContext.addFlowRemovedCallback(
-                    flowRemovedCallbackGen.getCallback(srcDlAddress,
-                        ingressMatch.getInputPortUUID))
-                // Pass the tag to be used to index the flow
-                val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
-                packetContext.addFlowTag(tag)
+            getPortOfMac(srcDlAddress, ec) onSuccess {
+                case oldPort: UUID =>
+                  if (oldPort != ingressMatch.getInputPortUUID) {
+                    log.debug("MAC {} moved from port {} to {}.",
+                        Array[Object](srcDlAddress, oldPort,
+                                      ingressMatch.getInputPortUUID))
+                    // The flows that reflect the old MAC port entry will be
+                    // removed by the BridgeManager
+                    macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
+                    packetContext.addFlowRemovedCallback(
+                        flowRemovedCallbackGen.getCallback(srcDlAddress,
+                            ingressMatch.getInputPortUUID))
+                    // Pass the tag to be used to index the flow
+                    val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
+                    packetContext.addFlowTag(tag)
+                  }
             }
         }
 
@@ -125,7 +127,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         //XXX: Add to traversed elements list if flooding.
 
-        new ForwardAction(outPortID)
+        outPortID map { portID: UUID => new ForwardAction(portID) }
     }
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext) = {
@@ -135,6 +137,6 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                 rv.success(port)
             }
         })
-        rv()
+        rv
     }
 }
