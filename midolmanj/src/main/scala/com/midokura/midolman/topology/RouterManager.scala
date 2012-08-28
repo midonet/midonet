@@ -22,9 +22,10 @@ import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.midolman.util.JSONSerializer
-import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
+import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.client.{SourceNatResource, ForwardingElementBuilder, RouterBuilder, ArpCache}
 
 
 /* The ArpTable is called from the Coordinators' actors and dispatches
@@ -35,16 +36,16 @@ trait ArpTable {
 }
 
 
-class RouterManager(id: UUID, val mgr: RouterZkManager,
+class RouterManager(id: UUID, val client: Client,
                     val routeMgr: RouteZkManager)
         extends DeviceManager(id) {
-    private val rtableDirectory = mgr.getRoutingTableDirectory(id)
+    private val rtableDirectory = null //TODO mgr.getRoutingTableDirectory(id)
     private val serializer = new JSONSerializer()
     private var cfg: RouterConfig = null
     private var rTable: RoutingTable = null
     private val localPortToRouteIDs = mutable.Map[UUID, mutable.Set[UUID]]()
     private val idToRoute = mutable.Map[UUID, Route]()
-    private val arpCache: ArpCache = null  //XXX
+    private var arpCache: ArpCache = null
     private val arpTable = new ArpTableImpl
     private val ARP_STALE_MILLIS: Long = 1800 * 1000
     private val ARP_EXPIRATION_MILLIS: Long = 3600 * 1000
@@ -78,17 +79,17 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
 
     private def refreshTableRoutes(): Unit = {
         // TODO(pino): make this non-blocking.
-        val routes = rtableDirectory.getChildren("", tableRoutesCb)
+        /*val routes = rtableDirectory.getChildren("", tableRoutesCb)
         rTable = new RoutingTable()
         for (rt <- routes) {
             rTable.addRoute(
                 serializer.bytesToObj(rt.getBytes(), classOf[Route]))
         }
-        makeNewRouter()
+        makeNewRouter() */
     }
 
     private def refreshLocalPortRoutes(portId: UUID): Unit = {
-        // Ignore this message if the port is no longer local.
+        // Ignore this message if the port is no     longer local.
         if (localPortToRouteIDs.contains(portId)) {
             val oldRouteIdSet = localPortToRouteIDs(portId)
             val newRouteIdSet = mutable.Set[UUID]()
@@ -100,17 +101,17 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
                     // It's a new route: write it to the shared routing table
                     val rt = routeMgr.get(rtID)
                     idToRoute.put(rtID, rt)
-                    rtableDirectory.add(
+                    /*TODO rtableDirectory.add(
                         "/" + new String(serializer.objToBytes(rt)),
-                        null, CreateMode.EPHEMERAL)
+                        null, CreateMode.EPHEMERAL)*/
                 }
             }
             // Now process the removed routes
             for (rtID <- oldRouteIdSet) {
                 if (!newRouteIdSet(rtID)) {
                     val rt = idToRoute.remove(rtID)
-                    rtableDirectory.delete("/" +
-                        new String(serializer.objToBytes(rt)))
+                    /*TODOrtableDirectory.delete("/" +
+                        new String(serializer.objToBytes(rt)))*/
                 }
             }
         }
@@ -125,10 +126,10 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             } else {
                 localPortToRouteIDs.remove(portId) match {
                     case Some(routeIdSet) =>
-                        for (rtID <- routeIdSet)
-                            rtableDirectory.delete("/" + new String(
+                        /*for (rtID <- routeIdSet)
+                              rtableDirectory.delete("/" + new String(
                                 serializer.objToBytes(idToRoute(rtID))))
-                    case None =>; // This should never happen?
+                    case None =>; */ // This should never happen?
                 }
             }
         }
@@ -143,8 +144,7 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
     }
 
     override def updateConfig() = {
-        // TODO(pino): make this non-blocking.
-        cfg = mgr.get(id, cb)
+        client.getRouter(id, new RouterBuilderImpl())
     }
 
     override def getInFilterID() = {
@@ -188,6 +188,36 @@ class RouterManager(id: UUID, val mgr: RouterZkManager,
             // XXX: Send an ARP and schedule retries.
         case WaitForArpEntry(ip) =>
             arpWaiters.addBinding(ip, sender)
+    }
+
+    class RouterBuilderImpl extends RouterBuilder
+        with DeviceBuilderImpl[ForwardingElementBuilder] {
+
+        def setArpCache(table: ArpCache) {
+            if(table != null)
+                arpCache = table
+        }
+
+        def addRoute(rt: Route) {}
+
+        def removeRoute(rt: Route) {}
+
+        def setSourceNatResource(resource: SourceNatResource) {}
+
+        def setID(id: UUID) = null
+
+        def setInFilter(filterID: UUID) = {
+            cfg.inboundFilter = filterID
+            this
+        }
+
+        def setOutFilter(filterID: UUID) = {
+            cfg.outboundFilter = filterID
+            this
+        }
+
+        def start() = null
+
     }
 
     private class ArpTableImpl extends ArpTable {

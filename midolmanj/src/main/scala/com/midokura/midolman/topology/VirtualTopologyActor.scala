@@ -165,7 +165,7 @@ class VirtualTopologyActor() extends Actor {
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
             manageDevice(id, (x: UUID) =>
-                new RouterManager(x, routerStateMgr, routeStateMgr))
+                new RouterManager(x, clusterClient, routeStateMgr))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
@@ -195,7 +195,7 @@ class VirtualTopologyActor() extends Actor {
         case rtrPortLocalMsg: SetRouterPortLocal =>
             manageDevice(rtrPortLocalMsg.devId,
                 (x: UUID) =>
-                    new RouterManager(x, routerStateMgr, routeStateMgr))
+                    new RouterManager(x, clusterClient, routeStateMgr))
             context.actorFor("./" + rtrPortLocalMsg.devId.toString())
                 .forward(rtrPortLocalMsg)
     }
