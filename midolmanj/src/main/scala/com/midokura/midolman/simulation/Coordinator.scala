@@ -213,20 +213,8 @@ class Coordinator {
             while (currentIngressPort != null) {
                 // TODO(pino): check for too long loop
                 // TODO(pino): the port's input filter.
-                val currentDevice: Future[Device] = currentIngressPort match {
-                  case _: BridgePort[_] =>
-                    virtualTopologyManager.ask(
-                        BridgeRequest(currentIngressPort.deviceID, false)
-                    )(Timeout(1 second)).mapTo[Bridge]
-                  case _: RouterPort[_] =>
-                    virtualTopologyManager.ask(
-                        RouterRequest(currentIngressPort.deviceID, false)
-                    )(Timeout(1 second)).mapTo[Router]
-                  case _ =>
-                    throw new RuntimeException(
-                        "Ingress port %s neither BridgePort nor RouterPort"
-                                 format currentIngressPort.id.toString)
-                }
+                val currentDevice = deviceOfPort(currentIngressPort,
+                                                 virtualTopologyManager)
                 val action = currentDevice().process(
                     currentMatch, origEthernetPkt, pktContext, ec).apply
 
@@ -276,6 +264,24 @@ class Coordinator {
         }(ec) // end flow block
     } // end simulate method
 
+    private def deviceOfPort(port: Port[_], virtualTopologyManager: ActorRef)
+                : Future[Device] = {
+        port match {
+            case _: BridgePort[_] =>
+                virtualTopologyManager.ask(
+                    BridgeRequest(port.deviceID, false)
+                )(Timeout(1 second)).mapTo[Bridge]
+            case _: RouterPort[_] =>
+                virtualTopologyManager.ask(
+                    RouterRequest(port.deviceID, false)
+                )(Timeout(1 second)).mapTo[Router]
+            case _ =>
+                throw new RuntimeException(
+                    "Ingress port %s neither BridgePort nor RouterPort"
+                             format port.id.toString)
+        }
+    }
+
     private def handleNonForwardAction(action: Action,
                                        isInternallyGenerated: Boolean,
                                        origMatch: WildcardMatch,
@@ -295,7 +301,7 @@ class Coordinator {
                     null /*XXX*/, null /*XXX*/, null /*XXX*/, null /*XXX*/
                 ))
             case _: NotIPv4Action =>
-                val notIPv4Match = 
+                val notIPv4Match =
                     (new WildcardMatch()
                         .setInputPortUUID(origMatch.getInputPortUUID)
                         .setEthernetSource(origMatch.getEthernetSource)
