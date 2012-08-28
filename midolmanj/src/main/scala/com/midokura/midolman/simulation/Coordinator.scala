@@ -196,17 +196,17 @@ class Coordinator {
 
         // Used to detect loops.
         val traversedFEs = mutable.Map[UUID, Int]()
-        // depth of devices traversed in the simulation
-        var depth: Int = 0
 
         // Used for connection tracking
-        val connectionTracked = false
-        val forwardFlow = false
+        val connectionTracked = false  //XXX
+        val forwardFlow = false  //XXX
         // TODO(pino): val connectionCache
 
         val pktContext = new PacketContext {}
 
         flow {
+            // depth of devices traversed in the simulation
+            var depth: Int = 0
             var currentIngressPort = currentIngressPortFuture.apply
             val ingressDeviceID: UUID = currentIngressPort.deviceID
 
@@ -228,31 +228,24 @@ class Coordinator {
                                  format currentIngressPort.id.toString)
                 }
                 val action = currentDevice().process(
-                    currentMatch, origEthernetPkt, pktContext, ec)
-                action() match {
-                    case _: ConsumedAction =>
-                        isInternallyGenerated match {
-                            case false =>
+                    currentMatch, origEthernetPkt, pktContext, ec).apply
+
+                if (!action.isInstanceOf[ForwardAction]) {
+                    currentIngressPort == null
+
+                    // An internally generated packet which wasn't emitted is
+                    // invisible to the datapath.
+                    if (!isInternallyGenerated) {
+                        action match {
+                            case _: ConsumedAction =>
                                 // XXX(pino): drop the SDN packet
                                 flowController.tell(Drop(null))
-                        }
-                        //return  XXX: Set flag, 'return' from a flow block
-                        //    may not do what we want.
-                        (): Unit @cps[Future[Any]]
-                    case _: DropAction =>
-                        isInternallyGenerated match {
-                            case false =>
+                            case _: DropAction =>
                                 datapathController.tell(AddWildcardFlow(
                                     null /*XXX*/, null /*XXX*/,
                                     null /*XXX*/, null /*XXX*/
                                 ))
-                        }
-                        //return  XXX: Set flag, 'return' from a flow block
-                        //    may not do what we want.
-                        (): Unit @cps[Future[Any]]
-                    case _: NotIPv4Action =>
-                        isInternallyGenerated match {
-                            case false =>
+                            case _: NotIPv4Action =>
                                 val notIPv4Match = new WildcardMatch().
                                     setInputPortUUID(
                                         origMatch.getInputPortUUID).
@@ -264,15 +257,18 @@ class Coordinator {
                                 datapathController.tell(AddWildcardFlow(
                                     /* XXX */ null, null, null, null))
                         }
-                        //return  XXX: Set flag, 'return' from a flow block
-                        //    may not do what we want.
-                        (): Unit @cps[Future[Any]]
-                    case ForwardAction(outPortID, outMatch) =>
-                        // TODO(pino): apply the port's output filter
-                        virtualTopologyManager.ask(
-                            PortRequest(outPortID, false)
-                        )(Timeout(1 second)).mapTo[Port[_]].apply match {
-                          case _: ExteriorPort[_] =>
+                    }
+                    (): Unit @cps[Future[Any]]
+                } else {
+                    // action is a ForwardAction
+                    val outPortID = action.asInstanceOf[ForwardAction].outPort
+                    val outMatch = action.asInstanceOf[ForwardAction].outMatch
+
+                    // TODO(pino): apply the port's output filter
+                    virtualTopologyManager.ask(
+                        PortRequest(outPortID, false)
+                    )(Timeout(1 second)).mapTo[Port[_]].apply match {
+                        case _: ExteriorPort[_] =>
                             // TODO(pino): Compute actions from matches' diff.
                             val pkt = new Packet().setData(packet).addAction(
                                           new FlowActionVrnPortOutput(
@@ -285,20 +281,19 @@ class Coordinator {
                                     AddWildcardFlow(
                                         /*XXX*/ null, null, null, null))
                             }
-                            //return   XXX: Set flag to stop loop, 'return'
-                            //  doesn't make sense from a flow block.
-                          case interiorPort: InteriorPort[_] =>
+                            currentIngressPort = null
+                        case interiorPort: InteriorPort[_] =>
                             val peerID = interiorPort.peerID
                             currentIngressPort = virtualTopologyManager.ask(
                                 PortRequest(peerID, false)
                             )(Timeout(1 second)).mapTo[Port[_]].apply
                             currentMatch = outMatch
-                          case port =>
+                        case port =>
                             throw new RuntimeException(("Port %s neither " +
                                 "interior nor exterior port") format
                                     port.id.toString)
-                        }
-                } // end 'action match'
+                    } // end 'port match'
+                } // end if action.isInstanceOf
             } // end while loop
         }(ec) // end flow block
     } // end simulate method
