@@ -138,9 +138,9 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 }
                 val peerMac = getPeerMac(logCfg)
                 if (peerMac != null) {
-                    //XXX: Can't use in-out parameters
                     matchOut.setEthernetDestination(peerMac)
-                    return Future { ForwardAction(rt.nextHopPort) }(ec)
+                    return Future {
+                        ForwardAction(rt.nextHopPort, matchOut) }(ec)
                 }
             // TODO(jlm,pino): Should not having the peerMac be an error?
             case _ => /* Fall through to ARP'ing below. */
@@ -159,10 +159,8 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
                 if (nextHopMac == null)
                     new DropAction: Action
                 else {
-                    //XXX: Can't use in-out method parameters with deferred
-                    //     evaluation.
                     matchOut.setEthernetDestination(nextHopMac)
-                    new ForwardAction(rt.nextHopPort): Action
+                    new ForwardAction(rt.nextHopPort, matchOut): Action
                 }
             }(ec)
         }

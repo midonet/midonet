@@ -127,7 +127,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
 
         //XXX: Add to traversed elements list if flooding.
 
-        outPortID map { portID: UUID => new ForwardAction(portID) }
+        outPortID map { portID: UUID =>
+                            new ForwardAction(portID, ingressMatch) }
     }
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext) = {

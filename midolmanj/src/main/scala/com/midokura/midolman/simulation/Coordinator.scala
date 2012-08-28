@@ -36,7 +36,8 @@ object Coordinator {
     // TODO:       remove NotIPv4Action
     case class NotIPv4Action() extends Action
     case class ConsumedAction() extends Action
-    case class ForwardAction(outPort: UUID) extends Action
+    case class ForwardAction(outPort: UUID,
+                             outMatch: WildcardMatch) extends Action
 
     trait PacketContext {
         // This set will store the callback to call when this flow is removed
@@ -62,8 +63,6 @@ object Coordinator {
          * @param pktMatch The wildcard match that describes the packet's
          * fields at the time it ingresses the device. This match contains the
          * UUID of the ingress port; it can be accessed via getInputPortUUID.
-         * The implementation of process should modify the pktMatch to reflect
-         * how the device would modify the packet during handling/forwarding.
          * @param packet The original packet that ingressed the virtual network,
          * which may be different from the packet that actually arrives at this
          * device.
@@ -140,6 +139,7 @@ class Coordinator {
             val origEthernetPkt = Ethernet.deserialize(packet)
             var origIngressPort: Port[_] = null
             var currentIngressPort: Port[_] = null
+            var currentMatch = origMatch.clone
             generatedPacketEgressPort match {
               case null =>
                 origMatch.getInputPortUUID match {
@@ -222,7 +222,7 @@ class Coordinator {
                                  format currentIngressPort.id.toString)
                 }
                 val action = currentDevice().process(
-                    origMatch.clone, origEthernetPkt, pktContext, ec)
+                    currentMatch, origEthernetPkt, pktContext, ec)
                 action() match {
                     case _: ConsumedAction =>
                         isInternallyGenerated match {
@@ -261,7 +261,7 @@ class Coordinator {
                         //return  XXX: Set flag, 'return' from a flow block
                         //    may not do what we want.
                         (): Unit @cps[Future[Any]]
-                    case ForwardAction(outPortID) =>
+                    case ForwardAction(outPortID, outMatch) =>
                         // TODO(pino): apply the port's output filter
                         virtualTopologyManager.ask(
                             PortRequest(outPortID, false)
@@ -286,6 +286,7 @@ class Coordinator {
                             currentIngressPort = virtualTopologyManager.ask(
                                 PortRequest(peerID, false)
                             )(Timeout(1 second)).mapTo[Port[_]].apply
+                            currentMatch = outMatch
                           case port =>
                             throw new RuntimeException(("Port %s neither " +
                                 "interior nor exterior port") format
