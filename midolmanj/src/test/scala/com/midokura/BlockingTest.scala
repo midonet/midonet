@@ -25,6 +25,7 @@ import akka.testkit.CallingThreadDispatcher
 import akka.util.duration._
 import compat.Platform
 import concurrent.ops.spawn
+import scala.util.continuations.cps
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.scalatest.Suite
@@ -214,6 +215,39 @@ class BlockingTest extends Suite with ShouldMatchers {
     private def externalMethod(future: Future[Int], timer: Timer) = {
         future()
         timer.stop
+    }
+
+    private def eitherIntOrContinuation1(future: Future[Int],
+                                         immediate: Boolean):
+            Int @cps[Future[_]] = {
+        if (immediate)
+            return 1234 : Int @cps[Future[Any]]
+        else
+            return future()
+    }
+
+    private def eitherIntOrContinuation2(future: Future[Int],
+                                         immediate: Boolean):
+            Int @cps[Future[_]] = {
+        if (immediate)
+            1234 : Int @cps[Future[Any]]
+        else
+            future()
+    }
+
+    def testNonimmediateReturn() {
+        val timer = new Timer
+        val promise = Promise[Int]()(system.dispatcher)
+        spawnPromiseThread(promise)
+        val updater = system.actorOf(Props(new Updater(timer)))
+        flow {
+            val i: Int = eitherIntOrContinuation2(promise, false)
+            updater ! i
+        }(system.dispatcher)
+        timer.elapsed should be === -1
+        Thread.sleep(8000)
+        timer.elapsed should be >= initialDelay + sleepTime
+        timer.elapsed should be <= initialDelay + sleepTime + margin
     }
 
 }
