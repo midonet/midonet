@@ -46,8 +46,8 @@ object Coordinator {
         }
         // This Set will store the tags by which the flow should be indexed
         // The index can be used to remove flows associated with the given tag
-        val flowTags = mutable.Set[Any]()
-        def addFlowTag(tag: Any) {
+        val flowTags = mutable.Set[AnyRef]()
+        def addFlowTag(tag: AnyRef) {
             flowTags.add(tag)
         }
     }
@@ -77,8 +77,8 @@ object Coordinator {
          */
         def process(pktMatch: WildcardMatch,
                     packet: Ethernet,
-                    pktContext: PacketContext)
-                    (implicit ec: ExecutionContext): Action @cps[Future[_]]
+                    pktContext: PacketContext,
+                    ec: ExecutionContext): Action @cps[Future[_]]
     }
 }
 
@@ -86,7 +86,7 @@ class Coordinator {
     import Coordinator._
 
     @Inject
-    var actors: MidolmanActorsService
+    var actors: MidolmanActorsService = null
 
     /**
      * Simulate a single packet moving through the virtual topology. A packet
@@ -215,22 +215,24 @@ class Coordinator {
                     )(Timeout(1 second)).mapTo[Router].apply()
                 else throw new RuntimeException("fooey")
                 val action = currentDevice.process(
-                    origMatch.clone(), origEthernetPkt, pktContext)
+                    origMatch.clone(), origEthernetPkt, pktContext, ec)
                 action match {
-                    case ConsumedAction =>
-                        if (!isInternallyGenerated)
-                            flowController.tell(Drop(origFlowMatch))
+                    case _: ConsumedAction =>
+                        if (!isInternallyGenerated) {
+                            val pkt = new Packet().setMatch(origFlowMatch)
+                            flowController.tell(Drop(pkt))
+                        }
                         return
-                    case DropAction =>
+                    case _: DropAction =>
                         if (!isInternallyGenerated)
                             datapathController.tell(AddWildcardFlow(
-                                origMatch,
-                                origFlowMatch,
+                                null, //origMatch,
+                                null, //origFlowMatch,
                                 pktContext.flowRemovedCallbacks,
                                 pktContext.flowTags
                             ))
                         return
-                    case NotIPv4Action =>
+                    case _: NotIPv4Action =>
                         if (!isInternallyGenerated) {
                             val notIPv4Match = new WildcardMatch().
                                 setInputPortUUID(origMatch.getInputPortUUID).
@@ -239,8 +241,8 @@ class Coordinator {
                                     origMatch.getEthernetDestination).
                                 setEtherType(origMatch.getEtherType)
                             datapathController.tell(AddWildcardFlow(
-                                notIPv4Match,
-                                origFlowMatch,
+                                null, //notIPv4Match,
+                                null, //origFlowMatch,
                                 pktContext.flowRemovedCallbacks,
                                 pktContext.flowTags))
                         }
@@ -257,19 +259,20 @@ class Coordinator {
                                 .addAction(new FlowActionVrnPortOutput(
                                 generatedPacketEgressPort))
                             if (isInternallyGenerated)
-                                datapathController.tell(SendPacket(pkt))
+                                datapathController.tell(
+                                    SendPacket(pkt.getData, null))
                             else {
                                 datapathController.tell(
                                     AddWildcardFlow(
-                                        notIPv4Match,
-                                        origFlowMatch,
+                                        null, //notIPv4Match,
+                                        null, //origFlowMatch,
                                         pktContext.flowRemovedCallbacks,
                                         pktContext.flowTags))
                             }
                             return
                         } else {
                             val peerID =
-                                outPort.asInstanceOf[InteriorPort].peerID
+                                outPort.asInstanceOf[InteriorPort[_]].peerID
                             currentIngressPort = virtualTopologyManager.ask(
                                 PortRequest(peerID, false)
                             )(Timeout(1 second)).mapTo[Port[_]].apply()

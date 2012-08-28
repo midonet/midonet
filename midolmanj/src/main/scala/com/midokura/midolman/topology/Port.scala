@@ -8,10 +8,10 @@ import com.midokura.packets.{MAC, IntIPv4}
 import com.midokura.midolman.simulation.Chain
 
 trait Port[T <: Port[T]]{
-    var id: UUID
-    var deviceID: UUID
-    var inFilter: Chain
-    var outFilter: Chain
+    var id: UUID = null
+    var deviceID: UUID = null
+    var inFilter: Chain = null
+    var outFilter: Chain = null
     def self: T = { this.asInstanceOf[T] }
     def setID(id: UUID): T = { this.id = id; self }
     def setDeviceID(id: UUID): T = { this.deviceID = id; self }
@@ -20,11 +20,11 @@ trait Port[T <: Port[T]]{
 }
 
 trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {
-    var tunnelKey: Long
-    var portGroups: Set[UUID]
-    var properties: Map[String, String]
-    var hostID: UUID
-    var interfaceName: String
+    var tunnelKey: Long = _
+    var portGroups: Set[UUID] = null
+    var properties: Map[String, String] = null
+    var hostID: UUID = null
+    var interfaceName: String = null
     def setTunnelKey(key: Long): T = { this.tunnelKey = key; self }
     def setPortGroups(groups: Set[UUID]): T = { portGroups = groups; self }
     def setProperties(props: Map[String, String]): T =
@@ -34,17 +34,17 @@ trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {
 }
 
 trait InteriorPort[T <: InteriorPort[T]] extends Port[T] {
-    var peerID: UUID
+    var peerID: UUID = null
     def setPeerID(id: UUID): T = { this.peerID = id; self }
 }
 
 trait BridgePort[T <: BridgePort[T]] extends Port[T] {}
 
 trait RouterPort[T <: RouterPort[T]] extends Port[T] {
-    var portAddr: IntIPv4
-    var portMac: MAC
-    def nwLength: Int = { portAddr.getMaskLength }
-    def nwAddr: IntIPv4 = { portAddr.getNetworkAddress }
+    var portAddr: IntIPv4 = null
+    var portMac: MAC = null
+    def nwLength(): Int = { portAddr.getMaskLength }
+    def nwAddr(): IntIPv4 = { portAddr.getNetworkAddress }
     def setPortAddr(addr: IntIPv4): T = { this.portAddr = addr; self }
     def setPortMac(mac: MAC): T = { this.portMac = mac; self }
 
