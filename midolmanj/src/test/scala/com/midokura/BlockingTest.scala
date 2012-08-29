@@ -217,6 +217,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         timer.stop
     }
 
+    // Demonstration that 'return' in @cps context doesn't work.
     private def eitherIntOrContinuation1(future: Future[Int],
                                          immediate: Boolean):
             Int @cps[Future[_]] = {
@@ -226,6 +227,8 @@ class BlockingTest extends Suite with ShouldMatchers {
             return future()
     }
 
+    // Demonstration that 'return' by falling off the end of the block
+    // in @cps context *does* work.
     private def eitherIntOrContinuation2(future: Future[Int],
                                          immediate: Boolean):
             Int @cps[Future[_]] = {
@@ -236,18 +239,35 @@ class BlockingTest extends Suite with ShouldMatchers {
     }
 
     def testNonimmediateReturn() {
+        checkCps(eitherIntOrContinuation1, false, 8000, -1-margin)
+    }
+
+    def testImmediateReturn() {
+        checkCps(eitherIntOrContinuation1, true, 150, -1-margin)
+    }
+
+    def testNonimmediateBlockValue() {
+        checkCps(eitherIntOrContinuation2, false, 6500,
+                 initialDelay + sleepTime)
+    }
+
+    def testImmediateBlockValue() {
+        checkCps(eitherIntOrContinuation2, true, 150, 0)
+    }
+
+    def checkCps(thunk: (Future[Int], Boolean) => Int @cps[Future[_]],
+                 immediate: Boolean, delay: Long, expected: Long) {
         val timer = new Timer
         val promise = Promise[Int]()(system.dispatcher)
         spawnPromiseThread(promise)
         val updater = system.actorOf(Props(new Updater(timer)))
         flow {
-            val i: Int = eitherIntOrContinuation2(promise, false)
+            val i: Int = thunk(promise, immediate)
             updater ! i
         }(system.dispatcher)
-        timer.elapsed should be === -1
-        Thread.sleep(8000)
-        timer.elapsed should be >= initialDelay + sleepTime
-        timer.elapsed should be <= initialDelay + sleepTime + margin
+        Thread.sleep(delay)
+        timer.elapsed should be >= expected
+        timer.elapsed should be <= expected + margin
     }
 
 }
