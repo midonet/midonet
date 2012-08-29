@@ -3,6 +3,7 @@
 package com.midokura.midolman.simulation
 
 import collection.mutable
+import collection.{Set => ROSet}  // read-only view
 import util.continuations.cps
 import java.util.UUID
 
@@ -41,17 +42,49 @@ object Coordinator {
     case class ForwardAction(outPort: UUID,
                              outMatch: WildcardMatch) extends Action
 
-    trait PacketContext {
+    class PacketContext {
+        // PacketContext starts unfrozen, in which mode it can have callbacks
+        // and tags added.  Freezing it switches it from write-only to
+        // read-only.
+        private var frozen = false
+        def isFrozen() = frozen
+
         // This set will store the callback to call when this flow is removed
-        val flowRemovedCallbacks = mutable.Set[Callback0]()
-        def addFlowRemovedCallback(cb: Callback0) {
-            flowRemovedCallbacks.add(cb)
+        private val flowRemovedCallbacks = mutable.Set[Callback0]()
+        def addFlowRemovedCallback(cb: Callback0): Unit = this.synchronized {
+            if (frozen)
+                throw new IllegalArgumentException(
+                                "Adding callback to frozen PacketContext")
+            else
+                flowRemovedCallbacks.add(cb)
+        }
+        def getFlowRemovedCallbacks(): ROSet[Callback0] = {
+            if (!frozen)
+                throw new IllegalArgumentException(
+                        "Reading callbacks from unfrozen PacketContext")
+
+            flowRemovedCallbacks
         }
         // This Set will store the tags by which the flow should be indexed
         // The index can be used to remove flows associated with the given tag
-        val flowTags = mutable.Set[Any]()
-        def addFlowTag(tag: Any) {
-            flowTags.add(tag)
+        private val flowTags = mutable.Set[Any]()
+        def addFlowTag(tag: Any): Unit = this.synchronized {
+            if (frozen)
+                throw new IllegalArgumentException(
+                                "Adding tag to frozen PacketContext")
+            else
+                flowTags.add(tag)
+        }
+        def getFlowTags(): ROSet[_] = {
+            if (!frozen)
+                throw new IllegalArgumentException(
+                        "Reading tags from unfrozen PacketContext")
+
+            flowTags
+        }
+
+        def freeze(): Unit = this.synchronized {
+            frozen = true
         }
     }
 

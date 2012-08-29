@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import com.midokura.midolman.topology.{MacFlowCount, 
+import com.midokura.midolman.topology.{MacFlowCount,
                                        RemoveFlowCallbackGenerator}
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
@@ -106,21 +106,25 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
             getPortOfMac(srcDlAddress, ec) onSuccess {
-                case oldPort: UUID =>
-                  if (oldPort != ingressMatch.getInputPortUUID) {
+              case oldPort: UUID =>
+                if (oldPort != ingressMatch.getInputPortUUID) {
                     log.debug("MAC {} moved from port {} to {}.",
                         Array[Object](srcDlAddress, oldPort,
                                       ingressMatch.getInputPortUUID))
                     // The flows that reflect the old MAC port entry will be
                     // removed by the BridgeManager
                     macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
-                    packetContext.addFlowRemovedCallback(
-                        flowRemovedCallbackGen.getCallback(srcDlAddress,
-                            ingressMatch.getInputPortUUID))
-                    // Pass the tag to be used to index the flow
-                    val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
-                    packetContext.addFlowTag(tag)
-                  }
+                    packetContext.synchronized {
+                        if (!packetContext.isFrozen) {
+                            packetContext.addFlowRemovedCallback(
+                                flowRemovedCallbackGen.getCallback(srcDlAddress,
+                                        ingressMatch.getInputPortUUID))
+                            // Pass the tag to be used to index the flow
+                            val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
+                            packetContext.addFlowTag(tag)
+                        }
+                    }
+                }
             }
         }
 
