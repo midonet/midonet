@@ -30,7 +30,7 @@ object FlowController {
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
-    case class Drop(packet: Packet)
+    case class DiscardPacket(packet: Packet)
 
     case class InvalidateFlowByTag(tag: AnyRef)
 
@@ -89,7 +89,7 @@ class FlowController extends Actor {
         case AddWildcardFlow(wildcardFlow, packetOption, callbacks, tags) =>
             handleNewWildcardFlow(wildcardFlow, packetOption)
 
-        case Drop(packet) =>
+        case DiscardPacket(packet) =>
             dpMatchToPendedPackets.remove(packet.getMatch)
 
         case RemoveWildcardFlow(tag) =>

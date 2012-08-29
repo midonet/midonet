@@ -18,14 +18,15 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.topology._
+import com.midokura.midolman.datapath.FlowActionVrnPortOutput
+import com.midokura.midolman.{DatapathController, FlowController}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
+                                             SendPacket}
+import com.midokura.midolman.services.MidolmanActorsService
 import com.midokura.packets.Ethernet
+import com.midokura.sdn.dp.{FlowMatch, Packet}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
-import com.midokura.midolman.FlowController.{AddWildcardFlow, Drop, SendPacket}
-import com.midokura.midolman.{FlowController, DatapathController}
-import com.midokura.midolman.services.MidolmanActorsService
-import com.midokura.sdn.dp.{FlowMatch, Packet}
-import com.midokura.midolman.datapath.FlowActionVrnPortOutput
 
 
 object Coordinator {
@@ -327,8 +328,8 @@ class Coordinator {
 
         action match {
             case _: ConsumedAction =>
-                // XXX(pino): drop the SDN packet
-                flowController.tell(Drop(null))
+                // XXX(pino): discard the SDN packet
+                flowController.tell(DiscardPacket(null))
             case _: DropAction =>
                 datapathController.tell(AddWildcardFlow(
                     null /*XXX*/, null /*XXX*/, null /*XXX*/, null /*XXX*/

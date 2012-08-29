@@ -2,19 +2,22 @@
 
 package com.midokura.midolman
 
-import akka.actor.{ActorRef, Actor}
-
-import openflow.MidoMatch
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import java.util.UUID
-import com.midokura.packets.Ethernet
+import akka.actor.{Actor, ActorRef}
+import akka.event.Logging
 import collection.mutable
+import java.util.UUID
+
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
+
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
+                                             RemoveWildcardFlow, SendPacket}
+import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
+import com.midokura.midolman.openflow.MidoMatch
+import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.Packet
 import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.midolman.FlowController.{RemoveWildcardFlow, AddWildcardFlow, Drop, SendPacket}
-import akka.event.Logging
-import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
+import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+
 
 object SimulationController {
 
@@ -61,12 +64,13 @@ class SimulationController() extends Actor {
                 }
                 // Else, do nothing, the packet is dropped.
             } else if (finalMatch == null) {
-                fController ! Drop(packet)
+                fController ! DiscardPacket(packet)
             } else {
                 // TODO(pino, jlm): compute the WildcardFlow, including actions
                 // XXX
                 val wildcardFlow: WildcardFlow = null
-                datapathController ! AddWildcardFlow(wildcardFlow, Some(packet), null, null)
+                datapathController ! AddWildcardFlow(wildcardFlow, Some(packet),
+                                                     null, null)
             } */
 
         case EmitGeneratedPacket(vportID, frame) =>
