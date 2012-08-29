@@ -37,6 +37,21 @@ object VirtualToPhysicalMapper {
 
     case class LocalPortsReply(ports: Map[UUID, String])
 
+    /**
+     * Send this message to the VirtualToPhysicalMapper to let it know when
+     * an exterior virtual network port is 'active' - meaning that it may emit
+     * packets. This signals to the VirtualToPhysicalMapper that it should
+     * e.g. update the router's forwarding table, if the port belongs to a
+     * router. It also indicates that the local host will begin to emit (from
+     * the corresponding OVS datapath port) any tunneled packet whose tunnel
+     * key encodes the port's ID.
+     *
+     * @param portID
+     * @param active True if the port is ready to emit/receive; false
+     *               otherwise.
+     */
+    case class LocalPortActive(portID: UUID, active: Boolean)
+
 }
 
 /**

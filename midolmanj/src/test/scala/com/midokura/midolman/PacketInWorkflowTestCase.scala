@@ -8,6 +8,7 @@ import com.midokura.midolman.DatapathController.PacketIn
 import java.util.UUID
 import com.midokura.sdn.dp.flows.{FlowKey, FlowKeys}
 import org.apache.commons.configuration.HierarchicalConfiguration
+import com.midokura.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 
 class PacketInWorkflowTestCase extends MidolmanTestCase {
 
@@ -17,8 +18,12 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
     }
 
     def testDatapathPacketIn() {
+        val bridge = clusterDataClient()
+            .bridgesCreate(new ClusterBridge().setName("test"))
 
-        val vifPort = UUID.randomUUID()
+        val vifPort =
+            clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
+
         clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort, "port")
 
         initializeDatapath() should not be (null)

@@ -37,4 +37,14 @@ public interface DataClient {
 
     void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
         throws StateAccessException;
+
+    /**
+     * Inform the storage cluster that the port is active. This may be used by
+     * the cluster to do trigger related processing e.g. updating the router's
+     * forwarding table if this port belongs to a router.
+     *
+     * @param portID
+     * @param active
+     */
+    void portsSetActive(UUID portID, boolean active);
 }
