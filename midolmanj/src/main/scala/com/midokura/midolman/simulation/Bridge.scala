@@ -120,7 +120,8 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                                 flowRemovedCallbackGen.getCallback(srcDlAddress,
                                         ingressMatch.getInputPortUUID))
                             // Pass the tag to be used to index the flow
-                            val tag = (id, srcDlAddress,ingressMatch.getInputPortUUID)
+                            val tag = (id, srcDlAddress,
+                                       ingressMatch.getInputPortUUID)
                             packetContext.addFlowTag(tag)
                         }
                     }

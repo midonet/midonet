@@ -19,7 +19,8 @@ public interface DataClient {
 
     Bridge bridgesCreate(@Nonnull Bridge bridge) throws StateAccessException;
 
-    Bridge bridgesGetByName(String tenantId, String name) throws StateAccessException;
+    Bridge bridgesGetByName(String tenantId, String name)
+         throws StateAccessException;
 
     /* Ports related methods */
     boolean portsExists(UUID id) throws StateAccessException;

@@ -25,6 +25,7 @@ import com.midokura.midonet.cluster.data.Bridges;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
 
+
 public class LocalDataClientImpl implements DataClient {
 
     @Inject
@@ -131,21 +132,27 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
-        throws StateAccessException {
-        hostZkManager.addVirtualPortMapping(
-            hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
+    public void hostsAddVrnPortMapping(UUID hostId, UUID portId,
+                                       String localPortName)
+            throws StateAccessException {
+        hostZkManager.addVirtualPortMapping(hostId,
+                new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
     public void hostsAddDatapathMapping(UUID hostId, String datapathName)
-        throws StateAccessException {
+            throws StateAccessException {
         hostZkManager.addVirtualDatapathMapping(hostId, datapathName);
     }
 
     @Override
     public void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
-        throws StateAccessException {
+            throws StateAccessException {
         hostZkManager.removeVirtualPortMapping(hostId, portId);
+    }
+
+    @Override
+    public void portsSetActive(UUID portID, boolean active) {
+        //XXX: pino
     }
 }
