@@ -52,7 +52,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
             : Future[Coordinator.Action] = {
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(ingressMatch.getEthernetSource))
-            Future { new DropAction }(ec)
+            Promise.successful(new DropAction)(ec)
         else
             normalProcess(ingressMatch, packet, packetContext, ec)
     }
@@ -76,12 +76,13 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
                     rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 val rtrMAC: MAC = rtrIpToMac.get(nwDst).get
-                outPortID = Future { rtrMacToLogicalPortId.get(rtrMAC).get }(ec)
+                outPortID = Promise.successful(
+                                rtrMacToLogicalPortId.get(rtrMAC).get)(ec)
             } else {
                 // Not an ARP request for a router's port's address.
                 // Flood to materialized ports only.
                 log.info("flooding to port set {}", id)
-                outPortID = Future { id }(ec)
+                outPortID = Promise.successful(id)(ec)
             }
           case false =>
             // L2 unicast

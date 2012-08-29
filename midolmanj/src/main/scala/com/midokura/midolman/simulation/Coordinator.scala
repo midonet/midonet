@@ -7,7 +7,7 @@ import util.continuations.cps
 import java.util.UUID
 
 import akka.actor.ActorRef
-import akka.dispatch.{Future, ExecutionContext}
+import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.dispatch.Future._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -178,7 +178,7 @@ class Coordinator {
                         // TODO(pino): replace null with actions?
                         datapathController.tell(SendPacket(pkt.getData, null))
                         // All done!
-                        null
+                        Promise.successful(null)
                     case interiorPort: InteriorPort[_] =>
                         virtualTopologyManager.ask(
                             PortRequest(interiorPort.peerID, false)
@@ -186,7 +186,7 @@ class Coordinator {
                     case port =>
                         log.error("Port {} neither interior nor exterior port",
                                   port)
-                        null
+                        Promise.successful(null)
                 }
             }
         }
