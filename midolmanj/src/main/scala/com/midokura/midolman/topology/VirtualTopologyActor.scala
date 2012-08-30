@@ -7,7 +7,6 @@ import java.util.UUID
 import collection.mutable
 import scala.Some
 
-import com.midokura.midolman.state.zkManagers._
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.guice.ComponentInjectorHolder
 import javax.inject.Inject
@@ -15,7 +14,7 @@ import com.midokura.midolman.config.MidolmanConfig
 import akka.event.Logging
 import com.midokura.midolman.simulation.{Chain, Bridge, Router}
 import com.midokura.midonet.cluster.Client
-import akka.actor.{ActorContext, Props, ActorRef, Actor}
+import akka.actor.{Props, ActorRef, Actor}
 import com.midokura.midolman.Referenceable
 
 /*
@@ -72,19 +71,6 @@ class VirtualTopologyActor() extends Actor {
     // TODO:       no subscribers and haven't been used in a while.
     private val localPorts = mutable.Set[UUID]()
     val log = Logging(context.system, this)
-
-    //@Inject
-    //var bridgeStateMgr: BridgeZkManager = null
-    @Inject
-    var portStateMgr: PortZkManager = null
-    @Inject
-    var chainStateMgr: ChainZkManager = null
-    @Inject
-    var ruleStateMgr: RuleZkManager = null
-    @Inject
-    var routeStateMgr: RouteZkManager = null
-    @Inject
-    var routerStateMgr: RouterZkManager = null
 
     @Inject
     var clusterClient: Client = null
@@ -150,7 +136,7 @@ class VirtualTopologyActor() extends Actor {
     }
 
     private def portMgrCtor =
-        (portId: UUID) => new PortManager(portId, portStateMgr,
+        (portId: UUID) => new PortManager(portId,
             IntIPv4.fromString(config.getOpenFlowPublicIpAddress))
 
     def receive = {
@@ -159,14 +145,14 @@ class VirtualTopologyActor() extends Actor {
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
             manageDevice(id, (x: UUID) =>
-                new ChainManager(x, chainStateMgr, ruleStateMgr))
+                new ChainManager(x))
             deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
             manageDevice(id, portMgrCtor)
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
             manageDevice(id, (x: UUID) =>
-                new RouterManager(x, clusterClient, routeStateMgr))
+                new RouterManager(x, clusterClient))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
@@ -196,7 +182,7 @@ class VirtualTopologyActor() extends Actor {
         case rtrPortLocalMsg: SetRouterPortLocal =>
             manageDevice(rtrPortLocalMsg.devId,
                 (x: UUID) =>
-                    new RouterManager(x, clusterClient, routeStateMgr))
+                    new RouterManager(x, clusterClient))
             context.actorFor("./" + rtrPortLocalMsg.devId.toString())
                 .forward(rtrPortLocalMsg)
     }

@@ -4,14 +4,12 @@
 package com.midokura.midolman.topology
 
 import java.util.UUID
-import com.midokura.midolman.state.zkManagers.PortZkManager
 import com.midokura.midolman.state.PortDirectory.{BridgePortConfig,
 MaterializedRouterPortConfig, LogicalBridgePortConfig}
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.state.PortConfig
 
-class PortManager(id: UUID, val mgr: PortZkManager,
-                  val hostIp: IntIPv4) extends DeviceManager(id) {
+class PortManager(id: UUID, val hostIp: IntIPv4) extends DeviceManager(id) {
     private var cfg: PortConfig = null
     private var local = false
     private var locations: java.util.Set[IntIPv4] = null

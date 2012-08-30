@@ -6,26 +6,22 @@ package com.midokura.midolman.topology
 import akka.actor.ActorRef
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
-import akka.pattern.{ask, AskTimeoutException}
+import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
 import builders.RouterBuilderImpl
 import collection.mutable
-import collection.JavaConversions._
 import compat.Platform
 import java.util.UUID
 
-import org.apache.zookeeper.CreateMode
 
 import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.simulation.Router
 import com.midokura.midolman.state.ArpCacheEntry
-import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
-import com.midokura.midolman.util.JSONSerializer
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
 import com.midokura.midonet.cluster.Client
-import com.midokura.midonet.cluster.client.{SourceNatResource, ForwardingElementBuilder, RouterBuilder, ArpCache}
+import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.topology.RouterManager.TriggerUpdate
 
@@ -59,8 +55,7 @@ class RouterConfig {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 }
-class RouterManager(id: UUID, val client: Client,
-                    val routeMgr: RouteZkManager)
+class RouterManager(id: UUID, val client: Client)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
     private var rTable: RoutingTableWrapper = null

@@ -4,18 +4,15 @@
 package com.midokura.midolman.topology
 
 import akka.actor.Actor
-import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
-import com.midokura.midolman.state.zkManagers.{ChainZkManager, RuleZkManager}
 import com.midokura.midolman.rules.{JumpRule, Rule}
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
 import com.midokura.midolman.simulation.Chain
 
-class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
-                   val ruleMgr: RuleZkManager) extends Actor {
+class ChainManager(val id: UUID) extends Actor {
     // Kick off the first attempt to construct the device.
-    val cfg: ChainConfig = chainMgr.get(id)
+    val cfg: ChainConfig = null //chainMgr.get(id)
     // TODO(pino): what if the cfg is null?
     updateRules()
 
@@ -67,12 +64,12 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
     var rules: mutable.MutableList[Rule] = null
 
     private def updateRules(): Unit = {
-        val ruleIds = ruleMgr.getRuleIds(id, cb);
+        val ruleIds: List[UUID] = null; // ruleMgr.getRuleIds(id, cb);
         rules = mutable.MutableList[Rule]()
         for (ruleIds <- ruleIds) {
             rules += (idToRule.get(ruleIds) match {
                 case None =>
-                    val r = ruleMgr.get(ruleIds)
+                    val r: Rule = null //ruleMgr.get(ruleIds)
                     idToRule.put(ruleIds, r)
                     if (r.isInstanceOf[JumpRule])
                         incrChainRefCount(
@@ -104,7 +101,7 @@ class ChainManager(val id: UUID, val chainMgr: ChainZkManager,
         idToRefCount.get(chain.id) match {
             case None =>; // we don't care about this chain anymore
             case Some(count) =>
-                idToRule.put(chain.id, chain) match {
+                idToChain.put(chain.id, chain) match {
                     case None =>
                         waitingForChains -= 1
                         if (0 == waitingForChains)
