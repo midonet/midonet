@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midonet.cluster;
+package com.midokura.midonet.cluster;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -242,7 +242,7 @@ public class LocalClientImplTest {
                 public void call(UUID v) {
                     result[0] = v; 
                 }
-            });
+            }, System.currentTimeMillis()+2000);
             
             try {
                 Thread.sleep(2000);
@@ -328,7 +328,7 @@ public class LocalClientImplTest {
                 public void call(ArpCacheEntry v) {
                     result[0] = v; 
                 }
-            }); 
+            }, System.currentTimeMillis()+2000); 
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
