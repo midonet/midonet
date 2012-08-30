@@ -17,12 +17,13 @@ import akka.util.duration._
 
 import com.google.inject.Inject
 
-import com.midokura.midolman.topology._
-import com.midokura.midolman.datapath.FlowActionVrnPortOutput
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
+import com.midokura.midolman.datapath.FlowActionVrnPortOutput
 import com.midokura.midolman.services.MidolmanActorsService
+import com.midokura.midolman.topology._
+import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.{FlowMatch, Packet}
 import com.midokura.sdn.flows.WildcardMatch
@@ -115,9 +116,6 @@ object Coordinator {
         def process(pktMatch: WildcardMatch, packet: Ethernet,
                     pktContext: PacketContext, expiry: Long,
                     ec: ExecutionContext): Future[Action]
-
-        def expiringAsk(implicit ec: ExecutionContext) =
-                Coordinator.expiringAsk _
     }
 
     def expiringAsk(actor: ActorRef, message: Any, expiry: Long)
