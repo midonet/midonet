@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -35,7 +34,7 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 import com.midokura.util.functors.Callback3;
 
-public class ClusterBridgeManager {
+public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
     @Inject
     BridgeZkManager bridgeMgr;
@@ -59,25 +58,22 @@ public class ClusterBridgeManager {
     private static final Logger log = LoggerFactory
         .getLogger(ClusterBridgeManager.class);
 
-    // bridge maps
-    Map<UUID, BridgeBuilder> bridgeBuilderMap = new ConcurrentHashMap<UUID, BridgeBuilder>();
-
-    public void registerNewBuilder(UUID bridgeID, BridgeBuilder builder)
-        throws ClusterClientException {
-        if (bridgeBuilderMap.containsKey(bridgeID)){
-            throw new ClusterClientException("Builder for bridge "
-                                                 + bridgeID.toString() + " already registered");
-        }
-        bridgeBuilderMap.put(bridgeID, builder);
+    @Override
+    public Runnable getConfig(UUID id) {
+        return getBridgeConf(id, false);
     }
 
-    Runnable getBridgeConf(final UUID id,
-                           final BridgeBuilder builder, final boolean isUpdate) {
+    Runnable getBridgeConf(final UUID id, final boolean isUpdate) {
         return new Runnable() {
 
             @Override
             public void run() {
                 log.info("Updating configuration for bridge {}", id);
+                BridgeBuilder builder = getBuilder(id);
+                if(builder == null){
+                    log.error("Null builder for bridge {}", id.toString());
+                }
+
                 BridgeZkManager.BridgeConfig config = null;
                 try {
                     config = bridgeMgr.get(id, watchBridge(id));
@@ -117,16 +113,12 @@ public class ClusterBridgeManager {
 
     }
 
-
-
     Runnable watchBridge(final UUID id) {
         return new Runnable() {
             @Override
             public void run() {
                 // return fast and update later
-                reactorLoop.submit(getBridgeConf(id,
-                                                 (BridgeBuilder) bridgeBuilderMap
-                                                     .get(id), true));
+                reactorLoop.submit(getBridgeConf(id, true));
                 log.info("Added watcher for bridge {}", id);
             }
         };

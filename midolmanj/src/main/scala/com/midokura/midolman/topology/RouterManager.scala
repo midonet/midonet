@@ -79,14 +79,14 @@ class RouterManager(id: UUID, val client: Client)
         client.getRouter(id, new RouterBuilderImpl(id, self))
     }
 
-    override def getInFilterID() = {
+    override def getInFilterID = {
         cfg match {
             case null => null;
             case _ => cfg.inboundFilter
         }
     }
 
-    override def getOutFilterID() = {
+    override def getOutFilterID = {
         cfg match {
             case null => null;
             case _ => cfg.outboundFilter

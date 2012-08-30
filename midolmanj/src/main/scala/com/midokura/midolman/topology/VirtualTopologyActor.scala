@@ -16,6 +16,7 @@ import com.midokura.midolman.simulation.{Chain, Bridge, Router}
 import com.midokura.midonet.cluster.Client
 import akka.actor.{Props, ActorRef, Actor}
 import com.midokura.midolman.Referenceable
+import com.midokura.midonet.cluster.client.Port
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -31,7 +32,6 @@ case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
 
 case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-// TODO(ross): why trait if there's no implementation?
 sealed trait Unsubscribe
 
 case class BridgeUnsubscribe(id: UUID) extends Unsubscribe

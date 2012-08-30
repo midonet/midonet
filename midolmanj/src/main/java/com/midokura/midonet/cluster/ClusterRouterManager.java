@@ -6,9 +6,7 @@ package com.midokura.midonet.cluster;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -31,7 +29,7 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 
-public class ClusterRouterManager {
+public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     @Inject
     RouterZkManager routerMgr;
@@ -41,35 +39,27 @@ public class ClusterRouterManager {
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
-    // router maps
-    Map<UUID, RouterBuilder> routerBuilderMap = new ConcurrentHashMap<UUID,
-        RouterBuilder>();
-
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterRouterManager.class);
 
-    public void registerNewBuilder(UUID routerID, RouterBuilder builder)
-        throws ClusterClientException {
-        if (routerBuilderMap.containsKey(routerID)){
-            throw new ClusterClientException("Builder for router " 
-                     + routerID.toString() + " already registered");
-        }
-        routerBuilderMap.put(routerID, builder);
-    }
-
     /**
      * Get the conf for a router.
      * @param id
-     * @param builder
+     * @param isUpdate
      * @return
      */
-    public Runnable getRouterConf(final UUID id,
-                           final RouterBuilder builder, final boolean isUpdate) {
+    public Runnable getRouterConf(final UUID id, final boolean isUpdate) {
         return new Runnable() {
             @Override
             public void run() {
                 log.info("Updating configuration for router {}", id);
+                RouterBuilder builder = getBuilder(id);
+
+                if(builder == null){
+                    log.error("Null builder for router {}", id.toString());
+                }
+
                 RouterZkManager.RouterConfig config = null;
                 try {
                     config = routerMgr.get(id, watchRouter(id));
@@ -115,7 +105,7 @@ public class ClusterRouterManager {
             @Override
             public void run() {
                 // return fast and update later
-                reactorLoop.submit(getRouterConf(id,routerBuilderMap.get(id), true));
+                reactorLoop.submit(getRouterConf(id, true));
                 log.info("Added watcher for router {}", id);
             }
         };
@@ -129,6 +119,11 @@ public class ClusterRouterManager {
             builder.setArpCache(new ArpCacheImpl(arpTable));
         builder.build();
 
+    }
+
+    @Override
+    public Runnable getConfig(UUID id) {
+        return getRouterConf(id, false);
     }
 
     class ReplicatedRouteSet extends ReplicatedSet<Route> {

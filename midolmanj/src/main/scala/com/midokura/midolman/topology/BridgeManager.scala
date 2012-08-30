@@ -61,6 +61,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var rtrMacToLogicalPortId : immutable.Map[MAC, UUID] = null
     private var rtrIpToMac : immutable.Map[IntIPv4, MAC] = null
 
+    //TODO(ross) watch and react to port added/deleted
 
     override def chainsUpdated() {
         log.info("chains updated")

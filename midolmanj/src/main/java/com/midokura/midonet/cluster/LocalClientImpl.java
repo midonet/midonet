@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
@@ -49,6 +50,11 @@ public class LocalClientImpl implements Client {
     @Inject
     ClusterBridgeManager bridgeManager;
 
+
+    @Inject
+    ClusterPortsManager portsManager;
+
+
     /**
      * We inject it because we want to use the same {@link Reactor} as {@link ZkDirectory}
      */
@@ -62,10 +68,10 @@ public class LocalClientImpl implements Client {
         try {
             bridgeManager.registerNewBuilder(bridgeID, builder);
         } catch (ClusterClientException e) {
-            //TODO(ross) what should be send back in case of error?
+            //TODO(ross) what should be sent back in case of error?
         }
         reactorLoop.submit(
-            bridgeManager.getBridgeConf(bridgeID, builder, false));
+            bridgeManager.getConfig(bridgeID));
         log.info("getBridge {}", bridgeID);
     }
 
@@ -77,7 +83,7 @@ public class LocalClientImpl implements Client {
             //TODO(ross) what should be send back in case of error?
         }
         reactorLoop.submit(
-            routerManager.getRouterConf(routerID, builder, false));
+            routerManager.getConfig(routerID));
         log.info("getRouter {}", routerID);
     }
 
@@ -87,7 +93,13 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPort(UUID portID, PortBuilder builder) {
-        // TODO(Rossella)
+
+        try {
+            portsManager.registerNewBuilder(portID, builder);
+        } catch (ClusterClientException e) {
+            //TODO(ross) what should be send back in case of error?
+        }
+        reactorLoop.submit(portsManager.getConfig(portID));
     }
 
     Map<UUID, LocalStateBuilder> localStateBuilders =
