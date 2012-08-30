@@ -32,7 +32,7 @@ import com.midokura.midolman.util.Net;
  *
  */
 public class IPv4 extends BasePacket {
-    public static short ETHERTYPE = 0x0800;
+    public final static short ETHERTYPE = 0x0800;
 
     public static Map<Byte, Class<? extends IPacket>> protocolClassMap;
 

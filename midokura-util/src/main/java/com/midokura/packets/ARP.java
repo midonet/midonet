@@ -27,14 +27,14 @@ import com.midokura.midolman.util.Net;
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class ARP extends BasePacket {
-    public static short ETHERTYPE = 0x0806;
+    public final static short ETHERTYPE = 0x0806;
 
-    public static short HW_TYPE_ETHERNET = 0x1;
+    public final static short HW_TYPE_ETHERNET = 0x1;
 
-    public static short PROTO_TYPE_IP = 0x800;
+    public final static short PROTO_TYPE_IP = 0x800;
 
-    public static short OP_REQUEST = 0x1;
-    public static short OP_REPLY = 0x2;
+    public final static short OP_REQUEST = 0x1;
+    public final static short OP_REPLY = 0x2;
 
     /**
      * ARP packet size.  The ARP itself is 28 bytes.

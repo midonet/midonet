@@ -6,11 +6,10 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
-import com.midokura.util.functors.Callback1;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
+import com.midokura.midonet.cluster.client.Builder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;
-import com.midokura.midonet.cluster.client.PortBuilders;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 
 public interface Client {
@@ -25,15 +24,11 @@ public interface Client {
 
     void getChain(UUID chainID, ChainBuilder builder);
 
-    void getType(UUID portID, Callback1<PortType> cb);
+    void getPort(UUID portID, PortBuilder builder);
 
-    void getPort(UUID portID, PortBuilders.InteriorBridgePortBuilder builder);
-
-    void getPort(UUID portID, PortBuilders.ExteriorBridgePortBuilder builder);
-
-    void getPort(UUID portID, PortBuilders.InteriorRouterPortBuilder builder);
-
-    void getPort(UUID portID, PortBuilders.ExteriorRouterPortBuilder builder);
+    interface PortBuilder extends Builder {
+        void setPort(/*Port p*/);
+    }
 
     void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder);
 

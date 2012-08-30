@@ -22,10 +22,8 @@ import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.LocalStateBuilder;
-import com.midokura.midonet.cluster.client.PortBuilders;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.util.eventloop.Reactor;
-import com.midokura.util.functors.Callback1;
 
 /**
  * Implementation of the Cluster.Client using ZooKeeper
@@ -88,30 +86,8 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getType(UUID portID, Callback1<PortType> cb) {
-
-    }
-
-    @Override
-    public void getPort(UUID portID,
-                        PortBuilders.InteriorBridgePortBuilder builder) {
-    }
-
-    @Override
-    public void getPort(UUID portID,
-                        PortBuilders.ExteriorBridgePortBuilder builder) {
-        builder.setTunnelKey(1l).build();
-    }
-
-    @Override
-    public void getPort(UUID portID,
-                        PortBuilders.InteriorRouterPortBuilder builder) {
-    }
-
-    @Override
-    public void getPort(UUID portID,
-                        PortBuilders.ExteriorRouterPortBuilder builder) {
-
+    public void getPort(UUID portID, PortBuilder builder) {
+        // TODO(Rossella)
     }
 
     Map<UUID, LocalStateBuilder> localStateBuilders =

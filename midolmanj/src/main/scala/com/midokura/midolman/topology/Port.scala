@@ -5,18 +5,32 @@ package com.midokura.midolman.topology
 
 import java.util.UUID
 import com.midokura.packets.{IntIPv4, MAC}
-import com.midokura.midolman.simulation.Chain
 
-trait Port[T <: Port[T]]{
+trait Port[T <: Port[T]] {
     var id: UUID = null
     var deviceID: UUID = null
-    var inFilter: Chain = null
-    var outFilter: Chain = null
-    def self: T = { this.asInstanceOf[T] }
-    def setID(id: UUID): T = { this.id = id; self }
-    def setDeviceID(id: UUID): T = { this.deviceID = id; self }
-    def setInFilter(chain: Chain): T = { this.inFilter = chain; self }
-    def setOutFilter(chain: Chain): T = { this.outFilter = chain; self }
+    var inFilterID: UUID = null
+    var outFilterID: UUID = null
+
+    def self: T = {
+        this.asInstanceOf[T]
+    }
+
+    def setID(id: UUID): T = {
+        this.id = id; self
+    }
+
+    def setDeviceID(id: UUID): T = {
+        this.deviceID = id; self
+    }
+
+    def setInFilter(chain: UUID): T = {
+        this.inFilterID = chain; self
+    }
+
+    def setOutFilter(chain: UUID): T = {
+        this.inFilterID = chain; self
+    }
 }
 
 trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {

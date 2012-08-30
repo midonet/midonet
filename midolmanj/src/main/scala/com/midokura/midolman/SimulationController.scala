@@ -2,70 +2,33 @@
 
 package com.midokura.midolman
 
-import akka.actor.{Actor, ActorRef}
-import akka.event.Logging
-import collection.mutable
+import akka.actor.{ActorLogging, Actor}
 import java.util.UUID
 
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
-
-import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
-                                             RemoveWildcardFlow, SendPacket}
-import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
+import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.packets.Ethernet
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import akka.event.Logging
-import akka.actor.Actor
+import simulation.Coordinator
+import com.midokura.sdn.flows.WildcardMatches
 
 object SimulationController extends Referenceable {
 
     val Name = "SimulationController"
 
-    case class SimulationDone(origMatch: WildcardMatch, packet: Array[Byte])
-
-    case class EmitGeneratedPacket(vportID: UUID, frame: Ethernet)
+    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet)
 }
 
-class SimulationController() extends Actor {
+class SimulationController() extends Actor with ActorLogging {
     import SimulationController._
     import context._
 
-    val log = Logging(context.system, this)
-
     def receive = {
 
-        case sim: SimulationDone =>
-            // when it gets this message it can generated one or more of the following messages to the datapathContoller or to self.
-            // datapathController ! AddWildcardFlow(...)
-            // datapathController ! SendPacket(...)
-            // self ! PacketIn()
+        case PacketIn(packet, wMatch) =>
+            Coordinator.simulate(wMatch, packet.getMatch,
+                Ethernet.deserialize(packet.getData), null)
 
-            // if (connectionTracked)
-            //  ClusterClient.installConnectionTrackingBlobs();
-
-            // Emtpy or null outPorts indicates Drop rule.
-            // Null finalMatch indicates that the packet was consumed.
-            /*if (generated) {
-                if (null != finalMatch) {
-                    // TODO(pino, jlm): diff matches to build action list
-                    // XXX
-                    val actions: List[FlowAction[_]] = null
-                    datapathController() ! SendPacket(packet.getData, actions)
-                }
-                // Else, do nothing, the packet is dropped.
-            } else if (finalMatch == null) {
-                fController ! DiscardPacket(packet)
-            } else {
-                // TODO(pino, jlm): compute the WildcardFlow, including actions
-                // XXX
-                val wildcardFlow: WildcardFlow = null
-                datapathController ! AddWildcardFlow(wildcardFlow, Some(packet),
-                                                     null, null)
-            } */
-
-        case EmitGeneratedPacket(vportID, frame) =>
-            // TODO(pino, jlm): do a new simulation.
-            // XXX
-            // self ! PacketIn(new Packet())
+        case EmitGeneratedPacket(egressPort, ethPkt) =>
+            Coordinator.simulate(WildcardMatches.fromEthernetPacket(ethPkt),
+                null, ethPkt, egressPort)
     }
 }

@@ -15,7 +15,6 @@ import javax.inject.Inject
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
-import akka.event.Logging
 import com.midokura.util.functors.Callback0
 import akka.actor._
 
@@ -36,12 +35,11 @@ object FlowController extends Referenceable {
 
 }
 
-class FlowController extends Actor {
+class FlowController extends Actor with ActorLogging {
 
     import FlowController._
     import context._
 
-    val log = Logging(context.system, this)
     var datapath: Datapath = null
     var maxDpFlows = 0
     var dpFlowRemoveBatchSize = 0

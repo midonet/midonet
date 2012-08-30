@@ -7,7 +7,7 @@ import collection.{Set => ROSet}  // read-only view
 import util.continuations.cps
 import java.util.UUID
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, ActorRef}
 import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.dispatch.Future._
 import akka.pattern.ask
@@ -115,15 +115,6 @@ object Coordinator {
                     pktContext: PacketContext,
                     ec: ExecutionContext): Future[Action]
     }
-}
-
-class Coordinator {
-    import Coordinator._
-
-    @Inject
-    var actors: MidolmanActorsService = _
-
-    private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
     /**
      * Simulate a single packet moving through the virtual topology. A packet
@@ -152,7 +143,8 @@ class Coordinator {
      * Controller to install a flow or send a packet.
      *
      * @param origMatch
-     * @param packet
+     * @param origFlowMatch
+     * @param origEthernetPkt
      * @param generatedPacketEgressPort Only used if this packet was generated
      *                                  by a virtual device. It's the ID of
      *                                  the port via which the packet
@@ -160,19 +152,19 @@ class Coordinator {
      */
     def simulate(origMatch: WildcardMatch,
                  origFlowMatch: FlowMatch,
-                 packet: Array[Byte],
+                 origEthernetPkt: Ethernet,
                  generatedPacketEgressPort: UUID)
                 (implicit ec: ExecutionContext): Unit = {
 
-        val datapathController = DatapathController.getRef(actors.system())
+        val actors: ActorSystem = null
+        val datapathController = DatapathController.getRef(actors)
 
-        val flowController = FlowController.getRef(actors.system())
+        val flowController = FlowController.getRef(actors)
 
-        val virtualTopologyManager = VirtualTopologyActor.getRef(actors.system())
+        val virtualTopologyManager = VirtualTopologyActor.getRef(actors)
 
         // TODO(pino): if any topology object cannot be found, log an error.
 
-        val origEthernetPkt = Ethernet.deserialize(packet)
         var currentIngressPortFuture: Future[Port[_]] = null
         var currentMatch = origMatch.clone
         val isInternallyGenerated = generatedPacketEgressPort != null
@@ -207,9 +199,13 @@ class Coordinator {
             currentIngressPortFuture = egressPortFuture flatMap {
                 egressPort: Port[_] => egressPort match {
                     case _: ExteriorPort[_] =>
-                        val pkt = new Packet().setData(packet).addAction(
-                                      new FlowActionVrnPortOutput(
-                                          generatedPacketEgressPort))
+                        val pkt = new Packet()
+                            .setData(origEthernetPkt.serialize())
+                            .addAction(
+                            new FlowActionVrnPortOutput(
+                                generatedPacketEgressPort
+                            )
+                        )
                         // TODO(pino): replace null with actions?
                         datapathController.tell(SendPacket(pkt.getData, null))
                         // All done!
@@ -219,8 +215,8 @@ class Coordinator {
                             PortRequest(interiorPort.peerID, false)
                         )(Timeout(1 second)).mapTo[Port[_]]
                     case port =>
-                        log.error("Port {} neither interior nor exterior port",
-                                  port)
+                        //log.error("Port {} neither interior nor exterior " +
+                        //"port", port)
                         Promise.successful(null)
                 }
             }
@@ -243,11 +239,11 @@ class Coordinator {
             // depth of devices traversed in the simulation
             var depth: Int = 0
             var currentIngressPort = currentIngressPortFuture.apply
-            val ingressDeviceID: UUID = currentIngressPort.deviceID
 
             while (currentIngressPort != null) {
                 // TODO(pino): check for too long loop
-                // TODO(pino): the port's input filter.
+                val ingressDeviceID: UUID = currentIngressPort.deviceID
+                // TODO(pino): apply the port's input filter.
                 val currentDevice = deviceOfPort(currentIngressPort,
                                                  virtualTopologyManager)
                 val action = currentDevice().process(
@@ -271,9 +267,13 @@ class Coordinator {
                     )(Timeout(1 second)).mapTo[Port[_]].apply match {
                         case _: ExteriorPort[_] =>
                             // TODO(pino): Compute actions from matches' diff.
-                            val pkt = new Packet().setData(packet).addAction(
-                                          new FlowActionVrnPortOutput(
-                                              generatedPacketEgressPort))
+                            val pkt = new Packet()
+                                .setData(origEthernetPkt.serialize())
+                                .addAction(
+                                new FlowActionVrnPortOutput(
+                                    generatedPacketEgressPort
+                                )
+                            )
                             if (isInternallyGenerated) {
                                 datapathController.tell(
                                     SendPacket(/*XXX*/null, null))
@@ -281,6 +281,7 @@ class Coordinator {
                                 datapathController.tell(
                                     AddWildcardFlow(
                                         /*XXX*/ null, null, null, null))
+                                // Connection-tracking blob
                             }
                             currentIngressPort = null
                         case interiorPort: InteriorPort[_] =>
@@ -335,6 +336,7 @@ class Coordinator {
                 datapathController.tell(AddWildcardFlow(
                     null /*XXX*/, null /*XXX*/, null /*XXX*/, null /*XXX*/
                 ))
+                // Connection-tracking blob
             case _: NotIPv4Action =>
                 val notIPv4Match =
                     (new WildcardMatch()
@@ -345,6 +347,7 @@ class Coordinator {
                         .setEtherType(origMatch.getEtherType))
                 datapathController.tell(AddWildcardFlow(
                     /* XXX */ null, null, null, null))
+                // Connection-tracking blob
         }
     }
 

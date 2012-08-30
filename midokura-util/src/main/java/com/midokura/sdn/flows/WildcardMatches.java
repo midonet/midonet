@@ -8,12 +8,14 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.midokura.packets.ARP;
+import com.midokura.packets.Ethernet;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.FlowMatches;
 import com.midokura.sdn.dp.flows.FlowKey;
 import com.midokura.sdn.dp.flows.FlowKeyARP;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
@@ -46,6 +48,10 @@ public class WildcardMatches {
         List<FlowKey<?>> flowKeys = match.getKeys();
         processMatchKeys(wildcardMatch, flowKeys);
         return wildcardMatch;
+    }
+
+    public static WildcardMatch fromEthernetPacket(Ethernet ethPkt) {
+        return fromFlowMatch(FlowMatches.fromEthernetPacket(ethPkt));
     }
 
     private static void processMatchKeys(WildcardMatch wildcardMatch, List<FlowKey<?>> flowKeys) {
