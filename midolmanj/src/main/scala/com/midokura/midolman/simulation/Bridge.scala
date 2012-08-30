@@ -45,9 +45,8 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
 
     def canEqual(other: Any) = other.isInstanceOf[Bridge]
 
-    override def process(ingressMatch: WildcardMatch,
-                         packet: Ethernet,
-                         packetContext: PacketContext,
+    override def process(ingressMatch: WildcardMatch, packet: Ethernet,
+                         packetContext: PacketContext, expiry: Long,
                          ec: ExecutionContext)
             : Future[Coordinator.Action] = {
         // Drop the packet if its L2 source is a multicast address.
@@ -139,6 +138,7 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
 
     private def getPortOfMac(mac: MAC, ec: ExecutionContext) = {
         val rv = Promise[UUID]()(ec)
+        //XXX: macPortMap.get should take a timeout or expiration
         macPortMap.get(mac, new Callback1[UUID] {
             def call(port: UUID) {
                 rv.success(port)

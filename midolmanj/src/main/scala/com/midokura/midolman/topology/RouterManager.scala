@@ -9,27 +9,26 @@ import akka.dispatch.Future.flow
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
-import builders.RouterBuilderImpl
 import collection.mutable
 import compat.Platform
 import java.util.UUID
 
-
 import com.midokura.midolman.layer3.{Route, RoutingTable}
-import com.midokura.midolman.simulation.Router
+import com.midokura.midolman.simulation.{Coordinator, Router}
 import com.midokura.midolman.state.ArpCacheEntry
-import com.midokura.packets.{IntIPv4, MAC}
-import com.midokura.util.functors.Callback1
+import com.midokura.midolman.topology.RouterManager.TriggerUpdate
+import com.midokura.midolman.topology.builders.RouterBuilderImpl
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.ArpCache
+import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.topology.RouterManager.TriggerUpdate
+import com.midokura.util.functors.Callback1
 
 
 /* The ArpTable is called from the Coordinators' actors and dispatches
  * to the RouterManager's actor to send and schedule ARPs. */
 trait ArpTable {
-    def get(ip: IntIPv4, ec: ExecutionContext): Future[MAC]
+    def get(ip: IntIPv4, expiry: Long, ec: ExecutionContext): Future[MAC]
     def set(ip: IntIPv4, mac: MAC)
 }
 
@@ -124,10 +123,11 @@ class RouterManager(id: UUID, val client: Client)
     }
 
     private class ArpTableImpl extends ArpTable {
-        def get(ip: IntIPv4, ec: ExecutionContext): Future[MAC] = {
-            implicit val timeout = Timeout(1 minute)
+        def get(ip: IntIPv4, expiry: Long, ec: ExecutionContext):
+                Future[MAC] = {
             val promise = Promise[ArpCacheEntry]()(ec)
             val rv = Promise[MAC]()(ec)
+            //XXX: arpCache.get should take a timeout or expiration
             arpCache.get(ip, new Callback1[ArpCacheEntry] {
                 def call(value: ArpCacheEntry) {
                     promise.success(value)
@@ -143,7 +143,8 @@ class RouterManager(id: UUID, val client: Client)
                 else {
                     // There's no arpCache entry, or it's expired.
                     // Wait for the arpCache to become populated by an ARP reply
-                    rv << self.ask(WaitForArpEntry(ip)).mapTo[MAC]
+                    rv << Coordinator.expiringAsk(self, WaitForArpEntry(ip),
+                                                  expiry)(ec).mapTo[MAC]
                 }
             }(ec)
             return rv
