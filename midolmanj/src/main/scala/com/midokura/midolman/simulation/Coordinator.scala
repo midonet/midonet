@@ -163,12 +163,13 @@ class Coordinator {
                  packet: Array[Byte],
                  generatedPacketEgressPort: UUID)
                 (implicit ec: ExecutionContext): Unit = {
-        val datapathController =
-            actors.system.actorFor("/user/%s" format DatapathController.Name)
-        val flowController =
-            actors.system.actorFor("/user/%s" format FlowController.Name)
-        val virtualTopologyManager =
-            actors.system.actorFor("/user/%s" format VirtualTopologyActor.Name)
+
+        val datapathController = DatapathController.getRef(actors.system())
+
+        val flowController = FlowController.getRef(actors.system())
+
+        val virtualTopologyManager = VirtualTopologyActor.getRef(actors.system())
+
         // TODO(pino): if any topology object cannot be found, log an error.
 
         val origEthernetPkt = Ethernet.deserialize(packet)

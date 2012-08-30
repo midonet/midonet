@@ -9,6 +9,7 @@ import akka.dispatch.Future.flow
 import akka.pattern.{ask, AskTimeoutException}
 import akka.util.Timeout
 import akka.util.duration._
+import builders.RouterBuilderImpl
 import collection.mutable
 import collection.JavaConversions._
 import compat.Platform
@@ -20,12 +21,13 @@ import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.simulation.Router
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.zkManagers.{RouteZkManager, RouterZkManager}
-import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
 import com.midokura.midolman.util.JSONSerializer
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.{SourceNatResource, ForwardingElementBuilder, RouterBuilder, ArpCache}
+import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.topology.RouterManager.TriggerUpdate
 
 
 /* The ArpTable is called from the Coordinators' actors and dispatches
@@ -35,105 +37,40 @@ trait ArpTable {
     def set(ip: IntIPv4, mac: MAC)
 }
 
+class RoutingTableWrapper(val rTable: RoutingTable) {
+    import collection.JavaConversions._
+    def lookup(wmatch: WildcardMatch) = {
+        val listRoute: scala.collection.Iterable[Route]
+        = rTable.lookup(wmatch.getNetworkSource.addressAsInt(),
+            wmatch.getNetworkDestination.addressAsInt())
+        listRoute
+    }
 
+}
+
+object RouterManager {
+    val Name = "RouterManager"
+
+    case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
+                             rTable: RoutingTableWrapper)
+}
+
+class RouterConfig {
+    var inboundFilter: UUID = null
+    var outboundFilter: UUID = null
+}
 class RouterManager(id: UUID, val client: Client,
                     val routeMgr: RouteZkManager)
         extends DeviceManager(id) {
-    private val rtableDirectory = null //TODO mgr.getRoutingTableDirectory(id)
-    private val serializer = new JSONSerializer()
     private var cfg: RouterConfig = null
-    private var rTable: RoutingTable = null
-    private val localPortToRouteIDs = mutable.Map[UUID, mutable.Set[UUID]]()
-    private val idToRoute = mutable.Map[UUID, Route]()
+    private var rTable: RoutingTableWrapper = null
     private var arpCache: ArpCache = null
     private val arpTable = new ArpTableImpl
     private val ARP_STALE_MILLIS: Long = 1800 * 1000
     private val ARP_EXPIRATION_MILLIS: Long = 3600 * 1000
-    private val arpWaiters = new mutable.HashMap[IntIPv4, 
+    private val arpWaiters = new mutable.HashMap[IntIPv4,
                                                  mutable.Set[ActorRef]] with
                                  mutable.MultiMap[IntIPv4, ActorRef]
-
-    case object RefreshTableRoutes
-
-    // Initialization:  Get the routing table data from the cluster.
-    refreshTableRoutes()
-
-
-    val tableRoutesCb: Runnable = new Runnable() {
-        def run() {
-            // CAREFUL: this is not run on this Actor's thread.
-            self.tell(RefreshTableRoutes)
-        }
-    }
-
-    case class RefreshLocalPortRoutes(val portId: UUID)
-
-    def makePortRoutesCallback(portId: UUID): Runnable = {
-        new Runnable() {
-            def run() {
-                // CAREFUL: this is not run on this Actor's thread.
-                self.tell(RefreshLocalPortRoutes(portId))
-            }
-        }
-    }
-
-    private def refreshTableRoutes(): Unit = {
-        // TODO(pino): make this non-blocking.
-        /*val routes = rtableDirectory.getChildren("", tableRoutesCb)
-        rTable = new RoutingTable()
-        for (rt <- routes) {
-            rTable.addRoute(
-                serializer.bytesToObj(rt.getBytes(), classOf[Route]))
-        }
-        makeNewRouter() */
-    }
-
-    private def refreshLocalPortRoutes(portId: UUID): Unit = {
-        // Ignore this message if the port is no     longer local.
-        if (localPortToRouteIDs.contains(portId)) {
-            val oldRouteIdSet = localPortToRouteIDs(portId)
-            val newRouteIdSet = mutable.Set[UUID]()
-            localPortToRouteIDs.put(portId, newRouteIdSet)
-            for (rtID <- routeMgr.listPortRoutes(
-                portId, makePortRoutesCallback(portId))) {
-                newRouteIdSet.add(rtID)
-                if (!oldRouteIdSet(rtID)) {
-                    // It's a new route: write it to the shared routing table
-                    val rt = routeMgr.get(rtID)
-                    idToRoute.put(rtID, rt)
-                    /*TODO rtableDirectory.add(
-                        "/" + new String(serializer.objToBytes(rt)),
-                        null, CreateMode.EPHEMERAL)*/
-                }
-            }
-            // Now process the removed routes
-            for (rtID <- oldRouteIdSet) {
-                if (!newRouteIdSet(rtID)) {
-                    val rt = idToRoute.remove(rtID)
-                    /*TODOrtableDirectory.delete("/" +
-                        new String(serializer.objToBytes(rt)))*/
-                }
-            }
-        }
-    }
-
-    private def updatePortLocality(portId: UUID, local: Boolean) {
-        // Ignore the message if we already agree with the locality.
-        if (localPortToRouteIDs.contains(portId) != local) {
-            if (local) {
-                localPortToRouteIDs.put(portId, mutable.Set[UUID]())
-                refreshLocalPortRoutes(portId)
-            } else {
-                localPortToRouteIDs.remove(portId) match {
-                    case Some(routeIdSet) =>
-                        /*for (rtID <- routeIdSet)
-                              rtableDirectory.delete("/" + new String(
-                                serializer.objToBytes(idToRoute(rtID))))
-                    case None =>; */ // This should never happen?
-                }
-            }
-        }
-    }
 
     override def chainsUpdated = makeNewRouter
 
@@ -143,8 +80,8 @@ class RouterManager(id: UUID, val client: Client,
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter));
     }
 
-    override def updateConfig() = {
-        client.getRouter(id, new RouterBuilderImpl())
+    override def preStart() {
+        client.getRouter(id, new RouterBuilderImpl(id, self))
     }
 
     override def getInFilterID() = {
@@ -166,10 +103,6 @@ class RouterManager(id: UUID, val client: Client,
     private case class WaitForArpEntry(ip: IntIPv4)
 
     override def receive() = super.receive orElse {
-        case SetRouterPortLocal(_, portId, local) =>
-            updatePortLocality(portId, local)
-        case RefreshTableRoutes => refreshTableRoutes()
-        case RefreshLocalPortRoutes(portId) => refreshLocalPortRoutes(portId)
         case SetArpEntry(ip, mac) =>
             val now = Platform.currentTime
             val entry = new ArpCacheEntry(mac, now+ARP_STALE_MILLIS,
@@ -188,36 +121,11 @@ class RouterManager(id: UUID, val client: Client,
             // XXX: Send an ARP and schedule retries.
         case WaitForArpEntry(ip) =>
             arpWaiters.addBinding(ip, sender)
-    }
-
-    class RouterBuilderImpl extends RouterBuilder
-        with DeviceBuilderImpl[ForwardingElementBuilder] {
-
-        def setArpCache(table: ArpCache) {
-            if(table != null)
-                arpCache = table
-        }
-
-        def addRoute(rt: Route) {}
-
-        def removeRoute(rt: Route) {}
-
-        def setSourceNatResource(resource: SourceNatResource) {}
-
-        def setID(id: UUID) = null
-
-        def setInFilter(filterID: UUID) = {
-            cfg.inboundFilter = filterID
-            this
-        }
-
-        def setOutFilter(filterID: UUID) = {
-            cfg.outboundFilter = filterID
-            this
-        }
-
-        def start() = null
-
+        case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
+        cfg = newCfg
+        arpCache = newArpCache
+        rTable = newRoutingTable
+        configUpdated()
     }
 
     private class ArpTableImpl extends ArpTable {

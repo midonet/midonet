@@ -3,15 +3,17 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
 import com.midokura.midonet.cluster.client.LocalStateBuilder
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.guice.ComponentInjectorHolder
+import akka.actor.{ActorContext, ActorRef, Actor}
+import com.midokura.midolman.Referenceable
 
-object VirtualToPhysicalMapper {
+
+object VirtualToPhysicalMapper extends Referenceable {
     val Name = "VirtualToPhysicalMapper"
 
     /**

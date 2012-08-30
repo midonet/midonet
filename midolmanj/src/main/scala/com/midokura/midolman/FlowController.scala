@@ -2,7 +2,6 @@
 
 package com.midokura.midolman
 
-import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable.{HashMap, MultiMap, Set}
 import config.MidolmanConfig
@@ -18,8 +17,9 @@ import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import akka.event.Logging
 import com.midokura.util.functors.Callback0
+import akka.actor._
 
-object FlowController {
+object FlowController extends Referenceable {
     val Name = "FlowController"
 
     case class AddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
@@ -65,9 +65,6 @@ class FlowController extends Actor {
         new HashMap[WildcardFlow, Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    def datapathController(): ActorRef = {
-        actorFor("/user/%s" format DatapathController.Name)
-    }
 
     override def preStart() {
         super.preStart()
@@ -207,7 +204,7 @@ class FlowController extends Actor {
             // Keep track of these packets so that for every FlowMatch, only
             // one such call goes to the next layer.
             if (dpMatchToPendedPackets.get(packet.getMatch) == None) {
-                datapathController() !
+                DatapathController.getRef() !
                     DatapathController.PacketIn(packet,
                         WildcardMatches.fromFlowMatch(packet.getMatch))
             }

@@ -62,9 +62,12 @@ class PortManager(id: UUID, val mgr: PortZkManager,
 
     override def chainsUpdated = makeNewPort
 
+
+    /*
+    //TODO(ross) use cluster client
     override def updateConfig() = {
         cfg = mgr.get(id, cb)
-    }
+    } */
 
     override def getInFilterID() = {
         cfg match {

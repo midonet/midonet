@@ -6,12 +6,12 @@ package com.midokura.midolman.layer3;
 
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import com.midokura.midolman.layer3.Route.NextHop;
@@ -59,8 +59,8 @@ public class TestRoutingTable {
     @Test
     public void testEmptyRoutingTable() {
         RoutingTable table = new RoutingTable();
-        Assert.assertTrue(table.lookup(0x0a010108, 0x0a010106).isEmpty());
-        Assert.assertTrue(table.lookup(0x00000009, 0xfffffffe).isEmpty());
+        Assert.assertFalse(table.lookup(0x0a010108, 0x0a010106).iterator().hasNext());
+        Assert.assertFalse(table.lookup(0x00000009, 0xfffffffe).iterator().hasNext());
     }
 
     @Test
@@ -80,11 +80,11 @@ public class TestRoutingTable {
         for (Route rt : routes)
             table.addRoute(rt);
         // Try a search with a bad address.
-        Set<Route> matches = new HashSet<Route>(table.lookup(0x12345678,
+        Set<Route> matches = generateSet(table.lookup(0x12345678,
                 0xddddeeee));
         Assert.assertEquals(0, matches.size());
         // Now try a matching address.
-        matches = new HashSet<Route>(table.lookup(0xddddeeee, 0x0a140080));
+        matches = generateSet(table.lookup(0xddddeeee, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt1));
         // Reinsert the other routes with equal priority to rt1.
@@ -95,7 +95,7 @@ public class TestRoutingTable {
         table.addRoute(rt2);
         table.addRoute(rt3);
 
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(3, matches.size());
         Assert.assertTrue(matches.contains(rt1));
         Assert.assertTrue(matches.contains(rt2));
@@ -104,25 +104,25 @@ public class TestRoutingTable {
         table.deleteRoute(rt2);
         rt2.srcNetworkLength = 16;
         table.addRoute(rt2);
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(2, matches.size());
         Assert.assertTrue(matches.contains(rt1));
         Assert.assertTrue(matches.contains(rt3));
 
         // Now remove rt1
         table.deleteRoute(rt1);
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt3));
         // Now remove rt3 and try src ip that matches rt2 in 16 bits.
         table.deleteRoute(rt3);
-        matches = new HashSet<Route>(table.lookup(0xf01e0081, 0x0a140080));
+        matches = generateSet(table.lookup(0xf01e0081, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt2));
         // Finally delete rt2, then re-add rt1, and do the lookup again.
         table.deleteRoute(rt2);
         table.addRoute(rt1);
-        matches = new HashSet<Route>(table.lookup(0xf01e0081, 0x0a140080));
+        matches = generateSet(table.lookup(0xf01e0081, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt1));
     }
@@ -151,29 +151,29 @@ public class TestRoutingTable {
             table.addRoute(rt);
 
         // Use a dst ip that matches rt4 but not rt5.
-        Set<Route> matches = new HashSet<Route>(table.lookup(0x12345678,
+        Set<Route> matches = generateSet(table.lookup(0x12345678,
                 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt4));
         // Now try to match rt5 - note that src must match 10 bits
-        matches = new HashSet<Route>(table.lookup(0x80c01234, 0x0a140090));
+        matches = generateSet(table.lookup(0x80c01234, 0x0a140090));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt5));
         // Now show that if the src doesn't match we end up with rt4 instead.
-        matches = new HashSet<Route>(table.lookup(0x80a01122, 0x0a140090));
+        matches = generateSet(table.lookup(0x80a01122, 0x0a140090));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt4));
         // Now use a dst ip that matches rt2 and rt3, but rt2 has lower weight.
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a143700));
+        matches = generateSet(table.lookup(0x12345678, 0x0a143700));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt2));
         // Now match only rt1
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0b332211));
+        matches = generateSet(table.lookup(0x12345678, 0x0b332211));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt1));
         // Now remove rt4 and try again with its address.
         table.deleteRoute(rt4);
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt2));
         // Remove and re-add rt3 equal weight as rt2.
@@ -181,21 +181,21 @@ public class TestRoutingTable {
         rt3.weight = 200;
         table.addRoute(rt3);
         // Try rt4's match again.
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(2, matches.size());
         Assert.assertTrue(matches.contains(rt2));
         Assert.assertTrue(matches.contains(rt3));
         // Now remove rt1 and try again with an address that matches it.
         table.deleteRoute(rt1);
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0b332211));
+        matches = generateSet(table.lookup(0x12345678, 0x0b332211));
         Assert.assertEquals(0, matches.size());
         // Try to match rt5 again - again note that src must match 10 bits
-        matches = new HashSet<Route>(table.lookup(0x80c01234, 0x0a140090));
+        matches = generateSet(table.lookup(0x80c01234, 0x0a140090));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt5));
         // Remove rt5, the same lookup should return rt2 and rt3
         table.deleteRoute(rt5);
-        matches = new HashSet<Route>(table.lookup(0x80c01234, 0x0a140090));
+        matches = generateSet(table.lookup(0x80c01234, 0x0a140090));
         Assert.assertEquals(2, matches.size());
         Assert.assertTrue(matches.contains(rt2));
         Assert.assertTrue(matches.contains(rt3));
@@ -205,11 +205,11 @@ public class TestRoutingTable {
         table.deleteRoute(rt2);
         table.deleteRoute(rt3);
         // Try to match rt5 again - again note that src must match 10 bits
-        matches = new HashSet<Route>(table.lookup(0x80c01234, 0x0a140090));
+        matches = generateSet(table.lookup(0x80c01234, 0x0a140090));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt5));
         // Now try to match rt4 (still deleted), this time it matches rt1.
-        matches = new HashSet<Route>(table.lookup(0x12345678, 0x0a140080));
+        matches = generateSet(table.lookup(0x12345678, 0x0a140080));
         Assert.assertEquals(1, matches.size());
         Assert.assertTrue(matches.contains(rt1));
     }
@@ -222,5 +222,13 @@ public class TestRoutingTable {
         RoutingTable table = new RoutingTable();
         for (Route rt : routes)
             table.addRoute(rt);
+    }
+    
+    private Set<Route> generateSet(Iterable<Route> iterable){
+        Set<Route> set = new HashSet<Route>();
+        for(Iterator<Route> it = iterable.iterator(); it.hasNext();){
+            set.add(it.next());
+        }
+        return set;
     }
 }

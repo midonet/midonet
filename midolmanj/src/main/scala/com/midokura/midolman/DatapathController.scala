@@ -3,7 +3,6 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{ActorRef, Actor}
 import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
@@ -24,6 +23,7 @@ import java.lang
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.util.functors.{Callback0, Callback1}
+import akka.actor.{ActorContext, ActorRef, Actor}
 
 /**
  * Holder object that keeps the external message definitions
@@ -52,7 +52,7 @@ sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
     val error: NetlinkException
 }
 
-object DatapathController {
+object DatapathController extends Referenceable {
 
     val Name = "DatapathController"
 
@@ -339,22 +339,6 @@ class DatapathController() extends Actor {
 
     val hostId = UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
 
-    private def flowController(): ActorRef =  {
-        actorFor("/user/%s" format FlowController.Name)
-    }
-
-    private def virtualTopology(): ActorRef =  {
-        actorFor("/user/%s" format VirtualTopologyActor.Name)
-    }
-
-    private def virtualToPhysicalMapper(): ActorRef =  {
-        actorFor("/user/%s" format VirtualToPhysicalMapper.Name)
-    }
-
-    private def simulationController(): ActorRef =  {
-        actorFor("/user/%s" format SimulationController.Name)
-    }
-
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
@@ -383,7 +367,7 @@ class DatapathController() extends Actor {
         case Initialize() =>
             initializer = sender
             log.info("Initialize from: " + sender)
-            virtualToPhysicalMapper ! LocalDatapathRequest(hostId)
+            VirtualToPhysicalMapper.getRef() ! LocalDatapathRequest(hostId)
 
         /**
          * Initialization complete (sent by self) and we forward the reply to
@@ -392,7 +376,7 @@ class DatapathController() extends Actor {
         case m: InitializationComplete if (sender == self) =>
             log.info("Initialization complete. Starting to act as a controller.")
             become(DatapathControllerActor)
-            flowController ! DatapathController.DatapathReady(datapath)
+            FlowController.getRef() ! DatapathController.DatapathReady(datapath)
             initializer forward m
 
         /**
@@ -498,7 +482,7 @@ class DatapathController() extends Actor {
 
         // TODO: translate the port groups.
 
-        flowController() ! AddWildcardFlow(flow, packet, callbacks, tags)
+        FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
     }
 
     def vifToLocalPortNumber(vif: UUID): Option[Short] = {
@@ -518,7 +502,7 @@ class DatapathController() extends Actor {
                 wildcard.setInputPortUUID(dpPortToVifId(port))
         }
 
-        simulationController() ! PacketIn(packet, wildcard)
+        SimulationController.getRef() ! PacketIn(packet, wildcard)
     }
 
     private def dpPortToVifId(port: Short): UUID = {
@@ -755,7 +739,7 @@ class DatapathController() extends Actor {
                     }
 
                     log.info("Local ports listed {}", ports)
-                    virtualToPhysicalMapper ! VirtualToPhysicalMapper.LocalPortsRequest(hostId)
+                    VirtualToPhysicalMapper.getRef() ! VirtualToPhysicalMapper.LocalPortsRequest(hostId)
                 }
 
                 // WARN: this is ugly. Normally we should configure the message error handling

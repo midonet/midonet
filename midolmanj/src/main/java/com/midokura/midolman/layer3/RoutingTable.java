@@ -27,7 +27,7 @@ public class RoutingTable {
         dstPrefixTrie = null;
     }
 
-    public List<Route> lookup(int src, int dst) {
+    public Iterable<Route> lookup(int src, int dst) {
         log.debug("lookup: src {} dst {}", 
                 Net.convertIntAddressToString(src),
                 Net.convertIntAddressToString(dst));

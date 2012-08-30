@@ -7,7 +7,6 @@ package com.midokura.midolman.layer3;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,8 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ReplicatedSet;
-import com.midokura.util.functors.Callback0;
 import com.midokura.midolman.util.JSONSerializer;
+import com.midokura.util.functors.Callback0;
 
 public class ReplicatedRoutingTable {
 
@@ -113,7 +112,7 @@ public class ReplicatedRoutingTable {
         routeSet.remove(rt);
     }
 
-    public List<Route> lookup(int src, int dst) {
+    public Iterable<Route> lookup(int src, int dst) {
         return table.lookup(src, dst);
     }
 }

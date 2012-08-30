@@ -12,14 +12,12 @@ import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory.Woodstox
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              RemoveWildcardFlow, SendPacket}
 import com.midokura.midolman.DatapathController.{DeleteFlow, PacketIn}
-import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.packets.Ethernet
-import com.midokura.sdn.dp.Packet
-import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+import akka.event.Logging
+import akka.actor.Actor
 
-
-object SimulationController {
+object SimulationController extends Referenceable {
 
     val Name = "SimulationController"
 
@@ -33,14 +31,6 @@ class SimulationController() extends Actor {
     import context._
 
     val log = Logging(context.system, this)
-
-    protected def fController():ActorRef = {
-        actorFor("/user/%s" format FlowController.Name)
-    }
-
-    protected def datapathController():ActorRef = {
-        actorFor("/user/%s" format DatapathController.Name)
-    }
 
     def receive = {
 

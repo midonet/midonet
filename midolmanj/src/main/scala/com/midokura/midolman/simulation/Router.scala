@@ -8,20 +8,19 @@ import akka.dispatch.Future.flow
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.layer3.{Route, RoutingTable}
 import com.midokura.midolman.openflow.MidoMatch
-import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig
+import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   MaterializedRouterPortConfig,
                                                   RouterPortConfig}
-import com.midokura.midolman.topology.ArpTable
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.simulation.Coordinator._
+import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper, ArpTable}
 
 
-class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTable,
+class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrapper,
              val arpTable: ArpTable, val inFilter: Chain,
              val outFilter: Chain) extends Device {
 

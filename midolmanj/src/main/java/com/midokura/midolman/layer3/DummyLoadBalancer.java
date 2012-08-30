@@ -4,8 +4,6 @@
  */
 package com.midokura.midolman.layer3;
 
-import java.util.List;
-
 import com.midokura.midolman.openflow.MidoMatch;
 
 public class DummyLoadBalancer implements LoadBalancer {
@@ -19,10 +17,10 @@ public class DummyLoadBalancer implements LoadBalancer {
 
     @Override
     public Route lookup(MidoMatch pktMatch) {
-        List<Route> routes = table.lookup(pktMatch.getNetworkSource(),
+        Iterable<Route> routes = table.lookup(pktMatch.getNetworkSource(),
                 pktMatch.getNetworkDestination());
-        if (routes.size() > 0)
-            return routes.get(0);
+        if (routes.iterator().hasNext())
+            return routes.iterator().next();
         else
             return null;
     }

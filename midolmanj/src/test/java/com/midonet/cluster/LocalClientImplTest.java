@@ -298,11 +298,6 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public ForwardingElementBuilder start() {
-            return this;
-        }
-
-        @Override
         public void build() {
             buildCallsCount++;
             // add the callback 
@@ -369,11 +364,6 @@ public class LocalClientImplTest {
         @Override
         public void build() {
             buildCallsCount++; 
-        }
-
-        @Override
-        public ForwardingElementBuilder start() {
-            return this;
         }
 
         @Override

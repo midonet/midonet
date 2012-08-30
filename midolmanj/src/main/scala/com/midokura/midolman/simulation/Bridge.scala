@@ -18,14 +18,14 @@ import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.{Callback0, Callback1}
+import collection.{immutable, mutable}
 
 
-class Bridge(val id: UUID, val cfg: BridgeConfig,
-             val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
+class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
              val inFilter: Chain, val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
-             val rtrMacToLogicalPortId: mutable.Map[MAC, UUID],
-             val rtrIpToMac: mutable.Map[IntIPv4, MAC]) extends Device {
+             val rtrMacToLogicalPortId: immutable.Map[MAC, UUID],
+             val rtrIpToMac: immutable.Map[IntIPv4, MAC]) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
 
@@ -34,7 +34,7 @@ class Bridge(val id: UUID, val cfg: BridgeConfig,
     override def equals(other: Any) = other match {
         case that: Bridge =>
             (that canEqual this) &&
-                (this.id == that.id) && (this.cfg == that.cfg) &&
+                (this.id == that.id) &&
                 (this.inFilter == that.inFilter) &&
                 (this.outFilter == that.outFilter) &&
                 (this.macPortMap == that.macPortMap) &&

@@ -3,7 +3,6 @@
  */
 package com.midokura.midolman.topology
 
-import akka.actor.{Props, ActorRef, Actor}
 import java.util.UUID
 import collection.mutable
 import scala.Some
@@ -16,6 +15,8 @@ import com.midokura.midolman.config.MidolmanConfig
 import akka.event.Logging
 import com.midokura.midolman.simulation.{Chain, Bridge, Router}
 import com.midokura.midonet.cluster.Client
+import akka.actor.{ActorContext, Props, ActorRef, Actor}
+import com.midokura.midolman.Referenceable
 
 /*
  * VirtualTopologyActor's clients use these messages to request the most recent
@@ -49,7 +50,7 @@ case class SetBridgePortLocal(devId: UUID, portId: UUID, local: Boolean)
 
 case class SetRouterPortLocal(devId: UUID, portId: UUID, local: Boolean)
 
-object VirtualTopologyActor {
+object VirtualTopologyActor extends Referenceable {
     val Name: String = "VirtualTopologyActor"
 }
 
