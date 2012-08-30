@@ -7,9 +7,7 @@ import akka.actor.ActorRef
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.pattern.ask
-import akka.util.Timeout
-import akka.util.duration._
-import collection.mutable
+import collection.{Iterable, mutable}
 import compat.Platform
 import java.util.UUID
 
@@ -34,13 +32,9 @@ trait ArpTable {
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
-    def lookup(wmatch: WildcardMatch) = {
-        val listRoute: scala.collection.Iterable[Route]
-        = rTable.lookup(wmatch.getNetworkSource.addressAsInt(),
-            wmatch.getNetworkDestination.addressAsInt())
-        listRoute
-    }
-
+    def lookup(wmatch: WildcardMatch): Iterable[Route] =
+            rTable.lookup(wmatch.getNetworkSource.addressAsInt(),
+                          wmatch.getNetworkDestination.addressAsInt())
 }
 
 object RouterManager {
@@ -54,6 +48,7 @@ class RouterConfig {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 }
+
 class RouterManager(id: UUID, val client: Client)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
@@ -116,10 +111,10 @@ class RouterManager(id: UUID, val client: Client)
         case WaitForArpEntry(ip) =>
             arpWaiters.addBinding(ip, sender)
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
-        cfg = newCfg
-        arpCache = newArpCache
-        rTable = newRoutingTable
-        configUpdated()
+            cfg = newCfg
+            arpCache = newArpCache
+            rTable = newRoutingTable
+            configUpdated()
     }
 
     private class ArpTableImpl extends ArpTable {
@@ -127,12 +122,11 @@ class RouterManager(id: UUID, val client: Client)
                 Future[MAC] = {
             val promise = Promise[ArpCacheEntry]()(ec)
             val rv = Promise[MAC]()(ec)
-            //XXX: arpCache.get should take a timeout or expiration
             arpCache.get(ip, new Callback1[ArpCacheEntry] {
                 def call(value: ArpCacheEntry) {
                     promise.success(value)
                 }
-            })
+            }, expiry)
             val now = Platform.currentTime
             flow {
                 val entry = promise()

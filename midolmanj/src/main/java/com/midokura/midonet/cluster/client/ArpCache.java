@@ -12,7 +12,7 @@ import com.midokura.util.functors.Callback1;
  * Non-blocking.
  */
 public interface ArpCache {
-    void get(IntIPv4 ipAddr, Callback1<ArpCacheEntry> cb);
+    void get(IntIPv4 ipAddr, Callback1<ArpCacheEntry> cb, Long expirationTime);
     void add(IntIPv4 ipAddr, ArpCacheEntry entry);
     void remove(IntIPv4 ipAddr);
 }

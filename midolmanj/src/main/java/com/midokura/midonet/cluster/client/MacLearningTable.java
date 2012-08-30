@@ -13,7 +13,7 @@ import com.midokura.util.functors.Callback3;
  * Non-blocking.
  */
 public interface MacLearningTable {
-    void get(MAC mac, Callback1<UUID> cb);
+    void get(MAC mac, Callback1<UUID> cb, Long expirationTime);
 
     void add(MAC mac, UUID portID);
 

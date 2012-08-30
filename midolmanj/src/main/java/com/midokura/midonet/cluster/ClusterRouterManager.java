@@ -29,19 +29,18 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 
+
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     @Inject
     RouterZkManager routerMgr;
 
-
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
-
-    private static final Logger log = LoggerFactory
-        .getLogger(ClusterRouterManager.class);
+    private static final Logger log =
+         LoggerFactory.getLogger(ClusterRouterManager.class);
 
     /**
      * Get the conf for a router.
@@ -71,7 +70,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 if (config != null) {
                     if (!isUpdate) {
                         try {
-                            arpTable = new ArpTable(routerMgr.getArpTableDirectory(id));
+                            arpTable = new ArpTable(
+                                routerMgr.getArpTableDirectory(id));
                             arpTable.start();
                         } catch (StateAccessException e) {
                             log.error(
@@ -82,11 +82,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                     try {
                         ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
                             routerMgr.getRoutingTableDirectory(id),
-                            CreateMode.EPHEMERAL,
-                            builder);
-                        // TODO(ross): since we don't pass a pointer to the builder,
-                        // do something to prevent the ReplicatedRouteSet from being
-                        // garbage-collected
+                            CreateMode.EPHEMERAL, builder);
+                        // TODO(ross): since we don't pass a pointer to the
+                        // builder, do something to prevent the
+                        // ReplicatedRouteSet from being garbage-collected.
                         routeSet.start();
                     } catch (StateAccessException e) {
                         log.error("Couldn't retrieve the RoutingTableDirectory", e);
@@ -96,9 +95,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 log.info("Update configuration for router {}", id);
             }
         };
-
     }
-
 
     Runnable watchRouter(final UUID id) {
         return new Runnable() {
@@ -114,11 +111,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     void buildRouterFromConfig(UUID id, RouterZkManager.RouterConfig config,
                                RouterBuilder builder, ArpTable arpTable) {
 
-        builder.setInFilter(config.inboundFilter).setOutFilter(config.outboundFilter);
+        builder.setInFilter(config.inboundFilter)
+               .setOutFilter(config.outboundFilter);
         if(arpTable != null)
             builder.setArpCache(new ArpCacheImpl(arpTable));
         builder.build();
-
     }
 
     @Override
@@ -130,7 +127,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         //TODO(ross) check if we have to inject this
         JSONSerializer serializer = new JSONSerializer();
 
-        public ReplicatedRouteSet(Directory d, CreateMode mode, RouterBuilder builder) {
+        public ReplicatedRouteSet(Directory d, CreateMode mode,
+                                  RouterBuilder builder) {
             super(d, mode);
             this.addWatcher(new RouteWatcher(builder));
         }
@@ -166,7 +164,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void process(Collection<Route> added, Collection<Route> removed) {
+        public void process(Collection<Route> added,
+                            Collection<Route> removed) {
             for (Route rt : removed) {
                 builder.removeRoute(rt);
             }
@@ -196,18 +195,21 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void get(final IntIPv4 ipAddr, final Callback1<ArpCacheEntry> cb) {
-            reactorLoop.submit( new Runnable() {
+        public void get(final IntIPv4 ipAddr,
+                        final Callback1<ArpCacheEntry> cb,
+                        final Long expirationTime) {
+            reactorLoop.submit(new Runnable() {
 
                 @Override
                 public void run() {
+                    //XXX: Have ArpTable::get take the expiry.
                     cb.call(arpTable.get(ipAddr));
-                }}) ;
+                }});
         }
 
         @Override
         public void add(final IntIPv4 ipAddr, final ArpCacheEntry entry) {
-            reactorLoop.submit( new Runnable() {
+            reactorLoop.submit(new Runnable() {
 
                 @Override
                 public void run() {
@@ -217,7 +219,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                         log.error("Failed adding ARP entry. IP: {} MAC: {}",
                                   new Object[]{ipAddr, entry});
                     }
-                }}) ;
+                }});
         }
 
         @Override
@@ -229,7 +231,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                     try {
                         arpTable.removeIfOwner(ipAddr);
                     } catch (Exception e) {
-                        log.error("Could not remove Arp entry for IP: {}", ipAddr);
+                        log.error("Could not remove Arp entry for IP: {}",
+                                  ipAddr);
                     }
                 }});
         }

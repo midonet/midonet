@@ -3,8 +3,8 @@
  */
 package com.midokura.midolman.topology
 
-import collection.{JavaConversions, immutable, mutable}
-import akka.actor.{ActorRef, Actor}
+import collection.{immutable, mutable}
+import akka.actor.{Actor, ActorRef}
 import akka.dispatch.Await
 import akka.pattern.ask
 import akka.util.Timeout

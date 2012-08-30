@@ -21,8 +21,9 @@ import com.midokura.util.functors.{Callback0, Callback1}
 import collection.{immutable, mutable}
 
 
-class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacFlowCount,
-             val inFilter: Chain, val outFilter: Chain,
+class Bridge(val id: UUID, val macPortMap: MacLearningTable,
+             val flowCount: MacFlowCount, val inFilter: Chain,
+             val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: immutable.Map[MAC, UUID],
              val rtrIpToMac: immutable.Map[IntIPv4, MAC]) extends Device {
@@ -53,11 +54,12 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
         if (Ethernet.isMcast(ingressMatch.getEthernetSource))
             Promise.successful(new DropAction)(ec)
         else
-            normalProcess(ingressMatch, packet, packetContext, ec)
+            normalProcess(ingressMatch, packet, packetContext, expiry, ec)
     }
 
     def normalProcess(ingressMatch: WildcardMatch, packet: Ethernet,
-                      packetContext: PacketContext, ec: ExecutionContext) = {
+                      packetContext: PacketContext, expiry: Long,
+                      ec: ExecutionContext) = {
         val srcDlAddress = ingressMatch.getEthernetSource
         val dstDlAddress = ingressMatch.getEthernetDestination
 
@@ -86,7 +88,7 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
           case false =>
             // L2 unicast
             // Is dst MAC in macPortMap? (learned)
-            val learnedPort = getPortOfMac(dstDlAddress, ec)
+            val learnedPort = getPortOfMac(dstDlAddress, expiry, ec)
             outPortID = flow {
                 val port = learnedPort()
                 if (port == null) {
@@ -104,7 +106,7 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
-            getPortOfMac(srcDlAddress, ec) onSuccess {
+            getPortOfMac(srcDlAddress, expiry, ec) onSuccess {
               case oldPort: UUID =>
                 if (oldPort != ingressMatch.getInputPortUUID) {
                     log.debug("MAC {} moved from port {} to {}.",
@@ -136,14 +138,13 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable, val flowCount: MacF
                             new ForwardAction(portID, ingressMatch) }
     }
 
-    private def getPortOfMac(mac: MAC, ec: ExecutionContext) = {
+    private def getPortOfMac(mac: MAC, expiry: Long, ec: ExecutionContext) = {
         val rv = Promise[UUID]()(ec)
-        //XXX: macPortMap.get should take a timeout or expiration
         macPortMap.get(mac, new Callback1[UUID] {
             def call(port: UUID) {
                 rv.success(port)
             }
-        })
+        }, expiry)
         rv
     }
 }

@@ -86,9 +86,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 if (config != null) {
                     MacPortMap macPortMap = null;
 
-                    // we don't need to get the macPortMap again if it's an update
-                    // nor to create the logical port table. For detecting changes
-                    // to these maps we did set watchers.
+                    // we don't need to get the macPortMap again if it's an
+                    // update nor to create the logical port table.
+                    // For detecting changes to these maps we did set watchers.
                     if (!isUpdate) {
                         try {
                             ZkPathManager pathManager = new ZkPathManager(
@@ -186,7 +186,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.greKey);
         // If it's an update macPortMap will be null
-        if(macPortMap != null) {
+        if (macPortMap != null) {
             builder.setMacLearningTable(new MacLearningTableImpl(macPortMap));
         }
         builder.build();
@@ -202,7 +202,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         @Override
-        public void get(final MAC mac, final Callback1<UUID> cb) {
+        public void get(final MAC mac, final Callback1<UUID> cb,
+                        final Long expirationTime) {
+            //XXX: expire the get at expirationTime
             reactorLoop.submit(new Runnable() {
                 @Override
                 public void run() {

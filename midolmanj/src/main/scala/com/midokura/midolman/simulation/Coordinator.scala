@@ -204,13 +204,12 @@ object Coordinator {
         } else {
             // it IS a generated packet
             // TODO(pino): apply the port's output filter
-            val timeLeft = expiry - Platform.currentTime
             val egressPortFuture =
                 expiringAsk(virtualTopologyManager,
                             PortRequest(generatedPacketEgressPort, false),
                             expiry).mapTo[Port[_]]
-                currentIngressPortFuture = egressPortFuture flatMap {
-                  egressPort: Port[_] => egressPort match {
+            currentIngressPortFuture = egressPortFuture flatMap {
+                egressPort: Port[_] => egressPort match {
                     case _: ExteriorPort[_] =>
                         val pkt = new Packet()
                             .setData(origEthernetPkt.serialize())
