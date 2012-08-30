@@ -8,28 +8,27 @@ import akka.dispatch.Future.flow
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.openflow.MidoMatch
 import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
                                                   MaterializedRouterPortConfig,
                                                   RouterPortConfig}
+import com.midokura.midolman.topology.{ArpTable, RouterConfig,
+                                       RoutingTableWrapper}
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper, ArpTable}
 
 
-class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrapper,
-             val arpTable: ArpTable, val inFilter: Chain,
-             val outFilter: Chain) extends Device {
+class Router(val id: UUID, val cfg: RouterConfig,
+             val rTable: RoutingTableWrapper, val arpTable: ArpTable,
+             val inFilter: Chain, val outFilter: Chain) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
-    override def process(ingressMatch: WildcardMatch,
-                         packet: Ethernet,
-                         pktContext: PacketContext,
+    override def process(ingressMatch: WildcardMatch, packet: Ethernet,
+                         pktContext: PacketContext, expiry: Long,
                          ec: ExecutionContext): Future[Action] = {
         val hwDst = ingressMatch.getEthernetDestination
         val rtrPortCfg: RouterPortConfig = getRouterPortConfig(
@@ -75,7 +74,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
         val inPortIP = new IntIPv4(rtrPortCfg.portAddr)
         if (nwDst == inPortIP) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
-            if (isIcmpEchoRequest(null /* XXX TODO(pino): ingressMatch */)) {
+            if (isIcmpEchoRequest(ingressMatch)) {
                 // XXX TODO(pino): sendIcmpEchoReply(ingress, rtrPortCfg)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
@@ -87,14 +86,14 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
         val rt: Route = null // XXX TODO(pino): loadBalancer.lookup(ingressMatch)
         if (rt == null) {
             // No route to network
-            // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
+            sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
-            // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+            sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop != Route.NextHop.PORT) {
@@ -132,7 +131,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
                 if (logCfg.peerId == null) {
                     log.warn("Packet forwarded to dangling logical port {}",
                         rt.nextHopPort)
-                    // XXX TODO(pino): sendIcmp(ingress, UNREACH_CODE.UNREACH_NET)
+                    sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_NET)
                     return Promise.successful(new DropAction)(ec)
                 }
                 val peerMac = getPeerMac(logCfg)
@@ -145,10 +144,11 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
             case _ => /* Fall through to ARP'ing below. */
         }
         var nextHopIP: Int = rt.nextHopGateway
-        if (nextHopIP == 0 || nextHopIP == -1)
-            nextHopIP = matchOut.getNetworkDestination.addressAsInt() /* Last hop */
+        if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
+            nextHopIP = matchOut.getNetworkDestination.addressAsInt
+        }
 
-        getMacForIP(rt.nextHopPort, nextHopIP, ec) match {
+        getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec) match {
             case None =>
                 // Couldn't get the MAC.  getMacForIP will send any ICPM !H,
                 // so here we just drop.
@@ -199,7 +199,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
         arpTable.set(spa, sha)
     }
 
-    private def isIcmpEchoRequest(mmatch: MidoMatch): Boolean = {
+    private def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {
         mmatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER &&
             (mmatch.getTransportSource & 0xff) == ICMP.TYPE_ECHO_REQUEST &&
             (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
@@ -209,7 +209,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
         //XXX
     }
 
-    private def sendIcmp(code: UNREACH_CODE) {
+    private def sendIcmp(ingressMatch: WildcardMatch, code: UNREACH_CODE) {
         //XXX
     }
 
@@ -217,7 +217,7 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
         null //XXX
     }
 
-    private def getMacForIP(portID: UUID, nextHopIP: Int,
+    private def getMacForIP(portID: UUID, nextHopIP: Int, expiry: Long,
                             ec: ExecutionContext): Option[Future[MAC]] = {
         val nwAddr = new IntIPv4(nextHopIP)
         val rtrPortConfig = getRouterPortConfig(portID)
@@ -243,6 +243,6 @@ class Router(val id: UUID, val cfg: RouterConfig, val rTable: RoutingTableWrappe
                 }
             case _ => /* Fall through */
         }
-        return Some(arpTable.get(nwAddr, ec))
+        return Some(arpTable.get(nwAddr, expiry, ec))
     }
 }

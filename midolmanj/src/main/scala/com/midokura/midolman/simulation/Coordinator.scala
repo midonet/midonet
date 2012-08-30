@@ -4,18 +4,18 @@ package com.midokura.midolman.simulation
 
 import collection.mutable
 import collection.{Set => ROSet}  // read-only view
+import compat.Platform
 import util.continuations.cps
+import java.util.concurrent.TimeoutException
 import java.util.UUID
 
 import akka.actor.{ActorSystem, ActorRef}
 import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.dispatch.Future._
 import akka.pattern.ask
-import akka.util.Timeout
 import akka.util.duration._
 
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.topology._
 import com.midokura.midolman.datapath.FlowActionVrnPortOutput
@@ -106,14 +106,27 @@ object Coordinator {
          * traversal of the virtual network. Use the context to subscribe
          * for notifications on the removal of any resulting flows, or to tag
          * any resulting flows for indexing.
+         * @param expiry The expiration time for processing this packet, i.e.
+         * terminate processing when Platform.currentTime >= expiry.
          * @param ec the Coordinator actor's execution context.
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
-        def process(pktMatch: WildcardMatch,
-                    packet: Ethernet,
-                    pktContext: PacketContext,
+        def process(pktMatch: WildcardMatch, packet: Ethernet,
+                    pktContext: PacketContext, expiry: Long,
                     ec: ExecutionContext): Future[Action]
+
+        def expiringAsk(implicit ec: ExecutionContext) =
+                Coordinator.expiringAsk _
+    }
+
+    def expiringAsk(actor: ActorRef, message: Any, expiry: Long)
+                   (implicit ec: ExecutionContext): Future[Any] = {
+        val timeLeft = expiry - Platform.currentTime
+        if (timeLeft <= 0)
+            Promise.failed(new TimeoutException)
+        else
+            actor.ask(message)(timeLeft milliseconds)
     }
 
     /**
@@ -150,10 +163,9 @@ object Coordinator {
      *                                  the port via which the packet
      *                                  egresses the device.
      */
-    def simulate(origMatch: WildcardMatch,
-                 origFlowMatch: FlowMatch,
-                 origEthernetPkt: Ethernet,
-                 generatedPacketEgressPort: UUID)
+    def simulate(origMatch: WildcardMatch, origFlowMatch: FlowMatch,
+                 origEthernetPkt: Ethernet, generatedPacketEgressPort: UUID,
+                 expiry: Long)
                 (implicit ec: ExecutionContext): Unit = {
 
         val actors: ActorSystem = null
@@ -179,9 +191,10 @@ object Coordinator {
                         "%s; Packet: %s".format(
                             origMatch.toString, origEthernetPkt.toString))
                 case _ =>
-                    currentIngressPortFuture = virtualTopologyManager.ask(
-                        PortRequest(origMatch.getInputPortUUID, false)
-                    )(Timeout(1 second)).mapTo[Port[_]]
+                    currentIngressPortFuture =
+                        expiringAsk(virtualTopologyManager,
+                            PortRequest(origMatch.getInputPortUUID, false),
+                            expiry).mapTo[Port[_]]
             }
         } else if (origMatch.getInputPortUUID != null) {
             throw new IllegalArgumentException(
@@ -193,30 +206,28 @@ object Coordinator {
         } else {
             // it IS a generated packet
             // TODO(pino): apply the port's output filter
-            val egressPortFuture = virtualTopologyManager.ask(
-                PortRequest(generatedPacketEgressPort, false)
-            )(Timeout(1 second)).mapTo[Port[_]]
-            currentIngressPortFuture = egressPortFuture flatMap {
-                egressPort: Port[_] => egressPort match {
+            val timeLeft = expiry - Platform.currentTime
+            val egressPortFuture =
+                expiringAsk(virtualTopologyManager,
+                            PortRequest(generatedPacketEgressPort, false),
+                            expiry).mapTo[Port[_]]
+                currentIngressPortFuture = egressPortFuture flatMap {
+                  egressPort: Port[_] => egressPort match {
                     case _: ExteriorPort[_] =>
                         val pkt = new Packet()
                             .setData(origEthernetPkt.serialize())
-                            .addAction(
-                            new FlowActionVrnPortOutput(
-                                generatedPacketEgressPort
-                            )
-                        )
+                            .addAction(new FlowActionVrnPortOutput(
+                                                generatedPacketEgressPort))
                         // TODO(pino): replace null with actions?
                         datapathController.tell(SendPacket(pkt.getData, null))
                         // All done!
                         Promise.successful(null)
                     case interiorPort: InteriorPort[_] =>
-                        virtualTopologyManager.ask(
-                            PortRequest(interiorPort.peerID, false)
-                        )(Timeout(1 second)).mapTo[Port[_]]
+                        expiringAsk(virtualTopologyManager,
+                                    PortRequest(interiorPort.peerID, false),
+                                    expiry).mapTo[Port[_]]
                     case port =>
-                        //log.error("Port {} neither interior nor exterior " +
-                        //"port", port)
+                        //XXX log.error("Port {} neither interior nor exterior port", port)
                         Promise.successful(null)
                 }
             }
@@ -245,9 +256,10 @@ object Coordinator {
                 val ingressDeviceID: UUID = currentIngressPort.deviceID
                 // TODO(pino): apply the port's input filter.
                 val currentDevice = deviceOfPort(currentIngressPort,
-                                                 virtualTopologyManager)
+                                                 virtualTopologyManager,
+                                                 expiry)
                 val action = currentDevice().process(
-                    currentMatch, origEthernetPkt, pktContext, ec).apply
+                    currentMatch, origEthernetPkt, pktContext, expiry, ec).apply
 
                 if (!action.isInstanceOf[ForwardAction]) {
                     currentIngressPort == null
@@ -262,18 +274,15 @@ object Coordinator {
                     val outMatch = action.asInstanceOf[ForwardAction].outMatch
 
                     // TODO(pino): apply the port's output filter
-                    virtualTopologyManager.ask(
-                        PortRequest(outPortID, false)
-                    )(Timeout(1 second)).mapTo[Port[_]].apply match {
+                    expiringAsk(virtualTopologyManager,
+                                PortRequest(outPortID, false),
+                                expiry).mapTo[Port[_]].apply match {
                         case _: ExteriorPort[_] =>
                             // TODO(pino): Compute actions from matches' diff.
                             val pkt = new Packet()
                                 .setData(origEthernetPkt.serialize())
-                                .addAction(
-                                new FlowActionVrnPortOutput(
-                                    generatedPacketEgressPort
-                                )
-                            )
+                                .addAction(new FlowActionVrnPortOutput(
+                                                generatedPacketEgressPort))
                             if (isInternallyGenerated) {
                                 datapathController.tell(
                                     SendPacket(/*XXX*/null, null))
@@ -286,10 +295,10 @@ object Coordinator {
                             currentIngressPort = null
                         case interiorPort: InteriorPort[_] =>
                             val peerID = interiorPort.peerID
-                            currentIngressPort = virtualTopologyManager.ask(
-                                PortRequest(peerID, false)
-                            )(Timeout(1 second)).mapTo[Port[_]].apply
-                            currentMatch = outMatch
+                            currentIngressPort =
+                                expiringAsk(virtualTopologyManager,
+                                            PortRequest(peerID, false),
+                                            expiry).mapTo[Port[_]].apply
                         case port =>
                             throw new RuntimeException(("Port %s neither " +
                                 "interior nor exterior port") format
@@ -300,17 +309,18 @@ object Coordinator {
         }(ec) // end flow block
     } // end simulate method
 
-    private def deviceOfPort(port: Port[_], virtualTopologyManager: ActorRef)
-                : Future[Device] = {
+    private def deviceOfPort(port: Port[_], virtualTopologyManager: ActorRef,
+                             expiry: Long)(implicit ec: ExecutionContext):
+            Future[Device] = {
         port match {
             case _: BridgePort[_] =>
-                virtualTopologyManager.ask(
-                    BridgeRequest(port.deviceID, false)
-                )(Timeout(1 second)).mapTo[Bridge]
+                expiringAsk(virtualTopologyManager,
+                            BridgeRequest(port.deviceID, false),
+                            expiry).mapTo[Bridge]
             case _: RouterPort[_] =>
-                virtualTopologyManager.ask(
-                    RouterRequest(port.deviceID, false)
-                )(Timeout(1 second)).mapTo[Router]
+                expiringAsk(virtualTopologyManager,
+                            RouterRequest(port.deviceID, false),
+                            expiry).mapTo[Router]
             case _ =>
                 throw new RuntimeException(
                     "Ingress port %s neither BridgePort nor RouterPort"
