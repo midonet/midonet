@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,7 +168,7 @@ public class HostDirectory {
         InetAddress[] addresses;
 
         @JsonIgnore
-        Set<UUID> availabilityZones;
+        Set<UUID> availabilityZones = new HashSet<UUID>();
 
         // Default constructor for the Jackson de-serialization.
         public Metadata() {
