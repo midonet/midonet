@@ -4,14 +4,18 @@
 package com.midokura.midolman.mgmt.rest_api.resources;
 
 
-import java.util.UUID;
-
+import com.midokura.midolman.mgmt.rest_api.resources.*;
 import com.midokura.packets.IntIPv4;
+
+import javax.ws.rs.PathParam;
+import java.util.UUID;
 
 /**
  * Resource factory used by Guice to inject resource classes.
  */
 public interface ResourceFactory {
+
+    TenantResource getTenantResource();
 
     RouterResource getRouterResource();
 

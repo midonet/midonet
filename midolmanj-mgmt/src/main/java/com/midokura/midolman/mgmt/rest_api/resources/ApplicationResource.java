@@ -4,22 +4,21 @@
  */
 package com.midokura.midolman.mgmt.rest_api.resources;
 
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.data.dto.Application;
+import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.mgmt.data.dto.Application;
-import com.midokura.midolman.mgmt.http.VendorMediaType;
-import com.midokura.midolman.mgmt.jaxrs.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 
 /**
  * The top application resource class.
@@ -41,6 +40,16 @@ public class ApplicationResource {
         this.uriInfo = uriInfo;
         this.config = config;
         this.factory = factory;
+    }
+
+    /**
+     * Tenant resource locator.
+     *
+     * @return TenantResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.TENANTS)
+    public TenantResource getTenantResource() {
+        return factory.getTenantResource();
     }
 
     /**
