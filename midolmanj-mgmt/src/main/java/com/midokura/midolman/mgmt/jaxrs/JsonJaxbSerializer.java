@@ -23,6 +23,7 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import com.midokura.midolman.util.Serializer;
 
+
 /**
  * JAXB serializer using Jackson JAXB annotation inspector.
  */
@@ -45,26 +46,27 @@ public class JsonJaxbSerializer implements Serializer {
     public <T> byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
-        JsonGenerator jsonGenerator = jsonFactory
-                .createJsonGenerator(new OutputStreamWriter(out));
+        JsonGenerator jsonGenerator =
+                jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
         jsonGenerator.writeObject(obj);
         out.close();
         return bos.toByteArray();
     }
 
     @Override
-    public <T, Derived extends T> Derived bytesToObj(byte[] data, Class<T> clazz)
+    public <T> T bytesToObj(byte[] data, Class<T> clazz)
             throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
-        JsonParser jsonParser = jsonFactory
-                .createJsonParser(new InputStreamReader(in));
+        JsonParser jsonParser =
+                jsonFactory.createJsonParser(new InputStreamReader(in));
 
         //noinspection unchecked
-        return (Derived) jsonParser.readValueAs(clazz);
+        return jsonParser.readValueAs(clazz);
     }
 
-    public JsonJaxbSerializer useMixin(Class<?> typeClass, Class<?> mixinClass) {
+    public JsonJaxbSerializer useMixin(Class<?> typeClass,
+                                       Class<?> mixinClass) {
 
         objectMapper.getSerializationConfig()
                     .addMixInAnnotations(typeClass, mixinClass);
