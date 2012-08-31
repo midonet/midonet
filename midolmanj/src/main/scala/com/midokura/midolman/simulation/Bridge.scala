@@ -6,7 +6,7 @@ package com.midokura.midolman.simulation
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.util.duration._
-import scala.collection.mutable
+import scala.collection.{Map => ROMap, mutable}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
@@ -18,15 +18,14 @@ import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.{Callback0, Callback1}
-import collection.{immutable, mutable}
 
 
 class Bridge(val id: UUID, val macPortMap: MacLearningTable,
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
-             val rtrMacToLogicalPortId: immutable.Map[MAC, UUID],
-             val rtrIpToMac: immutable.Map[IntIPv4, MAC]) extends Device {
+             val rtrMacToLogicalPortId: ROMap[MAC, UUID],
+             val rtrIpToMac: ROMap[IntIPv4, MAC]) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
 
