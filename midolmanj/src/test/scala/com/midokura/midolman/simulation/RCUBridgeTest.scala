@@ -3,6 +3,8 @@
 package com.midokura.midolman.simulation
 
 import akka.actor.ActorSystem
+import akka.dispatch.Await
+import akka.util.duration._
 import collection.{Map, mutable}
 import compat.Platform
 import java.lang.{Long => JLong}
@@ -11,6 +13,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client.MacLearningTable
@@ -20,7 +23,7 @@ import com.midokura.util.functors.{Callback1, Callback3}
 
 
 @RunWith(classOf[JUnitRunner])
-class RCUBridgeTest extends Suite with BeforeAndAfterAll {
+class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
     private val macPortMap = new MockMacLearningTable(Map())
@@ -51,9 +54,21 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll {
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
-        val result = bridge.process(ingressMatch, null, null,
+        val future = bridge.process(ingressMatch, null, null,
                                     Platform.currentTime + 10000,
                                     system.dispatcher)
+
+        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
+        // ingressMatch should be === origMatch
+
+        val result = Await.result(future, 1 second)
+        result match {
+            case Coordinator.ForwardAction(port, mmatch) =>
+                assert(port === bridgeID)
+                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
+                // assert(mmatch === origMatch)
+            case _ => fail("Not ForwardAction")
+        }
     }
 }
 
