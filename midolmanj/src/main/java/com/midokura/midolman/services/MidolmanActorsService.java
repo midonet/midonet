@@ -109,7 +109,7 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    private Props getGuiceAwareFactory(Class<? extends Actor> actorClass) {
+    public Props getGuiceAwareFactory(Class<? extends Actor> actorClass) {
         return new Props(new GuiceActorFactory(injector, actorClass));
     }
 

@@ -6,15 +6,34 @@ package com.midokura.midolman.topology
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midonet.cluster.client.LocalStateBuilder
+import com.midokura.midonet.cluster.client.{AvailabilityZones, HostBuilder}
 import com.midokura.midonet.cluster.Client
-import com.midokura.midolman.guice.ComponentInjectorHolder
-import akka.actor.{ActorContext, ActorRef, Actor}
+import collection.{immutable, mutable}
+import com.midokura.midonet.cluster.data.AvailabilityZone
+import com.midokura.midonet.cluster.data.zones.{CapwapAvailabilityZoneHost, IpsecAvailabilityZoneHost, GreAvailabilityZoneHost, GreAvailabilityZone}
+import com.midokura.midonet.cluster.client.AvailabilityZones.GreBuilder
+import com.midokura.midolman.services.MidolmanActorsService
+import com.midokura.midolman.topology.HostManager.Start
+import physical.Host
+import akka.actor.{ActorRef, Actor}
 import com.midokura.midolman.Referenceable
+import java.util
+import com.midokura.midonet.cluster.data.AvailabilityZone.HostConfig
 
+object HostConfigOperation extends Enumeration {
+    val Added, Deleted = Value
+}
+
+sealed trait ZoneChanged[HostConfig <: AvailabilityZone.HostConfig[HostConfig, _]] {
+    val zone: UUID
+    val hostConfig: HostConfig
+    val op: HostConfigOperation.Value
+}
 
 object VirtualToPhysicalMapper extends Referenceable {
     val Name = "VirtualToPhysicalMapper"
+
+    case class HostRequest(hostId: UUID)
 
     /**
      * Will make the actor fire a `LocalStateReply` message to the sender
@@ -33,11 +52,9 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class LocalPortsRequest(hostIdentifier: UUID)
 
-    //    * @param ports is a map from UUID to a pair of (netdevName, XX)
-    //    , ports: Map[UUID, (String, String)]
+    case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
 
-
-    case class LocalPortsReply(ports: Map[UUID, String])
+    case class LocalAvailabilityZonesReply(zones: immutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])
 
     /**
      * Send this message to the VirtualToPhysicalMapper to let it know when
@@ -48,11 +65,29 @@ object VirtualToPhysicalMapper extends Referenceable {
      * the corresponding OVS datapath port) any tunneled packet whose tunnel
      * key encodes the port's ID.
      *
-     * @param portID
+     * @param portID The uuid of the port that is to marked as active/inactive
      * @param active True if the port is ready to emit/receive; false
      *               otherwise.
      */
     case class LocalPortActive(portID: UUID, active: Boolean)
+
+    case class AvailabilityZoneRequest(zoneId: UUID)
+
+    case class AvailabilityZoneUnsubscribe(zoneId: UUID)
+
+    case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: AvailabilityZones.Builder.HostConfig])
+
+    case class GreZoneChanged(zone: UUID, hostConfig: GreAvailabilityZoneHost,
+                              op: HostConfigOperation.Value)
+        extends ZoneChanged[GreAvailabilityZoneHost]
+
+    case class IpsecZoneChanged(zone: UUID, hostConfig: IpsecAvailabilityZoneHost,
+                              op: HostConfigOperation.Value)
+        extends ZoneChanged[IpsecAvailabilityZoneHost]
+
+    case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapAvailabilityZoneHost,
+                              op: HostConfigOperation.Value)
+        extends ZoneChanged[CapwapAvailabilityZoneHost]
 
 }
 
@@ -76,79 +111,224 @@ object VirtualToPhysicalMapper extends Referenceable {
  */
 class VirtualToPhysicalMapper extends Actor {
 
+    import scala.collection.JavaConversions._
     import VirtualToPhysicalMapper._
 
     val log = Logging(context.system, this)
 
     @Inject
-    val midoStore: Client = null
+    val clusterClient: Client = null
+
+    @Inject
+    val actorsService: MidolmanActorsService = null
 
     //
-    private var localPortsActors = Map[UUID, ActorRef]()
-    private var actorWants = Map[ActorRef, ExpectingState]()
-    private var localHostData = Map[UUID, (String, Map[UUID, String])]()
+    private val localPortsActors = mutable.Map[UUID, ActorRef]()
+    private val actorWants = mutable.Map[ActorRef, ExpectingState]()
+    private val localHostData =
+        mutable.Map[UUID,
+            (String, mutable.Map[UUID, String], mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])]()
 
-    override def preStart() {
-        super.preStart()
-        ComponentInjectorHolder.inject(this)
-    }
+//    private val zonesObservers = Map[UUID, mutable.Set[ActorRef]]()
+//    private val greZones = Map[GreAvailabilityZone,
+//        (AvailabilityZones.GreBuilder.ZoneConfig,
+//            mutable.Set[AvailabilityZones.GreBuilder.HostConfig])]()
+
+    private val zones = mutable.Map[UUID, AvailabilityZone[_, _]]()
+    private val zonesHandlers = mutable.Map[UUID, ActorRef]()
+    private val zonesSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
+
+    private val hosts = mutable.Map[UUID, Host]()
+    private val hostsHandlers = mutable.Map[UUID, ActorRef]()
+    private val hostsSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
+
 
     protected def receive = {
+
+        case HostRequest(hostId) =>
+            hostsSubscribers.get(hostId) match {
+                case None =>
+                    hostsSubscribers.put(hostId, mutable.Set(sender))
+                case Some(subscribers) =>
+                    subscribers + sender
+            }
+
+            hosts.get(hostId) match {
+                case Some(host) => sender ! host
+                case None =>
+            }
+
+            if (!hostsHandlers.contains(hostId)) {
+                val manager =
+                    context.actorOf(
+                        actorsService.getGuiceAwareFactory(classOf[HostManager]),
+                        "hosts-%s" format hostId)
+                hostsHandlers.put(hostId, manager)
+
+                manager ! Start(hostId)
+            }
+
+        case host: Host =>
+            hosts.put(host.id, host)
+
+            hostsSubscribers.get(host.id) match {
+                case Some(subscribers) =>
+                    for ( subscriber <- subscribers ) {
+                        subscriber ! host
+                    }
+                case None =>
+                    // this should not happen
+            }
+
+        case AvailabilityZoneRequest(zoneId) =>
+            zonesSubscribers.get(zoneId) match {
+                case None =>
+                    zonesSubscribers.put(zoneId, mutable.Set(sender))
+                case Some(subscribers) =>
+                    subscribers + sender
+            }
+
+            zones.get(zoneId) match {
+                case Some(zone) => sender ! zone
+                case None =>
+            }
+
+            if (!zonesHandlers.contains(zoneId)) {
+                val manager =
+                    context.actorOf(
+                        actorsService.getGuiceAwareFactory(classOf[AvailabilityZoneManager]),
+                        "hosts-%s" format zoneId)
+                zonesHandlers.put(zoneId, manager)
+
+                manager ! AvailabilityZoneManager.Start(zoneId)
+            }
+
+        case zone: GreAvailabilityZone =>
+            zones.put(zone.getId, zone)
+
+            zonesSubscribers.get(zone.getId) match {
+                case Some(subscribers) =>
+                    for ( subscriber <- subscribers ) {
+                        subscriber ! zone
+                    }
+                case None =>
+                    // this should not happen
+            }
+
+        case zoneChangeMessage: ZoneChanged[_] =>
+            zonesSubscribers.get(zoneChangeMessage.zone) match {
+                case Some(subscribers) =>
+                    for ( subscriber <- subscribers ) {
+                        subscriber ! zoneChangeMessage
+                    }
+                case None =>
+                // this should not happen
+            }
+
         case LocalDatapathRequest(host) =>
-            localPortsActors += (host -> sender)
-            actorWants += (sender -> ExpectingDatapath())
-            midoStore.getLocalStateFor(host, new MyLocalStateBuilder(self, host))
+            localPortsActors.put(host, sender)
+            actorWants.put(sender, ExpectingDatapath())
+            clusterClient.getHost(host, new MyHostBuilder(self, host))
 
         case LocalPortsRequest(host) =>
-            actorWants += (sender -> ExpectingPorts())
-            fireStateUpdates(host)
+            actorWants.put(sender, ExpectingPorts())
+            fireHostStateUpdates(host, Some(sender))
 
-        case _LocalDataUpdatedForHost(host, datapath, ports) =>
-            localHostData += (host -> (datapath -> ports))
-            fireStateUpdates(host)
+        case _LocalDataUpdatedForHost(host, datapath, ports, availabilityZones) =>
+            localHostData.put(host, (datapath, ports, availabilityZones))
+            fireHostStateUpdates(host, Some(sender))
 
         case value =>
             log.error("Unknown message: " + value)
     }
 
-    private def fireStateUpdates(host: UUID) {
-        val callingActor = localPortsActors(host)
-        if (callingActor != null) {
-            actorWants(callingActor) match {
+    private def fireHostStateUpdates(host: UUID, actorOption: Option[ActorRef]) {
+        def updateActor(hostId: UUID, actor: ActorRef) {
+            actorWants(actor) match {
                 case ExpectingDatapath() =>
-                    callingActor ! LocalDatapathReply(localHostData(host)._1)
+                    actor ! LocalDatapathReply(hosts(hostId).datapath)
                 case ExpectingPorts() =>
-                    log.info("Telling: " + callingActor + " to: " + LocalPortsReply(localHostData(host)._2))
-                    callingActor ! LocalPortsReply(localHostData(host)._2)
+                    actor ! LocalPortsReply(hosts(hostId).ports.toMap)
+                    actor ! LocalAvailabilityZonesReply(hosts(hostId).zones)
             }
+        }
+
+        actorOption match {
+            case Some(actor) =>
+                updateActor(host, actor)
+            case None =>
+                hostsSubscribers.get(host) match {
+                    case Some(actor: ActorRef) =>
+                        updateActor(host, actor)
+                    case None =>
+                }
         }
     }
 
-    class MyLocalStateBuilder(actor: ActorRef, host: UUID) extends LocalStateBuilder {
-        var ports: Map[UUID, String] = Map()
-        var datapathName: String = null
+    class MyHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {
 
-        def setDatapathName(datapathName: String): LocalStateBuilder = {
+        var ports = mutable.Map[UUID, String]()
+        var zoneConfigs = mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]]()
+        var datapathName: String = ""
+
+        def setDatapathName(datapathName: String): HostBuilder = {
             this.datapathName = datapathName
             this
         }
 
-        def addLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
+        def addMaterializedPortMapping(portId: UUID, interfaceName: String): HostBuilder = {
             ports += (portId -> interfaceName)
             this
         }
 
-        def removeLocalPortInterface(portId: UUID, interfaceName: String): LocalStateBuilder = {
+        def delMaterializedPortMapping(portId: UUID, interfaceName: String): HostBuilder = {
             ports -= portId
             this
         }
 
+
+        def setAvailabilityZones(zoneConfigs: util.Map[UUID, HostConfig[_, _]]): HostBuilder = {
+            zoneConfigs.clear()
+            zoneConfigs ++ zoneConfigs.toMap
+            this
+        }
+
+        def start() = null
+
         def build() {
-            actor ! _LocalDataUpdatedForHost(host, datapathName, ports)
+            actor ! _LocalDataUpdatedForHost(host, datapathName, ports, zoneConfigs)
         }
     }
 
-    case class _LocalDataUpdatedForHost(host: UUID, dpName: String, ports: Map[UUID, String])
+    class GreAvailabilityZoneBuilder(actor: ActorRef, greZone: GreAvailabilityZone) extends AvailabilityZones.GreBuilder {
+        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreAvailabilityZoneBuilder = {
+            this
+        }
+
+        def addHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): GreAvailabilityZoneBuilder = {
+            actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Added)
+            this
+        }
+
+        def removeHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): GreAvailabilityZoneBuilder = {
+            actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Deleted)
+            this
+        }
+
+        def start() = null
+
+        def build() {
+            //
+        }
+    }
+
+    case class _LocalDataUpdatedForHost(host: UUID, dpName: String,
+                                        ports: mutable.Map[UUID, String],
+                                        zones: mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])
+
+    case class _AvailabilityZoneUpdated(zone: UUID, dpName: String,
+                                        ports: mutable.Map[UUID, String],
+                                        zones: mutable.Set[UUID])
 
     private sealed trait ExpectingState
 

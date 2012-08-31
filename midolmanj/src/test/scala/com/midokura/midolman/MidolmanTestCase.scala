@@ -34,6 +34,7 @@ import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.sdn.dp.{Packet, Port, Datapath}
+import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -152,6 +153,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def flowProbe(): TestKit = {
         probeByName(FlowController.Name)
+    }
+
+    protected def vtpProbe(): TestKit = {
+        probeByName(VirtualToPhysicalMapper.Name)
+    }
+
+    protected def vtaProbe(): TestKit = {
+        probeByName(VirtualTopologyActor.Name)
     }
 
     protected def simProbe(): TestKit = {

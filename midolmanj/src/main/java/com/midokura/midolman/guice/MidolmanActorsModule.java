@@ -5,12 +5,16 @@ package com.midokura.midolman.guice;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.MidolmanActorsService;
+import com.midokura.midolman.topology.AvailabilityZoneManager;
+import com.midokura.midolman.topology.HostManager;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
 import com.midokura.netlink.protos.OvsDatapathConnection;
@@ -22,6 +26,9 @@ import com.midokura.sdn.flows.FlowManager;
  * initialization time.
  */
 public class MidolmanActorsModule extends PrivateModule {
+    private static final Logger log = LoggerFactory
+        .getLogger(MidolmanActorsModule.class);
+
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
@@ -39,6 +46,8 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(SimulationController.class).in(Singleton.class);
 
         bind(FlowManager.class);
+        bind(HostManager.class);
+        bind(AvailabilityZoneManager.class);
     }
 
     protected void bindMidolmanActorsService() {
