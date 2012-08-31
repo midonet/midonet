@@ -97,6 +97,47 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         }
         // TODO(jlm): Verify it learned the srcMAC
     }
+
+    def testBroadcast() {
+        val ingressMatch = ((new WildcardMatch)
+                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
+        val origMatch = ingressMatch.clone
+        val future = bridge.process(ingressMatch, null, null,
+                                    Platform.currentTime + 10000,
+                                    system.dispatcher)
+
+        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
+        // ingressMatch should be === origMatch
+
+        val result = Await.result(future, 1 second)
+        result match {
+            case Coordinator.ForwardAction(port, mmatch) =>
+                assert(port === bridgeID)
+                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
+                // assert(mmatch === origMatch)
+            case _ => fail("Not ForwardAction")
+        }
+        // TODO(jlm): Verify it learned the srcMAC
+    }
+
+    //TODO(jlm): Verify an ARP for a router goes to it.
+
+    def testMcastSrc() {
+        val ingressMatch = ((new WildcardMatch)
+                .setEthernetSource(MAC.fromString("ff:54:ce:50:44:ce"))
+                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
+        val origMatch = ingressMatch.clone
+        val future = bridge.process(ingressMatch, null, null,
+                                    Platform.currentTime + 10000,
+                                    system.dispatcher)
+
+        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
+        // ingressMatch should be === origMatch
+
+        val result = Await.result(future, 1 second)
+        assert(result.isInstanceOf[Coordinator.DropAction])
+    }
 }
 
 private class MockMacFlowCount extends MacFlowCount {
