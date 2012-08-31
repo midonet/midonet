@@ -26,7 +26,10 @@ import com.midokura.util.functors.{Callback1, Callback3}
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
-    private val macPortMap = new MockMacLearningTable(Map())
+    val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
+    val learnedPort = UUID.randomUUID
+    private val macPortMap = new MockMacLearningTable(Map(
+                                        learnedMac -> learnedPort))
     private val flowCount: MacFlowCount = new MockMacFlowCount
     val inFilter: Chain = null
     val outFilter: Chain = null
@@ -69,6 +72,30 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 // assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
+        // TODO(jlm): Verify it learned the srcMAC
+    }
+
+    def testLearnedMac() {
+        val ingressMatch = ((new WildcardMatch)
+                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthernetDestination(learnedMac))
+        val origMatch = ingressMatch.clone
+        val future = bridge.process(ingressMatch, null, null,
+                                    Platform.currentTime + 10000,
+                                    system.dispatcher)
+
+        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
+        // ingressMatch should be === origMatch
+
+        val result = Await.result(future, 1 second)
+        result match {
+            case Coordinator.ForwardAction(port, mmatch) =>
+                assert(port === learnedPort)
+                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
+                // assert(mmatch === origMatch)
+            case _ => fail("Not ForwardAction")
+        }
+        // TODO(jlm): Verify it learned the srcMAC
     }
 }
 
