@@ -6,10 +6,11 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
-import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midonet.cluster.client.AvailabilityZones;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
-import com.midokura.midonet.cluster.client.LocalStateBuilder;
+import com.midokura.midonet.cluster.client.HostBuilder;
+import com.midokura.midonet.cluster.client.PortBuilder;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 
 public interface Client {
@@ -26,11 +27,7 @@ public interface Client {
 
     void getPort(UUID portID, PortBuilder builder);
 
-    void getLocalStateFor(UUID hostIdentifier, LocalStateBuilder builder);
+    void getHost(UUID hostIdentifier, HostBuilder builder);
 
-//    void setLocalVrnDatapath(UUID hostIdentifier, String datapathName);
-//
-//    void setLocalVrnPortMapping(UUID hostInterface, UUID portId, String tapName);
-//
-//    void removeLocalPortMapping(UUID hostIdentifier, UUID portId);
+    void getAvailabilityZone(UUID uuid, AvailabilityZones.BuildersProvider builders);
 }
