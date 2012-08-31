@@ -104,7 +104,7 @@ public class HostIdGenerator {
                 log.debug("Generated id {}", myUUID);
                 // write it in the properties file
                 writeId(myUUID, localPropertiesFilePath);
-                zkManager.createHost(myUUID, null);
+                zkManager.createHost(myUUID, new HostDirectory.Metadata());
             }
         }
         if (!zkManager.hostExists(myUUID))
