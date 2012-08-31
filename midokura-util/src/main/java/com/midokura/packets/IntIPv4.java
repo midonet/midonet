@@ -44,7 +44,7 @@ public class IntIPv4 implements Cloneable {
         return address;
     }
 
-    public IntIPv4 getNetworkAddress() {
+    public IntIPv4 toNetworkAddress() {
         // Zero out any address bits beyond the mask.
         int mask;
         // In Java, a shift by 32 is a no-op, so special case /0

@@ -85,7 +85,7 @@ trait RouterPort[T <: RouterPort[T]] extends Port[T] {
     }
 
     def nwAddr(): IntIPv4 = {
-        portAddr.getNetworkAddress
+        portAddr.toNetworkAddress
     }
 
     def setPortAddr(addr: IntIPv4): T = {
