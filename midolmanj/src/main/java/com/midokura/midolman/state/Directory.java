@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK 
+ * Copyright 2011 Midokura KK
  */
 
 package com.midokura.midolman.state;
@@ -38,4 +38,49 @@ public interface Directory {
             KeeperException;
 
     long getSessionId();
+
+    public interface TypedWatcher extends Runnable {
+
+        void pathDeleted(String path);
+
+        void pathCreated(String path);
+
+        void pathChildrenUpdated(String path);
+
+        void pathDataChanged(String path);
+
+        void pathNoChange(String path);
+
+    }
+
+    public static class DefaultTypedWatcher implements TypedWatcher {
+        @Override
+        public void pathDeleted(String path) {
+            run();
+        }
+
+        @Override
+        public void pathCreated(String path) {
+            run();
+        }
+
+        @Override
+        public void pathChildrenUpdated(String path) {
+            run();
+        }
+
+        @Override
+        public void pathDataChanged(String path) {
+            run();
+        }
+
+        @Override
+        public void pathNoChange(String path) {
+            run();
+        }
+
+        @Override
+        public void run() {
+        }
+    }
 }

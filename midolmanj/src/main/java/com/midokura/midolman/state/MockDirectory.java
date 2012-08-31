@@ -76,11 +76,10 @@ public class MockDirectory implements Directory {
             if (this.mode.isEphemeral())
                 throw new NoChildrenForEphemeralsException(path + '/' + name);
             if (mode.isSequential()) {
-                name = new StringBuilder(name).append(
-                        String.format("%010d", sequence++)).toString();
+                name = name + String.format("%010d", sequence++);
             }
-            String childPath = new StringBuilder(path).append("/").append(name)
-                    .toString();
+
+            String childPath = path + "/" + name;
             Node child = new Node(childPath, data, mode);
             children.put(name, child);
             notifyChildrenWatchers(multi);
@@ -112,8 +111,7 @@ public class MockDirectory implements Directory {
         void deleteChild(String name, boolean multi)
                 throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
-            String childPath = new StringBuilder(path).append("/").append(name)
-                    .toString();
+            String childPath = path + "/" + name;
             if (null == child)
                 throw new NoNodeException(childPath);
             if (child.children.size() > 0)

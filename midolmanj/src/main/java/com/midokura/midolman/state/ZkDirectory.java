@@ -64,6 +64,13 @@ public class ZkDirectory implements Directory {
         zk.getZooKeeper().setData(absPath, data, -1);
     }
 
+    private Watcher wrapCallback(Runnable runnable) {
+        if (runnable instanceof TypedWatcher)
+            return new MyTypedWatcher((TypedWatcher)runnable);
+
+        return new MyWatcher(runnable);
+    }
+
     private class MyWatcher implements Watcher {
         Runnable watcher;
 
@@ -76,9 +83,58 @@ public class ZkDirectory implements Directory {
             if (null == reactor){
                 log.warn("Reactor is null - processing ZK event in ZK thread.");
                 watcher.run();
-            }
-            else
+            } else {
                 reactor.submit(watcher);
+            }
+        }
+    }
+
+    private class MyTypedWatcher implements Watcher, Runnable {
+        TypedWatcher watcher;
+        WatchedEvent watchedEvent;
+
+        private MyTypedWatcher(TypedWatcher watcher) {
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void process(WatchedEvent event) {
+            if (null == reactor) {
+                log.warn("Reactor is null - processing ZK event in ZK thread.");
+                dispatchEvent(event, watcher);
+            } else {
+                watchedEvent = event;
+                reactor.submit(this);
+            }
+        }
+
+        @Override
+        public void run() {
+            dispatchEvent(watchedEvent, watcher);
+        }
+
+        private void dispatchEvent(WatchedEvent event, TypedWatcher typedWatcher) {
+            switch (event.getType()) {
+                case NodeDeleted:
+                    typedWatcher.pathDeleted(event.getPath());
+                    break;
+
+                case NodeCreated:
+                    typedWatcher.pathCreated(event.getPath());
+                    break;
+
+                case NodeChildrenChanged:
+                    typedWatcher.pathChildrenUpdated(event.getPath());
+                    break;
+
+                case NodeDataChanged:
+                    typedWatcher.pathDataChanged(event.getPath());
+                    break;
+
+                case None:
+                    typedWatcher.pathNoChange(event.getPath());
+                    break;
+            }
         }
     }
 
@@ -86,20 +142,22 @@ public class ZkDirectory implements Directory {
     public byte[] get(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.getZooKeeper().getData(absPath, (null == watcher) ? null :
-            new MyWatcher(watcher), null);
+        return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
     }
 
     @Override
     public Set<String> getChildren(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
+
         // path cannot end with / so strip it off
         if (absPath.endsWith("/")) {
             absPath = absPath.substring(0, absPath.length() - 1);
         }
-        return new HashSet<String>(zk.getZooKeeper().getChildren(absPath,
-                (null == watcher) ? null : new MyWatcher(watcher)));
+
+        return
+            new HashSet<String>(
+                    zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
     }
 
     @Override
@@ -131,8 +189,8 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public List<OpResult> multi(List<Op> ops) throws InterruptedException,
-            KeeperException {
+    public List<OpResult> multi(List<Op> ops)
+        throws InterruptedException, KeeperException {
         return zk.getZooKeeper().multi(ops);
     }
 
