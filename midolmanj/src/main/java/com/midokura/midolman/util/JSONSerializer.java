@@ -33,9 +33,8 @@ public class JSONSerializer implements Serializer {
 
     static {
         objectMapper.setVisibilityChecker(
-            objectMapper
-                .getVisibilityChecker()
-                .withFieldVisibility(Visibility.ANY));
+            objectMapper.getVisibilityChecker()
+                        .withFieldVisibility(Visibility.ANY));
 
         objectMapper
             .enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
@@ -53,7 +52,7 @@ public class JSONSerializer implements Serializer {
     }
 
     @Override
-    public <T, Derived extends T> Derived bytesToObj(byte[] data, Class<T> clazz)
+    public <T> T bytesToObj(byte[] data, Class<T> clazz)
         throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
@@ -61,7 +60,7 @@ public class JSONSerializer implements Serializer {
             jsonFactory.createJsonParser(new InputStreamReader(in));
 
         //noinspection unchecked
-        return (Derived) jsonParser.readValueAs(clazz);
+        return jsonParser.readValueAs(clazz);
     }
 
     public JSONSerializer useMixin(Class<?> typeClass, Class<?> mixinClass) {

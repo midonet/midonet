@@ -63,7 +63,6 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
         val srcDlAddress = ingressMatch.getEthernetSource
         val dstDlAddress = ingressMatch.getEthernetDestination
 
-        var matchOut: WildcardMatch = null // TODO
         var outPortID: Future[UUID] = null
 
         //XXX: Call ingress (pre-bridging) chain

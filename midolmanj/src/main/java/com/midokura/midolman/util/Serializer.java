@@ -30,15 +30,12 @@ public interface Serializer {
      *            Class to convert the bytes to
      * @param <T>
      *            The base type of the object serialized in data
-     * @param <Derived>
-     *            The type of the return
      *
      * @return The deserialized object.
      *
      * @throws IOException
      *             IO error.
      */
-    public <T, Derived extends T> Derived
-        bytesToObj(byte[] data, Class<T> clazz) throws IOException;
+    public <T> T bytesToObj(byte[] data, Class<T> clazz) throws IOException;
 
 }

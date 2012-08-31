@@ -8,21 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
+
+
 /**
  * Class to manage the GRE ZooKeeper data.
  */
 public class GreZkManager extends ZkManager {
-    private final static Logger log = LoggerFactory
-            .getLogger(GreZkManager.class);
+    private final static Logger log =
+         LoggerFactory.getLogger(GreZkManager.class);
 
     public static class GreKey {
 
