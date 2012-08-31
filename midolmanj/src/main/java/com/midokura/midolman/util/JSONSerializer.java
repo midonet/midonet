@@ -16,7 +16,6 @@ import java.io.OutputStreamWriter;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -24,16 +23,22 @@ import org.codehaus.jackson.map.ObjectMapper;
 /**
  * Serialization utility class.
  *
- * @author         Taku Fukushima
+ * @author Taku Fukushima
  */
 public class JSONSerializer implements Serializer {
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+    protected static ObjectMapper objectMapper = new ObjectMapper();
+
+    protected static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
     static {
-       objectMapper.setVisibilityChecker(
-           objectMapper.getVisibilityChecker().withFieldVisibility(Visibility.ANY));
-       objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        objectMapper.setVisibilityChecker(
+            objectMapper
+                .getVisibilityChecker()
+                .withFieldVisibility(Visibility.ANY));
+
+        objectMapper
+            .enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
     @Override
@@ -48,12 +53,25 @@ public class JSONSerializer implements Serializer {
     }
 
     @Override
-    public <T> T bytesToObj(byte[] data, Class<T> clazz)
-                throws JsonParseException, IOException {
+    public <T, Derived extends T> Derived bytesToObj(byte[] data, Class<T> clazz)
+        throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser =
             jsonFactory.createJsonParser(new InputStreamReader(in));
-        return jsonParser.readValueAs(clazz);
+
+        //noinspection unchecked
+        return (Derived) jsonParser.readValueAs(clazz);
+    }
+
+    public JSONSerializer useMixin(Class<?> typeClass, Class<?> mixinClass) {
+
+        objectMapper.getSerializationConfig()
+                    .addMixInAnnotations(typeClass, mixinClass);
+
+        objectMapper.getDeserializationConfig()
+                    .addMixInAnnotations(typeClass, mixinClass);
+
+        return this;
     }
 }

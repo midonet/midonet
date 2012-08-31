@@ -18,7 +18,7 @@ public class ZkConfigSerializer {
         this.serializer = serializer;
     }
 
-    public <T> T deserialize(byte[] data, Class<T> clazz)
+    public <T, Derived extends T> Derived deserialize(byte[] data, Class<T> clazz)
             throws ZkStateSerializationException {
         try {
             return serializer.bytesToObj(data, clazz);

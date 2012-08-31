@@ -16,7 +16,6 @@ import java.io.OutputStreamWriter;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -26,24 +25,23 @@ import com.midokura.midolman.util.Serializer;
 
 /**
  * JAXB serializer using Jackson JAXB annotation inspector.
- *
- * @param <T>
- *            Class type to serialize.
  */
 public class JsonJaxbSerializer implements Serializer {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
+
     static {
         AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
         // make deserializer use JAXB annotations (only)
         objectMapper.getDeserializationConfig().withAnnotationIntrospector(
-                introspector);
+            introspector);
         // make serializer use JAXB annotations (only)
         objectMapper.getSerializationConfig().withAnnotationIntrospector(
-                introspector);
+            introspector);
     }
 
+    @Override
     public <T> byte[] objToBytes(T obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
@@ -54,12 +52,27 @@ public class JsonJaxbSerializer implements Serializer {
         return bos.toByteArray();
     }
 
-    public <T> T bytesToObj(byte[] data, Class<T> clazz)
-            throws JsonParseException, IOException {
+    @Override
+    public <T, Derived extends T> Derived bytesToObj(byte[] data, Class<T> clazz)
+            throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         InputStream in = new BufferedInputStream(bis);
         JsonParser jsonParser = jsonFactory
                 .createJsonParser(new InputStreamReader(in));
-        return jsonParser.readValueAs(clazz);
+
+        //noinspection unchecked
+        return (Derived) jsonParser.readValueAs(clazz);
     }
+
+    public JsonJaxbSerializer useMixin(Class<?> typeClass, Class<?> mixinClass) {
+
+        objectMapper.getSerializationConfig()
+                    .addMixInAnnotations(typeClass, mixinClass);
+
+        objectMapper.getDeserializationConfig()
+                    .addMixInAnnotations(typeClass, mixinClass);
+
+        return this;
+    }
+
 }
