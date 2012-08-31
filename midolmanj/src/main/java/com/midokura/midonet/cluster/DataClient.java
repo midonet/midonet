@@ -7,7 +7,9 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midonet.cluster.data.AvailabilityZone;
 import com.midokura.midonet.cluster.data.Bridge;
+import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Port;
 
 public interface DataClient {
@@ -28,6 +30,14 @@ public interface DataClient {
     UUID portsCreate(Port<?, ?> port) throws StateAccessException;
 
     Port<?, ?> portsGet(UUID id) throws StateAccessException;
+
+    UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
+        throws StateAccessException;
+
+    UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+        throws StateAccessException;
+
+    UUID hostsCreate(UUID id, Host host) throws StateAccessException;
 
     /* hosts related methods */
     void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)

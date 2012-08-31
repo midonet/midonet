@@ -50,5 +50,13 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
         }
 
         protected abstract Self self();
+
+        @Override
+        public String toString() {
+            return self().getClass().getName() + "{" +
+                "id=" + id +
+                ", data=" + data +
+                '}';
+        }
     }
 }

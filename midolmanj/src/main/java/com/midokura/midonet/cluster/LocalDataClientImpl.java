@@ -17,11 +17,15 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.zkManagers.AvailabilityZoneZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midonet.cluster.data.AvailabilityZone;
 import com.midokura.midonet.cluster.data.Bridge;
 import com.midokura.midonet.cluster.data.BridgeName;
 import com.midokura.midonet.cluster.data.Bridges;
+import com.midokura.midonet.cluster.data.Host;
+import com.midokura.midonet.cluster.data.Hosts;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
 
@@ -36,6 +40,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private HostZkManager hostZkManager;
+
+    @Inject
+    private AvailabilityZoneZkManager zonesZkManager;
 
     @Inject
     private PathBuilder pathBuilder;
@@ -129,6 +136,24 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public Port portsGet(UUID id) throws StateAccessException {
         return Ports.fromPortConfig(portZkManager.get(id));
+    }
+
+    @Override
+    public UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
+        throws StateAccessException {
+        return zonesZkManager.createZone(zone, null);
+    }
+
+    @Override
+    public UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+        throws StateAccessException {
+        return zonesZkManager.addMembership(zoneId, hostConfig);
+    }
+
+    @Override
+    public UUID hostsCreate(UUID hostId, Host host) throws StateAccessException {
+        hostZkManager.createHost(hostId, Hosts.toHostConfig(host));
+        return hostId;
     }
 
     @Override

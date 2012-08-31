@@ -15,6 +15,9 @@ import com.midokura.packets.MAC;
  */
 public class ZkPathManager {
 
+    public static final String AVAILABILITY_ZONES = "availability-zones";
+    public static final String MEMBERSHIPS = "memberships";
+
     protected String basePath = null;
 
     /**
@@ -962,6 +965,23 @@ public class ZkPathManager {
         return new StringBuilder(getAgentVpnPath()).append("/").append(vpnId);
     }
 
+
+    public String getAvailabilityZonesPath() {
+        return buildAvailabilityZonesPath().toString();
+    }
+
+    private StringBuilder buildAvailabilityZonesPath() {
+        return basePath().append("/").append(AVAILABILITY_ZONES);
+    }
+
+    public String getAvailabilityZonePath(UUID id) {
+        return buildAvailabilityZonePath(id).toString();
+    }
+
+    private StringBuilder buildAvailabilityZonePath(UUID id) {
+        return buildAvailabilityZonesPath().append("/").append(id);
+    }
+
     /**
      * Get ZK hosts path.
      *
@@ -1049,6 +1069,23 @@ public class ZkPathManager {
             .append(String.format("%010d", commandId));
     }
 
+
+    public String getHostAvailabilityZonesPath(UUID hostId) {
+        return buildHostAvailabilityZonesPath(hostId).toString();
+    }
+
+    private StringBuilder buildHostAvailabilityZonesPath(UUID hostId) {
+        return buildHostPath(hostId).append("/").append(AVAILABILITY_ZONES);
+    }
+
+    public String getHostAvailabilityZonePath(UUID hostId, UUID zoneId) {
+        return buildHostAvailabilityZonePath(hostId, zoneId).toString();
+    }
+
+    private StringBuilder buildHostAvailabilityZonePath(UUID hostId, UUID zoneId) {
+        return buildHostAvailabilityZonesPath(hostId).append("/").append(zoneId);
+    }
+
     /**
      * Get ZK commands error log path
      *
@@ -1111,5 +1148,21 @@ public class ZkPathManager {
 
     private StringBuilder buildHostVrnDatapathMappingPath(UUID hostIdentifier) {
         return buildHostVrnMappingsPath(hostIdentifier).append("/datapath");
+    }
+
+    public String getAvailabilityZoneMembershipsPath(UUID zoneId) {
+        return buildAvailabilityZoneMembershipsPath(zoneId).toString();
+    }
+
+    private StringBuilder buildAvailabilityZoneMembershipsPath(UUID zoneId) {
+        return buildAvailabilityZonePath(zoneId).append("/").append(MEMBERSHIPS);
+    }
+
+    public String getAvailabilityZoneMembershipPath(UUID zoneId, UUID hostId) {
+        return buildAvailabilityZoneMembershipPath(zoneId, hostId).toString();
+    }
+
+    private StringBuilder buildAvailabilityZoneMembershipPath(UUID zoneId, UUID hostId) {
+        return buildAvailabilityZoneMembershipsPath(zoneId).append("/").append(hostId);
     }
 }

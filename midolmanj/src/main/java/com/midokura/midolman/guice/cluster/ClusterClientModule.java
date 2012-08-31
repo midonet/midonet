@@ -25,10 +25,22 @@ import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.zkManagers.*;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
+import com.midokura.midolman.state.zkManagers.AvailabilityZoneZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.ClusterBridgeManager;
+import com.midokura.midonet.cluster.ClusterPortsManager;
 import com.midokura.midonet.cluster.ClusterRouterManager;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.LocalClientImpl;
@@ -67,17 +79,22 @@ public class ClusterClientModule extends PrivateModule {
 
         bind(ZkConfigSerializer.class)
             .toInstance(new ZkConfigSerializer(new JSONSerializer()));
-        
+
         bind(ClusterRouterManager.class)
-            .toInstance(new ClusterRouterManager());
+            .in(Singleton.class);
 
         bind(ClusterBridgeManager.class)
-            .toInstance(new ClusterBridgeManager());
+            .in(Singleton.class);
+
+        bind(ClusterPortsManager.class)
+            .in(Singleton.class);
 
         bind(PortConfigCache.class)
-            .toProvider(new PortConfigCacheProvider())
-            .asEagerSingleton();
-        bind(MidostoreSetupService.class).in(Singleton.class);
+            .toProvider(PortConfigCacheProvider.class)
+            .in(Singleton.class);
+
+        bind(MidostoreSetupService.class)
+            .in(Singleton.class);
         expose(MidostoreSetupService.class);
     }
 
@@ -96,6 +113,7 @@ public class ClusterClientModule extends PrivateModule {
         managers.add(AdRouteZkManager.class);
         managers.add(VpnZkManager.class);
         managers.add(PortGroupZkManager.class);
+        managers.add(AvailabilityZoneZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
             //noinspection unchecked

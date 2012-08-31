@@ -3,7 +3,17 @@
  */
 package com.midokura.midolman.mgmt.data.zookeeper.dao;
 
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
@@ -14,11 +24,6 @@ import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.data.dto.Interface;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.packets.MAC;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.InetAddress;
-import java.util.*;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/31/12
@@ -313,7 +318,7 @@ public class HostDaoImpl implements HostDao {
             throws StateAccessException {
 
         Set<HostDirectory.VirtualPortMapping> zkMaps =
-                zkDao.getVirtualPortMappings(hostId);
+                zkDao.getVirtualPortMappings(hostId, null);
 
         List<HostInterfacePortMap> maps = new ArrayList<HostInterfacePortMap>
                 (zkMaps.size());

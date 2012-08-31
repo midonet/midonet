@@ -6,12 +6,15 @@ package com.midokura.midolman.host.state;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.midokura.midolman.host.commands.executors.CommandProperty;
 import com.midokura.sdn.dp.Port;
@@ -163,6 +166,9 @@ public class HostDirectory {
         String name;
         InetAddress[] addresses;
 
+        @JsonIgnore
+        Set<UUID> availabilityZones;
+
         // Default constructor for the Jackson de-serialization.
         public Metadata() {
         }
@@ -181,6 +187,14 @@ public class HostDirectory {
 
         public void setAddresses(InetAddress[] addresses) {
             this.addresses = addresses;
+        }
+
+        public Set<UUID> getAvailabilityZones() {
+            return availabilityZones;
+        }
+
+        public void setAvailabilityZones(Set<UUID> availabilityZones) {
+            this.availabilityZones = availabilityZones;
         }
     }
 
