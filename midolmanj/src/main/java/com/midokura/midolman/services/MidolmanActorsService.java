@@ -38,8 +38,8 @@ import com.midokura.midolman.topology.VirtualTopologyActor;
  */
 public class MidolmanActorsService extends AbstractService {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(MidolmanActorsService.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(MidolmanActorsService.class);
 
     @Inject
     MidolmanConfig config;

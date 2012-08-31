@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.topology
 
-import collection.{immutable, mutable}
+import collection.{Map => ROMap, mutable}
 import akka.actor.{Actor, ActorRef}
 import akka.dispatch.Await
 import akka.pattern.ask
@@ -44,8 +44,8 @@ object BridgeManager {
 
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
-                             rtrMacToLogicalPortId: immutable.Map[MAC, UUID],
-                             rtrIpToMac: immutable.Map[IntIPv4, MAC])
+                             rtrMacToLogicalPortId: ROMap[MAC, UUID],
+                             rtrIpToMac: ROMap[IntIPv4, MAC])
 }
 
 class BridgeManager(id: UUID, val clusterClient: Client)
@@ -57,8 +57,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private val flowCountMap = new mutable.HashMap[(MAC, UUID), Int]()
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
-    private var rtrMacToLogicalPortId : immutable.Map[MAC, UUID] = null
-    private var rtrIpToMac : immutable.Map[IntIPv4, MAC] = null
+    private var rtrMacToLogicalPortId : ROMap[MAC, UUID] = null
+    private var rtrIpToMac : ROMap[IntIPv4, MAC] = null
 
     //TODO(ross) watch and react to port added/deleted
 
@@ -134,15 +134,15 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     }
 
     private class MacFlowCountImpl extends MacFlowCount {
-        def increment(mac: MAC, port: UUID) {
+        override def increment(mac: MAC, port: UUID) {
             self ! FlowIncrement(mac, port)
         }
 
-        def decrement(mac: MAC, port: UUID) {
+        override def decrement(mac: MAC, port: UUID) {
             self ! FlowDecrement(mac, port)
         }
 
-        def getCount(mac: MAC, port: UUID): Int = {
+        override def getCount(mac: MAC, port: UUID): Int = {
             implicit val timeout = Timeout(10 milliseconds)
             // GetFlowCount immediately returns, so Await is safe here.
             Await.result(self ? GetFlowCount(mac, port),

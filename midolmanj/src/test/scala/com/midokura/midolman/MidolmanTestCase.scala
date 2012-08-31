@@ -33,7 +33,7 @@ import com.midokura.midonet.cluster.{DataClient, Client}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.sdn.dp.{Packet, Port, Datapath}
+import com.midokura.sdn.dp.{Datapath, Packet, Port}
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 
 
