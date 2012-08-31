@@ -13,10 +13,11 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.midokura.midolman.host.config.HostConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.host.config.HostConfig;
+import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
 
@@ -68,9 +69,11 @@ public class HostIdGenerator {
      * to reclaim its Id until the old ZK connection times out.</li>
      * </ul>
      *
-     * @param config
-     * @param zkManager
+     * @param config the host agent config instance to use for parameters
+     * @param zkManager the zkManager to use for data write
+     *
      * @return ID generated or read
+     *
      * @throws HostIdAlreadyInUseException If the ID is already in use
      * @throws StateAccessException        If there's a problem in reading/writing
      *                                     the data. E.g. the path in Zk doesn't exist
@@ -104,8 +107,8 @@ public class HostIdGenerator {
                 zkManager.createHost(myUUID, null);
             }
         }
-        if (zkManager.hostExists(myUUID) == false)
-            zkManager.createHost(myUUID, null);
+        if (!zkManager.hostExists(myUUID))
+            zkManager.createHost(myUUID, new HostDirectory.Metadata());
         return myUUID;
     }
 
@@ -129,7 +132,7 @@ public class HostIdGenerator {
             // Check if it's unique, if not throw an exception. Conf file and
             // (local property + random generation) need to be used
             // alternatively.
-            if (zkManager.isAlive(myUUID) == true) {
+            if (zkManager.isAlive(myUUID)) {
                 throw new HostIdAlreadyInUseException(
                     "ID already in use: " + myUUID);
             }
@@ -162,7 +165,7 @@ public class HostIdGenerator {
         if (id != null) {
             myUUID = UUID.fromString(id);
             // check if it's unique, if not throw an exception
-            if (zkManager.isAlive(myUUID) == true) {
+            if (zkManager.isAlive(myUUID)) {
                 throw new HostIdAlreadyInUseException(
                     "ID already in use: " + myUUID);
             }
@@ -192,8 +195,6 @@ public class HostIdGenerator {
     /**
      * Write the ID in the properties file
      *
-     * @param id
-     * @param localPropertiesFilePath
      * @throws PropertiesFileNotWritableException
      *          If the properties file cannot be written
      */

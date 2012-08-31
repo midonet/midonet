@@ -6,23 +6,24 @@
 
 package com.midokura.midolman.host;
 
-import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.host.config.HostConfig;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.MockDirectory;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
+
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.host.config.HostConfig;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.MockDirectory;
 
 public class HostIdGeneratorTest {
 
@@ -48,8 +49,7 @@ public class HostIdGeneratorTest {
     public void setUp() throws Exception {
         Directory dir = new MockDirectory();
         zkManager = new HostZkManager(dir, basePath);
-        zkManager.addPersistent(basePath,
-                                null);
+        zkManager.addPersistent(basePath, null);
         zkManager.addPersistent(basePath + "/hosts", null);
 
         final HierarchicalConfiguration configuration =
@@ -61,8 +61,7 @@ public class HostIdGeneratorTest {
 
         config =
                 ConfigProvider
-                        .providerForIniConfig(
-                                configuration)
+                        .providerForIniConfig(configuration)
                         .getConfig(HostConfig.class);
 
 
