@@ -14,16 +14,21 @@ import java.util.Set;
 import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
-import org.apache.zookeeper.KeeperException.*;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.apache.zookeeper.Watcher.Event.EventType;
+import static org.apache.zookeeper.Watcher.Event.KeeperState;
 
 
 /**
@@ -42,8 +47,7 @@ public class MockDirectory implements Directory {
         CreateMode mode;
         int sequence;
         Map<String, Node> children;
-        Set<Runnable> dataWatchers;
-        Set<Runnable> childrenWatchers;
+        Set<Watcher> watchers;
 
         // We currently have no need for Watchers on 'exists'.
 
@@ -54,8 +58,7 @@ public class MockDirectory implements Directory {
             this.mode = mode;
             this.sequence = 0;
             this.children = new HashMap<String, Node>();
-            this.dataWatchers = new HashSet<Runnable>();
-            this.childrenWatchers = new HashSet<Runnable>();
+            this.watchers = new HashSet<Watcher>();
         }
 
         Node getChild(String name) throws NoNodeException {
@@ -82,7 +85,7 @@ public class MockDirectory implements Directory {
             String childPath = path + "/" + name;
             Node child = new Node(childPath, data, mode);
             children.put(name, child);
-            notifyChildrenWatchers(multi);
+            fireWatchers(multi, EventType.NodeChildrenChanged);
             return childPath;
         }
 
@@ -90,12 +93,14 @@ public class MockDirectory implements Directory {
             if (enableDebugLog)
                 log.debug("[child]setData => {}", data);
             this.data = data;
-            notifyDataWatchers(multi);
+
+            fireWatchers(multi, EventType.NodeDataChanged);
         }
 
-        byte[] getData(Runnable watcher) {
+        byte[] getData(Watcher watcher) {
             if (watcher != null)
-                dataWatchers.add(watcher);
+                watchers.add(watcher);
+
             if (data == null) {
                 return null;
             }
@@ -104,7 +109,8 @@ public class MockDirectory implements Directory {
 
         Set<String> getChildren(Runnable watcher) {
             if (watcher != null)
-                childrenWatchers.add(watcher);
+                watchers.add(wrapCallback(watcher));
+
             return new HashSet<String>(children.keySet());
         }
 
@@ -117,44 +123,36 @@ public class MockDirectory implements Directory {
             if (child.children.size() > 0)
                 throw new NotEmptyException(childPath);
             children.remove(name);
-            child.notifyDataWatchers(multi);
-            this.notifyChildrenWatchers(multi);
+
+            child.fireWatchers(multi, EventType.NodeDeleted);
+            this.fireWatchers(multi, EventType.NodeChildrenChanged);
         }
 
-        void notifyChildrenWatchers(boolean multi) {
+        void fireWatchers(boolean isMulti, EventType eventType) {
             // Each Watcher is called back at most once for every time they
             // register.
-            Set<Runnable> watchers = childrenWatchers;
-            childrenWatchers = new HashSet<Runnable>();
-            for (Runnable watcher : watchers) {
-                if (multi) {
-                    multiDataWatchers.add(watcher);
-                } else {
-                    watcher.run();
-                }
-            }
-        }
+            Set<Watcher> watchers = new HashSet<Watcher>(this.watchers);
+            this.watchers.clear();
 
-        void notifyDataWatchers(boolean multi) {
-            // Each Watcher is called back at most once for every time they
-            // register.
-            Set<Runnable> watchers = dataWatchers;
-            dataWatchers = new HashSet<Runnable>();
-            for (Runnable watcher : watchers) {
-                if (multi) {
-                    multiDataWatchers.add(watcher);
+            for (Watcher watcher : watchers) {
+                WatchedEvent watchedEvent = new WatchedEvent(
+                    eventType, KeeperState.SyncConnected, path
+                );
+
+                if (isMulti) {
+                    multiDataWatchers.put(watcher, watchedEvent);
                 } else {
-                    watcher.run();
+                    watcher.process(watchedEvent);
                 }
             }
         }
     }
 
     private Node rootNode;
-    private Set<Runnable> multiDataWatchers;
+    private Map<Watcher, WatchedEvent> multiDataWatchers;
     public boolean enableDebugLog = false;
 
-    private MockDirectory(Node root, Set<Runnable> multiWatchers) {
+    private MockDirectory(Node root, Map<Watcher, WatchedEvent> multiWatchers) {
         rootNode = root;
         // All the nodes will belong to another MockDirectory whose
         // multiDataWatchers set is initialized, and they will use it.
@@ -163,7 +161,7 @@ public class MockDirectory implements Directory {
 
     public MockDirectory() {
         rootNode = new Node("", null, CreateMode.PERSISTENT);
-        multiDataWatchers = new HashSet<Runnable>();
+        multiDataWatchers = new HashMap<Watcher, WatchedEvent>();
     }
 
     private Node getNode(String path) throws NoNodeException {
@@ -173,6 +171,7 @@ public class MockDirectory implements Directory {
 
     private Node getNode(String[] path, int depth) throws NoNodeException {
         Node curNode = rootNode;
+
         // TODO(pino): fix this hack - starts at 1 to skip empty string.
         for (int i = 1; i < depth; i++) {
             String path_elem = path[i];
@@ -196,8 +195,9 @@ public class MockDirectory implements Directory {
         if (path.length == 0)
             throw new IllegalArgumentException("Cannot add the root node");
         Node parent = getNode(path, path.length - 1);
-        String childPath = parent.addChild(path[path.length - 1], data, mode,
-                                           multi);
+        String childPath =
+            parent.addChild(path[path.length - 1], data, mode, multi);
+
         return childPath.substring(rootNode.path.length());
     }
 
@@ -220,7 +220,7 @@ public class MockDirectory implements Directory {
 
     @Override
     public byte[] get(String path, Runnable watcher) throws NoNodeException {
-        return getNode(path).getData(watcher);
+        return getNode(path).getData(wrapCallback(watcher));
     }
 
     @Override
@@ -256,8 +256,7 @@ public class MockDirectory implements Directory {
 
     @Override
     public Directory getSubDirectory(String path) throws NoNodeException {
-        Node subdirRoot = getNode(path);
-        return new MockDirectory(subdirRoot, multiDataWatchers);
+        return new MockDirectory(getNode(path), multiDataWatchers);
     }
 
     @Override
@@ -266,7 +265,7 @@ public class MockDirectory implements Directory {
         List<OpResult> results = new ArrayList<OpResult>();
         // Fire watchers after finishing multi operation.
         // Copy to the local Set to avoid concurrent access.
-        Set<Runnable> watchers = new HashSet<Runnable>();
+        Map<Watcher, WatchedEvent> watchers = new HashMap<Watcher, WatchedEvent>();
         try {
             for (Op op : ops) {
                 Record record = op.toRequestRecord();
@@ -303,14 +302,12 @@ public class MockDirectory implements Directory {
                 }
             }
         } finally {
-            for (Runnable watcher : multiDataWatchers) {
-                watchers.add(watcher);
-            }
+            watchers.putAll(multiDataWatchers);
             multiDataWatchers.clear();
         }
 
-        for (Runnable watcher : watchers) {
-            watcher.run();
+        for (Watcher watcher : watchers.keySet()) {
+            watcher.process(watchers.get(watcher));
         }
 
         return results;
@@ -327,4 +324,69 @@ public class MockDirectory implements Directory {
             "node.path=" + rootNode .path +
             '}';
     }
+
+    private Watcher wrapCallback(Runnable runnable) {
+        if (runnable instanceof TypedWatcher)
+            return new MyTypedWatcher((TypedWatcher)runnable);
+
+        return runnable != null ? new MyWatcher(runnable) : null;
+    }
+
+    private static class MyWatcher implements Watcher {
+        Runnable watcher;
+
+        MyWatcher(Runnable watch) {
+            watcher = watch;
+        }
+
+        @Override
+        public void process(WatchedEvent arg0) {
+            watcher.run();
+        }
+    }
+
+    private static class MyTypedWatcher implements Watcher, Runnable {
+        TypedWatcher watcher;
+        WatchedEvent watchedEvent;
+
+        private MyTypedWatcher(TypedWatcher watcher) {
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void process(WatchedEvent event) {
+            dispatchEvent(event, watcher);
+        }
+
+        @Override
+        public void run() {
+            dispatchEvent(watchedEvent, watcher);
+        }
+
+        private void dispatchEvent(WatchedEvent event, TypedWatcher typedWatcher) {
+            switch (event.getType()) {
+                case NodeDeleted:
+                    typedWatcher.pathDeleted(event.getPath());
+                    break;
+
+                case NodeCreated:
+                    typedWatcher.pathCreated(event.getPath());
+                    break;
+
+                case NodeChildrenChanged:
+                    typedWatcher.pathChildrenUpdated(event.getPath());
+                    break;
+
+                case NodeDataChanged:
+                    typedWatcher.pathDataChanged(event.getPath());
+                    break;
+
+                case None:
+                    typedWatcher.pathNoChange(event.getPath());
+                    break;
+            }
+        }
+    }
+
+
 }

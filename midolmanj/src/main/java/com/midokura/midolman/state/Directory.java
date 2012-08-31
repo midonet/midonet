@@ -40,7 +40,6 @@ public interface Directory {
     long getSessionId();
 
     public interface TypedWatcher extends Runnable {
-
         void pathDeleted(String path);
 
         void pathCreated(String path);
@@ -50,7 +49,6 @@ public interface Directory {
         void pathDataChanged(String path);
 
         void pathNoChange(String path);
-
     }
 
     public static class DefaultTypedWatcher implements TypedWatcher {

@@ -222,4 +222,68 @@ public class TestMockDirectory {
             Assert.fail();
         }
     }
+
+    private class MyTypedWatcher implements Directory.TypedWatcher {
+        public int deletes = 0;
+        public int creates = 0;
+        public int childUpdates = 0;
+        public int dataChanges = 0;
+        public int noChanges = 0;
+        public int runs = 0;
+
+        @Override
+        public void pathDeleted(String path) {
+            deletes++;
+        }
+
+        @Override
+        public void pathCreated(String path) {
+            creates++;
+        }
+
+        @Override
+        public void pathChildrenUpdated(String path) {
+            childUpdates++;
+        }
+
+        @Override
+        public void pathDataChanged(String path) {
+            dataChanges++;
+        }
+
+        @Override
+        public void pathNoChange(String path) {
+            noChanges++;
+        }
+
+        @Override
+        public void run() {
+            runs++;
+        }
+    }
+
+    @Test
+    public void testTypedWatchers() throws NoNodeException, NodeExistsException,
+                                           NoChildrenForEphemeralsException,
+                                           NotEmptyException {
+        dir.add("/a", null, CreateMode.PERSISTENT);
+        dir.add("/a/b", null, CreateMode.PERSISTENT);
+        MyTypedWatcher aWatcher = new MyTypedWatcher();
+
+        dir.get("/a", aWatcher);
+        dir.add("/a/c", null, CreateMode.PERSISTENT);
+        Assert.assertEquals(1, aWatcher.childUpdates);
+
+        // install watcher
+        dir.get("/a/c", aWatcher);
+        dir.get("/a", aWatcher);
+        dir.delete("/a/c");
+        Assert.assertEquals(1, aWatcher.deletes);
+        Assert.assertEquals(2, aWatcher.childUpdates);
+
+        // install watcher again
+        dir.get("/a", aWatcher);
+        dir.update("/a", "a".getBytes());
+        Assert.assertEquals(1, aWatcher.dataChanges);
+    }
 }
