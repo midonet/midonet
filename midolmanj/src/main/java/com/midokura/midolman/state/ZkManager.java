@@ -4,8 +4,6 @@
  */
 package com.midokura.midolman.state;
 
-import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -26,6 +24,7 @@ import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 import com.midokura.util.functors.TreeNode;
+import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
 /**
  * Abstract base class for ZkManagers.
@@ -372,17 +371,14 @@ public class ZkManager {
 
         @Override
         public List<TreeNode<String>> getChildren() throws Exception {
-            Set<String> childNames = ZkManager.this.getChildren(value);
-
-            LinkedList<TreeNode<String>> childTreeNodes = new LinkedList<TreeNode<String>>();
-
-            return CollectionFunctors.adapt(childNames, childTreeNodes,
-                    new Functor<String, TreeNode<String>>() {
-                        @Override
-                        public TreeNode<String> apply(String arg0) {
-                            return new ZKTreeNode(value + "/" + arg0);
-                        }
-                    });
+            return CollectionFunctors.map(
+                ZkManager.this.getChildren(value),
+                new Functor<String, TreeNode<String>>() {
+                    @Override
+                    public TreeNode<String> apply(String arg0) {
+                        return new ZKTreeNode(value + "/" + arg0);
+                    }
+                }, new LinkedList<TreeNode<String>>());
         }
     }
 

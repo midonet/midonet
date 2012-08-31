@@ -7,12 +7,12 @@ package com.midokura.midonet.cluster;
 import java.util.UUID;
 import javax.inject.Inject;
 
-import com.midokura.midolman.openvswitch.PortBuilder;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midonet.cluster.client.InteriorBridgePort;
+import com.midokura.midonet.cluster.client.PortBuilder;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 

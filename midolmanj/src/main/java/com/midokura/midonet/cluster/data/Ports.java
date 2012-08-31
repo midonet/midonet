@@ -102,7 +102,6 @@ public class Ports {
     }
 
     public static Port fromPortConfig(PortConfig portConfig) {
-
         Port port = null;
 
         if (portConfig instanceof LogicalBridgePortConfig) {

@@ -12,13 +12,15 @@ import java.util.Collection;
  *         Date: 4/5/12
  */
 public class CollectionFunctors {
-    public static <From, To, Source extends Collection<From>,
-        Target extends Collection<To>> Target adapt(Source source, Target target,
-                                                    Functor<From, To> adaptor) {
+    public static <
+        From, To,
+        Source extends Collection<From>,
+        Target extends Collection<To>
+    > Target map(Source source, Functor<From, To> functor, Target target) {
         target.clear();
 
         for (From from : source) {
-            To adaptedItem = adaptor.apply(from);
+            To adaptedItem = functor.apply(from);
             if (adaptedItem != null) {
                 target.add(adaptedItem);
             }

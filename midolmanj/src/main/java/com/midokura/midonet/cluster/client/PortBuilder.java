@@ -4,6 +4,6 @@
 
 package com.midokura.midonet.cluster.client;
 
-interface PortBuilder extends Builder {
+public interface PortBuilder extends Builder {
     void setPort(Port p);
 }
