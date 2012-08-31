@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.dispatch.{Await, ExecutionContext, Future, Promise}
+import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.util.duration._
 import scala.collection.mutable
