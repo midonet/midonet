@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
@@ -195,6 +196,24 @@ public class AvailabilityZoneZkManager extends ZkManager {
         multi(ops);
 
         return hostConfig.getId();
+    }
+
+    public void deleteZone(UUID uuid) throws StateAccessException {
+
+        String zonePath = pathManager.getAvailabilityZonePath(uuid);
+
+        if (!exists(zonePath)) {
+            multi(getRecursiveDeleteOps(zonePath));
+        }
+    }
+
+    public void delMembership(UUID zoneId, UUID membershipId)
+        throws StateAccessException {
+        try {
+            delete(pathManager.getAvailabilityZoneMembershipPath(zoneId, membershipId));
+        } catch (NoStatePathException e) {
+            // silently fail if the node was already deleted.
+        }
     }
 
     @JsonTypeInfo(

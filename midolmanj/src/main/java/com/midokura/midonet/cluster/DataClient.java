@@ -3,6 +3,7 @@
 */
 package com.midokura.midonet.cluster;
 
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
@@ -34,7 +35,19 @@ public interface DataClient {
     UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
         throws StateAccessException;
 
+    void availabilityZonesDelete(UUID uuid)
+        throws StateAccessException;
+
+    AvailabilityZone<?, ?> availabilityZonesGet(UUID uuid)
+        throws StateAccessException;
+
+    Set<AvailabilityZone.HostConfig<?, ?>> availabilityZonesGetMembership(UUID uuid)
+        throws StateAccessException;
+
     UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+        throws StateAccessException;
+
+    void availabilityZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException;
 
     UUID hostsCreate(UUID id, Host host) throws StateAccessException;

@@ -3,7 +3,9 @@
 */
 package com.midokura.midonet.cluster;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -28,6 +30,8 @@ import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Hosts;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
 
 
 public class LocalDataClientImpl implements DataClient {
@@ -145,9 +149,48 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void availabilityZonesDelete(UUID uuid)
+        throws StateAccessException {
+        zonesZkManager.deleteZone(uuid);
+    }
+
+    @Override
+    public AvailabilityZone<?, ?> availabilityZonesGet(UUID uuid)
+        throws StateAccessException {
+        return zonesZkManager.getZone(uuid, null);
+    }
+
+    @Override
+    public Set<AvailabilityZone.HostConfig<?, ?>> availabilityZonesGetMembership(final UUID uuid)
+        throws StateAccessException {
+
+        return CollectionFunctors.map(
+            zonesZkManager.getZoneMemberships(uuid, null),
+            new Functor<UUID, AvailabilityZone.HostConfig<?, ?>>() {
+                @Override
+                public AvailabilityZone.HostConfig<?, ?> apply(UUID arg0) {
+                    try {
+                        return zonesZkManager.getZoneMembership(uuid, arg0, null);
+                    } catch (StateAccessException e) {
+                        //
+                        return null;
+                    }
+                }
+            },
+            new HashSet<AvailabilityZone.HostConfig<?, ?>>()
+        );
+    }
+
+    @Override
     public UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
         return zonesZkManager.addMembership(zoneId, hostConfig);
+    }
+
+    @Override
+    public void availabilityZonesDeleteMembership(UUID zoneId, UUID membershipId)
+        throws StateAccessException {
+        zonesZkManager.delMembership(zoneId,  membershipId);
     }
 
     @Override
