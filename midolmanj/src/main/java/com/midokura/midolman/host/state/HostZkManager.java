@@ -148,17 +148,33 @@ public class HostZkManager extends ZkManager {
             delMulti.addAll(
                 getRecursiveDeleteOps(pathManager.getHostCommandsPath(id)));
         }
+
         if (exists(pathManager.getHostCommandErrorLogsPath(id))) {
             delMulti.addAll(
                 getRecursiveDeleteOps(
                     pathManager.getHostCommandErrorLogsPath(id)));
         }
+
         if (exists(pathManager.getHostInterfacesPath(id))) {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }
-        if (exists(pathManager.getHostAvailabilityZonesPath(id))) {
-            delMulti.add(getDeleteOp(pathManager.getHostAvailabilityZonesPath(id)));
+
+        Set<UUID> availabilityZones = getAvailabilityZoneIds(id, null);
+        for (UUID zoneId : availabilityZones) {
+            delMulti.add(
+                getDeleteOp(
+                    pathManager.getHostAvailabilityZonePath(id, zoneId)));
+
+            delMulti.add(
+                getDeleteOp(
+                    pathManager.getAvailabilityZoneMembershipPath(zoneId, id)));
         }
+
+        if (exists(pathManager.getHostAvailabilityZonesPath(id))) {
+            delMulti.add(
+                getDeleteOp(pathManager.getHostAvailabilityZonesPath(id)));
+        }
+
         delMulti.add(getDeleteOp(hostEntryPath));
 
         multi(delMulti);
