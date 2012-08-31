@@ -156,6 +156,9 @@ public class HostZkManager extends ZkManager {
         if (exists(pathManager.getHostInterfacesPath(id))) {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }
+        if (exists(pathManager.getHostAvailabilityZonesPath(id))) {
+            delMulti.add(getDeleteOp(pathManager.getHostAvailabilityZonesPath(id)));
+        }
         delMulti.add(getDeleteOp(hostEntryPath));
 
         multi(delMulti);
