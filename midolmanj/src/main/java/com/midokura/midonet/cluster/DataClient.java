@@ -32,6 +32,17 @@ public interface DataClient {
 
     Port<?, ?> portsGet(UUID id) throws StateAccessException;
 
+    /**
+     * Inform the storage cluster that the port is active. This may be used by
+     * the cluster to do trigger related processing e.g. updating the router's
+     * forwarding table if this port belongs to a router.
+     *
+     * @param portID the id of the port
+     * @param active true / false depending on what state we want in the end
+     *               for the port
+     */
+    void portsSetActive(UUID portID, boolean active);
+
     UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
         throws StateAccessException;
 
@@ -61,14 +72,4 @@ public interface DataClient {
 
     void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
         throws StateAccessException;
-
-    /**
-     * Inform the storage cluster that the port is active. This may be used by
-     * the cluster to do trigger related processing e.g. updating the router's
-     * forwarding table if this port belongs to a router.
-     *
-     * @param portID
-     * @param active
-     */
-    void portsSetActive(UUID portID, boolean active);
 }

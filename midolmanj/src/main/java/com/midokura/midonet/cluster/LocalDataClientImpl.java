@@ -133,13 +133,18 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID portsCreate(Port port) throws StateAccessException {
+    public UUID portsCreate(Port<?, ?> port) throws StateAccessException {
         return portZkManager.create(Ports.toPortConfig(port));
     }
 
     @Override
-    public Port portsGet(UUID id) throws StateAccessException {
+    public Port<?, ?> portsGet(UUID id) throws StateAccessException {
         return Ports.fromPortConfig(portZkManager.get(id));
+    }
+
+    @Override
+    public void portsSetActive(UUID portID, boolean active) {
+        //XXX: pino
     }
 
     @Override
@@ -219,8 +224,4 @@ public class LocalDataClientImpl implements DataClient {
         hostZkManager.removeVirtualPortMapping(hostId, portId);
     }
 
-    @Override
-    public void portsSetActive(UUID portID, boolean active) {
-        //XXX: pino
-    }
 }
