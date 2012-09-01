@@ -409,11 +409,70 @@ public class WildcardMatch implements Cloneable {
     }
 
     /**
-     * Implement clonable interface
+     * Implement cloneable interface
      */
     @Override
-    public WildcardMatch clone() {
-        // XXX TODO(pino): implement me!
-        return null;
+    @SuppressWarnings("CloneDoesntCallSuperClone")
+    public WildcardMatch clone() throws CloneNotSupportedException {
+
+        // XXX TODO(pino): validate implementation of clone !
+        WildcardMatch newClone = new WildcardMatch();
+
+        newClone.usedFields.addAll(usedFields);
+        for (Field field : Field.values()) {
+            if (usedFields.contains(field)) {
+                switch (field) {
+                    case EtherType:
+                        newClone.etherType = etherType;
+                        break;
+
+                    case IsIPv4Fragment:
+                        newClone.isIPv4Fragment = isIPv4Fragment;
+                        break;
+
+                    case EthernetDestination:
+                        newClone.ethernetDestination = ethernetDestination;
+                        break;
+
+                    case EthernetSource:
+                        newClone.ethernetSource = ethernetSource;
+                        break;
+
+                    case TransportDestination:
+                        newClone.transportDestination = transportDestination;
+                        break;
+
+                    case TransportSource:
+                        newClone.transportSource = transportSource;
+                        break;
+
+                    case InputPortUUID:
+                        newClone.inputPortUUID = inputPortUUID;
+                        break;
+
+                    case InputPortNumber:
+                        newClone.inputPortNumber = inputPortNumber;
+                        break;
+
+                    case NetworkDestination:
+                        newClone.networkDestination = networkDestination;
+                        break;
+
+                    case NetworkSource:
+                        newClone.networkSource = networkSource;
+                        break;
+
+                    case NetworkProtocol:
+                        newClone.networkProtocol = networkProtocol;
+                        break;
+
+                    case TunnelID:
+                        newClone.tunnelID = tunnelID;
+                        break;
+                }
+            }
+        }
+
+        return newClone;
     }
 }

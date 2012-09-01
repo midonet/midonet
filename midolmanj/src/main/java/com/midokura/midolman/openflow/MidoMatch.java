@@ -156,5 +156,4 @@ public class MidoMatch extends OFMatch {
     public MidoMatch clone() {
         return (MidoMatch) super.clone();
     }
-
 }
