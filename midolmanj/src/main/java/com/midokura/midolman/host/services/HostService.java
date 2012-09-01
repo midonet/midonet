@@ -3,34 +3,37 @@
  */
 package com.midokura.midolman.host.services;
 
-import com.google.common.util.concurrent.AbstractService;
-import com.google.inject.Inject;
-import com.midokura.midolman.host.HostIdGenerator;
-import com.midokura.midolman.host.HostIdGenerator.HostIdAlreadyInUseException;
-import com.midokura.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
-import com.midokura.midolman.host.HostInterfaceWatcher;
-import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.midolman.host.scanner.InterfaceScanner;
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.host.config.HostConfig;
-import com.midokura.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.util.concurrent.AbstractService;
+import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.host.HostIdGenerator;
+import com.midokura.midolman.host.HostIdGenerator.HostIdAlreadyInUseException;
+import com.midokura.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
+import com.midokura.midolman.host.HostInterfaceWatcher;
+import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
+import com.midokura.midolman.host.config.HostConfig;
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.midolman.host.scanner.InterfaceScanner;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.services.HostIdProviderService;
+import com.midokura.midolman.state.StateAccessException;
+
 /**
  * Host internal service.
  * <p/>
  * It starts and stops the host service.
  */
-public class HostService extends AbstractService {
+public class HostService extends AbstractService
+    implements HostIdProviderService {
 
     private static final Logger log = LoggerFactory
             .getLogger(HostService.class);

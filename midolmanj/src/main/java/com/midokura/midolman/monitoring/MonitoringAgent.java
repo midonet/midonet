@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import static java.lang.String.format;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -20,6 +21,7 @@ import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.monitoring.vrn.VRNMonitoringObserver;
+import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.vrn.VRNControllerObserver;
 
 /**
@@ -39,7 +41,7 @@ public class MonitoringAgent {
     MonitoringConfiguration configuration;
 
     @Inject
-    HostIdProvider hostIdProvider;
+    HostKeyService hostKeyService;
 
     @Inject
     VMMetricsCollection vmMetrics;
@@ -82,9 +84,19 @@ public class MonitoringAgent {
     }
 
     public static MonitoringAgent bootstrapMonitoring(
-        ConfigProvider configProvider, HostIdProvider hostIdProvider) {
+        final ConfigProvider configProvider, final HostIdProviderService hostIdProvider) {
         Injector injector = Guice.createInjector(
-            new MonitoringModule(configProvider, hostIdProvider));
+            new AbstractModule() {
+                @Override
+                protected void configure() {
+                    bind(ConfigProvider.class)
+                        .toInstance(configProvider);
+
+                    bind(HostIdProviderService.class)
+                        .toInstance(hostIdProvider);
+                }
+            },
+            new MonitoringModule());
 
         MonitoringAgent monitoringAgent =
             injector.getInstance(MonitoringAgent.class);

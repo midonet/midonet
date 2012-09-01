@@ -3,6 +3,8 @@
 */
 package com.midokura.midolman
 
+import host.guice.HostModule
+import host.services.HostService
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID
@@ -64,7 +66,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
     protected def hostId(): UUID = {
-        UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
+        injector.getInstance(classOf[HostService]).getHostId
     }
 
     before {
@@ -73,8 +75,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
             asJavaIterable(getModules(config))
         )
 
-        injector.getInstance(classOf[MidolmanService]).startAndWait()
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
+        injector.getInstance(classOf[MidolmanService]).startAndWait()
     }
 
     after {

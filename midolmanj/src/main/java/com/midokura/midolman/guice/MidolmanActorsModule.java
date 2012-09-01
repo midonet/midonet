@@ -12,6 +12,7 @@ import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.AvailabilityZoneManager;
 import com.midokura.midolman.topology.HostManager;
@@ -35,6 +36,7 @@ public class MidolmanActorsModule extends PrivateModule {
 
         requireBinding(MidolmanConfig.class);
         requireBinding(OvsDatapathConnection.class);
+        requireBinding(HostIdProviderService.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);

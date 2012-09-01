@@ -8,8 +8,10 @@ import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
 import datapath.ErrorHandlingCallback
 import flows.{FlowActions, FlowKeys, FlowAction}
+import host.services.HostService
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
+import services.HostIdProviderService
 import topology.physical.Host
 import topology.{ZoneChanged, HostConfigOperation, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
@@ -361,7 +363,8 @@ class DatapathController() extends Actor {
     @Inject
     val datapathConnection: OvsDatapathConnection = null
 
-    val hostId = UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00")
+    @Inject
+    val hostService: HostIdProviderService = null
 
     var datapath: Datapath = null
 
@@ -395,7 +398,7 @@ class DatapathController() extends Actor {
         case Initialize() =>
             initializer = sender
             log.info("Initialize from: " + sender)
-            VirtualToPhysicalMapper.getRef() ! HostRequest(hostId)
+            VirtualToPhysicalMapper.getRef() ! HostRequest(hostService.getHostId)
 
         /**
          * Initialization complete (sent by self) and we forward the reply to

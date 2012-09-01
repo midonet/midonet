@@ -4,9 +4,7 @@
 
 package com.midokura.midolman.monitoring;
 
-import javax.annotation.Nullable;
-
-import com.google.inject.AbstractModule;
+import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import me.prettyprint.hector.api.exceptions.HectorException;
@@ -15,42 +13,46 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
+import com.midokura.midolman.monitoring.guice.MonitoringConfigurationProvider;
+import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
+import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.CassandraStore;
 import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.services.HostIdProviderService;
 
 /**
  * Date: 4/25/12
  */
-public class MonitoringModule extends AbstractModule {
+public class MonitoringModule extends PrivateModule {
 
     private final static Logger log =
         LoggerFactory.getLogger(MonitoringModule.class);
 
-    private ConfigProvider configProvider;
-    private HostIdProvider provider;
-
-    public MonitoringModule(ConfigProvider configProvider,
-                            HostIdProvider hostIdProvider) {
-        this.configProvider = configProvider;
-        this.provider = hostIdProvider;
-    }
-
     @Override
     protected void configure() {
+        binder().requireExplicitBindings();
+
+        requireBinding(HostIdProviderService.class);
+        requireBinding(ConfigProvider.class);
+
+        bind(VMMetricsCollection.class);
+        bind(ZookeeperMetricsCollection.class);
+        bind(HostKeyService.class);
+
+        bind(MonitoringAgent.class);
+        expose(MonitoringAgent.class);
 
         bind(MonitoringConfiguration.class)
-            .toInstance(configProvider.getConfig(MonitoringConfiguration.class));
-
-        bind(HostIdProvider.class).toInstance(provider);
+            .toProvider(MonitoringConfigurationProvider.class)
+            .in(Singleton.class);
+        expose(MonitoringConfiguration.class);
     }
 
     @Singleton
     @Provides
-    @Nullable
     public Store getStore(MonitoringConfiguration config) {
-        Store store = null;
         try {
-            store = new CassandraStore(
+            return new CassandraStore(
                 config.getCassandraServers(),
                 config.getCassandraCluster(),
                 config.getMonitoringCassandraKeyspace(),
@@ -59,7 +61,7 @@ public class MonitoringModule extends AbstractModule {
                 config.getMonitoringCassandraExpirationTimeout());
         } catch (HectorException e) {
             log.error("Fatal error, unable to initialize CassandraStore", e);
+            throw new RuntimeException(e);
         }
-        return store;
     }
 }

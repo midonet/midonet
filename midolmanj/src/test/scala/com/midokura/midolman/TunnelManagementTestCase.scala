@@ -14,10 +14,18 @@ import topology.VirtualToPhysicalMapper._
 import org.slf4j.{LoggerFactory, Logger}
 import org.antlr.stringtemplate.language.InterfaceParserTokenTypes
 import com.midokura.packets.IntIPv4
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
     private final val log: Logger = LoggerFactory.getLogger(classOf[TunnelManagementTestCase])
+
+    val myselfId = UUID.randomUUID()
+
+    override protected def fillConfig(config: HierarchicalConfiguration):HierarchicalConfiguration = {
+        config.setProperty("host-host_uuid", myselfId.toString)
+        config
+    }
 
     import scala.collection.JavaConversions._
 

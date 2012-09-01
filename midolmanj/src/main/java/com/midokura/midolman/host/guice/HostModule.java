@@ -3,6 +3,8 @@
  */
 package com.midokura.midolman.host.guice;
 
+import javax.inject.Singleton;
+
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 
@@ -21,6 +23,7 @@ import com.midokura.midolman.host.services.HostService;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
 import com.midokura.midolman.host.updater.InterfaceDataUpdater;
+import com.midokura.midolman.services.HostIdProviderService;
 
 /**
  * Module to configure dependencies for the host.
@@ -50,7 +53,13 @@ public class HostModule extends PrivateModule {
         bind(HostCommandWatcher.class);
         bind(HostInterfaceWatcher.class);
 
-        bind(HostService.class).asEagerSingleton();
+        bind(HostIdProviderService.class)
+            .to(HostService.class)
+            .in(Singleton.class);
+
+        bind(HostService.class)
+            .in(Singleton.class);
+
         expose(HostService.class);
 
         bind(IpAddrInterfaceSensor.class);

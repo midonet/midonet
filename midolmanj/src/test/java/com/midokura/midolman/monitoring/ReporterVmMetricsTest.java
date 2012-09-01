@@ -4,26 +4,32 @@
 
 package com.midokura.midolman.monitoring;
 
-import com.google.inject.*;
-import com.midokura.midolman.host.services.HostService;
-import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
-import com.midokura.midolman.monitoring.store.CassandraStore;
-import com.midokura.midolman.monitoring.store.Store;
-import org.apache.cassandra.config.ConfigurationException;
-import org.apache.thrift.transport.TTransportException;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.junit.*;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.apache.cassandra.config.ConfigurationException;
+import org.apache.thrift.transport.TTransportException;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+
+import com.midokura.midolman.host.services.HostService;
+import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
+import com.midokura.midolman.monitoring.store.CassandraStore;
+import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.services.HostIdProviderService;
 
 public class ReporterVmMetricsTest extends AbstractModule {
 
@@ -74,8 +80,15 @@ public class ReporterVmMetricsTest extends AbstractModule {
 
     @Override
     protected void configure() {
-        NodeAgentHostIdProvider provider = new NodeAgentHostIdProvider(new HostService());
-        bind(HostIdProvider.class).toInstance(provider);
-    }
+        final HostService hostService = new HostService();
 
+        HostIdProviderService service = new HostIdProviderService() {
+            @Override
+            public UUID getHostId() {
+                return hostService.getHostId();
+            }
+        };
+
+        bind(HostIdProviderService.class).toInstance(service);
+    }
 }

@@ -200,8 +200,8 @@ public class Midolman implements SelectListener {
 /*
         if (config.getMidolmanEnableMonitoring()) {
             log.info("Starting monitoring...");
-            NodeAgentHostIdProvider hostIdProvider =
-                new NodeAgentHostIdProvider(nodeAgent);
+            NodeAgentHostIdProviderService hostIdProvider =
+                new NodeAgentHostIdProviderService(nodeAgent);
             monitoringAgent =
                 MonitoringAgent.bootstrapMonitoring(configProvider,
                                                     hostIdProvider);

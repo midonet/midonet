@@ -15,7 +15,7 @@ import com.yammer.metrics.core.MetricName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.monitoring.HostIdProvider;
+import com.midokura.midolman.monitoring.HostKeyService;
 import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
 
@@ -36,13 +36,13 @@ public class VMMetricsCollection {
     private static int metricsCount = 0;
 
     @Inject
-    HostIdProvider hostIdProvider;
+    HostKeyService hostKeyService;
 
     String hostName;
 
     public void registerMetrics() {
 
-        hostName = hostIdProvider.getHostId();
+        hostName = hostKeyService.getHostId();
 
         MidoReporter.notifyNewMetricTypeForTarget(new MetricName(VMMetricsCollection.class, "", hostName));
 

@@ -14,7 +14,7 @@ import com.yammer.metrics.core.MetricName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.monitoring.HostIdProvider;
+import com.midokura.midolman.monitoring.HostKeyService;
 import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.monitoring.gauges.JMXRemoteBeanGauge;
 import com.midokura.util.jmx.JMXHelper;
@@ -33,12 +33,9 @@ public class ZookeeperMetricsCollection {
             mBeanZkService + "," + "name1=InMemoryDataTree";
 
     @Inject
-    HostIdProvider hostIdProvider;
+    HostKeyService hostKeyService;
 
     private String hostName;
-
-    public ZookeeperMetricsCollection() {
-    }
 
     public void registerMetrics(String jmxServerPath) {
 
@@ -52,7 +49,7 @@ public class ZookeeperMetricsCollection {
             return;
         }
 
-        hostName = hostIdProvider.getHostId();
+        hostName = hostKeyService.getHostId();
 
         MidoReporter.notifyNewMetricTypeForTarget(
             new MetricName(ZookeeperMetricsCollection.class, "", hostName));
