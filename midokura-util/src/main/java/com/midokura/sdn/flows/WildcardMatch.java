@@ -431,11 +431,11 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case EthernetDestination:
-                        newClone.ethernetDestination = ethernetDestination;
+                        newClone.ethernetDestination = ethernetDestination.clone();
                         break;
 
                     case EthernetSource:
-                        newClone.ethernetSource = ethernetSource;
+                        newClone.ethernetSource = ethernetSource.clone();
                         break;
 
                     case TransportDestination:
@@ -455,11 +455,11 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case NetworkDestination:
-                        newClone.networkDestination = networkDestination;
+                        newClone.networkDestination = networkDestination.clone();
                         break;
 
                     case NetworkSource:
-                        newClone.networkSource = networkSource;
+                        newClone.networkSource = networkSource.clone();
                         break;
 
                     case NetworkProtocol:
