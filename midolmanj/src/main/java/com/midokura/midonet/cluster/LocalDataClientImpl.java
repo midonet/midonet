@@ -3,25 +3,35 @@
 */
 package com.midokura.midonet.cluster;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.layer3.L3DevicePort;
+import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.state.PathBuilder;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.midonet.cluster.data.Bridge;
 import com.midokura.midonet.cluster.data.BridgeName;
 import com.midokura.midonet.cluster.data.Bridges;
@@ -30,6 +40,8 @@ import com.midokura.midonet.cluster.data.Hosts;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
 import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.util.functors.Callback2;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
@@ -44,6 +56,12 @@ public class LocalDataClientImpl implements DataClient {
     private PortZkManager portZkManager;
 
     @Inject
+    private PortConfigCache portCache;
+
+    @Inject
+    private RouteZkManager routeMgr;
+
+    @Inject
     private HostZkManager hostZkManager;
 
     @Inject
@@ -54,6 +72,19 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private ZkConfigSerializer serializer;
+
+    @Inject
+    private ClusterRouterManager routerManager;
+
+    @Inject
+    private ClusterBridgeManager bridgeManager;
+
+    @Inject
+    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    private Reactor reactor;
+
+    Set<Callback2<UUID, Boolean>> subscriptionPortsActive =
+        new HashSet<Callback2<UUID, Boolean>>();
 
     private final static Logger log =
         LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -144,13 +175,9 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsSetLocalAndActive(UUID portID, boolean active) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
     public void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        //TODO(ross) notify when the port goes down
+        subscriptionPortsActive.add(cb);
     }
 
     @Override
@@ -181,7 +208,8 @@ public class LocalDataClientImpl implements DataClient {
                 @Override
                 public TunnelZone.HostConfig<?, ?> apply(UUID arg0) {
                     try {
-                        return zonesZkManager.getZoneMembership(uuid, arg0, null);
+                        return zonesZkManager.getZoneMembership(uuid, arg0,
+                                                                null);
                     } catch (StateAccessException e) {
                         //
                         return null;
@@ -202,11 +230,12 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
-        zonesZkManager.delMembership(zoneId,  membershipId);
+        zonesZkManager.delMembership(zoneId, membershipId);
     }
 
     @Override
-    public UUID hostsCreate(UUID hostId, Host host) throws StateAccessException {
+    public UUID hostsCreate(UUID hostId, Host host)
+        throws StateAccessException {
         hostZkManager.createHost(hostId, Hosts.toHostConfig(host));
         return hostId;
     }
@@ -214,21 +243,104 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void hostsAddVrnPortMapping(UUID hostId, UUID portId,
                                        String localPortName)
-            throws StateAccessException {
+        throws StateAccessException {
         hostZkManager.addVirtualPortMapping(hostId,
-                new HostDirectory.VirtualPortMapping(portId, localPortName));
+                                            new HostDirectory.VirtualPortMapping(
+                                                portId, localPortName));
     }
 
     @Override
     public void hostsAddDatapathMapping(UUID hostId, String datapathName)
-            throws StateAccessException {
+        throws StateAccessException {
         hostZkManager.addVirtualDatapathMapping(hostId, datapathName);
     }
 
     @Override
     public void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
-            throws StateAccessException {
+        throws StateAccessException {
         hostZkManager.removeVirtualPortMapping(hostId, portId);
     }
 
+
+    @Override
+    public void portsSetLocalAndActive(final UUID portID,
+                                       final boolean active) {
+        // use the reactor thread for this operations
+        reactor.submit(new Runnable() {
+
+            @Override
+            public void run() {
+                PortConfig config = null;
+                try {
+                    config = portZkManager.get(portID);
+                } catch (StateAccessException e) {
+                    log.error("Error retrieving the configuration for port {}",
+                              portID, e);
+                }
+                // update the subscribers
+                for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
+                    cb.call(portID, active);
+                }
+                // If it's a MaterializedBridgePort, invalidate the flows for flooded
+                // packet because when those were update this port was probably
+                // inactive and wasn't taken into consideration when installing
+                // the flow for the flood.
+                if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
+                    bridgeManager.getBuilder(config.device_id)
+                                 .setMaterializedPortActive(
+                                     portID,
+                                     ((PortDirectory.MaterializedRouterPortConfig)
+                                         config)
+                                         .getHwAddr(),
+                                     active);
+                    //TODO(ross) add to port set
+                } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+                    final UUID deviceId = config.device_id;
+                    try {
+                        L3DevicePort port = new L3DevicePort(portCache,
+                                                             routeMgr, portID);
+                        RouterBuilder builder = routerManager.getBuilder(
+                            deviceId);
+                        // register a watcher
+                        port.addListener(new RouterPortListener(builder));
+                        for (Route rt : port.getRoutes()) {
+                            if (active) {
+                                builder.addRoute(rt);
+                            } else {
+                                builder.removeRoute(rt);
+                            }
+                        }
+                        builder.build();
+                    } catch (Exception e) {
+                        log.error(
+                            "Error creating the L3DevicePort for port {} ",
+                            portID, e);
+                    }
+
+                }
+            }
+        });
+    }
+
+    private class RouterPortListener implements L3DevicePort.Listener {
+        private RouterBuilder builder;
+
+        private RouterPortListener(RouterBuilder builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public void routesChanged(UUID portId, Collection<Route> added,
+                                  Collection<Route> removed) {
+            for (Route rt : added) {
+                log.debug("{} routesChanged adding {} to table", builder, rt);
+                    builder.addRoute(rt);
+            }
+            for (Route rt : removed) {
+                log.debug("{} routesChanged removing {} from table", builder,
+                          rt);
+                    builder.removeRoute(rt);
+                }
+            }
+        }
 }

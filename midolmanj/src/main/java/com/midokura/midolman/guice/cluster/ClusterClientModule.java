@@ -88,6 +88,7 @@ public class ClusterClientModule extends PrivateModule {
             .in(Singleton.class);
 
         bind(ClusterPortsManager.class)
+            .toProvider(ClusterPortsManagerProvider.class)
             .in(Singleton.class);
 
         bind(PortConfigCache.class)
@@ -122,6 +123,26 @@ public class ClusterClientModule extends PrivateModule {
                 .toProvider(new ZkManagerProvider(managerClass))
                 .asEagerSingleton();
             expose(managerClass);
+        }
+    }
+
+    private static class ClusterPortsManagerProvider
+    implements Provider<ClusterPortsManager> {
+        @Inject
+        PortZkManager portMgr;
+
+        @Inject
+        PortConfigCache portConfigCache;
+
+        @Inject
+        PortGroupZkManager portZkManager;
+
+
+        @Override
+        public ClusterPortsManager get() {
+            ClusterPortsManager instance = new ClusterPortsManager();
+            portConfigCache.addWatcher(instance.getPortsWatcher());
+            return instance;
         }
     }
 

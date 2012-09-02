@@ -36,7 +36,6 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midonet.cluster.Client;
 import com.midokura.midonet.cluster.client.ArpCache;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ForwardingElementBuilder;
@@ -275,6 +274,12 @@ public class LocalClientImplTest {
         @Override
         public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                                        Map<IntIPv4, MAC> rtrIpToMac) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void setMaterializedPortActive(UUID port, MAC mac,
+                                              boolean active) {
             //To change body of implemented methods use File | Settings | File Templates.
         }
 

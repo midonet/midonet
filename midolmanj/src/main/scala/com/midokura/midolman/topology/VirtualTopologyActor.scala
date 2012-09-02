@@ -162,7 +162,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
 
     private def portMgrCtor =
         (portId: UUID) => new PortManager(portId,
-            IntIPv4.fromString(config.getOpenFlowPublicIpAddress))
+            IntIPv4.fromString(config.getOpenFlowPublicIpAddress), clusterClient)
 
     def receive = {
         case BridgeRequest(id, update) =>

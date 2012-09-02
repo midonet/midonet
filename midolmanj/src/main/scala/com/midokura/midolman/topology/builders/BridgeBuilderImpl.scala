@@ -63,6 +63,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     def setLogicalPortsMap(newRtrMacToLogicalPortId: java.util.Map[MAC, UUID],
                            newRtrIpToMac: java.util.Map[IntIPv4, MAC]) {
         import collection.JavaConversions._
+        // invalidate all the flows if there's some change in the logical ports
+        // TODO(ross) create a class to make tagging more explicit
+        if(newRtrIpToMac != rtrIpToMac){
+            flowController ! FlowController.InvalidateFlowByTag(
+                (id, null, null))
+        }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
         rtrIpToMac = newRtrIpToMac
     }
@@ -86,5 +92,10 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         }
     }
 
+    def setMaterializedPortActive(port: UUID, mac: MAC, active: Boolean) {
+        // invalidate the flood flows in both cases
+        flowController ! FlowController.InvalidateFlowByTag((id, mac, null))
+        //TODO(ross) ask how multicast
+    }
 }
 

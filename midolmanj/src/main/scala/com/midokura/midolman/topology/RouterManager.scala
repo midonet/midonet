@@ -21,6 +21,7 @@ import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback1
+import com.midokura.midolman.FlowController
 
 
 /* The ArpTable is called from the Coordinators' actors and dispatches
@@ -47,6 +48,19 @@ object RouterManager {
 class RouterConfig {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
+
+    override def hashCode = (inboundFilter.toString + outboundFilter.toString).hashCode()
+
+    override def equals(other: Any) = other match {
+        case that: RouterConfig =>
+            (that canEqual this) &&
+                (this.inboundFilter == that.inboundFilter) &&
+                (this.outboundFilter == that.outboundFilter)
+        case _ =>
+            false
+    }
+
+    def canEqual(other: Any) = other.isInstanceOf[RouterConfig]
 }
 
 class RouterManager(id: UUID, val client: Client)
@@ -60,6 +74,7 @@ class RouterManager(id: UUID, val client: Client)
     private val arpWaiters = new mutable.HashMap[IntIPv4,
                                                  mutable.Set[ActorRef]] with
                                  mutable.MultiMap[IntIPv4, ActorRef]
+    private var filterChanged = false;
 
     override def chainsUpdated = makeNewRouter
 
@@ -67,6 +82,11 @@ class RouterManager(id: UUID, val client: Client)
         if (chainsReady() && null != rTable)
             context.actorFor("..").tell(
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter));
+
+        if(filterChanged){
+            FlowController.getRef() ! FlowController.InvalidateFlowByTag((id, null, null))
+        }
+        filterChanged = false
     }
 
     override def preStart() {
@@ -111,6 +131,10 @@ class RouterManager(id: UUID, val client: Client)
         case WaitForArpEntry(ip) =>
             arpWaiters.addBinding(ip, sender)
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
+            if(newCfg != cfg && cfg != null){
+                // the cfg of this router changed, invalidate all the flows
+                filterChanged = true
+            }
             cfg = newCfg
             arpCache = newArpCache
             rTable = newRoutingTable

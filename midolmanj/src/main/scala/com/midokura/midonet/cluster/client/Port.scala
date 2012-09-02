@@ -6,12 +6,14 @@ package com.midokura.midonet.cluster.client
 
 import java.util.UUID
 import com.midokura.packets.{IntIPv4, MAC}
+import collection.JavaConversions._
 
-trait Port[T <: Port[T]] {
+trait Port[T] {
     var id: UUID = null
     var deviceID: UUID = null
     var inFilterID: UUID = null
     var outFilterID: UUID = null
+    var properties: Map[String, String] = null  //move
 
     def self: T = {
         this.asInstanceOf[T]
@@ -36,12 +38,19 @@ trait Port[T <: Port[T]] {
         this.inFilterID = chain;
         self
     }
+
+    def setProperties(props: Map[String, String]): T = {
+        properties = props; self
+    }
+
+    def setProperties(props: java.util.Map[String, String]): T = {
+        properties = Map(props.toSeq:_*); self
+    }
 }
 
-trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {
+trait ExteriorPort[T] extends Port[T] {
     var tunnelKey: Long = _
     var portGroups: Set[UUID] = null
-    var properties: Map[String, String] = null
     var hostID: UUID = null
     var interfaceName: String = null
 
@@ -53,8 +62,9 @@ trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {
         portGroups = groups; self
     }
 
-    def setProperties(props: Map[String, String]): T = {
-        properties = props; self
+    def setPortGroups(groups: java.util.Set[UUID]): T = {
+        portGroups = Set(groups.toSeq:_*);
+        self
     }
 
     def setHostID(id: UUID): T = {
@@ -66,7 +76,7 @@ trait ExteriorPort[T <: ExteriorPort[T]] extends Port[T] {
     }
 }
 
-trait InteriorPort[T <: InteriorPort[T]] extends Port[T] {
+trait InteriorPort[T] extends Port[T] {
     var peerID: UUID = null
 
     def setPeerID(id: UUID): T = {
@@ -74,9 +84,9 @@ trait InteriorPort[T <: InteriorPort[T]] extends Port[T] {
     }
 }
 
-trait BridgePort[T <: BridgePort[T]] extends Port[T] {}
+trait BridgePort[T] extends Port[T] {}
 
-trait RouterPort[T <: RouterPort[T]] extends Port[T] {
+trait RouterPort[T] extends Port[T] {
     var portAddr: IntIPv4 = null
     var portMac: MAC = null
 

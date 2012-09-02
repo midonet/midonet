@@ -3,69 +3,47 @@
  */
 package com.midokura.midolman.topology
 
+import builders.PortBuilderImpl
 import java.util.UUID
-import com.midokura.midolman.state.PortDirectory.{BridgePortConfig,
-MaterializedRouterPortConfig, LogicalBridgePortConfig}
 import com.midokura.packets.IntIPv4
-import com.midokura.midolman.state.PortConfig
+import com.midokura.midonet.cluster.Client
+import com.midokura.midolman.topology.PortManager.TriggerUpdate
+import com.midokura.midonet.cluster.client.Port
 
-class PortManager(id: UUID, val hostIp: IntIPv4) extends DeviceManager(id) {
-    private var cfg: PortConfig = null
-    private var local = false
-    private var locations: java.util.Set[IntIPv4] = null
-    refreshLocations()
+object PortManager{
+    case class TriggerUpdate(port: Port[_])
+}
 
-    case object RefreshLocations
+class PortManager(id: UUID, val hostIp: IntIPv4, val clusterClient: Client)
+    extends DeviceManager(id) {
+    var port: Port[_] = null
 
-    val locCb: Runnable = new Runnable() {
-        def run() {
-            // CAREFUL: this is not run on this Actor's thread.
-            self.tell(RefreshLocations)
-        }
+    override def chainsUpdated() {
+        log.info("chains updated")
+        context.actorFor("..").tell(port)
     }
 
-    private def refreshLocations(): Unit = {
-        locations = null; // mgr.getLocations(id, locCb)
-        makeNewPort()
+    override def preStart() {
+        clusterClient.getPort(id, new PortBuilderImpl(self))
     }
 
-    private def makeNewPort() {
-        if (chainsReady()) {
-            if (cfg.isInstanceOf[LogicalBridgePortConfig] ||
-                cfg.isInstanceOf[MaterializedRouterPortConfig])
-                context.actorFor("..").tell(
-                    null) //new Port(id, cfg, inFilter, outFilter))
-            else if (null != locations)
-                context.actorFor("..").tell(
-                    null) //new MaterializedPort(
-                        //id, cfg, inFilter, outFilter, locations))
-        }
-    }
-
-    override def chainsUpdated = makeNewPort
-
-
-    /*
-    //TODO(ross) use cluster client
-    override def updateConfig() = {
-        cfg = mgr.get(id, cb)
-    } */
-
-    override def getInFilterID() = {
-        cfg match {
+    override def getInFilterID = {
+        port match {
             case null => null;
-            case _ => cfg.inboundFilter
+            case _ => port.inFilterID
         }
     }
 
-    override def getOutFilterID() = {
-        cfg match {
+    override def getOutFilterID = {
+        port match {
             case null => null;
-            case _ => cfg.outboundFilter
+            case _ => port.outFilterID
         }
     }
 
-    override def receive() = super.receive orElse {
-        case RefreshLocations => refreshLocations()
+    override def receive = super.receive orElse {
+        case TriggerUpdate(p: Port[_]) =>
+            port = p
+            configUpdated()
     }
 }

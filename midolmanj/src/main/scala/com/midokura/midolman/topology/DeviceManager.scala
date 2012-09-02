@@ -76,15 +76,6 @@ abstract class DeviceManager(val id: UUID) extends Actor {
     override def receive = {
         case chain: Chain => updateChain(chain)
     }
-
-    //class abstract ConcreteBuilder extends
-    trait DeviceBuilderImpl[Builder] extends DeviceBuilder[Builder] {
-        def build() {
-            configUpdated()
-        }
-    }
-
-
 }
 
 

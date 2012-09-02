@@ -33,10 +33,23 @@ trait RemoveFlowCallbackGenerator {
     def getCallback(mac: MAC, port: UUID): Callback0
 }
 
-class BridgeConfig {
+class BridgeConfig() {
     var greKey: Int = 0 // Only set in prepareBridgeCreate
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
+
+    override def hashCode = (inboundFilter.toString + outboundFilter.toString).hashCode()
+
+    override def equals(other: Any) = other match {
+        case that: BridgeConfig =>
+            (that canEqual this) &&
+                (this.inboundFilter == that.inboundFilter) &&
+                (this.outboundFilter == that.outboundFilter)
+        case _ =>
+            false
+    }
+
+    def canEqual(other: Any) = other.isInstanceOf[BridgeConfig]
 }
 
 object BridgeManager {
@@ -48,9 +61,11 @@ object BridgeManager {
                              rtrIpToMac: ROMap[IntIPv4, MAC])
 }
 
+//TODO(ross) watch and react to port added/deleted
+//TODO(ross) handle portset?
 class BridgeManager(id: UUID, val clusterClient: Client)
         extends DeviceManager(id) {
-    private var cfg: BridgeConfig = new BridgeConfig()
+    private var cfg: BridgeConfig = null
 
     private var macPortMap: MacLearningTable = null
     private val flowCounts = new MacFlowCountImpl
@@ -59,14 +74,19 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private var rtrMacToLogicalPortId : ROMap[MAC, UUID] = null
     private var rtrIpToMac : ROMap[IntIPv4, MAC] = null
+    
+    private var filterChanged = false;
 
-    //TODO(ross) watch and react to port added/deleted
 
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
             new Bridge(id, macPortMap, flowCounts, inFilter, outFilter,
                        flowRemovedCallback, rtrMacToLogicalPortId, rtrIpToMac))
+        if(filterChanged){
+            FlowController.getRef() ! FlowController.InvalidateFlowByTag((id, null, null))
+        }
+        filterChanged = false
     }
 
     override def preStart() {
@@ -124,6 +144,10 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             }
         case TriggerUpdate(newCfg, newMacLeaningTable, newRtrMacToLogicalPortId,
                            newRtrIpToMac) =>
+            if(newCfg != cfg && cfg != null){
+                // the cfg of this bridge changed, invalidate all the flows
+                filterChanged = true
+            }
             cfg = newCfg
             macPortMap = newMacLeaningTable
             rtrMacToLogicalPortId = newRtrMacToLogicalPortId

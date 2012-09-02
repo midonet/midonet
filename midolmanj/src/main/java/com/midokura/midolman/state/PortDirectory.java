@@ -9,9 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.util.Net;
 
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
@@ -35,6 +35,7 @@ public class PortDirectory {
             return super.equals(other);
         }
     }
+
 
     public static abstract class RouterPortConfig extends PortConfig {
         // TODO(pino): use IntIPv4 for Babuza!
@@ -205,7 +206,17 @@ public class PortDirectory {
         }
     }
 
-    public static class MaterializedBridgePortConfig extends BridgePortConfig {
+
+    public interface MaterializedPortConfig{
+        UUID getHostId();
+        String getInterfaceName();
+
+        void setHostId(UUID id);
+        void setInterfaceName(String interfaceName);
+    }
+
+    public static class MaterializedBridgePortConfig extends BridgePortConfig
+    implements MaterializedPortConfig {
 
         public UUID hostId;
         public String interfaceName;
@@ -216,13 +227,15 @@ public class PortDirectory {
 
         // Default constructor for the Jackson deserialization
         public MaterializedBridgePortConfig() { super(); }
-
+        
         public UUID getHostId() { return hostId; }
+        
         public void setHostId(UUID hostId) {
             this.hostId = hostId;
         }
 
         public String getInterfaceName() { return interfaceName; }
+
         public void setInterfaceName(String interfaceName) {
             this.interfaceName = interfaceName;
         }
@@ -251,7 +264,8 @@ public class PortDirectory {
         }
     }
 
-    public static class MaterializedRouterPortConfig extends RouterPortConfig {
+    public static class MaterializedRouterPortConfig extends RouterPortConfig
+        implements MaterializedPortConfig {
         public int localNwAddr;
         public int localNwLength;
         public UUID hostId;
@@ -286,6 +300,7 @@ public class PortDirectory {
         }
 
         public String getInterfaceName() { return interfaceName; }
+
         public void setInterfaceName(String interfaceName) {
             this.interfaceName = interfaceName;
         }

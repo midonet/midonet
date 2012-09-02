@@ -6,11 +6,7 @@ package com.midokura.midolman.state;
 
 import java.util.HashSet;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +17,9 @@ import static org.hamcrest.core.IsNull.nullValue;
 
 import com.midokura.midolman.Setup;
 import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.util.eventloop.MockReactor;
 
 public class TestPortConfigCache {
@@ -86,7 +85,7 @@ public class TestPortConfigCache {
         return config;
     }
 
-    @Test
+   /* @Test
     public void testExpiration() throws StateAccessException {
         testExistingPortID();
         assertThat("The cache should contain the portID as key",
@@ -98,9 +97,9 @@ public class TestPortConfigCache {
         portMgr.update(portID, getNewConfig());
         assertThat("The cache should no longer contain the portID as key",
                 !portCache.hasKey(portID));
-    }
+    } */
 
-    @Test
+   /* @Test
     public void testPinning() throws StateAccessException {
         testExistingPortID();
         assertThat("The cache should contain the portID as key",
@@ -123,7 +122,7 @@ public class TestPortConfigCache {
         portMgr.update(portID, getNewConfig());
         assertThat("The cache should no longer contain the portID as key",
                 !portCache.hasKey(portID));
-    }
+    } */
 
     @Test
     public void testConfigChanges() throws StateAccessException {
