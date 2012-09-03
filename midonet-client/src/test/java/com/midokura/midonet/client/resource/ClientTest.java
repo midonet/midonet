@@ -86,9 +86,7 @@ public class ClientTest extends JerseyTest {
         Bridge b2 = mgmt.addBridge().tenantId("tenant-1").name("bridge-2")
                         .create();
 
-        //TODO: debug server; after this update, getBridges right below
-        // blows up in server.
-        //b2 = b2.name("bridge-222").update();
+        b2 = b2.name("bridge-222").update();
 
         assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(2));
         for (Bridge b : mgmt.getBridges("tenant_id=tenant-1")) {
