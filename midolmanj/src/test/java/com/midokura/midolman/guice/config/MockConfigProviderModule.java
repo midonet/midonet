@@ -8,7 +8,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import com.midokura.config.ConfigProvider;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * A {@link ConfigProviderModule} specialization which will use an passed in
+ * {@link HierarchicalConfiguration} configuration
  */
 public class MockConfigProviderModule extends ConfigProviderModule {
 

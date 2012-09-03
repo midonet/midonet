@@ -7,7 +7,7 @@ import com.midokura.config.ConfigGroup;
 import com.midokura.config.ConfigString;
 
 /**
- * // TODO: Explain yourself.
+ * Memcache configuration interface
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 6/14/12

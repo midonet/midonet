@@ -8,7 +8,7 @@ import com.midokura.config.ConfigInt;
 import com.midokura.config.ConfigString;
 
 /**
- * // TODO: Explain yourself.
+ * Cassandra configuration interface.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 6/14/12

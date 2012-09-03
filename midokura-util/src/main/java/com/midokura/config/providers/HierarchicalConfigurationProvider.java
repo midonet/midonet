@@ -8,12 +8,6 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 
 import com.midokura.config.ConfigProvider;
 
-/**
- * // TODO: Explain yourself.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/14/12
- */
 public class HierarchicalConfigurationProvider extends ConfigProvider {
 
     private HierarchicalConfiguration config;
