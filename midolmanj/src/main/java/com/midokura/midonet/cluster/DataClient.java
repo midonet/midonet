@@ -12,6 +12,7 @@ import com.midokura.midonet.cluster.data.AvailabilityZone;
 import com.midokura.midonet.cluster.data.Bridge;
 import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Port;
+import com.midokura.util.functors.Callback2;
 
 public interface DataClient {
 
@@ -41,7 +42,16 @@ public interface DataClient {
      * @param active true / false depending on what state we want in the end
      *               for the port
      */
-    void portsSetActive(UUID portID, boolean active);
+    void portsSetLocalAndActive(UUID portID, boolean active);
+
+    /**
+     * Register a callback to be called whenever a port becomes "local and
+     * active" or stops being so. This may be used e.g. by the BGP Manager
+     * to discover the local ports, so that it may then watch those specific
+     * ports and manage their BGPs (if any).
+     * @param cb
+     */
+    void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb);
 
     UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
         throws StateAccessException;

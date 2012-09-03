@@ -26,6 +26,15 @@ sealed trait DeviceRequest
 
 case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
 
+/**
+ * This message sent to the VTA requests a port's list of BGPs. The response
+ * is a sequence of BGP read-copy-update objects. Each BGP object includes
+ * the owner port identifier for the convenience of the caller.
+ * @param portID
+ * @param update
+ */
+case class BGPListRequest(portID: UUID, update: Boolean)
+
 case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
 
 case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
