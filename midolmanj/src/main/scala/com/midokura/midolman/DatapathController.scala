@@ -268,6 +268,19 @@ object DatapathController extends Referenceable {
                                    tag: Option[AnyRef])
         extends PortOpReply[CapWapTunnelPort]
 
+    /**
+     * This message requests that the DatapathController keep a temporary
+     * binding of a virtual port (port in the virtual topology) to a local
+     * datapath port. This may be used e.g. by the VPNManager to create
+     * VPN ports - VPN ports are not associated with VMs and therefore not
+     * in any host's Interface-VPort mappings.
+     *
+     * The binding will be removed when the datapath port is deleted.
+     * @param vportID
+     * @param port
+     */
+    case class BindVirtualToDatapathPort(vportID: UUID, port: Port[_, _])
+
     case class InstallFlow(flow: KernelFlow)
 
     case class DeleteFlow(flow: KernelFlow)

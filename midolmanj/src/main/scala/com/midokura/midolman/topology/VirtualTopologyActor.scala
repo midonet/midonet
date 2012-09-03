@@ -32,6 +32,20 @@ case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
 
 case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
+// The VPN Actor sends this message to the Virtual Topology Actor to register
+// interest in managing VPNs. The VTA subsequently will try to 'lock' VPNs
+// on behalf of the local host ID and send notifications of any acquired
+// VPN locks to the local VPNManager.
+case class RegisterVPNHandler()
+
+// The Virtual Topology Actor sends this message to the VPNmanager whenever
+// a lock is acquired/released to manage a VPN.
+case class AcquiredLockOnVPN(vpnID: UUID, acquired: Boolean)
+
+// Clients send this message to the VTA to requests the configuration
+// of a VPN. Once ready, the VTA sends back a VPN read-copy-update object.
+case class VPNRequest(id: UUID, update: Boolean)
+
 sealed trait Unsubscribe
 
 case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
