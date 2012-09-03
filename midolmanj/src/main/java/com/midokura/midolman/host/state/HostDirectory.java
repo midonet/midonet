@@ -168,7 +168,7 @@ public class HostDirectory {
         InetAddress[] addresses;
 
         @JsonIgnore
-        Set<UUID> availabilityZones = new HashSet<UUID>();
+        Set<UUID> tunnelZones = new HashSet<UUID>();
 
         // Default constructor for the Jackson de-serialization.
         public Metadata() {
@@ -190,12 +190,12 @@ public class HostDirectory {
             this.addresses = addresses;
         }
 
-        public Set<UUID> getAvailabilityZones() {
-            return availabilityZones;
+        public Set<UUID> getTunnelZones() {
+            return tunnelZones;
         }
 
-        public void setAvailabilityZones(Set<UUID> availabilityZones) {
-            this.availabilityZones = availabilityZones;
+        public void setTunnelZones(Set<UUID> tunnelZones) {
+            this.tunnelZones = tunnelZones;
         }
     }
 

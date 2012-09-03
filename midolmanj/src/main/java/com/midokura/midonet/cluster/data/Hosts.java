@@ -17,7 +17,7 @@ public class Hosts {
 
         metadata.setName(host.getName());
         metadata.setAddresses(host.getAddresses());
-        metadata.setAvailabilityZones(new HashSet<UUID>(host.getAvailabilityZones()));
+        metadata.setTunnelZones(new HashSet<UUID>(host.getAvailabilityZones()));
 
         return metadata;
     }

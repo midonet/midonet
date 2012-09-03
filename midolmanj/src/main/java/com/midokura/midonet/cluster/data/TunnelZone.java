@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
 /**
  *
  */
-public abstract class AvailabilityZone<
-    Zone extends AvailabilityZone<Zone, ZoneData>,
-    ZoneData extends AvailabilityZone.Data
+public abstract class TunnelZone<
+    Zone extends TunnelZone<Zone, ZoneData>,
+    ZoneData extends TunnelZone.Data
     > extends Entity.Base<UUID, ZoneData, Zone> {
 
     public static enum Type {
@@ -20,7 +20,7 @@ public abstract class AvailabilityZone<
 
     public abstract Type getType();
 
-    protected AvailabilityZone(UUID uuid, @Nonnull ZoneData data) {
+    protected TunnelZone(UUID uuid, @Nonnull ZoneData data) {
         super(uuid, data);
     }
 

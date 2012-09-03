@@ -13,7 +13,7 @@ import collection.mutable
 import physical.Host
 import scala.collection.JavaConversions._
 import com.midokura.midolman.topology.HostManager.Start
-import com.midokura.midonet.cluster.data.AvailabilityZone
+import com.midokura.midonet.cluster.data.TunnelZone
 import java.util
 
 object HostManager {
@@ -45,7 +45,7 @@ class HostManager extends Actor {
 
         var hostLocalPorts = mutable.Map[UUID, String]()
         var hostLocalDatapath: String = ""
-        var hostAvailabilityZoneConfigs = mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]]()
+        var hostTunnelZoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig[_, _]]()
 
 
         def setDatapathName(datapathName: String): HostBuilder = {
@@ -63,9 +63,9 @@ class HostManager extends Actor {
             this
         }
 
-        def setAvailabilityZones(zoneConfigs: util.Map[UUID, AvailabilityZone.HostConfig[_, _]]): HostBuilder = {
-            hostAvailabilityZoneConfigs.clear()
-            hostAvailabilityZoneConfigs ++= zoneConfigs
+        def setTunnelZones(zoneConfigs: util.Map[UUID, TunnelZone.HostConfig[_, _]]): HostBuilder = {
+            hostTunnelZoneConfigs.clear()
+            hostTunnelZoneConfigs ++= zoneConfigs
             this
         }
 
@@ -75,7 +75,7 @@ class HostManager extends Actor {
             actor !
                 new Host(host,
                     hostLocalDatapath, hostLocalPorts.toMap,
-                    hostAvailabilityZoneConfigs.toMap)
+                    hostTunnelZoneConfigs.toMap)
         }
     }
 }

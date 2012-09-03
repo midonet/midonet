@@ -23,84 +23,84 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.util.JSONSerializer;
-import com.midokura.midonet.cluster.data.AvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.CapwapAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.CapwapAvailabilityZoneHost;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZoneHost;
-import com.midokura.midonet.cluster.data.zones.IpsecAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.IpsecAvailabilityZoneHost;
+import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
+import com.midokura.midonet.cluster.data.zones.CapwapTunnelZoneHost;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
+import com.midokura.midonet.cluster.data.zones.IpsecTunnelZone;
+import com.midokura.midonet.cluster.data.zones.IpsecTunnelZoneHost;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
-public class AvailabilityZoneZkManager extends ZkManager {
+public class TunnelZoneZkManager extends ZkManager {
 
     private final static Logger log =
-        LoggerFactory.getLogger(AvailabilityZoneZkManager.class);
+        LoggerFactory.getLogger(TunnelZoneZkManager.class);
 
-    public AvailabilityZoneZkManager(Directory zk, String basePath) {
+    public TunnelZoneZkManager(Directory zk, String basePath) {
         super(zk, basePath);
         serializer = new ZkConfigSerializer(
             new JSONSerializer()
-                .useMixin(AvailabilityZone.Data.class,
+                .useMixin(TunnelZone.Data.class,
                           ZoneDataMixin.class)
-                .useMixin(AvailabilityZone.HostConfig.Data.class,
+                .useMixin(TunnelZone.HostConfig.Data.class,
                           ZoneHostDataMixin.class)
         );
     }
 
-    public AvailabilityZone<?, ?> getZone(UUID zoneId, Directory.TypedWatcher watcher)
+    public TunnelZone<?, ?> getZone(UUID zoneId, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
-        byte[] bytes = get(pathManager.getAvailabilityZonePath(zoneId),
+        byte[] bytes = get(pathManager.getTunnelZonePath(zoneId),
                            watcher);
-        AvailabilityZone.Data data =
-            serializer.deserialize(bytes, AvailabilityZone.Data.class);
+        TunnelZone.Data data =
+            serializer.deserialize(bytes, TunnelZone.Data.class);
 
-        if (data instanceof GreAvailabilityZone.Data) {
-            GreAvailabilityZone.Data greData = (GreAvailabilityZone.Data) data;
-            return new GreAvailabilityZone(zoneId, greData);
+        if (data instanceof GreTunnelZone.Data) {
+            GreTunnelZone.Data greData = (GreTunnelZone.Data) data;
+            return new GreTunnelZone(zoneId, greData);
         }
 
-        if (data instanceof IpsecAvailabilityZone.Data) {
-            IpsecAvailabilityZone.Data ipsecData = (IpsecAvailabilityZone.Data) data;
-            return new IpsecAvailabilityZone(zoneId, ipsecData);
+        if (data instanceof IpsecTunnelZone.Data) {
+            IpsecTunnelZone.Data ipsecData = (IpsecTunnelZone.Data) data;
+            return new IpsecTunnelZone(zoneId, ipsecData);
         }
 
-        if (data instanceof CapwapAvailabilityZone.Data) {
-            CapwapAvailabilityZone.Data capwapData = (CapwapAvailabilityZone.Data) data;
-            return new CapwapAvailabilityZone(zoneId, capwapData);
+        if (data instanceof CapwapTunnelZone.Data) {
+            CapwapTunnelZone.Data capwapData = (CapwapTunnelZone.Data) data;
+            return new CapwapTunnelZone(zoneId, capwapData);
         }
 
         return null;
     }
 
-    public AvailabilityZone.HostConfig<?, ?> getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)
+    public TunnelZone.HostConfig<?, ?> getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
         byte[] bytes =
-            get(pathManager.getAvailabilityZoneMembershipPath(zoneId, hostId),
+            get(pathManager.getTunnelZoneMembershipPath(zoneId, hostId),
                 watcher);
 
-        AvailabilityZone.HostConfig.Data data =
-            serializer.deserialize(bytes, AvailabilityZone.HostConfig.Data.class);
+        TunnelZone.HostConfig.Data data =
+            serializer.deserialize(bytes, TunnelZone.HostConfig.Data.class);
 
-        if (data instanceof GreAvailabilityZoneHost.Data) {
-            return new GreAvailabilityZoneHost(
+        if (data instanceof GreTunnelZoneHost.Data) {
+            return new GreTunnelZoneHost(
                 hostId,
-                (GreAvailabilityZoneHost.Data) data);
+                (GreTunnelZoneHost.Data) data);
         }
 
-        if (data instanceof IpsecAvailabilityZoneHost.Data) {
-            return new IpsecAvailabilityZoneHost(
+        if (data instanceof IpsecTunnelZoneHost.Data) {
+            return new IpsecTunnelZoneHost(
                 hostId,
-                (IpsecAvailabilityZoneHost.Data) data);
+                (IpsecTunnelZoneHost.Data) data);
         }
 
-        if (data instanceof CapwapAvailabilityZoneHost.Data) {
-            return new CapwapAvailabilityZoneHost(
+        if (data instanceof CapwapTunnelZoneHost.Data) {
+            return new CapwapTunnelZoneHost(
                 hostId,
-                (CapwapAvailabilityZoneHost.Data) data);
+                (CapwapTunnelZoneHost.Data) data);
         }
 
         return null;
@@ -110,7 +110,7 @@ public class AvailabilityZoneZkManager extends ZkManager {
         throws StateAccessException {
 
         String zoneMembershipsPath =
-            pathManager.getAvailabilityZoneMembershipsPath(zoneId);
+            pathManager.getTunnelZoneMembershipsPath(zoneId);
 
         if (!exists(zoneMembershipsPath))
             return Collections.emptySet();
@@ -126,7 +126,7 @@ public class AvailabilityZoneZkManager extends ZkManager {
         );
     }
 
-    public UUID createZone(AvailabilityZone<?, ?> zone, Directory.TypedWatcher watcher)
+    public UUID createZone(TunnelZone<?, ?> zone, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
         log.debug("Creating availability zone {}", zone);
@@ -138,24 +138,24 @@ public class AvailabilityZoneZkManager extends ZkManager {
             zoneId = UUID.randomUUID();
         }
 
-        if (!exists(pathManager.getAvailabilityZonesPath())) {
+        if (!exists(pathManager.getTunnelZonesPath())) {
             createMulti.add(
                 getPersistentCreateOp(
-                    pathManager.getAvailabilityZonesPath(), null
+                    pathManager.getTunnelZonesPath(), null
                 )
             );
         }
 
         createMulti.add(
             getPersistentCreateOp(
-                pathManager.getAvailabilityZonePath(zoneId),
+                pathManager.getTunnelZonePath(zoneId),
                 serializer.serialize(zone.getData())
             )
         );
 
         createMulti.add(
             getPersistentCreateOp(
-                pathManager.getAvailabilityZoneMembershipsPath(zoneId),
+                pathManager.getTunnelZoneMembershipsPath(zoneId),
                 null
             )
         );
@@ -165,17 +165,17 @@ public class AvailabilityZoneZkManager extends ZkManager {
         return zoneId;
     }
 
-    public UUID addMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+    public UUID addMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
         log.debug("Adding to availability zone {} <- {}", zoneId, hostConfig);
 
-        String zonePath = pathManager.getAvailabilityZonePath(zoneId);
+        String zonePath = pathManager.getTunnelZonePath(zoneId);
         if (!exists(zonePath))
             return null;
 
         List<Op> ops = new ArrayList<Op>();
 
-        String membershipsPath = pathManager.getAvailabilityZoneMembershipsPath(
+        String membershipsPath = pathManager.getTunnelZoneMembershipsPath(
             zoneId);
         if ( !exists(membershipsPath)) {
             ops.add(
@@ -183,7 +183,9 @@ public class AvailabilityZoneZkManager extends ZkManager {
             );
         }
 
-        String membershipPath = pathManager.getAvailabilityZoneMembershipPath(zoneId, hostConfig.getId());
+        String membershipPath = pathManager.getTunnelZoneMembershipPath(zoneId,
+                                                                        hostConfig
+                                                                            .getId());
         if (exists(membershipPath)) {
             ops.add(getDeleteOp(membershipPath));
         }
@@ -200,7 +202,7 @@ public class AvailabilityZoneZkManager extends ZkManager {
 
     public void deleteZone(UUID uuid) throws StateAccessException {
 
-        String zonePath = pathManager.getAvailabilityZonePath(uuid);
+        String zonePath = pathManager.getTunnelZonePath(uuid);
 
         if (!exists(zonePath)) {
             multi(getRecursiveDeleteOps(zonePath));
@@ -210,7 +212,7 @@ public class AvailabilityZoneZkManager extends ZkManager {
     public void delMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
         try {
-            delete(pathManager.getAvailabilityZoneMembershipPath(zoneId, membershipId));
+            delete(pathManager.getTunnelZoneMembershipPath(zoneId, membershipId));
         } catch (NoStatePathException e) {
             // silently fail if the node was already deleted.
         }
@@ -222,13 +224,13 @@ public class AvailabilityZoneZkManager extends ZkManager {
     @JsonSubTypes(
         {
             @JsonSubTypes.Type(
-                value = GreAvailabilityZone.Data.class,
+                value = GreTunnelZone.Data.class,
                 name = "gre"),
             @JsonSubTypes.Type(
-                value = IpsecAvailabilityZone.Data.class,
+                value = IpsecTunnelZone.Data.class,
                 name = "ipsec"),
             @JsonSubTypes.Type(
-                value = CapwapAvailabilityZone.Data.class,
+                value = CapwapTunnelZone.Data.class,
                 name = "capwap")
         }
     )
@@ -244,13 +246,13 @@ public class AvailabilityZoneZkManager extends ZkManager {
     @JsonSubTypes(
         {
             @JsonSubTypes.Type(
-                value = GreAvailabilityZoneHost.Data.class,
+                value = GreTunnelZoneHost.Data.class,
                 name = "gre"),
             @JsonSubTypes.Type(
-                value = IpsecAvailabilityZoneHost.Data.class,
+                value = IpsecTunnelZoneHost.Data.class,
                 name = "ipsec"),
             @JsonSubTypes.Type(
-                value = CapwapAvailabilityZoneHost.Data.class,
+                value = CapwapTunnelZoneHost.Data.class,
                 name = "capwap")
         }
     )

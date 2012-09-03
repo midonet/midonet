@@ -20,19 +20,19 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
-import com.midokura.midolman.state.zkManagers.AvailabilityZoneZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midonet.cluster.client.AvailabilityZones;
+import com.midokura.midonet.cluster.client.TunnelZones;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
 import com.midokura.midonet.cluster.client.PortBuilder;
 import com.midokura.midonet.cluster.client.RouterBuilder;
-import com.midokura.midonet.cluster.data.AvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZoneHost;
+import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
 import com.midokura.util.eventloop.Reactor;
-import static com.midokura.midonet.cluster.client.AvailabilityZones.GreBuilder;
+import static com.midokura.midonet.cluster.client.TunnelZones.GreBuilder;
 
 /**
  * Implementation of the Cluster.Client using ZooKeeper
@@ -53,7 +53,7 @@ public class LocalClientImpl implements Client {
     BgpZkManager bgpZkManager;
 
     @Inject
-    AvailabilityZoneZkManager aZoneZkManager;
+    TunnelZoneZkManager tunnelZoneZkManager;
 
     @Inject
     ClusterRouterManager routerManager;
@@ -122,21 +122,21 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getAvailabilityZone(final UUID zoneID, AvailabilityZones.BuildersProvider builders) {
+    public void getTunnelZones(final UUID zoneID, TunnelZones.BuildersProvider builders) {
 
-        AvailabilityZone<?, ?> zone = readAvailabilityZone(zoneID, builders);
+        TunnelZone<?, ?> zone = readAvailabilityZone(zoneID, builders);
 
-        readHosts(zone, new HashMap<UUID, AvailabilityZone.HostConfig<?, ?>>(),
+        readHosts(zone, new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
                   builders);
     }
 
-    private void readHosts(final AvailabilityZone<?, ?> zone,
-                           final Map<UUID, AvailabilityZone.HostConfig<?, ?>> zoneHosts,
-                           final AvailabilityZones.BuildersProvider builders) {
+    private void readHosts(final TunnelZone<?, ?> zone,
+                           final Map<UUID, TunnelZone.HostConfig<?, ?>> zoneHosts,
+                           final TunnelZones.BuildersProvider builders) {
 
         try {
             Set<UUID> currentList =
-                aZoneZkManager.getZoneMemberships(zone.getId(),
+                tunnelZoneZkManager.getZoneMemberships(zone.getId(),
                                                   new Directory.DefaultTypedWatcher() {
                                                       @Override
                                                       public void pathChildrenUpdated(String path) {
@@ -147,13 +147,13 @@ public class LocalClientImpl implements Client {
                                                       }
                                                   });
 
-            Set<AvailabilityZone.HostConfig<?, ?>> newMemberships =
-                new HashSet<AvailabilityZone.HostConfig<?, ?>>();
+            Set<TunnelZone.HostConfig<?, ?>> newMemberships =
+                new HashSet<TunnelZone.HostConfig<?, ?>>();
 
             for (UUID uuid : currentList) {
                 if (!zoneHosts.containsKey(uuid)) {
                     newMemberships.add(
-                        aZoneZkManager.getZoneMembership(
+                        tunnelZoneZkManager.getZoneMembership(
                             zone.getId(), uuid, null)
                     );
                 }
@@ -166,7 +166,7 @@ public class LocalClientImpl implements Client {
                 }
             }
 
-            for (AvailabilityZone.HostConfig<?, ?> newHost : newMemberships) {
+            for (TunnelZone.HostConfig<?, ?> newHost : newMemberships) {
                 triggerZoneMembershipChange(zone, newHost, builders, true);
                 zoneHosts.put(newHost.getId(), newHost);
             }
@@ -182,14 +182,14 @@ public class LocalClientImpl implements Client {
         }
     }
 
-    private void triggerZoneMembershipChange(AvailabilityZone<?, ?> zone,
-                                             AvailabilityZone.HostConfig<?, ?> hostConfig,
-                                             AvailabilityZones.BuildersProvider buildersProvider,
+    private void triggerZoneMembershipChange(TunnelZone<?, ?> zone,
+                                             TunnelZone.HostConfig<?, ?> hostConfig,
+                                             TunnelZones.BuildersProvider buildersProvider,
                                              boolean added) {
         switch (zone.getType()) {
             case Gre:
-                if (hostConfig instanceof GreAvailabilityZoneHost) {
-                    GreAvailabilityZoneHost greConfig = (GreAvailabilityZoneHost) hostConfig;
+                if (hostConfig instanceof GreTunnelZoneHost) {
+                    GreTunnelZoneHost greConfig = (GreTunnelZoneHost) hostConfig;
 
                     if (added) {
                         buildersProvider
@@ -208,12 +208,12 @@ public class LocalClientImpl implements Client {
         }
     }
 
-    private AvailabilityZone<?, ?> readAvailabilityZone(final UUID zoneID,
-                                                        final AvailabilityZones.BuildersProvider builders) {
+    private TunnelZone<?, ?> readAvailabilityZone(final UUID zoneID,
+                                                        final TunnelZones.BuildersProvider builders) {
 
         try {
-            AvailabilityZone<?, ?> zone =
-                aZoneZkManager.getZone(
+            TunnelZone<?, ?> zone =
+                tunnelZoneZkManager.getZone(
                     zoneID,
                     new Directory.DefaultTypedWatcher() {
                         @Override
@@ -222,13 +222,13 @@ public class LocalClientImpl implements Client {
                         }
                     });
 
-            if (zone instanceof GreAvailabilityZone) {
-                final GreAvailabilityZone greZone = (GreAvailabilityZone) zone;
+            if (zone instanceof GreTunnelZone) {
+                final GreTunnelZone greZone = (GreTunnelZone) zone;
                 builders.getGreZoneBuilder()
                         .setConfiguration(
                             new GreBuilder.ZoneConfig() {
                                 @Override
-                                public GreAvailabilityZone getAvailabilityZoneConfig() {
+                                public GreTunnelZone getTunnelZoneConfig() {
                                     return greZone;
                                 }
                             });
@@ -323,16 +323,16 @@ public class LocalClientImpl implements Client {
             //     oldMappings into the newMappings and only after we return
             //     successfully from the getVirtualPortMappings we have sent the
             //     updates to the callers
-            final Set<HostDirectory.VirtualPortMapping> newMappings
-                = hostManager
-                .getVirtualPortMappings(
-                    hostId, new Directory.DefaultTypedWatcher() {
-                    @Override
-                    public void pathChildrenUpdated(String path) {
-                        retrieveHostVirtualPortMappings(
-                            hostId, builder, oldMappings, true);
-                    }
-                });
+            final Set<HostDirectory.VirtualPortMapping> newMappings =
+                hostManager
+                    .getVirtualPortMappings(
+                        hostId, new Directory.DefaultTypedWatcher() {
+                        @Override
+                        public void pathChildrenUpdated(String path) {
+                            retrieveHostVirtualPortMappings(
+                                hostId, builder, oldMappings, true);
+                        }
+                    });
 
             for (HostDirectory.VirtualPortMapping mapping : oldMappings) {
                 if (!newMappings.contains(mapping)) {
@@ -386,16 +386,16 @@ public class LocalClientImpl implements Client {
         }
     }
 
-    private Map<UUID, AvailabilityZone.HostConfig<?, ?>>
+    private Map<UUID, TunnelZone.HostConfig<?, ?>>
     retrieveAvailabilityZoneConfigs(final UUID hostId,
                                     final Set<UUID> oldZones,
                                     final HostBuilder builder) {
         try {
-            Map<UUID, AvailabilityZone.HostConfig<?, ?>> zoneConfigsForHost =
-                new HashMap<UUID, AvailabilityZone.HostConfig<?, ?>>();
+            Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
+                new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
 
             Set<UUID> newZones =
-                hostManager.getAvailabilityZoneIds(
+                hostManager.getTunnelZoneIds(
                     hostId,
                     new Directory.DefaultTypedWatcher() {
                         @Override
@@ -406,17 +406,17 @@ public class LocalClientImpl implements Client {
                     });
 
             for (UUID uuid : newZones) {
-                zoneConfigsForHost.put(
+                hostTunnelZones.put(
                     uuid,
-                    aZoneZkManager.getZoneMembership(uuid, hostId, null));
+                    tunnelZoneZkManager.getZoneMembership(uuid, hostId, null));
             }
 
-            builder.setAvailabilityZones(zoneConfigsForHost);
+            builder.setTunnelZones(hostTunnelZones);
 
             oldZones.clear();
             oldZones.addAll(newZones);
 
-            return zoneConfigsForHost;
+            return hostTunnelZones;
         } catch (StateAccessException e) {
             log.error("Exception", e);
             return null;

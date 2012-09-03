@@ -7,34 +7,34 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.midokura.midonet.cluster.data.AvailabilityZone;
+import com.midokura.midonet.cluster.data.TunnelZone;
 import com.midokura.packets.IntIPv4;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
  */
-public class GreAvailabilityZoneHost
+public class GreTunnelZoneHost
     extends
-    AvailabilityZone.HostConfig<GreAvailabilityZoneHost, GreAvailabilityZoneHost.Data> {
+    TunnelZone.HostConfig<GreTunnelZoneHost, GreTunnelZoneHost.Data> {
 
-    public GreAvailabilityZoneHost() {
+    public GreTunnelZoneHost() {
         this(null, new Data());
     }
 
-    public GreAvailabilityZoneHost(UUID uuid) {
+    public GreTunnelZoneHost(UUID uuid) {
         this(uuid, new Data());
     }
 
-    public GreAvailabilityZoneHost(UUID uuid, @Nonnull Data data) {
+    public GreTunnelZoneHost(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }
 
     @Override
-    protected GreAvailabilityZoneHost self() {
+    protected GreTunnelZoneHost self() {
         return this;
     }
 
-    public GreAvailabilityZoneHost setIp(IntIPv4 ip) {
+    public GreTunnelZoneHost setIp(IntIPv4 ip) {
         getData().ip = ip;
         return this;
     }
@@ -43,7 +43,7 @@ public class GreAvailabilityZoneHost
         return getData().ip;
     }
 
-    public static class Data extends AvailabilityZone.HostConfig.Data {
+    public static class Data extends TunnelZone.HostConfig.Data {
         IntIPv4 ip;
 
         @Override

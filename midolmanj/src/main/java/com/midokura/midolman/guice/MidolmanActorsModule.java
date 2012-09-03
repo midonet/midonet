@@ -14,7 +14,7 @@ import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
-import com.midokura.midolman.topology.AvailabilityZoneManager;
+import com.midokura.midolman.topology.TunnelZoneManager;
 import com.midokura.midolman.topology.HostManager;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
@@ -49,7 +49,7 @@ public class MidolmanActorsModule extends PrivateModule {
 
         bind(FlowManager.class);
         bind(HostManager.class);
-        bind(AvailabilityZoneManager.class);
+        bind(TunnelZoneManager.class);
     }
 
     protected void bindMidolmanActorsService() {

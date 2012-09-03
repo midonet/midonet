@@ -6,7 +6,7 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
-import com.midokura.midonet.cluster.client.AvailabilityZones;
+import com.midokura.midonet.cluster.client.TunnelZones;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
@@ -29,5 +29,5 @@ public interface Client {
 
     void getHost(UUID hostIdentifier, HostBuilder builder);
 
-    void getAvailabilityZone(UUID uuid, AvailabilityZones.BuildersProvider builders);
+    void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
 }

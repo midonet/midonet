@@ -24,9 +24,9 @@ import java.util.UUID
 import java.lang
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
-import com.midokura.midonet.cluster.data.AvailabilityZone
-import com.midokura.midonet.cluster.data.zones.{GreAvailabilityZoneHost, GreAvailabilityZone}
-import com.midokura.midonet.cluster.client.AvailabilityZones
+import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
+import com.midokura.midonet.cluster.client.TunnelZones
 import akka.actor.{ActorRef, Actor}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import scala.Some
@@ -307,10 +307,7 @@ object DatapathController extends Referenceable {
 
     case class PacketIn(packet: Packet, wMatch: WildcardMatch)
 
-    class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {
-
-    }
-
+    class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 }
 
 
@@ -378,8 +375,8 @@ class DatapathController() extends Actor {
     // the list of local ports
     val localPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
     val knownPortsByName: mutable.Set[String] = mutable.Set()
-    val zones = mutable.Map[UUID, AvailabilityZone[_, _]]()
-    val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, AvailabilityZones.Builder.HostConfig]]()
+    val zones = mutable.Map[UUID, TunnelZone[_, _]]()
+    val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
 
     // peerHostId -> { ZoneID -> tunnelName }
@@ -416,7 +413,7 @@ class DatapathController() extends Actor {
             become(DatapathControllerActor)
             FlowController.getRef() ! DatapathController.DatapathReady(datapath)
             for ((zoneId, zone) <- host.zones) {
-                VirtualToPhysicalMapper.getRef() ! AvailabilityZoneRequest(zoneId)
+                VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
             initializer forward m
 
@@ -471,15 +468,15 @@ class DatapathController() extends Actor {
             doDatapathPortsUpdate(host.ports)
             doDatapathZonesReply(host.zones)
 
-        case zone: AvailabilityZone[_, _] =>
+        case zone: TunnelZone[_, _] =>
             log.info("Got new zone notification for zone: {}", zone)
             if (!host.zones.contains(zone.getId)) {
                 zones.remove(zone.getId)
                 zonesToHosts.remove(zone.getId)
-                VirtualToPhysicalMapper.getRef() ! AvailabilityZoneUnsubscribe(zone.getId)
+                VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
             } else {
                 zones.put(zone.getId, zone)
-                zonesToHosts.put(zone.getId, mutable.Map[UUID, AvailabilityZones.Builder.HostConfig]())
+                zonesToHosts.put(zone.getId, mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
             }
 
         case m: ZoneChanged[_] =>
@@ -504,56 +501,42 @@ class DatapathController() extends Actor {
             handleFlowPacketIn(packet, wildcard)
     }
 
-    def newGreTunnelPortName(source: GreAvailabilityZoneHost, target: GreAvailabilityZoneHost): String = {
+    def newGreTunnelPortName(source: GreTunnelZoneHost, target: GreTunnelZoneHost): String = {
         "tngre%08X" format target.getIp.addressAsInt()
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
-        val hostConfig = m.hostConfig.asInstanceOf[AvailabilityZone.HostConfig[_, _]]
+        val hostConfig = m.hostConfig.asInstanceOf[TunnelZone.HostConfig[_, _]]
 
         if (!zones.contains(m.zone) ||
             (hostConfig.getId == host.id &&
                 m.op == HostConfigOperation.Deleted)) {
-            VirtualToPhysicalMapper.getRef() ! AvailabilityZoneUnsubscribe(m.zone)
+            VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(m.zone)
         } else if (hostConfig.getId != host.id) {
-            m.op match {
-                case HostConfigOperation.Added =>
+            m match {
+                case GreZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
                     log.info("Opening a tunnel port to {}", m.hostConfig)
+                    val myConfig = host.zones(zone).asInstanceOf[GreTunnelZoneHost]
 
-                    m match {
-                        case gre: GreZoneChanged =>
-                            val myConfig = host.zones(m.zone).asInstanceOf[GreAvailabilityZoneHost]
+                    val greTunnelName = newGreTunnelPortName(myConfig, peerConf)
+                    val tunnelPort = Ports.newGreTunnelPort(greTunnelName)
 
-                            val greTunnelName = newGreTunnelPortName(myConfig, gre.hostConfig)
-                            val tunnelPort = Ports.newGreTunnelPort(greTunnelName)
+                    tunnelPort.setOptions(
+                        tunnelPort
+                            .newOptions()
+                            .setSourceIPv4(myConfig.getIp.addressAsInt())
+                            .setDestinationIPv4(peerConf.getIp.addressAsInt()))
 
-                            tunnelPort.setOptions(
-                                tunnelPort
-                                    .newOptions()
-                                    .setSourceIPv4(myConfig.getIp.addressAsInt())
-                                    .setDestinationIPv4(gre.hostConfig.getIp.addressAsInt()))
+                    self ! CreateTunnelGre(tunnelPort, Some((peerConf, m.zone)))
 
-                            self ! CreateTunnelGre(tunnelPort, Some((gre.hostConfig, m.zone)))
-
-                        case ipsec: IpsecZoneChanged => {
-
-                        }
-
-                        case capwap: CapwapZoneChanged => {
-
-                        }
-                        //
-                    }
-
-                case HostConfigOperation.Deleted =>
+                case GreZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
                     log.info("Closing a tunnel port to {}", m.hostConfig)
 
-                    val peerId = hostConfig.getId
-                    val zoneId = m.zone
+                    val peerId = peerConf.getId
 
                     val tunnel = peerPorts.get(peerId) match {
                         case Some(mapping) =>
-                            mapping.get(zoneId) match {
+                            mapping.get(zone) match {
                                 case Some(tunnelName) =>
                                     log.debug("Need to close the tunnel with name: {}", tunnelName)
                                     localPorts(tunnelName)
@@ -565,39 +548,30 @@ class DatapathController() extends Actor {
                     }
 
                     if (tunnel != null) {
-                        m match {
-                            case gre: GreZoneChanged if (tunnel.isInstanceOf[GreTunnelPort]) =>
-                                val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
-
-                                self ! DeleteTunnelGre(greTunnel, Some((gre.hostConfig, m.zone)))
-                            case _ =>
-                        }
+                        val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
+                        self ! DeleteTunnelGre(greTunnel, Some((peerConf, zone)))
                     }
+                case _ =>
+
             }
         }
     }
 
-    def tunnelHostConfigUpdated(hostId: UUID,
-                                oldConfig: AvailabilityZones.Builder.HostConfig,
-                                newConfig: AvailabilityZones.Builder.HostConfig) {
-
-    }
-
-    def doDatapathZonesReply(newZones: immutable.Map[UUID, AvailabilityZone.HostConfig[_, _]]) {
+    def doDatapathZonesReply(newZones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]]) {
         log.info("Local Zone list updated {}", newZones)
         for (zone <- newZones.keys) {
-            VirtualToPhysicalMapper.getRef() ! AvailabilityZoneRequest(zone)
+            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
         }
     }
 
-    def dropTunnelsInZone(zone: AvailabilityZone[_, _]) {
+    def dropTunnelsInZone(zone: TunnelZone[_, _]) {
         zonesToTunnels.get(zone.getId) match {
             case Some(tunnels) =>
                 for (port <- tunnels) {
                     port match {
                         case p: GreTunnelPort =>
                             zone match {
-                                case z: GreAvailabilityZone =>
+                                case z: GreTunnelZone =>
                                     self ! DeleteTunnelGre(p, Some(z))
                             }
                     }
@@ -717,7 +691,7 @@ class DatapathController() extends Actor {
 
         opReply match {
             case TunnelGreOpReply(p, PortOperation.Create, false, null,
-            Some((hConf: GreAvailabilityZoneHost, zone: UUID))) =>
+            Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
 
                 peerPorts.get(hConf.getId) match {
                     case Some(tunnels) => tunnels.put(zone, p.getName)
@@ -726,7 +700,7 @@ class DatapathController() extends Actor {
                 }
 
             case TunnelGreOpReply(p, PortOperation.Delete, false, null,
-            Some((hConf: GreAvailabilityZoneHost, zone: UUID))) =>
+            Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
 
                 peerPorts.get(hConf.getId) match {
                     case Some(zoneTunnelMap) =>

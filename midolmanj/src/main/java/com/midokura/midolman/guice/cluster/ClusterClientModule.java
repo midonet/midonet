@@ -26,7 +26,7 @@ import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
-import com.midokura.midolman.state.zkManagers.AvailabilityZoneZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
@@ -36,6 +36,7 @@ import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.Client;
@@ -113,7 +114,7 @@ public class ClusterClientModule extends PrivateModule {
         managers.add(AdRouteZkManager.class);
         managers.add(VpnZkManager.class);
         managers.add(PortGroupZkManager.class);
-        managers.add(AvailabilityZoneZkManager.class);
+        managers.add(TunnelZoneZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
             //noinspection unchecked

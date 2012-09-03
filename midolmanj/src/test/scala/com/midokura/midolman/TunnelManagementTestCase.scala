@@ -6,7 +6,7 @@ package com.midokura.midolman
 import org.scalatest.matchers.ShouldMatchers
 import java.util.UUID
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports, Host}
-import com.midokura.midonet.cluster.data.zones.{GreAvailabilityZoneHost, GreAvailabilityZone}
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import topology.physical
 import topology.VirtualToPhysicalMapper._
 import org.slf4j.{LoggerFactory, Logger}
@@ -28,11 +28,11 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
     import scala.collection.JavaConversions._
 
-    def testAvailabilityZones() {
+    def testTunnelZone() {
 
-        // make the default availability zone
-        val greZone = new GreAvailabilityZone().setName("greDefault")
-        clusterDataClient().availabilityZonesCreate(greZone)
+        // make the default gre tunnel zone
+        val greZone = new GreTunnelZone().setName("greDefault")
+        clusterDataClient().tunnelZonesCreate(greZone)
 
         // make a bridge
         val bridge = clusterDataClient()
@@ -45,22 +45,22 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         // make a host for myself and put in the proper tunnel zone.
         val me =
             new Host(hostId())
-                .setName("myself").setAvailabilityZones(Set(greZone.getId))
-        val myGreConfig = new GreAvailabilityZoneHost(me.getId)
+                .setName("myself").setTunnelZones(Set(greZone.getId))
+        val myGreConfig = new GreTunnelZoneHost(me.getId)
             .setIp(IntIPv4.fromString("192.168.100.1"))
         clusterDataClient().hostsCreate(me.getId, me)
         clusterDataClient()
-            .availabilityZonesAddMembership(greZone.getId, myGreConfig)
+            .tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         // make another host and put in the same tunnel zone.
         val she =
             new Host(UUID.randomUUID())
-                .setName("herself").setAvailabilityZones(Set(greZone.getId))
-        val herGreConfig = new GreAvailabilityZoneHost(she.getId)
+                .setName("herself").setTunnelZones(Set(greZone.getId))
+        val herGreConfig = new GreTunnelZoneHost(she.getId)
             .setIp(IntIPv4.fromString("192.168.200.1"))
         clusterDataClient().hostsCreate(she.getId, she)
         clusterDataClient()
-            .availabilityZonesAddMembership(greZone.getId, herGreConfig)
+            .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
         // make the bridge port to a local interface
         clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort, "port1")
@@ -82,9 +82,9 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         requestOfType[HostRequest](vtpProbe())
         replyOfType[physical.Host](vtpProbe())
 
-        // assert that the VTP got a AvailabilityZoneRequest message for the proper zone
-        requestOfType[AvailabilityZoneRequest](vtpProbe()).zoneId should be(greZone.getId)
-        replyOfType[GreAvailabilityZone](vtpProbe())
+        // assert that the VTP got a TunnelZoneRequest message for the proper zone
+        requestOfType[TunnelZoneRequest](vtpProbe()).zoneId should be(greZone.getId)
+        replyOfType[GreTunnelZone](vtpProbe())
         replyOfType[GreZoneChanged](vtpProbe())
         replyOfType[GreZoneChanged](vtpProbe())
 
@@ -106,9 +106,9 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
             )
 
         // update the gre ip of the second host
-        val herSecondGreConfig = new GreAvailabilityZoneHost(she.getId)
+        val herSecondGreConfig = new GreTunnelZoneHost(she.getId)
             .setIp(IntIPv4.fromString("192.168.210.1"))
-        clusterDataClient().availabilityZonesAddMembership(
+        clusterDataClient().tunnelZonesAddMembership(
             greZone.getId, herSecondGreConfig)
 
         // assert a delete event was fired on the bus.

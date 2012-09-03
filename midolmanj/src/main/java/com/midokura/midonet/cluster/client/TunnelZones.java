@@ -5,14 +5,14 @@ package com.midokura.midonet.cluster.client;
 
 import java.util.UUID;
 
-import com.midokura.midonet.cluster.data.AvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.CapwapAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZone;
-import com.midokura.midonet.cluster.data.zones.GreAvailabilityZoneHost;
-import com.midokura.midonet.cluster.data.zones.IpsecAvailabilityZone;
+import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
+import com.midokura.midonet.cluster.data.zones.IpsecTunnelZone;
 import com.midokura.packets.IPv4;
 
-public interface AvailabilityZones {
+public interface TunnelZones {
 
     interface BuildersProvider {
         GreBuilder getGreZoneBuilder();
@@ -39,8 +39,8 @@ public interface AvailabilityZones {
         >
         extends com.midokura.midonet.cluster.client.Builder<ConcreteBuilder> {
 
-        public interface ZoneConfig<T extends AvailabilityZone<T, ?>> {
-            T getAvailabilityZoneConfig();
+        public interface ZoneConfig<T extends TunnelZone<T, ?>> {
+            T getTunnelZoneConfig();
         }
 
         public interface HostConfig {
@@ -55,9 +55,9 @@ public interface AvailabilityZones {
 
 
     interface GreBuilder extends Builder<
-        GreBuilder.ZoneConfig, GreAvailabilityZoneHost, GreBuilder> {
+        GreBuilder.ZoneConfig, GreTunnelZoneHost, GreBuilder> {
 
-        interface ZoneConfig extends Builder.ZoneConfig<GreAvailabilityZone> {
+        interface ZoneConfig extends Builder.ZoneConfig<GreTunnelZone> {
 
         }
     }
@@ -65,7 +65,7 @@ public interface AvailabilityZones {
     interface IpsecBuilder extends Builder<
         IpsecBuilder.ZoneConfig, IpsecBuilder.HostConfig, IpsecBuilder> {
 
-        interface ZoneConfig extends Builder.ZoneConfig<IpsecAvailabilityZone> {
+        interface ZoneConfig extends Builder.ZoneConfig<IpsecTunnelZone> {
         }
 
         interface HostConfig extends Builder.HostConfig {
@@ -77,11 +77,10 @@ public interface AvailabilityZones {
         CapwapZoneBuilder.ZoneConfig, CapwapZoneBuilder.HostConfig,
         CapwapZoneBuilder> {
 
-        interface ZoneConfig extends Builder.ZoneConfig<CapwapAvailabilityZone> {
+        interface ZoneConfig extends Builder.ZoneConfig<CapwapTunnelZone> {
         }
 
         interface HostConfig extends Builder.HostConfig {
-            // IPv4 getAddress();
         }
     }
 }

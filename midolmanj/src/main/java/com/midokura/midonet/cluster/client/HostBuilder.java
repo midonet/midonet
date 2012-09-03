@@ -6,7 +6,7 @@ package com.midokura.midonet.cluster.client;
 import java.util.Map;
 import java.util.UUID;
 
-import com.midokura.midonet.cluster.data.AvailabilityZone;
+import com.midokura.midonet.cluster.data.TunnelZone;
 
 public interface HostBuilder extends Builder<HostBuilder> {
 
@@ -16,5 +16,5 @@ public interface HostBuilder extends Builder<HostBuilder> {
 
     HostBuilder delMaterializedPortMapping(UUID portId, String interfaceName);
 
-    HostBuilder setAvailabilityZones(Map<UUID, AvailabilityZone.HostConfig<?,?>> zoneConfigsForHost);
+    HostBuilder setTunnelZones(Map<UUID, TunnelZone.HostConfig<?,?>> zoneConfigsForHost);
 }

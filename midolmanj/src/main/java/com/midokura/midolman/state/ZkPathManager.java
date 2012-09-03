@@ -15,7 +15,7 @@ import com.midokura.packets.MAC;
  */
 public class ZkPathManager {
 
-    public static final String AVAILABILITY_ZONES = "availability-zones";
+    public static final String TUNNEL_ZONES = "tunnel-zones";
     public static final String MEMBERSHIPS = "memberships";
 
     protected String basePath = null;
@@ -594,7 +594,8 @@ public class ZkPathManager {
      * Get ZK port path inside a group.
      *
      * @param id Group UUID.
-     * @param id Port UUID as a String.
+     * @param portId Port UUID as a String.
+     *
      * @return /port_groups/groupId/portId
      */
     public String getPortInGroupPath(UUID id, String portId) {
@@ -966,20 +967,20 @@ public class ZkPathManager {
     }
 
 
-    public String getAvailabilityZonesPath() {
-        return buildAvailabilityZonesPath().toString();
+    public String getTunnelZonesPath() {
+        return buildTunnelZonesPath().toString();
     }
 
-    private StringBuilder buildAvailabilityZonesPath() {
-        return basePath().append("/").append(AVAILABILITY_ZONES);
+    private StringBuilder buildTunnelZonesPath() {
+        return basePath().append("/").append(TUNNEL_ZONES);
     }
 
-    public String getAvailabilityZonePath(UUID id) {
-        return buildAvailabilityZonePath(id).toString();
+    public String getTunnelZonePath(UUID id) {
+        return buildTunnelZonePath(id).toString();
     }
 
-    private StringBuilder buildAvailabilityZonePath(UUID id) {
-        return buildAvailabilityZonesPath().append("/").append(id);
+    private StringBuilder buildTunnelZonePath(UUID id) {
+        return buildTunnelZonesPath().append("/").append(id);
     }
 
     /**
@@ -1070,20 +1071,20 @@ public class ZkPathManager {
     }
 
 
-    public String getHostAvailabilityZonesPath(UUID hostId) {
-        return buildHostAvailabilityZonesPath(hostId).toString();
+    public String getHostTunnelZonesPath(UUID hostId) {
+        return buildHostTunnelZonesPath(hostId).toString();
     }
 
-    private StringBuilder buildHostAvailabilityZonesPath(UUID hostId) {
-        return buildHostPath(hostId).append("/").append(AVAILABILITY_ZONES);
+    private StringBuilder buildHostTunnelZonesPath(UUID hostId) {
+        return buildHostPath(hostId).append("/").append(TUNNEL_ZONES);
     }
 
-    public String getHostAvailabilityZonePath(UUID hostId, UUID zoneId) {
-        return buildHostAvailabilityZonePath(hostId, zoneId).toString();
+    public String getHostTunnelZonePath(UUID hostId, UUID zoneId) {
+        return buildHostTunnelZonePath(hostId, zoneId).toString();
     }
 
-    private StringBuilder buildHostAvailabilityZonePath(UUID hostId, UUID zoneId) {
-        return buildHostAvailabilityZonesPath(hostId).append("/").append(zoneId);
+    private StringBuilder buildHostTunnelZonePath(UUID hostId, UUID zoneId) {
+        return buildHostTunnelZonesPath(hostId).append("/").append(zoneId);
     }
 
     /**
@@ -1150,19 +1151,19 @@ public class ZkPathManager {
         return buildHostVrnMappingsPath(hostIdentifier).append("/datapath");
     }
 
-    public String getAvailabilityZoneMembershipsPath(UUID zoneId) {
-        return buildAvailabilityZoneMembershipsPath(zoneId).toString();
+    public String getTunnelZoneMembershipsPath(UUID zoneId) {
+        return buildTunnelZoneMembershipsPath(zoneId).toString();
     }
 
-    private StringBuilder buildAvailabilityZoneMembershipsPath(UUID zoneId) {
-        return buildAvailabilityZonePath(zoneId).append("/").append(MEMBERSHIPS);
+    private StringBuilder buildTunnelZoneMembershipsPath(UUID zoneId) {
+        return buildTunnelZonePath(zoneId).append("/").append(MEMBERSHIPS);
     }
 
-    public String getAvailabilityZoneMembershipPath(UUID zoneId, UUID hostId) {
-        return buildAvailabilityZoneMembershipPath(zoneId, hostId).toString();
+    public String getTunnelZoneMembershipPath(UUID zoneId, UUID hostId) {
+        return buildTunnelZoneMembershipPath(zoneId, hostId).toString();
     }
 
-    private StringBuilder buildAvailabilityZoneMembershipPath(UUID zoneId, UUID hostId) {
-        return buildAvailabilityZoneMembershipsPath(zoneId).append("/").append(hostId);
+    private StringBuilder buildTunnelZoneMembershipPath(UUID zoneId, UUID hostId) {
+        return buildTunnelZoneMembershipsPath(zoneId).append("/").append(hostId);
     }
 }

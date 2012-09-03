@@ -8,7 +8,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midonet.cluster.data.AvailabilityZone;
+import com.midokura.midonet.cluster.data.TunnelZone;
 import com.midokura.midonet.cluster.data.Bridge;
 import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Port;
@@ -53,22 +53,22 @@ public interface DataClient {
      */
     void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb);
 
-    UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
+    UUID tunnelZonesCreate(TunnelZone<?, ?> zone)
         throws StateAccessException;
 
-    void availabilityZonesDelete(UUID uuid)
+    void tunnelZonesDelete(UUID uuid)
         throws StateAccessException;
 
-    AvailabilityZone<?, ?> availabilityZonesGet(UUID uuid)
+    TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException;
 
-    Set<AvailabilityZone.HostConfig<?, ?>> availabilityZonesGetMembership(UUID uuid)
+    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(UUID uuid)
         throws StateAccessException;
 
-    UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+    UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException;
 
-    void availabilityZonesDeleteMembership(UUID zoneId, UUID membershipId)
+    void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException;
 
     UUID hostsCreate(UUID id, Host host) throws StateAccessException;

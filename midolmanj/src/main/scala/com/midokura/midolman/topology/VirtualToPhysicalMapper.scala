@@ -6,25 +6,25 @@ package com.midokura.midolman.topology
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midonet.cluster.client.{AvailabilityZones, HostBuilder}
+import com.midokura.midonet.cluster.client.{TunnelZones, HostBuilder}
 import com.midokura.midonet.cluster.Client
 import collection.{immutable, mutable}
-import com.midokura.midonet.cluster.data.AvailabilityZone
-import com.midokura.midonet.cluster.data.zones.{CapwapAvailabilityZoneHost, IpsecAvailabilityZoneHost, GreAvailabilityZoneHost, GreAvailabilityZone}
-import com.midokura.midonet.cluster.client.AvailabilityZones.GreBuilder
+import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost, IpsecTunnelZoneHost, GreTunnelZoneHost, GreTunnelZone}
+import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midolman.services.MidolmanActorsService
 import com.midokura.midolman.topology.HostManager.Start
 import physical.Host
 import akka.actor.{ActorRef, Actor}
 import com.midokura.midolman.Referenceable
 import java.util
-import com.midokura.midonet.cluster.data.AvailabilityZone.HostConfig
+import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
 }
 
-sealed trait ZoneChanged[HostConfig <: AvailabilityZone.HostConfig[HostConfig, _]] {
+sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
     val zone: UUID
     val hostConfig: HostConfig
     val op: HostConfigOperation.Value
@@ -54,7 +54,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
 
-    case class LocalAvailabilityZonesReply(zones: immutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])
+    case class LocalAvailabilityZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
     /**
      * Send this message to the VirtualToPhysicalMapper to let it know when
@@ -71,23 +71,23 @@ object VirtualToPhysicalMapper extends Referenceable {
      */
     case class LocalPortActive(portID: UUID, active: Boolean)
 
-    case class AvailabilityZoneRequest(zoneId: UUID)
+    case class TunnelZoneRequest(zoneId: UUID)
 
-    case class AvailabilityZoneUnsubscribe(zoneId: UUID)
+    case class TunnelZoneUnsubscribe(zoneId: UUID)
 
-    case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: AvailabilityZones.Builder.HostConfig])
+    case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
 
-    case class GreZoneChanged(zone: UUID, hostConfig: GreAvailabilityZoneHost,
+    case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[GreAvailabilityZoneHost]
+        extends ZoneChanged[GreTunnelZoneHost]
 
-    case class IpsecZoneChanged(zone: UUID, hostConfig: IpsecAvailabilityZoneHost,
+    case class IpsecZoneChanged(zone: UUID, hostConfig: IpsecTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[IpsecAvailabilityZoneHost]
+        extends ZoneChanged[IpsecTunnelZoneHost]
 
-    case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapAvailabilityZoneHost,
+    case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[CapwapAvailabilityZoneHost]
+        extends ZoneChanged[CapwapTunnelZoneHost]
 
 }
 
@@ -127,14 +127,14 @@ class VirtualToPhysicalMapper extends Actor {
     private val actorWants = mutable.Map[ActorRef, ExpectingState]()
     private val localHostData =
         mutable.Map[UUID,
-            (String, mutable.Map[UUID, String], mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])]()
+            (String, mutable.Map[UUID, String], mutable.Map[UUID, TunnelZone.HostConfig[_, _]])]()
 
 //    private val zonesObservers = Map[UUID, mutable.Set[ActorRef]]()
-//    private val greZones = Map[GreAvailabilityZone,
-//        (AvailabilityZones.GreBuilder.ZoneConfig,
-//            mutable.Set[AvailabilityZones.GreBuilder.HostConfig])]()
+//    private val greZones = Map[GreTunnelZone,
+//        (TunnelZones.GreBuilder.ZoneConfig,
+//            mutable.Set[TunnelZones.GreBuilder.HostConfig])]()
 
-    private val zones = mutable.Map[UUID, AvailabilityZone[_, _]]()
+    private val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     private val zonesHandlers = mutable.Map[UUID, ActorRef]()
     private val zonesSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
@@ -180,7 +180,7 @@ class VirtualToPhysicalMapper extends Actor {
                     // this should not happen
             }
 
-        case AvailabilityZoneRequest(zoneId) =>
+        case TunnelZoneRequest(zoneId) =>
             zonesSubscribers.get(zoneId) match {
                 case None =>
                     zonesSubscribers.put(zoneId, mutable.Set(sender))
@@ -196,14 +196,14 @@ class VirtualToPhysicalMapper extends Actor {
             if (!zonesHandlers.contains(zoneId)) {
                 val manager =
                     context.actorOf(
-                        actorsService.getGuiceAwareFactory(classOf[AvailabilityZoneManager]),
+                        actorsService.getGuiceAwareFactory(classOf[TunnelZoneManager]),
                         "hosts-%s" format zoneId)
                 zonesHandlers.put(zoneId, manager)
 
-                manager ! AvailabilityZoneManager.Start(zoneId)
+                manager ! TunnelZoneManager.Start(zoneId)
             }
 
-        case zone: GreAvailabilityZone =>
+        case zone: GreTunnelZone =>
             zones.put(zone.getId, zone)
 
             zonesSubscribers.get(zone.getId) match {
@@ -268,7 +268,7 @@ class VirtualToPhysicalMapper extends Actor {
     class MyHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {
 
         var ports = mutable.Map[UUID, String]()
-        var zoneConfigs = mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]]()
+        var zoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig[_, _]]()
         var datapathName: String = ""
 
         def setDatapathName(datapathName: String): HostBuilder = {
@@ -287,7 +287,7 @@ class VirtualToPhysicalMapper extends Actor {
         }
 
 
-        def setAvailabilityZones(zoneConfigs: util.Map[UUID, HostConfig[_, _]]): HostBuilder = {
+        def setTunnelZones(zoneConfigs: util.Map[UUID, HostConfig[_, _]]): HostBuilder = {
             zoneConfigs.clear()
             zoneConfigs ++ zoneConfigs.toMap
             this
@@ -300,17 +300,17 @@ class VirtualToPhysicalMapper extends Actor {
         }
     }
 
-    class GreAvailabilityZoneBuilder(actor: ActorRef, greZone: GreAvailabilityZone) extends AvailabilityZones.GreBuilder {
+    class GreAvailabilityZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
         def setConfiguration(configuration: GreBuilder.ZoneConfig): GreAvailabilityZoneBuilder = {
             this
         }
 
-        def addHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): GreAvailabilityZoneBuilder = {
+        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Added)
             this
         }
 
-        def removeHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): GreAvailabilityZoneBuilder = {
+        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Deleted)
             this
         }
@@ -324,7 +324,7 @@ class VirtualToPhysicalMapper extends Actor {
 
     case class _LocalDataUpdatedForHost(host: UUID, dpName: String,
                                         ports: mutable.Map[UUID, String],
-                                        zones: mutable.Map[UUID, AvailabilityZone.HostConfig[_, _]])
+                                        zones: mutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
     case class _AvailabilityZoneUpdated(zone: UUID, dpName: String,
                                         ports: mutable.Map[UUID, String],

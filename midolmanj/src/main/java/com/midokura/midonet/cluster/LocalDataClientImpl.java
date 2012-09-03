@@ -19,10 +19,9 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.zkManagers.AvailabilityZoneZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midonet.cluster.data.AvailabilityZone;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midonet.cluster.data.Bridge;
 import com.midokura.midonet.cluster.data.BridgeName;
 import com.midokura.midonet.cluster.data.Bridges;
@@ -30,6 +29,7 @@ import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Hosts;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
+import com.midokura.midonet.cluster.data.TunnelZone;
 import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
@@ -47,7 +47,7 @@ public class LocalDataClientImpl implements DataClient {
     private HostZkManager hostZkManager;
 
     @Inject
-    private AvailabilityZoneZkManager zonesZkManager;
+    private TunnelZoneZkManager zonesZkManager;
 
     @Inject
     private PathBuilder pathBuilder;
@@ -154,32 +154,32 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID availabilityZonesCreate(AvailabilityZone<?, ?> zone)
+    public UUID tunnelZonesCreate(TunnelZone<?, ?> zone)
         throws StateAccessException {
         return zonesZkManager.createZone(zone, null);
     }
 
     @Override
-    public void availabilityZonesDelete(UUID uuid)
+    public void tunnelZonesDelete(UUID uuid)
         throws StateAccessException {
         zonesZkManager.deleteZone(uuid);
     }
 
     @Override
-    public AvailabilityZone<?, ?> availabilityZonesGet(UUID uuid)
+    public TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException {
         return zonesZkManager.getZone(uuid, null);
     }
 
     @Override
-    public Set<AvailabilityZone.HostConfig<?, ?>> availabilityZonesGetMembership(final UUID uuid)
+    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(final UUID uuid)
         throws StateAccessException {
 
         return CollectionFunctors.map(
             zonesZkManager.getZoneMemberships(uuid, null),
-            new Functor<UUID, AvailabilityZone.HostConfig<?, ?>>() {
+            new Functor<UUID, TunnelZone.HostConfig<?, ?>>() {
                 @Override
-                public AvailabilityZone.HostConfig<?, ?> apply(UUID arg0) {
+                public TunnelZone.HostConfig<?, ?> apply(UUID arg0) {
                     try {
                         return zonesZkManager.getZoneMembership(uuid, arg0, null);
                     } catch (StateAccessException e) {
@@ -188,19 +188,19 @@ public class LocalDataClientImpl implements DataClient {
                     }
                 }
             },
-            new HashSet<AvailabilityZone.HostConfig<?, ?>>()
+            new HashSet<TunnelZone.HostConfig<?, ?>>()
         );
     }
 
     @Override
-    public UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
+    public UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
         zonesZkManager.delMembership(zoneId, hostConfig.getId());
         return zonesZkManager.addMembership(zoneId, hostConfig);
     }
 
     @Override
-    public void availabilityZonesDeleteMembership(UUID zoneId, UUID membershipId)
+    public void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
         zonesZkManager.delMembership(zoneId,  membershipId);
     }

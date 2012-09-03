@@ -8,16 +8,16 @@ import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
 import com.midokura.midonet.cluster.Client
-import com.midokura.midolman.topology.AvailabilityZoneManager.Start
-import com.midokura.midonet.cluster.client.AvailabilityZones
-import com.midokura.midonet.cluster.client.AvailabilityZones.{CapwapZoneBuilder, IpsecBuilder, GreBuilder}
-import com.midokura.midonet.cluster.data.zones.{GreAvailabilityZoneHost, GreAvailabilityZone}
+import com.midokura.midolman.topology.TunnelZoneManager.Start
+import com.midokura.midonet.cluster.client.TunnelZones
+import com.midokura.midonet.cluster.client.TunnelZones.{CapwapZoneBuilder, IpsecBuilder, GreBuilder}
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import scala.collection.mutable
 import com.midokura.packets.IPv4
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
 
 
-object AvailabilityZoneManager {
+object TunnelZoneManager {
     case class Start(zoneId: UUID)
 }
 
@@ -25,7 +25,7 @@ object AvailabilityZoneManager {
  * // TODO: mtoader ! Please explain yourself.
  */
 
-trait CallOneMapper {
+trait MapperToFirstCall {
     var calledBefore: Boolean = false
 
     val map = mutable.Map[Class[_], AnyRef]()
@@ -42,7 +42,7 @@ trait CallOneMapper {
     }
 }
 
-class AvailabilityZoneManager extends Actor {
+class TunnelZoneManager extends Actor {
     val log = Logging(context.system, this)
 
     @Inject
@@ -50,7 +50,7 @@ class AvailabilityZoneManager extends Actor {
 
     protected def receive = {
         case Start(zoneId) =>
-            clusterClient.getAvailabilityZone(zoneId,
+            clusterClient.getTunnelZones(zoneId,
                 new ZoneBuildersProvider(context.actorFor(".."), zoneId))
 
         case m =>
@@ -59,38 +59,38 @@ class AvailabilityZoneManager extends Actor {
     }
 
     class ZoneBuildersProvider(val actor: ActorRef, val zoneId:UUID)
-            extends AvailabilityZones.BuildersProvider with CallOneMapper {
+            extends TunnelZones.BuildersProvider with MapperToFirstCall {
 
-        def getGreZoneBuilder: AvailabilityZones.GreBuilder = mapOnce(classOf[GreBuilder]) {
+        def getGreZoneBuilder: TunnelZones.GreBuilder = mapOnce(classOf[GreBuilder]) {
             new LocalGreZoneBuilder(actor, zoneId)
         }
 
-        def getIpsecZoneBuilder: AvailabilityZones.IpsecBuilder = mapOnce(classOf[IpsecBuilder]) {
+        def getIpsecZoneBuilder: TunnelZones.IpsecBuilder = mapOnce(classOf[IpsecBuilder]) {
             null
         }
 
-        def getCapwapZoneBuilder: AvailabilityZones.CapwapZoneBuilder = mapOnce(classOf[CapwapZoneBuilder]) {
+        def getCapwapZoneBuilder: TunnelZones.CapwapZoneBuilder = mapOnce(classOf[CapwapZoneBuilder]) {
             null
         }
     }
 
-    class LocalGreZoneBuilder(actor: ActorRef, host: UUID) extends AvailabilityZones.GreBuilder {
+    class LocalGreZoneBuilder(actor: ActorRef, host: UUID) extends TunnelZones.GreBuilder {
 
-        var zone: GreAvailabilityZone = null
+        var zone: GreTunnelZone = null
         val hosts = mutable.Map[UUID, IPv4]()
 
         def setConfiguration(configuration: GreBuilder.ZoneConfig): LocalGreZoneBuilder = {
-            zone = configuration.getAvailabilityZoneConfig
-            actor ! configuration.getAvailabilityZoneConfig
+            zone = configuration.getTunnelZoneConfig
+            actor ! configuration.getTunnelZoneConfig
             this
         }
 
-        def addHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): LocalGreZoneBuilder = {
+        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): LocalGreZoneBuilder = {
             actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Added)
             this
         }
 
-        def removeHost(hostId: UUID, hostConfig: GreAvailabilityZoneHost): LocalGreZoneBuilder = {
+        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): LocalGreZoneBuilder = {
             actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Deleted)
             this
         }

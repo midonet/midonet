@@ -44,19 +44,19 @@ public class Host extends Entity.Base<UUID, Host.Data, Host>{
         return getData().addresses;
     }
 
-    public Host setAvailabilityZones(Set<UUID> availabilityZones) {
-        getData().availabilityZones = availabilityZones;
+    public Host setTunnelZones(Set<UUID> tunnelZones) {
+        getData().tunnelZones = tunnelZones;
         return self();
     }
 
     public Set<UUID> getAvailabilityZones() {
-        return getData().availabilityZones;
+        return getData().tunnelZones;
     }
 
     public static class Data {
         String name;
         InetAddress[] addresses;
-        Set<UUID> availabilityZones;
+        Set<UUID> tunnelZones;
 
         @Override
         public boolean equals(Object o) {
@@ -66,8 +66,8 @@ public class Host extends Entity.Base<UUID, Host.Data, Host>{
             Data data = (Data) o;
 
             if (!Arrays.equals(addresses, data.addresses)) return false;
-            if (availabilityZones != null ? !availabilityZones.equals(
-                data.availabilityZones) : data.availabilityZones != null)
+            if (tunnelZones != null ? !tunnelZones.equals(
+                data.tunnelZones) : data.tunnelZones != null)
                 return false;
             if (name != null ? !name.equals(data.name) : data.name != null)
                 return false;
@@ -80,7 +80,7 @@ public class Host extends Entity.Base<UUID, Host.Data, Host>{
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (addresses != null ? Arrays.hashCode(
                 addresses) : 0);
-            result = 31 * result + (availabilityZones != null ? availabilityZones
+            result = 31 * result + (tunnelZones != null ? tunnelZones
                 .hashCode() : 0);
             return result;
         }

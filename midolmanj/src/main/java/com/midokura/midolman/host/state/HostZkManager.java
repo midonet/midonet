@@ -89,12 +89,12 @@ public class HostZkManager extends ZkManager {
 
             ops.add(
                 getPersistentCreateOp(
-                    pathManager.getHostAvailabilityZonesPath(hostId), null));
+                    pathManager.getHostTunnelZonesPath(hostId), null));
 
-            for (UUID uuid : metadata.getAvailabilityZones()) {
+            for (UUID uuid : metadata.getTunnelZones()) {
                 ops.add(
                     getPersistentCreateOp(
-                        pathManager.getHostAvailabilityZonePath(hostId, uuid), null
+                        pathManager.getHostTunnelZonePath(hostId, uuid), null
                     ));
             }
 
@@ -159,20 +159,20 @@ public class HostZkManager extends ZkManager {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }
 
-        Set<UUID> availabilityZones = getAvailabilityZoneIds(id, null);
+        Set<UUID> availabilityZones = getTunnelZoneIds(id, null);
         for (UUID zoneId : availabilityZones) {
             delMulti.add(
                 getDeleteOp(
-                    pathManager.getHostAvailabilityZonePath(id, zoneId)));
+                    pathManager.getHostTunnelZonePath(id, zoneId)));
 
             delMulti.add(
                 getDeleteOp(
-                    pathManager.getAvailabilityZoneMembershipPath(zoneId, id)));
+                    pathManager.getTunnelZoneMembershipPath(zoneId, id)));
         }
 
-        if (exists(pathManager.getHostAvailabilityZonesPath(id))) {
+        if (exists(pathManager.getHostTunnelZonesPath(id))) {
             delMulti.add(
-                getDeleteOp(pathManager.getHostAvailabilityZonesPath(id)));
+                getDeleteOp(pathManager.getHostTunnelZonesPath(id)));
         }
 
         delMulti.add(getDeleteOp(hostEntryPath));
@@ -612,9 +612,9 @@ public class HostZkManager extends ZkManager {
 
     }
 
-    public Set<UUID> getAvailabilityZoneIds(UUID hostId, Directory.TypedWatcher watcher)
+    public Set<UUID> getTunnelZoneIds(UUID hostId, Directory.TypedWatcher watcher)
         throws StateAccessException {
-        String zonesPath = pathManager.getHostAvailabilityZonesPath(hostId);
+        String zonesPath = pathManager.getHostTunnelZonesPath(hostId);
 
         if (exists(zonesPath)) {
             return CollectionFunctors.map(
