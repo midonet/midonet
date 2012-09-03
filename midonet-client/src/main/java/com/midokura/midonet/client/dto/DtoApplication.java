@@ -11,8 +11,11 @@ import java.net.URI;
 public class DtoApplication {
     private String version;
     private URI uri;
-    private URI tenants;
     private URI hosts;
+    private URI bridges;
+    private URI chains;
+    private URI portGroups;
+    private URI routers;
 
     public String getVersion() {
         return version;
@@ -30,12 +33,36 @@ public class DtoApplication {
         this.uri = uri;
     }
 
-    public URI getTenants() {
-        return tenants;
+    public URI getBridges() {
+        return bridges;
     }
 
-    public void setTenants(URI tenants) {
-        this.tenants = tenants;
+    public void setBridges(URI bridges) {
+        this.bridges = bridges;
+    }
+
+    public URI getChains() {
+        return chains;
+    }
+
+    public void setChains(URI chains) {
+        this.chains = chains;
+    }
+
+    public URI getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(URI portGroups) {
+        this.portGroups = portGroups;
+    }
+
+    public URI getRouters() {
+        return routers;
+    }
+
+    public void setRouters(URI routers) {
+        this.routers = routers;
     }
 
     public URI getHosts() {
