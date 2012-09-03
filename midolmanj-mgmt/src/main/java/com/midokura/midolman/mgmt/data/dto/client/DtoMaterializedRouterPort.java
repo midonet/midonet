@@ -8,7 +8,7 @@ import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.PortType;
+import com.midokura.midolman.mgmt.network.PortType;
 
 @XmlRootElement
 public class DtoMaterializedRouterPort extends DtoRouterPort {

@@ -4,9 +4,8 @@
  */
 package com.midokura.midolman.state;
 
-import javax.inject.Inject;
-
-import com.midokura.midolman.config.MidolmanConfig;
+import com.google.inject.Inject;
+import com.midokura.midolman.config.ZookeeperConfig;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -21,7 +20,7 @@ public class PathBuilder extends ZkPathManager {
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
     @Inject
-    public PathBuilder(MidolmanConfig config) {
+    public PathBuilder(ZookeeperConfig config) {
         this(config.getMidolmanRootKey());
     }
 
@@ -139,7 +138,7 @@ public class PathBuilder extends ZkPathManager {
      * @return /tenants/tenantId/router-names
      */
     public String getTenantRouterNamesPath(String tenantId) {
-        return buildTenantPath(tenantId).toString();
+        return buildTenantRouterNamesPath(tenantId).toString();
     }
 
     private StringBuilder buildTenantRouterNamesPath(String tenantId) {

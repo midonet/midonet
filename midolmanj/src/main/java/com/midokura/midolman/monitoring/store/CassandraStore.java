@@ -4,17 +4,15 @@
 
 package com.midokura.midolman.monitoring.store;
 
+import com.midokura.cassandra.CassandraClient;
+import com.midokura.midolman.monitoring.GMTTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import me.prettyprint.hector.api.exceptions.HectorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.monitoring.GMTTime;
-import com.midokura.cassandra.CassandraClient;
 
 public class CassandraStore implements Store {
 
@@ -25,13 +23,20 @@ public class CassandraStore implements Store {
 
     private CassandraClient client;
 
-    public CassandraStore(String server, String clusterName,
-                          String keyspaceName, String columnFamily,
-                          int replicationFactor, int expirationSecs)
-            throws HectorException {
-        client = new CassandraClient(server, clusterName, keyspaceName,
-                columnFamily, replicationFactor,
-                expirationSecs);
+    public CassandraStore(CassandraClient client)
+    {
+        if (client == null) {
+            throw new IllegalArgumentException("client cannot be null");
+        }
+
+        // Client is instantiated but is not connected.  You must connect
+        // yourself by calling initialize()
+        this.client = client;
+    }
+
+    @Override
+    public void initialize() {
+        client.connect();
     }
 
     @Override
@@ -94,7 +99,8 @@ public class CassandraStore implements Store {
 
     @Override
     public List<String> getMetricsTypeForTarget(String targetIdentifier) {
-        return client.getAllColumnsValues(targetIdentifier, String.class, maxNumberQueryResult);
+        return client.getAllColumnsValues(targetIdentifier, String.class,
+                maxNumberQueryResult);
     }
 
     @Override

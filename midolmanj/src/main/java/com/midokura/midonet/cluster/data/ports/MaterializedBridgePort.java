@@ -16,8 +16,8 @@ import com.midokura.midonet.cluster.data.Port;
 public class MaterializedBridgePort
     extends BridgePort<MaterializedBridgePort.Data, MaterializedBridgePort> {
 
-    public MaterializedBridgePort(Bridge bridge, UUID uuid, Data data) {
-        super(bridge, uuid, data);
+    public MaterializedBridgePort(UUID bridgeId, UUID uuid, Data data) {
+        super(bridgeId, uuid, data);
     }
 
     public MaterializedBridgePort(UUID uuid, Data data) {
@@ -26,9 +26,6 @@ public class MaterializedBridgePort
 
     public MaterializedBridgePort(@Nonnull Data data) {
         this(null, null, data);
-    }
-    public MaterializedBridgePort(Bridge bridge) {
-        this(bridge, null, new Data());
     }
 
     public MaterializedBridgePort() {

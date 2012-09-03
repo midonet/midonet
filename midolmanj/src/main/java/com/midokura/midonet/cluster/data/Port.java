@@ -18,6 +18,10 @@ public abstract class Port<
     >
     extends Entity.Base<UUID, PortData, Self> {
 
+    public enum Property {
+        vif_id
+    }
+
     protected Port(UUID uuid, PortData portData) {
         super(uuid, portData);
     }
@@ -76,8 +80,22 @@ public abstract class Port<
         return self();
     }
 
+    public Self setProperty(Property key, String value) {
+        getData().properties.put(key.name(), value);
+        return self();
+    }
+
+    public Self setProperty(String key, String value) {
+        getData().properties.put(key, value);
+        return self();
+    }
+
     public Map<String, String> getProperties() {
         return getData().properties;
+    }
+
+    public String getProperty(Property property) {
+        return getData().properties.get(property.name());
     }
 
     public static class Data {

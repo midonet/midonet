@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.midokura.midolman.mgmt.data.dto.PortType;
+import com.midokura.midolman.mgmt.network.PortType;
 
 @XmlRootElement
 public class DtoLogicalRouterPort extends DtoRouterPort implements

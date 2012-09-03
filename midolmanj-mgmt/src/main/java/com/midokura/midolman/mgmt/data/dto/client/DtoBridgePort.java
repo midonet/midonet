@@ -4,7 +4,7 @@
 
 package com.midokura.midolman.mgmt.data.dto.client;
 
-import com.midokura.midolman.mgmt.data.dto.PortType;
+import com.midokura.midolman.mgmt.network.PortType;
 
 public class DtoBridgePort extends DtoPort {
 

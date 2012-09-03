@@ -140,6 +140,10 @@ public class VpnZkManager extends ZkManager {
         return get(id, null);
     }
 
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getVpnPath(id));
+    }
+
     // List all vpns.
     public List<UUID> listAll(Runnable watcher) throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();

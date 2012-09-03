@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.midokura.midolman.mgmt.http.VendorMediaType.*;
+import static com.midokura.midolman.mgmt.VendorMediaType.*;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:

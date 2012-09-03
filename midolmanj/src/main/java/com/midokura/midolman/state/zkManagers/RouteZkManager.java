@@ -278,4 +278,9 @@ public class RouteZkManager extends ZkManager {
         multi(prepareRouteDelete(id));
     }
 
+    public boolean exists(UUID id) throws StateAccessException {
+
+        String path = pathManager.getRoutePath(id);
+        return exists(path);
+    }
 }

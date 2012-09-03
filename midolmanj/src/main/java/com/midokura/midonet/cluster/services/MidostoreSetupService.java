@@ -3,20 +3,24 @@
 */
 package com.midokura.midonet.cluster.services;
 
-import javax.inject.Inject;
-
 import com.google.common.util.concurrent.AbstractService;
-import com.midokura.midolman.config.ZookeeperConfig;
-import org.apache.zookeeper.CreateMode;
-
 import com.midokura.midolman.Setup;
+import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.Directory;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
  */
 public class MidostoreSetupService extends AbstractService {
 
+    private static final Logger log = LoggerFactory
+            .getLogger(MidostoreSetupService.class);
     @Inject
     Directory directory;
 
@@ -34,7 +38,12 @@ public class MidostoreSetupService extends AbstractService {
                     continue;
 
                 currentPath += "/" + part;
-                directory.add(currentPath, null, CreateMode.PERSISTENT);
+                try {
+                    directory.add(currentPath, null, CreateMode.PERSISTENT);
+                } catch (KeeperException.NodeExistsException ex) {
+                    // Don't exit even if the node exists.
+                    log.warn("doStart: {} already exists.", currentPath);
+                }
             }
             Setup.createZkDirectoryStructure(directory, rootKey);
             notifyStarted();

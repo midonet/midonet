@@ -14,10 +14,11 @@ import com.midokura.midonet.cluster.data.Port;
  * This is a {@link BridgePort} that represents a logical connection.
  */
 public class LogicalBridgePort
-    extends BridgePort<LogicalBridgePort.Data, LogicalBridgePort>{
+    extends BridgePort<LogicalBridgePort.Data, LogicalBridgePort>
+    implements LogicalPort<LogicalBridgePort> {
 
-    public LogicalBridgePort(Bridge bridge, UUID uuid, Data data) {
-        super(bridge, uuid, data);
+    public LogicalBridgePort(UUID bridgeId, UUID uuid, Data data) {
+        super(bridgeId, uuid, data);
     }
 
     public LogicalBridgePort(UUID uuid, Data data) {
@@ -26,10 +27,6 @@ public class LogicalBridgePort
 
     public LogicalBridgePort(@Nonnull Data data) {
         this(null, null, data);
-    }
-
-    public LogicalBridgePort(Bridge bridge) {
-        this(bridge, null, new Data());
     }
 
     public LogicalBridgePort() {
@@ -41,11 +38,13 @@ public class LogicalBridgePort
         return this;
     }
 
+    @Override
     public LogicalBridgePort setPeerId(UUID peerId) {
         getData().peer_uuid = peerId;
         return self();
     }
 
+    @Override
     public UUID getPeerId() {
         return getData().peer_uuid;
     }

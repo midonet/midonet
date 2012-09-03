@@ -4,6 +4,22 @@
 
 package com.midokura.midolman.monitoring;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.midokura.cassandra.CassandraClient;
+import com.midokura.midolman.host.services.HostService;
+import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
+import com.midokura.midolman.monitoring.store.CassandraStore;
+import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.services.HostIdProviderService;
+import org.apache.cassandra.config.ConfigurationException;
+import org.apache.thrift.transport.TTransportException;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -12,24 +28,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.apache.cassandra.config.ConfigurationException;
-import org.apache.thrift.transport.TTransportException;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-
-import com.midokura.midolman.host.services.HostService;
-import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
-import com.midokura.midolman.monitoring.store.CassandraStore;
-import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.services.HostIdProviderService;
 
 public class ReporterVmMetricsTest extends AbstractModule {
 
@@ -44,11 +45,13 @@ public class ReporterVmMetricsTest extends AbstractModule {
         Injector injector = Guice.createInjector(new ReporterVmMetricsTest());
         VMMetricsCollection vmMetrics = injector.getInstance(VMMetricsCollection.class);
         vmMetrics.registerMetrics();
-        Store store = new CassandraStore("localhost:9171",
+        CassandraClient client = new CassandraClient("localhost:9171",
                 "Mido Cluster",
                 "MM_Monitoring",
                 "TestColumnFamily",
                 replicationFactor, ttlInSecs);
+        Store store = new CassandraStore(client);
+        store.initialize();
         startTime = System.currentTimeMillis();
         MidoReporter reporter = new MidoReporter(store, "MidonetMonitoring");
         reporter.start(1000, TimeUnit.MILLISECONDS);

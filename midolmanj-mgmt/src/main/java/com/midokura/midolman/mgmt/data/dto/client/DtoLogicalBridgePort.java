@@ -7,7 +7,7 @@ package com.midokura.midolman.mgmt.data.dto.client;
 import java.net.URI;
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.PortType;
+import com.midokura.midolman.mgmt.network.PortType;
 
 public class DtoLogicalBridgePort extends DtoBridgePort implements
         DtoLogicalPort {

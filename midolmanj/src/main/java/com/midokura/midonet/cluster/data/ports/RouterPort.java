@@ -3,12 +3,12 @@
 */
 package com.midokura.midonet.cluster.data.ports;
 
-import java.util.UUID;
-
 import com.midokura.midolman.util.Net;
 import com.midokura.midonet.cluster.data.Port;
-import com.midokura.midonet.cluster.data.Router;
 import com.midokura.packets.MAC;
+
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Basic abstraction for a Router Port.
@@ -18,10 +18,24 @@ public abstract class RouterPort<
     Self extends RouterPort<PortData, Self>
     > extends Port<PortData, Self> {
 
-    protected RouterPort(Router router, UUID uuid, PortData portData){
+    public static Random rand = new Random(System.currentTimeMillis());
+
+    protected RouterPort(UUID routerId, UUID uuid, PortData portData){
         super(uuid, portData);
-        if (getData() != null && router != null)
-            setDeviceId(router.getId());
+        if (getData() != null && routerId != null)
+            setDeviceId(routerId);
+
+        if (getData() != null && portData.hwAddr == null) {
+            setHwAddr(generateHwAddr());
+        }
+    }
+
+    private MAC generateHwAddr() {
+        // TODO: Use the midokura OUI. (Why not use MAC.random()?)
+        byte[] macBytes = new byte[6];
+        rand.nextBytes(macBytes);
+        macBytes[0] = 0x02;
+        return new MAC(macBytes);
     }
 
     public String getNwAddr() {

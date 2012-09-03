@@ -27,6 +27,7 @@ public class CassandraCache implements Cache {
         client = new CassandraClient(servers, clusterName, keyspaceName,
                                      columnFamily, replicationFactor,
                                      expirationSecs);
+        client.connect();
     }
 
     @Override

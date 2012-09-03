@@ -39,17 +39,29 @@ public class CassandraClient {
     private static final Logger log =
             LoggerFactory.getLogger(CassandraClient.class);
 
-    private int expirationSecs;
     private Cluster cluster;
     private Keyspace keyspace;
-    private String columnFamily;
+    private final String servers;
+    private final String clusterName;
+    private final String keyspaceName;
+    private final String columnFamily;
+    private final int replicationFactor;
+    private final int expirationSecs;
 
     private static StringSerializer ss = StringSerializer.get();
 
     public CassandraClient(String servers, String clusterName,
                            String keyspaceName, String columnFamily,
-                           int replicationFactor, int expirationSecs)
-            throws HectorException {
+                           int replicationFactor, int expirationSecs) {
+        this.servers = servers;
+        this.clusterName = clusterName;
+        this.keyspaceName = keyspaceName;
+        this.columnFamily = columnFamily;
+        this.replicationFactor = replicationFactor;
+        this.expirationSecs = expirationSecs;
+    }
+
+    public void connect() throws HectorException {
         boolean success = false;
 
         try {
@@ -60,16 +72,14 @@ public class CassandraClient {
                     keyspaceName, cluster,
                     HFactory.createDefaultConsistencyLevelPolicy(),
                     FailoverPolicy.FAIL_FAST);
-            this.columnFamily = columnFamily;
-            this.expirationSecs = expirationSecs;
 
             log.debug("Check column family {} exists in keyspace {}",
-                      columnFamily, keyspace);
+                    columnFamily, keyspace);
 
             KeyspaceDefinition ksDef = cluster.describeKeyspace(keyspaceName);
             if (ksDef == null) {
                 log.info("Creating keyspace {} in cluster {}",
-                         keyspaceName, clusterName);
+                        keyspaceName, clusterName);
                 ksDef = HFactory.createKeyspaceDefinition(
                         keyspaceName, SimpleStrategy.class.getName(),
                         replicationFactor, null);
@@ -77,7 +87,7 @@ public class CassandraClient {
                     cluster.addKeyspace(ksDef, true);
                 } catch (HInvalidRequestException e) {
                     log.info("Someone beat us to creating keyspace {}",
-                             keyspaceName);
+                            keyspaceName);
                 }
                 ksDef = cluster.describeKeyspace(keyspaceName);
             }
@@ -85,7 +95,7 @@ public class CassandraClient {
             for (ColumnFamilyDefinition cfDef : ksDef.getCfDefs()) {
                 if (cfDef.getName().equals(columnFamily)) {
                     log.debug("Column family {} found in keyspace {}",
-                              columnFamily, keyspaceName);
+                            columnFamily, keyspaceName);
                     success = true;
                     return;
                 }
@@ -103,7 +113,7 @@ public class CassandraClient {
                 cluster.addColumnFamily(cfDef, true);
             } catch (HInvalidRequestException e) {
                 log.info("Someone beat us to creating column family {}",
-                         columnFamily);
+                        columnFamily);
             }
 
             success = true;
@@ -112,6 +122,7 @@ public class CassandraClient {
                 log.error("Connection to Cassandra FAILED");
             }
         }
+
     }
 
     public void set(String key, String value, String newColumn) {

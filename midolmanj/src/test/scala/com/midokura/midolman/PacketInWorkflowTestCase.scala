@@ -7,7 +7,8 @@ import com.midokura.sdn.dp.{FlowMatch, Packet}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.sdn.dp.flows.FlowKeys
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Host, Ports}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
+import com.midokura.midonet.cluster.data.host.Host
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.midokura.packets.{IntIPv4, MAC, Packets}
@@ -21,6 +22,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
     }
 
     def testDatapathPacketIn() {
+
         val host = new Host(hostId()).setName("myself")
         clusterDataClient().hostsCreate(hostId(), host)
 

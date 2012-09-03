@@ -6,9 +6,9 @@ package com.midokura.midolman.mgmt.rest_api;
 
 import com.google.inject.servlet.GuiceFilter;
 import com.midokura.midolman.mgmt.auth.AuthConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.ExtendedZookeeperConfig;
-import com.midokura.midolman.mgmt.http.CorsConfig;
-import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.zookeeper.ExtendedZookeeperConfig;
+import com.midokura.midolman.mgmt.auth.cors.CorsConfig;
+import com.midokura.midolman.mgmt.serialization.WildCardJacksonJaxbJsonProvider;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -42,7 +42,7 @@ public class FuncTest {
     public static int replicationFactor = 1;
     public static int ttlInSecs = 1000;
 
-    static final WebAppDescriptor.Builder getBuilder() {
+    public static final WebAppDescriptor.Builder getBuilder() {
 
         // Start the cassandra server.  Calling this multiple times does not
         // do anything.
@@ -100,6 +100,9 @@ public class FuncTest {
     public static final AppDescriptor appDesc = getBuilder().build();
 
     public static UUID getUuidFromLocation(URI location) {
+        if (location == null) {
+            return null;
+        }
         String[] tmp = location.toString().split("/");
         return UUID.fromString(tmp[tmp.length - 1]);
     }

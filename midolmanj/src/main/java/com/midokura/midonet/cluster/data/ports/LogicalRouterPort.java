@@ -12,10 +12,11 @@ import com.midokura.midonet.cluster.data.Router;
  * This is a {@link RouterPort} that represents a logical connection.
  */
 public class LogicalRouterPort
-    extends RouterPort<LogicalRouterPort.Data, LogicalRouterPort>{
+    extends RouterPort<LogicalRouterPort.Data, LogicalRouterPort>
+    implements LogicalPort<LogicalRouterPort> {
 
-    public LogicalRouterPort(Router router, UUID uuid, Data data) {
-        super(router, uuid, data);
+    public LogicalRouterPort(UUID routerId, UUID uuid, Data data) {
+        super(routerId, uuid, data);
     }
 
     public LogicalRouterPort(UUID uuid, Data data) {
@@ -24,10 +25,6 @@ public class LogicalRouterPort
 
     public LogicalRouterPort(@Nonnull Data data) {
         this(null, null, data);
-    }
-
-    public LogicalRouterPort(Router router) {
-        this(router, null, new Data());
     }
 
     public LogicalRouterPort() {
@@ -39,11 +36,13 @@ public class LogicalRouterPort
         return this;
     }
 
+    @Override
     public LogicalRouterPort setPeerId(UUID peerId) {
         getData().peer_uuid = peerId;
         return self();
     }
 
+    @Override
     public UUID getPeerId() {
         return getData().peer_uuid;
     }

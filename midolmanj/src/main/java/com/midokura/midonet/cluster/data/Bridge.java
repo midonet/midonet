@@ -34,9 +34,17 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
         return this;
     }
 
+    public String getName() {
+        return getData().name;
+    }
+
     public Bridge setName(String name) {
         getData().name = name;
         return this;
+    }
+
+    public UUID getInboundFilter() {
+        return getData().inboundFilter;
     }
 
     public Bridge setInboundFilter(UUID filter) {
@@ -44,8 +52,21 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
         return this;
     }
 
+    public UUID getOutboundFilter() {
+        return getData().outboundFilter;
+    }
+
     public Bridge setOutboundFilter(UUID filter) {
         getData().outboundFilter = filter;
+        return this;
+    }
+
+    public int getGreKey() {
+        return getData().greKey;
+    }
+
+    public Bridge setGreKey(int greKey) {
+        getData().greKey = greKey;
         return this;
     }
 
@@ -59,13 +80,12 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
         return this;
     }
 
-    public Bridge setGreKey(int greKey) {
-        getData().greKey = greKey;
-        return this;
-    }
-
     public String getProperty(Property property) {
         return getData().properties.get(property.name());
+    }
+
+    public Map<String, String> getProperties() {
+        return getData().properties;
     }
 
     public static class Data {
@@ -112,7 +132,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
         @Override
         public String toString() {
-            return "BridgeConfig{" + "greKey=" + greKey + ", inboundFilter="
+            return "Bridge.Data{" + "greKey=" + greKey + ", inboundFilter="
                 + inboundFilter + ", outboundFilter=" + outboundFilter
                 + ", name=" + name + '}';
         }
