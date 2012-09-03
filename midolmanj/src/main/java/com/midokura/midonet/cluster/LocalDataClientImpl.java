@@ -291,7 +291,7 @@ public class LocalDataClientImpl implements DataClient {
 
             path = pathBuilder.getTenantBridgeNamePath(tenantId,
                     bridgeConfig.name);
-            byte[] data = serializer.serialize(new BridgeName(bridge));
+            byte[] data = serializer.serialize(new BridgeName(bridge).getData());
             ops.add(bridgeZkManager.getPersistentCreateOp(path, data));
         }
 
