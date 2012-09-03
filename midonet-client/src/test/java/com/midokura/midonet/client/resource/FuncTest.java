@@ -6,11 +6,11 @@ package com.midokura.midonet.client.resource;
 
 import com.google.inject.servlet.GuiceFilter;
 import com.midokura.midolman.mgmt.auth.AuthConfig;
-import com.midokura.midolman.mgmt.data.zookeeper.ExtendedZookeeperConfig;
-import com.midokura.midolman.mgmt.http.CorsConfig;
-import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midolman.mgmt.auth.cors.CorsConfig;
 import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
+import com.midokura.midolman.mgmt.zookeeper.ExtendedZookeeperConfig;
+import com.midokura.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
