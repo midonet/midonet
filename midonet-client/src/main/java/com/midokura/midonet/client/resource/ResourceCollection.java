@@ -4,13 +4,13 @@
 
 package com.midokura.midonet.client.resource;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ForwardingList;
-import com.google.common.collect.Iterables;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.ForwardingList;
+import com.google.common.collect.Iterables;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>

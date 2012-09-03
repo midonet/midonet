@@ -4,12 +4,15 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoTenant;
-
-import java.net.URI;
+import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoPortGroup;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoRuleChain;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -48,25 +51,98 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Returns array of Tenant objects found in the system.
+     * Gets bridges.
+     * i
      *
-     * @return Tenant object
+     * @return Collection of bridges
      */
-    public ResourceCollection<Tenant> getTenants() {
-
-        return getChildResources(app.getTenants(),
-                VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
-                Tenant.class, DtoTenant.class);
+    public ResourceCollection<Bridge> getBridges(String query) {
+        return getChildResources(principalDto.getBridges(),
+                                 query,
+                                 VendorMediaType
+                                     .APPLICATION_BRIDGE_COLLECTION_JSON,
+                                 Bridge.class, DtoBridge.class);
     }
 
     /**
-     * Returns a Tenant resource wrapper instance with newly created DtoTenant.
+     * Gets routers.
      *
-     * @return
+     * @return collection of routers
      */
-    public Tenant addTenant() {
-        return new Tenant(resource, app.getTenants(), new DtoTenant());
+    public ResourceCollection<Router> getRouters(String query) {
+        return getChildResources(principalDto.getRouters(),
+                                 query,
+                                 VendorMediaType
+                                     .APPLICATION_ROUTER_COLLECTION_JSON,
+                                 Router.class, DtoRouter.class);
     }
 
-    //TODO: Hosts
+    /**
+     * Gets chains
+     *
+     * @return collection of chains
+     */
+    public ResourceCollection<RuleChain> getChains(String query) {
+        return getChildResources(principalDto.getChains(),
+                                 query,
+                                 VendorMediaType
+                                     .APPLICATION_CHAIN_COLLECTION_JSON,
+                                 RuleChain.class, DtoRuleChain.class);
+    }
+
+    /**
+     * Gets port groups.
+     *
+     * @return collection of port groups
+     */
+    public ResourceCollection<PortGroup> getPortGroups(String query) {
+        return getChildResources(principalDto.getPortGroups(),
+                                 query,
+                                 VendorMediaType
+                                     .APPLICATION_PORTGROUP_COLLECTION_JSON,
+                                 PortGroup.class, DtoPortGroup.class);
+    }
+
+
+    /**
+     * Adds a bridge.
+     *
+     * @return new Bridge resource
+     */
+    public Bridge addBridge() {
+        return new Bridge(resource, principalDto.getBridges(),
+                          new DtoBridge());
+    }
+
+    /**
+     * Adds a router.
+     *
+     * @return new Router() resource
+     */
+    public Router addRouter() {
+        return new Router(resource, principalDto.getRouters(),
+                          new DtoRouter());
+    }
+
+    /**
+     * Adds a chain.
+     *
+     * @return new Chain() resource
+     */
+    public RuleChain addChain() {
+        return new RuleChain(resource, principalDto.getChains(),
+                             new DtoRuleChain());
+    }
+
+    /**
+     * Adds a port group.
+     *
+     * @return new PortGroup() resource.
+     */
+    public PortGroup addPortGroup() {
+        return new PortGroup(resource, principalDto.getPortGroups(),
+                             new DtoPortGroup());
+    }
+
+    //TODO(tomoe): hosts
 }

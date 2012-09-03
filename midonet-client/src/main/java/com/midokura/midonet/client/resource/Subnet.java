@@ -3,21 +3,21 @@
  */
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.List;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoDhcpHost;
 import com.midokura.midonet.client.dto.DtoDhcpOption121;
 import com.midokura.midonet.client.dto.DtoDhcpSubnet;
 
-import java.net.URI;
-import java.util.List;
-
 public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
 
     public Subnet(WebResource resource, URI uriForCreation, DtoDhcpSubnet
-            principalDto) {
+        principalDto) {
         super(resource, uriForCreation, principalDto, VendorMediaType
-                .APPLICATION_DHCP_SUBNET_JSON);
+            .APPLICATION_DHCP_SUBNET_JSON);
     }
 
     /**
@@ -127,9 +127,12 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @return
      */
     public ResourceCollection<SubnetHost> getHosts() {
-        return getChildResources(principalDto.getHosts(), VendorMediaType
-                .APPLICATION_DHCP_HOST_COLLECTION_JSON, SubnetHost.class,
-                DtoDhcpHost.class);
+        return getChildResources(
+            principalDto.getHosts(),
+            null,
+            VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON,
+            SubnetHost.class,
+            DtoDhcpHost.class);
     }
 
     /**
@@ -139,12 +142,13 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      */
     public SubnetHost addSubnetHost() {
         return new SubnetHost(resource, principalDto.getHosts(),
-                new DtoDhcpHost());
+                              new DtoDhcpHost());
     }
 
     @Override
     public String toString() {
         return String.format("{Subnet, networkp=%s, length=%s}",
-                principalDto.getSubnetPrefix(), principalDto.getSubnetLength());
+                             principalDto.getSubnetPrefix(),
+                             principalDto.getSubnetLength());
     }
 }

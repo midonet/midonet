@@ -4,8 +4,9 @@
 
 package com.midokura.midonet.client.exception;
 
-import com.midokura.midonet.client.dto.DtoError;
 import com.sun.jersey.api.client.ClientResponse;
+
+import com.midokura.midonet.client.dto.DtoError;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>

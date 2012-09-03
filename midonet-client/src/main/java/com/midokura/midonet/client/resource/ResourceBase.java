@@ -4,13 +4,13 @@
 
 package com.midokura.midonet.client.resource;
 
-import com.midokura.midonet.client.WebResource;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
+
+import com.midokura.midonet.client.WebResource;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -71,6 +71,7 @@ public abstract class ResourceBase<T, U> {
      */
     <T, U> ResourceCollection<T>
     getChildResources(URI uri,
+                      String query,
                       String mediaType,
                       Class<T> resourceClazz,
                       Class<U> newPrincipalDtoClazz) {
@@ -79,6 +80,10 @@ public abstract class ResourceBase<T, U> {
 
         Class newPrincipalDtoArrayClazz = Array
                 .newInstance(newPrincipalDtoClazz, 0).getClass();
+
+        if (query != null) {
+            uri = URI.create(uri.toString() + "?" + query);
+        }
 
         // newPrincipalDtoArrray should be T[]
         @SuppressWarnings("unchecked")

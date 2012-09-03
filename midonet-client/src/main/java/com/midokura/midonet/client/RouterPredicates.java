@@ -4,15 +4,15 @@
 
 package com.midokura.midonet.client;
 
-import com.google.common.base.Predicate;
-import com.midokura.midonet.client.resource.Router;
-
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
+import com.google.common.base.Predicate;
 import static com.google.common.base.Predicates.and;
+
+import com.midokura.midonet.client.resource.Router;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>

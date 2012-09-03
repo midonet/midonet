@@ -4,12 +4,12 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoAdRoute;
-
-import java.net.URI;
-import java.util.UUID;
 
 
 public class AdRoute extends ResourceBase<AdRoute, DtoAdRoute> {

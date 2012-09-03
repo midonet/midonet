@@ -4,8 +4,10 @@
 
 package com.midokura.midonet.client;
 
-import com.midokura.midonet.client.exception.*;
-import com.midokura.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
+import java.net.URI;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -14,9 +16,12 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
+import com.midokura.midonet.client.exception.HttpBadRequestException;
+import com.midokura.midonet.client.exception.HttpForbiddenException;
+import com.midokura.midonet.client.exception.HttpInternalServerError;
+import com.midokura.midonet.client.exception.HttpNotFoundException;
+import com.midokura.midonet.client.exception.HttpUnauthorizedException;
+import com.midokura.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>

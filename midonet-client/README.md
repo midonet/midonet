@@ -18,34 +18,34 @@ Here, the code snippet below gives you an idea of how to do the following:
     mgmt = new MidonetMgmt("http://localhost:8080/midolmanj-mgmt/");
     mgmt.enableLogging();
 
+    Bridge b1 = mgmt.addBridge().tenantId("tenant-1").name("bridge-1")
+                        .create();
+    Bridge b2 = mgmt.addBridge().tenantId("tenant-1").name("bridge-2")
+                        .create();
 
-    // Create tenants
-    Tenant t1 = mgmt.addTenant().id("tenant-1").create();
-    Tenant t2 = mgmt.addTenant().id("tenant-2").create();
+    assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(2));
+    for (Bridge b : mgmt.getBridges("tenant_id=tenant-1")) {
+        log.debug("BRIDGE: {}", b);
+    }
+    b2.delete();
+    assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(1));
 
-    // get all the tenants
-    ResourceCollection<Tenant> tenants = mgmt.getTenants();
-    assertThat(tenants.size(), is(2));
-    t2.delete();
-    assertThat(mgmt.getTenants().size(), is(1));
-
-    // search by id(String)   NOTE that findBy is deprecated. See below.
-    Tenant ta = tenants.findBy("id", "tenant-1");
-    assertThat(ta.getId(), is("tenant-1"));
 
 
     try {
-        Bridge b1 = t1.addBridge().name("bridge-1").create();
-        Bridge b2 = t1.addBridge().name("bridge-2").create();
+        Bridge b1 = mgmt.addBridge().tenantId("tenant-2").name("bridge-1")
+                .create();
+        Bridge b2 = mgmt.addBridge().tenantId("tenant-2").name("bridge-2")
+                .create();
         b2 = b2.name("bridge-222").update();
 
     } catch (HttpException ex){
         log.debug("requests for bridges got an exception={}", ex.getError());
     }
 
-    assertThat(t1.getBridges().size(), is(2));
+    assertThat(mgmt.getBridges("tenant_id=tenant-2").size(), is(2));
     b2.delete();
-    assertThat(t1.getBridges().size(), is(1));
+    assertThat(mgmt.getBridges("tenant_id=tenant-2").size(), is(1));
 
 ```
 

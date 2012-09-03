@@ -4,13 +4,13 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-
-import java.net.URI;
-import java.util.UUID;
 
 public class BridgePort<T extends DtoBridgePort> extends
         Port<BridgePort, T> {

@@ -3,11 +3,11 @@
  */
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoDhcpHost;
-
-import java.net.URI;
 
 public class SubnetHost extends ResourceBase<SubnetHost, DtoDhcpHost> {
 

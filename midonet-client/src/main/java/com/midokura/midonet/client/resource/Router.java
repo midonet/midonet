@@ -4,20 +4,26 @@
 
 package com.midokura.midonet.client.resource;
 
-import com.midokura.midonet.client.VendorMediaType;
-import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.*;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import com.midokura.midonet.client.VendorMediaType;
+import com.midokura.midonet.client.WebResource;
+import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoPort;
+import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoRouterPort;
 
 public class Router extends ResourceBase<Router, DtoRouter> {
 
 
     public Router(WebResource resource, URI uriForCreation, DtoRouter r) {
         super(resource, uriForCreation, r,
-                VendorMediaType.APPLICATION_ROUTER_JSON);
+              VendorMediaType.APPLICATION_ROUTER_JSON);
     }
 
     /**
@@ -76,13 +82,24 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
-     * Sets name for creation
+     * Sets name.
      *
      * @param name
      * @return this
      */
     public Router name(String name) {
         principalDto.setName(name);
+        return this;
+    }
+
+    /**
+     * Sets tenantID
+     *
+     * @param tenantId
+     * @return this
+     */
+    public Router tenantId(String tenantId) {
+        principalDto.setTenantId(tenantId);
         return this;
     }
 
@@ -103,9 +120,11 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public ResourceCollection<RouterPort> getPorts() {
         return getChildResources(principalDto.getPorts(),
-                VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
-                RouterPort.class,
-                DtoRouterPort.class);
+                                 null,
+                                 VendorMediaType
+                                     .APPLICATION_PORT_COLLECTION_JSON,
+                                 RouterPort.class,
+                                 DtoRouterPort.class);
     }
 
     /**
@@ -115,9 +134,11 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public ResourceCollection<Route> getRoutes() {
         return getChildResources(principalDto.getRoutes(),
-                VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
-                Route.class,
-                DtoRoute.class);
+                                 null,
+                                 VendorMediaType
+                                     .APPLICATION_ROUTE_COLLECTION_JSON,
+                                 Route.class,
+                                 DtoRoute.class);
     }
 
     /**
@@ -127,21 +148,26 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public ResourceCollection<Port> getPeerPorts() {
         ResourceCollection<Port> peerPorts =
-                new ResourceCollection<Port>(new ArrayList<Port>());
+            new ResourceCollection<Port>(new ArrayList<Port>());
 
-        DtoPort[] dtoPeerPorts = resource.get(principalDto.getPeerPorts(),
-                DtoPort[].class,
-                VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
+        DtoPort[] dtoPeerPorts = resource
+            .get(principalDto.getPeerPorts(),
+                 DtoPort[].class,
+                 VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
             System.out.println("pp in the bridge resource: " + pp);
             Port p = null;
             if (pp instanceof DtoLogicalRouterPort) {
-                p = new RouterPort<DtoLogicalRouterPort>(resource,
-                        principalDto.getPorts(), (DtoLogicalRouterPort) pp);
+                p = new RouterPort<DtoLogicalRouterPort>(
+                    resource,
+                    principalDto.getPorts(),
+                    (DtoLogicalRouterPort) pp);
             } else if (pp instanceof DtoLogicalBridgePort) {
-                p = new BridgePort<DtoLogicalBridgePort>(resource,
-                        principalDto.getPorts(), (DtoLogicalBridgePort) pp);
+                p = new BridgePort<DtoLogicalBridgePort>(
+                    resource,
+                    principalDto.getPorts(),
+                    (DtoLogicalBridgePort) pp);
 
             }
             peerPorts.add(p);
@@ -156,7 +182,8 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public RouterPort addMaterializedRouterPort() {
         return new RouterPort<DtoMaterializedRouterPort>(resource,
-                principalDto.getPorts(), new DtoMaterializedRouterPort());
+                                                         principalDto.getPorts(),
+                                                         new DtoMaterializedRouterPort());
     }
 
     /**
@@ -167,7 +194,8 @@ public class Router extends ResourceBase<Router, DtoRouter> {
 
     public RouterPort addLogicalRouterPort() {
         return new RouterPort<DtoLogicalRouterPort>(resource,
-                principalDto.getPorts(), new DtoLogicalRouterPort());
+                                                    principalDto.getPorts(),
+                                                    new DtoLogicalRouterPort());
     }
 
     /**
@@ -182,6 +210,6 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     @Override
     public String toString() {
         return String.format("Router{id=%s, name=%s}", principalDto.getId(),
-                principalDto.getName());
+                             principalDto.getName());
     }
 }

@@ -1,12 +1,12 @@
 package com.midokura.midonet.client.resource;
 
-import com.midokura.midonet.client.VendorMediaType;
-import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.DtoRule;
-
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+
+import com.midokura.midonet.client.VendorMediaType;
+import com.midokura.midonet.client.WebResource;
+import com.midokura.midonet.client.dto.DtoRule;
 
 public class Rule extends ResourceBase<Rule, DtoRule> {
 

@@ -4,10 +4,10 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoPort;
-
-import java.net.URI;
 
 /**
  * Abstract port resource class for bridge port and router port

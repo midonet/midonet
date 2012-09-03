@@ -4,19 +4,24 @@
 
 package com.midokura.midonet.client.resource;
 
-import com.midokura.midonet.client.VendorMediaType;
-import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.*;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import com.midokura.midonet.client.VendorMediaType;
+import com.midokura.midonet.client.WebResource;
+import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoBridgePort;
+import com.midokura.midonet.client.dto.DtoDhcpSubnet;
+import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoPort;
 
 public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
     public Bridge(WebResource resource, URI uriForCreation, DtoBridge b) {
         super(resource, uriForCreation, b,
-                VendorMediaType.APPLICATION_BRIDGE_JSON);
+              VendorMediaType.APPLICATION_BRIDGE_JSON);
     }
 
     /**
@@ -87,6 +92,18 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
     }
 
     /**
+     * Sets tenantID
+     *
+     * @param tenantId
+     * @return this
+     */
+    public Bridge tenantId(String tenantId) {
+        principalDto.setTenantId(tenantId);
+        return this;
+    }
+
+
+    /**
      * Sets inbound filter id to the DTO
      *
      * @param id
@@ -116,9 +133,11 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
 
     public ResourceCollection<BridgePort> getPorts() {
-        return getChildResources(principalDto.getPorts(),
-                VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
-                BridgePort.class, DtoBridgePort.class);
+        return getChildResources(
+            principalDto.getPorts(),
+            null,
+            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+            BridgePort.class, DtoBridgePort.class);
     }
 
     /**
@@ -128,22 +147,24 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
     public ResourceCollection<Port> getPeerPorts() {
         ResourceCollection<Port> peerPorts =
-                new ResourceCollection<Port>(new ArrayList<Port>());
+            new ResourceCollection<Port>(new ArrayList<Port>());
 
         DtoPort[] dtoPeerPorts = resource.get(principalDto.getPeerPorts(),
-                DtoPort[].class,
-                VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
+                                              DtoPort[].class,
+                                              VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
             System.out.println("pp in the bridge resource: " + pp);
             if (pp instanceof DtoLogicalRouterPort) {
                 RouterPort rp = new RouterPort<DtoLogicalRouterPort>(resource,
-                        principalDto.getPorts(), (DtoLogicalRouterPort) pp);
+                                                                     principalDto
+                                                                         .getPorts(),
+                                                                     (DtoLogicalRouterPort) pp);
                 peerPorts.add(rp);
 
             } else if (pp instanceof DtoLogicalBridgePort) {
                 throw new IllegalStateException("MidoNet doesn't support " +
-                        "linking bridge to brdige.");
+                                                    "linking bridge to brdige.");
             }
         }
         return peerPorts;
@@ -156,7 +177,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
     public BridgePort addMaterializedPort() {
         return new BridgePort<DtoBridgePort>(resource, principalDto.getPorts(),
-                new DtoBridgePort());
+                                             new DtoBridgePort());
     }
 
     /**
@@ -166,12 +187,13 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
     public BridgePort addLogicalPort() {
         return new BridgePort<DtoLogicalBridgePort>(resource,
-                principalDto.getPorts(), new DtoLogicalBridgePort());
+                                                    principalDto.getPorts(),
+                                                    new DtoLogicalBridgePort());
     }
 
     public Subnet addSubnet() {
         return new Subnet(resource, principalDto.getDhcpSubnets(),
-                new DtoDhcpSubnet());
+                          new DtoDhcpSubnet());
     }
 
     /**
@@ -181,14 +203,16 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
 
     public ResourceCollection getSubnets() {
-        return getChildResources(principalDto.getDhcpSubnets(),
-                VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
-                Subnet.class, DtoDhcpSubnet.class);
+        return getChildResources(
+            principalDto.getDhcpSubnets(),
+            null,
+            VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
+            Subnet.class, DtoDhcpSubnet.class);
     }
 
     @Override
     public String toString() {
         return String.format("Bridge{id=%s, name=%s}", principalDto.getId(),
-                principalDto.getName());
+                             principalDto.getName());
     }
 }

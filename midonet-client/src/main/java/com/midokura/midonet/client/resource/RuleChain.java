@@ -4,18 +4,19 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midonet.client.dto.DtoRuleChain;
 
-import java.net.URI;
-import java.util.UUID;
-
 public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
 
     public RuleChain(WebResource resource, URI uriForCreation, DtoRuleChain c) {
-        super(resource, uriForCreation, c, VendorMediaType.APPLICATION_CHAIN_JSON);
+        super(resource, uriForCreation, c,
+              VendorMediaType.APPLICATION_CHAIN_JSON);
     }
 
     /**
@@ -67,6 +68,18 @@ public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
     }
 
     /**
+     * Sets tenant id.
+     *
+     * @param tenantId
+     * @return this
+     */
+    public RuleChain tenantId(String tenantId) {
+        principalDto.setTenantId(tenantId);
+        return this;
+    }
+
+
+    /**
      * Add rule resource under this rule chain.
      *
      * @return new Rule()
@@ -82,15 +95,17 @@ public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
      * @return collecion of rules
      */
     public ResourceCollection<Rule> getRules() {
-        return getChildResources(principalDto.getRules(),
-                VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
-                Rule.class,
-                DtoRule.class);
+        return getChildResources(
+            principalDto.getRules(),
+            null,
+            VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
+            Rule.class,
+            DtoRule.class);
     }
 
     @Override
     public String toString() {
         return String.format("RuleChain{id=%s, name=%s}", principalDto.getId(),
-                principalDto.getName());
+                             principalDto.getName());
     }
 }

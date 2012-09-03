@@ -4,19 +4,19 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoAdRoute;
 import com.midokura.midonet.client.dto.DtoBgp;
 
-import java.net.URI;
-import java.util.UUID;
-
 public class Bgp extends ResourceBase<Bgp, DtoBgp> {
 
     public Bgp(WebResource resource, URI uriForCreation, DtoBgp bgp) {
         super(resource, uriForCreation, bgp,
-                VendorMediaType.APPLICATION_BGP_JSON);
+              VendorMediaType.APPLICATION_BGP_JSON);
     }
 
     /**
@@ -104,10 +104,12 @@ public class Bgp extends ResourceBase<Bgp, DtoBgp> {
      *
      * @return collection of AdRoute resource
      */
-    public ResourceCollection<AdRoute> getAdRoutes() {
+    public ResourceCollection<AdRoute> getAdRoutes(String query) {
         return getChildResources(principalDto.getAdRoutes(),
-                VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON,
-                AdRoute.class, DtoAdRoute.class);
+                                 query,
+                                 VendorMediaType
+                                     .APPLICATION_AD_ROUTE_COLLECTION_JSON,
+                                 AdRoute.class, DtoAdRoute.class);
     }
 
     /**
@@ -117,12 +119,12 @@ public class Bgp extends ResourceBase<Bgp, DtoBgp> {
      */
     public AdRoute addAdRoute() {
         return new AdRoute(resource, principalDto.getAdRoutes(),
-                new DtoAdRoute());
+                           new DtoAdRoute());
     }
 
     @Override
     public String toString() {
         return String.format("Bgp{localAs=%s, peerAs=%s, peerAddr=%s",
-                getLocalAS(), getPeerAS(), getPeerAddr());
+                             getLocalAS(), getPeerAS(), getPeerAddr());
     }
 }

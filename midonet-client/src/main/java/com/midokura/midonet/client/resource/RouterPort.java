@@ -4,20 +4,24 @@
 
 package com.midokura.midonet.client.resource;
 
-import com.midokura.midonet.client.VendorMediaType;
-import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.*;
-
 import java.net.URI;
 import java.util.UUID;
 
+import com.midokura.midonet.client.VendorMediaType;
+import com.midokura.midonet.client.WebResource;
+import com.midokura.midonet.client.dto.DtoBgp;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoRouterPort;
+import com.midokura.midonet.client.dto.PortType;
+
 public class RouterPort<T extends DtoRouterPort> extends
-        Port<T, DtoRouterPort> {
+                                                 Port<T, DtoRouterPort> {
 
 
     public RouterPort(WebResource resource, URI uriForCreation, T p) {
         super(resource, uriForCreation, p,
-                VendorMediaType.APPLICATION_PORT_JSON);
+              VendorMediaType.APPLICATION_PORT_JSON);
     }
 
     /**
@@ -136,7 +140,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public String getLocalNetworkAddress() {
         return ((DtoMaterializedRouterPort) principalDto)
-                .getLocalNetworkAddress();
+            .getLocalNetworkAddress();
     }
 
     /**
@@ -146,7 +150,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public int getLocalNetworkLength() {
         return ((DtoMaterializedRouterPort) principalDto)
-                .getLocalNetworkLength();
+            .getLocalNetworkLength();
     }
 
 
@@ -255,7 +259,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public RouterPort localNetworkAddress(String networkAddress) {
         ((DtoMaterializedRouterPort) principalDto)
-                .setLocalNetworkAddress(networkAddress);
+            .setLocalNetworkAddress(networkAddress);
         return this;
     }
 
@@ -267,7 +271,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public RouterPort localNetworkLength(int length) {
         ((DtoMaterializedRouterPort) principalDto)
-                .setLocalNetworkLength(length);
+            .setLocalNetworkLength(length);
         return this;
     }
 
@@ -287,15 +291,16 @@ public class RouterPort<T extends DtoRouterPort> extends
      *
      * @return collection of bgps
      */
-    public ResourceCollection<Bgp> getBgps() {
-        if (principalDto.getType() != PortType.MATERIALIZED_ROUTER) {
+    public ResourceCollection<Bgp> getBgps(String query) {
+        if (!principalDto.getType().equals(PortType.MATERIALIZED_ROUTER)) {
             throw new IllegalArgumentException("bgp must be added to " +
-                    "materialized router port");
+                                                   "materialized router port");
         }
         return getChildResources(
-                ((DtoMaterializedRouterPort) principalDto).getBgps(),
-                VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
-                Bgp.class, DtoBgp.class);
+            ((DtoMaterializedRouterPort) principalDto).getBgps(),
+            query,
+            VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
+            Bgp.class, DtoBgp.class);
     }
 
     /**
@@ -304,13 +309,13 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return new Bgp()
      */
     public Bgp addBgp() {
-        if (principalDto.getType() != PortType.MATERIALIZED_ROUTER) {
+        if (!principalDto.getType().equals(PortType.MATERIALIZED_ROUTER)) {
             throw new IllegalArgumentException("bgp must be added to " +
-                    "materialized router port");
+                                                   "materialized router port");
         }
         return new Bgp(resource,
-                ((DtoMaterializedRouterPort) principalDto).getBgps(),
-                new DtoBgp());
+                       ((DtoMaterializedRouterPort) principalDto).getBgps(),
+                       new DtoBgp());
     }
 
     /**
@@ -322,7 +327,7 @@ public class RouterPort<T extends DtoRouterPort> extends
     public RouterPort link(UUID id) {
         peerId(id);
         resource.post(((DtoLogicalRouterPort) principalDto).getLink(),
-                principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+                      principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         get(getUri());
         return this;
     }
@@ -335,7 +340,7 @@ public class RouterPort<T extends DtoRouterPort> extends
     public RouterPort unlink() {
         peerId(null);
         resource.post(((DtoLogicalRouterPort) principalDto).getLink(),
-                principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+                      principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         get(getUri());
         return this;
     }
@@ -343,6 +348,6 @@ public class RouterPort<T extends DtoRouterPort> extends
     @Override
     public String toString() {
         return String.format("RouterPort{id=%s, type=%s}", principalDto.getId(),
-                principalDto.getType());
+                             principalDto.getType());
     }
 }

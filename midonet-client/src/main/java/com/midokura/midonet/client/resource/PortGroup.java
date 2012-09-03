@@ -4,12 +4,12 @@
 
 package com.midokura.midonet.client.resource;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoPortGroup;
-
-import java.net.URI;
-import java.util.UUID;
 
 public class PortGroup extends ResourceBase<PortGroup, DtoPortGroup> {
 
@@ -66,4 +66,16 @@ public class PortGroup extends ResourceBase<PortGroup, DtoPortGroup> {
         principalDto.setName(name);
         return this;
     }
+
+    /**
+     * Sets tenantId.
+     *
+     * @param tenantId tenant ID
+     * @return this
+     */
+    public PortGroup tenantId(String tenantId) {
+        principalDto.setTenantId(tenantId);
+        return this;
+    }
+
 }
