@@ -22,15 +22,15 @@ import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.guice._
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
-                                           TestableMidolmanActorsModule}
+TestableMidolmanActorsModule}
 import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import com.midokura.midolman.services.{MidolmanActorsService, MidolmanService}
+import services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import com.midokura.midolman.DatapathController.{InitializationComplete,
-                                                 Initialize}
+Initialize}
 import com.midokura.midonet.cluster.{DataClient, Client}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
@@ -40,7 +40,7 @@ import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
-             with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
+with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
 
     var injector: Injector = null
 
@@ -65,8 +65,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         injector.getInstance(classOf[DataClient])
     }
 
+    protected def newProbe(): TestProbe = {
+        new TestProbe(actors())
+    }
+
     protected def hostId(): UUID = {
-        injector.getInstance(classOf[HostService]).getHostId
+        injector.getInstance(classOf[HostIdProviderService]).getHostId
     }
 
     before {
@@ -91,7 +95,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
-
+            new AbstractModule {
+                def configure() {
+                    bind(classOf[HostIdProviderService])
+                        .toInstance(new HostIdProviderService() {
+                        val hostId = UUID.randomUUID()
+                        def getHostId: UUID = hostId
+                    })
+                }
+            },
             new ReactorModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
@@ -104,8 +116,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
-        val t = Timeout(1 second)
-        val promise= akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
+        val t = Timeout(10 second)
+        val promise = akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
 
         Await.result(promise, t.duration)
     }
@@ -123,11 +135,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         portsByName
     }
 
-    protected def probeByName(name:String):TestKit = {
+    protected def probeByName(name: String): TestKit = {
         probesByName(name)
     }
 
-    protected def actorByName[A <: Actor](name: String):TestActorRef[A] = {
+    protected def actorByName[A <: Actor](name: String): TestActorRef[A] = {
         actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 
@@ -141,7 +153,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         result
     }
 
-    protected def triggerPacketIn(packet:Packet) {
+    protected def triggerPacketIn(packet: Packet) {
         dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].triggerPacketIn(packet)
     }
 
@@ -169,4 +181,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         probeByName(SimulationController.Name)
     }
 
+    protected def requestOfType[T](testKit: TestKit)(implicit m: scala.reflect.Manifest[T]):T = {
+        testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
+    }
+
+    protected def replyOfType[T](testKit: TestKit):T = {
+        val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
+        m.isInstanceOf[T] should be (true)
+        m.asInstanceOf[T]
+    }
 }

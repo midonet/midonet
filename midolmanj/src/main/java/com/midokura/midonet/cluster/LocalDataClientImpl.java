@@ -195,6 +195,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public UUID availabilityZonesAddMembership(UUID zoneId, AvailabilityZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
+        zonesZkManager.delMembership(zoneId, hostConfig.getId());
         return zonesZkManager.addMembership(zoneId, hostConfig);
     }
 

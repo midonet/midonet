@@ -8,7 +8,6 @@ import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
 import datapath.ErrorHandlingCallback
 import flows.{FlowActions, FlowKeys, FlowAction}
-import host.services.HostService
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import services.HostIdProviderService
@@ -24,12 +23,13 @@ import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import java.util.UUID
 import java.lang
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.util.functors.Callback0
 import com.midokura.midonet.cluster.data.AvailabilityZone
 import com.midokura.midonet.cluster.data.zones.{GreAvailabilityZoneHost, GreAvailabilityZone}
 import com.midokura.midonet.cluster.client.AvailabilityZones
 import akka.actor.{ActorRef, Actor}
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import scala.Some
 
 
 /**
@@ -297,15 +297,19 @@ object DatapathController extends Referenceable {
      * @param packet The packet object that should be sent to the kernel. Here
      *               is an example:
      *               {{{
-     *                val outPortUUID = ...
-     *                val pkt = new Packet()
-     *                pkt.setData(data).addAction(new FlowActionVrnPortOutput())
-     *                controller ! SendPacket(pkt)
+     *                               val outPortUUID = ...
+     *                               val pkt = new Packet()
+     *                               pkt.setData(data).addAction(new FlowActionVrnPortOutput())
+     *                               controller ! SendPacket(pkt)
      *               }}}
      */
     case class SendPacket(packet: Packet)
 
     case class PacketIn(packet: Packet, wMatch: WildcardMatch)
+
+    class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {
+
+    }
 
 }
 
@@ -378,6 +382,9 @@ class DatapathController() extends Actor {
     val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, AvailabilityZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
 
+    // peerHostId -> { ZoneID -> tunnelName }
+    val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
+
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
@@ -427,14 +434,14 @@ class DatapathController() extends Actor {
         /**
          * Handle personal create port requests
          */
-        case createPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
-            createDatapathPort(sender, createPortOp.port, None)
+        case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
+            createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         /**
          * Handle personal delete port requests
          */
-        case deletePortOp: DeletePortOp[Port[_, _]] if (sender == self) =>
-            deleteDatapathPort(sender, deletePortOp.port, None)
+        case delPortOp: DeletePortOp[Port[_, _]] if (sender == self) =>
+            deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
 
         case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
             handlePortOperationReply(opReply)
@@ -475,14 +482,14 @@ class DatapathController() extends Actor {
                 zonesToHosts.put(zone.getId, mutable.Map[UUID, AvailabilityZones.Builder.HostConfig]())
             }
 
-        case m : ZoneChanged[_] =>
+        case m: ZoneChanged[_] =>
             handleZoneChange(m)
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
-            createDatapathPort(sender, newPortOp.port, None)
+            createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         case delPortOp: DeletePortOp[Port[_, _]] =>
-            deleteDatapathPort(sender, delPortOp.port, None)
+            deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
 
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
@@ -495,6 +502,10 @@ class DatapathController() extends Actor {
 
         case PacketIn(packet, wildcard) =>
             handleFlowPacketIn(packet, wildcard)
+    }
+
+    def newGreTunnelPortName(source: GreAvailabilityZoneHost, target: GreAvailabilityZoneHost): String = {
+        "tngre%08X" format target.getIp.addressAsInt()
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
@@ -510,18 +521,19 @@ class DatapathController() extends Actor {
                     log.info("Opening a tunnel port to {}", m.hostConfig)
 
                     m match {
-                        case gre: GreZoneChanged => {
+                        case gre: GreZoneChanged =>
                             val myConfig = host.zones(m.zone).asInstanceOf[GreAvailabilityZoneHost]
 
-                            val tunnelPort = Ports.newGreTunnelPort("xxx")
+                            val greTunnelName = newGreTunnelPortName(myConfig, gre.hostConfig)
+                            val tunnelPort = Ports.newGreTunnelPort(greTunnelName)
+
                             tunnelPort.setOptions(
                                 tunnelPort
                                     .newOptions()
                                     .setSourceIPv4(myConfig.getIp.addressAsInt())
                                     .setDestinationIPv4(gre.hostConfig.getIp.addressAsInt()))
 
-                            self ! CreateTunnelGre(tunnelPort, Some(gre.hostConfig))
-                        }
+                            self ! CreateTunnelGre(tunnelPort, Some((gre.hostConfig, m.zone)))
 
                         case ipsec: IpsecZoneChanged => {
 
@@ -532,11 +544,35 @@ class DatapathController() extends Actor {
                         }
                         //
                     }
-                // make a tunnel
+
                 case HostConfigOperation.Deleted =>
                     log.info("Closing a tunnel port to {}", m.hostConfig)
 
-                // close a tunnel
+                    val peerId = hostConfig.getId
+                    val zoneId = m.zone
+
+                    val tunnel = peerPorts.get(peerId) match {
+                        case Some(mapping) =>
+                            mapping.get(zoneId) match {
+                                case Some(tunnelName) =>
+                                    log.debug("Need to close the tunnel with name: {}", tunnelName)
+                                    localPorts(tunnelName)
+                                case None =>
+                                    null
+                            }
+                        case None =>
+                            null
+                    }
+
+                    if (tunnel != null) {
+                        m match {
+                            case gre: GreZoneChanged if (tunnel.isInstanceOf[GreTunnelPort]) =>
+                                val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
+
+                                self ! DeleteTunnelGre(greTunnel, Some((gre.hostConfig, m.zone)))
+                            case _ =>
+                        }
+                    }
             }
         }
     }
@@ -679,14 +715,47 @@ class DatapathController() extends Actor {
 
         pendingUpdateCount -= 1
 
+        opReply match {
+            case TunnelGreOpReply(p, PortOperation.Create, false, null,
+            Some((hConf: GreAvailabilityZoneHost, zone: UUID))) =>
+
+                peerPorts.get(hConf.getId) match {
+                    case Some(tunnels) => tunnels.put(zone, p.getName)
+                    case None =>
+                        peerPorts.put(hConf.getId, mutable.Map(zone -> p.getName))
+                }
+
+            case TunnelGreOpReply(p, PortOperation.Delete, false, null,
+            Some((hConf: GreAvailabilityZoneHost, zone: UUID))) =>
+
+                peerPorts.get(hConf.getId) match {
+                    case Some(zoneTunnelMap) =>
+                        zoneTunnelMap.remove(zone)
+                        if (zoneTunnelMap.size == 0) {
+                            peerPorts.remove(hConf.getId)
+                        }
+
+                    case None =>
+                }
+
+
+            //            case PortNetdevOpReply(_,_,_,_,_) =>
+            //            case PortInternalOpReply(_,_,_,_,_) =>
+            //            case TunnelCapwapOpReply(_,_,_,_,_) =>
+            //            case TunnelPatchOpReply(_,_,_,_,_) =>
+            case reply =>
+        }
+
         opReply.port match {
             case p: Port[_, _] if opReply.error == null && !opReply.timeout =>
+                context.system.eventStream.publish(new DatapathPortChangedEvent(p, opReply.op))
                 opReply.op match {
                     case PortOperation.Create =>
                         localPorts.put(p.getName, p)
                     case PortOperation.Delete =>
                         localPorts.remove(p.getName)
                 }
+
             case value =>
                 log.error("No match {}", value)
         }

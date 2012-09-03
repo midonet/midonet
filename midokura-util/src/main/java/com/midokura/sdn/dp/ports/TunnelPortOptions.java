@@ -3,6 +3,9 @@
 */
 package com.midokura.sdn.dp.ports;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import com.midokura.midolman.util.Net;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
@@ -75,14 +78,26 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         return self();
     }
 
+    public String getName() {
+        return name;
+    }
+
     public Options setDestinationIPv4(int destinationIPv4) {
         this.dstIPv4 = destinationIPv4;
         return self();
     }
 
+    public int getDestinationIPv4() {
+        return this.dstIPv4;
+    }
+
     public Options setSourceIPv4(int sourceIPv4) {
         this.srcIPv4 = sourceIPv4;
         return self();
+    }
+
+    public int getSourceIPv4() {
+        return this.srcIPv4;
     }
 
     public Options setFlags(Flag... flags) {
@@ -94,9 +109,24 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         return self();
     }
 
+    public Set<Flag> getFlags() {
+        EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+        for (Flag flag : flags) {
+            if ((this.flags & flag.value) != 0) {
+                flags.add(flag);
+            }
+        }
+
+        return flags;
+    }
+
     public Options setTos(byte tos) {
         this.tos = tos;
         return self();
+    }
+
+    public byte getTos() {
+        return this.tos;
     }
 
     public Options setTTL(byte ttl) {
@@ -104,14 +134,26 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         return self();
     }
 
+    public byte getTTL() {
+        return this.ttl;
+    }
+
     public Options setOutKey(long key) {
         this.outKey = key;
         return self();
     }
 
+    public long getOutKey() {
+        return this.outKey;
+    }
+
     public Options setInKey(long key) {
         this.inKey = key;
         return self();
+    }
+
+    public long getInKey() {
+        return this.inKey;
     }
 
     protected abstract Options self();

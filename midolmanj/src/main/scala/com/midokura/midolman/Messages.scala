@@ -10,3 +10,8 @@ object Messages {
     case class Ping(value:AnyRef)
     case class Pong(value:AnyRef)
 }
+
+
+trait Event {
+
+}
