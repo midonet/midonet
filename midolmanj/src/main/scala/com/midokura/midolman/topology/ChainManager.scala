@@ -9,6 +9,7 @@ import java.util.UUID
 import com.midokura.midolman.rules.{JumpRule, Rule}
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
 import com.midokura.midolman.simulation.Chain
+import com.midokura.midolman.topology.VirtualTopologyActor.{ChainUnsubscribe, ChainRequest}
 
 class ChainManager(val id: UUID) extends Actor {
     // Kick off the first attempt to construct the device.

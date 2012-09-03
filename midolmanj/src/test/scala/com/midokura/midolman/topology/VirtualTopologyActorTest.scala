@@ -27,6 +27,7 @@ import com.midokura.midolman.state.{Directory, ZkManager}
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.{BridgeConfig => ZkBridgeConfig}
 import com.midokura.midonet.cluster
+import com.midokura.midolman.topology.VirtualTopologyActor.BridgeRequest
 
 
 trait VirtualTopologyActorTest extends Suite with BeforeAndAfterAll
@@ -94,7 +95,7 @@ class X extends VirtualTopologyActorTest {
         probe.send(actorRef, new BridgeRequest(bridgeId, true))
         val bridgeCfg = new ZkBridgeConfig()
         // set gre key sequentially
-        bridgeCfg.greKey = 1  
+        bridgeCfg.greKey = 1
         //probe.expectMsg(new Bridge(bridgeId, bridgeCfg, null, null,
         //                              null, null))
         /*val receivedBridge = probe.receiveOne(Duration.Undefined)

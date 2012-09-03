@@ -29,22 +29,6 @@ class PortManager(id: UUID, val hostIp: IntIPv4) extends DeviceManager(id) {
         makeNewPort()
     }
 
-    private def updateLocality(isLocal: Boolean): Unit = {
-        if (local != isLocal) {
-            local = isLocal
-            if (local) {} // mgr.addLocation(id, hostIp)
-            else {} //mgr.removeLocation(id, hostIp)
-            if (chainsReady())
-                makeNewPort()
-            if (cfg.isInstanceOf[BridgePortConfig])
-                context.actorFor("..").tell(
-                    SetBridgePortLocal(cfg.device_id, id, isLocal))
-            else
-                context.actorFor("..").tell(
-                    SetRouterPortLocal(cfg.device_id, id, isLocal))
-        }
-    }
-
     private def makeNewPort() {
         if (chainsReady()) {
             if (cfg.isInstanceOf[LogicalBridgePortConfig] ||
@@ -82,7 +66,6 @@ class PortManager(id: UUID, val hostIp: IntIPv4) extends DeviceManager(id) {
     }
 
     override def receive() = super.receive orElse {
-        case SetPortLocal(_, local) => updateLocality(local)
         case RefreshLocations => refreshLocations()
     }
 }

@@ -279,7 +279,8 @@ object DatapathController extends Referenceable {
      * @param vportID
      * @param port
      */
-    case class BindVirtualToDatapathPort(vportID: UUID, port: Port[_, _])
+    case class BindToInternalPort(vportID: UUID, port: InternalPort)
+    case class BindToNetDevPort(vportID: UUID, port: NetDevPort)
 
     case class InstallFlow(flow: KernelFlow)
 

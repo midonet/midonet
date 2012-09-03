@@ -11,72 +11,78 @@ import com.midokura.packets.IntIPv4
 import com.midokura.midolman.guice.ComponentInjectorHolder
 import javax.inject.Inject
 import com.midokura.midolman.config.MidolmanConfig
-import akka.event.Logging
 import com.midokura.midolman.simulation.{Chain, Bridge, Router}
 import com.midokura.midonet.cluster.Client
-import akka.actor.{Props, ActorRef, Actor}
+import akka.actor.{ActorLogging, Props, ActorRef, Actor}
 import com.midokura.midolman.Referenceable
 import com.midokura.midonet.cluster.client.Port
 
-/*
- * VirtualTopologyActor's clients use these messages to request the most recent
- * state of a device and, optionally, notifications when the state changes.
- */
-sealed trait DeviceRequest
-
-case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
-
-/**
- * This message sent to the VTA requests a port's list of BGPs. The response
- * is a sequence of BGP read-copy-update objects. Each BGP object includes
- * the owner port identifier for the convenience of the caller.
- * @param portID
- * @param update
- */
-case class BGPListRequest(portID: UUID, update: Boolean)
-
-case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
-
-case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
-
-case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
-
-// The VPN Actor sends this message to the Virtual Topology Actor to register
-// interest in managing VPNs. The VTA subsequently will try to 'lock' VPNs
-// on behalf of the local host ID and send notifications of any acquired
-// VPN locks to the local VPNManager.
-case class RegisterVPNHandler()
-
-// The Virtual Topology Actor sends this message to the VPNmanager whenever
-// a lock is acquired/released to manage a VPN.
-case class AcquiredLockOnVPN(vpnID: UUID, acquired: Boolean)
-
-// Clients send this message to the VTA to requests the configuration
-// of a VPN. Once ready, the VTA sends back a VPN read-copy-update object.
-case class VPNRequest(id: UUID, update: Boolean)
-
-sealed trait Unsubscribe
-
-case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
-
-case class ChainUnsubscribe(id: UUID) extends Unsubscribe
-
-case class PortUnsubscribe(id: UUID) extends Unsubscribe
-
-case class RouterUnsubscribe(id: UUID) extends Unsubscribe
-
-case class SetPortLocal(id: UUID, local: Boolean)
-
-// These types are used to inform the device that a port is local
-case class SetBridgePortLocal(devId: UUID, portId: UUID, local: Boolean)
-
-case class SetRouterPortLocal(devId: UUID, portId: UUID, local: Boolean)
 
 object VirtualTopologyActor extends Referenceable {
     val Name: String = "VirtualTopologyActor"
+
+    /*
+    * VirtualTopologyActor's clients use these messages to request the most recent
+    * state of a device and, optionally, notifications when the state changes.
+    */
+    sealed trait DeviceRequest
+
+    case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
+
+    /**
+     * This message sent to the VTA requests a port's list of BGPs. The response
+     * is a sequence of BGPLink read-copy-update objects. Each BGP object
+     * includes the owner port identifier for the convenience of the caller.
+     * When a BGPLink on a port is deleted, the VTA will inform the
+     * subscriber by sending a BGPLinkDeleted message.
+     * @param portID
+     * @param update
+     */
+    case class BGPListRequest(portID: UUID, update: Boolean)
+
+    /**
+     * Sent by the VTA to subscribers when a BGP configuration is removed from
+     * a port's list of BGP links.
+     * @param bgpID
+     */
+    case class BGPLinkDeleted(bgpID: UUID)
+
+    case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
+
+    case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
+
+    case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
+
+    // The VPN Actor sends this message to the Virtual Topology Actor to register
+    // interest in managing VPNs. The VTA subsequently will try to 'lock' VPNs
+    // on behalf of the local host ID and send notifications of any acquired
+    // VPN locks to the local VPNManager.
+    case class RegisterVPNHandler()
+
+    // The Virtual Topology Actor sends this message to the VPNmanager whenever
+    // a lock is acquired/released to manage a VPN.
+    case class AcquiredLockOnVPN(vpnID: UUID, acquired: Boolean)
+
+    // Clients send this message to the VTA to requests the configuration
+    // of a VPN. Once ready, the VTA sends back a VPN read-copy-update object.
+    case class VPNRequest(id: UUID, update: Boolean)
+
+    sealed trait Unsubscribe
+
+    case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
+
+    case class ChainUnsubscribe(id: UUID) extends Unsubscribe
+
+    case class PortUnsubscribe(id: UUID) extends Unsubscribe
+
+    case class BGPListUnsubscribe(portID: UUID) extends Unsubscribe
+
+    case class RouterUnsubscribe(id: UUID) extends Unsubscribe
+
 }
 
-class VirtualTopologyActor() extends Actor {
+class VirtualTopologyActor() extends Actor with ActorLogging {
+    import VirtualTopologyActor._
     // dir: Directory, zkBasePath: String, val hostIp: IntIPv4
 
     private val idToBridge = mutable.Map[UUID, Bridge]()
@@ -90,11 +96,6 @@ class VirtualTopologyActor() extends Actor {
     private val idToUnansweredClients = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val managed = mutable.Set[UUID]()
 
-    // TODO(pino): use localPorts to avoid unloading local ports that have
-    // TODO:       no subscribers and haven't been used in a while.
-    private val localPorts = mutable.Set[UUID]()
-    val log = Logging(context.system, this)
-
     @Inject
     var clusterClient: Client = null
 
@@ -105,6 +106,7 @@ class VirtualTopologyActor() extends Actor {
 
     override def preStart() {
         super.preStart()
+        // XXX TODO(pino): get the local host ID for VPN locking.
         ComponentInjectorHolder.inject(this)
 
     }
@@ -187,26 +189,5 @@ class VirtualTopologyActor() extends Actor {
         case chain: Chain => updated(chain.id, chain, idToChain)
         case port: Port[_] => updated(port.id, port, idToPort)
         case router: Router => updated(router.id, router, idToRouter)
-        case portLocalMsg: SetPortLocal =>
-            if (localPorts(portLocalMsg.id) != portLocalMsg.local) {
-                if (portLocalMsg.local)
-                    localPorts.add(portLocalMsg.id)
-                else
-                    localPorts.remove(portLocalMsg.id)
-                manageDevice(portLocalMsg.id, portMgrCtor)
-                context.actorFor("./" + portLocalMsg.id.toString())
-                    .forward(portLocalMsg)
-            }
-        case brPortLocalMsg: SetBridgePortLocal =>
-            manageDevice(brPortLocalMsg.devId,
-                (x: UUID) => new BridgeManager(x, clusterClient))
-            context.actorFor("./" + brPortLocalMsg.devId.toString())
-                .forward(brPortLocalMsg)
-        case rtrPortLocalMsg: SetRouterPortLocal =>
-            manageDevice(rtrPortLocalMsg.devId,
-                (x: UUID) =>
-                    new RouterManager(x, clusterClient))
-            context.actorFor("./" + rtrPortLocalMsg.devId.toString())
-                .forward(rtrPortLocalMsg)
     }
 }

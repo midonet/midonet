@@ -469,6 +469,11 @@ public class WildcardMatch implements Cloneable {
                     case TunnelID:
                         newClone.tunnelID = tunnelID;
                         break;
+
+                    default:
+                        throw new RuntimeException("Cannot clone a " +
+                            "WildcardMatch with an unrecognized field" +
+                            field);
                 }
             }
         }

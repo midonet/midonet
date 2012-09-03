@@ -30,6 +30,7 @@ import com.midokura.midonet.cluster.data.Host;
 import com.midokura.midonet.cluster.data.Hosts;
 import com.midokura.midonet.cluster.data.Port;
 import com.midokura.midonet.cluster.data.Ports;
+import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
@@ -143,8 +144,13 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsSetActive(UUID portID, boolean active) {
-        //XXX: pino
+    public void portsSetLocalAndActive(UUID portID, boolean active) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

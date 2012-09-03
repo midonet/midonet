@@ -3,7 +3,10 @@
 package com.midokura.midolman.simulation
 
 import collection.mutable
-import collection.{Set => ROSet}  // read-only view
+import collection.{Set => ROSet}
+import com.midokura.midolman.topology.VirtualTopologyActor.{RouterRequest, BridgeRequest, PortRequest}
+
+// read-only view
 import compat.Platform
 import util.continuations.cps
 import java.util.concurrent.TimeoutException
@@ -15,13 +18,11 @@ import akka.dispatch.Future._
 import akka.pattern.ask
 import akka.util.duration._
 
-import com.google.inject.Inject
 
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.FlowActionVrnPortOutput
-import com.midokura.midolman.services.MidolmanActorsService
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet

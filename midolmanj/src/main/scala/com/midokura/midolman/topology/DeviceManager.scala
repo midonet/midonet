@@ -8,6 +8,7 @@ import akka.actor.Actor
 import akka.event.Logging
 import com.midokura.midolman.simulation.Chain
 import com.midokura.midonet.cluster.client.{ForwardingElementBuilder, Builder, DeviceBuilder}
+import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest, ChainUnsubscribe}
 
 abstract class DeviceManager(val id: UUID) extends Actor {
     val log = Logging(context.system, this)

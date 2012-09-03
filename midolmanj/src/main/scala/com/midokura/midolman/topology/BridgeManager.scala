@@ -96,7 +96,6 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private case class GetFlowCount(mac: MAC, port: UUID)
 
     override def receive = super.receive orElse {
-        case SetBridgePortLocal(_, portId, local) => // TODO XXX
 
         case GetFlowCount(mac, port) =>
             sender ! (flowCountMap.get((mac, port)) match {
