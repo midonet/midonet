@@ -281,7 +281,9 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         // Update index if the name changed
-        if (!bridgeConfig.name.equals(oldBridge.getData().name)) {
+        String oldName = oldBridge.getData().name;
+        String newName = bridgeConfig.name;
+        if (oldName == null ? newName != null : !oldName.equals(newName)) {
 
             String tenantId = oldBridge.getProperty(Bridge.Property.tenant_id);
 
