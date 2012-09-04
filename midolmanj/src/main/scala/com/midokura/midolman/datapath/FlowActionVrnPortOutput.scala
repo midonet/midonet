@@ -10,7 +10,7 @@ import java.util.UUID
 import com.midokura.sdn.dp.flows.FlowAction.FlowActionAttr
 
 object FlowActionVrnPortOutput {
-    val key = new FlowActionAttr[FlowActionVrnPortOutput](250)
+    val key = new FlowActionAttr[FlowActionVrnPortOutput](250, false)
 }
 /**
  * Custom `FlowAction[_]` specialization which can take an `UUID` as the

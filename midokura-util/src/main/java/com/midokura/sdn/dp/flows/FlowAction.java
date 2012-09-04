@@ -29,7 +29,7 @@ public interface FlowAction<Action extends FlowAction<Action>> extends BuilderAw
         /** Nested OVS_SAMPLE_ATTR_*. */
         public static final FlowActionAttr<FlowActionSample> SAMPLE = attrNest(6);
 
-        private FlowActionAttr(int id, boolean nested) {
+        public FlowActionAttr(int id, boolean nested) {
             super(id, nested);
         }
 
