@@ -3,8 +3,6 @@
 */
 package com.midokura.midolman
 
-import host.guice.HostModule
-import host.services.HostService
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID
