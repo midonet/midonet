@@ -37,6 +37,9 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case NetworkProtocol:
                     setNetworkProtocol(source.getNetworkProtocol());
                     break;
+                case NetworkTTL:
+                    setNetworkTTL(source.getNetworkTTL());
+                    break;
                 case EthernetDestination:
                     setEthernetDestination(source.getEthernetDestination());
                     break;

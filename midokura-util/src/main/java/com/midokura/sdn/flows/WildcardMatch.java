@@ -27,6 +27,7 @@ public class WildcardMatch implements Cloneable {
         NetworkSource,
         NetworkDestination,
         NetworkProtocol,
+        NetworkTTL,
         IsIPv4Fragment,
         TransportSource,
         TransportDestination
@@ -49,6 +50,7 @@ public class WildcardMatch implements Cloneable {
     private IntIPv4 networkSource;
     private IntIPv4 networkDestination;
     private Byte networkProtocol;
+    private Byte networkTTL;
     private Boolean isIPv4Fragment;
     private Short transportSource;
     private Short transportDestination;
@@ -226,6 +228,25 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
+    public WildcardMatch setNetworkTTL(byte networkTTL) {
+        usedFields.add(Field.NetworkTTL);
+        this.networkTTL = networkTTL;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetNetworkTTL() {
+        usedFields.remove(Field.NetworkTTL);
+        this.networkTTL = null;
+        return this;
+    }
+
+    @Nullable
+    public Byte getNetworkTTL() {
+        return networkTTL;
+    }
+
+    @Nonnull
     public WildcardMatch setIsIPv4Fragment(boolean isFragment) {
         usedFields.add(Field.IsIPv4Fragment);
         this.isIPv4Fragment = isFragment;
@@ -346,6 +367,11 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
+                case NetworkTTL:
+                    if (!isEqual(networkTTL, that.networkTTL))
+                        return false;
+                    break;
+
                 case TunnelID:
                     if (!isEqual(tunnelID, that.tunnelID))
                         return false;
@@ -398,6 +424,9 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case NetworkProtocol:
                     result = 31 * result + networkProtocol.hashCode();
+                    break;
+                case NetworkTTL:
+                    result = 31 * result + networkTTL;
                     break;
                 case TunnelID:
                     result = 31 * result + tunnelID.hashCode();
@@ -465,6 +494,10 @@ public class WildcardMatch implements Cloneable {
 
                     case NetworkProtocol:
                         newClone.networkProtocol = networkProtocol;
+                        break;
+
+                    case NetworkTTL:
+                        newClone.networkTTL = networkTTL;
                         break;
 
                     case TunnelID:
