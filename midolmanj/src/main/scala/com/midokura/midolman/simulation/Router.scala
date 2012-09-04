@@ -83,7 +83,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         // XXX: Apply the pre-routing (ingress) chain
 
-        val rt: Route = null // XXX TODO(pino): loadBalancer.lookup(ingressMatch)
+        val rt: Route = loadBalancer.lookup(ingressMatch)
         if (rt == null) {
             // No route to network
             sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_NET)
