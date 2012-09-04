@@ -171,7 +171,8 @@ public class ClientTest extends JerseyTest {
                                           .id(r1.getId()).build());
 
 
-        //r1.name("router-111").update();
+        r1.name("router-111").update();
+        mgmt.getRouters("tenant_id=tenant-1");
 //        assertThat(mgmt.routers().<Router>findBy("name", "router-111").getName(),
 //                is("router-111"));
 
