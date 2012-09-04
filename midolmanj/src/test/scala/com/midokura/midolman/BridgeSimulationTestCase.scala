@@ -13,6 +13,7 @@ import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.sdn.flows.WildcardMatches
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import topology.VirtualTopologyActor.PortRequest
 
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase {
@@ -35,6 +36,19 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         val vifPort2 =
             clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
 
+        //simProbe().testActor ! PacketIn(dpPkt,
+        //    WildcardMatches.fromFlowMatch(flowMatch))
+        //val pktIn = simProbe().expectMsgType[PacketIn]
+
+        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort1, "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort2, "port2")
+
+        initializeDatapath() should not be (null)
+
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+
+        val portNo = dpController().underlyingActor.localPorts("port1")
+            .getPortNo
         val ethPkt = Packets.udp(
                 MAC.fromString("02:11:22:33:44:10"),
                 MAC.fromString("02:11:22:33:44:11"),
@@ -47,20 +61,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         val dpPkt = new Packet()
             .setMatch(flowMatch)
             .setData(ethPkt.serialize())
-
-        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort1, "port1")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort2, "port2")
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
-
-        simProbe().testActor ! PacketIn(dpPkt,
-            WildcardMatches.fromFlowMatch(flowMatch))
-        val pktIn = simProbe().expectMsgType[PacketIn]
-
-        val portNo = dpController().underlyingActor.localPorts("port1")
-            .getPortNo
         triggerPacketIn(dpPkt)
 
         val packetIn = dpProbe().expectMsgType[PacketIn]
@@ -73,6 +73,10 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
 
         packetInMsg.wMatch should not be null
         packetInMsg.wMatch.getInputPortUUID should be (vifPort1)
+
+        val ingressPortRequest = vtaProbe().expectMsgType[PortRequest]
+
+
     }
 
 }
