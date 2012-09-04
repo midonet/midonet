@@ -97,6 +97,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class CreatePortInternal(port: InternalPort, tag: Option[AnyRef])
         extends CreatePortOp[InternalPort]
@@ -107,6 +108,7 @@ object DatapathController extends Referenceable {
      * message when the operation is completed.
      *
      * @param port the port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class DeletePortInternal(port: InternalPort, tag: Option[AnyRef])
         extends DeletePortOp[InternalPort]
@@ -121,6 +123,8 @@ object DatapathController extends Referenceable {
      * @param op the operation type
      * @param timeout true if the operation timed out
      * @param error non null if the underlying layer has thrown exceptions
+     * @param tag is the same value that was passed in the initial operation by
+     *            the caller
      */
     case class PortInternalOpReply(port: InternalPort, op: PortOperation.Value,
                                    timeout: Boolean, error: NetlinkException,
@@ -132,6 +136,7 @@ object DatapathController extends Referenceable {
      * receive an `PortNetdevOpReply` message in return.
      *
      * @param port the port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class CreatePortNetdev(port: NetDevPort, tag: Option[AnyRef])
         extends CreatePortOp[NetDevPort]
@@ -142,6 +147,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class DeletePortNetdev(port: NetDevPort, tag: Option[AnyRef])
         extends DeletePortOp[NetDevPort]
@@ -156,6 +162,8 @@ object DatapathController extends Referenceable {
      * @param op the operation type
      * @param timeout true if the operation timed out
      * @param error non null if the underlying layer has thrown exceptions
+     * @param tag is the same value that was passed in the initial operation by
+     *            the caller
      */
     case class PortNetdevOpReply(port: NetDevPort, op: PortOperation.Value,
                                  timeout: Boolean, error: NetlinkException,
@@ -168,6 +176,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class CreateTunnelPatch(port: PatchTunnelPort, tag: Option[AnyRef])
         extends CreatePortOp[PatchTunnelPort]
@@ -178,6 +187,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class DeleteTunnelPatch(port: PatchTunnelPort, tag: Option[AnyRef])
         extends DeletePortOp[PatchTunnelPort]
@@ -192,6 +202,8 @@ object DatapathController extends Referenceable {
      * @param op the operation type
      * @param timeout true if the operation timed out
      * @param error non null if the underlying layer has thrown exceptions
+     * @param tag is the same value that was passed in the initial operation by
+     *            the caller
      */
     case class TunnelPatchOpReply(port: PatchTunnelPort, op: PortOperation.Value,
                                   timeout: Boolean, error: NetlinkException,
@@ -204,6 +216,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class CreateTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
         extends CreatePortOp[GreTunnelPort]
@@ -214,6 +227,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class DeleteTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
         extends DeletePortOp[GreTunnelPort]
@@ -228,6 +242,8 @@ object DatapathController extends Referenceable {
      * @param op the operation type
      * @param timeout true if the operation timed out
      * @param error non null if the underlying layer has thrown exceptions
+     * @param tag is the same value that was passed in the initial operation by
+     *            the caller
      */
     case class TunnelGreOpReply(port: GreTunnelPort, op: PortOperation.Value,
                                 timeout: Boolean, error: NetlinkException,
@@ -240,6 +256,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class CreateTunnelCapwap(port: CapWapTunnelPort, tag: Option[AnyRef])
         extends CreatePortOp[CapWapTunnelPort]
@@ -250,6 +267,7 @@ object DatapathController extends Referenceable {
      * message in return.
      *
      * @param port the tunnel port information
+     * @param tag a value that is going to be copied to the reply message
      */
     case class DeleteTunnelCapwap(port: CapWapTunnelPort, tag: Option[AnyRef])
         extends DeletePortOp[CapWapTunnelPort]
@@ -264,6 +282,8 @@ object DatapathController extends Referenceable {
      * @param op the operation type
      * @param timeout true if the operation timed out
      * @param error non null if the underlying layer has thrown exceptions
+     * @param tag is the same value that was passed in the initial operation by
+     *            the caller
      */
     case class TunnelCapwapOpReply(port: CapWapTunnelPort, op: PortOperation.Value,
                                    timeout: Boolean, error: NetlinkException,
