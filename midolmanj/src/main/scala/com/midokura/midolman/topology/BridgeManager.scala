@@ -110,6 +110,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                 case None =>
                     flowCountMap.put((mac, port), 1)
                 //XXX: Remove any delayed deletes for this MAC/port
+                //XXX: Check for migration from another port, and invalidate
+                //     flows to this MAC going to another portt.
             }
 
         case FlowDecrement(mac, port) =>

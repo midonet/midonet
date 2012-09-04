@@ -104,28 +104,15 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
-            getPortOfMac(srcDlAddress, expiry, ec) onSuccess {
-              case oldPort: UUID =>
-                if (oldPort != ingressMatch.getInputPortUUID) {
-                    log.debug("MAC {} moved from port {} to {}.",
-                        Array[Object](srcDlAddress, oldPort,
-                                      ingressMatch.getInputPortUUID))
-                    // The flows that reflect the old MAC port entry will be
-                    // removed by the BridgeManager
-                    macPortMap.add(srcDlAddress, ingressMatch.getInputPortUUID)
-                    packetContext.synchronized {
-                        if (!packetContext.isFrozen) {
-                            packetContext.addFlowRemovedCallback(
-                                flowRemovedCallbackGen.getCallback(srcDlAddress,
-                                        ingressMatch.getInputPortUUID))
-                            // Pass the tag to be used to index the flow
-                            val tag = (id, srcDlAddress,
-                                       ingressMatch.getInputPortUUID)
-                            packetContext.addFlowTag(tag)
-                        }
-                    }
-                }
-            }
+            packetContext.addFlowRemovedCallback(
+                        flowRemovedCallbackGen.getCallback(srcDlAddress,
+                                ingressMatch.getInputPortUUID))
+            // Pass the tag to be used to index the flow
+            val tag = (id, srcDlAddress, ingressMatch.getInputPortUUID)
+            packetContext.addFlowTag(tag)
+            // Any flow invalidations caused by MACs migrating between ports
+            // are done by the BridgeManager, which detects them from the
+            // flowCount.increment call.
         }
 
         //XXX: apply egress (post-bridging) chain
