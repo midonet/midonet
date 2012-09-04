@@ -7,7 +7,11 @@ import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.netlink.NetlinkMessage
 import com.midokura.netlink.messages.BaseBuilder
 import java.util.UUID
+import com.midokura.sdn.dp.flows.FlowAction.FlowActionAttr
 
+object FlowActionVrnPortOutput {
+    val key = new FlowActionAttr[FlowActionVrnPortOutput](250)
+}
 /**
  * Custom `FlowAction[_]` specialization which can take an `UUID` as the
  * destination port.
@@ -16,7 +20,7 @@ import java.util.UUID
  */
 class FlowActionVrnPortOutput(val portId: UUID) extends FlowAction[FlowActionVrnPortOutput] {
 
-    def getKey = null
+    def getKey = FlowActionVrnPortOutput.key
 
     def getValue = this
 
