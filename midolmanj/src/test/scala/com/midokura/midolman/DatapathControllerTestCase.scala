@@ -62,7 +62,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
         val eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
-        eventProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
+        requestOfType[DatapathPortChangedEvent](eventProbe)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -116,8 +116,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = ask[InitializationComplete](dpController, Initialize())
-        reply should not be (null)
+        initializeDatapath() should not be (null)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -231,9 +230,9 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         clusterDataClient().hostsAddVrnPortMapping(hostId(), port2.getId, "port2")
 
         requestOfType[HostRequest](vtpProbe())
-        replyOfType(vtpProbe(), classOf[physical.Host])
+        replyOfType[physical.Host](vtpProbe())
 
-        val rcuHost = replyOfType(vtpProbe(), classOf[physical.Host])
+        val rcuHost = replyOfType[physical.Host](vtpProbe())
 
         rcuHost should not be null
         rcuHost.ports should contain key (port.getId)

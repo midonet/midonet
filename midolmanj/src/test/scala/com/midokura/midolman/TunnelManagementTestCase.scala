@@ -87,14 +87,14 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
-        replyOfType(vtpProbe(), classOf[physical.Host])
+        replyOfType[physical.Host](vtpProbe())
 
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         val tzRequest = requestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be === greZone.getId
-        replyOfType(vtpProbe(), classOf[GreTunnelZone])
-        replyOfType(vtpProbe(), classOf[GreZoneChanged])
-        replyOfType(vtpProbe(), classOf[GreZoneChanged])
+        replyOfType[GreTunnelZone](vtpProbe())
+        replyOfType[GreZoneChanged](vtpProbe())
+        replyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.
         portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)

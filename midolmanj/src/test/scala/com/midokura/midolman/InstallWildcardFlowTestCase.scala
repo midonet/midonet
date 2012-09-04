@@ -53,7 +53,7 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
 
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null, null))
 
-        val addFlowMsg = flowProbe().expectMsgType[AddWildcardFlow]
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
 
         addFlowMsg should not be null
         addFlowMsg.packet should not be null

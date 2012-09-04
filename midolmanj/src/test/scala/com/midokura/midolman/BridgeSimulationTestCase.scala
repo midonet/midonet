@@ -63,20 +63,17 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
             .setData(ethPkt.serialize())
         triggerPacketIn(dpPkt)
 
-        val packetIn = dpProbe().expectMsgType[PacketIn]
+        val packetIn = requestOfType[PacketIn](dpProbe())
 
         packetIn should not be null
         packetIn.packet should not be null
         packetIn.wMatch should not be null
 
-        val packetInMsg = simProbe().expectMsgType[PacketIn]
+        val packetInMsg = requestOfType[PacketIn](simProbe())
 
         packetInMsg.wMatch should not be null
         packetInMsg.wMatch.getInputPortUUID should be (vifPort1)
 
-        val ingressPortRequest = vtaProbe().expectMsgType[PortRequest]
-
-
+        val ingressPortRequest = requestOfType[PortRequest](vtaProbe())
     }
-
 }

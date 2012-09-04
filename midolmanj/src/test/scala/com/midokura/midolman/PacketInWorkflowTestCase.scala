@@ -34,7 +34,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         initializeDatapath() should not be (null)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
 
         val portNo = dpController().underlyingActor.localPorts("port").getPortNo
         triggerPacketIn(
@@ -49,16 +49,15 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
                     ).serialize())
                 .setMatch(new FlowMatch().addKey(FlowKeys.inPort(portNo))))
 
-        val packetIn = dpProbe().expectMsgType[PacketIn]
+        val packetIn = requestOfType[PacketIn](dpProbe())
 
         packetIn should not be null
         packetIn.packet should not be null
         packetIn.wMatch should not be null
 
-        val packetInMsg = simProbe().expectMsgType[PacketIn]
+        val packetInMsg = requestOfType[PacketIn](simProbe())
 
         packetInMsg.wMatch should not be null
         packetInMsg.wMatch.getInputPortUUID should be (vifPort.getId)
     }
-
 }

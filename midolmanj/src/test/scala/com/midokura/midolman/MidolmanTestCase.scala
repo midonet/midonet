@@ -184,9 +184,11 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
         testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
     }
 
-    protected def replyOfType[T](testKit: TestKit, clazz: Class[T]):T = {
+    protected def replyOfType[T](testKit: TestKit)
+                                (implicit manifest:scala.reflect.Manifest[T]):T = {
+        val clazz = manifest.erasure.asInstanceOf[Class[T]]
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
-        assert(clazz.isInstance(m))
+        clazz.isInstance(m)
         clazz.cast(m)
     }
 }
