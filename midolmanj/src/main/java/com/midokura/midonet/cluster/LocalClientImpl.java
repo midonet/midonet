@@ -329,8 +329,7 @@ public class LocalClientImpl implements Client {
                         hostId, new Directory.DefaultTypedWatcher() {
                         @Override
                         public void pathChildrenUpdated(String path) {
-                            retrieveHostVirtualPortMappings(
-                                hostId, builder, oldMappings, true);
+                            retrieveHostVirtualPortMappings(hostId, builder, oldMappings, true);
                         }
                     });
 

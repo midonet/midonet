@@ -5,6 +5,7 @@ package com.midokura.midonet.cluster.data;
 
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -56,7 +57,7 @@ public class Host extends Entity.Base<UUID, Host.Data, Host>{
     public static class Data {
         String name;
         InetAddress[] addresses;
-        Set<UUID> tunnelZones;
+        Set<UUID> tunnelZones = new HashSet<UUID>();
 
         @Override
         public boolean equals(Object o) {

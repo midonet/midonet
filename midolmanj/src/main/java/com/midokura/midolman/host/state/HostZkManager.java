@@ -89,6 +89,14 @@ public class HostZkManager extends ZkManager {
 
             ops.add(
                 getPersistentCreateOp(
+                    pathManager.getHostVrnMappingsPath(hostId), null));
+
+            ops.add(
+                getPersistentCreateOp(
+                    pathManager.getHostVrnPortMappingsPath(hostId), null));
+
+            ops.add(
+                getPersistentCreateOp(
                     pathManager.getHostTunnelZonesPath(hostId), null));
 
             for (UUID uuid : metadata.getTunnelZones()) {

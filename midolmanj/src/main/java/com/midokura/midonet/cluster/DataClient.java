@@ -21,7 +21,7 @@ public interface DataClient {
 
     void bridgesDelete(UUID id) throws StateAccessException;
 
-    Bridge bridgesCreate(@Nonnull Bridge bridge) throws StateAccessException;
+    UUID bridgesCreate(@Nonnull Bridge bridge) throws StateAccessException;
 
     Bridge bridgesGetByName(String tenantId, String name)
          throws StateAccessException;

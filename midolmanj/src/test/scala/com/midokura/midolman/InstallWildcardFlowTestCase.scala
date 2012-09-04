@@ -5,25 +5,32 @@ package com.midokura.midolman
 
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import com.midokura.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Host, Ports}
 import com.midokura.sdn.dp.flows.FlowActions
 import datapath.FlowActionVrnPortOutput
 import java.util.Arrays
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
 
     def testDatapathPacketIn() {
 
-        val bridge = clusterDataClient()
-            .bridgesCreate(new ClusterBridge().setName("test"))
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
 
-        val inputPort =
-            clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
-        val outputPort =
-            clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort, "inputPort")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, outputPort, "outputPort")
+        val inputPort = Ports.materializedBridgePort(bridge)
+        inputPort.setId(clusterDataClient().portsCreate(inputPort))
+
+        val outputPort = Ports.materializedBridgePort(bridge)
+        outputPort.setId(clusterDataClient().portsCreate(outputPort))
+
+        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "inputPort")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, outputPort.getId, "outputPort")
 
         initializeDatapath() should not be (null)
 
@@ -35,14 +42,14 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val outputPortNo = dpController().underlyingActor
             .localPorts("outputPort").getPortNo
 
-        val vrnPortOutput = new FlowActionVrnPortOutput(outputPort)
+        val vrnPortOutput = new FlowActionVrnPortOutput(outputPort.getId)
         val dpPortOutput = FlowActions.output(outputPortNo)
 
         val wildcardFlow = new WildcardFlow(
             Arrays.asList(vrnPortOutput),
             0, 0, 0,
             new WildcardMatch()
-                .setInputPortUUID(inputPort), 0)
+                .setInputPortUUID(inputPort.getId), 0)
 
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null, null))
 

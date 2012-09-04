@@ -114,7 +114,7 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
     }
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
-        val t = Timeout(10 second)
+        val t = Timeout(1 second)
         val promise = akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
 
         Await.result(promise, t.duration)

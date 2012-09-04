@@ -79,7 +79,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Bridge bridgesCreate(@Nonnull Bridge bridge)
+    public UUID bridgesCreate(@Nonnull Bridge bridge)
         throws StateAccessException {
         log.debug("BridgeZkDaoImpl.create entered: bridge={}", bridge);
 
@@ -106,7 +106,7 @@ public class LocalDataClientImpl implements DataClient {
         bridgeZkManager.multi(ops);
 
         log.debug("BridgeZkDaoImpl.create exiting: bridge={}", bridge);
-        return bridge;
+        return bridge.getId();
     }
 
 

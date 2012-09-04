@@ -4,30 +4,38 @@
 package com.midokura.midolman
 
 import guice.actors.OutgoingMessage
+import guice.actors.OutgoingMessage
 import org.scalatest.matchers.ShouldMatchers
 import akka.actor.ActorRef
+
 import com.midokura.sdn.dp.{Ports, Datapath}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts, Host}
 import collection.mutable
 import java.util.UUID
-import topology.VirtualToPhysicalMapper
-import topology.VirtualToPhysicalMapper.{LocalPortsReply, LocalPortsRequest,
-                                         LocalDatapathRequest,
-                                         LocalDatapathReply}
+import topology.{physical, VirtualToPhysicalMapper}
+import topology.VirtualToPhysicalMapper._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import topology.VirtualToPhysicalMapper.LocalDatapathReply
+import topology.VirtualToPhysicalMapper.LocalDatapathRequest
+import topology.VirtualToPhysicalMapper.LocalPortsReply
+import topology.VirtualToPhysicalMapper.LocalPortsRequest
 
-
+@RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     import scala.collection.JavaConversions._
     import DatapathController._
 
     def testDatapathEmptyDefault() {
-        val dpController: ActorRef = topActor(DatapathController.Name)
+
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
 
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = ask[InitializationComplete](dpController, Initialize())
-        reply should not be (null)
+        initializeDatapath()
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -40,15 +48,48 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should contain key ("midonet")
     }
 
+    def testDatapathAddMappingAfter() {
+
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
+
+        initializeDatapath() should not be null
+
+        // make a bridge
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+
+        // make a port on the bridge
+        val port = ClusterPorts.materializedBridgePort(bridge)
+        port.setId(clusterDataClient().portsCreate(port))
+
+        clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, "tapDevice")
+
+        val eventProbe = newProbe()
+        actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
+        eventProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
+
+        // validate the final datapath state
+        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+
+        datapaths should have size 1
+        datapaths.head should have('name("midonet"))
+
+        val ports = datapathPorts(datapaths.head)
+        ports should have size 2
+        ports should contain key ("midonet")
+        ports should contain key ("tapDevice")
+    }
+
     def testDatapathEmpty() {
-        val dpController: ActorRef = topActor(DatapathController.Name)
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
 
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         dpConn().datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        val reply = ask[InitializationComplete](dpController, Initialize())
-        reply should not be (null)
+        initializeDatapath() should not be (null)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -62,10 +103,20 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testDatapathEmptyOnePort() {
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
+
         val dpController: ActorRef = topActor(DatapathController.Name)
 
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+
+        // make a port on the bridge
+        val port = ClusterPorts.materializedBridgePort(bridge)
+        port.setId(clusterDataClient().portsCreate(port))
+
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
 
         dpConn().datapathsEnumerate().get() should have size 0
 
@@ -86,10 +137,18 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testDatapathExistingMore() {
-        val dpController: ActorRef = topActor(DatapathController.Name)
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
+
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+
+        // make a port on the bridge
+        val port = ClusterPorts.materializedBridgePort(bridge)
+        port.setId(clusterDataClient().portsCreate(port))
 
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, UUID.randomUUID(), "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
 
         val dp = dpConn().datapathsCreate("test").get()
         dpConn().portsCreate(dp, Ports.newNetDevPort("port2")).get()
@@ -99,8 +158,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         dpConn().portsEnumerate(dp).get() should have size 3
 
         // send initialization message and wait
-        val reply = ask[InitializationComplete](dpController, Initialize())
-        reply should not be (null)
+        initializeDatapath() should not be (null)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -115,6 +173,9 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testDatapathBasicOperations() {
+
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
 
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
 
@@ -150,42 +211,48 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     }
 
     def testInternalControllerState() {
-        val vifPort = UUID.randomUUID()
-        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort, "port1")
+
+        val host = new Host(hostId()).setName("myself")
+        clusterDataClient().hostsCreate(hostId(), host)
+
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+
+        // make a port on the bridge
+        val port = ClusterPorts.materializedBridgePort(bridge)
+        port.setId(clusterDataClient().portsCreate(port))
+
+        clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
 
         initializeDatapath() should not be (null)
 
-        val dpProbe = probeByName(DatapathController.Name)
-        dpProbe.expectMsg(new Initialize)
-        dpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[InitializationComplete] should not be null
-
-        dpController().underlyingActor.vifPorts should contain key(vifPort)
+        dpController().underlyingActor.vifPorts should contain key(port.getId)
         dpController().underlyingActor.vifPorts should contain value ("port1")
 
-        val vtpProbe = probeByName(VirtualToPhysicalMapper.Name)
-        vtpProbe.expectMsgClass(classOf[LocalDatapathRequest]) should not be null
-        vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalDatapathReply] should not be null
-        vtpProbe.expectMsgClass(classOf[LocalPortsRequest]) should not be null
-        vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply] should not be null
+        // make a port on the bridge
+        val port2 = ClusterPorts.materializedBridgePort(bridge)
+        port2.setId(clusterDataClient().portsCreate(port2))
 
-        val vifPort_2nd = UUID.randomUUID()
-        clusterDataClient().hostsAddVrnPortMapping(hostId(), vifPort_2nd, "port2")
+        clusterDataClient().hostsAddVrnPortMapping(hostId(), port2.getId, "port2")
 
-        val reply = vtpProbe.expectMsgClass(classOf[OutgoingMessage]).m.asInstanceOf[LocalPortsReply]
+        requestOfType[HostRequest](vtpProbe())
+        replyOfType[physical.Host](vtpProbe())
 
-        reply should not be null
-        reply.ports should contain key (vifPort)
-        reply.ports should contain key (vifPort_2nd)
+        val rcuHost = replyOfType[physical.Host](vtpProbe())
 
-        reply.ports should contain value ("port1")
-        reply.ports should contain value ("port2")
+        rcuHost should not be null
+        rcuHost.ports should contain key (port.getId)
+        rcuHost.ports should contain key (port2.getId)
+
+        rcuHost.ports should contain value ("port1")
+        rcuHost.ports should contain value ("port2")
 
         // make sure that all the messages before this are processes by the actor
         // (even the internal ones). This should act as a memory barrier
         ask[Messages.Pong](
             topActor(DatapathController.Name), Messages.Ping(null))
 
-        dpController().underlyingActor.vifPorts should contain key(vifPort_2nd)
+        dpController().underlyingActor.vifPorts should contain key(port2.getId)
         dpController().underlyingActor.vifPorts should contain value ("port2")
     }
 }

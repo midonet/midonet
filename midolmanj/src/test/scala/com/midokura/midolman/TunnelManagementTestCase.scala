@@ -14,7 +14,10 @@ import com.midokura.packets.IntIPv4
 import org.apache.commons.configuration.HierarchicalConfiguration
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
 import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
     private final val log: Logger = LoggerFactory.getLogger(classOf[TunnelManagementTestCase])
@@ -35,12 +38,12 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         clusterDataClient().tunnelZonesCreate(greZone)
 
         // make a bridge
-        val bridge = clusterDataClient()
-            .bridgesCreate(new ClusterBridge().setName("test"))
+        val bridge = new ClusterBridge().setName("test")
+        bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
         // make a port on the bridge
-        val inputPort =
-            clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
+        val inputPort = Ports.materializedBridgePort(bridge)
+        inputPort.setId(clusterDataClient().portsCreate(inputPort))
 
         // make a host for myself and put in the proper tunnel zone.
         val me =
@@ -53,9 +56,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
             .tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         // make another host and put in the same tunnel zone.
-        val she =
-            new Host(UUID.randomUUID())
-                .setName("herself").setTunnelZones(Set(greZone.getId))
+        val she = new Host(UUID.randomUUID())
+            .setName("herself")
+            .setTunnelZones(Set(greZone.getId))
+
         val herGreConfig = new GreTunnelZoneHost(she.getId)
             .setIp(IntIPv4.fromString("192.168.200.1"))
         clusterDataClient().hostsCreate(she.getId, she)
@@ -63,7 +67,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
         // make the bridge port to a local interface
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort, "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "port1")
 
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
         val eventProbe = newProbe()
