@@ -128,7 +128,6 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             log.info("Adding requester to unanswered clients")
             idToUnansweredClients(id).add(sender)
         }
-        log.info("check requester for update")
         if (update) {
             log.info("Adding requester to subscribed clients")
             idToSubscribers(id).add(sender)
@@ -166,16 +165,20 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
 
     def receive = {
         case BridgeRequest(id, update) =>
+            log.info("Bridge requested for {} with update={}", id, update)
             manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient))
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
+            log.info("Chain requested for {} with update={}", id, update)
             manageDevice(id, (x: UUID) =>
                 new ChainManager(x))
             deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
+            log.info("Port requested for {} with update={}", id, update)
             manageDevice(id, portMgrCtor)
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
+            log.info("Router requested for {} with update={}", id, update)
             manageDevice(id, (x: UUID) =>
                 new RouterManager(x, clusterClient))
             deviceRequested(id, idToRouter, update)

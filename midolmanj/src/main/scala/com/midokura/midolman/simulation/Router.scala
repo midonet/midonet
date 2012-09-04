@@ -18,6 +18,7 @@ import com.midokura.midolman.topology.{ArpTable, RouterConfig,
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.UNREACH_CODE
 import com.midokura.sdn.flows.WildcardMatch
+import akka.actor.ActorSystem
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
@@ -28,8 +29,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
     private val loadBalancer = new LoadBalancer(rTable)
 
     override def process(ingressMatch: WildcardMatch, packet: Ethernet,
-                         pktContext: PacketContext, expiry: Long,
-                         ec: ExecutionContext): Future[Action] = {
+                         pktContext: PacketContext, expiry: Long)
+                        (implicit ec: ExecutionContext,
+                         actorSystem: ActorSystem): Future[Action] = {
         val hwDst = ingressMatch.getEthernetDestination
         val rtrPortCfg: RouterPortConfig = getRouterPortConfig(
                             ingressMatch.getInputPortUUID)

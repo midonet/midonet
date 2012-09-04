@@ -18,6 +18,7 @@ import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.{Callback0, Callback1}
+import akka.actor.ActorSystem
 
 
 class Bridge(val id: UUID, val macPortMap: MacLearningTable,
@@ -46,8 +47,9 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
     def canEqual(other: Any) = other.isInstanceOf[Bridge]
 
     override def process(ingressMatch: WildcardMatch, packet: Ethernet,
-                         packetContext: PacketContext, expiry: Long,
-                         ec: ExecutionContext)
+                         packetContext: PacketContext, expiry: Long)
+                        (implicit ec: ExecutionContext,
+                         actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(ingressMatch.getEthernetSource))

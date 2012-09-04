@@ -115,8 +115,9 @@ object Coordinator {
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
         def process(pktMatch: WildcardMatch, packet: Ethernet,
-                    pktContext: PacketContext, expiry: Long,
-                    ec: ExecutionContext): Future[Action]
+                    pktContext: PacketContext, expiry: Long)
+                    (implicit ec: ExecutionContext,
+                     actorSystem: ActorSystem): Future[Action]
     }
 
     def expiringAsk(actor: ActorRef, message: Any, expiry: Long)
@@ -165,14 +166,14 @@ object Coordinator {
     def simulate(origMatch: WildcardMatch, origFlowMatch: FlowMatch,
                  origEthernetPkt: Ethernet, generatedPacketEgressPort: UUID,
                  expiry: Long)
-                (implicit ec: ExecutionContext): Unit = {
+                (implicit ec: ExecutionContext,
+                 actorSystem: ActorSystem): Unit = {
 
-        val actors: ActorSystem = null
-        val datapathController = DatapathController.getRef(actors)
+        val datapathController = DatapathController.getRef(actorSystem)
 
-        val flowController = FlowController.getRef(actors)
+        val flowController = FlowController.getRef(actorSystem)
 
-        val virtualTopologyManager = VirtualTopologyActor.getRef(actors)
+        val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
 
         // TODO(pino): if any topology object cannot be found, log an error.
 
@@ -257,7 +258,7 @@ object Coordinator {
                                                  virtualTopologyManager,
                                                  expiry)
                 val action = currentDevice().process(
-                    currentMatch, origEthernetPkt, pktContext, expiry, ec).apply
+                    currentMatch, origEthernetPkt, pktContext, expiry).apply
 
                 if (!action.isInstanceOf[ForwardAction]) {
                     currentIngressPort == null

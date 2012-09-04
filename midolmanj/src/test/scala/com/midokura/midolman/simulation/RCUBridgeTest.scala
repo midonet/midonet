@@ -58,8 +58,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null, null,
-                                    Platform.currentTime + 10000,
-                                    system.dispatcher)
+                                    Platform.currentTime + 10000)(
+                                    system.dispatcher, system)
 
         //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
         // ingressMatch should be === origMatch
@@ -81,8 +81,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null, null,
-                                    Platform.currentTime + 10000,
-                                    system.dispatcher)
+                                    Platform.currentTime + 10000)(
+                                    system.dispatcher, system)
 
         //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
         // ingressMatch should be === origMatch
@@ -104,8 +104,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null, null,
-                                    Platform.currentTime + 10000,
-                                    system.dispatcher)
+                                    Platform.currentTime + 10000)(
+                                    system.dispatcher, system)
 
         //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
         // ingressMatch should be === origMatch
@@ -129,8 +129,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null, null,
-                                    Platform.currentTime + 10000,
-                                    system.dispatcher)
+                                    Platform.currentTime + 10000)(
+                                    system.dispatcher, system)
 
         //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
         // ingressMatch should be === origMatch
