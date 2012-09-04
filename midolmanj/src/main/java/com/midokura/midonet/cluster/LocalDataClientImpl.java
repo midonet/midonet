@@ -1290,7 +1290,9 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         // Update index if the name changed
-        if (!routerConfig.name.equals(oldRouter.getData().name)) {
+        String oldName = oldRouter.getData().name;
+        String newName = routerConfig.name;
+        if (oldName == null ? newName != null : !oldName.equals(newName)) {
 
             String tenantId = oldRouter.getProperty(Router.Property.tenant_id);
 
