@@ -431,7 +431,8 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case EthernetDestination:
-                        newClone.ethernetDestination = ethernetDestination.clone();
+                        newClone.ethernetDestination =
+                            ethernetDestination.clone();
                         break;
 
                     case EthernetSource:
@@ -472,7 +473,7 @@ public class WildcardMatch implements Cloneable {
 
                     default:
                         throw new RuntimeException("Cannot clone a " +
-                            "WildcardMatch with an unrecognized field" +
+                            "WildcardMatch with an unrecognized field: " +
                             field);
                 }
             }

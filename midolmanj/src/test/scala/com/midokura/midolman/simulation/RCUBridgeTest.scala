@@ -66,15 +66,13 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
-        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
-        // ingressMatch should be === origMatch
+        ingressMatch should be === origMatch
 
         val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ForwardAction(port, mmatch) =>
                 assert(port === bridgeID)
-                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
-                // assert(mmatch === origMatch)
+                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -89,15 +87,13 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
-        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
-        // ingressMatch should be === origMatch
+        ingressMatch should be === origMatch
 
         val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ForwardAction(port, mmatch) =>
                 assert(port === learnedPort)
-                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
-                // assert(mmatch === origMatch)
+                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -112,15 +108,13 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
-        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
-        // ingressMatch should be === origMatch
+        ingressMatch should be === origMatch
 
         val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ForwardAction(port, mmatch) =>
                 assert(port === bridgeID)
-                //XXX: WildcardMatch::clone not implemented.  Enable once it is.
-                // assert(mmatch === origMatch)
+                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -137,8 +131,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
-        //XXX: WildcardMatch::clone not unimplemented.  Enable once it is.
-        // ingressMatch should be === origMatch
+        ingressMatch should be === origMatch
 
         val result = Await.result(future, 1 second)
         assert(result.isInstanceOf[Coordinator.DropAction])
