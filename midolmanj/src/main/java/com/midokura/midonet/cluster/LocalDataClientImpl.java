@@ -1300,7 +1300,8 @@ public class LocalDataClientImpl implements DataClient {
 
             path = pathBuilder.getTenantRouterNamePath(tenantId,
                     routerConfig.name);
-            byte[] data = serializer.serialize(new RouterName(router));
+            byte[] data = serializer.serialize(new RouterName(router)
+                                                   .getData());
             ops.add(routerZkManager.getPersistentCreateOp(path, data));
         }
 
