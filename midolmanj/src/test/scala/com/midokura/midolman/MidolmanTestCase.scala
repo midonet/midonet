@@ -179,13 +179,14 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
         probeByName(SimulationController.Name)
     }
 
-    protected def requestOfType[T](testKit: TestKit)(implicit m: scala.reflect.Manifest[T]):T = {
+    protected def requestOfType[T](testKit: TestKit)
+                                  (implicit m: scala.reflect.Manifest[T]):T = {
         testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
     }
 
-    protected def replyOfType[T](testKit: TestKit):T = {
+    protected def replyOfType[T](testKit: TestKit, clazz: Class[T]):T = {
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
-        m.isInstanceOf[T] should be (true)
-        m.asInstanceOf[T]
+        assert(clazz.isInstance(m))
+        clazz.cast(m)
     }
 }

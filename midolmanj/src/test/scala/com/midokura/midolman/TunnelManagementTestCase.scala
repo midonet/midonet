@@ -3,19 +3,22 @@
 */
 package com.midokura.midolman
 
-import org.scalatest.matchers.ShouldMatchers
 import java.util.UUID
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports, Host}
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
-import topology.physical
-import topology.VirtualToPhysicalMapper._
-import org.slf4j.{LoggerFactory, Logger}
-import com.midokura.packets.IntIPv4
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
-import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
+import org.slf4j.{Logger, LoggerFactory}
+
+import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
+import com.midokura.midolman.topology.physical
+import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports, Host}
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZone,
+                                                GreTunnelZoneHost}
+import com.midokura.packets.IntIPv4
+import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
+
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
@@ -84,13 +87,14 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
-        replyOfType[physical.Host](vtpProbe())
+        replyOfType(vtpProbe(), classOf[physical.Host])
 
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
-        requestOfType[TunnelZoneRequest](vtpProbe()).zoneId should be(greZone.getId)
-        replyOfType[GreTunnelZone](vtpProbe())
-        replyOfType[GreZoneChanged](vtpProbe())
-        replyOfType[GreZoneChanged](vtpProbe())
+        val tzRequest = requestOfType[TunnelZoneRequest](vtpProbe())
+        tzRequest.zoneId should be === greZone.getId
+        replyOfType(vtpProbe(), classOf[GreTunnelZone])
+        replyOfType(vtpProbe(), classOf[GreZoneChanged])
+        replyOfType(vtpProbe(), classOf[GreZoneChanged])
 
         // assert that the creation event for the tunnel was fired.
         portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)

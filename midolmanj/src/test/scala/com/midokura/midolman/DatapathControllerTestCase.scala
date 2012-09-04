@@ -3,16 +3,18 @@
 */
 package com.midokura.midolman
 
-import org.scalatest.matchers.ShouldMatchers
 import akka.actor.ActorRef
-
-import com.midokura.sdn.dp.{Ports, Datapath}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts, Host}
 import collection.mutable
-import topology.physical
-import topology.VirtualToPhysicalMapper._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
+
+import com.midokura.sdn.dp.{Datapath, Ports}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
+                                          Ports => ClusterPorts, Host}
+import com.midokura.midolman.topology.physical
+import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
@@ -229,9 +231,9 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         clusterDataClient().hostsAddVrnPortMapping(hostId(), port2.getId, "port2")
 
         requestOfType[HostRequest](vtpProbe())
-        replyOfType[physical.Host](vtpProbe())
+        replyOfType(vtpProbe(), classOf[physical.Host])
 
-        val rcuHost = replyOfType[physical.Host](vtpProbe())
+        val rcuHost = replyOfType(vtpProbe(), classOf[physical.Host])
 
         rcuHost should not be null
         rcuHost.ports should contain key (port.getId)
