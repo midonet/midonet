@@ -188,7 +188,7 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
                                 (implicit manifest:scala.reflect.Manifest[T]):T = {
         val clazz = manifest.erasure.asInstanceOf[Class[T]]
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
-        clazz.isInstance(m)
+        assert(clazz.isInstance(m))
         clazz.cast(m)
     }
 }
