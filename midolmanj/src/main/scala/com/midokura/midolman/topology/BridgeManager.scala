@@ -4,12 +4,11 @@
 package com.midokura.midolman.topology
 
 import collection.{Map => ROMap, mutable}
+import collection.JavaConversions._
 import akka.actor.{Actor, ActorRef}
-import akka.dispatch.Await
 import akka.pattern.ask
-import akka.util.Timeout
-import akka.util.duration._
 import java.util.{Map, UUID}
+import java.util.concurrent.ConcurrentHashMap
 
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.simulation.Bridge
@@ -38,7 +37,8 @@ class BridgeConfig() {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 
-    override def hashCode = (inboundFilter.toString + outboundFilter.toString).hashCode()
+    override def hashCode =
+        (inboundFilter.toString + outboundFilter.toString).hashCode()
 
     override def equals(other: Any) = other match {
         case that: BridgeConfig =>
@@ -69,11 +69,14 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private var macPortMap: MacLearningTable = null
     private val flowCounts = new MacFlowCountImpl
-    private val flowCountMap = new mutable.HashMap[(MAC, UUID), Int]()
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
-    private var rtrMacToLogicalPortId : ROMap[MAC, UUID] = null
-    private var rtrIpToMac : ROMap[IntIPv4, MAC] = null
+    // Modified only by this actor, but read from the Simulation's too.
+    private val flowCountMap: mutable.ConcurrentMap[(MAC, UUID), Int] =
+        new ConcurrentHashMap[(MAC, UUID), Int]()
+
+    private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
+    private var rtrIpToMac: ROMap[IntIPv4, MAC] = null
     
     private var filterChanged = false;
 
@@ -113,40 +116,33 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private case class FlowDecrement(mac: MAC, port: UUID)
 
-    private case class GetFlowCount(mac: MAC, port: UUID)
-
     override def receive = super.receive orElse {
-
-        case GetFlowCount(mac, port) =>
-            sender ! (flowCountMap.get((mac, port)) match {
-                case Some(int) => int
-                case None => 0
-            })
 
         case FlowIncrement(mac, port) =>
             flowCountMap.get((mac, port)) match {
-                case Some(int: Int) => flowCountMap.put((mac, port), int + 1)
                 case None =>
                     flowCountMap.put((mac, port), 1)
-                //XXX: Remove any delayed deletes for this MAC/port
-                //XXX: Check for migration from another port, and invalidate
-                //     flows to this MAC going to another portt.
+                    //XXX: Remove any delayed deletes for this MAC/port
+                    //XXX: Check for migration from another port, and invalidate
+                    //     flows to this MAC going to another port.
+                case Some(i: Int) => flowCountMap.put((mac, port), i+1)
             }
 
         case FlowDecrement(mac, port) =>
             flowCountMap.get((mac, port)) match {
+                case None =>
+                    log.error("Decrement of nonexistant flow count {} {}",
+                        mac, port)
                 case Some(1) => {
                     flowCountMap.remove((mac, port))
                     macPortMap.remove(mac, port)
                 }
-                case Some(int: Int) => flowCountMap.put((mac, port), int - 1)
-                case None =>
-                    log.error("Decrement of nonexistant flow count {} {}",
-                        mac, port)
+                case Some(i: Int) => flowCountMap.put((mac, port), i-1)
             }
+
         case TriggerUpdate(newCfg, newMacLeaningTable, newRtrMacToLogicalPortId,
                            newRtrIpToMac) =>
-            if(newCfg != cfg && cfg != null){
+            if (newCfg != cfg && cfg != null) {
                 // the cfg of this bridge changed, invalidate all the flows
                 filterChanged = true
             }
@@ -168,10 +164,10 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         }
 
         override def getCount(mac: MAC, port: UUID): Int = {
-            implicit val timeout = Timeout(10 milliseconds)
-            // GetFlowCount immediately returns, so Await is safe here.
-            Await.result(self ? GetFlowCount(mac, port),
-                timeout.duration).asInstanceOf[Int]
+            flowCountMap.get((mac, port)) match {
+                case None => 0
+                case Some(i: Int) => i
+            }
         }
     }
 
