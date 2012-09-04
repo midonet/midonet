@@ -632,6 +632,8 @@ class DatapathController() extends Actor {
         wildcard.getInputPortNumber match {
             case port: java.lang.Short =>
                 wildcard.setInputPortUUID(dpPortToVifId(port))
+            case null =>
+
         }
 
         SimulationController.getRef() ! PacketIn(packet, wildcard)

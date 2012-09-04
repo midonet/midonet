@@ -3,23 +3,16 @@
 */
 package com.midokura.midolman
 
-import guice.actors.OutgoingMessage
-import guice.actors.OutgoingMessage
 import org.scalatest.matchers.ShouldMatchers
 import akka.actor.ActorRef
 
 import com.midokura.sdn.dp.{Ports, Datapath}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts, Host}
 import collection.mutable
-import java.util.UUID
-import topology.{physical, VirtualToPhysicalMapper}
+import topology.physical
 import topology.VirtualToPhysicalMapper._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import topology.VirtualToPhysicalMapper.LocalDatapathReply
-import topology.VirtualToPhysicalMapper.LocalDatapathRequest
-import topology.VirtualToPhysicalMapper.LocalPortsReply
-import topology.VirtualToPhysicalMapper.LocalPortsRequest
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {

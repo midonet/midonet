@@ -7,7 +7,11 @@ import com.midokura.sdn.dp.flows.FlowKey
 import com.midokura.netlink.NetlinkMessage
 import com.midokura.netlink.messages.BaseBuilder
 import java.util.UUID
+import com.midokura.sdn.dp.flows.FlowKey.FlowKeyAttr
 
+object FlowKeyVrnPort {
+    val key = new FlowKeyAttr[FlowKeyVrnPort](250)
+}
 /**
  * Custom `FlowKey[_]` specialization which can take an `UUID` as the
  * source port.
@@ -16,7 +20,7 @@ import java.util.UUID
  */
 class FlowKeyVrnPort(val portId: UUID) extends FlowKey[FlowKeyVrnPort] {
 
-    def getKey = null
+    def getKey = FlowKeyVrnPort.key
 
     def getValue = this
 
