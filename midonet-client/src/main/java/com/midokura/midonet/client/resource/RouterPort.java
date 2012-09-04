@@ -7,6 +7,8 @@ package com.midokura.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoBgp;
@@ -291,14 +293,14 @@ public class RouterPort<T extends DtoRouterPort> extends
      *
      * @return collection of bgps
      */
-    public ResourceCollection<Bgp> getBgps(String query) {
+    public ResourceCollection<Bgp> getBgps(MultivaluedMap queryParams) {
         if (!principalDto.getType().equals(PortType.MATERIALIZED_ROUTER)) {
             throw new IllegalArgumentException("bgp must be added to " +
                                                    "materialized router port");
         }
         return getChildResources(
             ((DtoMaterializedRouterPort) principalDto).getBgps(),
-            query,
+            queryParams,
             VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
             Bgp.class, DtoBgp.class);
     }

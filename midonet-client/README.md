@@ -23,12 +23,16 @@ Here, the code snippet below gives you an idea of how to do the following:
     Bridge b2 = mgmt.addBridge().tenantId("tenant-1").name("bridge-2")
                         .create();
 
-    assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(2));
-    for (Bridge b : mgmt.getBridges("tenant_id=tenant-1")) {
+
+    MultivaluedMap qTenant1 = new MultivaluedMapImpl();
+    qTenant1.add("tenant_id", "tenant-1");
+
+    assertThat(mgmt.getBridges(qTenant1).size(), is(2));
+    for (Bridge b : mgmt.getBridges(qTenant1)) {
         log.debug("BRIDGE: {}", b);
     }
     b2.delete();
-    assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(1));
+    assertThat(mgmt.getBridges(qTenant1).size(), is(1));
 
 
 

@@ -10,6 +10,7 @@ import com.midokura.midonet.client.RouterPredicates;
 import com.midokura.midonet.client.exception.HttpBadRequestException;
 import com.midokura.midonet.client.MidonetMgmt;
 
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.util.UUID;
 
@@ -59,7 +61,10 @@ public class ClientTest extends JerseyTest {
         RuleChain c2 = mgmt.addChain().tenantId("tenant-1").name("chain-2")
                            .create();
 
-        assertThat(mgmt.getChains("tenant_id=tenant-1").size(), is(2));
+        MultivaluedMap qTenant1 = new MultivaluedMapImpl();
+        qTenant1.add("tenant_id", "tenant-1");
+
+        assertThat(mgmt.getChains(qTenant1).size(), is(2));
 //        assertThat(mgmt.getChains().findBy("name", "chain-1").getId(),
 //                is(c1.getId()));
 
@@ -70,14 +75,14 @@ public class ClientTest extends JerseyTest {
                             .create();
 
         ResourceCollection<PortGroup> pgs = mgmt
-            .getPortGroups("tenant_id=tenant-1");
+            .getPortGroups(qTenant1);
         assertThat(pgs.size(), is(2));
         assertThat(pgs.findBy("name", "pg-1").getId(),
                    is(pg1.getId()));
 
 
         pg1.delete();
-        assertThat(mgmt.getPortGroups("tenant_id=tenant-1").size(), is(1));
+        assertThat(mgmt.getPortGroups(qTenant1).size(), is(1));
 
 
         // Test for bridge
@@ -88,12 +93,12 @@ public class ClientTest extends JerseyTest {
 
         b2 = b2.name("bridge-222").update();
 
-        assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(2));
-        for (Bridge b : mgmt.getBridges("tenant_id=tenant-1")) {
+        assertThat(mgmt.getBridges(qTenant1).size(), is(2));
+        for (Bridge b : mgmt.getBridges(qTenant1)) {
             log.debug("BRIDGE: {}", b);
         }
         b2.delete();
-        assertThat(mgmt.getBridges("tenant_id=tenant-1").size(), is(1));
+        assertThat(mgmt.getBridges(qTenant1).size(), is(1));
 
 
         // Bridge port
@@ -149,16 +154,16 @@ public class ClientTest extends JerseyTest {
         Router r2 = mgmt.addRouter().tenantId("tenant-1").name("router-2")
                         .create();
 
-        assertThat(mgmt.getRouters("tenant_id=tenant-1").size(), is(2));
+        assertThat(mgmt.getRouters(qTenant1).size(), is(2));
 //        assertThat(mgmt.getRouters().findBy("name", "router-1").
 //            getName(), is("router-1"));
 
 
-        log.debug("find result: {}", mgmt.getRouters("tenant_id=tenant-1").find(
+        log.debug("find result: {}", mgmt.getRouters(qTenant1).find(
             and(RouterPredicates.byId(r1.getId()),
                 RouterPredicates.byName("router-1"))));
 
-        log.debug("find result: {}", mgmt.getRouters("tenant_id=tenant-1").find(
+        log.debug("find result: {}", mgmt.getRouters(qTenant1).find(
             or(
                 new RouterPredicates.Builder().name("router-1").build(),
                 new RouterPredicates.Builder().id(r1.getId()).build()
@@ -166,18 +171,18 @@ public class ClientTest extends JerseyTest {
             ))
         );
 
-        mgmt.getRouters("tenant_id=tenant-1").find(
+        mgmt.getRouters(qTenant1).find(
             new RouterPredicates.Builder().name("router-1")
                                           .id(r1.getId()).build());
 
 
         r1.name("router-111").update();
-        mgmt.getRouters("tenant_id=tenant-1");
+        mgmt.getRouters(qTenant1);
 //        assertThat(mgmt.routers().<Router>findBy("name", "router-111").getName(),
 //                is("router-111"));
 
         r2.delete();
-        assertThat(mgmt.getRouters("tenant_id=tenant-1").size(), is(1));
+        assertThat(mgmt.getRouters(qTenant1).size(), is(1));
 
         RouterPort mrp1 = (RouterPort) r1.addMaterializedRouterPort()
                                          .portAddress("1.1.1.1")
@@ -215,21 +220,21 @@ public class ClientTest extends JerseyTest {
                                          .create();
 
 
-        assertThat(r1.getPorts().size(), is(5));
+        assertThat(r1.getPorts(null).size(), is(5));
 
         lrp2.link(lrp1.getId());
         lrp3.link(bp3.getId());
 
         assertThat(lrp2.getPeerId(), is(((RouterPort) lrp1.get()).getId()));
 
-        ResourceCollection<Port> peerPorts = r1.getPeerPorts();
+        ResourceCollection<Port> peerPorts = r1.getPeerPorts(null);
 
         lrp2.unlink();
         lrp3.unlink();
 
         assertThat(((RouterPort) lrp1.get()).getPeerId(), nullValue());
-        RouterPort rp1 = r1.getPorts().findBy("portAddress", "1.1.1.2");
-        RouterPort rp1_ = r1.getPorts().find(new Predicate<RouterPort>() {
+        RouterPort rp1 = r1.getPorts(null).findBy("portAddress", "1.1.1.2");
+        RouterPort rp1_ = r1.getPorts(null).find(new Predicate<RouterPort>() {
             @Override
             public boolean apply(@Nullable RouterPort input) {
                 return input.getPortAddress().equals("1.1.1.2");
@@ -277,9 +282,9 @@ public class ClientTest extends JerseyTest {
           .type("Blackhole").nextHopPort(lrp1.getId()).create();
 
 
-        assertThat(r1.getRoutes().size(), is(2));
+        assertThat(r1.getRoutes(null).size(), is(2));
 
-        for (Route r : r1.getRoutes()) {
+        for (Route r : r1.getRoutes(null)) {
             log.debug("Route {}", r);
         }
 

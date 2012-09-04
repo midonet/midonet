@@ -2,6 +2,8 @@ package com.midokura.midonet.client;
 
 import java.net.URI;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.resource.Application;
 import com.midokura.midonet.client.resource.Bridge;
@@ -17,7 +19,7 @@ import com.midokura.midonet.client.resource.RuleChain;
 public class MidonetMgmt {
 
     private static final String DEFAULT_MIDONET_URI =
-            "http://localhost:8080/midolmanj-mgmt";
+        "http://localhost:8080/midolmanj-mgmt";
 
     private final URI midonetUri;
     private final WebResource resource;
@@ -85,9 +87,9 @@ public class MidonetMgmt {
      *
      * @return collection of bridge
      */
-    public ResourceCollection<Bridge> getBridges(String query) {
+    public ResourceCollection<Bridge> getBridges(MultivaluedMap queryParams) {
         ensureApplication();
-        return application.getBridges(query);
+        return application.getBridges(queryParams);
     }
 
     /**
@@ -95,9 +97,9 @@ public class MidonetMgmt {
      *
      * @return collection of router
      */
-    public ResourceCollection<Router> getRouters(String query) {
+    public ResourceCollection<Router> getRouters(MultivaluedMap queryParams) {
         ensureApplication();
-        return application.getRouters(query);
+        return application.getRouters(queryParams);
     }
 
     /**
@@ -105,9 +107,9 @@ public class MidonetMgmt {
      *
      * @return collection of chain
      */
-    public ResourceCollection<RuleChain> getChains(String query) {
+    public ResourceCollection<RuleChain> getChains(MultivaluedMap queryParams) {
         ensureApplication();
-        return application.getChains(query);
+        return application.getChains(queryParams);
     }
 
     /**
@@ -115,14 +117,18 @@ public class MidonetMgmt {
      *
      * @return collection of port group
      */
-    public ResourceCollection<PortGroup> getPortGroups(String query) {
+    public ResourceCollection<PortGroup> getPortGroups(
+        MultivaluedMap queryParams) {
         ensureApplication();
-        return application.getPortGroups(query);
+        return application.getPortGroups(queryParams);
     }
+
     private void ensureApplication() {
         if (application == null) {
-            DtoApplication dtoApplication = resource.get("",
-                    DtoApplication.class, VendorMediaType.APPLICATION_JSON);
+            DtoApplication dtoApplication = resource
+                .get("",
+                     DtoApplication.class,
+                     VendorMediaType.APPLICATION_JSON);
             application = new Application(resource, dtoApplication);
         }
     }

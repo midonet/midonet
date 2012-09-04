@@ -7,6 +7,8 @@ package com.midokura.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoAdRoute;
@@ -104,9 +106,9 @@ public class Bgp extends ResourceBase<Bgp, DtoBgp> {
      *
      * @return collection of AdRoute resource
      */
-    public ResourceCollection<AdRoute> getAdRoutes(String query) {
+    public ResourceCollection<AdRoute> getAdRoutes(MultivaluedMap queryParams) {
         return getChildResources(principalDto.getAdRoutes(),
-                                 query,
+                                 queryParams,
                                  VendorMediaType
                                      .APPLICATION_AD_ROUTE_COLLECTION_JSON,
                                  AdRoute.class, DtoAdRoute.class);

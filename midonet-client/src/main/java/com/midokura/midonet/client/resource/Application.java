@@ -6,6 +6,8 @@ package com.midokura.midonet.client.resource;
 
 import java.net.URI;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoApplication;
@@ -56,9 +58,9 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return Collection of bridges
      */
-    public ResourceCollection<Bridge> getBridges(String query) {
+    public ResourceCollection<Bridge> getBridges(MultivaluedMap queryParams) {
         return getChildResources(principalDto.getBridges(),
-                                 query,
+                                 queryParams,
                                  VendorMediaType
                                      .APPLICATION_BRIDGE_COLLECTION_JSON,
                                  Bridge.class, DtoBridge.class);
@@ -69,9 +71,9 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of routers
      */
-    public ResourceCollection<Router> getRouters(String query) {
+    public ResourceCollection<Router> getRouters(MultivaluedMap queryParams) {
         return getChildResources(principalDto.getRouters(),
-                                 query,
+                                 queryParams,
                                  VendorMediaType
                                      .APPLICATION_ROUTER_COLLECTION_JSON,
                                  Router.class, DtoRouter.class);
@@ -82,9 +84,9 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of chains
      */
-    public ResourceCollection<RuleChain> getChains(String query) {
+    public ResourceCollection<RuleChain> getChains(MultivaluedMap queryParams) {
         return getChildResources(principalDto.getChains(),
-                                 query,
+                                 queryParams,
                                  VendorMediaType
                                      .APPLICATION_CHAIN_COLLECTION_JSON,
                                  RuleChain.class, DtoRuleChain.class);
@@ -95,9 +97,10 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of port groups
      */
-    public ResourceCollection<PortGroup> getPortGroups(String query) {
+    public ResourceCollection<PortGroup> getPortGroups(
+        MultivaluedMap queryParams) {
         return getChildResources(principalDto.getPortGroups(),
-                                 query,
+                                 queryParams,
                                  VendorMediaType
                                      .APPLICATION_PORTGROUP_COLLECTION_JSON,
                                  PortGroup.class, DtoPortGroup.class);

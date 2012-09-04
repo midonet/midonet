@@ -6,6 +6,7 @@ package com.midokura.midonet.client;
 
 import java.net.URI;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.Client;
@@ -77,9 +78,9 @@ public class WebResource {
 
     public URI post(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
-                .uri(uri)
-                .type(mediaType)
-                .post(ClientResponse.class, entity);
+            .uri(uri)
+            .type(mediaType)
+            .post(ClientResponse.class, entity);
 
         if (response.getStatus() >= 300) {
             handleHttpError(response);
@@ -90,9 +91,9 @@ public class WebResource {
 
     public URI put(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
-                .uri(uri)
-                .type(mediaType)
-                .put(ClientResponse.class, entity);
+            .uri(uri)
+            .type(mediaType)
+            .put(ClientResponse.class, entity);
 
         if (response.getStatus() != 204 && response.getStatus() != 200) {
             handleHttpError(response);
@@ -105,14 +106,21 @@ public class WebResource {
     }
 
 
-    public <T> T get(URI uri, Class<T> clazz, String mediaType) {
+    public <T> T get(URI uri, MultivaluedMap queryParams, Class<T> clazz,
+                     String mediaType) {
         if (uri == null)
             throw new IllegalArgumentException(
-                    "The URI can't be null. This usually means that a previous "
-                            + "call to Mgmt REST api failed.");
+                "The URI can't be null. This usually means that a previous "
+                    + "call to Mgmt REST api failed.");
 
-        ClientResponse response = resource().uri(uri).type(mediaType).
-                accept(mediaType).get(ClientResponse.class);
+        com.sun.jersey.api.client.WebResource resource = resource();
+        if (queryParams != null) {
+            resource = resource.queryParams(queryParams);
+        }
+        ClientResponse response = resource.uri(uri)
+                                          .type(mediaType)
+                                          .accept(mediaType)
+                                          .get(ClientResponse.class);
         if (response.getStatus() >= 300) {
             handleHttpError(response);
         }

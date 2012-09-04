@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.WebResource;
 
 /**
@@ -59,9 +61,10 @@ public abstract class ResourceBase<T, U> {
 
 
     /**
-     * Get resources that blong to the resource.
+     * Get resources that belong to the resource.
      *
      * @param uri                  URI for getting resource(s)
+     * @param queryParams          Query parameters; null for no queries
      * @param mediaType            media type for collection of the resource
      * @param resourceClazz
      * @param newPrincipalDtoClazz
@@ -71,31 +74,29 @@ public abstract class ResourceBase<T, U> {
      */
     <T, U> ResourceCollection<T>
     getChildResources(URI uri,
-                      String query,
+                      MultivaluedMap queryParams,
                       String mediaType,
                       Class<T> resourceClazz,
                       Class<U> newPrincipalDtoClazz) {
         ResourceCollection<T> container =
-                new ResourceCollection<T>(new ArrayList<T>());
+            new ResourceCollection<T>(new ArrayList<T>());
 
         Class newPrincipalDtoArrayClazz = Array
-                .newInstance(newPrincipalDtoClazz, 0).getClass();
-
-        if (query != null) {
-            uri = URI.create(uri.toString() + "?" + query);
-        }
+            .newInstance(newPrincipalDtoClazz, 0).getClass();
 
         // newPrincipalDtoArrray should be T[]
         @SuppressWarnings("unchecked")
-        T[] dtoArray = resource.get(uri, (Class<T[]>) newPrincipalDtoArrayClazz,
-                mediaType);
+        T[] dtoArray = resource.get(uri,
+                                    queryParams,
+                                    (Class<T[]>) newPrincipalDtoArrayClazz,
+                                    mediaType);
 
 
         try {
             Constructor<T> ctor = resourceClazz.getConstructor(
-                    WebResource.class,
-                    URI.class,
-                    newPrincipalDtoClazz);
+                WebResource.class,
+                URI.class,
+                newPrincipalDtoClazz);
             for (T e : dtoArray) {
                 container.add(ctor.newInstance(resource, uri, e));
             }
@@ -126,7 +127,7 @@ public abstract class ResourceBase<T, U> {
         @SuppressWarnings("unchecked")
         Class<U> clazz = (Class<U>) principalDto.getClass();
 
-        principalDto = resource.get(uri, clazz, mediaType);
+        principalDto = resource.get(uri, null, clazz, mediaType);
 
         // "this" should be type T which is subtype of this class.
         @SuppressWarnings("unchecked")
@@ -151,7 +152,7 @@ public abstract class ResourceBase<T, U> {
      */
     public T create() {
         URI location = resource.post(uriForCreation, principalDto,
-                mediaType);
+                                     mediaType);
         return get(location);
     }
 

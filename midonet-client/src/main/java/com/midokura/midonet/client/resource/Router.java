@@ -8,6 +8,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
@@ -118,13 +120,13 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of router ports
      */
-    public ResourceCollection<RouterPort> getPorts() {
-        return getChildResources(principalDto.getPorts(),
-                                 null,
-                                 VendorMediaType
-                                     .APPLICATION_PORT_COLLECTION_JSON,
-                                 RouterPort.class,
-                                 DtoRouterPort.class);
+    public ResourceCollection<RouterPort> getPorts(MultivaluedMap queryParams) {
+        return getChildResources(
+            principalDto.getPorts(),
+            queryParams,
+            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+            RouterPort.class,
+            DtoRouterPort.class);
     }
 
     /**
@@ -132,13 +134,13 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of routes
      */
-    public ResourceCollection<Route> getRoutes() {
-        return getChildResources(principalDto.getRoutes(),
-                                 null,
-                                 VendorMediaType
-                                     .APPLICATION_ROUTE_COLLECTION_JSON,
-                                 Route.class,
-                                 DtoRoute.class);
+    public ResourceCollection<Route> getRoutes(MultivaluedMap queryParams) {
+        return getChildResources(
+            principalDto.getRoutes(),
+            queryParams,
+            VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
+            Route.class,
+            DtoRoute.class);
     }
 
     /**
@@ -146,12 +148,13 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of ports
      */
-    public ResourceCollection<Port> getPeerPorts() {
+    public ResourceCollection<Port> getPeerPorts(MultivaluedMap queryParams) {
         ResourceCollection<Port> peerPorts =
             new ResourceCollection<Port>(new ArrayList<Port>());
 
         DtoPort[] dtoPeerPorts = resource
             .get(principalDto.getPeerPorts(),
+                 queryParams,
                  DtoPort[].class,
                  VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
@@ -181,9 +184,10 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      * @return materialized port resource
      */
     public RouterPort addMaterializedRouterPort() {
-        return new RouterPort<DtoMaterializedRouterPort>(resource,
-                                                         principalDto.getPorts(),
-                                                         new DtoMaterializedRouterPort());
+        return new RouterPort<DtoMaterializedRouterPort>(
+            resource,
+            principalDto.getPorts(),
+            new DtoMaterializedRouterPort());
     }
 
     /**
@@ -193,9 +197,10 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
 
     public RouterPort addLogicalRouterPort() {
-        return new RouterPort<DtoLogicalRouterPort>(resource,
-                                                    principalDto.getPorts(),
-                                                    new DtoLogicalRouterPort());
+        return new RouterPort<DtoLogicalRouterPort>(
+            resource,
+            principalDto.getPorts(),
+            new DtoLogicalRouterPort());
     }
 
     /**

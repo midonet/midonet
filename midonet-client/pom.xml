@@ -142,9 +142,5 @@
             <artifactId>cassandra-unit</artifactId>
             <version>1.0.3.1</version>
         </dependency>
-
-
     </dependencies>
-
-
 </project>

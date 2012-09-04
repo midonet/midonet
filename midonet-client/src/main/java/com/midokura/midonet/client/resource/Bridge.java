@@ -149,22 +149,24 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
         ResourceCollection<Port> peerPorts =
             new ResourceCollection<Port>(new ArrayList<Port>());
 
-        DtoPort[] dtoPeerPorts = resource.get(principalDto.getPeerPorts(),
-                                              DtoPort[].class,
-                                              VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
+        DtoPort[] dtoPeerPorts = resource.get(
+            principalDto.getPeerPorts(),
+            null,
+            DtoPort[].class,
+            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
             System.out.println("pp in the bridge resource: " + pp);
             if (pp instanceof DtoLogicalRouterPort) {
-                RouterPort rp = new RouterPort<DtoLogicalRouterPort>(resource,
-                                                                     principalDto
-                                                                         .getPorts(),
-                                                                     (DtoLogicalRouterPort) pp);
+                RouterPort rp = new RouterPort<DtoLogicalRouterPort>(
+                    resource,
+                    principalDto.getPorts(),
+                    (DtoLogicalRouterPort) pp);
                 peerPorts.add(rp);
 
             } else if (pp instanceof DtoLogicalBridgePort) {
-                throw new IllegalStateException("MidoNet doesn't support " +
-                                                    "linking bridge to brdige.");
+                throw new IllegalStateException(
+                    "MidoNet doesn't support linking bridge to brdige.");
             }
         }
         return peerPorts;
