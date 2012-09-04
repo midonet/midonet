@@ -87,20 +87,23 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
             }
           case false =>
             // L2 unicast
-            // Is dst MAC in macPortMap? (learned)
-            val learnedPort = getPortOfMac(dstDlAddress, expiry, ec)
-            outPortID = flow {
-                val port = learnedPort()
-                if (port == null) {
-                    // Is dst MAC a logical port's MAC?
-                    rtrMacToLogicalPortId.get(dstDlAddress) match {
-                        case Some(logicalPort: UUID) => logicalPort
-                        /* If neither learned nor logical, flood. */
-                        case None => id
-                    }
-                } else
-                    port
-            }(ec)
+            outPortID = rtrMacToLogicalPortId.get(dstDlAddress) match {
+                case Some(logicalPort: UUID) =>
+                    // dstMAC is a logical port's MAC.
+                    Promise.successful(logicalPort)(ec)
+                case None =>
+                    // Not a logical port's MAC.  Is dst MAC in
+                    // macPortMap? (ie, learned)
+                    val learnedPort = getPortOfMac(dstDlAddress, expiry, ec)
+                    flow {
+                        val port = learnedPort()
+                        if (port == null) {
+                            /* If neither learned nor logical, flood. */
+                            id
+                        } else
+                            port
+                    }(ec)
+            }
         }
 
         // Learn the src MAC unless it's a logical port's.

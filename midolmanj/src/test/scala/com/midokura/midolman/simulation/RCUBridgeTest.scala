@@ -18,7 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 import com.midokura.midolman.topology._
 import com.midokura.midolman.simulation.Coordinator.PacketContext
 import com.midokura.midonet.cluster.client.MacLearningTable
-import com.midokura.packets.{IntIPv4, MAC}
+import com.midokura.packets.{ARP, IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.{Callback0, Callback1, Callback3}
 
@@ -40,14 +40,14 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         }
     }
     val system = ActorSystem.create("RCUBridgeTest")
+    private val rtr1mac = MAC.fromString("0a:43:02:34:06:01")
+    private val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
+    private val rtr1ip = IntIPv4.fromString("143.234.60.1")
+    private val rtr2ip = IntIPv4.fromString("143.234.60.2")
+    private val rtr1port = UUID.randomUUID
+    private val rtr2port = UUID.randomUUID
 
     override def beforeAll() {
-        val rtr1mac = MAC.fromString("0a:43:02:34:06:01")
-        val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
-        val rtr1ip = IntIPv4.fromString("143.234.60.1")
-        val rtr2ip = IntIPv4.fromString("143.234.60.2")
-        val rtr1port = UUID.randomUUID
-        val rtr2port = UUID.randomUUID
         val rtrMacToLogicalPortId = Map(rtr1mac -> rtr1port,
                                         rtr2mac -> rtr2port)
         val rtrIpToMac = Map(rtr1ip -> rtr1mac, rtr2ip -> rtr2mac)
@@ -120,7 +120,27 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         // TODO(jlm): Verify it learned the srcMAC
     }
 
-    //TODO(jlm): Verify an ARP for a router goes to it.
+    def testBroadcastArp() {
+        val ingressMatch = ((new WildcardMatch)
+                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+                .setNetworkDestination(rtr1ip)
+                .setEtherType(ARP.ETHERTYPE))
+        val origMatch = ingressMatch.clone
+        val future = bridge.process(ingressMatch, null, new PacketContext,
+                                    Platform.currentTime + 10000)(
+                                    system.dispatcher, system)
+
+        ingressMatch should be === origMatch
+
+        val result = Await.result(future, 1 second)
+        result match {
+            case Coordinator.ForwardAction(port, mmatch) =>
+                assert(port === rtr1port)
+                assert(mmatch === origMatch)
+            case _ => fail("Not ForwardAction")
+        }
+    }
 
     def testMcastSrc() {
         val ingressMatch = ((new WildcardMatch)
