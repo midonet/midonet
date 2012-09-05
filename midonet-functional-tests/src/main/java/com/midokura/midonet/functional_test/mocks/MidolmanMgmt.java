@@ -9,8 +9,6 @@ import com.midokura.midonet.client.dto.*;
 
 public interface MidolmanMgmt {
 
-//    DtoTenant addTenant(DtoTenant t);
-
     DtoRouter addRouter(DtoTenant t, DtoRouter r);
 
     DtoBridge addBridge(DtoTenant t, DtoBridge b);
@@ -24,16 +22,16 @@ public interface MidolmanMgmt {
     void linkRouterToPeer(DtoLogicalRouterPort peerPort);
 
     DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
-            DtoMaterializedRouterPort p);
+                                                        DtoMaterializedRouterPort p);
 
     DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
-            DtoLogicalRouterPort p);
+                                              DtoLogicalRouterPort p);
 
     DtoBridgePort addMaterializedBridgePort(DtoBridge b,
-            DtoBridgePort p);
+                                            DtoBridgePort p);
 
     DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
-            DtoLogicalBridgePort p);
+                                              DtoLogicalBridgePort p);
 
     DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 
@@ -42,10 +40,6 @@ public interface MidolmanMgmt {
     <T> T get(String path, Class<T> clazz);
 
     void delete(URI uri);
-
-//    DtoTenant[] getTenants();
-
-//    void deleteTenant(String string);
 
     DtoAdRoute addBgpAdvertisedRoute(DtoBgp dtoBgp, DtoAdRoute dtpAdRoute);
 
@@ -80,4 +74,10 @@ public interface MidolmanMgmt {
     void updateInterface(DtoInterface dtoInterface);
 
     DtoPortGroup addPortGroup(DtoTenant tenant, DtoPortGroup group);
+
+    void addHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap);
+
+    void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap);
+
+    HostInterfacePortMap[] getInterfacePortMap(DtoHost host);
 }

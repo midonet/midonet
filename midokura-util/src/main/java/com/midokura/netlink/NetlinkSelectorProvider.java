@@ -77,8 +77,8 @@ public class NetlinkSelectorProvider extends SelectorProvider {
 //    }
 
     public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol protocol) {
-//        final String NAME = "com.midokura.netlink.NetlinkChannelImpl";
-        final String NAME = "com.midokura.netlink.NetlinkTracingChannelImpl";
+        final String NAME = "com.midokura.netlink.NetlinkChannelImpl";
+        //final String NAME = "com.midokura.netlink.NetlinkTracingChannelImpl";
 
         try {
             Class<? extends NetlinkChannel> clazz =

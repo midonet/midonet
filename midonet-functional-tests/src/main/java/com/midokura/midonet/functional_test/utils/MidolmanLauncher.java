@@ -74,8 +74,8 @@ public class MidolmanLauncher {
 
         midolmanProcess = ProcessHelper
                 .newLocalProcess(commandLine)
-                .setDrainTarget(DrainTargets.noneTarget())
-//            .setDrainTarget(DrainTargets.slf4jTarget(log, "<midolman>"))
+               // .setDrainTarget(DrainTargets.noneTarget())
+                .setDrainTarget(DrainTargets.slf4jTarget(log, "<midolman>"))
                 .run();
 
         midolmanProcessShutdownHook = new Thread() {

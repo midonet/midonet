@@ -6,6 +6,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.inject.servlet.GuiceFilter;
+import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -25,7 +26,7 @@ import com.midokura.midonet.client.VendorMediaType;
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     private final static Logger log =
-        LoggerFactory.getLogger(MockMidolmanMgmt.class);
+            LoggerFactory.getLogger(MockMidolmanMgmt.class);
 
     DtoApplication app;
     private static AtomicInteger portSeed = new AtomicInteger(3181);
@@ -50,6 +51,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
                 .contextParam("auth-use_mock", "true")
                 .contextParam("zookeeper-midolman_root_key",
                         "/smoketest/midonet")
+                .contextParam("cassandra-servers", "127.0.0.1:9171")
                 .contextParam("zookeeper-zookeeper_hosts", "127.0.0.1:2181")
                 .contextParam("zookeeper-session_timeout", "10000")
                 .contextParam("zookeeper-use_mock", mockZK ? "true" : "false")
@@ -107,16 +109,16 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     private URI post(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
-            .uri(uri)
-            .type(mediaType)
-            .post(ClientResponse.class, entity);
+                .uri(uri)
+                .type(mediaType)
+                .post(ClientResponse.class, entity);
 
         if (response.getLocation() == null) {
             throw
-                new IllegalStateException(
-                    "A POST call to " + uri + " failed to return a proper " +
-                        "location header: " + response + "\n" +
-                        response.getEntity(String.class));
+                    new IllegalStateException(
+                            "A POST call to " + uri + " failed to return a proper " +
+                                    "location header: " + response + "\n" +
+                                    response.getEntity(String.class));
         }
 
         return response.getLocation();
@@ -129,17 +131,17 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
     private URI put(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
-            .uri(uri)
-            .type(mediaType)
-            .put(ClientResponse.class, entity);
+                .uri(uri)
+                .type(mediaType)
+                .put(ClientResponse.class, entity);
 
         if (response.getStatus() != 204 && response.getStatus() != 200) {
             throw
-                new IllegalStateException(
-                    "A PUT call to " + uri + " failed to return response " +
-                            "status of 200 OK or 204 NO CONTENT: " +
-                            response + "\n" +
-                            response.getEntity(String.class));
+                    new IllegalStateException(
+                            "A PUT call to " + uri + " failed to return response " +
+                                    "status of 200 OK or 204 NO CONTENT: " +
+                                    response + "\n" +
+                                    response.getEntity(String.class));
         }
 
         return response.getLocation();
@@ -153,8 +155,8 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public <T> T get(URI uri, Class<T> clazz) {
         if (uri == null)
             throw new IllegalArgumentException(
-                "The URI can't be null. This usually means that a previous call " +
-                    "to Mgmt REST api failed.");
+                    "The URI can't be null. This usually means that a previous call " +
+                            "to Mgmt REST api failed.");
 
         return resource().uri(uri).type(MediaType.APPLICATION_JSON).get(clazz);
     }
@@ -168,12 +170,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     protected TestContainerFactory getTestContainerFactory() {
         return new GrizzlyWebTestContainerFactory();
     }
-
-//    @Override
-//    public DtoTenant addTenant(DtoTenant t) {
-//        URI uri = post(app.getTenants(), t);
-//        return get(uri, DtoTenant.class);
-//    }
 
     @Override
     public DtoRouter addRouter(DtoTenant t, DtoRouter r) {
@@ -205,34 +201,34 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public void linkRouterToPeer(DtoLogicalRouterPort port) {
         resource().uri(port.getLink())
-            .type(MediaType.APPLICATION_JSON)
-            .post(port);
+                .type(MediaType.APPLICATION_JSON)
+                .post(port);
     }
 
     @Override
     public DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
-                                                   DtoMaterializedRouterPort p) {
+                                                               DtoMaterializedRouterPort p) {
         URI uri = post(r.getPorts(), p);
         return get(uri, DtoMaterializedRouterPort.class);
     }
 
     @Override
     public DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
-            DtoLogicalRouterPort p) {
+                                                     DtoLogicalRouterPort p) {
         URI uri = post(r.getPorts(), p);
         return get(uri, DtoLogicalRouterPort.class);
     }
 
     @Override
     public DtoBridgePort addMaterializedBridgePort(DtoBridge b,
-                                 DtoBridgePort p) {
+                                                   DtoBridgePort p) {
         URI uri = post(b.getPorts(), p);
         return get(uri, DtoBridgePort.class);
     }
 
     @Override
     public DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
-            DtoLogicalBridgePort p) {
+                                                     DtoLogicalBridgePort p) {
         URI uri = post(b.getPorts(), p);
         return get(uri, DtoLogicalBridgePort.class);
     }
@@ -255,13 +251,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return get(uri, DtoAdRoute.class);
     }
 
-//    public DtoTenant[] getTenants() {
-//        return get(app.getTenants(), DtoTenant[].class);
-//    }
-
     public DtoHost[] getHosts() {
         ClientResponse clientResponse = get(app.getHosts(),
-                                            ClientResponse.class);
+                ClientResponse.class);
         if (clientResponse.getClientResponseStatus() == ClientResponse.Status.OK) {
             return clientResponse.getEntity(DtoHost[].class);
         }
@@ -269,15 +261,15 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return new DtoHost[0];
     }
 
-    @Override
     public DtoHost getHost(URI uri) {
         return get(uri, DtoHost.class);
     }
 
+
     @Override
     public DtoInterface[] getHostInterfaces(DtoHost host) {
         ClientResponse clientResponse = get(host.getInterfaces(),
-                                            ClientResponse.class);
+                ClientResponse.class);
         if (clientResponse.getClientResponseStatus() == ClientResponse.Status.OK) {
             return clientResponse.getEntity(DtoInterface[].class);
         }
@@ -288,10 +280,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoInterface getHostInterface(DtoInterface dtoInterface) {
         return
-            resource()
-                .uri(dtoInterface.getUri())
-                .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
-                .get(DtoInterface.class);
+                resource()
+                        .uri(dtoInterface.getUri())
+                        .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+                        .get(DtoInterface.class);
     }
 
     @Override
@@ -315,10 +307,27 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return get(uri, DtoPortGroup.class);
     }
 
-//    @Override
-//    public void deleteTenant(String name) {
-//        delete(UriBuilder.fromUri(app.getTenants()).path(name).build());
-//    }
+    @Override
+    public void addHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
+        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
+        post(uri, portMap);
+    }
+
+    @Override
+    public void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
+        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
+    }
+
+    @Override
+    public HostInterfacePortMap[] getInterfacePortMap(DtoHost host) {
+        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
+        ClientResponse clientResponse = get(uri,
+                ClientResponse.class);
+        if (clientResponse.getClientResponseStatus() == ClientResponse.Status.OK) {
+            return clientResponse.getEntity(HostInterfacePortMap[].class);
+        }
+        else return new HostInterfacePortMap[0];
+    }
 
     @Override
     public DtoRuleChain addRuleChain(DtoTenant t, DtoRuleChain chain) {
@@ -329,7 +338,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     @Override
     public DtoRuleChain getRuleChain(DtoRouter router, String name) {
         URI uri = UriBuilder.fromUri(router.getUri())
-                            .path("/tables/NAT/chains/" + name).build();
+                .path("/tables/NAT/chains/" + name).build();
         return get(uri, DtoRuleChain.class);
     }
 
@@ -368,4 +377,5 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     public DtoRoute[] getRoutes(DtoRouter router) {
         return get(router.getRoutes(), DtoRoute[].class);
     }
+
 }
