@@ -7,5 +7,8 @@ public interface Transport {
 
     short getSourcePort();
     short getDestinationPort();
+    void setSourcePort(short port);
+    void setDestinationPort(short port);
+
     IPacket getPayload();
 }

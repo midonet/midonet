@@ -195,10 +195,12 @@ public class TCP extends BasePacket implements Transport {
         this.options = options;
     }
 
+    @Override
     public void setSourcePort(short sourcePort) {
         this.sourcePort = sourcePort;
     }
 
+    @Override
     public void setDestinationPort(short destinationPort) {
         this.destinationPort = destinationPort;
     }

@@ -89,8 +89,9 @@ public class PacketHelper {
                                        IntIPv4 ipDst, short tpSrc, short tpDst,
                                        byte[] payload) {
         UDP udp = new UDP();
-        udp.setSourcePort(tpSrc).setDestinationPort(tpDst)
-           .setPayload(new Data(payload));
+        udp.setSourcePort(tpSrc);
+        udp.setDestinationPort(tpDst);
+        udp.setPayload(new Data(payload));
         IPv4 ip = new IPv4();
         ip.setProtocol(UDP.PROTOCOL_NUMBER).setSourceAddress(ipSrc.getAddress())
           .setDestinationAddress(ipDst.getAddress()).setPayload(udp);
