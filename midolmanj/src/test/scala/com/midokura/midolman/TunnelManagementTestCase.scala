@@ -11,15 +11,14 @@ import org.scalatest.matchers.ShouldMatchers
 import org.slf4j.{Logger, LoggerFactory}
 
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
-import com.midokura.midolman.topology.physical
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone,
                                                 GreTunnelZoneHost}
+import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.packets.IntIPv4
 import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
-
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
@@ -88,7 +87,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
-        replyOfType[physical.Host](vtpProbe())
+        replyOfType[RCUHost](vtpProbe())
 
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         val tzRequest = requestOfType[TunnelZoneRequest](vtpProbe())
@@ -112,7 +111,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         dpController().underlyingActor.peerPorts should contain key (she.getId)
         dpController().underlyingActor.peerPorts should contain value (
             scala.collection.mutable.Map(greZone.getId -> "tngreC0A8C801")
-            )
+        )
 
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(she.getId)
@@ -126,7 +125,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         portChangedEvent.port.getName should be("tngreC0A8C801")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
-        // assert the proper dapath port changed event is fired
+        // assert the proper datapath port changed event is fired
         portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)
 
         portChangedEvent.op should be(PortOperation.Create)

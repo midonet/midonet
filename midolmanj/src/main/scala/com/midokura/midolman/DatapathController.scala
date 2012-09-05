@@ -11,7 +11,7 @@ import flows.{FlowActions, FlowKeys, FlowAction}
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import services.HostIdProviderService
-import topology.physical.Host
+import topology.rcu.{PortSet, Host}
 import topology.{ZoneChanged, HostConfigOperation, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.google.inject.Inject
@@ -298,8 +298,9 @@ object DatapathController extends Referenceable {
      * in any host's Interface-VPort mappings.
      *
      * The binding will be removed when the datapath port is deleted.
-     * @param vportID
-     * @param port
+     *
+     * @param vportID the virtual port we want to bind to this internal port
+     * @param port the internal port we want to bind to
      */
     case class BindToInternalPort(vportID: UUID, port: InternalPort)
     case class BindToNetDevPort(vportID: UUID, port: NetDevPort)
@@ -402,6 +403,9 @@ class DatapathController() extends Actor {
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
 
+    // portSetID -> { Set[hostID] }
+    val portSets = mutable.Map[UUID, immutable.Set[UUID]]()
+
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
@@ -502,6 +506,10 @@ class DatapathController() extends Actor {
         case m: ZoneChanged[_] =>
             handleZoneChange(m)
 
+        case PortSet(uuid, portSetContents) =>
+            portSets.add(uuid -> portSetContents)
+            completePendingPortSetTranslations()
+
         case newPortOp: CreatePortOp[Port[_, _]] =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
@@ -519,6 +527,10 @@ class DatapathController() extends Actor {
 
         case PacketIn(packet, wildcard) =>
             handleFlowPacketIn(packet, wildcard)
+    }
+
+    def completePendingPortSetTranslations() {
+        //
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost, target: GreTunnelZoneHost): String = {
