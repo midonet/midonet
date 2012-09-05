@@ -6,12 +6,13 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
-import com.midokura.midonet.cluster.client.TunnelZones;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
 import com.midokura.midonet.cluster.client.PortBuilder;
+import com.midokura.midonet.cluster.client.PortSetBuilder;
 import com.midokura.midonet.cluster.client.RouterBuilder;
+import com.midokura.midonet.cluster.client.TunnelZones;
 
 public interface Client {
 
@@ -30,4 +31,6 @@ public interface Client {
     void getHost(UUID hostIdentifier, HostBuilder builder);
 
     void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
+
+    void getPortSet(UUID uuid, PortSetBuilder builder);
 }
