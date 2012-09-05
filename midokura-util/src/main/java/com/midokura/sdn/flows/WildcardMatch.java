@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 
 import com.midokura.packets.*;
 
-public class WildcardMatch implements Cloneable, FlowMatch {
+public class WildcardMatch implements Cloneable, PacketMatch {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 

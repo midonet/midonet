@@ -5,7 +5,7 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.sdn.flows.PacketMatch;
 
 public interface ChainPacketContext {
     UUID getInPortId();
@@ -14,5 +14,5 @@ public interface ChainPacketContext {
     void addTraversedElementID(UUID id);
     boolean isConnTracked();
     boolean isForwardFlow();
-    MidoMatch getFlowMatch();
+    PacketMatch getFlowMatch();
 }

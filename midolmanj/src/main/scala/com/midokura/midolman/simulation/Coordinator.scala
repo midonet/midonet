@@ -22,13 +22,12 @@ import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.FlowActionVrnPortOutput
-import com.midokura.midolman.openflow.MidoMatch    //XXX: remove
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.{FlowMatch, Packet}
-import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.sdn.flows.{PacketMatch, WildcardMatch}
 import com.midokura.util.functors.Callback0
 
 
@@ -98,7 +97,7 @@ object Coordinator {
         override def addTraversedElementID(id: UUID) { /* XXX */ }
         override def isConnTracked(): Boolean = false   //XXX
         override def isForwardFlow(): Boolean = true    //XXX
-        override def getFlowMatch(): MidoMatch = null   //XXX
+        override def getFlowMatch(): PacketMatch = null //XXX
     }
 
     trait Device {

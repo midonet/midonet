@@ -3,7 +3,7 @@
 package com.midokura.sdn.flows;
 
 
-public interface FlowMatch {
+public interface PacketMatch {
     short getDataLayerType();
     byte[] getDataLayerSource();
     byte[] getDataLayerDestination();

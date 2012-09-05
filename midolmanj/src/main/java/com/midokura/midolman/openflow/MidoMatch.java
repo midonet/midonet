@@ -7,7 +7,7 @@ package com.midokura.midolman.openflow;
 import org.openflow.protocol.OFMatch;
 
 import com.midokura.packets.MAC;
-import com.midokura.sdn.flows.FlowMatch;
+import com.midokura.sdn.flows.PacketMatch;
 
 /**
  * MidoMatch extends OFMatch and sets the wildcard bits automatically.
@@ -15,7 +15,7 @@ import com.midokura.sdn.flows.FlowMatch;
  * @author ddumitriu
  *
  */
-public class MidoMatch extends OFMatch implements FlowMatch {
+public class MidoMatch extends OFMatch implements PacketMatch {
 
     public MidoMatch() {
         // this.wildcards correctly set to OFPFW_ALL in OFMatch's ctor
