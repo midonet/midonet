@@ -4,6 +4,7 @@
 
 package com.midokura.midonet.functional_test;
 
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static java.lang.String.format;
 
 import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
@@ -33,15 +34,8 @@ import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
+
+import java.util.concurrent.TimeUnit;
 
 public class PingTest {
 
@@ -65,7 +59,6 @@ public class PingTest {
 
 
     static LockHelper.Lock lock;
-    private final String ZK_ROOT_MIDOLMAN = "/smoketest/midonet";
 
     @BeforeClass
     public static void checkLock() {
@@ -110,26 +103,27 @@ public class PingTest {
 
         log.debug("Adding the interface port map");
         api.addHostInterfacePortMap(host, hipMap);
-        HostInterfacePortMap[] hi = api.getInterfacePortMap(host);
-
-        log.debug("---> " + hi[0].getInterfaceName() + " to " + hi[0].getPortId());
 
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
         //ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
 
         helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
 
+        log.debug("Waiting for the systems to start properly.");
+        TimeUnit.SECONDS.sleep(10);
     }
 
     @After
     public void tearDown() throws Exception {
-        //removeTapWrapper(tap1);
+        removeTapWrapper(tap1);
 
         stopMidolman(midolman);
         removeTenant(tenant1);
         stopMidolmanMgmt(api);
 
         EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+
+        cleanupZooKeeperServiceData();
     }
 
     @Test
@@ -138,11 +132,11 @@ public class PingTest {
         byte[] request;
 
         // First arp for router's mac.
-        /*assertThat("The ARP request was sent properly",
+        assertThat("The ARP request was sent properly",
                 tap1.send(helper1.makeArpRequest()));
 
         MAC rtrMac = helper1.checkArpReply(tap1.recv());
-        helper1.setGwMac(rtrMac);         */
+        helper1.setGwMac(rtrMac);
 
         /*
         // Ping router's port.

@@ -20,6 +20,7 @@ import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.midokura.midolman.monitoring.MonitoringModule;
+import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -146,6 +147,7 @@ public class Midolman implements SelectListener {
         );
 
         // start the services
+        injector.getInstance(MidostoreSetupService.class).startAndWait();
         injector.getInstance(MidolmanService.class).startAndWait();
 
         // fire the initialize message to an actor

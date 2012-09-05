@@ -125,6 +125,67 @@ public class HostResource {
 
     }
 
+    @POST
+    @RolesAllowed({AuthRole.ADMIN})
+    @Consumes({ VendorMediaType.APPLICATION_HOST_JSON,
+            MediaType.APPLICATION_JSON })
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    public Response createHostInterfacePortMap(@PathParam("id") UUID id,
+                                               HostInterfacePortMap map)
+            throws StateAccessException {
+
+        map.setHostId(id);
+
+        Set<ConstraintViolation<HostInterfacePortMap>> violations =
+                validator.validate(map, HostInterfacePortMapCreateGroup.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dataClient.hostsAddVrnPortMapping(id, map.getPortId(),
+                map.getInterfaceName());
+
+        return Response.ok().location(uriInfo.getBaseUri()).build();
+    }
+
+    @DELETE
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    public void deleteHostInterfacePortMap(@PathParam("id") UUID id,
+                                           HostInterfacePortMap map)
+            throws StateAccessException {
+
+        map.setHostId(id);
+
+        Set<ConstraintViolation<HostInterfacePortMap>> violations =
+                validator.validate(map);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dataClient.hostsRemoveVrnPortMapping(id, map.getPortId());
+    }
+
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
+    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<HostInterfacePortMap> getHostInterfacePortMaps(
+            @PathParam("id") UUID id) throws StateAccessException {
+
+        List<VirtualPortMapping> mapConfigs =
+                dataClient.hostsGetVirtualPortMappingsByHost(id);
+        List<HostInterfacePortMap> maps = new ArrayList<HostInterfacePortMap>();
+        for (VirtualPortMapping mapConfig : mapConfigs) {
+            HostInterfacePortMap map = new HostInterfacePortMap(id, mapConfig);
+            map.setBaseUri(uriInfo.getBaseUri());
+            maps.add(map);
+        }
+
+        return maps;
+    }
+
     /**
      * Interface resource locator for hosts.
      *

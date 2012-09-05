@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+import java.util.logging.Logger;
+
 /**
  * // TODO: mtoader ! Please explain yourself.
  */
@@ -27,6 +29,9 @@ public class MidostoreSetupService extends AbstractService {
     @Inject
     ZookeeperConfig config;
 
+    private final static org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(MidostoreSetupService.class);
+
     @Override
     protected void doStart() {
         try {
@@ -39,7 +44,10 @@ public class MidostoreSetupService extends AbstractService {
 
                 currentPath += "/" + part;
                 try {
-                    directory.add(currentPath, null, CreateMode.PERSISTENT);
+					if (!directory.has(currentPath)) {
+						log.debug("Adding " + currentPath);
+						directory.add(currentPath, null, CreateMode.PERSISTENT);
+					}
                 } catch (KeeperException.NodeExistsException ex) {
                     // Don't exit even if the node exists.
                     log.warn("doStart: {} already exists.", currentPath);

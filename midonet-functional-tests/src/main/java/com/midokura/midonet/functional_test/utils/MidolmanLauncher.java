@@ -95,7 +95,9 @@ public class MidolmanLauncher {
 
         return
                 format(
-                        "java -Djava.library.path=%s -cp %s -Dmidolman.log.file=%s " +
+
+                        "sudo java -Xbootclasspath/p:../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar -Djava.library.path=%s -cp %s -Dmidolman.log.file=%s " +
+                                                "com.midokura.midolman.Midolman " +
                                 "com.midokura.midolman.Midolman " +
                                 "-c %s",
                         getLibraryPath(),
