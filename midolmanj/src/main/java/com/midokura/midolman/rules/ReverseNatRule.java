@@ -12,11 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NwTpPair;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.sdn.flows.PacketMatch;
+
 
 public class ReverseNatRule extends NatRule {
 
@@ -39,7 +40,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, RuleResult res,
+    public void apply(PacketMatch flowMatch, RuleResult res,
                       NatMapping natMapping) {
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.match.getNetworkProtocol();

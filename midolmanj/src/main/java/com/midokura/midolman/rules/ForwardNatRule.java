@@ -12,12 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.layer4.NwTpPair;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
+import com.midokura.sdn.flows.PacketMatch;
+
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
@@ -50,7 +51,7 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, RuleResult res,
+    public void apply(PacketMatch flowMatch, RuleResult res,
                       NatMapping natMapping) {
         if (null == natMapping)
             return;
@@ -70,7 +71,7 @@ public class ForwardNatRule extends NatRule {
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applyDnat(MidoMatch flowMatch, RuleResult res,
+    public void applyDnat(PacketMatch flowMatch, RuleResult res,
                           NatMapping natMapping) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
@@ -119,7 +120,7 @@ public class ForwardNatRule extends NatRule {
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applySnat(MidoMatch flowMatch, RuleResult res,
+    public void applySnat(PacketMatch flowMatch, RuleResult res,
                           NatMapping natMapping) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",

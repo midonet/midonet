@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.sdn.flows.PacketMatch;
 
 
 public abstract class Rule implements Comparable<Rule> {
@@ -76,7 +76,7 @@ public abstract class Rule implements Comparable<Rule> {
      * @param natMapping
      *            NAT state of the element using this chain.
      */
-    protected abstract void apply(MidoMatch flowMatch, RuleResult res,
+    protected abstract void apply(PacketMatch flowMatch, RuleResult res,
                                   NatMapping natMapping);
 
 

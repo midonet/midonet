@@ -10,8 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
+import com.midokura.sdn.flows.PacketMatch;
+
 
 public class JumpRule extends Rule {
 
@@ -40,7 +41,7 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(MidoMatch flowMatch, RuleResult res,
+    public void apply(PacketMatch flowMatch, RuleResult res,
                       NatMapping natMapping) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;
