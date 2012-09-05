@@ -15,5 +15,5 @@ public interface BridgeBuilder extends ForwardingElementBuilder {
     void setMacLearningTable(MacLearningTable table);
     void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                             Map<IntIPv4, MAC> rtrIpToMac);
-    void setMaterializedPortActive(UUID port, MAC mac, boolean active);
+    void setLocalExteriorPortActive(UUID port, MAC mac, boolean active);
 }
