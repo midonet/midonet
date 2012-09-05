@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright 2012 Midokura Pte. Ltd.
+ */
 package com.midokura.sdn.dp;
 
 import com.midokura.packets.ARP;
