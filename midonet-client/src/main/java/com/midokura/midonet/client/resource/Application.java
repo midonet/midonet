@@ -12,6 +12,7 @@ import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoPortGroup;
 import com.midokura.midonet.client.dto.DtoRouter;
 import com.midokura.midonet.client.dto.DtoRuleChain;
@@ -106,6 +107,20 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                                  PortGroup.class, DtoPortGroup.class);
     }
 
+    /**
+     * Gets hosts.
+     *
+     * @return collection host
+     */
+    public ResourceCollection<Host> getHosts(
+        MultivaluedMap queryParams) {
+        return getChildResources(principalDto.getHosts(),
+                                 queryParams,
+                                 VendorMediaType
+                                     .APPLICATION_HOST_COLLECTION_JSON,
+                                 Host.class, DtoHost.class);
+    }
+
 
     /**
      * Adds a bridge.
@@ -146,6 +161,4 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return new PortGroup(resource, principalDto.getPortGroups(),
                              new DtoPortGroup());
     }
-
-    //TODO(tomoe): hosts
 }

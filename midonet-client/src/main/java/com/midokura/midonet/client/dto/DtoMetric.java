@@ -4,8 +4,8 @@
 
 package com.midokura.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * DtoMetric represent a query to the monitoring system.
@@ -25,8 +25,8 @@ public class DtoMetric {
     UUID targetIdentifier;
 
     /**
--     * the metric type
- -    */
+     * the metric type
+     */
     String type;
 
     public String getName() {

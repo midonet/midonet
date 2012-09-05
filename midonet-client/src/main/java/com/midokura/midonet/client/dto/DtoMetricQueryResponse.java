@@ -91,18 +91,18 @@ public class DtoMetricQueryResponse {
     @Override
     public String toString() {
         String res = "DtoMetricQueryResponse{" +
-                "targetIdentifier=" + targetIdentifier +
-                "metricName=" + metricName +
-                "start=" + startEpochTime +
-                "end=" + endEpochTime +
-                "type=" + type;
+            "targetIdentifier=" + targetIdentifier +
+            "metricName=" + metricName +
+            "start=" + startEpochTime +
+            "end=" + endEpochTime +
+            "type=" + type;
 
         for (Map.Entry<String, Long> entry : results.entrySet()) {
-            res += "[";
+            res += "[{timestamp: ";
             res += entry.getKey();
-            res += ",";
-            res += entry.getValue().toString();
-            res += "]";
+            res += ", ";
+            res += "value : " + entry.getValue().toString();
+            res += "}]";
         }
 
         res += "}";

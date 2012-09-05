@@ -20,6 +20,7 @@ public class DtoHost {
     private String[] addresses;
     private URI interfaces;
     private URI hostCommands;
+    private URI interfacePortMap;
     private boolean alive;
 
     @XmlTransient
@@ -79,5 +80,13 @@ public class DtoHost {
 
     public void setHostCommands(URI hostCommands) {
         this.hostCommands = hostCommands;
+    }
+
+    public URI getInterfacePortMap() {
+        return interfacePortMap;
+    }
+
+    public void setInterfacePortMap(URI interfacePortMap) {
+        this.interfacePortMap = interfacePortMap;
     }
 }
