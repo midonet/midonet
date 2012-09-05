@@ -23,8 +23,13 @@ public interface Directory {
     byte[] get(String relativePath, Runnable watcher) throws KeeperException,
             InterruptedException;
 
+    void asyncGet(String relativePath, DirectoryCallback<byte[]> data, TypedWatcher watcher);
+
     Set<String> getChildren(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException;
+
+    void asyncGetChildren(String relativePath,
+                          DirectoryCallback<Set<String>> childrenCallback, TypedWatcher watcher);
 
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;

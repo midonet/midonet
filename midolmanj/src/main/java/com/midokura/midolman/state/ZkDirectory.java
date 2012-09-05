@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
@@ -16,6 +17,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +32,10 @@ public class ZkDirectory implements Directory {
     private Reactor reactor;
 
     /**
-     * @param zk the zookeeper object
+     * @param zk       the zookeeper object
      * @param basePath must start with "/"
-     * @param acl the list of {@link ACL} the we need to use
-     * @param reactor the delayed reactor loop
+     * @param acl      the list of {@link ACL} the we need to use
+     * @param reactor  the delayed reactor loop
      */
     public ZkDirectory(ZkConnection zk, String basePath,
                        List<ACL> acl, Reactor reactor) {
@@ -50,7 +52,7 @@ public class ZkDirectory implements Directory {
 
     @Override
     public String add(String relativePath, byte[] data, CreateMode mode)
-            throws KeeperException, InterruptedException {
+        throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         String path = null;
         path = zk.getZooKeeper().create(absPath, data, acl, mode);
@@ -59,14 +61,14 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void update(String relativePath, byte[] data)
-            throws KeeperException, InterruptedException {
+        throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().setData(absPath, data, -1);
     }
 
     private Watcher wrapCallback(Runnable runnable) {
         if (runnable instanceof TypedWatcher)
-            return new MyTypedWatcher((TypedWatcher)runnable);
+            return new MyTypedWatcher((TypedWatcher) runnable);
 
         return new MyWatcher(runnable);
     }
@@ -80,7 +82,7 @@ public class ZkDirectory implements Directory {
 
         @Override
         public void process(WatchedEvent arg0) {
-            if (null == reactor){
+            if (null == reactor) {
                 log.warn("Reactor is null - processing ZK event in ZK thread.");
                 watcher.run();
             } else {
@@ -140,14 +142,32 @@ public class ZkDirectory implements Directory {
 
     @Override
     public byte[] get(String relativePath, Runnable watcher)
-            throws KeeperException, InterruptedException {
+        throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
     }
 
     @Override
+    public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
+        zk.getZooKeeper().getData(
+            getAbsolutePath(relativePath),
+            wrapCallback(watcher), new AsyncCallback.DataCallback() {
+            @Override
+            public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+                if (rc == KeeperException.Code.OK.intValue()) {
+                    dataCallback.onSuccess(
+                        new DirectoryCallback.Result<byte[]>(data, stat));
+                } else {
+                    dataCallback.onError(KeeperException.create(
+                        KeeperException.Code.get(rc), path));
+                }
+            }
+        }, null);
+    }
+
+    @Override
     public Set<String> getChildren(String relativePath, Runnable watcher)
-            throws KeeperException, InterruptedException {
+        throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
 
         // path cannot end with / so strip it off
@@ -157,19 +177,41 @@ public class ZkDirectory implements Directory {
 
         return
             new HashSet<String>(
-                    zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
+                zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
+    }
+
+    @Override
+    public void asyncGetChildren(String relativePath,
+                                 final DirectoryCallback<Set<String>> cb,
+                                 TypedWatcher watcher) {
+        zk.getZooKeeper().getChildren(
+            getAbsolutePath(relativePath),
+            wrapCallback(watcher),
+            new AsyncCallback.Children2Callback() {
+                @Override
+                public void processResult(int rc, String path, Object ctx,
+                                          List<String> children, Stat stat) {
+                    if (rc == KeeperException.Code.OK.intValue()) {
+                        cb.onSuccess(
+                            new DirectoryCallback.Result<Set<String>>(
+                                new HashSet<String>(children), stat));
+                    } else {
+                        cb.onError(KeeperException.create(KeeperException.Code.get(rc), path));
+                    }
+                }
+            }, null);
     }
 
     @Override
     public boolean has(String relativePath) throws KeeperException,
-            InterruptedException {
+                                                   InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return zk.getZooKeeper().exists(absPath, null) != null;
     }
 
     @Override
     public void delete(String relativePath) throws KeeperException,
-            InterruptedException {
+                                                   InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().delete(absPath, -1);
     }
@@ -177,7 +219,7 @@ public class ZkDirectory implements Directory {
     @Override
     public Directory getSubDirectory(String relativePath) {
         return new ZkDirectory(zk, getAbsolutePath(relativePath), null,
-                reactor);
+                               reactor);
     }
 
     private String getAbsolutePath(String relativePath) {
