@@ -21,11 +21,19 @@ public class ICMP extends BasePacket {
         public char toChar() { return value; }
     }
 
+    public static final char TYPE_TIME_EXCEEDED = 11;
+    public static enum EXCEEDED_CODE {
+        EXCEEDED_TTL((char)0), EXCEEDED_REASSEMBLY((char)1);
+
+        private final char value;
+        private EXCEEDED_CODE(char value) { this.value = value; }
+        public char toChar() { return value; }
+    }
+
     public static final char TYPE_ECHO_REPLY = 0;
     public static final char TYPE_ECHO_REQUEST = 8;
     public static final char TYPE_SOURCE_QUENCH = 4;
     public static final char TYPE_REDIRECT = 5;
-    public static final char TYPE_TIME_EXCEEDED = 11;
     public static final char TYPE_PARAMETER_PROBLEM = 12;
 
     /**
@@ -78,17 +86,29 @@ public class ICMP extends BasePacket {
         return data;
     }
 
-    public void setUnreachable(UNREACH_CODE unreachCode, IPv4 ipPkt) {
-        type = TYPE_UNREACH;
-        code = unreachCode.value;
-        checksum = 0;
-        quench = 0;
+    private void setIPv4Packet(IPv4 ipPkt) {
         byte[] data = ipPkt.serialize();
         int length = ipPkt.headerLength*4 + HEADER_LEN;
         if (length >= data.length)
             this.data = data;
         else
             this.data = Arrays.copyOf(data, length);
+    }
+
+    public void setUnreachable(UNREACH_CODE unreachCode, IPv4 ipPkt) {
+        type = TYPE_UNREACH;
+        code = unreachCode.value;
+        checksum = 0;
+        quench = 0;
+        setIPv4Packet(ipPkt);
+    }
+
+    public void setTimeExceeded(EXCEEDED_CODE timeCode, IPv4 ipPkt) {
+        type = TYPE_TIME_EXCEEDED;
+        code = timeCode.value;
+        checksum = 0;
+        quench = 0;
+        setIPv4Packet(ipPkt);
     }
 
     public void setEchoRequest(short id, short seq, byte[] data) {

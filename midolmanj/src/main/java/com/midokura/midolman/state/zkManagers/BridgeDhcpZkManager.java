@@ -4,22 +4,21 @@
 
 package com.midokura.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class BridgeDhcpZkManager extends ZkManager {
 
@@ -199,6 +198,12 @@ public class BridgeDhcpZkManager extends ZkManager {
         return serializer.deserialize(data, Subnet.class);
     }
 
+    public boolean existsSubnet(UUID bridgeId, IntIPv4 subnetAddr)
+            throws StateAccessException {
+        return exists(pathManager.getBridgeDhcpSubnetPath(bridgeId,
+                subnetAddr));
+    }
+
     public void deleteSubnet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
@@ -259,6 +264,12 @@ public class BridgeDhcpZkManager extends ZkManager {
             throws StateAccessException {
         delete(pathManager.getBridgeDhcpHostPath(bridgId, subnetAddr,
                 MAC.fromString(mac)));
+    }
+
+    public boolean existsHost(UUID bridgeId, IntIPv4 subnetAddr, String mac)
+            throws StateAccessException {
+        return exists(pathManager.getBridgeDhcpHostPath(
+                bridgeId, subnetAddr, MAC.fromString(mac)));
     }
 
     public List<MAC> listHosts(UUID bridgeId, IntIPv4 subnetAddr)

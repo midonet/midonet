@@ -18,28 +18,9 @@ import com.sun.jersey.test.framework.spi.container.grizzly2.web.GrizzlyWebTestCo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridgePort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpSubnet;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
-import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
-import com.midokura.midolman.mgmt.jaxrs.WildCardJacksonJaxbJsonProvider;
-import com.midokura.midolman.mgmt.http.VendorMediaType;
+import com.midokura.midonet.client.dto.*;
+import com.midokura.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
+import com.midokura.midonet.client.VendorMediaType;
 
 public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
 
@@ -188,11 +169,11 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return new GrizzlyWebTestContainerFactory();
     }
 
-    @Override
-    public DtoTenant addTenant(DtoTenant t) {
-        URI uri = post(app.getTenants(), t);
-        return get(uri, DtoTenant.class);
-    }
+//    @Override
+//    public DtoTenant addTenant(DtoTenant t) {
+//        URI uri = post(app.getTenants(), t);
+//        return get(uri, DtoTenant.class);
+//    }
 
     @Override
     public DtoRouter addRouter(DtoTenant t, DtoRouter r) {
@@ -274,9 +255,9 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return get(uri, DtoAdRoute.class);
     }
 
-    public DtoTenant[] getTenants() {
-        return get(app.getTenants(), DtoTenant[].class);
-    }
+//    public DtoTenant[] getTenants() {
+//        return get(app.getTenants(), DtoTenant[].class);
+//    }
 
     public DtoHost[] getHosts() {
         ClientResponse clientResponse = get(app.getHosts(),
@@ -334,10 +315,10 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         return get(uri, DtoPortGroup.class);
     }
 
-    @Override
-    public void deleteTenant(String name) {
-        delete(UriBuilder.fromUri(app.getTenants()).path(name).build());
-    }
+//    @Override
+//    public void deleteTenant(String name) {
+//        delete(UriBuilder.fromUri(app.getTenants()).path(name).build());
+//    }
 
     @Override
     public DtoRuleChain addRuleChain(DtoTenant t, DtoRuleChain chain) {

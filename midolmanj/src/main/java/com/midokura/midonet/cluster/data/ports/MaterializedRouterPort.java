@@ -17,8 +17,8 @@ import com.midokura.midonet.cluster.data.Router;
 public class MaterializedRouterPort
     extends RouterPort<MaterializedRouterPort.Data, MaterializedRouterPort> {
 
-    public MaterializedRouterPort(Router router, UUID uuid, Data data) {
-        super(router, uuid, data);
+    public MaterializedRouterPort(UUID routerId, UUID uuid, Data data) {
+        super(routerId, uuid, data);
     }
 
     public MaterializedRouterPort(UUID uuid, Data data) {
@@ -27,9 +27,6 @@ public class MaterializedRouterPort
 
     public MaterializedRouterPort(@Nonnull Data data) {
         this(null, null, data);
-    }
-    public MaterializedRouterPort(Router router) {
-        this(router, null, new Data());
     }
 
     public MaterializedRouterPort() {

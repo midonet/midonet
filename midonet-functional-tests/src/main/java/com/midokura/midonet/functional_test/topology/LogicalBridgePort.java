@@ -4,8 +4,8 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class LogicalBridgePort {

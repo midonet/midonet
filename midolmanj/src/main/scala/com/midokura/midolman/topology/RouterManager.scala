@@ -84,7 +84,8 @@ class RouterManager(id: UUID, val client: Client)
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter));
 
         if(filterChanged){
-            FlowController.getRef() ! FlowController.InvalidateFlowByTag((id, null, null))
+            FlowController.getRef() ! FlowController.InvalidateFlowByTag(
+            FlowTagger.invalidateAllDeviceFlowsTag(id))
         }
         filterChanged = false
     }

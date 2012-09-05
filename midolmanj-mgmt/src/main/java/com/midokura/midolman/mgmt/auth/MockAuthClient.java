@@ -82,7 +82,7 @@ public final class MockAuthClient implements AuthClient {
      */
     @Override
     public UserIdentity getUserIdentityByToken(String token) {
-        log.debug("NoAuthClient.getUserIdentityByToken entered. {}", token);
+        log.debug("MockAuthClient.getUserIdentityByToken entered. {}", token);
 
         UserIdentity user = tokenMap.get(token);
         if (user == null) {
@@ -91,7 +91,7 @@ public final class MockAuthClient implements AuthClient {
             user.addRole(AuthRole.ADMIN);
         }
 
-        log.debug("NoAuthClient.getUserIdentityByToken exiting. {}", user);
+        log.debug("MockAuthClient.getUserIdentityByToken exiting. {}", user);
         return user;
     }
 }

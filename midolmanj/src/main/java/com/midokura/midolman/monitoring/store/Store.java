@@ -4,10 +4,14 @@
 
 package com.midokura.midolman.monitoring.store;
 
+import com.midokura.cassandra.CassandraClient;
+
 import java.util.List;
 import java.util.Map;
 
 public interface Store {
+
+    public void initialize();
 
     public void addTSPoint(String type, String targetIdentifier,
                            String metricName, long time,

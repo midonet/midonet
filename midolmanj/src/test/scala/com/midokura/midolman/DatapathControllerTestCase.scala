@@ -11,7 +11,9 @@ import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.sdn.dp.{Datapath, Ports}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
-                                          Ports => ClusterPorts, Host}
+                                          Ports => ClusterPorts}
+import com.midokura.midonet.cluster.data.host.Host
+
 import com.midokura.midolman.topology.physical
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
 

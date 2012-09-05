@@ -19,6 +19,7 @@ import java.util.concurrent.ScheduledFuture;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.midokura.midolman.monitoring.MonitoringModule;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;

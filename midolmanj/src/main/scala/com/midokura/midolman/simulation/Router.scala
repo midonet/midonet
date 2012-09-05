@@ -5,18 +5,19 @@ package com.midokura.midolman.simulation
 
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
+import akka.actor.{ActorRef, Actor}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
-                                                  MaterializedRouterPortConfig,
-                                                  RouterPortConfig}
+import com.midokura.midolman.state.PortDirectory.{LogicalBridgePortConfig, LogicalRouterPortConfig, MaterializedRouterPortConfig, RouterPortConfig}
 import com.midokura.midolman.topology.{ArpTable, RouterConfig,
                                        RoutingTableWrapper}
+import com.midokura.midolman.SimulationController
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
-import com.midokura.packets.ICMP.UNREACH_CODE
+import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
 import akka.actor.ActorSystem
 
@@ -84,6 +85,17 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         // XXX: Apply the pre-routing (ingress) chain
+
+        if (ingressMatch.getNetworkTTL != null) {
+            val ttl: Byte = ingressMatch.getNetworkTTL
+            if (ttl <= 1) {
+                sendIcmpError(ingressMatch, packet,
+                    ICMP.TYPE_TIME_EXCEEDED, EXCEEDED_CODE.EXCEEDED_TTL)
+                return Promise.successful(new DropAction)(ec)
+            } else {
+                ingressMatch.setNetworkTTL((ttl - 1).toByte)
+            }
+        }
 
         val rt: Route = loadBalancer.lookup(ingressMatch)
         if (rt == null) {
@@ -246,5 +258,161 @@ class Router(val id: UUID, val cfg: RouterConfig,
             case _ => /* Fall through */
         }
         return Some(arpTable.get(nwAddr, expiry, ec))
+    }
+
+    /**
+     * Determine whether a packet can trigger an ICMP error.  Per RFC 1812 sec.
+     * 4.3.2.7, some packets should not trigger ICMP errors:
+     *   1) Other ICMP errors.
+     *   2) Invalid IP packets.
+     *   3) Destined to IP bcast or mcast address.
+     *   4) Destined to a link-layer bcast or mcast.
+     *   5) With source network prefix zero or invalid source.
+     *   6) Second and later IP fragments.
+     *
+     * @param ethPkt
+     *            We wish to know whether this packet may trigger an ICMP error
+     *            message.
+     * @param egressPortId
+     *            If known, this is the port that would have emitted the packet.
+     *            It's used to determine whether the packet was addressed to an
+     *            IP (local subnet) broadcast address.
+     * @return True if-and-only-if the packet meets none of the above conditions
+     *         - i.e. it can trigger an ICMP error message.
+     */
+     def canSendIcmp(ethPkt: Ethernet, egressPortId: UUID) : Boolean = {
+        var ipPkt: IPv4 = null
+        ethPkt.getPayload match {
+            case ip: IPv4 => ipPkt = ip
+            case _ => return false
+        }
+
+        // Ignore ICMP errors.
+        if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+            ipPkt.getPayload match {
+                case icmp: ICMP if icmp.isError =>
+                    log.debug("Skipping generation of ICMP error for " +
+                            "ICMP error packet")
+                    return false
+                case _ =>
+            }
+        }
+        // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
+        // Ignore packets to IP mcast addresses.
+        if (ipPkt.isMcast()) {
+            log.debug("Not generating ICMP Unreachable for packet to an IP "
+                    + "multicast address.")
+            return false
+        }
+        // Ignore packets sent to the local-subnet IP broadcast address of the
+        // intended egress port.
+        if (null != egressPortId) {
+            val portConfig: RouterPortConfig = getRouterPortConfig(egressPortId)
+            if (null == portConfig) {
+                log.error("Failed to get the egress port's config from ZK {}",
+                        egressPortId)
+                return false
+            }
+            if (ipPkt.isSubnetBcast(portConfig.nwAddr, portConfig.nwLength)) {
+                log.debug("Not generating ICMP Unreachable for packet to "
+                        + "the subnet local broadcast address.")
+                return false
+            }
+        }
+        // Ignore packets to Ethernet broadcast and multicast addresses.
+        if (ethPkt.isMcast()) {
+            log.debug("Not generating ICMP Unreachable for packet to "
+                    + "Ethernet broadcast or multicast address.")
+            return false
+        }
+        // Ignore packets with source network prefix zero or invalid source.
+        // TODO(pino): See RFC 1812 sec. 5.3.7
+        if (ipPkt.getSourceAddress() == 0xffffffff
+                || ipPkt.getDestinationAddress() == 0xffffffff) {
+            log.debug("Not generating ICMP Unreachable for all-hosts broadcast "
+                    + "packet")
+            return false
+        }
+        // TODO(pino): check this fragment offset
+        // Ignore datagram fragments other than the first one.
+        if (0 != (ipPkt.getFragmentOffset() & 0x1fff)) {
+            log.debug("Not generating ICMP Unreachable for IP fragment packet")
+            return false
+        }
+        return true
+    }
+
+    private def buildIcmpError(icmpType: Char, icmpCode: Any,
+                   forMatch: WildcardMatch, forPacket: Ethernet) : ICMP = {
+        val pktHere = forMatch.apply(forPacket)
+        var ipPkt: IPv4 = null
+        pktHere.getPayload match {
+            case ip: IPv4 => ipPkt = ip
+            case _ => return null
+        }
+
+        icmpCode match {
+            case c: ICMP.EXCEEDED_CODE if icmpType == ICMP.TYPE_TIME_EXCEEDED =>
+                val icmp = new ICMP()
+                icmp.setTimeExceeded(c, ipPkt)
+                return icmp
+            case c: ICMP.UNREACH_CODE if icmpType == ICMP.TYPE_UNREACH =>
+                val icmp = new ICMP()
+                icmp.setUnreachable(c, ipPkt)
+                return icmp
+            case _ =>
+                return null
+        }
+    }
+
+    /**
+     * Send an ICMP error message.
+     *
+     * @param ingressMatch
+     *            The wildcard match that caused the message to be generated
+     * @param packet
+     *            The original packet that started the simulation
+     */
+     def sendIcmpError(ingressMatch: WildcardMatch, packet: Ethernet,
+                       icmpType: Char, icmpCode: Any)
+                        (implicit ec: ExecutionContext,
+                         actorSystem: ActorSystem)  {
+        // Check whether the original packet is allowed to trigger ICMP.
+        // TODO(pino, abel): do we need the packet as seen by the ingress to
+        // this router?
+        if (!canSendIcmp(packet, ingressMatch.getInputPortUUID))
+            return
+        // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
+        val icmp = buildIcmpError(icmpType, icmpCode, ingressMatch, packet)
+        if (icmp == null)
+            return
+
+        val ip = new IPv4()
+        ip.setPayload(icmp)
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
+        // The nwDst is the source of triggering IPv4 as seen by this router.
+        ip.setDestinationAddress(ingressMatch.getNetworkSource.addressAsInt)
+        // The nwSrc is the address of the ingress port.
+        val portConfig: RouterPortConfig = getRouterPortConfig(
+                ingressMatch.getInputPortUUID)
+        if (null == portConfig) {
+            log.error("Failed to retrieve the inPort's configuration {}",
+                    ingressMatch.getInputPortUUID)
+            return
+        }
+        ip.setSourceAddress(portConfig.portAddr)
+
+        val eth = new Ethernet()
+        eth.setPayload(ip)
+        eth.setEtherType(IPv4.ETHERTYPE)
+        eth.setSourceMACAddress(portConfig.getHwAddr)
+        eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
+
+        /* log.debug("sendIcmpError from port {}, {} to {}", new Object[] {
+                ingressMatch.getInputPortUUID,
+                IPv4.fromIPv4Address(ip.getSourceAddress()),
+                IPv4.fromIPv4Address(ip.getDestinationAddress()) }) */
+        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+            ingressMatch.getInputPortUUID, eth)
     }
 }

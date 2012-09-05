@@ -14,6 +14,10 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         tenant_id
     }
 
+    public Router() {
+        this(null, new Data());
+    }
+
     public Router(UUID uuid) {
         super(uuid, new Data());
     }
@@ -67,6 +71,10 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
     public Router setProperties(Map<String, String> properties) {
         getData().properties.putAll(properties);
         return self();
+    }
+
+    public String getProperty(Property property) {
+        return getData().properties.get(property.name());
     }
 
     public Map<String, String> getProperties() {

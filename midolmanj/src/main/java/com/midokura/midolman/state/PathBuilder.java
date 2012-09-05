@@ -4,9 +4,8 @@
  */
 package com.midokura.midolman.state;
 
-import javax.inject.Inject;
-
-import com.midokura.midolman.config.MidolmanConfig;
+import com.google.inject.Inject;
+import com.midokura.midolman.config.ZookeeperConfig;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -21,7 +20,7 @@ public class PathBuilder extends ZkPathManager {
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
     @Inject
-    public PathBuilder(MidolmanConfig config) {
+    public PathBuilder(ZookeeperConfig config) {
         this(config.getMidolmanRootKey());
     }
 
@@ -40,7 +39,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantPortGroupNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantPortGroupNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantPortGroupNamePath(String tenantId,
+                                                       String name) {
         return buildTenantPortGroupNamesPath(tenantId).append("/").append(name);
     }
 
@@ -56,7 +56,8 @@ public class PathBuilder extends ZkPathManager {
     }
 
     private StringBuilder buildTenantPortGroupNamesPath(String tenantId) {
-        return buildTenantPath(tenantId).append("/").append(PORT_GROUP_NAMES_PATH);
+        return buildTenantPath(tenantId).append("/").append(
+                PORT_GROUP_NAMES_PATH);
     }
 
     /**
@@ -70,7 +71,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantChainNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantChainNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantChainNamePath(String tenantId,
+                                                   String name) {
         return buildTenantChainNamesPath(tenantId).append("/").append(name);
     }
 
@@ -98,7 +100,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantBridgeNamePath(tenantId, name).toString();
     }
 
-    public StringBuilder buildTenantBridgeNamePath(String tenantId, String name) {
+    public StringBuilder buildTenantBridgeNamePath(String tenantId,
+                                                   String name) {
         return buildTenantBridgeNamesPath(tenantId).append("/").append(name);
     }
 
@@ -124,7 +127,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantRouterNamePath(tenantId, name).toString();
     }
 
-    private StringBuilder buildTenantRouterNamePath(String tenantId, String name) {
+    private StringBuilder buildTenantRouterNamePath(String tenantId,
+                                                    String name) {
         return buildTenantRouterNamesPath(tenantId).append("/").append(name);
     }
 
@@ -134,7 +138,7 @@ public class PathBuilder extends ZkPathManager {
      * @return /tenants/tenantId/router-names
      */
     public String getTenantRouterNamesPath(String tenantId) {
-        return buildTenantPath(tenantId).toString();
+        return buildTenantRouterNamesPath(tenantId).toString();
     }
 
     private StringBuilder buildTenantRouterNamesPath(String tenantId) {

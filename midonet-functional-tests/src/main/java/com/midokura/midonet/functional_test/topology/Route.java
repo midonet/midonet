@@ -4,7 +4,7 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
+import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 import java.util.UUID;

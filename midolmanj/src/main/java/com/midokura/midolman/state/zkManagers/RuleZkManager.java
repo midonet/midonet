@@ -153,7 +153,7 @@ public class RuleZkManager extends ZkManager {
      * The method is package-private so that it can be used for deleting an
      * entire rule-chain.
      *
-     * @param entry
+     * @param rule
      *            Rule ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
      */
@@ -205,6 +205,10 @@ public class RuleZkManager extends ZkManager {
     public Rule get(UUID id) throws StateAccessException {
         byte[] data = get(pathManager.getRulePath(id), null);
         return serializer.deserialize(data, Rule.class);
+    }
+
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getRulePath(id));
     }
 
     /**

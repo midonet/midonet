@@ -6,10 +6,9 @@ package com.midokura.midolman.services;
 import com.google.common.base.Service;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import com.midokura.midolman.host.services.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.host.services.HostService;
 
 /**
  * Basic controller of the internal midolman services.
@@ -34,6 +33,8 @@ public class MidolmanService extends AbstractService {
     @Inject(optional = true)
     HostService hostService;
 
+    @Inject(optional = true)
+    StoreService storeService;
 
     @Override
     protected void doStart() {
@@ -41,12 +42,14 @@ public class MidolmanService extends AbstractService {
         startService(datapathConnectionService);
         startService(actorsService);
         startService(hostService);
+        startService(storeService);
         notifyStarted();
     }
 
     @Override
     protected void doStop() {
         try {
+            stopService(storeService);
             stopService(hostService);
             stopService(actorsService);
             stopService(datapathConnectionService);

@@ -3,14 +3,12 @@
  */
 package com.midokura.midolman.monitoring.store;
 
+import com.midokura.cassandra.CassandraClient;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.junit.*;
+
 import java.util.Map;
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -39,11 +37,14 @@ public class CassandraStoreTest {
     public void setUpCassandraStore() {
         // Needs to be set up everytime because the keyspace and columnfamily gets erased
         // by EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-        store = new CassandraStore("localhost:9171",
-                                   "Mido Cluster",
-                                   "MM_Monitoring",
-                                   "TestColumnFamily",
-                                   replicationFactor, ttlInSecs);
+        CassandraClient client = new CassandraClient(
+                "localhost:9171",
+                "Mido Cluster",
+                "MM_Monitoring",
+                "TestColumnFamily",
+                replicationFactor, ttlInSecs);
+        store = new CassandraStore(client);
+        store.initialize();
     }
 
     @After

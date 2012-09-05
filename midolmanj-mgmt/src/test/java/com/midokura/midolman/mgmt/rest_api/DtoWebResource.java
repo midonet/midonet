@@ -3,19 +3,16 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.net.URI;
-
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midonet.client.dto.DtoError;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+
+import java.net.URI;
+import java.util.Map;
+
+import static javax.ws.rs.core.Response.Status.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Wrapper class for WebResource that provides helpful HTTP methods to be used
@@ -34,8 +31,24 @@ public class DtoWebResource {
     }
 
     public ClientResponse getAndVerifyStatus(URI uri, String mediaType,
-            int status) {
-        ClientResponse response = resource.uri(uri).type(mediaType)
+                                             int status) {
+        return getAndVerifyStatus(uri, null, mediaType, status);
+    }
+
+    public ClientResponse getAndVerifyStatus(URI uri,
+                                             Map<String, String> queryStrings,
+                                             String mediaType,
+                                             int status) {
+
+        WebResource res = resource.uri(uri);
+        if (queryStrings != null) {
+            for (Map.Entry<String, String> entry : queryStrings.entrySet()) {
+                res = res.queryParam(entry.getKey(), entry.getValue());
+            }
+        }
+
+        ClientResponse response = res
+                .type(mediaType)
                 .get(ClientResponse.class);
         assertEquals(status, response.getStatus());
         return response;
@@ -67,6 +80,13 @@ public class DtoWebResource {
 
     public <T> T getAndVerifyOk(URI uri, String mediaType, Class<T> clazz) {
         ClientResponse resp = getAndVerifyStatus(uri, mediaType,
+                OK.getStatusCode());
+        return resp.getEntity(clazz);
+    }
+
+    public <T> T getAndVerifyOk(URI uri, Map<String, String> queryStrings,
+                                String mediaType, Class<T> clazz) {
+        ClientResponse resp = getAndVerifyStatus(uri, queryStrings, mediaType,
                 OK.getStatusCode());
         return resp.getEntity(clazz);
     }

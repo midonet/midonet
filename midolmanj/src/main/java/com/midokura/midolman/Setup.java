@@ -90,7 +90,13 @@ public class Setup {
             String basePath) throws KeeperException, InterruptedException {
         List<String> paths = Setup.getTopLevelPaths(basePath);
         for (String path : paths) {
-            rootDir.add(path, null, CreateMode.PERSISTENT);
+            try {
+                rootDir.add(path, null, CreateMode.PERSISTENT);
+            } catch (KeeperException.NodeExistsException ex) {
+                // Don't exit even if the node exists.
+                log.warn("createZkDirectoryStructure: {} already exists.",
+                        path);
+            }
         }
     }
 

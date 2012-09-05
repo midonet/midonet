@@ -4,7 +4,7 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midonet.client.dto.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class Tenant {
@@ -30,7 +30,8 @@ public class Tenant {
             if (null == dtoTenant.getId() || dtoTenant.getId().isEmpty())
                 throw new IllegalArgumentException("Cannot create a "
                         + "tenant with a null or empty name.");
-            return new Tenant(mgmt, mgmt.addTenant(dtoTenant));
+//            return new Tenant(mgmt, mgmt.addTenant(dtoTenant));
+            return null;
         }
     }
 

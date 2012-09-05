@@ -80,6 +80,53 @@ public class PortZkManager extends ZkManager {
         return exists(pathManager.getPortPath(id));
     }
 
+    private void setPortGroupUpdateOps(UUID id, PortConfig config,
+                                       PortConfig oldConfig, List<Op> ops)
+            throws StateAccessException {
+
+        // If they are both null, don't do anything
+        if (oldConfig.portGroupIDs == null && config.portGroupIDs == null) {
+            return;
+        }
+
+        // If the old config has port group IDs but the new one does not,
+        // delete all
+        if (oldConfig.portGroupIDs != null && config.portGroupIDs == null) {
+            deleteFromPortGroupsOps(ops, id, oldConfig.portGroupIDs);
+            return;
+        }
+
+        // If the old config is null but the new config has port groups, add
+        // them all.
+        if (oldConfig.portGroupIDs == null && config.portGroupIDs != null) {
+            addToPortGroupsOps(ops, id, config.portGroupIDs);
+            return;
+        }
+
+        Set<UUID> groupIdsToAdd = new HashSet<UUID>();
+        Set<UUID> groupIdsToRemove = new HashSet<UUID>();
+
+        // Go through the old set and remove entries that are included
+        // in the new set.
+        for (UUID portGroupId : oldConfig.portGroupIDs) {
+            if (!config.portGroupIDs.contains(portGroupId)) {
+                groupIdsToRemove.add(portGroupId);
+            }
+        }
+
+        for (UUID portGroupId : config.portGroupIDs) {
+            if (!oldConfig.portGroupIDs.contains(portGroupId)) {
+                groupIdsToAdd.add(portGroupId);
+            }
+        }
+
+        // Remove those that exist only in old config
+        deleteFromPortGroupsOps(ops, id, groupIdsToRemove);
+
+        // Add those that only exist in new config
+        addToPortGroupsOps(ops, id, groupIdsToAdd);
+    }
+
     private void addToPortGroupsOps(List<Op> ops, UUID id,
             Set<UUID> portGroupIds) {
         for (UUID portGroupId : portGroupIds) {
@@ -291,6 +338,13 @@ public class PortZkManager extends ZkManager {
         // However, there is no need to add such restriction here.
         ops.add(Op.setData(pathManager.getPortPath(id),
                 serializer.serialize(config), -1));
+
+        // Get the old port config so that we can find differences created from
+        // this update that requires other ZK directories to be updated.
+        PortConfig oldConfig = get(id);
+
+        // Set update Ops for Port Group
+        setPortGroupUpdateOps(id, config, oldConfig, ops);
 
         return ops;
     }

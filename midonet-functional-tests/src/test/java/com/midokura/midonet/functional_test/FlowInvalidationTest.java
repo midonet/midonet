@@ -8,7 +8,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;

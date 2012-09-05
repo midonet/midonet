@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
+import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;

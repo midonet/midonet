@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.midonet.client.dto.DtoTenant;
 import com.midokura.packets.IntIPv4;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class Router {

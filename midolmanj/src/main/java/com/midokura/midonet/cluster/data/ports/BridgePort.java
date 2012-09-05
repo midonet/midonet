@@ -16,9 +16,9 @@ public abstract class BridgePort<
     Self extends BridgePort<PortData, Self>
     > extends Port<PortData, Self> {
 
-    protected BridgePort(Bridge bridge, UUID uuid, PortData portData){
+    protected BridgePort(UUID bridgeId, UUID uuid, PortData portData){
         super(uuid, portData);
-        if (getData() != null && bridge != null)
-            setDeviceId(bridge.getId());
+        if (getData() != null && bridgeId != null)
+            setDeviceId(bridgeId);
     }
 }

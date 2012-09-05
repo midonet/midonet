@@ -5,12 +5,11 @@ package com.midokura.midonet.functional_test.mocks;
 
 import java.net.URI;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midonet.client.dto.*;
 
 public interface MidolmanMgmt {
 
-    DtoTenant addTenant(DtoTenant t);
+//    DtoTenant addTenant(DtoTenant t);
 
     DtoRouter addRouter(DtoTenant t, DtoRouter r);
 
@@ -44,9 +43,9 @@ public interface MidolmanMgmt {
 
     void delete(URI uri);
 
-    DtoTenant[] getTenants();
+//    DtoTenant[] getTenants();
 
-    void deleteTenant(String string);
+//    void deleteTenant(String string);
 
     DtoAdRoute addBgpAdvertisedRoute(DtoBgp dtoBgp, DtoAdRoute dtpAdRoute);
 

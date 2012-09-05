@@ -10,7 +10,8 @@ import org.scalatest.junit.JUnitRunner
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.datapath.FlowKeyVrnPort
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Host, Ports}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
+import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.sdn.dp.{FlowMatches, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.FlowKeys

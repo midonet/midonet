@@ -167,6 +167,11 @@ public class HostZkManager extends ZkManager {
             delMulti.add(getDeleteOp(pathManager.getHostInterfacesPath(id)));
         }
 
+        if (exists(pathManager.getHostVrnMappingsPath(id))) {
+            delMulti.addAll(getRecursiveDeleteOps(
+                    pathManager.getHostVrnMappingsPath(id)));
+        }
+
         Set<UUID> availabilityZones = getTunnelZoneIds(id, null);
         for (UUID zoneId : availabilityZones) {
             delMulti.add(

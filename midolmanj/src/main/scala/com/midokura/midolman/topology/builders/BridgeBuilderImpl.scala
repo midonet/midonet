@@ -10,9 +10,8 @@ import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback3
 import com.midokura.midolman.FlowController
 import scala.collection.mutable.Map
-import com.midokura.midolman.topology.{BridgeManager, BridgeConfig}
-import akka.dispatch.Future
 import akka.actor.{ActorContext, ActorRef}
+import com.midokura.midolman.topology.{FlowTagger, BridgeManager, BridgeConfig}
 
 
 /**
@@ -64,10 +63,9 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                            newRtrIpToMac: java.util.Map[IntIPv4, MAC]) {
         import collection.JavaConversions._
         // invalidate all the flows if there's some change in the logical ports
-        // TODO(ross) create a class to make tagging more explicit
         if(newRtrIpToMac != rtrIpToMac){
             flowController ! FlowController.InvalidateFlowByTag(
-                (id, null, null))
+                FlowTagger.invalidateAllDeviceFlowsTag(id))
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
         rtrIpToMac = newRtrIpToMac
@@ -85,17 +83,37 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         def call(mac: MAC, oldPort: UUID, newPort: UUID) {
 
             //1. MAC was deleted
-            //2. the MAC moved from port-x to port-y
-            //3. MAC was added (delete the flow for the flood, oldPort = null)
+            if(newPort == null && oldPort != null){
+                flowController ! FlowController.InvalidateFlowByTag(
+                FlowTagger.invalidateAllMACFlowsTag(id, mac))
+            }
+            //2. MAC moved from port-x to port-y
+            if(newPort != null && oldPort != null){
+                flowController ! FlowController.InvalidateFlowByTag(
+                FlowTagger.invalidateAllMacPortFlows(id, mac, oldPort))
+            }
+            //3. MAC was added -> do nothing
+
+            // in any case we need to re-compute the broadcast flows. If a port
+            // was added, we have to include it in the broadcast, if a port was
+            // deleted we have to remove it. If a port moved to a new host that
+            // had no port of this bridge, we need a flow to the port that has
+            // the tunnel to it
             flowController ! FlowController.InvalidateFlowByTag(
-                (id, mac, oldPort))
+                    FlowTagger.invalidateBroadCastFlows(id))
         }
     }
 
-    def setMaterializedPortActive(port: UUID, mac: MAC, active: Boolean) {
-        // invalidate the flood flows in both cases
-        flowController ! FlowController.InvalidateFlowByTag((id, mac, null))
-        //TODO(ross) ask how multicast
+    def setLocalExteriorPortActive(port: UUID, mac: MAC, active: Boolean) {
+        // invalidate the flood flows in both cases (active/not active)
+        flowController ! FlowController.InvalidateFlowByTag(
+            FlowTagger.invalidateBroadCastFlows(id))
+        
+        if (!active) {
+            flowController ! FlowController.InvalidateFlowByTag(
+                FlowTagger.invalidateAllMACFlowsTag(id, mac)
+            )
+        }
     }
 }
 

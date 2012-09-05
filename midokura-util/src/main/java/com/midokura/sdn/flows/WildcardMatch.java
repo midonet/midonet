@@ -10,8 +10,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
+import com.midokura.packets.*;
 
 public class WildcardMatch implements Cloneable {
 
@@ -27,6 +26,7 @@ public class WildcardMatch implements Cloneable {
         NetworkSource,
         NetworkDestination,
         NetworkProtocol,
+        NetworkTTL,
         IsIPv4Fragment,
         TransportSource,
         TransportDestination
@@ -49,6 +49,7 @@ public class WildcardMatch implements Cloneable {
     private IntIPv4 networkSource;
     private IntIPv4 networkDestination;
     private Byte networkProtocol;
+    private Byte networkTTL;
     private Boolean isIPv4Fragment;
     private Short transportSource;
     private Short transportDestination;
@@ -226,6 +227,25 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
+    public WildcardMatch setNetworkTTL(byte networkTTL) {
+        usedFields.add(Field.NetworkTTL);
+        this.networkTTL = networkTTL;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetNetworkTTL() {
+        usedFields.remove(Field.NetworkTTL);
+        this.networkTTL = null;
+        return this;
+    }
+
+    @Nullable
+    public Byte getNetworkTTL() {
+        return networkTTL;
+    }
+
+    @Nonnull
     public WildcardMatch setIsIPv4Fragment(boolean isFragment) {
         usedFields.add(Field.IsIPv4Fragment);
         this.isIPv4Fragment = isFragment;
@@ -280,6 +300,85 @@ public class WildcardMatch implements Cloneable {
     @Nullable
     public Short getTransportDestination() {
         return transportDestination;
+    }
+
+    /**
+     * Applies this match to a fresh copy of an ethernet packet
+     *
+     * @param toPacket Packet to apply match to (read-only)
+     * @return A newly allocated packet with the fields in the match applied
+     * @throws MalformedPacketException
+     */
+    public Ethernet apply(Ethernet toPacket) throws MalformedPacketException {
+        if (toPacket == null)
+            return null;
+
+        Ethernet eth = Ethernet.deserialize(toPacket.serialize());
+        IPv4 ipv4 = null;
+        Transport transport = null;
+
+        if (eth.getPayload() instanceof IPv4)
+            ipv4 = (IPv4) eth.getPayload();
+        if (ipv4 != null && ipv4.getPayload() instanceof Transport)
+            transport = (Transport) ipv4.getPayload();
+
+        /* TODO (guillermo)
+         * support (ethernet(ip(tcp|udp))) in the 1st go. A full/correct
+         * implementation of apply() should cover all matchable protocols
+         * for each network layer
+         */
+        if (ipv4 == null || transport == null)
+             return null;
+
+        for (Field field : getUsedFields()) {
+            switch (field) {
+                case EtherType:
+                    eth.setEtherType(etherType);
+                    break;
+                case EthernetDestination:
+                    eth.setDestinationMACAddress(ethernetDestination);
+                    break;
+                case EthernetSource:
+                    eth.setSourceMACAddress(ethernetSource);
+                    break;
+
+                case TransportDestination:
+                    transport.setDestinationPort(transportDestination);
+                    break;
+                case TransportSource:
+                    transport.setSourcePort(transportSource);
+                    break;
+
+                case NetworkDestination:
+                    ipv4.setDestinationAddress(networkDestination.addressAsInt());
+                    break;
+                case NetworkSource:
+                    ipv4.setSourceAddress(networkSource.addressAsInt());
+                    break;
+                case NetworkProtocol:
+                    ipv4.setProtocol(networkProtocol);
+                    break;
+
+                case NetworkTTL:
+                    ipv4.setTtl(networkTTL);
+                    break;
+
+                case IsIPv4Fragment:
+                    // XXX guillermo (does it make sense to make changes to
+                    // this? it would be useless without changing the offset
+                    // accordingly.
+                    break;
+
+                case InputPortUUID:
+                    break;
+                case InputPortNumber:
+                    break;
+                case TunnelID:
+                    break;
+            }
+        }
+
+        return eth;
     }
 
     @Override
@@ -346,6 +445,11 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
+                case NetworkTTL:
+                    if (!isEqual(networkTTL, that.networkTTL))
+                        return false;
+                    break;
+
                 case TunnelID:
                     if (!isEqual(tunnelID, that.tunnelID))
                         return false;
@@ -398,6 +502,9 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case NetworkProtocol:
                     result = 31 * result + networkProtocol.hashCode();
+                    break;
+                case NetworkTTL:
+                    result = 31 * result + networkTTL;
                     break;
                 case TunnelID:
                     result = 31 * result + tunnelID.hashCode();
@@ -465,6 +572,10 @@ public class WildcardMatch implements Cloneable {
 
                     case NetworkProtocol:
                         newClone.networkProtocol = networkProtocol;
+                        break;
+
+                    case NetworkTTL:
+                        newClone.networkTTL = networkTTL;
                         break;
 
                     case TunnelID:

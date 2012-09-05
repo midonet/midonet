@@ -93,6 +93,10 @@ public class AdRouteZkManager extends ZkManager {
         return this.get(id, null);
     }
 
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getAdRoutePath(id));
+    }
+
     public List<UUID> list(UUID bgpId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();

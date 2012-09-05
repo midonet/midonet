@@ -3,12 +3,11 @@
  */
 package com.midokura.midolman.mgmt.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
-
-import com.midokura.midolman.mgmt.servlet.ServletSupport;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 
 /**
  * Class to implement auth request filter.
@@ -28,7 +27,7 @@ public class AuthContainerRequestFilter implements ContainerRequestFilter {
     @Override
     public ContainerRequest filter(ContainerRequest req) {
         UserIdentity user = (UserIdentity) hsr
-                .getAttribute(ServletSupport.USER_IDENTITY_ATTR_KEY);
+                .getAttribute(AuthFilter.USER_IDENTITY_ATTR_KEY);
         req.setSecurityContext(new UserIdentitySecurityContext(user));
         return req;
     }

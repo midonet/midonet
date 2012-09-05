@@ -135,6 +135,10 @@ public class BgpZkManager extends ZkManager {
         return get(id, null);
     }
 
+    public boolean exists(UUID id) throws StateAccessException {
+        return exists(pathManager.getBgpPath(id));
+    }
+
     public List<UUID> list(UUID portId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();

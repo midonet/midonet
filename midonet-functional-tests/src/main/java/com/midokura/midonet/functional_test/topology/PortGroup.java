@@ -6,8 +6,8 @@ package com.midokura.midonet.functional_test.topology;
 
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
-import com.midokura.midolman.mgmt.data.dto.client.DtoTenant;
+import com.midokura.midonet.client.dto.DtoPortGroup;
+import com.midokura.midonet.client.dto.DtoTenant;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class PortGroup {

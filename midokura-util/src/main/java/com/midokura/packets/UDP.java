@@ -67,6 +67,7 @@ public class UDP extends BasePacket implements Transport {
     /**
      * @return the sourcePort
      */
+    @Override
     public short getSourcePort() {
         return sourcePort;
     }
@@ -74,14 +75,15 @@ public class UDP extends BasePacket implements Transport {
     /**
      * @param sourcePort the sourcePort to set
      */
-    public UDP setSourcePort(short sourcePort) {
+    @Override
+    public void setSourcePort(short sourcePort) {
         this.sourcePort = sourcePort;
-        return this;
     }
 
     /**
      * @return the destinationPort
      */
+    @Override
     public short getDestinationPort() {
         return destinationPort;
     }
@@ -89,9 +91,9 @@ public class UDP extends BasePacket implements Transport {
     /**
      * @param destinationPort the destinationPort to set
      */
-    public UDP setDestinationPort(short destinationPort) {
+    @Override
+    public void setDestinationPort(short destinationPort) {
         this.destinationPort = destinationPort;
-        return this;
     }
 
     /**

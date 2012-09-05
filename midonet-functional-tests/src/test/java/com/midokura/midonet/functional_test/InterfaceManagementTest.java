@@ -35,8 +35,8 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
+import com.midokura.midonet.client.dto.DtoHost;
+import com.midokura.midonet.client.dto.DtoInterface;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;

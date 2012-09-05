@@ -121,14 +121,9 @@ public class PortGroupZkManager extends ZkManager {
             }
         }
 
-        // Delete the port references
+        // Delete the ports directory.  All the ports should have been
+        // removed from the portDao.prepareUpdate operation above.
         String portsPath = pathManager.getPortGroupPortsPath(id);
-        Set<String> portIds = getChildren(portsPath);
-        for (String portId : portIds) {
-            ops.add(Op.delete(
-                    pathManager.getPortGroupPortPath(id,
-                            UUID.fromString(portId)), -1));
-        }
 
         // Delete the port group nodes
         ops.add(Op.delete(rulesPath, -1));
@@ -177,7 +172,6 @@ public class PortGroupZkManager extends ZkManager {
                 portIdSet.add(UUID.fromString(portId));
             }
 
-            ops.addAll(prepareDelete(id, false));
         }
 
         // Update all the ports, removing the port groups
@@ -191,6 +185,11 @@ public class PortGroupZkManager extends ZkManager {
 
             // update port
             ops.addAll(portDao.prepareUpdate(portId, port));
+        }
+
+        // Delete the port groups
+        for (UUID id : ids) {
+            ops.addAll(prepareDelete(id, false));
         }
 
         log.debug("PortGroupZkManager.prepareDelete: exiting");

@@ -3,8 +3,8 @@
 */
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoBridge;
-import com.midokura.midolman.mgmt.data.dto.client.DtoDhcpSubnet;
+import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoDhcpSubnet;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 /**

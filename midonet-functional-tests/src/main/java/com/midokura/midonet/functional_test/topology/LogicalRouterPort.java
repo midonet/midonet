@@ -4,9 +4,9 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoLogicalRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.dto.DtoRouter;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;

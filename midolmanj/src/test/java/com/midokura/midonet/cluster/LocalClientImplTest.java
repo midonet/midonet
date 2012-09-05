@@ -278,8 +278,8 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setMaterializedPortActive(UUID port, MAC mac,
-                                              boolean active) {
+        public void setLocalExteriorPortActive(UUID port, MAC mac,
+                                               boolean active) {
             //To change body of implemented methods use File | Settings | File Templates.
         }
 

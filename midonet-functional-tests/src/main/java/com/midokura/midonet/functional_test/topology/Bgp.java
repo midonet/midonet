@@ -4,8 +4,8 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
+import com.midokura.midonet.client.dto.DtoAdRoute;
+import com.midokura.midonet.client.dto.DtoBgp;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 /**

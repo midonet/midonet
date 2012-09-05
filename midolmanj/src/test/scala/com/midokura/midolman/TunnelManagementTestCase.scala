@@ -13,7 +13,8 @@ import org.slf4j.{Logger, LoggerFactory}
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
 import com.midokura.midolman.topology.physical
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports, Host}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
+import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone,
                                                 GreTunnelZoneHost}
 import com.midokura.packets.IntIPv4
