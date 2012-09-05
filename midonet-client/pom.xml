@@ -107,25 +107,16 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
             <version>12.12-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.midokura</groupId>
-            <artifactId>midolmanj-mgmt</artifactId>
-            <version>12.12-SNAPSHOT</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>${versions.hamcrest}</version>
         </dependency>
-
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>

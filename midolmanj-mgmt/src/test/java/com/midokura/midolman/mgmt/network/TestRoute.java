@@ -4,11 +4,13 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.rest_api.Topology;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -21,13 +23,23 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
-import java.util.*;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.rest_api.Topology;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoError;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.dto.DtoRouter;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestRoute {

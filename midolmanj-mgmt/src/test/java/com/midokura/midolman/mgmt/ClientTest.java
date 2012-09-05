@@ -2,13 +2,15 @@
  * Copyright (c) 2012. Midokura Japan K.K.
  */
 
-package com.midokura.midonet.client.resource;
+package com.midokura.midolman.mgmt;
 
 import com.google.common.base.Predicate;
 
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midonet.client.RouterPredicates;
 import com.midokura.midonet.client.exception.HttpBadRequestException;
 import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.resource.*;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -28,12 +30,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 8/17/12
- * Time: 2:27 PM
+/*
+ * NOTE:
+ * This test is temporarily moved from midonet-client since this depends mgmt
+ * and having this in midonet-client causes circular dependency.
  */
-
 public class ClientTest extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(ClientTest.class);

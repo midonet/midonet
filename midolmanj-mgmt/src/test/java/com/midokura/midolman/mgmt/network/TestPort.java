@@ -4,11 +4,15 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.rest_api.Topology;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.ws.rs.core.Response;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -18,12 +22,16 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import javax.ws.rs.core.Response;
-import java.util.*;
-
+import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.rest_api.Topology;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.*;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
-import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class TestPort {

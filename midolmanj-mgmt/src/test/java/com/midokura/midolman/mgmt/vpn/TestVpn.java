@@ -4,10 +4,10 @@
  */
 package com.midokura.midolman.mgmt.vpn;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoVpn;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoVpn;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;

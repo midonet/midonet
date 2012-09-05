@@ -4,21 +4,30 @@
 
 package com.midokura.midolman.mgmt.dhcp;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoDhcpHost;
+import com.midokura.midonet.client.dto.DtoDhcpOption121;
+import com.midokura.midonet.client.dto.DtoDhcpSubnet;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_JSON;
 
 public class TestDHCP extends JerseyTest {
 

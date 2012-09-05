@@ -4,10 +4,10 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoError;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoRuleChain;
 import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.rest_api.Topology;

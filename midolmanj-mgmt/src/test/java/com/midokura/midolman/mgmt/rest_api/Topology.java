@@ -3,13 +3,17 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
-
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
+import com.midokura.midonet.client.dto.*;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTER_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:

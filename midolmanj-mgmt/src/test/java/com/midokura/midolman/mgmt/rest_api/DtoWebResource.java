@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
+import com.midokura.midonet.client.dto.DtoError;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 

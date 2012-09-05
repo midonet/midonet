@@ -5,12 +5,9 @@
  */
 package com.midokura.midolman.mgmt.bgp;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoAdRoute;
-import com.midokura.midolman.mgmt.data.dto.client.DtoBgp;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMaterializedRouterPort;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRouter;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import java.net.URI;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -19,12 +16,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
-import java.util.UUID;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
+
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoAdRoute;
+import com.midokura.midonet.client.dto.DtoBgp;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoRouter;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_AD_ROUTE_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BGP_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTER_JSON;
 
 public class TestAdRoute extends JerseyTest {
 

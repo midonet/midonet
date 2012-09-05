@@ -4,16 +4,14 @@
  */
 package com.midokura.midolman.mgmt.filter;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoPortGroup;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule.DtoNatTarget;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.rest_api.Topology;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.packets.ARP;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -25,14 +23,21 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
-import java.util.*;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_RULE_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.rest_api.Topology;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoError;
+import com.midokura.midonet.client.dto.DtoPortGroup;
+import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.dto.DtoRule.DtoNatTarget;
+import com.midokura.midonet.client.dto.DtoRuleChain;
+import com.midokura.packets.ARP;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_RULE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestRule {

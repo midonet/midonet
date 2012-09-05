@@ -3,16 +3,10 @@
  */
 package com.midokura.midolman.mgmt.host;
 
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.packets.MAC;
+import java.net.InetAddress;
+import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -20,15 +14,30 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.UriBuilder;
-import java.net.InetAddress;
-import java.util.UUID;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.mgmt.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midonet.client.dto.DtoHost;
+import com.midokura.midonet.client.dto.DtoInterface;
+import com.midokura.packets.MAC;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
 
 public class TestHost extends JerseyTest {
 

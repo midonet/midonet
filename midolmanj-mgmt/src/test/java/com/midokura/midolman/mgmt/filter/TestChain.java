@@ -3,14 +3,11 @@
  */
 package com.midokura.midolman.mgmt.filter;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoError;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
-import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.rest_api.Topology;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -21,17 +18,22 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+
+import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.rest_api.Topology;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoError;
+import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.dto.DtoRuleChain;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_RULE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestChain {

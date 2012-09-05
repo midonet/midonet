@@ -4,15 +4,10 @@
 
 package com.midokura.midolman.mgmt.monitoring;
 
-import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMetric;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMetricQuery;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMetricQueryResponse;
-import com.midokura.midolman.mgmt.data.dto.client.DtoMetricTarget;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.midolman.monitoring.store.CassandraStore;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.spi.container.TestContainerException;
@@ -22,13 +17,21 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+
+import com.midokura.cassandra.CassandraClient;
+import com.midokura.midolman.mgmt.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midolman.monitoring.store.CassandraStore;
+import com.midokura.midonet.client.dto.DtoMetric;
+import com.midokura.midonet.client.dto.DtoMetricQuery;
+import com.midokura.midonet.client.dto.DtoMetricQueryResponse;
+import com.midokura.midonet.client.dto.DtoMetricTarget;
 
 /**
  * Date: 5/4/12

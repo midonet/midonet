@@ -3,22 +3,10 @@
  */
 package com.midokura.midolman.mgmt.host;
 
-import com.midokura.midolman.host.commands.executors.CommandProperty;
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostDirectory.Command.AtomicCommand.OperationType;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.data.dto.client.DtoApplication;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHostCommand;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface;
-import com.midokura.midolman.mgmt.data.dto.client.DtoInterface.PropertyKeys;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.packets.MAC;
+import java.io.IOException;
+import java.net.URI;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.test.framework.AppDescriptor;
@@ -27,15 +15,27 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.UUID;
-
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+
+import com.midokura.midolman.host.commands.executors.CommandProperty;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostDirectory.Command.AtomicCommand.OperationType;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoHost;
+import com.midokura.midonet.client.dto.DtoHostCommand;
+import com.midokura.midonet.client.dto.DtoInterface;
+import com.midokura.midonet.client.dto.DtoInterface.PropertyKeys;
+import com.midokura.packets.MAC;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 
 /**
  * Test cases to validate the update/create interface functionality of the

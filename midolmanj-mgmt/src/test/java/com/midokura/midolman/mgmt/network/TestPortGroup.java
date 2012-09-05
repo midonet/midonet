@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.data.dto.client.*;
+import com.midokura.midonet.client.dto.*;
 import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.rest_api.Topology;
