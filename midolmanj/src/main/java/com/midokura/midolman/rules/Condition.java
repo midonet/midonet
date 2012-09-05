@@ -11,7 +11,6 @@ import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.rules.ChainProcessor.ChainPacketContext;
 
 
 public class Condition {

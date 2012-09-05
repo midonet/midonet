@@ -2,27 +2,28 @@
 
 package com.midokura.midolman.simulation
 
+import collection.{Set => ROSet}   // read-only view
 import collection.mutable
-import collection.{Set => ROSet}
-import com.midokura.midolman.topology.VirtualTopologyActor.{RouterRequest, BridgeRequest, PortRequest}
-
-// read-only view
 import compat.Platform
 import util.continuations.cps
 import java.util.concurrent.TimeoutException
+import java.util.{Set => JSet}
 import java.util.UUID
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.dispatch.Future._
 import akka.pattern.ask
 import akka.util.duration._
 
-
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+         PortRequest, RouterRequest}
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.FlowActionVrnPortOutput
+import com.midokura.midolman.openflow.MidoMatch    //XXX: remove
+import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet
@@ -45,7 +46,7 @@ object Coordinator {
     case class ForwardAction(outPort: UUID,
                              outMatch: WildcardMatch) extends Action
 
-    class PacketContext {
+    class PacketContext extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
         // and tags added.  Freezing it switches it from write-only to
         // read-only.
@@ -89,6 +90,15 @@ object Coordinator {
         def freeze(): Unit = this.synchronized {
             frozen = true
         }
+
+        /* Packet context methods used by Chains. */
+        override def getInPortId(): UUID = null         //XXX
+        override def getOutPortId(): UUID = null        //XXX
+        override def getPortGroups(): JSet[UUID] = null //XXX
+        override def addTraversedElementID(id: UUID) { /* XXX */ }
+        override def isConnTracked(): Boolean = false   //XXX
+        override def isForwardFlow(): Boolean = true    //XXX
+        override def getFlowMatch(): MidoMatch = null   //XXX
     }
 
     trait Device {

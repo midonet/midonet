@@ -208,14 +208,4 @@ public class ChainProcessor {
             this.position = position;
         }
     }
-
-    public interface ChainPacketContext {
-        UUID getInPortId();
-        UUID getOutPortId();
-        Set<UUID> getPortGroups();
-        void addTraversedElementID(UUID id);
-        boolean isConnTracked();
-        boolean isForwardFlow();
-        MidoMatch getFlowMatch();
-    }
 }
