@@ -94,7 +94,7 @@ class TestDummyOVSDB {
         }
     }
 
-    @Test(timeout=1000, expected = classOf[OVSDBException])
+    @Ignore @Test(timeout=1000, expected = classOf[OVSDBException])
     def testImmediateDisconnection() {
         var ovsdbConnSuccessful = false
         var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
@@ -111,7 +111,7 @@ class TestDummyOVSDB {
         }
     }
 
-    @Test(timeout=1000, expected = classOf[OVSDBException])
+    @Ignore @Test(timeout=1000, expected = classOf[OVSDBException])
     def testGracefulDisconnection() {
         var ovsdbConnSuccessful = false
         var ovsdbConn: OpenvSwitchDatabaseConnectionImpl = null
