@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
-import java.util.logging.Logger;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
@@ -28,9 +27,6 @@ public class MidostoreSetupService extends AbstractService {
 
     @Inject
     ZookeeperConfig config;
-
-    private final static org.slf4j.Logger log =
-            org.slf4j.LoggerFactory.getLogger(MidostoreSetupService.class);
 
     @Override
     protected void doStart() {
