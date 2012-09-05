@@ -124,11 +124,13 @@ public class MonitoringTest {
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
 
-        store = new CassandraStore("localhost:9171",
-                "midonet",
-                "midonet_monitoring_keyspace",
-                "midonet_monitoring_column_family",
-                replicationFactor, ttlInSecs);
+        //TODO: fix me.
+        store = new CassandraStore(null);
+//        store = new CassandraStore("localhost:9171",
+//                "midonet",
+//                "midonet_monitoring_keyspace",
+//                "midonet_monitoring_column_family",
+//                replicationFactor, ttlInSecs);
 
     }
 

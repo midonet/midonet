@@ -2,8 +2,8 @@ package com.midokura.midonet.functional_test.topology;
 
 import java.util.UUID;
 
-import com.midokura.midolman.mgmt.data.dto.client.DtoRule;
-import com.midokura.midolman.mgmt.data.dto.client.DtoRuleChain;
+import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.dto.DtoRuleChain;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;

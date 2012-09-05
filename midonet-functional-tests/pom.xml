@@ -280,6 +280,12 @@
             <artifactId>midolmanj-mgmt</artifactId>
             <version>12.12-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>midonet-client</artifactId>
+            <version>12.12-SNAPSHOT</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.hamcrest</groupId>
