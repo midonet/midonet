@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 
 import com.midokura.packets.*;
 
-public class WildcardMatch implements Cloneable {
+public class WildcardMatch implements Cloneable, FlowMatch {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 
@@ -131,6 +131,11 @@ public class WildcardMatch implements Cloneable {
         return ethernetSource;
     }
 
+    @Override
+    public byte[] getDataLayerSource() {
+        return ethernetSource.getAddress();
+    }
+
     @Nonnull
     public WildcardMatch setEthernetDestination(@Nonnull MAC addr) {
         usedFields.add(Field.EthernetDestination);
@@ -148,6 +153,11 @@ public class WildcardMatch implements Cloneable {
     @Nullable
     public MAC getEthernetDestination() {
         return ethernetDestination;
+    }
+
+    @Override
+    public byte[] getDataLayerDestination() {
+        return ethernetDestination.getAddress();
     }
 
     @Nonnull
@@ -169,6 +179,11 @@ public class WildcardMatch implements Cloneable {
         return etherType;
     }
 
+    @Override
+    public short getDataLayerType() {
+        return etherType.shortValue();
+    }
+
     @Nonnull
     public WildcardMatch setNetworkSource(@Nonnull IntIPv4 addr) {
         usedFields.add(Field.NetworkSource);
@@ -184,8 +199,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getNetworkSource() {
+    public IntIPv4 getNetworkSourceIPv4() {
         return networkSource;
+    }
+
+    @Override
+    public int getNetworkSource() {
+        return networkSource.addressAsInt();
     }
 
     @Nonnull
@@ -203,8 +223,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getNetworkDestination() {
+    public IntIPv4 getNetworkDestinationIPv4() {
         return networkDestination;
+    }
+
+    @Override
+    public int getNetworkDestination() {
+        return networkDestination.addressAsInt();
     }
 
     @Nonnull
@@ -222,8 +247,20 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Byte getNetworkProtocol() {
+    public Byte getNetworkProtocolObject() {
         return networkProtocol;
+    }
+
+    @Override
+    public byte getNetworkProtocol() {
+        return networkProtocol.byteValue();
+    }
+
+    @Override
+    public byte getNetworkTypeOfService() {
+        // TODO(pino): WCMatch has no NetworkTOS, but rules.Condition
+        // checks the TOS of the match.  Reconcile.
+        return 0;
     }
 
     @Nonnull
@@ -279,8 +316,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportSource() {
+    public Short getTransportSourceObject() {
         return transportSource;
+    }
+
+    @Override
+    public short getTransportSource() {
+        return transportSource.shortValue();
     }
 
     @Nonnull
@@ -298,8 +340,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportDestination() {
+    public Short getTransportDestinationObject() {
         return transportDestination;
+    }
+
+    @Override
+    public short getTransportDestination() {
+        return transportDestination.shortValue();
     }
 
     /**

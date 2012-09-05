@@ -73,7 +73,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 return Promise.successful(new DropAction)(ec)
         }
 
-        val nwDst = ingressMatch.getNetworkDestination
+        val nwDst = ingressMatch.getNetworkDestinationIPv4
         val inPortIP = new IntIPv4(rtrPortCfg.portAddr)
         if (nwDst == inPortIP) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
@@ -159,7 +159,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
         var nextHopIP: Int = rt.nextHopGateway
         if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
-            nextHopIP = matchOut.getNetworkDestination.addressAsInt
+            nextHopIP = matchOut.getNetworkDestination
         }
 
         getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec) match {
@@ -391,7 +391,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         ip.setPayload(icmp)
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
         // The nwDst is the source of triggering IPv4 as seen by this router.
-        ip.setDestinationAddress(ingressMatch.getNetworkSource.addressAsInt)
+        ip.setDestinationAddress(ingressMatch.getNetworkSource)
         // The nwSrc is the address of the ingress port.
         val portConfig: RouterPortConfig = getRouterPortConfig(
                 ingressMatch.getInputPortUUID)

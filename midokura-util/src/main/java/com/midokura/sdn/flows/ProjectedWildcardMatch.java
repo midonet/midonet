@@ -13,7 +13,8 @@ public class ProjectedWildcardMatch extends WildcardMatch {
     @Nonnull private final WildcardMatch source;
 
     @SuppressWarnings("ConstantConditions")
-    public ProjectedWildcardMatch(@Nonnull Set<Field> fields, @Nonnull WildcardMatch source) {
+    public ProjectedWildcardMatch(@Nonnull Set<Field> fields,
+                                  @Nonnull WildcardMatch source) {
         for (Field field : fields) {
             switch (field) {
                 case InputPortUUID:
@@ -23,19 +24,20 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     setInputPortNumber(source.getInputPortNumber());
                     break;
                 case TransportDestination:
-                    setTransportDestination(source.getTransportDestination());
+                    setTransportDestination(
+                        source.getTransportDestinationObject());
                     break;
                 case TransportSource:
-                    setTransportSource(source.getTransportSource());
+                    setTransportSource(source.getTransportSourceObject());
                     break;
                 case NetworkDestination:
-                    setNetworkDestination(source.getNetworkDestination());
+                    setNetworkDestination(source.getNetworkDestinationIPv4());
                     break;
                 case NetworkSource:
-                    setNetworkSource(source.getNetworkSource());
+                    setNetworkSource(source.getNetworkSourceIPv4());
                     break;
                 case NetworkProtocol:
-                    setNetworkProtocol(source.getNetworkProtocol());
+                    setNetworkProtocol(source.getNetworkProtocolObject());
                     break;
                 case NetworkTTL:
                     setNetworkTTL(source.getNetworkTTL());

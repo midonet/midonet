@@ -71,7 +71,7 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
             // L2 Multicast
-            val nwDst = ingressMatch.getNetworkDestination
+            val nwDst = ingressMatch.getNetworkDestinationIPv4
             if (Ethernet.isBroadcast(dstDlAddress) &&
                     ingressMatch.getEtherType == ARP.ETHERTYPE &&
                     rtrIpToMac.contains(nwDst)) {

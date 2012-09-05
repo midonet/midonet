@@ -34,8 +34,8 @@ trait ArpTable {
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
     def lookup(wmatch: WildcardMatch): Iterable[Route] =
-            rTable.lookup(wmatch.getNetworkSource.addressAsInt(),
-                          wmatch.getNetworkDestination.addressAsInt())
+            rTable.lookup(wmatch.getNetworkSource,
+                          wmatch.getNetworkDestination)
 }
 
 object RouterManager {

@@ -7,11 +7,10 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midolman.util.Net;
-
+import com.midokura.sdn.flows.FlowMatch;
 
 public class Condition {
     public boolean conjunctionInv;
@@ -67,7 +66,7 @@ public class Condition {
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
-    public boolean matches(ChainPacketContext fwdInfo, MidoMatch pktMatch,
+    public boolean matches(ChainPacketContext fwdInfo, FlowMatch pktMatch,
                            boolean isPortFilter) {
         UUID inPortId = isPortFilter ? null : fwdInfo.getInPortId();
         UUID outPortId = isPortFilter ? null : fwdInfo.getOutPortId();
@@ -120,6 +119,7 @@ public class Condition {
         if (nwProto != 0
                 && (nwProto == pktMatch.getNetworkProtocol()) == nwProtoInv)
             return conjunctionInv;
+        // TODO(jlm,pino): A shift by 32 is silly, but it should always match.
         int shift = 32 - nwSrcLength;
         if (nwSrcIp != 0
                 && nwSrcLength > 0
