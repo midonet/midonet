@@ -128,7 +128,11 @@ public class WebResource {
     }
 
     public void delete(URI uri) {
-        resource().uri(uri).type(MediaType.APPLICATION_JSON).delete();
+        try {
+            resource().uri(uri).type(MediaType.APPLICATION_JSON).delete();
+        } catch(UniformInterfaceException ex) {
+            handleHttpError(ex.getResponse());
+        }
     }
 
     private com.sun.jersey.api.client.WebResource makeResource(String path) {
