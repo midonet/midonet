@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -439,7 +440,7 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public void freeFlowResources(PacketMatch match) {
+    public void freeFlowResources(OFMatch match) {
         log.debug("freeFlowResources: match {}", match);
 
         // Cancel refreshing of any keys associated with this match.

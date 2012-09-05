@@ -12,6 +12,7 @@ import javax.management.JMException;
 
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.KeeperException;
+import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +146,7 @@ public class VRNCoordinator implements ForwardingElement {
      * @param inPortID The UUID of the ingress port of the removed flow.
      */
     public void freeFlowResources(
-            PacketMatch match, Collection<UUID> subscribers, UUID inPortID) {
+            OFMatch match, Collection<UUID> subscribers, UUID inPortID) {
         for (UUID id : subscribers) {
             // Whether the subscriber is a port, bridge or router, the
             // chainProcessor handles freeing NAT resources.
@@ -159,7 +160,7 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     @Override
-    public void freeFlowResources(PacketMatch match, UUID inPortId) {
+    public void freeFlowResources(OFMatch match, UUID inPortId) {
         // This should never be called.
         throw new UnsupportedOperationException();
     }
@@ -284,7 +285,7 @@ public class VRNCoordinator implements ForwardingElement {
                     fwdInfo.action = Action.DROP;
                     return;
                 }
-                fwdInfo.matchIn = fwdInfo.matchOut;
+                fwdInfo.matchIn = (MidoMatch) fwdInfo.matchOut;
                 fwdInfo.matchOut = null;
                 fwdInfo.inPortId = lcfg.peerId();
                 fwdInfo.outPortId = null;
@@ -308,7 +309,7 @@ public class VRNCoordinator implements ForwardingElement {
         fwdInfo.action = Action.FORWARD;
         // If inbound, use the before-FE-processing match.  If outbound, use
         // the after-FE-processing match.
-        MidoMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
+        PacketMatch pktMatch = inbound ? fwdInfo.matchIn : fwdInfo.matchOut;
         // Ports themselves don't have ports for packets to be entering/exiting,
         // so set inputPort and outputPort to null.
         UUID filterID = inbound ?
@@ -335,7 +336,7 @@ public class VRNCoordinator implements ForwardingElement {
                     + "than ACCEPT, DROP or REJECT.");
         if (!pktMatch.equals(result.match)) {
             if (inbound)
-                fwdInfo.matchIn = result.match;
+                fwdInfo.matchIn = (MidoMatch) result.match;
             else
                 fwdInfo.matchOut = result.match;
         }

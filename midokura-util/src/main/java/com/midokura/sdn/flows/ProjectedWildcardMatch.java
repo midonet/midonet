@@ -70,7 +70,7 @@ public class ProjectedWildcardMatch extends WildcardMatch {
 
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
-    public ProjectedWildcardMatch clone() throws CloneNotSupportedException {
+    public ProjectedWildcardMatch clone() {
         return new ProjectedWildcardMatch(getUsedFields(), getSource().clone());
     }
 }

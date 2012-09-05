@@ -6,6 +6,7 @@ package com.midokura.midolman.layer4;
 
 import java.util.Set;
 
+import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.sdn.flows.PacketMatch;
@@ -36,5 +37,5 @@ public interface NatMapping {
     // The implementation of this method should reserve and clean up resources.
     void updateSnatTargets(Set<NatTarget> targets);
 
-    void freeFlowResources(PacketMatch match);
+    void freeFlowResources(OFMatch match);
 }

@@ -722,7 +722,7 @@ public class VRNController extends AbstractController
         public PacketMatch getFlowMatch() { return match; }
     }
 
-    private List<OFAction> makeActionsForFlow(PacketMatch origMatch,
+    private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
             PacketMatch newMatch, short outPortNum, int setTunnelId) {
         Set<Short> portSet = new HashSet<Short>();
         portSet.add(outPortNum);
@@ -861,7 +861,7 @@ public class VRNController extends AbstractController
         }
     }
 
-    public void freeFlowResources(PacketMatch match,
+    public void freeFlowResources(OFMatch match,
                                   Collection<UUID> forwardingElements) {
         vrn.freeFlowResources(match, forwardingElements,
                 portNumToUuid.get(U16.f(match.getInputPort())));
@@ -1215,9 +1215,9 @@ public class VRNController extends AbstractController
 
             this.action = ForwardingElement.Action.FORWARD;
             this.outPortId = originPort;
-            this.matchOut = AbstractController.createMatchFromPacket(
+            this.flowMatch = AbstractController.createMatchFromPacket(
                     pkt, (short) 0);
-            this.flowMatch = this.matchOut.clone();
+            this.matchOut = this.flowMatch.clone();
         }
     }
 

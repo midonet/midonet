@@ -591,8 +591,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
      */
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
-    public WildcardMatch clone() throws CloneNotSupportedException {
-
+    public WildcardMatch clone() {
         // XXX TODO(pino): validate implementation of clone !
         WildcardMatch newClone = new WildcardMatch();
 

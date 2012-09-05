@@ -21,5 +21,5 @@ public interface PacketMatch extends Cloneable {
     PacketMatch setTransportSource(short tpAddr);
     PacketMatch setNetworkDestination(int nwAddr);
     PacketMatch setTransportDestination(short tpAddr);
-    PacketMatch clone() throws CloneNotSupportedException;
+    PacketMatch clone();
 }
