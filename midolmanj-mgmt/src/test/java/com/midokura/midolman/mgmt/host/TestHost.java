@@ -4,6 +4,7 @@
 package com.midokura.midolman.mgmt.host;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 
@@ -11,9 +12,10 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.hamcrest.CoreMatchers;
+import org.junit.*;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -31,8 +33,13 @@ import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoInterface;
+import com.midokura.midonet.client.exception.HttpBadRequestException;
+import com.midokura.midonet.client.exception.HttpForbiddenException;
+import com.midokura.midonet.client.resource.*;
+import com.midokura.midonet.client.resource.Host;
 import com.midokura.packets.MAC;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_JSON;
@@ -46,6 +53,7 @@ public class TestHost extends JerseyTest {
     private HostZkManager hostManager;
     private ZkPathManager pathManager;
     private Directory rootDirectory;
+    private MidonetMgmt mgmt;
 
     public TestHost() {
         super(createWebApp());
@@ -68,6 +76,10 @@ public class TestHost extends JerseyTest {
         rootDirectory = StaticMockDirectory.getDirectoryInstance();
 
         hostManager = new HostZkManager(rootDirectory, "/test/midolman");
+
+        URI baseUri = resource().getURI();
+        mgmt = new MidonetMgmt(baseUri.toString());
+        mgmt.enableLogging();
     }
 
     @After
@@ -84,9 +96,13 @@ public class TestHost extends JerseyTest {
 
         assertThat("We should have a proper response",
                    response, is(notNullValue()));
-        assertThat("When no hosts are registered we should return an HTTP NO_RESPONSE code",
-                   response.getClientResponseStatus(),
-                   equalTo(ClientResponse.Status.NO_CONTENT));
+
+        //NOTE: shouldn't this return empty list instead of NO_CONTENT
+        //      to be consistent with other APIs?
+        assertThat(
+            "When no hosts are registered we should return an HTTP NO_RESPONSE code",
+            response.getClientResponseStatus(),
+            equalTo(ClientResponse.Status.NO_CONTENT));
 
         ClientResponse clientResponse = resource()
             .path("hosts/" + UUID.randomUUID().toString())
@@ -105,32 +121,28 @@ public class TestHost extends JerseyTest {
 
         hostManager.createHost(hostId, metadata);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
         assertThat("The returned host should have the same UUID",
-                   hosts[0].getId(), equalTo(hostId));
+                   hosts.get(0).getId(), equalTo(hostId));
         assertThat("The host should not be alive",
-                   hosts[0].isAlive(), equalTo(false));
+                   hosts.get(0).isAlive(), equalTo(false));
 
         metadata.setName("emporiki1");
         hostManager.makeAlive(hostId, metadata);
 
-        hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+        hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
         assertThat("The returned host should have the same UUID",
-                   hosts[0].getId(), equalTo(hostId));
+                   hosts.get(0).getId(), equalTo(hostId));
         assertThat("The host should be reported as alive",
-                   hosts[0].isAlive(), equalTo(true));
+                   hosts.get(0).isAlive(), equalTo(true));
     }
 
     @Test
@@ -141,19 +153,17 @@ public class TestHost extends JerseyTest {
         metadata.setName("testhost");
         hostManager.createHost(hostId, metadata);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
 
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
-            hosts[0].getId(), equalTo(hostId));
+            hosts.get(0).getId(), equalTo(hostId));
         assertThat("The host should not be alive",
-                   hosts[0].isAlive(), equalTo(false));
+                   hosts.get(0).isAlive(), equalTo(false));
     }
 
     @Test
@@ -170,15 +180,13 @@ public class TestHost extends JerseyTest {
         });
         hostManager.createHost(hostId, metadata);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
 
-        DtoHost host = hosts[0];
+        Host host = hosts.get(0);
 
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
@@ -218,27 +226,25 @@ public class TestHost extends JerseyTest {
         });
         hostManager.createHost(hostId, metadata);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
-            hosts[0].getId(), equalTo(hostId));
+            hosts.get(0).getId(), equalTo(hostId));
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
-            hosts[0].isAlive(), equalTo(false));
+            hosts.get(0).isAlive(), equalTo(false));
 
-        ClientResponse response = resource()
-            .path("hosts/" + hostId.toString())
-            .type(APPLICATION_PORT_JSON).delete(ClientResponse.class);
+//       assertThat("The host delete was successful",
+//                   response.getClientResponseStatus(),
+//                   equalTo(ClientResponse.Status.NO_CONTENT));
 
-        assertThat("The host delete was successful",
-                   response.getClientResponseStatus(),
-                   equalTo(ClientResponse.Status.NO_CONTENT));
+        //NOTE: right now client library doesn't store http response status.
+        //       maybe store the most recent response object in resource object.
+        hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
                    !rootDirectory.has(pathManager.getHostPath(hostId)));
@@ -256,27 +262,30 @@ public class TestHost extends JerseyTest {
         hostManager.createHost(hostId, metadata);
         hostManager.makeAlive(hostId, metadata);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(DtoHost[].class);
+
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
-                   hosts.length, equalTo(1));
+                   hosts.size(), equalTo(1));
+
+        Host h1 = hosts.get(0);
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
-            hosts[0].getId(), equalTo(hostId));
+            h1.getId(), equalTo(hostId));
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
-            hosts[0].isAlive(), equalTo(true));
+            h1.isAlive(), equalTo(true));
 
-        ClientResponse response = resource()
-            .path("hosts/" + hostId.toString())
-            .type(APPLICATION_PORT_JSON).delete(ClientResponse.class);
 
-        assertThat("The delete return code should be correct",
-                   response.getStatus(), equalTo(403));
+        boolean caught403 = false;
+        try {
+            h1.delete();
+        } catch (HttpForbiddenException ex) {
+            caught403 = true;
 
+        }
+        assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
                    rootDirectory.has(pathManager.getHostPath(hostId)),
                    equalTo(true));
@@ -303,11 +312,6 @@ public class TestHost extends JerseyTest {
 
         assertThat(host, is(notNullValue()));
 
-        assertThat(host.getInterfaces(),
-                   equalTo(UriBuilder.fromUri(host.getUri())
-                                     .path("/interfaces")
-                                     .build()));
-
         ClientResponse clientResponse = resource()
             .uri(host.getInterfaces())
             .type(APPLICATION_INTERFACE_COLLECTION_JSON)
@@ -317,6 +321,14 @@ public class TestHost extends JerseyTest {
 
         assertThat(clientResponse.getClientResponseStatus(),
                    equalTo(ClientResponse.Status.OK));
+
+        ResourceCollection<Host> hosts = mgmt.getHosts();
+        Host h = hosts.get(0);
+        ResourceCollection<HostInterface> hIfaces = h.getInterfaces();
+
+        assertThat("Host doesn't have any interfaces", hIfaces.size(),
+                   equalTo(0));
+
     }
 
     @Test
@@ -345,38 +357,30 @@ public class TestHost extends JerseyTest {
 
         hostManager.createInterface(hostId, anInterface);
 
-        DtoHost host = resource()
-            .path("hosts/" + hostId.toString())
-            .type(APPLICATION_HOST_JSON)
-            .get(DtoHost.class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
+        Host host = hosts.get(0);
 
-        assertThat(host, is(notNullValue()));
+        ResourceCollection<HostInterface> hIfaces = host.getInterfaces();
 
-        DtoInterface[] interfaces = resource()
-            .uri(host.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(DtoInterface[].class);
 
         assertThat("The host should return a proper interfaces object",
-                   interfaces, is(notNullValue()));
+                   hIfaces, is(notNullValue()));
 
-        assertThat(interfaces.length, equalTo(1));
+        assertThat(hIfaces.size(), equalTo(1));
 
-        DtoInterface dtoInterface = interfaces[0];
+        HostInterface hIface = hIfaces.get(0);
 
-        assertThat("The DTO interface object is not null",
-                   dtoInterface, notNullValue());
         assertThat("The DtoInterface object should have a proper host id",
-                   dtoInterface.getHostId(), equalTo(hostId));
+                   hIface.getHostId(), equalTo(hostId));
         assertThat("The DtoInterface object should have a proper name",
-                   dtoInterface.getName(), equalTo(anInterface.getName()));
+                   hIface.getName(), equalTo(anInterface.getName()));
         assertThat("The DtoInterface should have a proper MTU valued",
-                   dtoInterface.getMtu(), equalTo(anInterface.getMtu()));
+                   hIface.getMtu(), equalTo(anInterface.getMtu()));
         assertThat("The DtoInterface should have the proper mac address",
-                   dtoInterface.getMac(),
+                   hIface.getMac(),
                    equalTo(new MAC(anInterface.getMac()).toString()));
         assertThat("The DtoInterface type should be returned properly",
-                   dtoInterface.getType(), equalTo(DtoInterface.Type.Physical));
+                   hIface.getType(), equalTo(DtoInterface.Type.Physical));
     }
 
     @Test
@@ -393,13 +397,10 @@ public class TestHost extends JerseyTest {
         hostManager.createHost(host1, metadata1);
         hostManager.createHost(host2, metadata2);
 
-        DtoHost[] hosts = resource()
-            .path("hosts/")
-            .type(VendorMediaType.APPLICATION_HOST_COLLECTION_JSON)
-            .get(DtoHost[].class);
+        ResourceCollection<Host> hosts = mgmt.getHosts();
 
         assertThat("We should have a proper array of hosts returned",
-                   hosts, arrayWithSize(2));
+                   hosts.size(), equalTo(2));
     }
 
     @Test
