@@ -7,6 +7,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.resource.Application;
 import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.PortGroup;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
@@ -121,6 +122,16 @@ public class MidonetMgmt {
         MultivaluedMap queryParams) {
         ensureApplication();
         return application.getPortGroups(queryParams);
+    }
+
+    /**
+     * Gets Hosts
+     *
+     * @return collection of host
+     */
+    public ResourceCollection<Host> getHosts() {
+        ensureApplication();
+        return application.getHosts(null);
     }
 
     private void ensureApplication() {
