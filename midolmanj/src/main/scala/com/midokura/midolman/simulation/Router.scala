@@ -100,14 +100,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val rt: Route = loadBalancer.lookup(ingressMatch)
         if (rt == null) {
             // No route to network
-            sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_NET)
+            sendIcmpError(ingressMatch, packet,
+                ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
-            sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+            sendIcmpError(ingressMatch, packet,
+                ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop != Route.NextHop.PORT) {
@@ -145,7 +147,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 if (logCfg.peerId == null) {
                     log.warn("Packet forwarded to dangling logical port {}",
                         rt.nextHopPort)
-                    sendIcmp(ingressMatch, UNREACH_CODE.UNREACH_NET)
+                    sendIcmpError(ingressMatch, packet,
+                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
                     return Promise.successful(new DropAction)(ec)
                 }
                 val peerMac = getPeerMac(logCfg)
@@ -220,10 +223,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
     }
 
     private def sendIcmpEchoReply(rtrPortCfg: RouterPortConfig) {
-        //XXX
-    }
-
-    private def sendIcmp(ingressMatch: WildcardMatch, code: UNREACH_CODE) {
         //XXX
     }
 
