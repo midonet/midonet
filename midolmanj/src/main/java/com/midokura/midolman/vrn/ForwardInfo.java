@@ -18,6 +18,7 @@ import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.vrn.ForwardingElement.Action;
+import com.midokura.sdn.flows.PacketMatch;
 
 
 /* VRNController creates and partially populate an instance of
@@ -39,7 +40,7 @@ public class ForwardInfo implements ChainPacketContext {
     // These fields are filled by ForwardingElement.process():
     public Action action;
     public UUID outPortId;
-    public MidoMatch matchOut; // the match as it exits the ForwardingElement
+    public PacketMatch matchOut; // the match as it exits the ForwardingElement
 
     // Used by FEs that want notification when the flow is removed.
     private Collection<UUID> notifyFEs = new HashSet<UUID>();
@@ -205,11 +206,11 @@ public class ForwardInfo implements ChainPacketContext {
         this.matchIn = matchIn;
     }
 
-    public MidoMatch getMatchOut() {
+    public PacketMatch getMatchOut() {
         return matchOut;
     }
 
-    public void setMatchOut(MidoMatch matchOut) {
+    public void setMatchOut(PacketMatch matchOut) {
         this.matchOut = matchOut;
     }
 
