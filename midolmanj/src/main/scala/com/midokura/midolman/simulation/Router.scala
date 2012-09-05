@@ -344,10 +344,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def buildIcmpError(icmpType: Char, icmpCode: Any,
                    forMatch: WildcardMatch, forPacket: Ethernet) : ICMP = {
-        // TODO guillermo: update the packet (make copy 1st?) with changed
-        // values from forMatch
+        val pktHere = forMatch.apply(forPacket)
         var ipPkt: IPv4 = null
-        forPacket.getPayload match {
+        pktHere.getPayload match {
             case ip: IPv4 => ipPkt = ip
             case _ => return null
         }
