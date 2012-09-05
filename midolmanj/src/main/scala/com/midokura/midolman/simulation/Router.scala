@@ -407,34 +407,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setPayload(ip)
         eth.setEtherType(IPv4.ETHERTYPE)
         eth.setSourceMACAddress(portConfig.getHwAddr)
-
-        // The destination MAC is either the source of the original packet,
-        // or the hwAddr of the gateway that sent us the packet.
-        portConfig match {
-            case logical: LogicalRouterPortConfig =>
-                val peerConf = getRouterPortConfig(logical.peerId)
-                if (peerConf == null) {
-                    log.error("Failed to get peer port's config")
-                    return
-                }
-                peerConf match {
-                /* XXX guillermo: all three cases be replaced
-                 * with ingressMatch.getEthernetSource?
-                 * 
-                 * Also, the Router.java version uses fwInfo.pktIn.sourceMAC
-                 * and that seems to be the _original_ packet... :-?
-                 */
-                    case _: LogicalRouterPortConfig =>
-                        eth.setDestinationMACAddress(peerConf.getHwAddr)
-                    case _: LogicalBridgePortConfig =>
-                        eth.setDestinationMACAddress(packet.getSourceMACAddress)
-                    case _ =>
-                        throw new RuntimeException("Unrecognized port type")
-                }
-            case _: MaterializedRouterPortConfig =>
-                eth.setDestinationMACAddress(packet.getSourceMACAddress)
-            case _ =>
-        }
+        eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
 
         /* log.debug("sendIcmpError from port {}, {} to {}", new Object[] {
                 ingressMatch.getInputPortUUID,
