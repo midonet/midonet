@@ -20,16 +20,28 @@ import com.midokura.util.functors.callbacks.AbstractCallback;
 import com.midokura.util.functors.callbacks.AdaptingCallback;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Some helper functions for Callbacks.
  */
 public class Callbacks {
 
     private static final Logger log = LoggerFactory
         .getLogger(Callbacks.class);
 
+    /**
+     * It will get a target callback and a transformation from a source and it
+     * will return a callback that can receive a source type,
+     * apply the transformation and call the original callback.
+     *
+     * @param callback the callback to be wrapped
+     * @param functor the transformation method for the data
+     * @param <From> the source type
+     * @param <To> the destination type
+     * @param <E> the exception type
+     *
+     * @return a callback instance that can accept source types
+     */
     public static <
-        From,
-        To,
+        From, To,
         E extends Exception
         >
     Callback<From, E> transform(@Nonnull final Callback<To, E> callback,

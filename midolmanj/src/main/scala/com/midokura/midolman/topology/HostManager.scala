@@ -3,42 +3,24 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import akka.event.Logging
-import com.google.inject.Inject
-import com.midokura.midonet.cluster.Client
+import akka.actor.ActorRef
 import java.util.UUID
 import com.midokura.midonet.cluster.client.HostBuilder
 import collection.mutable
-import physical.Host
+import rcu.{RCUDeviceManager, Host}
 import scala.collection.JavaConversions._
-import com.midokura.midolman.topology.HostManager.Start
 import com.midokura.midonet.cluster.data.TunnelZone
 import java.util
+import javax.inject.Inject
+import com.midokura.midonet.cluster.Client
 
-object HostManager {
-    case class Start(hostId: UUID)
-}
-
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
-class HostManager extends Actor {
-
-    val log = Logging(context.system, this)
+class HostManager extends RCUDeviceManager {
 
     @Inject
-    val clusterClient: Client = null
+    var clusterClient: Client = null
 
-    protected def receive = {
-
-        case Start(hostId) =>
-            clusterClient.getHost(hostId,
-                new LocalHostBuilder(context.actorFor(".."), hostId))
-
-        case m =>
-            log.info("Message: {}", m)
-
+    protected def startManager(deviceId: UUID, clientActor: ActorRef) {
+        clusterClient.getHost(deviceId, new LocalHostBuilder(clientActor, deviceId))
     }
 
     class LocalHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {

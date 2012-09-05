@@ -3,8 +3,17 @@
 */
 package com.midokura.midolman.guice.cluster;
 
-import com.google.inject.*;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.inject.Inject;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+
 import com.midokura.cassandra.CassandraClient;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -14,16 +23,33 @@ import com.midokura.midolman.monitoring.guice.MonitoringConfigurationProvider;
 import com.midokura.midolman.monitoring.store.CassandraClientProvider;
 import com.midokura.midolman.monitoring.store.CassandraStoreProvider;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.zkManagers.*;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.PathBuilder;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortSetZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.TenantZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.util.JSONSerializer;
-import com.midokura.midonet.cluster.*;
+import com.midokura.midonet.cluster.ClusterBridgeManager;
+import com.midokura.midonet.cluster.ClusterPortsManager;
+import com.midokura.midonet.cluster.ClusterRouterManager;
+import com.midokura.midonet.cluster.DataClient;
+import com.midokura.midonet.cluster.LocalDataClientImpl;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.util.eventloop.Reactor;
-
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Data cluster client module.  This class defines dependency bindings
@@ -98,6 +124,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(PortGroupZkManager.class);
         managers.add(TenantZkManager.class);
         managers.add(TunnelZoneZkManager.class);
+        managers.add(PortSetZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
             //noinspection unchecked

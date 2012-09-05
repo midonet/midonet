@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -33,6 +34,18 @@ import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 public class ZkManager {
 
     private final static Logger log = LoggerFactory.getLogger(ZkManager.class);
+
+    protected static final Functor<String, UUID> strToUUIDMapper =
+        new Functor<String, UUID>() {
+            @Override
+            public UUID apply(String arg0) {
+                try {
+                    return UUID.fromString(arg0);
+                } catch (IllegalArgumentException ex) {
+                    return null;
+                }
+            }
+        };
     protected ZkPathManager pathManager = null;
     protected Directory zk = null;
     protected ZkConfigSerializer serializer;

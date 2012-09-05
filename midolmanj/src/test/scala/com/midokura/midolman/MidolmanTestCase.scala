@@ -188,7 +188,7 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
                                 (implicit manifest:scala.reflect.Manifest[T]):T = {
         val clazz = manifest.erasure.asInstanceOf[Class[T]]
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
-        assert(clazz.isInstance(m))
+        assert(clazz.isInstance(m), "Replay should have been of type %s but was %s" format (clazz, m.getClass))
         clazz.cast(m)
     }
 }

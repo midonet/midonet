@@ -4,7 +4,7 @@
 package com.midokura.util.functors;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Callback type interface
  */
 public interface Callback<T, E extends Exception> {
 

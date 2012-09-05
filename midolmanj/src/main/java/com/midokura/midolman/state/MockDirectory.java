@@ -22,6 +22,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
@@ -38,7 +39,8 @@ import static org.apache.zookeeper.Watcher.Event.KeeperState;
  */
 public class MockDirectory implements Directory {
 
-    private final static Logger log = LoggerFactory.getLogger(MockDirectory.class);
+    private final static Logger log = LoggerFactory.getLogger(
+        MockDirectory.class);
 
     private class Node {
         // The node's path from the root.
@@ -71,7 +73,7 @@ public class MockDirectory implements Directory {
         // Document that this returns the absolute path of the child
         String addChild(String name, byte[] data, CreateMode mode,
                         boolean multi)
-                throws NodeExistsException, NoChildrenForEphemeralsException {
+            throws NodeExistsException, NoChildrenForEphemeralsException {
             if (enableDebugLog)
                 log.debug("addChild {} => {}", name, data);
             if (!mode.isSequential() && children.containsKey(name))
@@ -115,7 +117,7 @@ public class MockDirectory implements Directory {
         }
 
         void deleteChild(String name, boolean multi)
-                throws NoNodeException, NotEmptyException {
+            throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
             String childPath = path + "/" + name;
             if (null == child)
@@ -184,8 +186,8 @@ public class MockDirectory implements Directory {
 
     private String add(String relativePath, byte[] data, CreateMode mode,
                        boolean multi)
-            throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+        throws NoNodeException, NodeExistsException,
+               NoChildrenForEphemeralsException {
         if (enableDebugLog)
             log.debug("add {} => {}", relativePath, data);
         if (!relativePath.startsWith("/")) {
@@ -203,8 +205,8 @@ public class MockDirectory implements Directory {
 
     @Override
     public String add(String relativePath, byte[] data, CreateMode mode)
-            throws NoNodeException, NodeExistsException,
-            NoChildrenForEphemeralsException {
+        throws NoNodeException, NodeExistsException,
+               NoChildrenForEphemeralsException {
         return add(relativePath, data, mode, false);
     }
 
@@ -224,8 +226,30 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public void asyncGetChildren(String relativePath, DirectoryCallback<Set<String>> childrenCallback, TypedWatcher watcher) {
+        try {
+            childrenCallback.onSuccess(
+                new DirectoryCallback.Result<Set<String>>(
+                    getNode(relativePath).getChildren(watcher),
+                    new Stat()));
+        } catch (NoNodeException e) {
+            childrenCallback.onError(e);
+        }
+    }
+
+    @Override
+    public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
+        try {
+            byte[] data = getNode(relativePath).getData(wrapCallback(watcher));
+            dataCb.onSuccess(new DirectoryCallback.Result<byte[]>(data, new Stat()));
+        } catch (NoNodeException e) {
+            dataCb.onError(e);
+        }
+    }
+
+    @Override
     public Set<String> getChildren(String path, Runnable watcher)
-            throws NoNodeException {
+        throws NoNodeException {
         return getNode(path).getChildren(watcher);
     }
 
@@ -261,7 +285,7 @@ public class MockDirectory implements Directory {
 
     @Override
     public List<OpResult> multi(List<Op> ops) throws InterruptedException,
-            KeeperException {
+                                                     KeeperException {
         List<OpResult> results = new ArrayList<OpResult>();
         // Fire watchers after finishing multi operation.
         // Copy to the local Set to avoid concurrent access.
@@ -298,7 +322,7 @@ public class MockDirectory implements Directory {
                     // might be CheckVersionRequest or some new type we miss.
                     throw new IllegalArgumentException(
                         "This mock implementation only supports Create, " +
-                        "SetData and Delete operations");
+                            "SetData and Delete operations");
                 }
             }
         } finally {
@@ -321,13 +345,13 @@ public class MockDirectory implements Directory {
     @Override
     public String toString() {
         return "MockDirectory{" +
-            "node.path=" + rootNode .path +
+            "node.path=" + rootNode.path +
             '}';
     }
 
     private Watcher wrapCallback(Runnable runnable) {
         if (runnable instanceof TypedWatcher)
-            return new MyTypedWatcher((TypedWatcher)runnable);
+            return new MyTypedWatcher((TypedWatcher) runnable);
 
         return runnable != null ? new MyWatcher(runnable) : null;
     }
@@ -387,6 +411,4 @@ public class MockDirectory implements Directory {
             }
         }
     }
-
-
 }

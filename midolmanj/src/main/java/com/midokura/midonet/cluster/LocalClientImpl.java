@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,19 +19,22 @@ import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
-import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midonet.cluster.client.TunnelZones;
+import com.midokura.midolman.state.zkManagers.PortSetZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
 import com.midokura.midonet.cluster.client.PortBuilder;
+import com.midokura.midonet.cluster.client.PortSetBuilder;
 import com.midokura.midonet.cluster.client.RouterBuilder;
+import com.midokura.midonet.cluster.client.TunnelZones;
 import com.midokura.midonet.cluster.data.TunnelZone;
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 import com.midokura.util.eventloop.Reactor;
 import static com.midokura.midonet.cluster.client.TunnelZones.GreBuilder;
 
@@ -54,6 +58,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
+
+    @Inject
+    PortSetZkManager portSetZkManager;
 
     @Inject
     ClusterRouterManager routerManager;
@@ -122,12 +129,48 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getTunnelZones(final UUID zoneID, TunnelZones.BuildersProvider builders) {
+    public void getTunnelZones(final UUID zoneID, final TunnelZones.BuildersProvider builders) {
+        reactorLoop.submit(new Runnable() {
+            @Override
+            public void run() {
+                TunnelZone<?, ?> zone = readAvailabilityZone(zoneID, builders);
 
-        TunnelZone<?, ?> zone = readAvailabilityZone(zoneID, builders);
+                readHosts(zone,
+                          new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
+                          builders);
+            }
+        });
+    }
 
-        readHosts(zone, new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
-                  builders);
+    @Override
+    public void getPortSet(final UUID uuid, final PortSetBuilder builder) {
+        portSetZkManager.asyncGetPortSet(
+            uuid,
+            new DirectoryCallback<Set<UUID>>() {
+                @Override
+                public void onSuccess(Result<Set<UUID>> result) {
+                    builder
+                        .setHosts(result.getData())
+                        .build();
+                }
+
+                @Override
+                public void onTimeout() {
+
+                }
+
+                @Override
+                public void onError(KeeperException e) {
+
+                }
+            },
+            new Directory.DefaultTypedWatcher() {
+                @Override
+                public void pathChildrenUpdated(String path) {
+                    getPortSet(uuid, builder);
+                }
+            }
+        );
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,
@@ -137,15 +180,15 @@ public class LocalClientImpl implements Client {
         try {
             Set<UUID> currentList =
                 tunnelZoneZkManager.getZoneMemberships(zone.getId(),
-                                                  new Directory.DefaultTypedWatcher() {
-                                                      @Override
-                                                      public void pathChildrenUpdated(String path) {
-                                                          readHosts(
-                                                              zone,
-                                                              zoneHosts,
-                                                              builders);
-                                                      }
-                                                  });
+                                                       new Directory.DefaultTypedWatcher() {
+                                                           @Override
+                                                           public void pathChildrenUpdated(String path) {
+                                                               readHosts(
+                                                                   zone,
+                                                                   zoneHosts,
+                                                                   builders);
+                                                           }
+                                                       });
 
             Set<TunnelZone.HostConfig<?, ?>> newMemberships =
                 new HashSet<TunnelZone.HostConfig<?, ?>>();
@@ -209,7 +252,7 @@ public class LocalClientImpl implements Client {
     }
 
     private TunnelZone<?, ?> readAvailabilityZone(final UUID zoneID,
-                                                        final TunnelZones.BuildersProvider builders) {
+                                                  final TunnelZones.BuildersProvider builders) {
 
         try {
             TunnelZone<?, ?> zone =
@@ -329,7 +372,8 @@ public class LocalClientImpl implements Client {
                         hostId, new Directory.DefaultTypedWatcher() {
                         @Override
                         public void pathChildrenUpdated(String path) {
-                            retrieveHostVirtualPortMappings(hostId, builder, oldMappings, true);
+                            retrieveHostVirtualPortMappings(hostId, builder,
+                                                            oldMappings, true);
                         }
                     });
 
@@ -372,7 +416,8 @@ public class LocalClientImpl implements Client {
             retrieveHostMetadata(hostId, builder, isUpdate);
 
         if (metadata != null) {
-            retrieveAvailabilityZoneConfigs(hostId, new HashSet<UUID>(), builder);
+            retrieveAvailabilityZoneConfigs(hostId, new HashSet<UUID>(),
+                                            builder);
 
             retrieveHostDatapathName(hostId, builder, isUpdate);
 

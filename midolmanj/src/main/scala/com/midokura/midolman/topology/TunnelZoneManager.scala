@@ -3,30 +3,19 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.ActorRef
 import java.util.UUID
-import akka.event.Logging
-import com.google.inject.Inject
-import com.midokura.midonet.cluster.Client
-import com.midokura.midolman.topology.TunnelZoneManager.Start
 import com.midokura.midonet.cluster.client.TunnelZones
 import com.midokura.midonet.cluster.client.TunnelZones.{CapwapZoneBuilder, IpsecBuilder, GreBuilder}
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
+import rcu.RCUDeviceManager
 import scala.collection.mutable
 import com.midokura.packets.IPv4
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
-
-
-object TunnelZoneManager {
-    case class Start(zoneId: UUID)
-}
-
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
+import javax.inject.Inject
+import com.midokura.midonet.cluster.Client
 
 trait MapperToFirstCall {
-    var calledBefore: Boolean = false
 
     val map = mutable.Map[Class[_], AnyRef]()
 
@@ -42,20 +31,14 @@ trait MapperToFirstCall {
     }
 }
 
-class TunnelZoneManager extends Actor {
-    val log = Logging(context.system, this)
+class TunnelZoneManager extends RCUDeviceManager {
 
     @Inject
-    val clusterClient: Client = null
+    var clusterClient: Client = null
 
-    protected def receive = {
-        case Start(zoneId) =>
-            clusterClient.getTunnelZones(zoneId,
-                new ZoneBuildersProvider(context.actorFor(".."), zoneId))
-
-        case m =>
-            log.info("Message: {}", m)
-
+    protected def startManager(deviceId: UUID, clientActor: ActorRef) {
+        clusterClient.getTunnelZones(deviceId,
+            new ZoneBuildersProvider(context.actorFor(".."), deviceId))
     }
 
     class ZoneBuildersProvider(val actor: ActorRef, val zoneId:UUID)
