@@ -24,6 +24,11 @@ public class DtoMetric {
      */
     UUID targetIdentifier;
 
+    /**
+-     * the metric type
+ -    */
+    String type;
+
     public String getName() {
         return name;
     }
@@ -41,10 +46,19 @@ public class DtoMetric {
         this.targetIdentifier = targetIdentifier;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "DtoMetric{" +
                 "targetIdentifier=" + targetIdentifier.toString() +
+                "metricType=" + type +
                 "metricName=" + name +
                 "}";
     }
