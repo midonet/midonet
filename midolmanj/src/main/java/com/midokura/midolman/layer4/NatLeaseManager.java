@@ -16,17 +16,17 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.midokura.midolman.state.zkManagers.FiltersZkManager;
-import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.Reactor;
-import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.packets.IPv4;
-import com.midokura.midolman.rules.NatTarget;
 import com.midokura.cache.Cache;
+import com.midokura.midolman.rules.NatTarget;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.util.Net;
+import com.midokura.packets.IPv4;
+import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.util.eventloop.Reactor;
+
 
 public class NatLeaseManager implements NatMapping {
 
@@ -54,8 +54,8 @@ public class NatLeaseManager implements NatMapping {
     private String rtrIdStr;
     private Cache cache;
     private Reactor reactor;
-    private Map<MidoMatch, Set<String>> matchToNatKeys;
-    private Map<MidoMatch, ScheduledFuture> matchToFuture;
+    private Map<PacketMatch, Set<String>> matchToNatKeys;
+    private Map<PacketMatch, ScheduledFuture> matchToFuture;
     private Random rand;
     private int refreshSeconds;
 
@@ -69,14 +69,14 @@ public class NatLeaseManager implements NatMapping {
         this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
         this.rand = new Random();
-        this.matchToNatKeys = new HashMap<MidoMatch, Set<String>>();
-        this.matchToFuture = new HashMap<MidoMatch, ScheduledFuture>();
+        this.matchToNatKeys = new HashMap<PacketMatch, Set<String>>();
+        this.matchToFuture = new HashMap<PacketMatch, ScheduledFuture>();
     }
 
     private class RefreshNatMappings implements Runnable {
-        MidoMatch match;
+        PacketMatch match;
 
-        private RefreshNatMappings(MidoMatch match) {
+        private RefreshNatMappings(PacketMatch match) {
             this.match = match;
         }
 
@@ -109,7 +109,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, Set<NatTarget> nats, MidoMatch origMatch) {
+            short oldTpDst_, Set<NatTarget> nats, PacketMatch origMatch) {
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
@@ -144,7 +144,7 @@ public class NatLeaseManager implements NatMapping {
         return new NwTpPair(newNwDst, (short)newTpDst);
     }
 
-    private void scheduleRefresh(MidoMatch origMatch, String fwdKey,
+    private void scheduleRefresh(PacketMatch origMatch, String fwdKey,
             String revKey) {
         Set<String> refreshKeys = matchToNatKeys.get(origMatch);
         if (null == refreshKeys) {
@@ -185,7 +185,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, MidoMatch origMatch) {
+            short oldTpDst_, PacketMatch origMatch) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
@@ -222,7 +222,7 @@ public class NatLeaseManager implements NatMapping {
 
     private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
             int newNwSrc, int newTpSrc, int nwDst, int tpDst,
-            MidoMatch origMatch) {
+            PacketMatch origMatch) {
         log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
                 + "newTpSrc {} nw Dst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
@@ -256,7 +256,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, Set<NatTarget> nats, MidoMatch origMatch) {
+            short tpDst_, Set<NatTarget> nats, PacketMatch origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         // First try to find a port in a block we've already leased.
@@ -395,7 +395,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, MidoMatch origMatch) {
+            short tpDst_, PacketMatch origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
@@ -439,7 +439,7 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match) {
+    public void freeFlowResources(PacketMatch match) {
         log.debug("freeFlowResources: match {}", match);
 
         // Cancel refreshing of any keys associated with this match.

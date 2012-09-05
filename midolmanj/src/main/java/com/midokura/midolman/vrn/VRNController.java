@@ -76,6 +76,7 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
+import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.UnaryFunctor;
 
@@ -104,7 +105,7 @@ public class VRNController extends AbstractController
     // Store port num of a port that has a service port.
     private short serviceTargetPort;
     // Track which routers processed an installed flow.
-    private Map<MidoMatch, Collection<UUID>> matchToRouters;
+    private Map<PacketMatch, Collection<UUID>> matchToRouters;
     // The controllers which make up the portsets.
     // TODO: Should this be part of PortZkManager?
     private PortSetMap portSetMap;
@@ -153,7 +154,7 @@ public class VRNController extends AbstractController
         this.vpnService = vpnService;
 
         this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
-        this.matchToRouters = new HashMap<MidoMatch, Collection<UUID>>();
+        this.matchToRouters = new HashMap<PacketMatch, Collection<UUID>>();
         this.zkDir = zkDir;
         this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this, portCache,
                                            mtu);
@@ -501,7 +502,7 @@ public class VRNController extends AbstractController
     }
 
     private void installConnectionCacheEntry(UUID outPortID,
-                                             MidoMatch flowMatch) {
+                                             PacketMatch flowMatch) {
         PortConfig portConfig = portCache.get(outPortID);
         if (null == portConfig) {
             log.error("Connection-tracking failed! Could not retrieve " +
@@ -669,11 +670,11 @@ public class VRNController extends AbstractController
     }
 
     private boolean doesPortFilterAcceptFloodedPacket(short portNum,
-            MidoMatch mmatch, Set<UUID> traversedElementIDs) {
+            PacketMatch mmatch, Set<UUID> traversedElementIDs) {
         try {
             UUID portID = portNumToUuid.get(U16.f(portNum));
             PortConfig portCfg = portCache.get(portID);
-            MidoMatch pktMatch = mmatch.clone();
+            PacketMatch pktMatch = mmatch.clone();
             // Ports themselves don't have ports for packets to be entering/
             // exiting, so set inputPort and outputPort to null.
             // The port groups *should* be set based on the original origin
@@ -700,10 +701,10 @@ public class VRNController extends AbstractController
         // No port IDs (can't be used by port filters), no port groups,
         // packet is never conn tracked and always a forward flow.
 
-        private MidoMatch match;
+        private PacketMatch match;
         Set<UUID> traversedElements;
 
-        public EgressPacketContext(MidoMatch m, Set<UUID> traversedElements) {
+        public EgressPacketContext(PacketMatch m, Set<UUID> traversedElements) {
             this.match = m;
             this.traversedElements = traversedElements;
         }
@@ -718,11 +719,11 @@ public class VRNController extends AbstractController
         public Set<UUID> getPortGroups() { return null; }
         public boolean isConnTracked() { return false; }
         public boolean isForwardFlow() { return true; }
-        public MidoMatch getFlowMatch() { return match; }
+        public PacketMatch getFlowMatch() { return match; }
     }
 
-    private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
-            MidoMatch newMatch, short outPortNum, int setTunnelId) {
+    private List<OFAction> makeActionsForFlow(PacketMatch origMatch,
+            PacketMatch newMatch, short outPortNum, int setTunnelId) {
         Set<Short> portSet = new HashSet<Short>();
         portSet.add(outPortNum);
         return makeActionsForFlow(origMatch, newMatch, portSet, setTunnelId);
@@ -742,7 +743,7 @@ public class VRNController extends AbstractController
      *      An ordered list of actions that ends with all the output actions.
      */
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,
-            MidoMatch newMatch, Set<Short> outPorts, int setTunnelId) {
+            PacketMatch newMatch, Set<Short> outPorts, int setTunnelId) {
         // Create OF actions for fields that changed from original to last
         // match.
         List<OFAction> actions = new ArrayList<OFAction>();
@@ -860,7 +861,8 @@ public class VRNController extends AbstractController
         }
     }
 
-    public void freeFlowResources(OFMatch match, Collection<UUID> forwardingElements) {
+    public void freeFlowResources(PacketMatch match,
+                                  Collection<UUID> forwardingElements) {
         vrn.freeFlowResources(match, forwardingElements,
                 portNumToUuid.get(U16.f(match.getInputPort())));
     }

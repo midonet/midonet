@@ -4,9 +4,9 @@
  */
 package com.midokura.midolman.layer3;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.sdn.flows.PacketMatch;
+
 
 public interface LoadBalancer {
-
-    Route lookup(MidoMatch pktMatch);
+    Route lookup(PacketMatch pktMatch);
 }

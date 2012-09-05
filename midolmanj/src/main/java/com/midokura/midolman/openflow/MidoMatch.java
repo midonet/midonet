@@ -21,6 +21,7 @@ public class MidoMatch extends OFMatch implements PacketMatch {
         // this.wildcards correctly set to OFPFW_ALL in OFMatch's ctor
     }
 
+    @Override
     public MidoMatch setDataLayerDestination(MAC dataLayerDestination) {
         return setDataLayerDestination(dataLayerDestination.getAddress());
     }
@@ -39,6 +40,7 @@ public class MidoMatch extends OFMatch implements PacketMatch {
         return this;
     }
 
+    @Override
     public MidoMatch setDataLayerSource(MAC dataLayerSource) {
         return setDataLayerSource(dataLayerSource.getAddress());
     }

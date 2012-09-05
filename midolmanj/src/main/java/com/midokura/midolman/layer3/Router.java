@@ -161,7 +161,8 @@ public class Router implements ForwardingElement {
         arpTable.start();
         devicePorts = new HashMap<UUID, L3DevicePort>();
         portListener = new PortListener();
-        arpCallbackLists = new HashMap<UUID, Map<Integer, List<Callback1<MAC>>>>();
+        arpCallbackLists = new HashMap<UUID, 
+                                       Map<Integer, List<Callback1<MAC>>>>();
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
         ruleEngine = chainProcessor;

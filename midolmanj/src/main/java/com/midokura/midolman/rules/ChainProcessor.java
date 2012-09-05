@@ -13,19 +13,18 @@ import java.util.Stack;
 import java.util.UUID;
 
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
-import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.Reactor;
-import com.midokura.midolman.layer4.NatLeaseManager;
-import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.StateAccessException;
 import com.midokura.cache.Cache;
 import com.midokura.cache.CacheWithPrefix;
+import com.midokura.midolman.layer4.NatLeaseManager;
+import com.midokura.midolman.layer4.NatMapping;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.vrn.VRNControllerIface;
+import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.util.eventloop.Reactor;
 
 
 public class ChainProcessor {
@@ -65,7 +64,7 @@ public class ChainProcessor {
         }
     }
 
-    public void freeFlowResources(OFMatch match, UUID ownerId) {
+    public void freeFlowResources(PacketMatch match, UUID ownerId) {
         log.debug("freeFlowResources: match {}", match);
         // If the NatMapping doesn't exist, it doesn't have resources to free.
         NatMapping natMap = natMappingMap.get(ownerId);
@@ -109,7 +108,7 @@ public class ChainProcessor {
      * @return
      */
     public RuleResult applyChain(UUID chainID, ChainPacketContext fwdInfo,
-                                 MidoMatch pktMatch, UUID ownerId,
+                                 PacketMatch pktMatch, UUID ownerId,
                                  boolean isPortFilter)
             throws StateAccessException {
         RuleResult res = new RuleResult(

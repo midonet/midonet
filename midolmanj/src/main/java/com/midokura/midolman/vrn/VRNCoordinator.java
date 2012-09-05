@@ -12,17 +12,17 @@ import javax.management.JMException;
 
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import org.apache.zookeeper.KeeperException;
-import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.Bridge;
-import com.midokura.util.eventloop.Reactor;
 import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.openflow.MidoMatch;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
+import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 
 public class VRNCoordinator implements ForwardingElement {
@@ -145,7 +145,7 @@ public class VRNCoordinator implements ForwardingElement {
      * @param inPortID The UUID of the ingress port of the removed flow.
      */
     public void freeFlowResources(
-            OFMatch match, Collection<UUID> subscribers, UUID inPortID) {
+            PacketMatch match, Collection<UUID> subscribers, UUID inPortID) {
         for (UUID id : subscribers) {
             // Whether the subscriber is a port, bridge or router, the
             // chainProcessor handles freeing NAT resources.
@@ -159,7 +159,7 @@ public class VRNCoordinator implements ForwardingElement {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match, UUID inPortId) {
+    public void freeFlowResources(PacketMatch match, UUID inPortId) {
         // This should never be called.
         throw new UnsupportedOperationException();
     }

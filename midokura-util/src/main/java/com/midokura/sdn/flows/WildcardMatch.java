@@ -119,6 +119,13 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
+    @Override
+    public WildcardMatch setDataLayerSource(MAC addr) {
+        if (addr != null)
+            setEthernetSource(addr);
+        return this;
+    }
+
     @Nonnull
     public WildcardMatch unsetEthernetSource() {
         usedFields.remove(Field.EthernetSource);
@@ -140,6 +147,13 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     public WildcardMatch setEthernetDestination(@Nonnull MAC addr) {
         usedFields.add(Field.EthernetDestination);
         this.ethernetDestination = addr;
+        return this;
+    }
+
+    @Override
+    public WildcardMatch setDataLayerDestination(MAC addr) {
+        if (addr != null)
+            setEthernetDestination(addr);
         return this;
     }
 
@@ -191,6 +205,11 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
+    @Override
+    public WildcardMatch setNetworkSource(int addr) {
+        return setNetworkSource(new IntIPv4(addr));
+    }
+
     @Nonnull
     public WildcardMatch unsetNetworkSource() {
         usedFields.remove(Field.NetworkSource);
@@ -213,6 +232,11 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         usedFields.add(Field.NetworkDestination);
         this.networkDestination = addr;
         return this;
+    }
+
+    @Override
+    public WildcardMatch setNetworkDestination(int addr) {
+        return setNetworkDestination(new IntIPv4(addr));
     }
 
     @Nonnull
@@ -301,7 +325,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return isIPv4Fragment;
     }
 
-    @Nonnull
+    @Nonnull @Override
     public WildcardMatch setTransportSource(short transportSource) {
         usedFields.add(Field.TransportSource);
         this.transportSource = transportSource;
@@ -325,7 +349,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return transportSource.shortValue();
     }
 
-    @Nonnull
+    @Nonnull @Override
     public WildcardMatch setTransportDestination(short transportDestination) {
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;

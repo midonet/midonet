@@ -4,7 +4,8 @@
  */
 package com.midokura.midolman.layer3;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.sdn.flows.PacketMatch;
+
 
 public class DummyLoadBalancer implements LoadBalancer {
     private ReplicatedRoutingTable table;
@@ -16,7 +17,7 @@ public class DummyLoadBalancer implements LoadBalancer {
     }
 
     @Override
-    public Route lookup(MidoMatch pktMatch) {
+    public Route lookup(PacketMatch pktMatch) {
         Iterable<Route> routes = table.lookup(pktMatch.getNetworkSource(),
                 pktMatch.getNetworkDestination());
         if (routes.iterator().hasNext())
