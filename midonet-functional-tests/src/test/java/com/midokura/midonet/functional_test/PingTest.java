@@ -6,6 +6,8 @@ package com.midokura.midonet.functional_test;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midolman.state.ZkPathManager;
@@ -20,6 +22,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -48,7 +52,7 @@ public class PingTest {
     RouterPort p3;
     TapWrapper tap1;
     PacketHelper helper1;
-    //MidolmanLauncher midolman;
+    MidolmanLauncher midolman;
     MockMgmtStarter apiStarter;
     //MidolmanMgmt api;
     MidonetMgmt apiClient;
@@ -57,6 +61,7 @@ public class PingTest {
 
 
     static LockHelper.Lock lock;
+    private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
 
     @BeforeClass
     public static void checkLock() {
@@ -77,16 +82,11 @@ public class PingTest {
 
         startCassandra();
 
-     //   midolman = MidolmanLauncher.start("PingTest");
+        midolman = MidolmanLauncher.start("PingTest");
 
+        apiStarter = new MockMgmtStarter(false);
 
-        log.debug("Starting the mgmt-server.");
-        apiStarter = new MockMgmtStarter(true);
-        System.out.println("URI: " + apiStarter.getURI());
-
-        log.debug("Starting the Data client.");
         apiClient = new MidonetMgmt(apiStarter.getURI());
-        //apiClient.enableLogging();
 
 
         //log.debug("Building tenant");
@@ -99,13 +99,22 @@ public class PingTest {
         log.debug("Router done!: " + rtr.getName());
         p1 = rtr.addMaterializedRouterPort().portAddress(ip1.toString());
 
+        // TODO hardcore host id somewhere in the midolmanj starter
+        ResourceCollection<Host> hosts = apiClient.getHosts();
 
-       // DtoHost host = api.getHosts()[0];
+        Host host = null;
 
+        for (Host h : hosts) {
+            if (h.getId().toString().matches(TEST_HOST_ID)) {
+                host = h;
+            }
+        }
 
-      //  tap1 = new TapWrapper("pingTestTap1");
+        // check that we've actually found the test host.
+        assertNotNull(host);
 
-        //log.debug("PORT ID: " + p1.getId());
+        tap1 = new TapWrapper("pingTestTap1");
+
        // HostInterfacePortMap hipMap = new HostInterfacePortMap(host.getId(), TAPNAME, p1.getId());
 
         //log.debug("Adding the interface port map");
@@ -124,9 +133,9 @@ public class PingTest {
 
     @After
     public void tearDown() throws Exception {
-        //removeTapWrapper(tap1);
+        removeTapWrapper(tap1);
 
-      //  stopMidolman(midolman);
+        stopMidolman(midolman);
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
         cleanupZooKeeperServiceData();
