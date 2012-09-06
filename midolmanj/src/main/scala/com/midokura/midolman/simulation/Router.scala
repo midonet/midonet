@@ -384,10 +384,17 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setDestinationMACAddress(outPortCfg.getHwAddr)
 
         getNextHopMAC(rt, ipMatch.getNetworkDestination, expiry) match {
-            case Some(macFuture) if macFuture() != null =>
-                eth.setDestinationMACAddress(macFuture())
-                SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
-                    rt.nextHopPort, eth)
+            case Some(macFuture) if macFuture != null =>
+                macFuture map { mac: MAC =>
+                    if (mac != null) {
+                        eth.setDestinationMACAddress(mac)
+                        SimulationController.getRef(actorSystem).tell(
+                            EmitGeneratedPacket(rt.nextHopPort, eth))
+                    } else {
+                        log.error(
+                            "Failed to fetch MAC address to emit local packet")
+                    }
+                }
             case _ =>
                 log.error("Failed to fetch MAC address to emit local packet")
         }
