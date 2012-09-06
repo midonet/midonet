@@ -335,11 +335,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
      *
      * CAVEAT: this method may block, so it is suitable only for use in
      * the context of processing packets that result in a CONSUMED action.
-     * 
+     *
      * XXX (pino, guillermo): should we add the ability to queue simulation of
      * this device starting at a specific step? In this case it would be the
      * routing step.
-     * 
+     *
      * The logic here is roughly the same as that found in process() except:
      *      + the ingress and prerouting steps are skipped. We do:
      *          - forwarding
@@ -385,15 +385,14 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         getNextHopMAC(rt, ipMatch.getNetworkDestination, expiry) match {
             case Some(macFuture) if macFuture != null =>
-                macFuture map { mac: MAC =>
-                    if (mac != null) {
+                macFuture onSuccess {
+                    case null =>
+                        log.error(
+                            "Failed to fetch MAC address to emit local packet")
+                    case mac =>
                         eth.setDestinationMACAddress(mac)
                         SimulationController.getRef(actorSystem).tell(
                             EmitGeneratedPacket(rt.nextHopPort, eth))
-                    } else {
-                        log.error(
-                            "Failed to fetch MAC address to emit local packet")
-                    }
                 }
             case _ =>
                 log.error("Failed to fetch MAC address to emit local packet")
