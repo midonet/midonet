@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
+import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import org.apache.commons.io.FileUtils;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -203,7 +205,7 @@ public class FunctionalTestsHelper {
             mm.stop();
     }
 
-    public static void stopMidolmanMgmt(MidolmanMgmt mgmt) {
+    public static void stopMidolmanMgmt(MockMgmtStarter mgmt) {
         if (null != mgmt)
             mgmt.stop();
     }
@@ -312,5 +314,17 @@ public class FunctionalTestsHelper {
                 format("We couldn't send a packet via tap %s", tap.getName()),
                 tap.send(packet));
 
+    }
+
+    public static void startCassandra() {
+        try {
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        } catch (Exception e) {
+            log.error("Failed to start embedded Cassandra.", e);
+        }
+    }
+
+    public static void stopCassandra() {
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
     }
 }

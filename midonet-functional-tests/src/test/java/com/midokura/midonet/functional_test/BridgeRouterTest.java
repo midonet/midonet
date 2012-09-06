@@ -153,7 +153,7 @@ public class BridgeRouterTest {
         if (null != routerPort2)
             routerPort2.unlink();
         removeTenant(tenant1);
-        stopMidolmanMgmt(api);
+       // stopMidolmanMgmt(api);
     }
 
     @Test

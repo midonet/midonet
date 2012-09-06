@@ -103,7 +103,7 @@ public class InterfaceManagementTest {
 
     @After
     public void tearDown() throws Exception {
-        stopMidolmanMgmt(api);
+      //  stopMidolmanMgmt(api);
         cleanupZooKeeperServiceData(ZKLauncher.ConfigType.Default);
     }
 

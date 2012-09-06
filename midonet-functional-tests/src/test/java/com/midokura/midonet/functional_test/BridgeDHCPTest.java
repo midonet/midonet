@@ -133,7 +133,7 @@ public class BridgeDHCPTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
-        stopMidolmanMgmt(mgmt);
+        //stopMidolmanMgmt(mgmt);
 
         lock.release();
     }

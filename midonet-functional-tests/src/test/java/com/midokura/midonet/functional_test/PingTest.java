@@ -5,12 +5,13 @@
 package com.midokura.midonet.functional_test;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static java.lang.String.format;
 
-import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
-import com.midokura.midolman.mgmt.data.dto.client.DtoHost;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midolman.state.ZkPathManager;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -20,21 +21,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 public class PingTest {
@@ -45,15 +41,17 @@ public class PingTest {
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
     String internalPortName = "pingTestInt";
+    final String TENANT_NAME = "tenant-ping";
 
-    Router rtr;
     Tenant tenant1;
-    MaterializedRouterPort p1;
-    MaterializedRouterPort p3;
+    RouterPort p1;
+    RouterPort p3;
     TapWrapper tap1;
     PacketHelper helper1;
-    MidolmanLauncher midolman;
-    MidolmanMgmt api;
+    //MidolmanLauncher midolman;
+    MockMgmtStarter apiStarter;
+    //MidolmanMgmt api;
+    MidonetMgmt apiClient;
     ServiceController svcController;
     ZkPathManager pathManager;
 
@@ -77,52 +75,60 @@ public class PingTest {
 
         //fixQuaggaFolderPermissions();
 
-        try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-        } catch (Exception e) {
-            log.error("Failed to start embedded Cassandra.", e);
-        }
+        startCassandra();
 
-        midolman = MidolmanLauncher.start("PingTest");
-        api = new MockMidolmanMgmt(false);
+     //   midolman = MidolmanLauncher.start("PingTest");
 
-        log.debug("Building tenant");
-        tenant1 = new Tenant.Builder(api).setName("tenant-ping").build();
+
+        log.debug("Starting the mgmt-server.");
+        apiStarter = new MockMgmtStarter(true);
+        System.out.println("URI: " + apiStarter.getURI());
+
+        log.debug("Starting the Data client.");
+        apiClient = new MidonetMgmt(apiStarter.getURI());
+        //apiClient.enableLogging();
+
+
+        //log.debug("Building tenant");
+        //tenant1 = new Tenant.Builder(api).setName("tenant-ping").build();
+        //log.debug("Building router");
+        //rtr = tenant1.addRouter().setName("rtr1").build();
+
         log.debug("Building router");
-        rtr = tenant1.addRouter().setName("rtr1").build();
+        Router rtr = apiClient.addRouter().tenantId(TENANT_NAME).name("rtr1").create();
+        log.debug("Router done!: " + rtr.getName());
+        p1 = rtr.addMaterializedRouterPort().portAddress(ip1.toString());
 
-        DtoHost host = api.getHosts()[0];
 
-        // port1 -> VM1
-        p1 = rtr.addVmPort().setVMAddress(ip1).build();
+       // DtoHost host = api.getHosts()[0];
 
-        tap1 = new TapWrapper("pingTestTap1");
 
-        log.debug("PORT ID: " + p1.port.getId());
-        HostInterfacePortMap hipMap = new HostInterfacePortMap(host.getId(), TAPNAME, p1.port.getId());
+      //  tap1 = new TapWrapper("pingTestTap1");
 
-        log.debug("Adding the interface port map");
-        api.addHostInterfacePortMap(host, hipMap);
+        //log.debug("PORT ID: " + p1.getId());
+       // HostInterfacePortMap hipMap = new HostInterfacePortMap(host.getId(), TAPNAME, p1.getId());
 
-        p3 = rtr.addVmPort().setVMAddress(ip3).build();
+        //log.debug("Adding the interface port map");
+      //  api.addHostInterfacePortMap(host, hipMap);
+
+        //p3 = rtr.addVmPort().setVMAddress(ip3).build();
+        //p3 = rtr.addMaterializedRouterPort().portAddress(ip3.toString());
+
         //ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
 
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
+       // helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
 
         log.debug("Waiting for the systems to start properly.");
-        TimeUnit.SECONDS.sleep(10);
+       // TimeUnit.SECONDS.sleep(10);
     }
 
     @After
     public void tearDown() throws Exception {
-        removeTapWrapper(tap1);
+        //removeTapWrapper(tap1);
 
-        stopMidolman(midolman);
-        removeTenant(tenant1);
-        stopMidolmanMgmt(api);
-
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-
+      //  stopMidolman(midolman);
+        stopMidolmanMgmt(apiStarter);
+        stopCassandra();
         cleanupZooKeeperServiceData();
     }
 
@@ -132,12 +138,12 @@ public class PingTest {
         byte[] request;
 
         // First arp for router's mac.
-        assertThat("The ARP request was sent properly",
+     /*   assertThat("The ARP request was sent properly",
                 tap1.send(helper1.makeArpRequest()));
 
         MAC rtrMac = helper1.checkArpReply(tap1.recv());
         helper1.setGwMac(rtrMac);
-
+       */
         /*
         // Ping router's port.
         request = helper1.makeIcmpEchoRequest(rtrIp);

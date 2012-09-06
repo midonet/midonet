@@ -131,7 +131,7 @@ public class BridgeTestOneDatapath {
         stopMidolman(midolman1);
 
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+      //  stopMidolmanMgmt(mgmt);
     }
 
     @Test

@@ -5,6 +5,7 @@ package com.midokura.midonet.functional_test.mocks;
 
 import java.net.URI;
 
+import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midonet.client.dto.*;
 
 public interface MidolmanMgmt {

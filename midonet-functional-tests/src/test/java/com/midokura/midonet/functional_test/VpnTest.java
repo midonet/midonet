@@ -163,7 +163,7 @@ public class VpnTest {
         if (null != uplinkPort)
             uplinkPort.unlink();
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+   //     stopMidolmanMgmt(mgmt);
     }
 
     @Test

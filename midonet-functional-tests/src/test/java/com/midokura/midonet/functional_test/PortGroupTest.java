@@ -188,7 +188,7 @@ public class PortGroupTest {
         if (null != rPort1)
             rPort1.unlink();
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+    //    stopMidolmanMgmt(mgmt);
     }
 
     @Test

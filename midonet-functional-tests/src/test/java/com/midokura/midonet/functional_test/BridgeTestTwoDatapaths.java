@@ -151,7 +151,7 @@ public class BridgeTestTwoDatapaths {
         stopMidolman(midolman2);
 
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+       // stopMidolmanMgmt(mgmt);
     }
 
     @Ignore // Tunnelling between two DPs on the same box doesn't work right now

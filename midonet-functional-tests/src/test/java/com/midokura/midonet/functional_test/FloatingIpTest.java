@@ -127,7 +127,7 @@ public class FloatingIpTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+       // stopMidolmanMgmt(mgmt);
     }
 
     @Test

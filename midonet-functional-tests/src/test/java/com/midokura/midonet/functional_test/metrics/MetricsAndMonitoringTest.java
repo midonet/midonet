@@ -115,7 +115,7 @@ public class MetricsAndMonitoringTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
-        stopMidolmanMgmt(api);
+       // stopMidolmanMgmt(api);
         lock.release();
     }
 

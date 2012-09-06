@@ -143,7 +143,7 @@ public class DeletePortTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
-        stopMidolmanMgmt(api);
+      //  stopMidolmanMgmt(api);
     }
 
     @Test

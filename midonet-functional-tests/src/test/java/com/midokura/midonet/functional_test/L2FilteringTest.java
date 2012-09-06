@@ -137,7 +137,7 @@ public class L2FilteringTest {
             rPort1.unlink();
         }
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+      //  stopMidolmanMgmt(mgmt);
     }
 
     public MAC arpFromTapAndGetReply(

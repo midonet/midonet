@@ -140,7 +140,7 @@ public class MonitoringTest {
         removeTapWrapper(metricsTap);
         stopMidolman(midolman);
         removeTenant(tenant);
-        stopMidolmanMgmt(api);
+     //   stopMidolmanMgmt(api);
         FunctionalTestsHelper.stopZookeeperService(zkLauncher);
         removeCassandraFolder();
         lock.release();

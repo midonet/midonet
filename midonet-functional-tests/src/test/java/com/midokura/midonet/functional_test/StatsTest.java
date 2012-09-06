@@ -115,7 +115,7 @@ public class StatsTest {
         removeTapWrapper(tapPort2);
         stopMidolman(midolman);
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+      //  stopMidolmanMgmt(mgmt);
         removeBridge(ovsBridge);
         lock.release();
     }

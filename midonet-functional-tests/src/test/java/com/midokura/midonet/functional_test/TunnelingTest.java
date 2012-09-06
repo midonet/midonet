@@ -118,7 +118,7 @@ public class TunnelingTest {
         stopMidolman(midolman1);
         stopMidolman(midolman2);
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+       // stopMidolmanMgmt(mgmt);
     }
 
     @Test

@@ -111,7 +111,7 @@ public class VmSshTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
-        stopMidolmanMgmt(mgmt);
+      //  stopMidolmanMgmt(mgmt);
 
         destroyVM(vm);
         lock.release();

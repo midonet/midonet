@@ -128,7 +128,7 @@ public class BridgePortDeleteTest {
         stopMidolman(midolman1);
 
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+       // stopMidolmanMgmt(mgmt);
     }
 
     private void sendPacket(byte[] pkt, TapWrapper fromTap,

@@ -6,7 +6,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.inject.servlet.GuiceFilter;
-import com.midokura.midolman.mgmt.data.dto.HostInterfacePortMap;
+import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -308,14 +308,13 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
+    public void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
+        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();    }
+
+    @Override
     public void addHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
         URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
         post(uri, portMap);
-    }
-
-    @Override
-    public void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
-        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
     }
 
     @Override

@@ -121,7 +121,7 @@ public abstract class RouterBridgeBaseTest {
         if (null != routerDownlink)
             routerDownlink.unlink();
         removeTenant(tenant1);
-        stopMidolmanMgmt(mgmt);
+     //   stopMidolmanMgmt(mgmt);
         lock.release();
     }
 }

@@ -154,7 +154,7 @@ public class BgpTest {
         removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
-        stopMidolmanMgmt(mgmt);
+      //  stopMidolmanMgmt(mgmt);
     }
 
     @Test
