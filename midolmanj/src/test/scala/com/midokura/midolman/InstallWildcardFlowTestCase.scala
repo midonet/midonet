@@ -46,11 +46,12 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val vrnPortOutput = new FlowActionVrnPortOutput(outputPort.getId)
         val dpPortOutput = FlowActions.output(outputPortNo)
 
-        val wildcardFlow = new WildcardFlow(
-            Arrays.asList(vrnPortOutput),
-            0, 0, 0,
-            new WildcardMatch()
-                .setInputPortUUID(inputPort.getId), 0)
+        val wildcardMatch = new WildcardMatch()
+            .setInputPortUUID(inputPort.getId)
+
+        val wildcardFlow = new WildcardFlow()
+            .addAction(vrnPortOutput)
+            .setMatch(wildcardMatch)
 
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null, null))
 

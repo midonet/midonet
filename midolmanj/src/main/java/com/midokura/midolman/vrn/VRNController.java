@@ -896,7 +896,7 @@ public class VRNController extends AbstractController
         match.setInputPort(localPortNum);
         match.setDataLayerType(IPv4.ETHERTYPE);
         match.setNetworkProtocol(TCP.PROTOCOL_NUMBER);
-            match.setNetworkSource(localAddr);
+        match.setNetworkSource(localAddr);
         match.setNetworkDestination(remoteAddr);
         match.setTransportSource(localTport);
         actions = new ArrayList<OFAction>();

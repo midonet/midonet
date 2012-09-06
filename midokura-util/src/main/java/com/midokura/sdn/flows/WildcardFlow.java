@@ -4,78 +4,89 @@
 
 package com.midokura.sdn.flows;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.midokura.sdn.dp.flows.FlowAction;
 
 public class WildcardFlow {
-    short priority; // used to choose among many matching flows
+    short priority = 0; // used to choose among many matching flows
     WildcardMatch match;
     List<FlowAction<?>> actions;
 
-    final long creationTimeMillis;
+    long creationTimeMillis;
     long lastUsedTimeMillis;
 
-    long hardExpirationMillis;
-    long idleExpirationMillis;
+    long hardExpirationMillis = 0; // default: never expire
+    long idleExpirationMillis = 0; // default: never expire
 
-    public WildcardFlow(List<FlowAction<?>> actions, long creationTimeMillis,
-                        long hardExpirationMillis, long idleExpirationMillis,
-                        WildcardMatch match, short priority) {
-        this.actions = actions;
-        this.creationTimeMillis = creationTimeMillis;
-        this.lastUsedTimeMillis = this.creationTimeMillis;
-        this.hardExpirationMillis = hardExpirationMillis;
-        this.idleExpirationMillis = idleExpirationMillis;
-        this.match = match;
+    public short getPriority() {
+        return priority;
+    }
+
+    public WildcardFlow setPriority(short priority) {
         this.priority = priority;
-    }
-
-    public WildcardFlow(List<FlowAction<?>> actions,
-                       long hardExpirationMillis, long idleExpirationMillis,
-                       WildcardMatch match, short priority) {
-        this.actions = actions;
-        this.creationTimeMillis = System.currentTimeMillis();
-        this.lastUsedTimeMillis = this.creationTimeMillis;
-        this.hardExpirationMillis = hardExpirationMillis;
-        this.idleExpirationMillis = idleExpirationMillis;
-        this.match = match;
-        this.priority = priority;
-    }
-
-    public List<FlowAction<?>> getActions() {
-        return actions;
-    }
-
-    public long getCreationTimeMillis() {
-        return creationTimeMillis;
-    }
-
-    public long getHardExpirationMillis() {
-        return hardExpirationMillis;
-    }
-
-    public long getIdleExpirationMillis() {
-        return idleExpirationMillis;
-    }
-
-    public long getLastUsedTimeMillis() {
-        return lastUsedTimeMillis;
+        return this;
     }
 
     public WildcardMatch getMatch() {
         return match;
     }
 
-    public short getPriority() {
-        return priority;
+    public WildcardFlow setMatch(WildcardMatch match) {
+        this.match = match;
+        return this;
     }
 
-    public void setLastUsedTimeMillis(long lastUsedTimeMillis) {
-        this.lastUsedTimeMillis = lastUsedTimeMillis;
+    public List<FlowAction<?>> getActions() {
+        return actions;
     }
 
-    public void setActions(List<FlowAction<?>> actions) {
+    public WildcardFlow setActions(List<FlowAction<?>> actions) {
         this.actions = actions;
+        return this;
+    }
+
+    public WildcardFlow addAction(FlowAction<?> action) {
+        if (actions == null)
+            actions = new ArrayList<FlowAction<?>>();
+        actions.add(action);
+        return this;
+    }
+
+    public long getLastUsedTimeMillis() {
+        return lastUsedTimeMillis;
+    }
+
+    public WildcardFlow setLastUsedTimeMillis(long lastUsedTimeMillis) {
+        this.lastUsedTimeMillis = lastUsedTimeMillis;
+        return this;
+    }
+
+    public long getHardExpirationMillis() {
+        return hardExpirationMillis;
+    }
+
+    public WildcardFlow setHardExpirationMillis(long hardExpirationMillis) {
+        this.hardExpirationMillis = hardExpirationMillis;
+        return this;
+    }
+
+    public long getIdleExpirationMillis() {
+        return idleExpirationMillis;
+    }
+
+    public WildcardFlow setIdleExpirationMillis(long idleExpirationMillis) {
+        this.idleExpirationMillis = idleExpirationMillis;
+        return this;
+    }
+
+    public long getCreationTimeMillis() {
+        return creationTimeMillis;
+    }
+
+    public WildcardFlow setCreationTimeMillis(long creationTimeMillis) {
+        this.creationTimeMillis = creationTimeMillis;
+        return this;
     }
 }

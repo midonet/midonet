@@ -8,36 +8,31 @@ import akka.actor.{ActorLogging, Actor}
 import akka.pattern.ask
 import com.midokura.midonet.cluster.DataClient
 import com.google.inject.Inject
+import datapath.FlowActionVrnPortOutput
 import java.util.UUID
 import com.midokura.util.functors.Callback2
-import openflow.{ControllerStub, MidoMatch}
-import state.zkManagers.BgpZkManager
 import state.zkManagers.BgpZkManager.BgpConfig
 import topology.VirtualTopologyActor
-import topology.VirtualTopologyActor.BGPLinkDeleted
-import topology.VirtualTopologyActor.BGPListRequest
-import topology.VirtualTopologyActor.BGPListUnsubscribe
-import topology.VirtualTopologyActor.PortRequest
 import topology.VirtualTopologyActor.{PortRequest, BGPLinkDeleted, BGPListUnsubscribe, BGPListRequest}
-import com.midokura.midonet.cluster.client.{ExteriorRouterPort, Port, BGPLink}
+import com.midokura.midonet.cluster.client.{ExteriorRouterPort, BGPLink}
 import java.io.{IOException, File}
 import org.newsclub.net.unix.{AFUNIXSocketAddress, AFUNIXServerSocket}
 import com.midokura.quagga.{ZebraServer, BgpConnection, BgpVtyConnection, ZebraServerImpl}
 import com.midokura.packets._
-import com.midokura.midolman.DatapathController.{BindToInternalPort, CreatePortInternal}
-import com.midokura.sdn.dp.ports.InternalPort
+import com.midokura.midolman.DatapathController.{PortInternalOpReply, CreatePortInternal}
 import akka.util.Timeout
 import akka.util.duration._
-import com.midokura.midolman.DatapathController.CreatePortInternal
 import util.{Net, Sudo}
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowActionUserspace}
+import com.midokura.sdn.dp.Ports
 
 object BGPManager extends Referenceable {
     val Name = "BGPManager"
-    case class LocalPortActive(portID: UUID, active: Boolean)
 }
 
 class BGPManager extends Actor with ActorLogging {
-    import BGPManager._
 
     @Inject
     var dataClient: DataClient = null
@@ -47,7 +42,9 @@ class BGPManager extends Actor with ActorLogging {
 
     private var bgpPortIdx = 0
     private var run = false
+    private val BGP_TCP_PORT: Short = 179
 
+    case class LocalPortActive(portID: UUID, active: Boolean)
 
     val localPortsCB = new Callback2[UUID, java.lang.Boolean]() {
         def call(portID: UUID, active: java.lang.Boolean) {
@@ -104,12 +101,33 @@ class BGPManager extends Actor with ActorLogging {
                 // TODO(pino): tear down any BGPs for this port.
             }
 
-        case bgp: BGPLink =>
-            handleBGPLink(bgp)
+        case bgpLink: BGPLink =>
+            handleBGPLink(bgpLink)
 
         case BGPLinkDeleted(bgpID) =>
+          //killall
+          //remove all the flows (by tag?)
+          FlowController.getRef().tell(FlowController.InvalidateFlowsByTag(bgpID))
+
+        case PortInternalOpReply(internalPort, _, false, null, Some(pair)) =>
+            pair match {
+                case Pair(bgpPort:ExteriorRouterPort, bgpLink:BGPLink) =>
+                    //(ExteriorRouterPort, BGPLink) =>
+
+                    // what are local and remote TPorts? TCP ports?
+                    setBGPFlows(internalPort.getPortNo.shortValue(), bgpLink, bgpPort)
+
+                    // launch bgpd
+                    val bgpConfig = new BgpConfig(bgpLink.portID,
+                        bgpLink.localAS, Net.convertIntToInetAddress(bgpLink.peerAddr.getAddress), bgpLink.peerAS)
+
+                    // where to get the local address?
+                    val localAddr: Int = 0
+                    launchBGPd(bgpLink.bgpID, bgpConfig, localAddr)
+            }
 
     }
+
 
     /**
      * We can consider that these things have been created beforehand:
@@ -117,62 +135,163 @@ class BGPManager extends Actor with ActorLogging {
      * - Datapath port has been created to match the ExteriorRouterPort
      * - OS Interface has been configured
      */
-    def handleBGPLink(bgp: BGPLink) {
+    def handleBGPLink(bgpLink: BGPLink) {
         // TODO: use the portID to get the mac of the interface that the portID is bound to.
-        var mac: MAC = null
-        //var bgpPort: ExteriorRouterPort = null
-
         implicit val timeout = Timeout(5 seconds)
 
-        val future = VirtualTopologyActor.getRef() ? PortRequest(bgp.portID, update = false)
+        val future = VirtualTopologyActor.getRef() ? PortRequest(bgpLink.portID, update = false)
         future onSuccess  {
-            case bgpPort: ExteriorRouterPort => mac = bgpPort.portMac
+            case bgpPort: ExteriorRouterPort =>
+
+                // Create a new internal port name
+                val portName = BGP_PORT_NAME.format(bgpPortIdx)
+                bgpPortIdx += 1
+
+                // The length of interface names are limited to 16 bytes.
+                if (portName.length() > 16) {
+                    throw new RuntimeException(
+                        "The name of the bgp service port is too long")
+                }
+                log.info("Adding internal port {} for BGP link", portName)
+
+                // TODO(abel) check that the actor that sends this message
+                // is not the temporary one, but BGPManager actor
+                DatapathController.getRef() !
+                    CreatePortInternal(
+                        Ports.newInternalPort(portName)
+                            .setAddress(bgpPort.portMac.getAddress),
+                        tag = Some(Pair(bgpPort: ExteriorRouterPort, bgpLink: BGPLink)))
+
             case _ => // failure
         }
-
-
-        // Create a new internal port name
-        val portName = BGP_PORT_NAME.format(bgpPortIdx)
-        // The length of interface names are limited to 16 bytes.
-        if (portName.length() > 16) {
-            throw new RuntimeException(
-                "The name of the bgp service port is too long")
-        }
-        log.info("Adding internal port {} for BGP link", portName)
-
-
-        val internalPort = new InternalPort(portName)
-        val futureInternalPort = DatapathController.getRef() ? CreatePortInternal(internalPort, None)
-        futureInternalPort onSuccess {
-            // what's the return type from CreatePortInternal? we already have
-            // created an InternalPort.
-            // The internal port must be set
-            case _ => // failure
-        }
-
-        // what are local and remote TPorts?
-        setBGPFlows(bgp.localPort, bgp.peerPort, bgp.localAS, bgp.peerAS,
-            localTport = 1, remoteTport = 1)
-
-        // -- configure the interface with the BGP port's ip address
-        //TODO(abel)
-
-        // -- launch bgpd
-        val bgpConfig = new BgpConfig(bgp.portID,
-            bgp.localAS, Net.convertIntToInetAddress(bgp.peerAddr.getAddress), bgp.peerAS)
-
-        // where to get the local address?
-        val localAddr: Int = 0
-        launchBGPd(bgp.bgpID, bgpConfig, localAddr)
-
-        bgpPortIdx += 1
     }
 
-    def setBGPFlows(localPortNum: Short, remotePortNum: Short,
-                        localAddr: Int, remoteAddr: Int,
-                        localTport: Short, remoteTport: Short) {
+    def setBGPFlows(localPortNum: Short, bgp: BGPLink, bgpPort: ExteriorRouterPort) {
 
-        // call datapath controller to set the BGP flows
+        // Set the BGP ID in a set to use as a tag for the datapath flows
+        // For some reason AddWilcardFlow needs a mutable set so this
+        // construction is needed although I'm sure you can find a better one.
+        val bgpTagSet = Set[AnyRef](bgp.bgpID)
+
+        // TCP4:->179 bgpd->link
+        var wildcardMatch = new WildcardMatch()
+            .setInputPortNumber(localPortNum)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgpPort.portAddr)
+            .setNetworkDestination(bgp.peerAddr)
+            .setTransportDestination(BGP_TCP_PORT)
+
+        var wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(new FlowActionVrnPortOutput(bgp.portID))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // TCP4:179-> bgpd->link
+        wildcardMatch = new WildcardMatch()
+            .setInputPortNumber(localPortNum)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgpPort.portAddr)
+            .setNetworkDestination(bgp.peerAddr)
+            .setTransportSource(BGP_TCP_PORT)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(new FlowActionVrnPortOutput(bgp.portID))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // TCP4:->179 link->bgpd
+        wildcardMatch = new WildcardMatch()
+            .setInputPortUUID(bgp.portID)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgp.peerAddr)
+            .setNetworkDestination(bgpPort.portAddr)
+            .setTransportDestination(BGP_TCP_PORT)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(FlowActions.output(localPortNum))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // TCP4:179-> link->bgpd
+        wildcardMatch = new WildcardMatch()
+            .setInputPortUUID(bgp.portID)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgp.peerAddr)
+            .setNetworkDestination(bgpPort.portAddr)
+            .setTransportSource(BGP_TCP_PORT)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(FlowActions.output(localPortNum))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // ARP bgpd->link
+        wildcardMatch = new WildcardMatch()
+            .setInputPortNumber(localPortNum)
+            .setEtherType(ARP.ETHERTYPE)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(new FlowActionVrnPortOutput(bgp.portID))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // ARP link->bgpd, link->midolman
+        // TODO(abel) send ARP from link to both ports only if it's an ARP reply
+        wildcardMatch = new WildcardMatch()
+            .setInputPortNumber(localPortNum)
+            .setEtherType(ARP.ETHERTYPE)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(FlowActions.output(localPortNum))
+            .addAction(new FlowActionUserspace)
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // ICMP4 bgpd->link
+        wildcardMatch = new WildcardMatch()
+            .setInputPortNumber(localPortNum)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgpPort.portAddr)
+            .setNetworkDestination(bgp.peerAddr)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(new FlowActionVrnPortOutput(bgp.portID))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
+
+        // ICMP4 link->bgpd
+        wildcardMatch = new WildcardMatch()
+            .setInputPortUUID(bgp.portID)
+            .setEtherType(IPv4.ETHERTYPE)
+            .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
+            .setNetworkSource(bgp.peerAddr)
+            .setNetworkDestination(bgpPort.portAddr)
+
+        wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .addAction(FlowActions.output(localPortNum))
+
+        DatapathController.getRef.tell(AddWildcardFlow(
+            wildcardFlow, None, null, bgpTagSet))
     }
 
     def launchBGPd(bgpId: UUID, bgpConfig: BgpConfig, localAddr: Int) {

@@ -17,13 +17,14 @@ import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.util.functors.Callback0
 import akka.actor._
+import collection.immutable
 
 object FlowController extends Referenceable {
     val Name = "FlowController"
 
     case class AddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
-                               callbacks: Set[Callback0],
-                               tags: Set[AnyRef])
+                               flowRemovalCallbacks: Set[Callback0],
+                               tags: immutable.Set[AnyRef])
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
@@ -31,7 +32,7 @@ object FlowController extends Referenceable {
 
     case class DiscardPacket(packet: Packet)
 
-    case class InvalidateFlowByTag(tag: AnyRef)
+    case class InvalidateFlowsByTag(tag: AnyRef)
 
 }
 
@@ -81,7 +82,7 @@ class FlowController extends Actor with ActorLogging {
         case packetIn(packet) =>
             handlePacketIn(packet)
 
-        case AddWildcardFlow(wildcardFlow, packetOption, callbacks, tags) =>
+        case AddWildcardFlow(wildcardFlow, packetOption, flowRemovalCallbacks, tags) =>
             handleNewWildcardFlow(wildcardFlow, packetOption)
 
         case DiscardPacket(packet) =>

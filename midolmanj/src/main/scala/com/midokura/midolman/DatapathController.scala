@@ -615,7 +615,7 @@ class DatapathController() extends Actor {
 
     def handleAddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
                               callbacks: mutable.Set[Callback0],
-                              tags: mutable.Set[AnyRef]) {
+                              tags: immutable.Set[AnyRef]) {
         val flowMatch = flow.getMatch
 
         vifToLocalPortNumber(flowMatch.getInputPortUUID) match {

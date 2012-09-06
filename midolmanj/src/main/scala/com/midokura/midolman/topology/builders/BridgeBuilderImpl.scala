@@ -64,7 +64,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         import collection.JavaConversions._
         // invalidate all the flows if there's some change in the logical ports
         if(newRtrIpToMac != rtrIpToMac){
-            flowController ! FlowController.InvalidateFlowByTag(
+            flowController ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateAllDeviceFlowsTag(id))
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
@@ -84,12 +84,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
             //1. MAC was deleted
             if(newPort == null && oldPort != null){
-                flowController ! FlowController.InvalidateFlowByTag(
+                flowController ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateAllMACFlowsTag(id, mac))
             }
             //2. MAC moved from port-x to port-y
             if(newPort != null && oldPort != null){
-                flowController ! FlowController.InvalidateFlowByTag(
+                flowController ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateAllMacPortFlows(id, mac, oldPort))
             }
             //3. MAC was added -> do nothing
@@ -99,18 +99,18 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // deleted we have to remove it. If a port moved to a new host that
             // had no port of this bridge, we need a flow to the port that has
             // the tunnel to it
-            flowController ! FlowController.InvalidateFlowByTag(
+            flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateBroadCastFlows(id))
         }
     }
 
     def setLocalExteriorPortActive(port: UUID, mac: MAC, active: Boolean) {
         // invalidate the flood flows in both cases (active/not active)
-        flowController ! FlowController.InvalidateFlowByTag(
+        flowController ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateBroadCastFlows(id))
         
         if (!active) {
-            flowController ! FlowController.InvalidateFlowByTag(
+            flowController ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateAllMACFlowsTag(id, mac)
             )
         }

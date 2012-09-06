@@ -14,17 +14,11 @@ class BGPLink {
     // The port that owns this BGP.
     var portID: UUID = null
 
-    // The local TCP port number for BGP, as a positive integer.
-    var localPort: Short = 0
-
     // The local AS number for this BGP link, as a positive integer.
     var localAS: Int = 0
 
     // The IPv4 address of the peer
     var peerAddr: IntIPv4 = null
-
-    // The TCP port number at the peer, as a positive integer.
-    var peerPort: Short = 0
 
     // The peer's AS number, as a positive integer.
     var peerAS: Int = 0
