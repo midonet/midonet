@@ -23,6 +23,10 @@ public class Flow {
     Byte tcpFlags;
     Long lastUsedTime;
 
+    public Flow() {
+        this.lastUsedTime = System.currentTimeMillis();
+    }
+
     @Nullable
     public FlowMatch getMatch() {
         return match;

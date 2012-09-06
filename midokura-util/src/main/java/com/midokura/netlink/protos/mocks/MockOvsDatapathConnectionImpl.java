@@ -42,6 +42,8 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     Map<Datapath, AtomicInteger> portsIndexes
         = new HashMap<Datapath, AtomicInteger>();
+    
+    Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
 
     boolean initialized = false;
 
@@ -260,33 +262,63 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsEnumerate(Datapath datapath, @Nonnull Callback<Set<Flow>> callback, long timeoutMillis) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        Set<Flow> flows = new HashSet<Flow>();
+        for(Flow flow: flowsTable.values()){
+            flows.add(flow);
+        }
+        callback.onSuccess(flows);
     }
 
     @Override
     protected void _doFlowsCreate(@Nonnull Datapath datapath, @Nonnull Flow flow, @Nonnull Callback<Flow> callback, long timeout) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        flow.setLastUsedTime(System.currentTimeMillis());
+        flowsTable.put(flow.getMatch(), flow);
+        callback.onSuccess(flow);
     }
 
     @Override
     protected void _doFlowsDelete(@Nonnull Datapath datapath, @Nonnull Flow flow, @Nonnull Callback<Flow> callback, long timeout) {
-        //To change body of implemented methods use File | Settings | File Templates.
+       if(flowsTable.containsKey(flow.getMatch())){
+           Flow removed = flowsTable.remove(flow.getMatch());
+           callback.onSuccess(removed);
+       }
+        else{
+           callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+       }
     }
 
     @Override
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match, @Nonnull Callback<Flow> callback, long timeout) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if(flowsTable.containsKey(match)){
+            Flow flow = flowsTable.get(match);
+            callback.onSuccess(flow);
+        }
+        else{
+            callback.onSuccess(null);
+        }
     }
 
     @Override
     protected void _doFlowsSet(@Nonnull Datapath datapath, @Nonnull Flow match, @Nonnull Callback<Flow> flowCallback, long timeout) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if(flowsTable.containsKey(match.getMatch())){
+            flowsTable.remove(match.getMatch());
+            flowsTable.put(match.getMatch(), match);
+            flowCallback.onSuccess(match);
+        }
+        else{
+            flowCallback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+        }
     }
 
 
     @Override
     protected void _doFlowsFlush(@Nonnull Datapath datapath, @Nonnull Callback<Boolean> callback, long timeoutMillis) {
-        //To change body of implemented methods use File | Settings | File Templates.
+          flowsTable.clear();
+          callback.onSuccess(true);
+    }
+
+    public void updateFlowLastUsedTime(FlowMatch match){
+        flowsTable.get(match).setLastUsedTime(System.currentTimeMillis());
     }
 
     @Override

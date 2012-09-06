@@ -9,15 +9,17 @@ import datapath.ErrorHandlingCallback
 
 import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
 
-import com.midokura.sdn.flows.{WildcardMatches, FlowManager, WildcardFlow}
+import com.midokura.sdn.flows.{FlowManagerHelper, WildcardMatches, FlowManager, WildcardFlow}
 import com.midokura.sdn.dp.flows.FlowAction
 import javax.inject.Inject
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
-import com.midokura.util.functors.Callback0
 import akka.actor._
 import collection.immutable
+import com.midokura.util.functors.{Callback1, Callback0}
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 
 object FlowController extends Referenceable {
     val Name = "FlowController"
@@ -28,18 +30,25 @@ object FlowController extends Referenceable {
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
+    case class RemoveFlow(flow: Flow)
+
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
     case class DiscardPacket(packet: Packet)
 
     case class InvalidateFlowsByTag(tag: AnyRef)
 
+    case class CheckFlowExpiration()
+
+    case class WildcardFlowAdded(f: WildcardFlow)
+
+    case class WildcardFlowRemoved(f: WildcardFlow)
 }
+
 
 class FlowController extends Actor with ActorLogging {
 
     import FlowController._
-    import context._
 
     var datapath: Datapath = null
     var maxDpFlows = 0
@@ -54,7 +63,6 @@ class FlowController extends Actor with ActorLogging {
     @Inject
     var datapathConnection: OvsDatapathConnection = null
 
-    @Inject
     var flowManager: FlowManager = null
 
     val tagToFlows: MultiMap[AnyRef, WildcardFlow] =
@@ -64,12 +72,21 @@ class FlowController extends Actor with ActorLogging {
         new HashMap[WildcardFlow, Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
+    val flowExpirationCheckInterval: Duration = Duration(50, TimeUnit.MILLISECONDS)
 
     override def preStart() {
         super.preStart()
 
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
 
+        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
+
+        // schedule next check for flow expiration after 20 ms and then after
+        // every flowExpirationCheckInterval ms
+        context.system.scheduler.schedule(Duration(20, TimeUnit.MILLISECONDS),
+            flowExpirationCheckInterval,
+            self,
+            CheckFlowExpiration)
     }
 
     def receive = {
@@ -77,6 +94,7 @@ class FlowController extends Actor with ActorLogging {
             if (null == datapath) {
                 datapath = dp
                 installPacketInHook()
+                log.info("Datapath hook installed")
             }
 
         case packetIn(packet) =>
@@ -84,11 +102,13 @@ class FlowController extends Actor with ActorLogging {
 
         case AddWildcardFlow(wildcardFlow, packetOption, flowRemovalCallbacks, tags) =>
             handleNewWildcardFlow(wildcardFlow, packetOption)
+            context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
+
 
         case DiscardPacket(packet) =>
             dpMatchToPendedPackets.remove(packet.getMatch)
 
-        case RemoveWildcardFlow(tag) =>
+        case InvalidateFlowsByTag(tag) =>
             val flowsOption = tagToFlows.get(tag)
             flowsOption match {
                 case None =>
@@ -96,6 +116,15 @@ class FlowController extends Actor with ActorLogging {
                     for (wildFlow <- flowSet)
                         removeWildcardFlow(wildFlow)
             }
+
+        case RemoveFlow(flow: Flow) =>
+            removeFlow(flow)
+
+        case RemoveWildcardFlow(flow) =>
+            log.debug("Removing wcflow {}", flow)
+            removeWildcardFlow(flow)
+            context.system.eventStream.publish(new WildcardFlowRemoved(flow))
+
 
         case SendPacket(data, actions) =>
             if (actions.size > 0) {
@@ -113,6 +142,9 @@ class FlowController extends Actor with ActorLogging {
                         }
                     })
             }
+        case CheckFlowExpiration() =>
+            log.info("Checking flow expiration")
+            flowManager.checkFlowsExpiration()
     }
 
     /**
@@ -123,44 +155,24 @@ class FlowController extends Actor with ActorLogging {
      */
     case class packetIn(packet: Packet)
 
-    private def removeWildcardFlow(wildFlow: WildcardFlow) = {
+    private def removeWildcardFlow(wildFlow: WildcardFlow) {
+        log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         val removedDpFlowMatches = flowManager.remove(wildFlow)
-        for (flowMatch <- removedDpFlowMatches) {
-            val flow = new Flow().setMatch(flowMatch)
-            datapathConnection.flowsDelete(datapath, flow,
-                new ErrorHandlingCallback[Flow] {
-                    def onSuccess(data: Flow) {}
-
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error(ex,
-                            "Failed to remove a flow {} due to {}", flow,
-                            if (timeout) "timeout" else "error")
-                    }
-                })
+        if (removedDpFlowMatches != null) {
+            for (flowMatch <- removedDpFlowMatches) {
+                val flow = new Flow().setMatch(flowMatch)
+                removeFlow(flow)
+            }
         }
         // TODO(pino): update tagToFlows and flowToTags
     }
-
-    private def manageDPFlowTableSpace() {
-        if (flowManager.getNumDpFlows > maxDpFlows - 5) {
-            // TODO(pino): FlowManager should not remove the candidates until
-            // TODO:       they're removed from the Datapath.
-            for (flowMatch <-
-                 flowManager.removeOldestDpFlows(dpFlowRemoveBatchSize)) {
-                val flow = new Flow().setMatch(flowMatch)
-                datapathConnection.flowsDelete(datapath, flow,
-                    new ErrorHandlingCallback[Flow] {
-                        def onSuccess(data: Flow) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to remove a flow {} due to {}", flow,
-                                if (timeout) "timeout" else "error")
-                        }
-                    })
-            }
-        }
+    
+    private def removeFlow(flow: Flow){
+        datapathConnection.flowsDelete(datapath, flow,
+            flowManager.getFlowDeleteCallback(flow))
     }
+
+
 
     private def handlePacketIn(packet: Packet) {
         // In case the PacketIn notify raced a flow rule installation, see if
@@ -184,9 +196,6 @@ class FlowController extends Actor with ActorLogging {
         // wildcard flow.
         val dpFlow = flowManager.createDpFlow(packet.getMatch)
         if (dpFlow != null) {
-            // Check whether some existing datapath flows will need to be
-            // evicted to make space for the new one.
-            manageDPFlowTableSpace()
             datapathConnection.flowsCreate(datapath, dpFlow,
                 new ErrorHandlingCallback[Flow] {
                     def onSuccess(data: Flow) {}
@@ -211,11 +220,14 @@ class FlowController extends Actor with ActorLogging {
         }
     }
 
-    private def handleNewWildcardFlow(
-                                         wildcardFlow: WildcardFlow, packetOption: Option[Packet]) {
-        if (!flowManager.add(wildcardFlow))
+    private def handleNewWildcardFlow(wildcardFlow: WildcardFlow,
+                                      packetOption: Option[Packet]) {
+        if (!flowManager.add(wildcardFlow)){
             log.error("FlowManager failed to install wildcard flow {}",
                 wildcardFlow)
+            // TODO(ross): in case of error should we process the packet?
+            return
+        }
         packetOption match {
             case None =>
             case Some(packet) =>
@@ -227,18 +239,8 @@ class FlowController extends Actor with ActorLogging {
                     setActions(wildcardFlow.getActions)
 
                 datapathConnection.flowsCreate(datapath, dpFlow,
-                    new ErrorHandlingCallback[Flow] {
-                        def onSuccess(data: Flow) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to install a flow {} due to {}", dpFlow,
-                                if (timeout) "timeout" else "error")
-                        }
-                    })
-
-                // Check whether the datapath's flow table is reaching the limit
-                manageDPFlowTableSpace()
+                    flowManager.getFlowCreatedCallback(dpFlow))
+                log.debug("Flow created {}", dpFlow.getMatch.toString)
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
@@ -261,7 +263,7 @@ class FlowController extends Actor with ActorLogging {
         }
     }
 
-    private def installPacketInHook(): Unit = {
+    private def installPacketInHook() = {
         log.info("Installing packet in handler")
         // TODO: try to make this cleaner (right now we are just waiting for
         // the install future thus blocking the current thread).
@@ -274,5 +276,36 @@ class FlowController extends Actor with ActorLogging {
 
             def onError(e: NetlinkException) {}
         }).get()
+    }
+
+    class FlowManagerInfoImpl() extends FlowManagerHelper{
+        def removeFlow(flow: Flow) {
+            log.debug("Sending myself a message to remove flow {}", flow.toString)
+            self ! RemoveFlow(flow)
+        }
+
+        def removeWildcardFlow(flow: WildcardFlow) {
+            log.debug("Sending myself a message to remove wildcard flow {}", flow.toString)
+            self ! RemoveWildcardFlow(flow)
+        }
+
+        def getFlow(flowMatch: FlowMatch): Flow = {
+
+            val flowFuture: java.util.concurrent.Future[Flow] =
+                datapathConnection.flowsGet(datapath, flowMatch)
+
+            try {
+                val kernelFlow: Flow = flowFuture.get
+                kernelFlow
+            }catch {
+                case e: Exception => {
+                    log.error("Got an exception when trying to flowsGet()" +
+                        "for flow match {}", flowMatch, e)
+                    null
+                }
+            }
+
+
+        }
     }
 }
