@@ -40,6 +40,16 @@ public abstract class ReplicatedMap<K, V> {
         void processChange(K1 key, V1 oldValue, V1 newValue);
     }
 
+    private static class Notification<K1, V1> {
+            K1 key;
+            V1 oldValue, newValue;
+            Notification(K1 k, V1 v1, V1 v2) {
+                key = k;
+                oldValue = v1;
+                newValue = v2;
+            }
+    }
+
     private class DirectoryWatcher implements Runnable {
         public void run() {
             if (!running) {
@@ -57,10 +67,12 @@ public abstract class ReplicatedMap<K, V> {
             }
             List<String> cleanupPaths = new LinkedList<String>();
             Set<K> curKeys = new HashSet<K>();
-            for (String path : curPaths) {
+            Set<Notification<K,V>> notifications = new HashSet<Notification<K,V>>();   
+            synchronized(ReplicatedMap.this) {
+              for (String path : curPaths) {
                 Path p = decodePath(path);
                 curKeys.add(p.key);
-                MapValue mv = map.get(p.key);
+                MapValue mv = localMap.get(p.key);
                 /*
                  * TODO(pino): if(null == mv || mv.version < p.version) This way
                  * of determining the winning value is flawed: if the controller
@@ -72,26 +84,31 @@ public abstract class ReplicatedMap<K, V> {
                  * watchers.
                  */
                 if (null == mv || mv.version < p.version) {
-                    map.put(p.key, new MapValue(p.value, p.version, false));
-                    if (null == mv)
-                        notifyWatchers(p.key, null, p.value);
-                    else {
+                    localMap.put(p.key, new MapValue(p.value, p.version, false));
+                    if (null == mv) {
+                        notifications.add(
+                                new Notification<K,V>(p.key, null, p.value));
+                    } else {
                         // Remember my obsolete paths and clean them up later.
                         if (mv.owner)
                             cleanupPaths.add(encodePath(p.key, mv.value,
                                     mv.version));
-                        notifyWatchers(p.key, mv.value, p.value);
+                        notifications.add(
+                                new Notification<K,V>(p.key, mv.value, p.value));
                     }
                 }
-            }
-            Set<K> allKeys = new HashSet<K>(map.keySet());
-            allKeys.removeAll(curKeys);
-            // The remaining keys must have been deleted by someone else.
-            for (K key : allKeys) {
-                MapValue mv = map.remove(key);
+              }
+              Set<K> allKeys = new HashSet<K>(localMap.keySet());
+              allKeys.removeAll(curKeys);
+              // The remaining keys must have been deleted by someone else.
+              for (K key : allKeys) {
+                MapValue mv = localMap.remove(key);
                 if (null != mv.value)
-                    notifyWatchers(key, mv.value, null);
+                    notifications.add(new Notification<K,V>(key, mv.value, null));
+              }
             }
+            for (Notification<K,V> notice : notifications)
+                notifyWatchers(notice.key, notice.oldValue, notice.newValue);
             // Now clean up any of my paths that have been obsoleted.
             for (String path : cleanupPaths)
                 try {
@@ -108,14 +125,14 @@ public abstract class ReplicatedMap<K, V> {
 
     private Directory dir;
     private boolean running;
-    private Map<K, MapValue> map;
+    private Map<K, MapValue> localMap;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
 
     public ReplicatedMap(Directory dir) {
         this.dir = dir;
         this.running = false;
-        this.map = new HashMap<K, MapValue>();
+        this.localMap = new HashMap<K, MapValue>();
         this.watchers = new HashSet<Watcher<K, V>>();
         this.myWatcher = new DirectoryWatcher();
     }
@@ -135,32 +152,32 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         this.running = false;
-        this.map.clear();
+        this.localMap.clear();
     }
 
-    public V get(K key) {
-        MapValue mv = map.get(key);
+    public synchronized V get(K key) {
+        MapValue mv = localMap.get(key);
         if (null == mv)
             return null;
         return mv.value;
     }
 
-    public boolean containsKey(K key) {
-        return map.containsKey(key);
+    public synchronized boolean containsKey(K key) {
+        return localMap.containsKey(key);
     }
 
-    public Map<K, V> getMap() {
+    public synchronized Map<K, V> getMap() {
         Map<K, V> result = new HashMap<K, V>();
-        for (Map.Entry<K, MapValue> entry : map.entrySet())
+        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
             result.put(entry.getKey(), entry.getValue().value);
         return result;
     }
 
-    public List<K> getByValue(V value) {
+    public synchronized List<K> getByValue(V value) {
         ArrayList<K> keyList = new ArrayList<K>();
-        for (Map.Entry<K, MapValue> entry : map.entrySet())
+        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
             if (entry.getValue().value.equals(value))
                 keyList.add(entry.getKey());
         return keyList;
@@ -168,12 +185,16 @@ public abstract class ReplicatedMap<K, V> {
 
     public void put(K key, V value) throws KeeperException,
             InterruptedException {
-        MapValue oldMv = map.get(key);
-        String path = dir.add(new Path(key, value, 0).encode(false), null,
+        MapValue oldMv;
+        synchronized(this) {
+            oldMv = localMap.get(key);
+            //XXX(jlm,mtoader): Convert this to an asynch directory call.
+            String path = dir.add(new Path(key, value, 0).encode(false), null,
                 CreateMode.EPHEMERAL_SEQUENTIAL);
-        // Get the sequence number added by ZooKeeper.
-        Path p = decodePath(path);
-        map.put(key, new MapValue(value, p.version, true));
+            // Get the sequence number added by ZooKeeper.
+            Path p = decodePath(path);
+            localMap.put(key, new MapValue(value, p.version, true));
+        }
 
         if (null != oldMv && oldMv.owner) {
             try {
@@ -190,20 +211,23 @@ public abstract class ReplicatedMap<K, V> {
             notifyWatchers(key, null, value);
     }
 
-    public boolean isKeyOwner(K key) {
-        MapValue mv = map.get(key);
+    public synchronized boolean isKeyOwner(K key) {
+        MapValue mv = localMap.get(key);
         if (null == mv)
             return false;
         return mv.owner;
     }
 
     public V removeIfOwner(K key) throws KeeperException, InterruptedException {
-        MapValue mv = map.get(key);
-        if (null == mv)
-            return null;
-        if (!mv.owner)
-            return null;
-        map.remove(key);
+        MapValue mv;
+        synchronized(this) {
+            mv = localMap.get(key);
+            if (null == mv)
+                return null;
+            if (!mv.owner)
+                return null;
+            localMap.remove(key);
+        }
         notifyWatchers(key, mv.value, null);
         dir.delete(encodePath(key, mv.value, mv.version));
         return mv.value;
@@ -273,8 +297,8 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
-    public boolean containsValue(V address) {
-        for (Map.Entry<K, MapValue> entry : map.entrySet())
+    public synchronized boolean containsValue(V address) {
+        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
             if (entry.getValue().value.equals(address))
                 return true;
 
