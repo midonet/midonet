@@ -204,14 +204,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         @Override
         public void get(final MAC mac, final Callback1<UUID> cb,
                         final Long expirationTime) {
-            //XXX: expire the get at expirationTime
-            reactorLoop.submit(new Runnable() {
-                @Override
-                public void run() {
-                    cb.call(map.get(mac));
-                }
-            });
-            log.info("Got mac {}", mac);
+            cb.call(map.get(mac));
         }
 
         @Override

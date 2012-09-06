@@ -198,13 +198,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public void get(final IntIPv4 ipAddr,
                         final Callback1<ArpCacheEntry> cb,
                         final Long expirationTime) {
-            reactorLoop.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    //XXX: Have ArpTable::get take the expiry.
-                    cb.call(arpTable.get(ipAddr));
-                }});
+            cb.call(arpTable.get(ipAddr));
         }
 
         @Override

@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedMap<K, V> {
 
-    private final static Logger log = LoggerFactory.getLogger(ReplicatedMap.class);
+    private final static Logger log =
+         LoggerFactory.getLogger(ReplicatedMap.class);
 
     /*
      * TODO(pino): don't allow deletes to be lost.
@@ -41,13 +42,13 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private static class Notification<K1, V1> {
-            K1 key;
-            V1 oldValue, newValue;
-            Notification(K1 k, V1 v1, V1 v2) {
-                key = k;
-                oldValue = v1;
-                newValue = v2;
-            }
+        K1 key;
+        V1 oldValue, newValue;
+        Notification(K1 k, V1 v1, V1 v2) {
+            key = k;
+            oldValue = v1;
+            newValue = v2;
+        }
     }
 
     private class DirectoryWatcher implements Runnable {
@@ -67,45 +68,50 @@ public abstract class ReplicatedMap<K, V> {
             }
             List<String> cleanupPaths = new LinkedList<String>();
             Set<K> curKeys = new HashSet<K>();
-            Set<Notification<K,V>> notifications = new HashSet<Notification<K,V>>();   
+            Set<Notification<K,V>> notifications =
+                    new HashSet<Notification<K,V>>();
             synchronized(ReplicatedMap.this) {
-              for (String path : curPaths) {
-                Path p = decodePath(path);
-                curKeys.add(p.key);
-                MapValue mv = localMap.get(p.key);
-                /*
-                 * TODO(pino): if(null == mv || mv.version < p.version) This way
-                 * of determining the winning value is flawed: if the controller
-                 * that writes the most recent value fails some maps may never
-                 * see it. They will be inconsistent with maps that saw the most
-                 * recent value. The fix is to choose the winning value based on
-                 * the highest version in ZK. Only use the most recent version
-                 * this map remembers in order to decide whether to notify our
-                 * watchers.
-                 */
-                if (null == mv || mv.version < p.version) {
-                    localMap.put(p.key, new MapValue(p.value, p.version, false));
-                    if (null == mv) {
-                        notifications.add(
+                for (String path : curPaths) {
+                    Path p = decodePath(path);
+                    curKeys.add(p.key);
+                    MapValue mv = localMap.get(p.key);
+                    /*
+                     * TODO(pino): if (null == mv || mv.version < p.version):
+                     * This way of determining the winning value is flawed: if
+                     * the controller that writes the most recent value
+                     * fails some maps may never see it. They will be
+                     * inconsistent with maps that saw the most recent
+                     * value. The fix is to choose the winning value
+                     * based on the highest version in ZK. Only use the
+                     * most recent version this map remembers in order to
+                     * decide whether to notify our watchers.
+                     */
+                    if (null == mv || mv.version < p.version) {
+                        localMap.put(p.key,
+                                     new MapValue(p.value, p.version, false));
+                        if (null == mv) {
+                            notifications.add(
                                 new Notification<K,V>(p.key, null, p.value));
-                    } else {
-                        // Remember my obsolete paths and clean them up later.
-                        if (mv.owner)
-                            cleanupPaths.add(encodePath(p.key, mv.value,
+                        } else {
+                            // Remember my obsolete paths and clean them up
+                            // later.
+                            if (mv.owner)
+                                cleanupPaths.add(encodePath(p.key, mv.value,
                                     mv.version));
-                        notifications.add(
-                                new Notification<K,V>(p.key, mv.value, p.value));
+                            notifications.add(new Notification<K,V>(
+                                        p.key, mv.value, p.value));
+                        }
                     }
                 }
-              }
-              Set<K> allKeys = new HashSet<K>(localMap.keySet());
-              allKeys.removeAll(curKeys);
-              // The remaining keys must have been deleted by someone else.
-              for (K key : allKeys) {
-                MapValue mv = localMap.remove(key);
-                if (null != mv.value)
-                    notifications.add(new Notification<K,V>(key, mv.value, null));
-              }
+                Set<K> allKeys = new HashSet<K>(localMap.keySet());
+                allKeys.removeAll(curKeys);
+                // The remaining keys must have been deleted by someone else.
+                for (K key : allKeys) {
+                    MapValue mv = localMap.remove(key);
+                    if (null != mv.value)
+                        notifications.add(
+                                new Notification<K,V>(key, mv.value, null));
+                }
             }
             for (Notification<K,V> notice : notifications)
                 notifyWatchers(notice.key, notice.oldValue, notice.newValue);
@@ -313,5 +319,4 @@ public abstract class ReplicatedMap<K, V> {
     protected abstract String encodeValue(V value);
 
     protected abstract V decodeValue(String str);
-
 }
