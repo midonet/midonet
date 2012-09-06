@@ -1,6 +1,4 @@
-/*
- * Copyright 2012 Midokura Pte. Ltd.
- */
+// Copyright 2012 Midokura Inc.
 
 package com.midokura.sdn.flows;
 
