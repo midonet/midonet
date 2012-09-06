@@ -78,7 +78,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (nwDst == inPortIP) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
             if (isIcmpEchoRequest(ingressMatch)) {
-                // XXX TODO(pino): sendIcmpEchoReply(ingress, rtrPortCfg)
+                sendIcmpEchoReply(ingressMatch, packet, rtrPortCfg, expiry)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
                 return Promise.successful(new DropAction)(ec)
@@ -135,8 +135,12 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
         val outPortIP = new IntIPv4(outPortCfg.portAddr)
         if (nwDst == outPortIP) {
-            // Drop.  TODO(jlm,pino): Should we check for ICMP echos?
-            return Promise.successful(new DropAction)(ec)
+            if (isIcmpEchoRequest(ingressMatch)) {
+                sendIcmpEchoReply(ingressMatch, packet, rtrPortCfg, expiry)
+                return Promise.successful(new ConsumedAction)(ec)
+            } else {
+                return Promise.successful(new DropAction)(ec)
+            }
         }
         var matchOut: WildcardMatch = null // ingressMatch.clone
         // Set HWSrc
@@ -183,6 +187,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
     }
 
     private def getRouterPortConfig(portID: UUID): RouterPortConfig = {
+        /* guillermo: log the error here.
+        if // not found
+            log.error("Can't find the configuration for the egress port {}",
+                rt.nextHopPort)
+        */
         null //XXX
     }
 
@@ -222,8 +231,29 @@ class Router(val id: UUID, val cfg: RouterConfig,
             (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
     }
 
-    private def sendIcmpEchoReply(rtrPortCfg: RouterPortConfig) {
-        //XXX
+    private def sendIcmpEchoReply(ingressMatch: WildcardMatch, packet: Ethernet,
+                    rtrPortCfg: RouterPortConfig, expiry: Long)
+                    (implicit ec: ExecutionContext, actorSystem: ActorSystem) {
+        val echo = packet.getPayload match {
+            case ip: IPv4 =>
+                ip.getPayload match {
+                    case icmp: ICMP => icmp
+                    case _ => null
+                }
+            case _ => null
+        }
+        if (echo == null)
+            return
+
+        val reply = new ICMP()
+        reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
+        val ip = new IPv4()
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
+        ip.setDestinationAddress(ingressMatch.getNetworkSource)
+        ip.setSourceAddress(ingressMatch.getNetworkDestination)
+        ip.setPayload(reply)
+
+        sendIPPacket(ip, expiry)
     }
 
     private def getPeerMac(rtrPortCfg: LogicalRouterPortConfig): MAC = {
@@ -257,6 +287,110 @@ class Router(val id: UUID, val cfg: RouterConfig,
             case _ => /* Fall through */
         }
         return Some(arpTable.get(nwAddr, expiry, ec))
+    }
+
+    /**
+     * Given a route and a destination address, return the MAC address of
+     * the next hop (or the destination's if it's a link-local destination)
+     *
+     * The process() method below could use this with some tweaks to the return
+     * value so it can decide what action to take.
+     *
+     * @param rt Route that the packet will be sent through
+     * @param ipv4Dest Final destination of the packet to be sent
+     * @param expiry
+     * @param ec
+     * @return
+     */
+    private def getNextHopMAC(rt: Route, ipv4Dest: Int, expiry: Long)
+                 (implicit ec: ExecutionContext): Option[Future[MAC]] = {
+        val outPortCfg = getRouterPortConfig(rt.nextHopPort)
+        if (outPortCfg == null)
+            return None
+
+        outPortCfg match {
+            case logCfg: LogicalRouterPortConfig =>
+                if (logCfg.peerId == null) {
+                    log.warn("Packet sent to dangling logical port {}",
+                        rt.nextHopPort)
+                    return None
+                }
+                val peerMac = getPeerMac(logCfg)
+                if (peerMac != null) {
+                    return Some(Promise.successful(peerMac)(ec))
+                }
+            case _ => /* Fall through to ARP'ing below. */
+        }
+
+        var nextHopIP: Int = rt.nextHopGateway
+        if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
+            nextHopIP = ipv4Dest
+        }
+
+        getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec)
+    }
+
+    /**
+     * Send a locally generated IP packet
+     *
+     * CAVEAT: this method may block, so it is suitable only for use in
+     * the context of processing packets that result in a CONSUMED action.
+     * 
+     * XXX (pino, guillermo): should we add the ability to queue simulation of
+     * this device starting at a specific step? In this case it would be the
+     * routing step.
+     * 
+     * The logic here is roughly the same as that found in process() except:
+     *      + the ingress and prerouting steps are skipped. We do:
+     *          - forwarding
+     *          - post routing (empty right now)
+     *          - emit new packet
+     *      + drop actions in process() are an empty return here (we just don't
+     *        emit the packet)
+     *      + no wildcard match cloning or updating.
+     *      + it does not return an action but, instead sends it emits the
+     *        packet for simulation if successful.
+     */
+    def sendIPPacket(packet: IPv4, expiry: Long)
+                    (implicit ec: ExecutionContext, actorSystem: ActorSystem) {
+        // XXX: use a temporary match, we could also add a lookup(src,dst)
+        // flavor of lookup()
+        val ipMatch = (new WildcardMatch()).
+                setNetworkDestination(packet.getDestinationAddress).
+                setNetworkSource(packet.getSourceAddress)
+
+        val rt: Route = loadBalancer.lookup(ipMatch)
+        if (rt == null || rt.nextHop != Route.NextHop.PORT)
+            return
+        if (rt.nextHopPort == null)
+            return
+
+        // XXX: Apply post-routing (egress) chain.
+
+        val outPortCfg = getRouterPortConfig(rt.nextHopPort)
+        if (outPortCfg == null)
+            return
+        val outPortIP = new IntIPv4(outPortCfg.portAddr)
+        if (packet.getDestinationAddress == outPortIP.addressAsInt) {
+            /* should never happen: it means we are trying to send a packet to
+             * ourselves, probably means that somebody sent an ip packet with
+             * source and dest addresses belonging to this router.
+             */
+            return
+        }
+
+        val eth = (new Ethernet()).setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(packet)
+        eth.setDestinationMACAddress(outPortCfg.getHwAddr)
+
+        getNextHopMAC(rt, ipMatch.getNetworkDestination, expiry) match {
+            case Some(macFuture) if macFuture() != null =>
+                eth.setDestinationMACAddress(macFuture())
+                SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+                    rt.nextHopPort, eth)
+            case _ =>
+                log.error("Failed to fetch MAC address to emit local packet")
+        }
     }
 
     /**
