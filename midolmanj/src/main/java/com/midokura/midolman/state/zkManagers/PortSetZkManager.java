@@ -50,7 +50,8 @@ public class PortSetZkManager extends ZkManager {
             ), watcher);
     }
 
-    public void addMemberAsync(UUID portSetId, UUID memberId, DirectoryCallback.Add cb) {
+    public void addMemberAsync(UUID portSetId, UUID memberId,
+                               DirectoryCallback.Add cb) {
 
         String portSetPath =
             pathManager.getPortSetEntryPath(portSetId, memberId);
@@ -58,7 +59,8 @@ public class PortSetZkManager extends ZkManager {
         zk.asyncAdd(portSetPath, null, CreateMode.EPHEMERAL, cb);
     }
 
-    public void delMemberAsync(UUID portSetId, UUID entryId, DirectoryCallback.Void callback) {
+    public void delMemberAsync(UUID portSetId, UUID entryId,
+                               DirectoryCallback.Void callback) {
         String portSetPath = pathManager.getPortSetEntryPath(portSetId,
                                                              entryId);
         zk.asyncDelete(portSetPath, callback);

@@ -3,33 +3,36 @@
 */
 package com.midokura.midolman.topology
 
-import java.util.UUID
+import akka.actor.{Actor, ActorContext, ActorRef}
+import akka.dispatch.Promise
 import akka.event.Logging
-import com.google.inject.Inject
-import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
-import com.midokura.midonet.cluster.{DataClient, Client}
-import collection.{immutable, mutable}
-import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
-import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost, IpsecTunnelZoneHost, GreTunnelZoneHost, GreTunnelZone}
-import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
-import com.midokura.midolman.services.{HostIdProviderService, MidolmanActorsService}
-import akka.actor.{ActorContext, ActorRef, Actor}
-import com.midokura.midolman.Referenceable
-import java.{lang, util}
-import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
-import rcu.Host
-import rcu.RCUDeviceManager.Start
-import scala.collection.JavaConversions._
 import akka.pattern.{ask, pipe}
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import akka.dispatch.{Promise}
-import com.midokura.midolman.state.DirectoryCallback
-import com.midokura.midolman.state.DirectoryCallback.Result
-import org.apache.zookeeper.KeeperException
-import actors.threadpool.TimeoutException
 import akka.util.duration._
 import akka.util.Timeout
-import com.midokura.midonet.cluster.client.Port
+import scala.collection.JavaConversions._
+import scala.collection.{immutable, mutable}
+import java.{lang, util}
+import java.util.UUID
+import java.util.concurrent.TimeoutException
+
+import com.google.inject.Inject
+import org.apache.zookeeper.KeeperException
+
+import com.midokura.midolman.Referenceable
+import com.midokura.midolman.services.{HostIdProviderService,
+                                       MidolmanActorsService}
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.topology.rcu.Host
+import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
+import com.midokura.midolman.state.DirectoryCallback
+import com.midokura.midolman.state.DirectoryCallback.Result
+import com.midokura.midonet.cluster.{Client, DataClient}
+import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
+import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
+import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
+import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost, 
+                GreTunnelZone, GreTunnelZoneHost, IpsecTunnelZoneHost}
 
 
 object HostConfigOperation extends Enumeration {
@@ -256,15 +259,18 @@ class VirtualToPhysicalMapper extends Actor {
             ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
                 localActivePortSets.get(port.deviceID) match {
                     case Some(_) =>
-                        Promise.successful(_PortSetMembershipUpdated(vifId, port.deviceID, state = true))
+                        Promise.successful(_PortSetMembershipUpdated(
+                                vifId, port.deviceID, state = true))
 
                     case None =>
                         val future = Promise[String]()
                         clusterDataClient.portSetsAsyncAddHost(
                             port.deviceID, hostIdProvider.getHostId,
-                            new PromisingDirectoryCallback[String](future) with DirectoryCallback.Add
-                        )
-                        future map { _ => _PortSetMembershipUpdated(vifId, port.deviceID, state = true) }
+                            new PromisingDirectoryCallback[String](future) 
+                                        with DirectoryCallback.Add)
+                        future map { 
+                            _ => _PortSetMembershipUpdated(
+                                          vifId, port.deviceID, state = true) }
                 }
             } pipeTo self
 
@@ -278,16 +284,19 @@ class VirtualToPhysicalMapper extends Actor {
             ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
                 localActivePortSets.get(port.deviceID) match {
                     case Some(ports) if ports.contains(vifId) =>
-                        if ( ports.size > 1 ) {
-                            Promise.successful(_PortSetMembershipUpdated(vifId, port.deviceID, state = false))
+                        if (ports.size > 1) {
+                            Promise.successful(_PortSetMembershipUpdated(
+                                vifId, port.deviceID, state = false))
                         } else {
                             val future = Promise[Void]()
                             clusterDataClient.portSetsAsyncDelHost(
                                 port.deviceID, hostIdProvider.getHostId,
-                                new PromisingDirectoryCallback[Void](future) with DirectoryCallback.Void
-                            )
+                                new PromisingDirectoryCallback[Void](future) 
+                                        with DirectoryCallback.Void)
 
-                            future map { _ => _PortSetMembershipUpdated(vifId, port.deviceID, state = false) }
+                            future map { 
+                                _ => _PortSetMembershipUpdated(
+                                        vifId, port.deviceID, state = false) }
                         }
                     case None =>
                         Promise.successful(null).mapTo[_PortSetMembershipUpdated]
@@ -426,7 +435,8 @@ class VirtualToPhysicalMapper extends Actor {
 }
 
 object PromisingDirectoryCallback {
-    def apply[T](promise: Promise[T]) = new PromisingDirectoryCallback[T](promise)
+    def apply[T](promise: Promise[T]) = 
+                new PromisingDirectoryCallback[T](promise)
 }
 
 class PromisingDirectoryCallback[T](val promise:Promise[T]) extends DirectoryCallback[T] {

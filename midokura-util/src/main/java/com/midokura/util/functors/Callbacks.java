@@ -24,8 +24,7 @@ import com.midokura.util.functors.callbacks.AdaptingCallback;
  */
 public class Callbacks {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(Callbacks.class);
+    private static final Logger log = LoggerFactory.getLogger(Callbacks.class);
 
     /**
      * It will get a target callback and a transformation from a source and it
@@ -40,12 +39,9 @@ public class Callbacks {
      *
      * @return a callback instance that can accept source types
      */
-    public static <
-        From, To,
-        E extends Exception
-        >
-    Callback<From, E> transform(@Nonnull final Callback<To, E> callback,
-                                @Nonnull final Functor<From, To> functor) {
+    public static <From, To, E extends Exception> Callback<From, E> 
+        transform(@Nonnull final Callback<To, E> callback,
+                  @Nonnull final Functor<From, To> functor) {
         return new AdaptingCallback<From, To, E>(callback, functor);
     }
 

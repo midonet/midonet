@@ -1469,12 +1469,14 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portSetsAsyncAddHost(UUID portSetId, UUID hostId, DirectoryCallback.Add callback) {
+    public void portSetsAsyncAddHost(UUID portSetId, UUID hostId,
+                                     DirectoryCallback.Add callback) {
         portSetZkManager.addMemberAsync(portSetId, hostId, callback);
     }
 
     @Override
-    public void portSetsAsyncDelHost(UUID portSetId, UUID hostId, DirectoryCallback.Void callback) {
+    public void portSetsAsyncDelHost(UUID portSetId, UUID hostId,
+                                     DirectoryCallback.Void callback) {
         portSetZkManager.delMemberAsync(portSetId, hostId, callback);
     }
 
