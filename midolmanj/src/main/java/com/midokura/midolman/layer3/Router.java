@@ -301,15 +301,9 @@ public class Router implements ForwardingElement {
             // TODO(pino): discuss with Jacob. If another controller is trying
             // TODO:       the ARP at the same time, why not detect it by
             // TODO:       reading the arpTable and checking for null MAC?
-            try {
-                arpTable.put(intNwAddr,
+            arpTable.put(intNwAddr,
                     new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
                                       now + ARP_RETRY_MILLIS, now));
-            } catch (KeeperException e) {
-                log.error("KeeperException adding ARP table entry", e);
-            } catch (InterruptedException e) {
-                log.error("InterruptedException adding ARP table entry", e);
-            }
             // Schedule ARP retry and expiration.
             reactor.schedule(new ArpRetry(nwAddr, portId, rtrPortConfig),
                     ARP_RETRY_MILLIS, TimeUnit.MILLISECONDS);
@@ -710,13 +704,7 @@ public class Router implements ForwardingElement {
         ArpCacheEntry entry = new ArpCacheEntry(sha, now
                 + ARP_EXPIRATION_MILLIS, now + ARP_STALE_MILLIS, 0);
         log.debug("Adding ARP cache entry for {} on port {}", spa, inPortId);
-        try {
-            arpTable.put(spa, entry);
-        } catch (KeeperException e) {
-            log.error("KeeperException storing ARP table entry", e);
-        } catch (InterruptedException e) {
-            log.error("InterruptedException storing ARP table entry", e);
-        }
+        arpTable.put(spa, entry);
         reactor.schedule(new ArpExpiration(spa.getAddress(), inPortId),
                 ARP_EXPIRATION_MILLIS, TimeUnit.MILLISECONDS);
         Map<Integer, List<Callback1<MAC>>> cbLists =
@@ -863,19 +851,13 @@ public class Router implements ForwardingElement {
         // Now send it from the port.
         log.debug("generateArpRequest: sending {}", pkt);
         controller.addGeneratedPacket(pkt, portId);
-        try {
-            ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
-            long now = reactor.currentTimeMillis();
-            if (null != entry) {
-                // Modifying an uncloned entry confuses Directory.
-                entry = entry.clone();
-                entry.lastArp = now;
-                arpTable.put(new IntIPv4(nwAddr), entry);
-            }
-        } catch (KeeperException e) {
-            log.error("Got KeeperException trying to update lastArp", e);
-        } catch (InterruptedException e) {
-            log.error("Got InterruptedException trying to update lastArp", e);
+        ArpCacheEntry entry = arpTable.get(new IntIPv4(nwAddr));
+        long now = reactor.currentTimeMillis();
+        if (null != entry) {
+            // Modifying an uncloned entry confuses Directory.
+            entry = entry.clone();
+            entry.lastArp = now;
+            arpTable.put(new IntIPv4(nwAddr), entry);
         }
     }
 

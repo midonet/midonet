@@ -532,15 +532,7 @@ public class Bridge implements ForwardingElement {
         // We need to write to the MacPortMap if the mac wasn't mapped or the
         // mapping needs to change, or if we're not the owner of the map entry.
         if (writeMacPortMap || !macPortMap.isKeyOwner(macAddr)) {
-            try {
-                macPortMap.put(macAddr, portUuid);
-            } catch (KeeperException e) {
-                log.error("ZooKeeper threw exception {}", e);
-                // TODO: What should we do about this?
-            } catch (InterruptedException e) {
-                log.error("MacPortMap threw InterruptedException {}", e);
-                // TODO: What should we do about this?
-            }
+            macPortMap.put(macAddr, portUuid);
         }
     }
 

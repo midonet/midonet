@@ -223,13 +223,7 @@ public abstract class AbstractController implements Controller {
                   new Object[]{num, name, addr, uuid});
         portNumToUuid.put(num, uuid);
         portUuidToNumberMap.put(uuid, num);
-        try {
-            portLocMap.put(uuid, publicIp);
-        } catch (KeeperException e) {
-            log.warn("callAddPort", e);
-        } catch (InterruptedException e) {
-            log.warn("callAddPort", e);
-        }
+        portLocMap.put(uuid, publicIp);
         addVirtualPort(num, name, addr, uuid);
     }
 
