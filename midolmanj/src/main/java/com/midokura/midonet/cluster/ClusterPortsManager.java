@@ -28,11 +28,16 @@ import com.midokura.util.functors.Callback1;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
-    @Inject
     PortConfigCache portConfigCache;
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
+
+    @Inject
+    public ClusterPortsManager(PortConfigCache configCache) {
+        portConfigCache = configCache;
+        configCache.addWatcher(getPortsWatcher());
+    }
 
     @Override
     public Runnable getConfig(final UUID id) {
@@ -41,39 +46,49 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             @Override
             public void run() {
                 PortConfig config = portConfigCache.get(id);
-                Port port = null;
-                if (config instanceof PortDirectory.LogicalBridgePortConfig) {
+                Port<?> port = null;
 
-                    port =  new InteriorBridgePort();
+                if (config instanceof PortDirectory.LogicalBridgePortConfig) {
+                    InteriorBridgePort interiorBridgePort =  new InteriorBridgePort();
                     PortDirectory.LogicalBridgePortConfig cfg =
                         (PortDirectory.LogicalBridgePortConfig) config;
-                    setPortFields(port, cfg, id);
 
-                    setInternalPortFields((InteriorBridgePort)port, cfg);
+                    setPortFields(interiorBridgePort, cfg, id);
+                    setInternalPortFields(interiorBridgePort, cfg);
 
+                    port = interiorBridgePort;
                 }
                 else if (config instanceof PortDirectory.LogicalRouterPortConfig){
-                    port = new InteriorRouterPort();
+                    InteriorRouterPort interiorRouterPort = new InteriorRouterPort();
                     PortDirectory.LogicalRouterPortConfig cfg =
                         (PortDirectory.LogicalRouterPortConfig) config;
-                    setPortFields(port, cfg, id);
-                    setInternalPortFields((InteriorRouterPort)port,cfg);
-                    setRouterPortFields((InteriorRouterPort)port,cfg);
+
+                    setPortFields(interiorRouterPort, cfg, id);
+                    setInternalPortFields(interiorRouterPort,cfg);
+                    setRouterPortFields(interiorRouterPort,cfg);
+
+                    port = interiorRouterPort;
                 }
                 else if (config instanceof PortDirectory.MaterializedBridgePortConfig){
-                    port = new ExteriorBridgePort();
+                    ExteriorBridgePort exteriorBridgePort = new ExteriorBridgePort();
                     PortDirectory.MaterializedBridgePortConfig cfg =
                         (PortDirectory.MaterializedBridgePortConfig) config;
-                    setPortFields(port, cfg, id);
-                    setExteriorPortFieldsBridge((ExteriorBridgePort)port, cfg);
+
+                    setPortFields(exteriorBridgePort, cfg, id);
+                    setExteriorPortFieldsBridge(exteriorBridgePort, cfg);
+
+                    port = exteriorBridgePort;
                 }
                 else if (config instanceof PortDirectory.MaterializedRouterPortConfig){
-                    port = new ExteriorRouterPort();
+                    ExteriorRouterPort exteriorRouterPort = new ExteriorRouterPort();
                     PortDirectory.MaterializedRouterPortConfig cfg =
                         (PortDirectory.MaterializedRouterPortConfig) config;
-                    setPortFields(port, cfg, id);
-                    setExteriorPortFieldsRouter((ExteriorRouterPort)port,cfg);
-                    setRouterPortFields((ExteriorRouterPort)port, cfg);
+
+                    setPortFields(exteriorRouterPort, cfg, id);
+                    setExteriorPortFieldsRouter(exteriorRouterPort,cfg);
+                    setRouterPortFields(exteriorRouterPort, cfg);
+
+                    port = exteriorRouterPort;
                 }
 
                 PortBuilder builder = getBuilder(id);
@@ -88,10 +103,13 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     }
 
     void setExteriorPortFieldsRouter(ExteriorPort port, PortDirectory.MaterializedRouterPortConfig cfg){
-        
+
         port.setHostID(cfg.getHostId());
         port.setInterfaceName(cfg.getInterfaceName());
-        port.setPortGroups(cfg.portGroupIDs);
+        if (cfg.portGroupIDs != null) {
+            port.setPortGroups(cfg.portGroupIDs);
+        } else {
+        }
         port.setTunnelKey(cfg.greKey);
     }
 
@@ -99,10 +117,12 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
         port.setHostID(cfg.getHostId());
         port.setInterfaceName(cfg.getInterfaceName());
-        port.setPortGroups(cfg.portGroupIDs);
+        if (cfg.portGroupIDs != null) {
+            port.setPortGroups(cfg.portGroupIDs);
+        }
         port.setTunnelKey(cfg.greKey);
     }
-    
+
     void setPortFields(Port port, PortConfig cfg, UUID id){
         port.setDeviceID(cfg.device_id);
         port.setInFilter(cfg.inboundFilter);
@@ -110,7 +130,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         port.setProperties(cfg.properties);
         port.setID(id);
     }
-    
+
     void setRouterPortFields(RouterPort port, PortDirectory.RouterPortConfig cfg){
         port.setPortAddr(IntIPv4.fromString(cfg.getPortAddr()));
         port.setPortMac(cfg.getHwAddr());

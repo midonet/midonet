@@ -84,8 +84,7 @@ public class DataClusterClientModule extends PrivateModule {
                 .in(Singleton.class);
 
         bind(ClusterPortsManager.class)
-                .toProvider(ClusterPortsManagerProvider.class)
-                .in(Singleton.class);
+                    .in(Singleton.class);
 
         bind(PortConfigCache.class)
                 .toProvider(PortConfigCacheProvider.class)
@@ -167,26 +166,6 @@ public class DataClusterClientModule extends PrivateModule {
                         "Could not create zkManager of class: "
                                 + managerClass, e);
             }
-        }
-    }
-
-    private static class ClusterPortsManagerProvider
-            implements Provider<ClusterPortsManager> {
-        @Inject
-        PortZkManager portMgr;
-
-        @Inject
-        PortConfigCache portConfigCache;
-
-        @Inject
-        PortGroupZkManager portZkManager;
-
-
-        @Override
-        public ClusterPortsManager get() {
-            ClusterPortsManager instance = new ClusterPortsManager();
-            portConfigCache.addWatcher(instance.getPortsWatcher());
-            return instance;
         }
     }
 
