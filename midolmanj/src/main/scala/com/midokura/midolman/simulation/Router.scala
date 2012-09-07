@@ -60,8 +60,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (ingressMatch.getEtherType == ARP.ETHERTYPE &&
                     ingressMatch.getNetworkProtocol == ARP.OP_REQUEST) {
-                processArpRequest(packet.getPayload.asInstanceOf[ARP],
-                                  ingressMatch.getInputPortUUID, inPort)
+                processArpRequest(packet.getPayload.asInstanceOf[ARP], inPort)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
                 return Promise.successful(new DropAction)(ec)
@@ -176,9 +175,39 @@ class Router(val id: UUID, val cfg: RouterConfig,
         null //XXX
     }
 
-    private def processArpRequest(pkt: ARP, portID: UUID,
-                                  rtrPortCfg: RouterPort[_]) {
-        //XXX
+    private def processArpRequest(pkt: ARP, inPort: RouterPort[_])
+                                 (implicit ec: ExecutionContext,
+                                  actorSystem: ActorSystem) {
+        if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
+            return
+        val tpa = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
+        if (tpa != inPort.portAddr.addressAsInt())
+            return
+        // TODO - spoofL2Network check ... discuss.
+
+        val arp = new ARP()
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+        arp.setProtocolType(ARP.PROTO_TYPE_IP)
+        arp.setHardwareAddressLength(6)
+        arp.setProtocolAddressLength(4)
+        arp.setOpCode(ARP.OP_REPLY)
+        arp.setSenderHardwareAddress(inPort.portMac)
+        arp.setSenderProtocolAddress(pkt.getTargetProtocolAddress)
+        arp.setTargetHardwareAddress(pkt.getSenderHardwareAddress)
+        arp.setTargetProtocolAddress(pkt.getSenderProtocolAddress)
+        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+
+        log.debug("replying to ARP request from {} for {} with own mac {}",
+            Array[Object] (IPv4.fromIPv4Address(spa),
+                IPv4.fromIPv4Address(tpa), inPort.portMac))
+
+        val eth = new Ethernet()
+        eth.setPayload(arp)
+        eth.setSourceMACAddress(inPort.portMac)
+        eth.setDestinationMACAddress(pkt.getSenderHardwareAddress)
+        eth.setEtherType(ARP.ETHERTYPE)
+        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+            inPort.id, eth)
     }
 
     private def processArpReply(pkt: ARP, portID: UUID,
@@ -514,8 +543,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
      */
      def sendIcmpError(ingressMatch: WildcardMatch, packet: Ethernet,
                        icmpType: Char, icmpCode: Any)
-                        (implicit ec: ExecutionContext,
-                         actorSystem: ActorSystem)  {
+                      (implicit ec: ExecutionContext,
+                       actorSystem: ActorSystem) {
         // Check whether the original packet is allowed to trigger ICMP.
         // TODO(pino, abel): do we need the packet as seen by the ingress to
         // this router?
