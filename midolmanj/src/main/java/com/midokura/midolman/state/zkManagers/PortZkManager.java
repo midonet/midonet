@@ -574,19 +574,6 @@ public class PortZkManager extends ZkManager {
         }
     }
 
-    public void link(UUID localPortId,
-            PortDirectory.LogicalRouterPortConfig localPort, UUID peerPortId,
-            PortDirectory.LogicalRouterPortConfig peerPort)
-            throws StateAccessException {
-
-        localPort.setPeerId(peerPortId);
-        peerPort.setPeerId(localPortId);
-
-        List<Op> ops = prepareUpdate(localPortId, localPort);
-        ops.addAll(prepareUpdate(peerPortId, peerPort));
-        multi(ops);
-    }
-
     public Set<UUID> listPortIDs(String path, Runnable watcher)
             throws StateAccessException {
         Set<UUID> result = new HashSet<UUID>();

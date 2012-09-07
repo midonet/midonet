@@ -293,7 +293,7 @@ public class TestVRNController {
                         null, null, null);
         UUID portOn0to1 = portMgr.create(logPortConfig1);
         UUID portOn1to0 = portMgr.create(logPortConfig2);
-        portMgr.link(portOn0to1, logPortConfig1, portOn1to0, logPortConfig2);
+        portMgr.link(portOn0to1, portOn1to0);
 
         rt = new Route(0, 0, 0x0a010000, 16, NextHop.PORT, portOn0to1,
                 0xc0a80102, 2, null, routerIds.get(0));
@@ -314,7 +314,7 @@ public class TestVRNController {
 
         portOn0to2 = portMgr.create(logPortConfig1);
         portOn2to0 = portMgr.create(logPortConfig2);
-        portMgr.link(portOn0to2, logPortConfig1, portOn2to0, logPortConfig2);
+        portMgr.link(portOn0to2, portOn2to0);
 
         RouterPortConfig pcfg = portMgr.get(portOn0to2, RouterPortConfig.class);
         rtr0to2LogPortMAC = pcfg.hwAddr;
