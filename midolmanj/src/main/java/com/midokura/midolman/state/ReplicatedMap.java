@@ -68,38 +68,45 @@ public abstract class ReplicatedMap<K, V> {
                 Thread.currentThread().interrupt();
             }
             List<String> cleanupPaths = new LinkedList<String>();
-            Set<K> curKeys = new HashSet<K>();
             Set<Notification<K,V>> notifications =
                     new HashSet<Notification<K,V>>();
+            Map<K,MapValue> newMap = new HashMap<K,MapValue>();
+            // Build newMap from curPaths, using only the highest versioned
+            // entry for each key.
+            for (String path : curPaths) {
+                Path p = decodePath(path);
+                MapValue mv = newMap.get(p.key);
+                if (mv == null || mv.version < p.version)
+                    newMap.put(p.key, new MapValue(p.value, p.version));
+            }
             synchronized(ReplicatedMap.this) {
-                for (String path : curPaths) {
-                    Path p = decodePath(path);
-                    curKeys.add(p.key);
-                    MapValue mv = localMap.get(p.key);
-                    localMap.put(p.key, new MapValue(p.value, p.version));
-                    if (null == mv) {
-                        notifications.add(
-                                new Notification<K,V>(p.key, null, p.value));
-                    } else {
+                Set<K> oldKeys = new HashSet<K>(localMap.keySet());
+                oldKeys.removeAll(newMap.keySet());
+                for (K deletedKey : oldKeys) {
+                    MapValue mv = localMap.get(deletedKey);
+                    notifications.add(new Notification<K,V>(
+                                                deletedKey, mv.value, null));
+                }
+                for (Map.Entry<K, MapValue> entry : newMap.entrySet()) {
+                    K key = entry.getKey();
+                    V value = entry.getValue().value;
+                    MapValue mv = localMap.get(key);
+                    if (mv == null) {
                         notifications.add(new Notification<K,V>(
-                                                p.key, mv.value, p.value));
+                                            key, null, value));
+                    } else if (!mv.value.equals(value)) {
+                        notifications.add(new Notification<K,V>(
+                                            key, mv.value, value));
                         // Remember my obsolete paths and clean them up later.
                         if (ownedVersions.contains(mv.version)) {
-                            cleanupPaths.add(encodePath(p.key, mv.value,
+                            cleanupPaths.add(encodePath(key, mv.value,
                                                         mv.version));
                         }
-                    }
+                    } // else mv.value == entry.value:  No notification.
                 }
-                Set<K> allKeys = new HashSet<K>(localMap.keySet());
-                allKeys.removeAll(curKeys);
-                // The remaining keys must have been deleted by someone else.
-                for (K key : allKeys) {
-                    MapValue mv = localMap.remove(key);
-                    if (null != mv.value)
-                        notifications.add(
-                                new Notification<K,V>(key, mv.value, null));
-                }
+                localMap = newMap;
             }
+
             for (Notification<K,V> notice : notifications)
                 notifyWatchers(notice.key, notice.oldValue, notice.newValue);
             // Now clean up any of my paths that have been obsoleted.
