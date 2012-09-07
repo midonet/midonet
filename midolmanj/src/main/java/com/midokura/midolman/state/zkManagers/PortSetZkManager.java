@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
-import com.midokura.midolman.state.DirectoryCallbacks;
+import com.midokura.midolman.state.DirectoryCallbackFactory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.util.functors.CollectionFunctors;
@@ -31,13 +31,14 @@ public class PortSetZkManager extends ZkManager {
     }
 
     public void getPortSetAsync(UUID portSetId,
-                                final DirectoryCallback<Set<UUID>> portSetContentsCallback,
+                                final DirectoryCallback<Set<UUID>>
+                                        portSetContentsCallback,
                                 Directory.TypedWatcher watcher) {
         String portSetPath = pathManager.getPortSetPath(portSetId);
 
         zk.asyncGetChildren(
             portSetPath,
-            DirectoryCallbacks.transform(
+            DirectoryCallbackFactory.transform(
                 portSetContentsCallback,
                 new Functor<Set<String>, Set<UUID>>() {
                     @Override

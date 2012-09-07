@@ -172,8 +172,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                       new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
         }
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
-        // Trigger the update, this method was called by a watcher,
-        // because something changed in the LogicalPortMap, so deliver the new maps.
+        // Trigger the update, this method was called by a watcher, because
+        // something changed in the LogicalPortMap, so deliver the new maps.
         if(isUpdate)
             builder.build();
 
@@ -243,7 +243,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         }
 
-
+        // This notify() registers its callback directly with the underlying
+        // MacPortMap map, so the callbacks are called from MacPortMap context
+        // and should perform ActorRef::tell or such to switch to the context
+        // appropriate for the callback's work.
         @Override
         public void notify(final Callback3<MAC, UUID, UUID> cb) {
             reactorLoop.submit(new Runnable() {
