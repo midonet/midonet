@@ -12,12 +12,12 @@ import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortSetMap;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
 
@@ -98,7 +98,6 @@ public class BridgeZkManager extends ZkManager {
         }
     }
 
-    private PortSetMap portSetMap;
     private FiltersZkManager filterZkManager;
     private GreZkManager greZkManager;
     private PortZkManager portZkManager;
@@ -115,7 +114,6 @@ public class BridgeZkManager extends ZkManager {
     public BridgeZkManager(Directory zk, String basePath)
             throws StateAccessException {
         super(zk, basePath);
-        this.portSetMap = new PortSetMap(zk, basePath);
         this.filterZkManager = new FiltersZkManager(zk, basePath);
         this.greZkManager = new GreZkManager(zk, basePath);
         this.portZkManager = new PortZkManager(zk, basePath);
@@ -163,7 +161,8 @@ public class BridgeZkManager extends ZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add a port-set for this bridge
-        ops.add(portSetMap.preparePortSetCreate(id));
+        ops.add(Op.create(pathManager.getPortSetPath(id),
+                          null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the bridge.
         GreZkManager.GreKey gre = new GreZkManager.GreKey(id);
