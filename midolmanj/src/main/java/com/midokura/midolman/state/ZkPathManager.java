@@ -265,7 +265,20 @@ public class ZkPathManager {
     }
 
     private StringBuilder buildPortSetPath(UUID id) {
-        return new StringBuilder(getPortSetsPath()).append("/").append(id);
+        return buildPortSetsPath().append("/").append(id);
+    }
+
+    /**
+     * Get ZK port sets path.
+     *
+     * @return /port_sets/id
+     */
+    public String getPortSetEntryPath(UUID id, UUID hostId) {
+        return buildPortSetHostPath(id, hostId).toString();
+    }
+
+    private StringBuilder buildPortSetHostPath(UUID id, UUID hostId) {
+        return buildPortSetPath(id).append("/").append(hostId);
     }
 
     /**

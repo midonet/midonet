@@ -52,6 +52,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         val me =
             new Host(hostId())
                 .setName("myself").setTunnelZones(Set(greZone.getId))
+
         val myGreConfig = new GreTunnelZoneHost(me.getId)
             .setIp(IntIPv4.fromString("192.168.100.1"))
         clusterDataClient().hostsCreate(me.getId, me)

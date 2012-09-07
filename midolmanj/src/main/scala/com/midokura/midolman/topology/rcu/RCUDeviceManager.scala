@@ -5,7 +5,6 @@ package com.midokura.midolman.topology.rcu
 
 import akka.actor.{ActorRef, Actor}
 import akka.event.Logging
-import javax.inject.Inject
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import java.util.UUID

@@ -6,20 +6,31 @@ package com.midokura.midolman.topology
 import java.util.UUID
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midonet.cluster.client.{TunnelZones, HostBuilder}
-import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
+import com.midokura.midonet.cluster.{DataClient, Client}
 import collection.{immutable, mutable}
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost, IpsecTunnelZoneHost, GreTunnelZoneHost, GreTunnelZone}
 import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
-import com.midokura.midolman.services.MidolmanActorsService
+import com.midokura.midolman.services.{HostIdProviderService, MidolmanActorsService}
 import akka.actor.{ActorContext, ActorRef, Actor}
 import com.midokura.midolman.Referenceable
-import java.util
+import java.{lang, util}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
 import rcu.Host
 import rcu.RCUDeviceManager.Start
 import scala.collection.JavaConversions._
+import akka.pattern.{ask, pipe}
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import akka.dispatch.{Promise}
+import com.midokura.midolman.state.DirectoryCallback
+import com.midokura.midolman.state.DirectoryCallback.Result
+import org.apache.zookeeper.KeeperException
+import actors.threadpool.TimeoutException
+import akka.util.duration._
+import akka.util.Timeout
+import com.midokura.midonet.cluster.client.Port
+
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -183,7 +194,13 @@ class VirtualToPhysicalMapper extends Actor {
     val clusterClient: Client = null
 
     @Inject
+    val clusterDataClient: DataClient = null
+
+    @Inject
     val actorsService: MidolmanActorsService = null
+
+    @Inject
+    val hostIdProvider: HostIdProviderService = null
 
     //
     private val localPortsActors = mutable.Map[UUID, ActorRef]()
@@ -202,6 +219,9 @@ class VirtualToPhysicalMapper extends Actor {
 
     private lazy val tunnelZones: DeviceHandlersManager[TunnelZone[_, _], TunnelZoneManager] =
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
+
+    private lazy val localActivePorts = mutable.Set[UUID]()
+    private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
 
     protected def receive = {
 
@@ -225,6 +245,70 @@ class VirtualToPhysicalMapper extends Actor {
 
         case zoneChanged: ZoneChanged[_] =>
             tunnelZones.notifySubscribers(zoneChanged.zone, zoneChanged)
+
+        case LocalPortActive(vifId, true) =>
+            val vtaRef = VirtualTopologyActor.getRef()
+            val portReq = PortRequest(vifId, update = false)
+
+            implicit val timeout = Timeout(200 milliseconds)
+            implicit val ex = context.dispatcher
+
+            ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                localActivePortSets.get(port.deviceID) match {
+                    case Some(_) =>
+                        Promise.successful(_PortSetMembershipUpdated(vifId, port.deviceID, state = true))
+
+                    case None =>
+                        val future = Promise[String]()
+                        clusterDataClient.portSetsAsyncAddHost(
+                            port.deviceID, hostIdProvider.getHostId,
+                            new PromisingDirectoryCallback[String](future) with DirectoryCallback.Add
+                        )
+                        future map { _ => _PortSetMembershipUpdated(vifId, port.deviceID, state = true) }
+                }
+            } pipeTo self
+
+        case LocalPortActive(vifId, false) =>
+            val vtaRef = VirtualTopologyActor.getRef()
+            val portReq = PortRequest(vifId, update = false)
+
+            implicit val timeout = Timeout(200 milliseconds)
+            implicit val ex = context.dispatcher
+
+            ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                localActivePortSets.get(port.deviceID) match {
+                    case Some(ports) if ports.contains(vifId) =>
+                        if ( ports.size > 1 ) {
+                            Promise.successful(_PortSetMembershipUpdated(vifId, port.deviceID, state = false))
+                        } else {
+                            val future = Promise[Void]()
+                            clusterDataClient.portSetsAsyncDelHost(
+                                port.deviceID, hostIdProvider.getHostId,
+                                new PromisingDirectoryCallback[Void](future) with DirectoryCallback.Void
+                            )
+
+                            future map { _ => _PortSetMembershipUpdated(vifId, port.deviceID, state = false) }
+                        }
+                    case None =>
+                        Promise.successful(null).mapTo[_PortSetMembershipUpdated]
+                }
+            } pipeTo self
+
+        case _PortSetMembershipUpdated(vifId, portSetId, true) =>
+            localActivePorts.add(vifId)
+            localActivePortSets.get(portSetId) match {
+                case Some(ports) => ports.add(vifId)
+                case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
+            }
+            context.system.eventStream.publish(LocalPortActive(vifId, active = true))
+
+        case _PortSetMembershipUpdated(vifId, portSetId, false) =>
+            localActivePorts.remove(vifId)
+            localActivePortSets.get(portSetId) match {
+                case Some(ports) => ports.remove(vifId)
+                case None =>
+            }
+            context.system.eventStream.publish(LocalPortActive(vifId, active = false))
 
         case LocalDatapathRequest(host) =>
             localPortsActors.put(host, sender)
@@ -338,5 +422,25 @@ class VirtualToPhysicalMapper extends Actor {
 
     private case class ExpectingPorts() extends ExpectingState
 
+    private case class _PortSetMembershipUpdated(vif: UUID, setId: UUID, state: Boolean)
+}
+
+object PromisingDirectoryCallback {
+    def apply[T](promise: Promise[T]) = new PromisingDirectoryCallback[T](promise)
+}
+
+class PromisingDirectoryCallback[T](val promise:Promise[T]) extends DirectoryCallback[T] {
+
+    def onSuccess(data: Result[T]) {
+        promise.success(data.getData)
+    }
+
+    def onTimeout() {
+        promise.failure(new TimeoutException())
+    }
+
+    def onError(e: KeeperException) {
+        promise.failure(e)
+    }
 }
 

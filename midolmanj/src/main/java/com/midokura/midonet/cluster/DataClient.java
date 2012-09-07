@@ -3,9 +3,26 @@
 */
 package com.midokura.midonet.cluster;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.annotation.Nonnull;
+
+import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midonet.cluster.data.*;
+import com.midokura.midonet.cluster.data.AdRoute;
+import com.midokura.midonet.cluster.data.BGP;
+import com.midokura.midonet.cluster.data.Bridge;
+import com.midokura.midonet.cluster.data.Chain;
+import com.midokura.midonet.cluster.data.Port;
+import com.midokura.midonet.cluster.data.PortGroup;
+import com.midokura.midonet.cluster.data.Route;
+import com.midokura.midonet.cluster.data.Router;
+import com.midokura.midonet.cluster.data.Rule;
+import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.midonet.cluster.data.VPN;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -13,12 +30,6 @@ import com.midokura.midonet.cluster.data.host.Interface;
 import com.midokura.midonet.cluster.data.host.VirtualPortMapping;
 import com.midokura.packets.IntIPv4;
 import com.midokura.util.functors.Callback2;
-
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public interface DataClient {
 
@@ -182,14 +193,13 @@ public interface DataClient {
          throws StateAccessException;
 
     void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
-            throws StateAccessException;
+        throws StateAccessException;
 
     void hostsAddDatapathMapping(UUID hostId, String datapathName)
             throws StateAccessException;
 
-    void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
+    void hostsDelVrnPortMapping(UUID hostId, UUID portId)
             throws StateAccessException;
-
 
     /* Metrics related methods */
     Map<String, Long> metricsGetTSPoints(String type, String targetIdentifier,
@@ -280,7 +290,7 @@ public interface DataClient {
 
     void rulesDelete(UUID id) throws StateAccessException;
 
-    UUID rulesCreate(@Nonnull Rule<?, ?> rule) 
+    UUID rulesCreate(@Nonnull Rule<?, ?> rule)
             throws StateAccessException, RuleIndexOutOfBoundsException;
 
     List<Rule<?, ?>> rulesFindByChain(UUID chainId) throws StateAccessException;
@@ -294,4 +304,11 @@ public interface DataClient {
     UUID vpnCreate(@Nonnull VPN vpn) throws StateAccessException;
 
     List<VPN> vpnFindByPort(UUID portId) throws StateAccessException;
+
+    /* PortSet related methods */
+    void portSetsAsyncAddHost(UUID portSetId, UUID hostId, DirectoryCallback.Add callback);
+
+    void portSetsAsyncDelHost(UUID portSetId, UUID hostId, DirectoryCallback.Void callback);
+
+    Set<UUID> portSetsGet(UUID portSet) throws StateAccessException;
 }

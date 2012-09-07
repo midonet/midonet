@@ -7,12 +7,13 @@ import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.{Flow => KernelFlow}
 import collection.JavaConversions._
 import datapath.ErrorHandlingCallback
-import flows.{FlowActions, FlowKeys, FlowAction}
+import flows.{FlowActionUserspace, FlowActions, FlowKeys, FlowAction}
 import ports._
 import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
 import services.HostIdProviderService
 import topology.rcu.{PortSet, Host}
-import topology.{ZoneChanged, HostConfigOperation, VirtualToPhysicalMapper}
+import topology.VirtualTopologyActor.PortRequest
+import topology.{VirtualTopologyActor, ZoneChanged, HostConfigOperation, VirtualToPhysicalMapper}
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.google.inject.Inject
 import akka.event.Logging
@@ -682,7 +683,6 @@ class DatapathController() extends Actor {
 
         datapathConnection.packetsExecute(datapath, packet, new ErrorHandlingCallback[lang.Boolean] {
             def onSuccess(data: lang.Boolean) {
-
             }
 
             def handleError(ex: NetlinkException, timeout: Boolean) {}
@@ -710,6 +710,13 @@ class DatapathController() extends Actor {
             action match {
                 case vrnPortAction: FlowActionVrnPortOutput =>
                     translatedActions.add(FlowActions.output(10))
+
+                case sendToUserSpace: FlowActionUserspace =>
+                    val upCallPid = datapathConnection.getChannel.getLocalAddress.getPid
+
+                    sendToUserSpace.setUplinkPid(upCallPid)
+                    translatedActions.add(sendToUserSpace)
+
                 case value =>
                     translatedActions.add(value)
             }
@@ -725,7 +732,7 @@ class DatapathController() extends Actor {
 
         opReply match {
             case TunnelGreOpReply(p, PortOperation.Create, false, null,
-            Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
+                    Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
 
                 peerPorts.get(hConf.getId) match {
                     case Some(tunnels) => tunnels.put(zone, p.getName)
@@ -734,7 +741,7 @@ class DatapathController() extends Actor {
                 }
 
             case TunnelGreOpReply(p, PortOperation.Delete, false, null,
-            Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
+                    Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
 
                 peerPorts.get(hConf.getId) match {
                     case Some(zoneTunnelMap) =>
@@ -746,8 +753,21 @@ class DatapathController() extends Actor {
                     case None =>
                 }
 
+            case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
+                log.info("Mapping created: {} -> {}", vifId, p.getPortNo)
+                localToVifPorts.put(p.getPortNo.shortValue(), vifId)
 
-            //            case PortNetdevOpReply(_,_,_,_,_) =>
+                VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
+
+            case PortNetdevOpReply(p, PortOperation.Delete, false, null, None) =>
+                localToVifPorts.get(p.getPortNo.shortValue()) match {
+                    case None =>
+                    case Some(vif) =>
+                        log.info("Mapping removed: {} -> {}", vif, p.getPortNo)
+                        localToVifPorts.remove(p.getPortNo.shortValue())
+                        VirtualToPhysicalMapper.getRef() ! LocalPortActive(vif, active = false)
+                }
+
             //            case PortInternalOpReply(_,_,_,_,_) =>
             //            case TunnelCapwapOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
@@ -788,7 +808,7 @@ class DatapathController() extends Actor {
             vifPorts.put(vifId, tapName)
             newTaps.add(tapName)
             if (!localPorts.contains(tapName)) {
-                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), None))
+                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
             }
         }
 
@@ -827,12 +847,6 @@ class DatapathController() extends Actor {
         datapathConnection.portsCreate(datapath, port,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
-                    for ((vifId, tapName) <- vifPorts) {
-                        if (tapName == data.getName) {
-                            log.info("VIF port {} mapped to local port number {}", vifId, data.getPortNo)
-                            localToVifPorts.put(data.getPortNo.shortValue(), vifId)
-                        }
-                    }
                     sendOpReply(caller, data, tag, PortOperation.Create, null, timeout = false)
                 }
 

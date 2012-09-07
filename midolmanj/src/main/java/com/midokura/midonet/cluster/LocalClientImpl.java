@@ -144,7 +144,7 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPortSet(final UUID uuid, final PortSetBuilder builder) {
-        portSetZkManager.asyncGetPortSet(
+        portSetZkManager.getPortSetAsync(
             uuid,
             new DirectoryCallback<Set<UUID>>() {
                 @Override

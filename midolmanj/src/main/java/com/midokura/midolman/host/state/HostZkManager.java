@@ -581,7 +581,7 @@ public class HostZkManager extends ZkManager {
         multi(operations);
     }
 
-    public void removeVirtualPortMapping(UUID hostIdentifier, UUID portId)
+    public void delVirtualPortMapping(UUID hostIdentifier, UUID portId)
         throws StateAccessException {
 
         String virtualMappingPath =

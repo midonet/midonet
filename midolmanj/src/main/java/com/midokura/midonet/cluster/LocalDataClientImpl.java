@@ -3,17 +3,66 @@
 */
 package com.midokura.midonet.cluster;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.zkManagers.*;
+import com.midokura.midolman.state.DirectoryCallback;
+import com.midokura.midolman.state.PathBuilder;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortConfigCache;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
+import com.midokura.midolman.state.zkManagers.BgpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
+import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.zkManagers.ChainZkManager;
+import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
+import com.midokura.midolman.state.zkManagers.PortSetZkManager;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.midolman.state.zkManagers.RouteZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
+import com.midokura.midolman.state.zkManagers.RuleZkManager;
+import com.midokura.midolman.state.zkManagers.TenantZkManager;
+import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
+import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midonet.cluster.client.RouterBuilder;
-import com.midokura.midonet.cluster.data.*;
+import com.midokura.midonet.cluster.data.AdRoute;
 import com.midokura.midonet.cluster.data.BGP;
+import com.midokura.midonet.cluster.data.Bridge;
+import com.midokura.midonet.cluster.data.BridgeName;
+import com.midokura.midonet.cluster.data.Chain;
+import com.midokura.midonet.cluster.data.ChainName;
+import com.midokura.midonet.cluster.data.Converter;
+import com.midokura.midonet.cluster.data.Port;
+import com.midokura.midonet.cluster.data.PortGroup;
+import com.midokura.midonet.cluster.data.PortGroupName;
+import com.midokura.midonet.cluster.data.Route;
+import com.midokura.midonet.cluster.data.Router;
+import com.midokura.midonet.cluster.data.RouterName;
+import com.midokura.midonet.cluster.data.Rule;
+import com.midokura.midonet.cluster.data.TunnelZone;
+import com.midokura.midonet.cluster.data.VPN;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -27,14 +76,6 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
-import org.apache.zookeeper.Op;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.*;
 
 public class LocalDataClientImpl implements DataClient {
 
@@ -83,8 +124,11 @@ public class LocalDataClientImpl implements DataClient {
     @Inject
     private TunnelZoneZkManager zonesZkManager;
 
-    @Inject 
+    @Inject
     private VpnZkManager vpnZkManager;
+
+    @Inject
+    private PortSetZkManager portSetZkManager;
 
     @Inject
     private PathBuilder pathBuilder;
@@ -272,7 +316,7 @@ public class LocalDataClientImpl implements DataClient {
         Bridge oldBridge = bridgesGet(bridge.getId());
 
         BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(
-                bridge);
+            bridge);
 
         // Update the config
         Op op = bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig);
@@ -501,7 +545,7 @@ public class LocalDataClientImpl implements DataClient {
                         // register a watcher
                         port.addListener(new RouterPortListener(builder));
                         for (com.midokura.midolman.layer3.Route rt :
-                                port.getRoutes()) {
+                            port.getRoutes()) {
                             if (active) {
                                 builder.addRoute(rt);
                             } else {
@@ -588,14 +632,14 @@ public class LocalDataClientImpl implements DataClient {
     public void dhcpSubnetsCreate(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
         dhcpZkManager.createSubnet(bridgeId,
-                Converter.toDhcpSubnetConfig(subnet));
+                                   Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
     public void dhcpSubnetsUpdate(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
         dhcpZkManager.updateSubnet(bridgeId,
-                Converter.toDhcpSubnetConfig(subnet));
+                                   Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
@@ -650,7 +694,7 @@ public class LocalDataClientImpl implements DataClient {
             com.midokura.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException {
         dhcpZkManager.updateHost(bridgeId, subnet,
-                Converter.toDhcpHostConfig(host));
+                                 Converter.toDhcpHostConfig(host));
     }
 
     @Override
@@ -1119,7 +1163,7 @@ public class LocalDataClientImpl implements DataClient {
     public void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
             throws StateAccessException {
         hostZkManager.addVirtualPortMapping(
-                hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
+            hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
@@ -1129,9 +1173,9 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void hostsRemoveVrnPortMapping(UUID hostId, UUID portId)
+    public void hostsDelVrnPortMapping(UUID hostId, UUID portId)
             throws StateAccessException {
-        hostZkManager.removeVirtualPortMapping(hostId, portId);
+        hostZkManager.delVirtualPortMapping(hostId, portId);
     }
 
     @Override
@@ -1279,7 +1323,7 @@ public class LocalDataClientImpl implements DataClient {
         Router oldRouter = routersGet(router.getId());
 
         RouterZkManager.RouterConfig routerConfig = Converter.toRouterConfig(
-                router);
+            router);
 
 
         // Update the config
@@ -1422,5 +1466,20 @@ public class LocalDataClientImpl implements DataClient {
             vpns.add(vpnGet(vpnId));
         }
         return vpns;
+    }
+
+    @Override
+    public void portSetsAsyncAddHost(UUID portSetId, UUID hostId, DirectoryCallback.Add callback) {
+        portSetZkManager.addMemberAsync(portSetId, hostId, callback);
+    }
+
+    @Override
+    public void portSetsAsyncDelHost(UUID portSetId, UUID hostId, DirectoryCallback.Void callback) {
+        portSetZkManager.delMemberAsync(portSetId, hostId, callback);
+    }
+
+    @Override
+    public Set<UUID> portSetsGet(UUID portSetId) throws StateAccessException {
+        return portSetZkManager.getPortSet(portSetId, null);
     }
 }
