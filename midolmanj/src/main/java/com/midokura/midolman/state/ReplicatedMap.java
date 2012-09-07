@@ -246,8 +246,9 @@ public abstract class ReplicatedMap<K, V> {
             localMap.remove(key);
             ownedVersions.remove(mv.version);
         }
-        // TODO(pino,jlm): Should the notify not happen until it's bounced
-        // off ZooKeeper, and happen in the DirectoryWatcher?
+        // TODO(pino,jlm): Should the notify and localMap/ownedVersions updates
+        // not happen until it's bounced off ZooKeeper, and happen in the
+        // DirectoryWatcher?  (i.e., make this an asyncDelete)
         notifyWatchers(key, mv.value, null);
         dir.delete(encodePath(key, mv.value, mv.version));
         return mv.value;
