@@ -5,21 +5,23 @@ package com.midokura.midolman.simulation
 
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
-import akka.actor.{ActorRef, Actor}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.state.PortDirectory.{LogicalBridgePortConfig, LogicalRouterPortConfig, MaterializedRouterPortConfig, RouterPortConfig}
-import com.midokura.midolman.topology.{ArpTable, RouterConfig,
-                                       RoutingTableWrapper}
+import com.midokura.midolman.state.PortDirectory.{LogicalRouterPortConfig,
+                MaterializedRouterPortConfig, RouterPortConfig}
+import com.midokura.midolman.topology.{VirtualTopologyActor, ArpTable,
+                RouterConfig, RoutingTableWrapper}
 import com.midokura.midolman.SimulationController
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
 import akka.actor.ActorSystem
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midonet.cluster.client.{RouterPort, Port}
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
@@ -146,44 +148,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
         // Set HWSrc
         matchOut.setEthernetSource(outPortCfg.getHwAddr)
         // Set HWDst
-        outPortCfg match {
-            case logCfg: LogicalRouterPortConfig =>
-                if (logCfg.peerId == null) {
-                    log.warn("Packet forwarded to dangling logical port {}",
-                        rt.nextHopPort)
-                    sendIcmpError(ingressMatch, packet,
-                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
-                    return Promise.successful(new DropAction)(ec)
-                }
-                val peerMac = getPeerMac(logCfg)
-                if (peerMac != null) {
-                    matchOut.setEthernetDestination(peerMac)
-                    return Promise.successful(
-                        ForwardAction(rt.nextHopPort, matchOut))(ec)
-                }
-            // TODO(jlm,pino): Should not having the peerMac be an error?
-            case _ => /* Fall through to ARP'ing below. */
-        }
-        var nextHopIP: Int = rt.nextHopGateway
-        if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
-            nextHopIP = matchOut.getNetworkDestination
-        }
-
-        getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec) match {
-            case None =>
-                // Couldn't get the MAC.  getMacForIP will send any ICPM !H,
-                // so here we just drop.
-                return Promise.successful(new DropAction)(ec)
-            case Some(nextHopMacFuture) => return flow {
-                val nextHopMac = nextHopMacFuture()
-                if (nextHopMac == null)
-                    new DropAction: Action
-                else {
-                    matchOut.setEthernetDestination(nextHopMac)
-                    new ForwardAction(rt.nextHopPort, matchOut): Action
-                }
-            }(ec)
-        }
+        val macFuture = getNextHopMac(rt, matchOut.getNetworkDestination, expiry)
+        flow {
+            val nextHopMac = macFuture()
+            if (nextHopMac == null)
+                new DropAction: Action
+            else {
+                matchOut.setEthernetDestination(nextHopMac)
+                new ForwardAction(rt.nextHopPort, matchOut): Action
+            }
+        }(ec)
     }
 
     private def getRouterPortConfig(portID: UUID): RouterPortConfig = {
@@ -256,17 +230,33 @@ class Router(val id: UUID, val cfg: RouterConfig,
         sendIPPacket(ip, expiry)
     }
 
-    private def getPeerMac(rtrPortCfg: LogicalRouterPortConfig): MAC = {
-        null //XXX
+    private def getPeerMac(rtrPortCfg: LogicalRouterPortConfig, expiry: Long)
+                          (implicit ec: ExecutionContext,
+                           actorSystem: ActorSystem): Future[MAC] = {
+        val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
+        val peerPortFuture = expiringAsk(virtualTopologyManager,
+                PortRequest(rtrPortCfg.peerId(), false),
+                expiry).mapTo[Port[_]]
+        flow {
+            if (peerPortFuture() == null) {
+                log.error("getPeerMac: cannot get port from VTM")
+                null
+            } else {
+                peerPortFuture() match {
+                    case rp: RouterPort[_] => rp.portMac
+                    case _ => null
+                }
+            }
+        }
     }
 
     private def getMacForIP(portID: UUID, nextHopIP: Int, expiry: Long,
-                            ec: ExecutionContext): Option[Future[MAC]] = {
+                            ec: ExecutionContext): Future[MAC] = {
         val nwAddr = new IntIPv4(nextHopIP)
         val rtrPortConfig = getRouterPortConfig(portID)
         if (rtrPortConfig == null) {
             log.error("cannot get configuration for port {}", portID)
-            return None
+            return Promise.successful(null)(ec)
         }
         rtrPortConfig match {
             case mPortConfig: MaterializedRouterPortConfig =>
@@ -282,19 +272,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
                         Array[Object](nwAddr, portID,
                             mPortConfig.localNwAddr.toString,
                             mPortConfig.localNwLength.toString))
-                    return None
+                    return Promise.successful(null)(ec)
                 }
             case _ => /* Fall through */
         }
-        return Some(arpTable.get(nwAddr, expiry, ec))
+        return arpTable.get(nwAddr, expiry, ec)
     }
 
     /**
      * Given a route and a destination address, return the MAC address of
      * the next hop (or the destination's if it's a link-local destination)
-     *
-     * The process() method below could use this with some tweaks to the return
-     * value so it can decide what action to take.
      *
      * @param rt Route that the packet will be sent through
      * @param ipv4Dest Final destination of the packet to be sent
@@ -302,24 +289,29 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * @param ec
      * @return
      */
-    private def getNextHopMAC(rt: Route, ipv4Dest: Int, expiry: Long)
-                 (implicit ec: ExecutionContext): Option[Future[MAC]] = {
+    private def getNextHopMac(rt: Route, ipv4Dest: Int, expiry: Long)
+                 (implicit ec: ExecutionContext,
+                  actorSystem: ActorSystem): Future[MAC] = {
         val outPortCfg = getRouterPortConfig(rt.nextHopPort)
         if (outPortCfg == null)
-            return None
+            return Promise.successful(null)(ec)
 
+        var peerMacFuture: Future[MAC] = null
         outPortCfg match {
             case logCfg: LogicalRouterPortConfig =>
                 if (logCfg.peerId == null) {
                     log.warn("Packet sent to dangling logical port {}",
                         rt.nextHopPort)
-                    return None
+                    // here lies the difference between both call paths,
+                    // one sends an ICMP, the other does not.
+                    // add a locallyGenerated: Boolean flag??
+                    //sendIcmpError(ingressMatch, packet,
+                    //   ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+                    return Promise.successful(null)(ec)
                 }
-                val peerMac = getPeerMac(logCfg)
-                if (peerMac != null) {
-                    return Some(Promise.successful(peerMac)(ec))
-                }
+                peerMacFuture = getPeerMac(logCfg, expiry)
             case _ => /* Fall through to ARP'ing below. */
+                peerMacFuture = Promise.successful(null)(ec)
         }
 
         var nextHopIP: Int = rt.nextHopGateway
@@ -327,7 +319,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
             nextHopIP = ipv4Dest
         }
 
-        getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec)
+        flow {
+            var nextMac = peerMacFuture()
+            if (nextMac == null)
+                getMacForIP(rt.nextHopPort, nextHopIP, expiry, ec)()
+            else
+                nextMac
+        }(ec)
     }
 
     /**
@@ -383,19 +381,14 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setPayload(packet)
         eth.setDestinationMACAddress(outPortCfg.getHwAddr)
 
-        getNextHopMAC(rt, ipMatch.getNetworkDestination, expiry) match {
-            case Some(macFuture) if macFuture != null =>
-                macFuture onSuccess {
-                    case null =>
-                        log.error(
-                            "Failed to fetch MAC address to emit local packet")
-                    case mac =>
-                        eth.setDestinationMACAddress(mac)
-                        SimulationController.getRef(actorSystem).tell(
-                            EmitGeneratedPacket(rt.nextHopPort, eth))
-                }
-            case _ =>
+        val macFuture = getNextHopMac(rt, ipMatch.getNetworkDestination, expiry)
+        macFuture onSuccess {
+            case null =>
                 log.error("Failed to fetch MAC address to emit local packet")
+            case mac =>
+                eth.setDestinationMACAddress(mac)
+                SimulationController.getRef(actorSystem).tell(
+                    EmitGeneratedPacket(rt.nextHopPort, eth))
         }
     }
 
