@@ -56,6 +56,7 @@ public class HostModule extends PrivateModule {
         bind(HostIdProviderService.class)
             .to(HostService.class)
             .in(Singleton.class);
+        expose(HostIdProviderService.class);
 
         bind(HostService.class)
             .in(Singleton.class);
