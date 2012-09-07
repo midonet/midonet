@@ -4,14 +4,16 @@
 
 package com.midokura.midolman.topology.builders
 
-import com.midokura.midonet.cluster.client.{SourceNatResource, MacLearningTable, ForwardingElementBuilder, BridgeBuilder}
+import akka.actor.{ActorContext, ActorRef}
+import scala.collection.mutable.Map
 import java.util.{UUID}
+
+import com.midokura.midolman.FlowController
+import com.midokura.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
+import com.midokura.midonet.cluster.client.{BridgeBuilder,
+        ForwardingElementBuilder, MacLearningTable, SourceNatResource}
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback3
-import com.midokura.midolman.FlowController
-import scala.collection.mutable.Map
-import akka.actor.{ActorContext, ActorRef}
-import com.midokura.midolman.topology.{FlowTagger, BridgeManager, BridgeConfig}
 
 
 /**
@@ -83,14 +85,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         def call(mac: MAC, oldPort: UUID, newPort: UUID) {
 
             //1. MAC was deleted
-            if(newPort == null && oldPort != null){
+            if (newPort == null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateAllMACFlowsTag(id, mac))
+                    FlowTagger.invalidateAllMACFlowsTag(id, mac))
             }
             //2. MAC moved from port-x to port-y
-            if(newPort != null && oldPort != null){
+            if (newPort != null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateAllMacPortFlows(id, mac, oldPort))
+                    FlowTagger.invalidateAllMacPortFlows(id, mac, oldPort))
             }
             //3. MAC was added -> do nothing
 
@@ -108,7 +110,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // invalidate the flood flows in both cases (active/not active)
         flowController ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateBroadCastFlows(id))
-        
+
         if (!active) {
             flowController ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateAllMACFlowsTag(id, mac)

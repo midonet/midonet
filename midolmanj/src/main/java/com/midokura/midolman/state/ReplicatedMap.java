@@ -189,32 +189,40 @@ public abstract class ReplicatedMap<K, V> {
         return keyList;
     }
 
-    public void put(K key, V value) throws KeeperException,
-            InterruptedException {
-        MapValue oldMv;
-        synchronized(this) {
-            oldMv = localMap.get(key);
-            //XXX(jlm,mtoader): Convert this to an asynch directory call.
-            String path = dir.add(new Path(key, value, 0).encode(false), null,
-                CreateMode.EPHEMERAL_SEQUENTIAL);
-            // Get the sequence number added by ZooKeeper.
-            Path p = decodePath(path);
-            localMap.put(key, new MapValue(value, p.version, true));
+    private class PutCallback implements DirectoryCallback.Add {
+        private K key;
+        private V value;
+ 
+        PutCallback(K k, V v) {
+            key = k;
+            value = v;
         }
 
-        if (null != oldMv && oldMv.owner) {
-            try {
-                dir.delete(encodePath(key, oldMv.value, oldMv.version));
-            } catch (KeeperException.NoNodeException e) {
-                // Ignore this exception. The watcher may already have been
-                // triggered and it cleaned up this old node.
+        public void onSuccess(Result<String> result) {
+            // Get the sequence number added by ZooKeeper.
+            Path p = decodePath(result.getData());
+            synchronized(ReplicatedMap.this) {
+                localMap.put(key, new MapValue(value, p.version, true));
             }
         }
-        if (null != oldMv) {
-            if (!value.equals(oldMv.value))
-                notifyWatchers(key, oldMv.value, value);
-        } else if (value != null)
-            notifyWatchers(key, null, value);
+
+        public void onError(KeeperException ex) {
+            log.error("ReplicatedMap Put {} => {} failed: {}",
+                      new Object[] { key, value, ex });
+        }
+
+        public void onTimeout() {
+            log.error("ReplicatedMap Put {} => {} timed out.", key, value);
+        }
+    }
+
+    public void put(final K key, final V value) {
+        dir.asyncAdd(new Path(key, value, 0).encode(false), null,
+                     CreateMode.EPHEMERAL_SEQUENTIAL,
+                     new PutCallback(key, value));
+
+        // Our notifies for this change are called from the update
+        // notification to the DirectoryWatcher after ZK has accepted it.
     }
 
     public synchronized boolean isKeyOwner(K key) {

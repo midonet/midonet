@@ -17,7 +17,8 @@ public interface Directory {
     String add(String relativePath, byte[] data, CreateMode mode)
             throws KeeperException, InterruptedException;
 
-    void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback.Add cb);
+    void asyncAdd(String relativePath, byte[] data, CreateMode mode,
+                  DirectoryCallback.Add cb);
 
     void update(String relativePath, byte[] data) throws KeeperException,
             InterruptedException;
@@ -25,13 +26,15 @@ public interface Directory {
     byte[] get(String relativePath, Runnable watcher) throws KeeperException,
             InterruptedException;
 
-    void asyncGet(String relativePath, DirectoryCallback<byte[]> data, TypedWatcher watcher);
+    void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
+                  TypedWatcher watcher);
 
     Set<String> getChildren(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException;
 
     void asyncGetChildren(String relativePath,
-                          DirectoryCallback<Set<String>> childrenCallback, TypedWatcher watcher);
+                          DirectoryCallback<Set<String>> childrenCallback,
+                          TypedWatcher watcher);
 
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
@@ -50,13 +53,9 @@ public interface Directory {
 
     public interface TypedWatcher extends Runnable {
         void pathDeleted(String path);
-
         void pathCreated(String path);
-
         void pathChildrenUpdated(String path);
-
         void pathDataChanged(String path);
-
         void pathNoChange(String path);
     }
 
