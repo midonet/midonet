@@ -192,7 +192,7 @@ public abstract class ReplicatedMap<K, V> {
     private class PutCallback implements DirectoryCallback.Add {
         private K key;
         private V value;
-        
+ 
         PutCallback(K k, V v) {
             key = k;
             value = v;
@@ -202,12 +202,12 @@ public abstract class ReplicatedMap<K, V> {
             // Get the sequence number added by ZooKeeper.
             Path p = decodePath(result.getData());
             synchronized(ReplicatedMap.this) {
-                localMap.put(key, new MapValue(value, p.version, true)); 
+                localMap.put(key, new MapValue(value, p.version, true));
             }
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap Put {} => {} failed: {}", 
+            log.error("ReplicatedMap Put {} => {} failed: {}",
                       new Object[] { key, value, ex });
         }
 
@@ -221,7 +221,7 @@ public abstract class ReplicatedMap<K, V> {
                      CreateMode.EPHEMERAL_SEQUENTIAL,
                      new PutCallback(key, value));
 
-        // Our notifies for this change are called from the update 
+        // Our notifies for this change are called from the update
         // notification to the DirectoryWatcher after ZK has accepted it.
     }
 

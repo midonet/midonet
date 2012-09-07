@@ -31,7 +31,7 @@ import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
 import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
-import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost, 
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
                 GreTunnelZone, GreTunnelZoneHost, IpsecTunnelZoneHost}
 
 
@@ -266,9 +266,9 @@ class VirtualToPhysicalMapper extends Actor {
                         val future = Promise[String]()
                         clusterDataClient.portSetsAsyncAddHost(
                             port.deviceID, hostIdProvider.getHostId,
-                            new PromisingDirectoryCallback[String](future) 
+                            new PromisingDirectoryCallback[String](future)
                                         with DirectoryCallback.Add)
-                        future map { 
+                        future map {
                             _ => _PortSetMembershipUpdated(
                                           vifId, port.deviceID, state = true) }
                 }
@@ -291,10 +291,10 @@ class VirtualToPhysicalMapper extends Actor {
                             val future = Promise[Void]()
                             clusterDataClient.portSetsAsyncDelHost(
                                 port.deviceID, hostIdProvider.getHostId,
-                                new PromisingDirectoryCallback[Void](future) 
+                                new PromisingDirectoryCallback[Void](future)
                                         with DirectoryCallback.Void)
 
-                            future map { 
+                            future map {
                                 _ => _PortSetMembershipUpdated(
                                         vifId, port.deviceID, state = false) }
                         }
@@ -435,7 +435,7 @@ class VirtualToPhysicalMapper extends Actor {
 }
 
 object PromisingDirectoryCallback {
-    def apply[T](promise: Promise[T]) = 
+    def apply[T](promise: Promise[T]) =
                 new PromisingDirectoryCallback[T](promise)
 }
 
