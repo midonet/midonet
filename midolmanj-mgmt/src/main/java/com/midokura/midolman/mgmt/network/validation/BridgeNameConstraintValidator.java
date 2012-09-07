@@ -32,7 +32,7 @@ public class BridgeNameConstraintValidator implements
 
         // Guard against a DTO that cannot be validated
         String tenantId = value.getTenantId();
-        if (tenantId == null && value.getId() == null) {
+        if (tenantId == null || value.getName() == null) {
             throw new IllegalArgumentException("Invalid Bridge passed in.");
         }
 
@@ -40,18 +40,6 @@ public class BridgeNameConstraintValidator implements
         context.buildConstraintViolationWithTemplate(
                 MessageProperty.IS_UNIQUE_BRIDGE_NAME).addNode("name")
                 .addConstraintViolation();
-
-        // For updates, the tenant ID is not given, so get it
-        if (value.getId() != null) {
-            try {
-                com.midokura.midonet.cluster.data.Bridge bridge =
-                        dataClient.bridgesGet(value.getId());
-                tenantId = bridge.getProperty(Property.tenant_id);
-            } catch (StateAccessException e) {
-                throw new RuntimeException(
-                        "State access exception occurred in validation");
-            }
-        }
 
         com.midokura.midonet.cluster.data.Bridge bridge = null;
         try {

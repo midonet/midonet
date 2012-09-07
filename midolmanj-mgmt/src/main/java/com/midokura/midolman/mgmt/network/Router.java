@@ -31,7 +31,7 @@ public class Router extends UriResource {
     @NotNull(groups = RouterUpdateGroup.class)
     private UUID id;
 
-    @NotNull(groups = RouterCreateGroup.class)
+    @NotNull
     private String tenantId;
 
     @NotNull

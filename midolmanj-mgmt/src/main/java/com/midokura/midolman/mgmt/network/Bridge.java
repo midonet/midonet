@@ -31,7 +31,7 @@ public class Bridge extends UriResource {
     @NotNull(groups = BridgeUpdateGroup.class)
     private UUID id;
 
-    @NotNull(groups = BridgeCreateGroup.class)
+    @NotNull
     private String tenantId;
 
     @NotNull

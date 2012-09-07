@@ -174,7 +174,6 @@ public class TestBridge {
         public TestCreateBridgeBadRequest(DtoBridge bridge, String property) {
             super(FuncTest.appDesc);
             this.bridge = bridge;
-            this.bridge.setTenantId("tenant1");
             this.property = property;
         }
 
@@ -205,11 +204,13 @@ public class TestBridge {
 
             // Null name
             DtoBridge nullNameBridge = new DtoBridge();
+            nullNameBridge.setTenantId("tenant1");
             params.add(new Object[] { nullNameBridge, "name" });
 
             // Blank name
             DtoBridge blankNameBridge = new DtoBridge();
             blankNameBridge.setName("");
+            blankNameBridge.setTenantId("tenant1");
             params.add(new Object[] { blankNameBridge, "name" });
 
             // Long name
@@ -218,13 +219,20 @@ public class TestBridge {
                 longName.append("a");
             }
             DtoBridge longNameBridge = new DtoBridge();
-            blankNameBridge.setName(longName.toString());
+            longNameBridge.setName(longName.toString());
+            longNameBridge.setTenantId("tenant1");
             params.add(new Object[] { longNameBridge, "name" });
 
             // Bridge name already exists
             DtoBridge dupNameBridge = new DtoBridge();
             dupNameBridge.setName("bridge1-name");
+            dupNameBridge.setTenantId("tenant1");
             params.add(new Object[] { dupNameBridge, "name" });
+
+            // Bridge with tenantID missing
+            DtoBridge noTenant = new DtoBridge();
+            noTenant.setName("noTenant-bridge-name");
+            params.add(new Object[] { noTenant, "tenantId" });
 
             return params;
         }
@@ -253,7 +261,6 @@ public class TestBridge {
                                           String property) {
             super(FuncTest.appDesc);
             this.testBridge = testBridge;
-            this.testBridge.setTenantId("tenant1");
             this.property = property;
         }
 
@@ -290,11 +297,13 @@ public class TestBridge {
 
             // Null name
             DtoBridge nullNameBridge = new DtoBridge();
+            nullNameBridge.setTenantId("tenant1");
             params.add(new Object[] { nullNameBridge, "name" });
 
             // Blank name
             DtoBridge blankNameBridge = new DtoBridge();
             blankNameBridge.setName("");
+            blankNameBridge.setTenantId("tenant1");
             params.add(new Object[] { blankNameBridge, "name" });
 
             // Long name
@@ -303,13 +312,20 @@ public class TestBridge {
                 longName.append("a");
             }
             DtoBridge longNameBridge = new DtoBridge();
-            blankNameBridge.setName(longName.toString());
+            longNameBridge.setName(longName.toString());
+            longNameBridge.setTenantId("tenant1");
             params.add(new Object[] { longNameBridge, "name" });
 
             // Bridge name already exists
             DtoBridge dupNameBridge = new DtoBridge();
             dupNameBridge.setName("bridge2-name");
+            dupNameBridge.setTenantId("tenant1");
             params.add(new Object[] { dupNameBridge, "name" });
+
+            // Bridge with tenantID missing
+            DtoBridge noTenant = new DtoBridge();
+            noTenant.setName("noTenant-bridge-name");
+            params.add(new Object[] { noTenant, "tenantId" });
 
             return params;
         }

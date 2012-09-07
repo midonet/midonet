@@ -31,7 +31,7 @@ public class ChainNameConstraintValidator implements
 
         // Guard against a DTO that cannot be validated
         String tenantId = value.getTenantId();
-        if (tenantId == null && value.getId() == null) {
+        if (tenantId == null || value.getName() == null) {
             throw new IllegalArgumentException("Invalid Chain passed in.");
         }
 

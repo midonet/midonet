@@ -4,14 +4,14 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoError;
-import com.midokura.midonet.client.dto.DtoRouter;
-import com.midokura.midonet.client.dto.DtoRuleChain;
 import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.rest_api.Topology;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoError;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoRuleChain;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -156,7 +156,6 @@ public class TestRouter {
         public TestCreateRouterBadRequest(DtoRouter router, String property) {
             super(FuncTest.appDesc);
             this.router = router;
-            this.router.setTenantId("tenant1-id");
             this.property = property;
         }
 
@@ -187,11 +186,13 @@ public class TestRouter {
 
             // Null name
             DtoRouter nullNameRouter = new DtoRouter();
+            nullNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { nullNameRouter, "name" });
 
             // Blank name
             DtoRouter blankNameRouter = new DtoRouter();
             blankNameRouter.setName("");
+            blankNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { blankNameRouter, "name" });
 
             // Long name
@@ -202,12 +203,19 @@ public class TestRouter {
             }
             DtoRouter longNameRouter = new DtoRouter();
             longNameRouter.setName(longName.toString());
+            longNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { longNameRouter, "name" });
 
             // Router name already exists
             DtoRouter dupNameRouter = new DtoRouter();
             dupNameRouter.setName("router1-name");
-            params.add(new Object[] { dupNameRouter, "name" });
+            dupNameRouter.setTenantId("tenant1-id");
+            params.add(new Object[]{dupNameRouter, "name"});
+
+            // Router with tenantID missing
+            DtoRouter noTenant = new DtoRouter();
+            noTenant.setName("noTenant-router-name");
+            params.add(new Object[] { noTenant, "tenantId" });
 
             return params;
         }
@@ -234,7 +242,6 @@ public class TestRouter {
         public TestUpdateRouterBadRequest(DtoRouter testRouter, String property) {
             super(FuncTest.appDesc);
             this.testRouter = testRouter;
-            this.testRouter.setTenantId("tenant1-id");
             this.property = property;
         }
 
@@ -271,11 +278,13 @@ public class TestRouter {
 
             // Null name
             DtoRouter nullNameRouter = new DtoRouter();
+            nullNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { nullNameRouter, "name" });
 
             // Blank name
             DtoRouter blankNameRouter = new DtoRouter();
             blankNameRouter.setName("");
+            blankNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { blankNameRouter, "name" });
 
             // Long name
@@ -286,12 +295,19 @@ public class TestRouter {
             }
             DtoRouter longNameRouter = new DtoRouter();
             longNameRouter.setName(longName.toString());
+            longNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { longNameRouter, "name" });
 
             // Router name already exists
             DtoRouter dupNameRouter = new DtoRouter();
             dupNameRouter.setName("router2-name");
+            dupNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { dupNameRouter, "name" });
+
+            // Router with tenantID missing
+            DtoRouter noTenant = new DtoRouter();
+            noTenant.setName("noTenant-router-name");
+            params.add(new Object[] { noTenant, "tenantId" });
 
             return params;
         }

@@ -49,7 +49,6 @@ public class TestChain {
         public TestCreateChainBadRequest(DtoRuleChain chain, String property) {
             super(FuncTest.appDesc);
             this.chain = chain;
-            this.chain.setTenantId("tenant1");
             this.property = property;
         }
 
@@ -80,11 +79,13 @@ public class TestChain {
 
             // Null name
             DtoRuleChain nullName = new DtoRuleChain();
+            nullName.setTenantId("tenant1");
             params.add(new Object[] { nullName, "name" });
 
             // Blank name
             DtoRuleChain blankName = new DtoRuleChain();
             blankName.setName("");
+            blankName.setTenantId("tenant1");
             params.add(new Object[] { blankName, "name" });
 
             // Long name
@@ -94,13 +95,20 @@ public class TestChain {
                 longNameStr.append("a");
             }
             DtoRuleChain longName = new DtoRuleChain();
-            blankName.setName(longNameStr.toString());
+            longName.setName(longNameStr.toString());
+            longName.setTenantId("tenant1");
             params.add(new Object[] { longName, "name" });
 
             // Chain name already exists
             DtoRuleChain dupNameChain = new DtoRuleChain();
             dupNameChain.setName("chain1-name");
+            dupNameChain.setTenantId("tenant1");
             params.add(new Object[] { dupNameChain, "name" });
+
+            // Chain with tenantID missing
+            DtoRuleChain noTenant = new DtoRuleChain();
+            noTenant.setName("noTenant-chain-name");
+            params.add(new Object[] { noTenant, "tenantId" });
 
             return params;
         }

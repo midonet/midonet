@@ -33,7 +33,7 @@ public class RouterNameConstraintValidator implements
 
         // Guard against a DTO that cannot be validated
         String tenantId = value.getTenantId();
-        if (tenantId == null && value.getId() == null) {
+        if (tenantId == null || value.getName() == null) {
             throw new IllegalArgumentException("Invalid Router passed in.");
         }
 
@@ -41,18 +41,6 @@ public class RouterNameConstraintValidator implements
         context.buildConstraintViolationWithTemplate(
                 MessageProperty.IS_UNIQUE_ROUTER_NAME).addNode("name")
                 .addConstraintViolation();
-
-        // For updates, the tenant ID is not given, so get it
-        if (value.getId() != null) {
-            try {
-                com.midokura.midonet.cluster.data.Router router =
-                        dataClient.routersGet(value.getId());
-                tenantId = router.getProperty(Property.tenant_id);
-            } catch (StateAccessException e) {
-                throw new RuntimeException(
-                        "State access exception occurred in validation");
-            }
-        }
 
         com.midokura.midonet.cluster.data.Router router = null;
         try {
