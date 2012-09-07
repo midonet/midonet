@@ -103,6 +103,7 @@ public abstract class ReplicatedMap<K, V> {
                         if (ownedVersions.contains(mv.version)) {
                             cleanupPaths.add(encodePath(key, mv.value,
                                                         mv.version));
+                            ownedVersions.remove(mv.version);
                             log.debug("Cleaning up entry for {} because " +
                                       "{}/{} has been replaced by {}/{}",
                                 new Object[]{ key, mv.value, mv.version, value,
