@@ -17,6 +17,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public abstract class ReplicatedMap<K, V> {
 
     private final static Logger log =
@@ -75,31 +76,17 @@ public abstract class ReplicatedMap<K, V> {
                     Path p = decodePath(path);
                     curKeys.add(p.key);
                     MapValue mv = localMap.get(p.key);
-                    /*
-                     * TODO(pino): if (null == mv || mv.version < p.version):
-                     * This way of determining the winning value is flawed: if
-                     * the controller that writes the most recent value
-                     * fails some maps may never see it. They will be
-                     * inconsistent with maps that saw the most recent
-                     * value. The fix is to choose the winning value
-                     * based on the highest version in ZK. Only use the
-                     * most recent version this map remembers in order to
-                     * decide whether to notify our watchers.
-                     */
-                    if (null == mv || mv.version < p.version) {
-                        localMap.put(p.key,
-                                     new MapValue(p.value, p.version, false));
-                        if (null == mv) {
-                            notifications.add(
+                    localMap.put(p.key, new MapValue(p.value, p.version));
+                    if (null == mv) {
+                        notifications.add(
                                 new Notification<K,V>(p.key, null, p.value));
-                        } else {
-                            // Remember my obsolete paths and clean them up
-                            // later.
-                            if (mv.owner)
-                                cleanupPaths.add(encodePath(p.key, mv.value,
-                                    mv.version));
-                            notifications.add(new Notification<K,V>(
-                                        p.key, mv.value, p.value));
+                    } else {
+                        notifications.add(new Notification<K,V>(
+                                                p.key, mv.value, p.value));
+                        // Remember my obsolete paths and clean them up later.
+                        if (ownedVersions.contains(mv.version)) {
+                            cleanupPaths.add(encodePath(p.key, mv.value,
+                                                        mv.version));
                         }
                     }
                 }
@@ -132,6 +119,7 @@ public abstract class ReplicatedMap<K, V> {
     private Directory dir;
     private boolean running;
     private Map<K, MapValue> localMap;
+    private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
 
@@ -139,6 +127,7 @@ public abstract class ReplicatedMap<K, V> {
         this.dir = dir;
         this.running = false;
         this.localMap = new HashMap<K, MapValue>();
+        this.ownedVersions = new HashSet<Integer>();
         this.watchers = new HashSet<Watcher<K, V>>();
         this.myWatcher = new DirectoryWatcher();
     }
@@ -192,17 +181,17 @@ public abstract class ReplicatedMap<K, V> {
     private class PutCallback implements DirectoryCallback.Add {
         private K key;
         private V value;
- 
+
         PutCallback(K k, V v) {
             key = k;
             value = v;
         }
 
         public void onSuccess(Result<String> result) {
-            // Get the sequence number added by ZooKeeper.
+            // Claim the sequence number added by ZooKeeper.
             Path p = decodePath(result.getData());
             synchronized(ReplicatedMap.this) {
-                localMap.put(key, new MapValue(value, p.version, true));
+                ownedVersions.add(p.version);
             }
         }
 
@@ -229,7 +218,7 @@ public abstract class ReplicatedMap<K, V> {
         MapValue mv = localMap.get(key);
         if (null == mv)
             return false;
-        return mv.owner;
+        return ownedVersions.contains(mv.version);
     }
 
     public V removeIfOwner(K key) throws KeeperException, InterruptedException {
@@ -238,10 +227,12 @@ public abstract class ReplicatedMap<K, V> {
             mv = localMap.get(key);
             if (null == mv)
                 return null;
-            if (!mv.owner)
+            if (!ownedVersions.contains(mv.version))
                 return null;
             localMap.remove(key);
         }
+        // TODO(pino,jlm): Should the notify not happen until it's bounced
+        // off ZooKeeper, and happen in the DirectoryWatcher?
         notifyWatchers(key, mv.value, null);
         dir.delete(encodePath(key, mv.value, mv.version));
         return mv.value;
@@ -256,12 +247,10 @@ public abstract class ReplicatedMap<K, V> {
     private class MapValue {
         V value;
         int version;
-        boolean owner;
 
-        MapValue(V value, int version, boolean owner) {
+        MapValue(V value, int version) {
             this.value = value;
             this.version = version;
-            this.owner = owner;
         }
     }
 
