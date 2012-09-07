@@ -228,7 +228,10 @@ public interface DataClient {
 
     void portsUpdate(@Nonnull Port port) throws StateAccessException;
 
-    void portsBulkUpdate(@Nonnull List<Port> ports) throws StateAccessException;
+    void portsLink(@Nonnull UUID portId, @Nonnull UUID peerPortId)
+        throws StateAccessException;
+
+    void portsUnlink(@Nonnull UUID portId) throws StateAccessException;
 
 
     /* Port group related methods */

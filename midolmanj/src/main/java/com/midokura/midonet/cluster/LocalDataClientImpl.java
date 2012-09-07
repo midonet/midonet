@@ -3,37 +3,17 @@
 */
 package com.midokura.midonet.cluster;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.apache.zookeeper.Op;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.PathBuilder;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfigCache;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.midonet.cluster.data.*;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -47,6 +27,14 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
+import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.*;
 
 public class LocalDataClientImpl implements DataClient {
 
@@ -992,17 +980,16 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsBulkUpdate(@Nonnull List<Port> ports)
+    public void portsLink(@Nonnull UUID portId, @Nonnull UUID peerPortId)
             throws StateAccessException {
 
-        List<Op> ops = new ArrayList<Op>();
-        for (Port port : ports) {
-            ops.addAll(portZkManager.prepareUpdate(
-                    UUID.fromString(port.getId().toString()),
-                    Converter.toPortConfig(port)));
-        }
+        portZkManager.link(portId, peerPortId);
 
-        portZkManager.multi(ops);
+    }
+
+    @Override
+    public void portsUnlink(@Nonnull UUID portId) throws StateAccessException {
+        portZkManager.unlink(portId);
     }
 
     @Override

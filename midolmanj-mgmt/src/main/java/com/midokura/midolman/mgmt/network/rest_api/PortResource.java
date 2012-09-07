@@ -25,7 +25,6 @@ import com.midokura.midolman.mgmt.vpn.rest_api.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
-import com.midokura.midonet.cluster.data.ports.LogicalPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,32 +214,11 @@ public class PortResource {
                     "Not authorized to link these ports.");
         }
 
-        // Get the ports - the IDs are already validated.
-        com.midokura.midonet.cluster.data.Port portData = dataClient.portsGet(
-                id);
-        LogicalPort logPortData = (LogicalPort) portData;
-        com.midokura.midonet.cluster.data.Port peerPortData = null;
         if (link.isUnlink()) {
-             if (logPortData.getPeerId() == null) {
-                 // Don't unlink if it's already unlinked
-                 return;
-             }
-
-            // Still linked
-            peerPortData =  dataClient.portsGet(logPortData.getPeerId());
-            logPortData.setPeerId(null);
-            ((LogicalPort)peerPortData).setPeerId(null);
+            dataClient.portsUnlink(link.getPortId());
         } else {
-            peerPortData = dataClient.portsGet(link.getPeerId());
-            logPortData.setPeerId(link.getPeerId());
-            ((LogicalPort)peerPortData).setPeerId(link.getPortId());
+            dataClient.portsLink(link.getPortId(), link.getPeerId());
         }
-
-        List<com.midokura.midonet.cluster.data.Port> portDataList =
-                new ArrayList<com.midokura.midonet.cluster.data.Port>(2);
-        portDataList.add(portData);
-        portDataList.add(peerPortData);
-        dataClient.portsBulkUpdate(portDataList);
     }
 
     /**

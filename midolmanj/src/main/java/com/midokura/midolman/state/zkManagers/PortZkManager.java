@@ -4,26 +4,15 @@
  */
 package com.midokura.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
+import java.util.*;
 
 /**
  * Class to manage the port ZooKeeper data.
@@ -330,14 +319,68 @@ public class PortZkManager extends ZkManager {
         return id;
     }
 
+    public List<Op> prepareLink(UUID id, UUID peerId)
+            throws StateAccessException {
+
+        PortConfig port = get(id);
+        if (!(port instanceof  LogicalPortConfig)) {
+            throw new IllegalArgumentException("id is not for a logical port:" +
+                        id.toString());
+        }
+
+        PortConfig peerPort = get(peerId);
+        if (!(peerPort instanceof LogicalPortConfig)) {
+            throw new IllegalArgumentException("peerId is not for a logical" +
+                    " port:" + id.toString());
+        }
+
+        LogicalPortConfig typedPort = (LogicalPortConfig) port;
+        LogicalPortConfig typedPeerPort = (LogicalPortConfig) peerPort;
+
+        typedPort.setPeerId(peerId);
+        typedPeerPort.setPeerId(id);
+
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.setData(pathManager.getPortPath(id),
+                serializer.serialize(port), -1));
+        ops.add(Op.setData(pathManager.getPortPath(peerId),
+                serializer.serialize(peerPort), -1));
+
+        return ops;
+    }
+
+    public List<Op> prepareUnlink(UUID id) throws StateAccessException {
+
+        PortConfig port = get(id);
+        if (!(port instanceof  LogicalPortConfig)) {
+            throw new IllegalArgumentException("id is not for a logical port:" +
+                    id.toString());
+        }
+
+        List<Op> ops = new ArrayList<Op>();
+        LogicalPortConfig typedPort = (LogicalPortConfig) port;
+        if (typedPort.peerId() == null) {
+            return ops;
+        }
+
+        UUID peerId = typedPort.peerId();
+        PortConfig peerPort = get(peerId);
+        LogicalPortConfig typedPeerPort = (LogicalPortConfig) peerPort;
+
+        typedPort.setPeerId(null);
+        typedPeerPort.setPeerId(null);
+
+        ops.add(Op.setData(pathManager.getPortPath(id),
+                serializer.serialize(port), -1));
+        ops.add(Op.setData(pathManager.getPortPath(peerId),
+                serializer.serialize(peerPort), -1));
+
+        return ops;
+    }
+
     public List<Op> prepareUpdate(UUID id, PortConfig config)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-
-        // Currently, the peerId of logical port can be updated from our API.
-        // However, there is no need to add such restriction here.
-        ops.add(Op.setData(pathManager.getPortPath(id),
-                serializer.serialize(config), -1));
 
         // Get the old port config so that we can find differences created from
         // this update that requires other ZK directories to be updated.
@@ -345,6 +388,15 @@ public class PortZkManager extends ZkManager {
 
         // Set update Ops for Port Group
         setPortGroupUpdateOps(id, config, oldConfig, ops);
+
+        // Copy over only the fields that can be updated
+        oldConfig.portGroupIDs = config.portGroupIDs;
+        oldConfig.inboundFilter = config.inboundFilter;
+        oldConfig.outboundFilter = config.outboundFilter;
+        oldConfig.properties = config.properties;
+
+        ops.add(Op.setData(pathManager.getPortPath(id),
+                serializer.serialize(oldConfig), -1));
 
         return ops;
     }
@@ -618,6 +670,16 @@ public class PortZkManager extends ZkManager {
      */
     public void delete(UUID id) throws StateAccessException {
         multi(prepareDelete(id));
+    }
+
+    public void link(UUID id, UUID peerId) throws StateAccessException {
+        List<Op> ops = prepareLink(id, peerId);
+        multi(ops);
+    }
+
+    public void unlink(UUID id) throws StateAccessException {
+        List<Op> ops = prepareUnlink(id);
+        multi(ops);
     }
 
 }

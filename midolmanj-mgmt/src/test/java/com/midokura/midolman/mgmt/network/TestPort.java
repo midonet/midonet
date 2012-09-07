@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.Response;
 
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -51,6 +52,20 @@ public class TestPort {
         port.setVifId(vifId);
         port.setInboundFilterId(inboundFilterId);
         port.setOutboundFilterId(outboundFilterId);
+
+        return port;
+    }
+
+    public static DtoBridgePort createMaterializedBridgePort(
+            UUID id, UUID deviceId, UUID inboundFilterId,
+            UUID outboundFilterId, UUID vifId) {
+        DtoBridgePort port = new DtoBridgePort();
+        port.setId(id);
+        port.setDeviceId(deviceId);
+        port.setInboundFilterId(inboundFilterId);
+        port.setOutboundFilterId(outboundFilterId);
+        port.setVifId(vifId);
+
         return port;
     }
 
@@ -622,5 +637,58 @@ public class TestPort {
                     APPLICATION_PORT_JSON);
 
         }
+    }
+
+    public static class TestMaterializedBridgePortUpdateSuccess extends
+            JerseyTest {
+
+        private DtoWebResource dtoResource;
+        private Topology topology;
+
+        public TestMaterializedBridgePortUpdateSuccess() {
+            super(FuncTest.appDesc);
+        }
+
+        @Before
+        public void setUp() {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a bridge
+            DtoBridge b1 = new DtoBridge();
+            b1.setName("bridge1-name");
+            b1.setTenantId("tenant1-id");
+
+            // Create a port
+            DtoBridgePort port1 = createMaterializedBridgePort(null, null,
+                    null, null, null);
+
+            topology = new Topology.Builder(dtoResource)
+                    .create("bridge1", b1)
+                    .create("bridge1", "port1", port1).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Test
+        public void testUpdate() throws Exception {
+
+            DtoBridgePort origPort = topology.getMatBridgePort("port1");
+
+            assertNull(origPort.getVifId());
+
+            origPort.setVifId(UUID.randomUUID());
+            DtoBridgePort newPort = dtoResource.putAndVerifyNoContent(
+                    origPort.getUri(),
+                    VendorMediaType.APPLICATION_PORT_JSON, origPort,
+                    DtoBridgePort.class);
+
+            assertEquals(origPort.getVifId(), newPort.getVifId());
+
+        }
+
     }
 }
