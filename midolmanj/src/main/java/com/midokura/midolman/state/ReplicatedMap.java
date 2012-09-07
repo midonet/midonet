@@ -94,15 +94,21 @@ public abstract class ReplicatedMap<K, V> {
                     if (mv == null) {
                         notifications.add(new Notification<K,V>(
                                             key, null, value));
-                    } else if (!mv.value.equals(value)) {
+                    } else if (mv.version != entry.getValue().version) {
+                        // We compare versions because the 'value' members
+                        // might not implement .equals accurately.
                         notifications.add(new Notification<K,V>(
                                             key, mv.value, value));
                         // Remember my obsolete paths and clean them up later.
                         if (ownedVersions.contains(mv.version)) {
                             cleanupPaths.add(encodePath(key, mv.value,
                                                         mv.version));
+                            log.debug("Cleaning up entry for {} because " +
+                                      "{}/{} has been replaced by {}/{}",
+                                new Object[]{ key, mv.value, mv.version, value,
+                                              entry.getValue().version});
                         }
-                    } // else mv.value == entry.value:  No notification.
+                    } // else mv == entry:  No notification.
                 }
                 localMap = newMap;
             }
