@@ -244,6 +244,7 @@ public abstract class ReplicatedMap<K, V> {
             if (!ownedVersions.contains(mv.version))
                 return null;
             localMap.remove(key);
+            ownedVersions.remove(mv.version);
         }
         // TODO(pino,jlm): Should the notify not happen until it's bounced
         // off ZooKeeper, and happen in the DirectoryWatcher?
