@@ -2415,16 +2415,13 @@ public class TestVRNController {
 
         // Now add port 10 to a new PortGroup.
         UUID portId = portNumToUuid.get((short)10);
-        PortConfig entry = portMgr.get(portId);
-        entry.portGroupIDs = new HashSet<UUID>();
-        entry.portGroupIDs.add(portGroupID);
-        portMgr.update(portId, entry);
+        portGroupMgr.addPortToPortGroup(portGroupID, portId);
 
         // Now add a filter on port 21 that drops packets from that PortGroup.
         UUID chainId = chainMgr.create(new ChainConfig("portOutboundFilter"));
         // Set this chain as the outboundFilter of port 20's PortConfig
         portId = portNumToUuid.get((short)21);
-        entry = portMgr.get(portId);
+        PortConfig entry = portMgr.get(portId);
         entry.outboundFilter = chainId;
         portMgr.update(portId, entry);
 
@@ -2446,9 +2443,7 @@ public class TestVRNController {
 
         // Remove port 10 from the PortGroup and try resending the packet.
         portId = portNumToUuid.get((short)10);
-        entry = portMgr.get(portId);
-        entry.portGroupIDs = null;
-        portMgr.update(portId, entry);
+        portGroupMgr.removePortFromPortGroup(portGroupID, portId);
 
         // Resend the packet from port 20 to 21 and show it's Forwarded.
         vrnCtrl.onPacketIn(1001, data.length, phyPortIn.getPortNumber(), data);

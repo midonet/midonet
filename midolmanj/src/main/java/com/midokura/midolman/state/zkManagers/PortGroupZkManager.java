@@ -4,24 +4,14 @@
  */
 package com.midokura.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -93,8 +83,15 @@ public class PortGroupZkManager extends ZkManager {
         return ops;
     }
 
-    private List<Op> prepareDelete(UUID id, boolean updatePorts)
-            throws StateAccessException {
+    /**
+     * Constructs a list of operations to perform in a port group deletion.
+     *
+     * @param id
+     *            The ID of a port group to delete.
+     * @return A list of Op objects representing the operations to perform.
+     * @throws StateAccessException
+     */
+    public List<Op> prepareDelete(UUID id) throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -105,25 +102,20 @@ public class PortGroupZkManager extends ZkManager {
             ops.addAll(ruleDao.prepareRuleDelete(UUID.fromString(ruleId)));
         }
 
-        if (updatePorts) {
-            // Update all the ports that reference this port group.
-            // If this flag is set, the caller is responsible for updating
-            // the port config data.
-            String portsPath = pathManager.getPortGroupPortsPath(id);
-            Set<String> portIds = getChildren(portsPath);
-            for (String portId : portIds) {
-                UUID portUuid = UUID.fromString(portId);
-                PortConfig port = portDao.get(portUuid);
-                if (port.portGroupIDs != null) { // Should never be null here.
-                    port.portGroupIDs.remove(id);
-                }
-                ops.addAll(portDao.prepareUpdate(portUuid, port));
-            }
-        }
-
-        // Delete the ports directory.  All the ports should have been
-        // removed from the portDao.prepareUpdate operation above.
+        // Update all the ports that reference this port group.
         String portsPath = pathManager.getPortGroupPortsPath(id);
+        Set<String> portIds = getChildren(portsPath);
+        for (String portId : portIds) {
+            UUID portUuid = UUID.fromString(portId);
+            PortConfig port = portDao.get(portUuid);
+            if (port.portGroupIDs != null) { // Should never be null here.
+                port.portGroupIDs.remove(id);
+            }
+            ops.add(Op.setData(pathManager.getPortPath(portUuid),
+                    serializer.serialize(port), -1));
+            ops.add(Op.delete(
+                    pathManager.getPortGroupPortPath(id, portUuid), -1));
+        }
 
         // Delete the port group nodes
         ops.add(Op.delete(rulesPath, -1));
@@ -132,68 +124,6 @@ public class PortGroupZkManager extends ZkManager {
 
         return ops;
 
-    }
-
-    /**
-     * Constructs a list of operations to perform in a port group deletion.
-     *
-     * @param id
-     *            The ID of a port group to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws StateAccessException
-     */
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
-        return prepareDelete(id, true);
-    }
-
-    /**
-     * Constructs a list of operations to perform in a port groups deletion.
-     *
-     * @param ids
-     *            Set of IDs
-     * @return List of Op objects.
-     * @throws StateAccessException
-     */
-    public List<Op> prepareDelete(Set<UUID> ids) throws StateAccessException {
-        log.debug("PortGroupZkManager.prepareDelete: entered");
-
-        List<Op> ops = new ArrayList<Op>();
-
-        Set<UUID> portIdSet = new HashSet<UUID>();
-
-        // When removing multiple port groups, the port config cannot be
-        // updated for each port group. Each port should update only once.
-        for (UUID id : ids) {
-
-            // Get all the ports
-            String portsPath = pathManager.getPortGroupPortsPath(id);
-            Set<String> portIds = getChildren(portsPath);
-            for (String portId : portIds) {
-                portIdSet.add(UUID.fromString(portId));
-            }
-
-        }
-
-        // Update all the ports, removing the port groups
-        for (UUID portId : portIdSet) {
-            PortConfig port = portDao.get(portId);
-            if (port.portGroupIDs != null) {
-                for (UUID id : ids) {
-                    port.portGroupIDs.remove(id);
-                }
-            }
-
-            // update port
-            ops.addAll(portDao.prepareUpdate(portId, port));
-        }
-
-        // Delete the port groups
-        for (UUID id : ids) {
-            ops.addAll(prepareDelete(id, false));
-        }
-
-        log.debug("PortGroupZkManager.prepareDelete: exiting");
-        return ops;
     }
 
     /**
@@ -243,5 +173,69 @@ public class PortGroupZkManager extends ZkManager {
     public PortGroupConfig get(UUID id) throws StateAccessException {
         byte[] data = get(pathManager.getPortGroupPath(id));
         return serializer.deserialize(data, PortGroupConfig.class);
+    }
+
+    public boolean portIsMember(UUID id, UUID portId)
+        throws StateAccessException{
+        String path = pathManager.getPortGroupPortPath(id, portId);
+        return exists(path);
+    }
+
+    public void addPortToPortGroup(UUID id, UUID portId)
+        throws StateAccessException {
+
+        // Make sure that port group ID is valid
+        if (!exists(id)) {
+            throw new IllegalArgumentException("Port Group does not exist: "
+                    + id);
+        }
+
+        // Check to make sure it's not a member already
+        if (portIsMember(id, portId)) {
+            return;
+        }
+
+        PortConfig port = portDao.get(portId);
+
+        // Set the port's port group
+        if (port.portGroupIDs == null) {
+            port.portGroupIDs = new HashSet<UUID>();
+        }
+        port.portGroupIDs.add(id);
+
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.setData(pathManager.getPortPath(portId),
+                serializer.serialize(port), -1));
+        ops.add(Op.create(pathManager.getPortGroupPortPath(id, portId), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        multi(ops);
+    }
+
+    public void removePortFromPortGroup(UUID id, UUID portId)
+        throws StateAccessException {
+
+        // Check to make sure that it exists and it's a member
+        if (!exists(id) || !portIsMember(id, portId)) {
+            return;
+        }
+
+        PortConfig port = portDao.get(portId);
+
+        // If for some reason the port does not contain this port group,
+        // it's likely a bug but just leave gracefully.
+        if (port.portGroupIDs == null || !port.portGroupIDs.contains(id)) {
+            log.warn("PortGroup (" + id + ") - Port (" + portId +
+                    ") relationship is inconsistent in ZK.");
+            return;
+        }
+
+        port.portGroupIDs.remove(id);
+
+        List<Op> ops = new ArrayList<Op>();
+        ops.add(Op.setData(pathManager.getPortPath(portId),
+                serializer.serialize(port), -1));
+        ops.add(Op.delete(pathManager.getPortGroupPortPath(id, portId), -1));
+        multi(ops);
+
     }
 }

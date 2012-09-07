@@ -27,6 +27,10 @@ public class VendorMediaType {
     public static final String APPLICATION_ROUTE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Route+json";
     public static final String APPLICATION_PORTGROUP_JSON = "application/vnd.com.midokura.midolman.mgmt.PortGroup+json";
     public static final String APPLICATION_PORTGROUP_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.PortGroup+json";
+    public static final String APPLICATION_PORTGROUP_PORT_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.PortGroupPort+json";
+    public static final String APPLICATION_PORTGROUP_PORT_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection.PortGroupPort+json";
     public static final String APPLICATION_CHAIN_JSON = "application/vnd.com.midokura.midolman.mgmt.Chain+json";
     public static final String APPLICATION_CHAIN_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Chain+json";
     public static final String APPLICATION_RULE_JSON = "application/vnd.com.midokura.midolman.mgmt.Rule+json";

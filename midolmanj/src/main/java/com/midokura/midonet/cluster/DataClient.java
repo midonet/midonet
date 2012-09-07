@@ -243,6 +243,9 @@ public interface DataClient {
 
     void portsUnlink(@Nonnull UUID portId) throws StateAccessException;
 
+    List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
+        throws StateAccessException;
+
 
     /* Port group related methods */
     PortGroup portGroupsGet(UUID id) throws StateAccessException;
@@ -252,11 +255,22 @@ public interface DataClient {
     UUID portGroupsCreate(@Nonnull PortGroup portGroup)
             throws StateAccessException;
 
+    boolean portGroupsExists(UUID id) throws StateAccessException;
+
     PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException;
 
     List<PortGroup> portGroupsFindByTenant(String tenantId)
             throws StateAccessException;
+
+    boolean portGroupsIsPortMember(@Nonnull UUID id, @Nonnull UUID portId)
+        throws StateAccessException;
+
+    void portGroupsAddPortMembership(@Nonnull UUID id, @Nonnull UUID portId)
+        throws StateAccessException;
+
+    void portGroupsRemovePortMembership(@Nonnull UUID id, @Nonnull UUID portId)
+        throws StateAccessException;
 
 
     /* Routes related methods */

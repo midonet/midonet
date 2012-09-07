@@ -3,8 +3,8 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midonet.cluster.data.PortGroup.Property;
 
 import javax.validation.constraints.NotNull;
@@ -118,6 +118,14 @@ public class PortGroup extends UriResource {
     public URI getUri() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getPortGroup(getBaseUri(), id);
+        } else {
+            return null;
+        }
+    }
+
+    public URI getPorts() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getPortGroupPorts(getBaseUri(), id);
         } else {
             return null;
         }

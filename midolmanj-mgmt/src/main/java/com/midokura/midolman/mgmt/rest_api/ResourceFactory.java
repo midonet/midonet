@@ -77,4 +77,6 @@ public interface ResourceFactory {
 
     PortResource.RouterPeerPortResource getRouterPeerPortResource(UUID id);
 
+    PortResource.PortGroupPortResource getPortGroupPortResource(UUID id);
+
 }

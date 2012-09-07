@@ -251,6 +251,17 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getPortGroups(baseUri)).path(id.toString())
                 .build();
     }
+
+    public static URI getPortGroupPorts(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getPortGroup(baseUri, id))
+                .path(PORTS).build();
+    }
+
+    public static URI getPortGroupPort(URI baseUri, UUID id, UUID portId) {
+        return UriBuilder.fromUri(getPortGroupPorts(baseUri, id))
+                .path(portId.toString()).build();
+    }
+
     public static URI getMetrics(URI baseUri){
         return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
     }

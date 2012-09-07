@@ -69,56 +69,17 @@ public class PortZkManager extends ZkManager {
         return exists(pathManager.getPortPath(id));
     }
 
-    private void setPortGroupUpdateOps(UUID id, PortConfig config,
-                                       PortConfig oldConfig, List<Op> ops)
-            throws StateAccessException {
-
-        // If they are both null, don't do anything
-        if (oldConfig.portGroupIDs == null && config.portGroupIDs == null) {
-            return;
-        }
-
-        // If the old config has port group IDs but the new one does not,
-        // delete all
-        if (oldConfig.portGroupIDs != null && config.portGroupIDs == null) {
-            deleteFromPortGroupsOps(ops, id, oldConfig.portGroupIDs);
-            return;
-        }
-
-        // If the old config is null but the new config has port groups, add
-        // them all.
-        if (oldConfig.portGroupIDs == null && config.portGroupIDs != null) {
-            addToPortGroupsOps(ops, id, config.portGroupIDs);
-            return;
-        }
-
-        Set<UUID> groupIdsToAdd = new HashSet<UUID>();
-        Set<UUID> groupIdsToRemove = new HashSet<UUID>();
-
-        // Go through the old set and remove entries that are included
-        // in the new set.
-        for (UUID portGroupId : oldConfig.portGroupIDs) {
-            if (!config.portGroupIDs.contains(portGroupId)) {
-                groupIdsToRemove.add(portGroupId);
-            }
-        }
-
-        for (UUID portGroupId : config.portGroupIDs) {
-            if (!oldConfig.portGroupIDs.contains(portGroupId)) {
-                groupIdsToAdd.add(portGroupId);
-            }
-        }
-
-        // Remove those that exist only in old config
-        deleteFromPortGroupsOps(ops, id, groupIdsToRemove);
-
-        // Add those that only exist in new config
-        addToPortGroupsOps(ops, id, groupIdsToAdd);
-    }
-
     private void addToPortGroupsOps(List<Op> ops, UUID id,
-            Set<UUID> portGroupIds) {
+            Set<UUID> portGroupIds) throws StateAccessException {
         for (UUID portGroupId : portGroupIds) {
+
+            // Check to make sure that the port group path exists.
+            String pgPath =  pathManager.getPortGroupPortsPath(portGroupId);
+            if (!exists(pgPath)) {
+                throw new IllegalArgumentException("Invalid port group " +
+                        "passed in: " + portGroupId);
+            }
+
             ops.add(Op.create(
                     pathManager.getPortGroupPortPath(portGroupId, id), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -386,11 +347,7 @@ public class PortZkManager extends ZkManager {
         // this update that requires other ZK directories to be updated.
         PortConfig oldConfig = get(id);
 
-        // Set update Ops for Port Group
-        setPortGroupUpdateOps(id, config, oldConfig, ops);
-
         // Copy over only the fields that can be updated
-        oldConfig.portGroupIDs = config.portGroupIDs;
         oldConfig.inboundFilter = config.inboundFilter;
         oldConfig.outboundFilter = config.outboundFilter;
         oldConfig.properties = config.properties;
@@ -403,15 +360,6 @@ public class PortZkManager extends ZkManager {
 
     public void update(UUID id, PortConfig port) throws StateAccessException {
         multi(prepareUpdate(id, port));
-    }
-
-    public void update(Map<UUID, PortConfig> ports) throws StateAccessException {
-
-        List<Op> ops = new ArrayList<Op>();
-        for (Map.Entry<UUID, PortConfig> port : ports.entrySet()) {
-            ops.addAll(prepareUpdate(port.getKey(), port.getValue()));
-        }
-        multi(ops);
     }
 
     private List<Op> prepareRouterPortDelete(UUID id,
@@ -667,6 +615,19 @@ public class PortZkManager extends ZkManager {
     public void unlink(UUID id) throws StateAccessException {
         List<Op> ops = prepareUnlink(id);
         multi(ops);
+    }
+
+    public Set<UUID> getPortGroupPortIds(UUID portGroupId)
+            throws StateAccessException {
+
+        String path = pathManager.getPortGroupPortsPath(portGroupId);
+        Set<String> ids =  getChildren(path);
+        Set<UUID> portIds = new HashSet<UUID>(ids.size());
+        for (String id : ids) {
+            portIds.add(UUID.fromString(id));
+        }
+        return portIds;
+
     }
 
 }

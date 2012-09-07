@@ -49,6 +49,14 @@ public class DtoPortGroup {
         this.uri = uri;
     }
 
+    public URI getPorts() {
+        return ports;
+    }
+
+    public void setPorts(URI ports) {
+        this.ports = ports;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

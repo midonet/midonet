@@ -1037,6 +1037,18 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
+            throws StateAccessException {
+        Set<UUID> portIds = portZkManager.getPortGroupPortIds(portGroupId);
+        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>(portIds.size());
+        for (UUID portId : portIds) {
+            ports.add(portsGet(portId));
+        }
+
+        return ports;
+    }
+
+    @Override
     public PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
@@ -1080,6 +1092,27 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean portGroupsIsPortMember(@Nonnull UUID id,
+                                          @Nonnull UUID portId)
+        throws StateAccessException {
+        return portGroupZkManager.portIsMember(id, portId);
+    }
+
+    @Override
+    public void portGroupsAddPortMembership(@Nonnull UUID id,
+                                            @Nonnull UUID portId)
+            throws StateAccessException {
+        portGroupZkManager.addPortToPortGroup(id, portId);
+    }
+
+    @Override
+    public void portGroupsRemovePortMembership(@Nonnull UUID id,
+                                               @Nonnull UUID portId)
+            throws StateAccessException {
+        portGroupZkManager.removePortFromPortGroup(id, portId);
+    }
+
+    @Override
     public UUID portGroupsCreate(@Nonnull PortGroup portGroup)
             throws StateAccessException {
         log.debug("portGroupsCreate entered: portGroup={}", portGroup);
@@ -1119,6 +1152,11 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("portGroupsCreate exiting: portGroup={}", portGroup);
         return portGroup.getId();
+    }
+
+    @Override
+    public boolean portGroupsExists(UUID id) throws StateAccessException {
+        return portGroupZkManager.exists(id);
     }
 
     @Override

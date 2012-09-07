@@ -5,16 +5,17 @@ package com.midokura.midolman.mgmt.network.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.network.PortGroup;
 import com.midokura.midolman.mgmt.network.auth.PortGroupAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -49,17 +50,18 @@ public class PortGroupResource {
     private final Authorizer authorizer;
     private final Validator validator;
     private final DataClient dataClient;
-
+    private final ResourceFactory factory;
 
     @Inject
     public PortGroupResource(UriInfo uriInfo, SecurityContext context,
                           PortGroupAuthorizer authorizer, Validator validator,
-                          DataClient dataClient) {
+                          DataClient dataClient, ResourceFactory factory) {
         this.context = context;
         this.uriInfo = uriInfo;
         this.authorizer = authorizer;
         this.validator = validator;
         this.dataClient = dataClient;
+        this.factory = factory;
     }
 
     /**
@@ -229,4 +231,11 @@ public class PortGroupResource {
         }
         return portGroups;
     }
+
+    @Path("/{id}" + ResourceUriBuilder.PORTS)
+    public PortResource.PortGroupPortResource getPortGroupPortResource(
+            @PathParam("id") UUID id) {
+        return factory.getPortGroupPortResource(id);
+    }
+
 }

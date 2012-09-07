@@ -4,16 +4,12 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.ws.rs.core.Response;
-
 import com.midokura.midolman.mgmt.VendorMediaType;
+import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.rest_api.Topology;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.*;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -23,16 +19,12 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
-import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.rest_api.Topology;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.midonet.client.dto.*;
+import javax.ws.rs.core.Response;
+import java.util.*;
+
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class TestPort {
@@ -235,18 +227,6 @@ public class TestPort {
                     APPLICATION_PORT_JSON, DtoBridgePort[].class);
             assertEquals(2, ports.length);
 
-            // Update port groups
-            assertNull(b1Mp1.getPortGroupIDs());
-            Set<UUID> portGroupIds = new HashSet<UUID>();
-            portGroupIds.add(pg1.getId());
-            portGroupIds.add(pg2.getId());
-            b1Mp1.setPortGroupIDs(portGroupIds.toArray(new UUID[portGroupIds
-                    .size()]));
-            b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
-            assertNotNull(b1Mp1.getPortGroupIDs());
-            assertEquals(2, b1Mp1.getPortGroupIDs().length);
-
             // Update VIFs
             assertNull(b1Mp1.getVifId());
             UUID vifId = UUID.randomUUID();
@@ -389,19 +369,6 @@ public class TestPort {
             DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
                     APPLICATION_PORT_JSON, DtoRouterPort[].class);
             assertEquals(2, ports.length);
-
-            // Update port groups
-            assertNull(r1Mp1.getPortGroupIDs());
-            Set<UUID> portGroupIds = new HashSet<UUID>();
-            portGroupIds.add(pg1.getId());
-            portGroupIds.add(pg2.getId());
-            r1Mp1.setPortGroupIDs(portGroupIds.toArray(new UUID[portGroupIds
-                    .size()]));
-            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoMaterializedRouterPort.class);
-            assertNotNull(r1Mp1.getPortGroupIDs());
-            assertEquals(2, r1Mp1.getPortGroupIDs().length);
 
             // Update VIFs
             vifId = UUID.randomUUID();
@@ -691,4 +658,82 @@ public class TestPort {
         }
 
     }
+
+    public static class TestPortGroupMembershipSuccess extends JerseyTest {
+
+        private DtoWebResource dtoResource;
+        private Topology topology;
+
+        public TestPortGroupMembershipSuccess() {
+            super(FuncTest.appDesc);
+        }
+
+        @Before
+        public void setUp() {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a port group
+            DtoPortGroup pg1 = new DtoPortGroup();
+            pg1.setName("pg1-name");
+            pg1.setTenantId("tenant1-id");
+
+            // Create a bridge
+            DtoBridge bg1 = new DtoBridge();
+            bg1.setName("bg1-name");
+            bg1.setTenantId("tenant1-id");
+
+            // Create a port
+            DtoBridgePort bridgePort = createMaterializedBridgePort(null,
+                    null, null, null, null);
+
+            topology = new Topology.Builder(dtoResource)
+                    .create("pg1", pg1)
+                    .create("bg1", bg1)
+                    .create("bg1", "port1", bridgePort).build();
+        }
+
+        @Test
+        public void testCrudSuccess() throws Exception {
+
+            DtoPortGroup pg1 = topology.getPortGroup("pg1");
+            DtoBridgePort port1 = topology.getMatBridgePort("port1");
+
+            // List and make sure there is no membership
+            DtoPortGroupPort[] portGroupPorts = dtoResource.getAndVerifyOk(
+                    pg1.getPorts(),
+                    VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    DtoPortGroupPort[].class);
+            assertEquals(0, portGroupPorts.length);
+
+            // Add a port to a group
+            DtoPortGroupPort portGroupPort = new DtoPortGroupPort();
+            portGroupPort.setPortGroupId(pg1.getId());
+            portGroupPort.setPortId(port1.getId());
+            portGroupPort = dtoResource.postAndVerifyCreated(pg1.getPorts(),
+                    VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
+                    portGroupPort, DtoPortGroupPort.class);
+
+            // List all.  There should be one now
+            portGroupPorts = dtoResource.getAndVerifyOk(
+                    pg1.getPorts(),
+                    VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    DtoPortGroupPort[].class);
+            assertEquals(1, portGroupPorts.length);
+
+            // Delete the membership
+            dtoResource.deleteAndVerifyNoContent(portGroupPort.getUri(),
+                    VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON);
+
+            // List once again, and make sure it's not there
+            portGroupPorts = dtoResource.getAndVerifyOk(
+                    pg1.getPorts(),
+                    VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    DtoPortGroupPort[].class);
+            assertEquals(0, portGroupPorts.length);
+
+        }
+
+    }
+
 }

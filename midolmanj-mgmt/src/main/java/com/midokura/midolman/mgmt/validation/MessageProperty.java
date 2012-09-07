@@ -17,6 +17,8 @@ public class MessageProperty {
             "{midokura.javarx.RouteNextHopPortNotNull}";
     public static final String PORT_ID_IS_INVALID =
             "{midokura.javarx.PortIdIsInvalid}";
+    public static final String PORT_GROUP_ID_IS_INVALID =
+            "{midokura.javarx.PortGroupIdIsInvalid}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable}";
 

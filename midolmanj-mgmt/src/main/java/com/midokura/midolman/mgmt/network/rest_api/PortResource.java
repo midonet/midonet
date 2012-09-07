@@ -15,8 +15,10 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.bgp.rest_api.BgpResource.PortBgpResource;
 import com.midokura.midolman.mgmt.network.*;
+import com.midokura.midolman.mgmt.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
+import com.midokura.midolman.mgmt.network.auth.PortGroupAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.RouterAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
@@ -546,5 +548,160 @@ public class PortResource {
             }
             return ports;
         }
+    }
+
+    /**
+     * Sub-resource class for port group ports.
+     */
+    @RequestScoped
+    public static class PortGroupPortResource {
+
+        private final UUID portGroupId;
+        private final SecurityContext context;
+        private final UriInfo uriInfo;
+        private final Authorizer portGroupAuthorizer;
+        private final Authorizer portAuthorizer;
+        private final Validator validator;
+        private final DataClient dataClient;
+
+        @Inject
+        public PortGroupPortResource(UriInfo uriInfo,
+                                      SecurityContext context,
+                                      PortGroupAuthorizer portGroupAuthorizer,
+                                      PortAuthorizer portAuthorizer,
+                                      Validator validator,
+                                      DataClient dataClient,
+                                      @Assisted UUID portGroupId) {
+            this.context = context;
+            this.uriInfo = uriInfo;
+            this.portGroupAuthorizer = portGroupAuthorizer;
+            this.portAuthorizer = portAuthorizer;
+            this.validator = validator;
+            this.dataClient = dataClient;
+            this.portGroupId = portGroupId;
+        }
+
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
+                MediaType.APPLICATION_JSON })
+        public Response create(PortGroupPort portGroupPort)
+                throws StateAccessException {
+
+            portGroupPort.setPortGroupId(portGroupId);
+
+            Set<ConstraintViolation<PortGroupPort>> violations = validator
+                    .validate(portGroupPort,
+                            PortGroupPortCreateGroupSequence.class);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
+
+            if (!portGroupAuthorizer.authorize(
+                    context, AuthAction.WRITE, portGroupId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to modify this port group's " +
+                                "membership.");
+            }
+
+            if(!portAuthorizer.authorize(context, AuthAction.WRITE,
+                    portGroupPort.getPortId())) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to modify this port's membership.");
+            }
+
+            dataClient.portGroupsAddPortMembership(portGroupId,
+                    portGroupPort.getPortId());
+
+            return Response.created(
+                    ResourceUriBuilder.getPortGroupPort(uriInfo.getBaseUri(),
+                            portGroupId, portGroupPort.getPortId()))
+                    .build();
+        }
+
+
+        @DELETE
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+        @Path("{portId}")
+        public void delete(@PathParam("portId") UUID portId)
+                throws StateAccessException {
+
+            if (!dataClient.portGroupsExists(portGroupId)
+                 || !dataClient.portsExists(portId)) {
+                return;
+            }
+
+            if (!portGroupAuthorizer.authorize(
+                    context, AuthAction.WRITE, portGroupId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to modify this port group's " +
+                                "membership.");
+            }
+
+            if(!portAuthorizer.authorize(context, AuthAction.WRITE, portId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to modify this port's membership.");
+            }
+
+            dataClient.portGroupsRemovePortMembership(portGroupId, portId);
+
+        }
+
+        @GET
+        @PermitAll
+        @Produces( {VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
+                MediaType.APPLICATION_JSON })
+        @Path("{portId}")
+        public PortGroupPort get(@PathParam("portId") UUID portId)
+            throws StateAccessException {
+
+            if (!dataClient.portGroupsIsPortMember(portGroupId, portId)) {
+                throw new NotFoundHttpException(
+                        "The requested resource was not found.");
+            }
+
+            if (!portGroupAuthorizer.authorize(
+                    context, AuthAction.READ, portGroupId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view this port group's " +
+                                "membership.");
+            }
+
+            PortGroupPort portGroupPort = new PortGroupPort();
+            portGroupPort.setPortGroupId(portGroupId);
+            portGroupPort.setPortId(portId);
+            portGroupPort.setBaseUri(uriInfo.getBaseUri());
+            return portGroupPort;
+        }
+
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<PortGroupPort> list() throws StateAccessException {
+
+            if (!portGroupAuthorizer.authorize(
+                    context, AuthAction.READ, portGroupId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view this port group's " +
+                                "membership.");
+            }
+
+            List<com.midokura.midonet.cluster.data.Port<?, ?>> portDataList =
+                    dataClient.portsFindByPortGroup(portGroupId);
+            List<PortGroupPort> portGroupPorts =
+                    new ArrayList<PortGroupPort>(portDataList.size());
+            for (com.midokura.midonet.cluster.data.Port<?, ?> portData :
+                    portDataList) {
+                PortGroupPort portGroupPort = new PortGroupPort();
+                portGroupPort.setPortGroupId(portGroupId);
+                portGroupPort.setPortId(portData.getId());
+                portGroupPort.setBaseUri(uriInfo.getBaseUri());
+                portGroupPorts.add(portGroupPort);
+            }
+
+            return portGroupPorts;
+        }
+
     }
 }
