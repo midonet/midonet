@@ -210,6 +210,19 @@ public class MockDirectory implements Directory {
         return add(relativePath, data, mode, false);
     }
 
+    @Override
+    public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback.Add cb) {
+        try {
+            cb.onSuccess(
+                new DirectoryCallback.Result<String>(
+                    add(relativePath, data, mode),
+                    null
+                ));
+        } catch (KeeperException e) {
+            cb.onError(e);
+        }
+    }
+
     private void update(String path, byte[] data, boolean multi)
         throws NoNodeException {
         getNode(path).setData(data, multi);
@@ -276,6 +289,16 @@ public class MockDirectory implements Directory {
     public void delete(String relativePath)
         throws NoNodeException, NotEmptyException {
         delete(relativePath, false);
+    }
+
+    @Override
+    public void asyncDelete(String relativePath, DirectoryCallback.Void callback) {
+         try {
+             delete(relativePath, false);
+             callback.onSuccess(new DirectoryCallback.Result<Void>(null, null));
+         } catch (KeeperException ex) {
+             callback.onError(ex);
+         }
     }
 
     @Override
