@@ -10,9 +10,13 @@ import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.util.Net;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
 
+// These representations are being deprecated in favor of classes defined in
+// cluster client.
+@Deprecated
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
 
@@ -227,9 +231,9 @@ public class PortDirectory {
 
         // Default constructor for the Jackson deserialization
         public MaterializedBridgePortConfig() { super(); }
-        
+
         public UUID getHostId() { return hostId; }
-        
+
         public void setHostId(UUID hostId) {
             this.hostId = hostId;
         }

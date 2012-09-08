@@ -21,7 +21,7 @@ import scala.collection.JavaConversions._
 import com.midokura.util.eventloop.MockReactor
 import com.midokura.midolman.layer3.MockServiceFlowController
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.packets.MAC
+import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.quagga.{MockBgpConnection, MockZebraServer}
 import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.{Net, Sudo}
@@ -29,7 +29,7 @@ import com.midokura.midolman.{TestHelpers, Setup}
 import org.hamcrest.Matchers._
 import com.midokura.quagga.MockBgpConnection
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
+import com.midokura.midonet.cluster.data.BGP
 
 /**
  * Test for BgpPortService using Open vSwitch database connection.
@@ -63,7 +63,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
     private final val portAddr = "192.168.10.2"
     private final val peerAddr = "192.168.10.1"
 
-    private final var bgpConfig: BgpConfig = _
+    private final var bgpConfig: BGP = _
     private final var bgpId: UUID = _
 
     @AfterClass
@@ -100,8 +100,9 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         portId = portMgr.create(portConfig)
 
         // Create a BGP config.
-        bgpConfig = new BgpConfig(portId, 65104,
-                                  InetAddress.getByName(peerAddr), 12345)
+        bgpConfig = new BGP()
+            .setPortId(portId).setLocalAS(65104).setPeerAS(12345)
+            .setPeerAddr(IntIPv4.fromString(peerAddr))
         bgpId = bgpMgr.create(bgpConfig)
     }
 }

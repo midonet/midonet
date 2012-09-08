@@ -24,6 +24,7 @@ class PortManager(id: UUID, val hostIp: IntIPv4, val clusterClient: Client)
     }
 
     override def preStart() {
+        log.info("preStart")
         clusterClient.getPort(id, new PortBuilderImpl(self))
     }
 

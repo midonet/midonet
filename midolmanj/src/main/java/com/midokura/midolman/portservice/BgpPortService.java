@@ -27,13 +27,13 @@ import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.openvswitch.PortBuilder;
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.packets.MAC;
 import com.midokura.quagga.BgpConnection;
 import com.midokura.quagga.BgpVtyConnection;
@@ -299,8 +299,8 @@ public class BgpPortService implements PortService {
                          }
                      }
                  })) {
-            final BgpConfig bgpConfig = bgpMgr.get(bgpId);
-            int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
+            final BGP bgpConfig = bgpMgr.getBGP(bgpId);
+            int remoteAddr = bgpConfig.getPeerAddr().addressAsInt();
             log.info("Port service flows: local {} remote {} " +
                                    "localAddr {} remoteAddr {} " +
                                    "localPort {} remotePort {}",

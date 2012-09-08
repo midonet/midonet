@@ -18,7 +18,7 @@ import akka.util.duration._
 
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
          PortRequest, RouterRequest}
-import com.midokura.midolman.{DatapathController, FlowController}
+import com.midokura.midolman.{SimulationController, DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.FlowActionVrnPortOutput
@@ -177,6 +177,9 @@ object Coordinator {
                  expiry: Long)
                 (implicit ec: ExecutionContext,
                  actorSystem: ActorSystem): Unit = {
+
+        //val log = akka.event.Logging(actorSystem, Coordinator.getClass)
+        //log.debug("Simulate a packet.")
 
         val datapathController = DatapathController.getRef(actorSystem)
 

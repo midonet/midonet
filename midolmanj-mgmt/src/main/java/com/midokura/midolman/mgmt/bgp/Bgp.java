@@ -7,6 +7,7 @@ package com.midokura.midolman.mgmt.bgp;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midonet.cluster.data.BGP;
+import com.midokura.packets.IntIPv4;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.InetAddress;
@@ -40,7 +41,7 @@ public class Bgp extends UriResource {
      */
     public Bgp(BGP data) {
         this(data.getId(), data.getLocalAS(),
-                data.getPeerAddr().getHostAddress(),
+                data.getPeerAddr().toUnicastString(),
                 data.getPeerAS(), data.getPortId());
     }
 
@@ -197,17 +198,12 @@ public class Bgp extends UriResource {
     }
 
     public BGP toData() {
-        try {
-            return new BGP()
-                    .setId(this.id)
-                    .setPortId(this.portId)
-                    .setLocalAS(this.localAS)
-                    .setPeerAddr(InetAddress.getByName(this.peerAddr))
-                    .setPeerAS(this.getPeerAS());
-        } catch (UnknownHostException e) {
-            // This exception should never be thrown.
-            return null;
-        }
+        return new BGP()
+                .setId(this.id)
+                .setPortId(this.portId)
+                .setLocalAS(this.localAS)
+                .setPeerAddr(IntIPv4.fromString(this.peerAddr))
+                .setPeerAS(this.getPeerAS());
     }
 
     /*

@@ -7,8 +7,8 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
-import com.midokura.midolman.state.BGP;
 import com.midokura.midolman.util.Net;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.midonet.cluster.data.Router;
 
 /**

@@ -37,6 +37,7 @@ import org.openflow.protocol.action.*;
 
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.Setup;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
@@ -60,7 +61,6 @@ import com.midokura.midolman.rules.ReverseNatRule;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.PortDirectory.RouterPortConfig;
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
@@ -2186,8 +2186,9 @@ public class TestVRNController {
         short remotePortNum = 0;
         UUID portId = portNumToUuid.get(new Short(remotePortNum));
         String remoteAddrString = "192.168.10.1";
-        bgpMgr.create(new BgpConfig(portId, 65104,
-                InetAddress.getByName(remoteAddrString), 12345));
+        bgpMgr.create(new BGP().setPortId(portId).setLocalAS(65104)
+            .setPeerAS(12345).setPeerAddr(IntIPv4.fromString
+                (remoteAddrString)));
 
         // Add the port to the datapath to invoke adding a service port for BGP.
         OFPhysicalPort remotePort = phyPorts.get(routerId).get(remotePortNum);

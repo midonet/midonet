@@ -10,51 +10,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midonet.cluster.data.BGP;
+
 public class BgpZkManager extends ZkManager {
-
-    public static final class BgpConfig {
-        /*
-         * The bgp is a list of BGP information dictionaries enabled on this
-         * port. The keys for the dictionary are:
-         *
-         * local_port: local TCP port number for BGP, as a positive integer.
-         * local_as: local AS number that belongs to, as a positive integer.
-         * peer_addr: IPv4 address of the peer, as a human-readable string.
-         * peer_port: TCP port number at the peer, as a positive integer, as a
-         * string. tcp_md5sig_key: TCP MD5 signature to authenticate a session.
-         * ad_routes: A list of routes to be advertised. Each item is a list
-         * [address, length] that represents a network prefix, where address is
-         * an IPv4 address as a human-readable string, and length is a positive
-         * integer.
-         */
-        public int localAS;
-        // TODO: Why is this an InetAddress instead of an IntIPv4?
-        public InetAddress peerAddr;
-        public int peerAS;
-        public UUID portId;
-
-        public BgpConfig(UUID portId, int localAS, InetAddress peerAddr,
-                int peerAS) {
-            this.portId = portId;
-            this.localAS = localAS;
-            this.peerAddr = peerAddr;
-            this.peerAS = peerAS;
-        }
-
-        // Default constructor for the Jackson deserialization.
-        public BgpConfig() {
-            super();
-        }
-    }
 
     /**
      * BgpZkManager constructor.
@@ -68,7 +34,7 @@ public class BgpZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    public List<Op> prepareBgpCreate(UUID id, BgpConfig config)
+    public List<Op> prepareBgpCreate(UUID id, BGP config)
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
@@ -78,17 +44,17 @@ public class BgpZkManager extends ZkManager {
         ops.add(Op.create(pathManager.getBgpAdRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getPortBgpPath(config.portId, id), null,
+        ops.add(Op.create(pathManager.getPortBgpPath(config.getPortId(), id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
 
     public List<Op> prepareBgpDelete(UUID id) throws StateAccessException {
-        return prepareBgpDelete(id, get(id));
+        return prepareBgpDelete(id, getBGP(id));
     }
 
-    public List<Op> prepareBgpDelete(UUID id, BgpConfig config)
+    public List<Op> prepareBgpDelete(UUID id, BGP config)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
@@ -102,7 +68,8 @@ public class BgpZkManager extends ZkManager {
         ops.add(Op.delete(pathManager.getBgpAdRoutesPath(id), -1));
 
         // Delete the port bgp entry
-        ops.add(Op.delete(pathManager.getPortBgpPath(config.portId, id), -1));
+        ops.add(Op.delete(pathManager.getPortBgpPath(config.getPortId(), id),
+            -1));
 
         // Delete the bgp
         ops.add(Op.delete(pathManager.getBgpPath(id), -1));
@@ -120,19 +87,20 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
-    public UUID create(BgpConfig bgp) throws StateAccessException {
+    public UUID create(BGP bgp) throws StateAccessException {
         UUID id = UUID.randomUUID();
         multi(prepareBgpCreate(id, bgp));
         return id;
     }
 
-    public BgpConfig get(UUID id, Runnable watcher) throws StateAccessException {
+    public BGP getBGP(UUID id, Runnable watcher) throws
+        StateAccessException {
         byte[] data = get(pathManager.getBgpPath(id), watcher);
-        return serializer.deserialize(data, BgpConfig.class);
+        return new BGP(id, serializer.deserialize(data, BGP.Data.class));
     }
 
-    public BgpConfig get(UUID id) throws StateAccessException {
-        return get(id, null);
+    public BGP getBGP(UUID id) throws StateAccessException {
+        return getBGP(id, null);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
@@ -155,7 +123,7 @@ public class BgpZkManager extends ZkManager {
         return list(portId, null);
     }
 
-    public void update(UUID id, BgpConfig config) throws StateAccessException {
+    public void update(UUID id, BGP config) throws StateAccessException {
         byte[] data = serializer.serialize(config);
         update(pathManager.getBgpPath(id), data);
     }

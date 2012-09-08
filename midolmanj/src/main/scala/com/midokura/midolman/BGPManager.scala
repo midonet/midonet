@@ -11,7 +11,6 @@ import com.google.inject.Inject
 import datapath.FlowActionVrnPortOutput
 import java.util.UUID
 import com.midokura.util.functors.Callback2
-import state.zkManagers.BgpZkManager.BgpConfig
 import topology.VirtualTopologyActor
 import topology.VirtualTopologyActor.{PortRequest, BGPLinkDeleted, BGPListUnsubscribe, BGPListRequest}
 import com.midokura.midonet.cluster.client.{ExteriorRouterPort, BGPLink}
@@ -27,6 +26,7 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowActionUserspace}
 import com.midokura.sdn.dp.Ports
+import com.midokura.midonet.cluster.data.BGP
 
 object BGPManager extends Referenceable {
     val Name = "BGPManager"
@@ -118,12 +118,13 @@ class BGPManager extends Actor with ActorLogging {
                     setBGPFlows(internalPort.getPortNo.shortValue(), bgpLink, bgpPort)
 
                     // launch bgpd
-                    val bgpConfig = new BgpConfig(bgpLink.portID,
-                        bgpLink.localAS, Net.convertIntToInetAddress(bgpLink.peerAddr.getAddress), bgpLink.peerAS)
+                    //val bgpConfig = new BgpConfig(bgpLink.portID,
+                    //    bgpLink.localAS, Net.convertIntToInetAddress(bgpLink
+            //.peerAddr.getAddress), bgpLink.peerAS)
 
                     // where to get the local address?
-                    val localAddr: Int = 0
-                    launchBGPd(bgpLink.bgpID, bgpConfig, localAddr)
+                    //val localAddr: Int = 0
+                    //launchBGPd(bgpLink.bgpID, bgpConfig, localAddr)
             }
 
     }
@@ -294,7 +295,7 @@ class BGPManager extends Actor with ActorLogging {
             wildcardFlow, None, null, bgpTagSet))
     }
 
-    def launchBGPd(bgpId: UUID, bgpConfig: BgpConfig, localAddr: Int) {
+    def launchBGPd(bgpId: UUID, bgpConfig: BGP, localAddr: Int) {
         if (!this.run) {
             try {
                 Sudo.sudoExec("killall bgpd")
@@ -333,8 +334,8 @@ class BGPManager extends Actor with ActorLogging {
 
             try {
                 log.debug("start,Runnable.run: setting bgp config")
-                bgpd.create(Net.convertIntToInetAddress(localAddr),
-                    bgpId, bgpConfig)
+                //bgpd.create(Net.convertIntToInetAddress(localAddr),
+                //    bgpId, bgpConfig)
             } catch {
                 case e: Exception => e.printStackTrace()
             }

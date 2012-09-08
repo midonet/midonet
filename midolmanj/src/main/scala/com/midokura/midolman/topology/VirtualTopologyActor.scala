@@ -113,6 +113,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
 
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {
+            log.info("Build a manager for this device.")
             context.actorOf(Props(ctr(id)), name = id.toString())
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
@@ -182,6 +183,8 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             manageDevice(id, (x: UUID) =>
                 new RouterManager(x, clusterClient))
             deviceRequested(id, idToRouter, update)
+        case BGPListRequest =>
+        case BGPListUnsubscribe =>
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)

@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionBridgeConnector
-import com.midokura.packets.IPv4
+import com.midokura.packets.{IntIPv4, IPv4}
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.Net
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
+import com.midokura.midonet.cluster.data.BGP
 
 
 /**
@@ -62,7 +62,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
     private final val localAs = 65104
     private final val peerAs = 12345
 
-    private final var bgpConfig: BgpConfig = _
+    private final var bgpConfig: BGP = _
     private final var bgpId: UUID = _
 
     @AfterClass
@@ -94,8 +94,9 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         portId = portMgr.create(portConfig)
 
         // Create a BGP config.
-        bgpConfig = new BgpConfig(portId, localAs,
-                                  InetAddress.getByName(peerAddr), peerAs)
+        bgpConfig = new BGP()
+            .setId(portId).setLocalAS(localAs).setPeerAS(peerAs)
+            .setPeerAddr(IntIPv4.fromString(peerAddr))
         bgpId = bgpMgr.create(bgpConfig)
     }
 }

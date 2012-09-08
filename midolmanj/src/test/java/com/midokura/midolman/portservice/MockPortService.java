@@ -24,13 +24,13 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
+import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.packets.MAC;
 import com.midokura.quagga.ZebraServer;
 import com.midokura.quagga.BgpVtyConnection;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 
 import com.midokura.midolman.util.Net;
 
@@ -212,8 +212,8 @@ public class MockPortService implements PortService {
         int localAddr = portConfig.portAddr;
 
         for (UUID bgpNode : bgpMgr.list(remotePortId)) {
-            BgpConfig bgpConfig = bgpMgr.get(bgpNode);
-            int remoteAddr = Net.convertInetAddressToInt(bgpConfig.peerAddr);
+            BGP bgpConfig = bgpMgr.getBGP(bgpNode);
+            int remoteAddr = bgpConfig.getPeerAddr().addressAsInt();
             log.debug("Port service flows: local {} remote {} "
                     + "localAddr {} remoteAddr {} "
                     + "localPort {} remotePort {}", new Object[] {localPortNum,

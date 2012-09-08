@@ -6,6 +6,7 @@ package com.midokura.midonet.cluster;
 
 import java.util.UUID;
 
+import com.midokura.midonet.cluster.client.BGPListBuilder;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
@@ -33,4 +34,6 @@ public interface Client {
     void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
 
     void getPortSet(UUID uuid, PortSetBuilder builder);
+
+    //void getPortBGPList(UUID portID, BGPListBuilder builder);
 }

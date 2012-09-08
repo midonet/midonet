@@ -10,7 +10,8 @@ import java.net.InetAddress
 import java.util.UUID
 
 import org.slf4j.LoggerFactory
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
+import com.midokura.midonet.cluster.data.BGP
+import com.midokura.packets.IntIPv4
 
 
 class MockBgpConnection extends BgpConnection {
@@ -19,7 +20,7 @@ class MockBgpConnection extends BgpConnection {
 
 
     override def create(localAddr: InetAddress, bgpUUID: UUID,
-                        bgp: BgpConfig) {
+                        bgp: BGP) {
         log.info("create")
     }
 
@@ -40,7 +41,7 @@ class MockBgpConnection extends BgpConnection {
         log.info("setLocalNw")
     }
 
-    override def setPeer(as: Int, peerAddr: InetAddress, peerAs: Int) {
+    override def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int) {
         log.info("setPeer")
     }
 

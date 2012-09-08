@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.midokura.packets.IntIPv4;
+
 public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
 
     public enum Property {
@@ -44,11 +46,11 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
         return this;
     }
 
-    public InetAddress getPeerAddr() {
+    public IntIPv4 getPeerAddr() {
         return getData().peerAddr;
     }
 
-    public BGP setPeerAddr(InetAddress peerAddr) {
+    public BGP setPeerAddr(IntIPv4 peerAddr) {
         getData().peerAddr = peerAddr;
         return this;
     }
@@ -96,8 +98,7 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
         * integer.
         */
         public int localAS;
-        // TODO: Why is this an InetAddress instead of an IntIPv4?
-        public InetAddress peerAddr;
+        public IntIPv4 peerAddr;
         public int peerAS;
         public UUID portId;
         public Map<String, String> properties = new HashMap<String, String>();

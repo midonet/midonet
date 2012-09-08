@@ -3,15 +3,12 @@
 */
 package com.midokura.midolman.topology.rcu
 
-import akka.actor.{ActorRef, Actor}
-import akka.event.Logging
+import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import java.util.UUID
 
-trait RCUDeviceManager extends Actor {
-
-     val log = Logging(context.system, this)
+trait RCUDeviceManager extends Actor with ActorLogging {
 
      def clusterClient: Client
 

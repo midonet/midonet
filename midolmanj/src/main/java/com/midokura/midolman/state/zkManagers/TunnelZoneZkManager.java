@@ -236,8 +236,7 @@ public class TunnelZoneZkManager extends ZkManager {
     )
     abstract static class ZoneDataMixin {
 
-        @JsonProperty
-        String name;
+
     }
 
     @JsonTypeInfo(

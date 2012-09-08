@@ -193,16 +193,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public BGP bgpGet(UUID id) throws StateAccessException {
-        log.debug("Entered: id={}", id);
-
-        BGP bgp = null;
-        if (bgpZkManager.exists(id)) {
-            bgp = Converter.fromBgpConfig(bgpZkManager.get(id));
-            bgp.setId(id);
-        }
-
-        log.debug("Exiting: bgp={}", bgp);
-        return bgp;
+        return bgpZkManager.getBGP(id);
     }
 
     @Override
@@ -212,7 +203,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID bgpCreate(@Nonnull BGP bgp) throws StateAccessException {
-        return bgpZkManager.create(Converter.toBgpConfig(bgp));
+        return bgpZkManager.create(bgp);
     }
 
     @Override

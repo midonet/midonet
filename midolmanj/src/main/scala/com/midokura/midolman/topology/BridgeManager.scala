@@ -77,7 +77,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
     private var rtrIpToMac: ROMap[IntIPv4, MAC] = null
-    
+
     private var filterChanged = false;
 
 

@@ -10,7 +10,6 @@ import com.midokura.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig;
 import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
@@ -54,21 +53,6 @@ public class Converter {
                 .setNwPrefix(adRouteConfig.nwPrefix)
                 .setPrefixLength(adRouteConfig.prefixLength);
 
-    }
-
-    public static BgpConfig toBgpConfig(BGP bgp) {
-
-        return new BgpConfig(bgp.getPortId(), bgp.getLocalAS(),
-                bgp.getPeerAddr(), bgp.getPeerAS());
-    }
-
-    public static BGP fromBgpConfig(BgpConfig bgpConfig) {
-
-        return new BGP()
-                .setLocalAS(bgpConfig.localAS)
-                .setPeerAddr(bgpConfig.peerAddr)
-                .setPeerAS(bgpConfig.peerAS)
-                .setPortId(bgpConfig.portId);
     }
 
     public static BridgeConfig toBridgeConfig(Bridge bridge) {

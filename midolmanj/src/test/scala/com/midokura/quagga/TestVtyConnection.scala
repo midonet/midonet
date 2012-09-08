@@ -18,9 +18,10 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.{Net, Sudo}
-import com.midokura.midolman.state.zkManagers.BgpZkManager.BgpConfig
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
+import com.midokura.midonet.cluster.data.BGP
+import com.midokura.packets.IntIPv4
 
 object TestBgpVtyConnection {
     private final val log =
@@ -45,7 +46,7 @@ object TestBgpVtyConnection {
     private final val localAs = 65104
     private final val peerAs = 12345
 
-    private final var bgpConfig: BgpConfig = _
+    private final var bgpConfig: BGP = _
     private final var bgpId: UUID = _
     private final var adRouteConfig: AdRouteConfig = _
     private final var adRouteId: UUID = _
@@ -76,8 +77,9 @@ object TestBgpVtyConnection {
         portId = portMgr.create(portConfig)
 
         // Create a BGP config.
-        bgpConfig = new BgpConfig(portId, localAs,
-                                  InetAddress.getByName(peerAddr), peerAs)
+        bgpConfig = new BGP()
+            .setPortId(portId).setLocalAS(localAs).setPeerAS(peerAs)
+            .setPeerAddr(IntIPv4.fromString(peerAddr))
         bgpId = bgpMgr.create(bgpConfig)
         // Create advertising routes
         adRouteConfig = new AdRouteConfig(
