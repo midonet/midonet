@@ -107,6 +107,7 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
     }
 }
 
+@Ignore
 class TestBgpPortService {
     import TestBgpPortService._
     import TestHelpers._

@@ -23,6 +23,7 @@ import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
 import com.midokura.packets.IntIPv4
 
+
 object TestBgpVtyConnection {
     private final val log =
         LoggerFactory.getLogger(classOf[TestBgpVtyConnection])
@@ -102,6 +103,7 @@ object TestBgpVtyConnection {
     }
 }
 
+@Ignore
 class TestBgpVtyConnection {
     import TestBgpVtyConnection._
 

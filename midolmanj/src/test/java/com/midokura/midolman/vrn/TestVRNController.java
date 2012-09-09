@@ -26,6 +26,7 @@ import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
@@ -68,7 +69,7 @@ import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.util.Net;
 import com.midokura.midolman.vrn.VRNController.PacketContinuation;
 
-
+@Ignore
 public class TestVRNController {
 
     private String basePath;
