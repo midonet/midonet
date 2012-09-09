@@ -44,5 +44,29 @@ public class ArpCacheEntry implements Cloneable {
                ", lastArp=" + lastArp + "]";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ArpCacheEntry that = (ArpCacheEntry) o;
+
+        if (expiry != that.expiry) return false;
+        if (lastArp != that.lastArp) return false;
+        if (stale != that.stale) return false;
+        if (macAddr != null ? !macAddr.equals(that.macAddr) : that.macAddr != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = macAddr != null ? macAddr.hashCode() : 0;
+        result = 31 * result + (int) (expiry ^ (expiry >>> 32));
+        result = 31 * result + (int) (stale ^ (stale >>> 32));
+        result = 31 * result + (int) (lastArp ^ (lastArp >>> 32));
+        return result;
+    }
 }
 
