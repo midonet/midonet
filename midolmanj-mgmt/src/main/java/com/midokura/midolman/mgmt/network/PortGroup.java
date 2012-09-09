@@ -5,10 +5,13 @@ package com.midokura.midolman.mgmt.network;
 
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.UriResource;
+import com.midokura.midolman.mgmt.network.validation.IsUniquePortGroupName;
 import com.midokura.midonet.cluster.data.PortGroup.Property;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -17,6 +20,7 @@ import java.util.UUID;
 /**
  * Class representing a port group.
  */
+@IsUniquePortGroupName(groups = PortGroup.PortGroupExtended.class)
 @XmlRootElement
 public class PortGroup extends UriResource {
 
@@ -149,4 +153,27 @@ public class PortGroup extends UriResource {
         return "id=" + id + " tenantId=" + tenantId + ", name=" + name;
     }
 
+    /**
+     * Interface used for a Validation group. This group gets triggered after
+     * the default validations.
+     */
+    public interface PortGroupExtended {
+    }
+
+    /**
+     * Interface used for validating a port group on creates.
+     */
+    public interface PortGroupCreateGroup {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups for port group
+     * create.
+     */
+    @GroupSequence({ Default.class, PortGroupCreateGroup.class,
+            PortGroupExtended.class })
+    public interface PortGroupCreateGroupSequence {
+    }
+
 }
+

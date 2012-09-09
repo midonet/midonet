@@ -143,7 +143,7 @@ public class PortGroupResource {
             throws StateAccessException, InvalidStateOperationException {
 
         Set<ConstraintViolation<PortGroup>> violations = validator
-                .validate(group);
+                .validate(group, PortGroup.PortGroupCreateGroupSequence.class);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
         }

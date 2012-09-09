@@ -1,13 +1,14 @@
 /*
  * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midonet.client.dto.*;
 import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.rest_api.Topology;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.*;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -15,10 +16,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
-import java.util.UUID;
+import java.util.*;
 
 import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.hamcrest.Matchers.*;
@@ -164,6 +166,93 @@ public class TestPortGroup {
 
             // TODO(pino): all these cases should fail:
             // TODO: 1) Set a Port's group to a GroupID owned by another Tenant.
+        }
+    }
+
+    @RunWith(Parameterized.class)
+    public static class TestCreatePortGroupBadRequest extends JerseyTest {
+
+        private Topology topology;
+        private DtoWebResource dtoResource;
+        private final DtoPortGroup portGroup;
+        private final String property;
+
+        public TestCreatePortGroupBadRequest(DtoPortGroup portGroup,
+                                             String property) {
+            super(FuncTest.appDesc);
+            this.portGroup = portGroup;
+            this.property = property;
+        }
+
+        @Before
+        public void setUp() {
+
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a port group - useful for checking duplicate name error
+            DtoPortGroup pg = new DtoPortGroup();
+            pg.setName("pg1-name");
+            pg.setTenantId("tenant1-id");
+
+            topology = new Topology.Builder(dtoResource)
+                    .create("pg1", pg).build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Parameterized.Parameters
+        public static Collection<Object[]> data() {
+
+            List<Object[]> params = new ArrayList<Object[]>();
+
+            // Null name
+            DtoPortGroup nullNamePortGroup = new DtoPortGroup();
+            nullNamePortGroup.setTenantId("tenant1-id");
+            params.add(new Object[] { nullNamePortGroup, "name" });
+
+            // Blank name
+            DtoPortGroup blankNamePortGroup = new DtoPortGroup();
+            blankNamePortGroup.setName("");
+            blankNamePortGroup.setTenantId("tenant1-id");
+            params.add(new Object[] { blankNamePortGroup, "name" });
+
+            // Long name
+            StringBuilder longName = new StringBuilder(
+                    PortGroup.MAX_PORT_GROUP_NAME_LEN + 1);
+            for (int i = 0; i < PortGroup.MAX_PORT_GROUP_NAME_LEN + 1; i++) {
+                longName.append("a");
+            }
+            DtoPortGroup longNamePortGroup = new DtoPortGroup();
+            longNamePortGroup.setName(longName.toString());
+            longNamePortGroup.setTenantId("tenant1-id");
+            params.add(new Object[] { longNamePortGroup, "name" });
+
+            // PortGroup name already exists
+            DtoPortGroup dupNamePortGroup = new DtoPortGroup();
+            dupNamePortGroup.setName("pg1-name");
+            dupNamePortGroup.setTenantId("tenant1-id");
+            params.add(new Object[]{dupNamePortGroup, "name"});
+
+            // PortGroup with tenantID missing
+            DtoPortGroup noTenant = new DtoPortGroup();
+            noTenant.setName("noTenant-portGroup-name");
+            params.add(new Object[] { noTenant, "tenantId" });
+
+            return params;
+        }
+
+        @Test
+        public void testBadInputCreate() {
+            DtoApplication app = topology.getApplication();
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    app.getPortGroups(), APPLICATION_PORTGROUP_JSON, portGroup);
+            List<Map<String, String>> violations = error.getViolations();
+            assertEquals(1, violations.size());
+            assertEquals(property, violations.get(0).get("property"));
         }
     }
 }
