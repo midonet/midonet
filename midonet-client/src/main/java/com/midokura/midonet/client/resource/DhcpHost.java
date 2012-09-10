@@ -9,10 +9,10 @@ import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoDhcpHost;
 
-public class SubnetHost extends ResourceBase<SubnetHost, DtoDhcpHost> {
+public class DhcpHost extends ResourceBase<DhcpHost, DtoDhcpHost> {
 
-    public SubnetHost(WebResource resource, URI uriForCreation, DtoDhcpHost
-            principalDto) {
+    public DhcpHost(WebResource resource, URI uriForCreation, DtoDhcpHost
+        principalDto) {
         super(resource, uriForCreation, principalDto,
                 VendorMediaType.APPLICATION_DHCP_HOST_JSON);
     }
@@ -55,7 +55,7 @@ public class SubnetHost extends ResourceBase<SubnetHost, DtoDhcpHost> {
      * @param name
      * @return               this
      */
-    public SubnetHost name(String name) {
+    public DhcpHost name(String name) {
         principalDto.setName(name);
         return this;
     }
@@ -65,7 +65,7 @@ public class SubnetHost extends ResourceBase<SubnetHost, DtoDhcpHost> {
      * @param macAddr
      * @return                      this
      */
-    public SubnetHost macAddr(String macAddr) {
+    public DhcpHost macAddr(String macAddr) {
         principalDto.setMacAddr(macAddr);
         return this;
     }
@@ -75,14 +75,14 @@ public class SubnetHost extends ResourceBase<SubnetHost, DtoDhcpHost> {
      * @param ipAddr
      * @return
      */
-    public SubnetHost ipAddr(String ipAddr) {
+    public DhcpHost ipAddr(String ipAddr) {
         principalDto.setIpAddr(ipAddr);
         return this;
     }
 
     @Override
     public String toString() {
-        return String.format("{SubnetHost, ip=%s, mac=%s}", principalDto
+        return String.format("{DhcpHost, ip=%s, mac=%s}", principalDto
                 .getIpAddr(), principalDto.getMacAddr());
     }
 }

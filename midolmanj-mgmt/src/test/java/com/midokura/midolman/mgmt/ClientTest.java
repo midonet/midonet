@@ -134,11 +134,11 @@ public class ClientTest extends JerseyTest {
 
 
         // DhcpSubnet Host
-        SubnetHost sh1 = sn1.addSubnetHost()
+        DhcpHost sh1 = sn1.addDhcpHost()
                             .macAddr("00:00:00:aa:bb:cc")
                             .ipAddr("192.168.10.2")
                             .create();
-        SubnetHost sh2 = sn1.addSubnetHost()
+        DhcpHost sh2 = sn1.addDhcpHost()
                             .macAddr("00:00:00:aa:bb:cd")
                             .ipAddr("192.168.10.3")
                             .create();
@@ -146,7 +146,7 @@ public class ClientTest extends JerseyTest {
         log.debug("sh1: {}", sh1);
         log.debug("sh2: {}", sh2);
 
-        assertThat(sn1.getHosts().size(), is(2));
+        assertThat(sn1.getDhcpHosts().size(), is(2));
 
 
         // Router

@@ -126,22 +126,22 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      *
      * @return
      */
-    public ResourceCollection<SubnetHost> getHosts() {
+    public ResourceCollection<DhcpHost> getDhcpHosts() {
         return getChildResources(
             principalDto.getHosts(),
             null,
             VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON,
-            SubnetHost.class,
+            DhcpHost.class,
             DtoDhcpHost.class);
     }
 
     /**
      * Adds subnet host resource under this subnet.
      *
-     * @return new SubnetHost()
+     * @return new DhcpHost()
      */
-    public SubnetHost addSubnetHost() {
-        return new SubnetHost(resource, principalDto.getHosts(),
+    public DhcpHost addDhcpHost() {
+        return new DhcpHost(resource, principalDto.getHosts(),
                               new DtoDhcpHost());
     }
 
