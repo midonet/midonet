@@ -22,6 +22,7 @@ import com.midokura.midolman.Setup
 import com.midokura.midolman.TestHelpers._
 import java.util
 import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnType, VpnConfig}
+import org.scalatest.Ignore
 
 /**
  * Test for OpenVpnPortService using Open vSwitch database connection.
@@ -117,6 +118,7 @@ object TestOpenVpnPortService
     }
 }
 
+@Ignore
 class TestOpenVpnPortService {
     import TestOpenVpnPortService._
 
