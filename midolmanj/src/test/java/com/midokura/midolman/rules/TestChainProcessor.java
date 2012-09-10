@@ -40,6 +40,7 @@ public class TestChainProcessor {
     static MidoMatch pktMatch;
     static MidoMatch flowMatch;
     static MockChainProcessor mockChainProcessor;
+    static ChainEngine chainEngine;
     static Condition matchingCondition;
     static Condition nonMatchingCondition;
     private MockChain mockChain;
@@ -127,6 +128,7 @@ public class TestChainProcessor {
 
         mockChainProcessor = new MockChainProcessor(mockDirectory, "",
                 new MockCache(), new MockReactor());
+        chainEngine = new ChainEngine(mockChainProcessor);
 
         // Add main chain for the tests
         mockChain = new MockChain(chainId, "mainChain");
@@ -160,7 +162,7 @@ public class TestChainProcessor {
         addLiteralRule(nonMatchingCondition, Action.DROP, mockChain, 10);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20); //match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -172,7 +174,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 10); //match
         addLiteralRule(nonMatchingCondition, Action.ACCEPT, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -184,7 +186,7 @@ public class TestChainProcessor {
         addLiteralRule(nonMatchingCondition, Action.DROP, mockChain, 10);
         addLiteralRule(nonMatchingCondition, Action.DROP, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         // When no rules are matched, expect ACCEPT
@@ -197,7 +199,7 @@ public class TestChainProcessor {
         addLiteralRule(nonMatchingCondition, Action.REJECT, mockChain, 10);
         addLiteralRule(matchingCondition, Action.DROP, mockChain, 20); //match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         // When no rules are matched, expect ACCEPT
@@ -210,7 +212,7 @@ public class TestChainProcessor {
         addLiteralRule(nonMatchingCondition, Action.REJECT, mockChain, 10);
         addLiteralRule(matchingCondition, Action.RETURN, mockChain, 20); //match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         // When chain is interrupted (RETURN), expect ACCEPT
@@ -224,7 +226,7 @@ public class TestChainProcessor {
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
         addLiteralRule(matchingCondition, Action.DROP, mockChain, 30);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         // When chain is interrupted (RETURN), expect ACCEPT
@@ -247,7 +249,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -269,7 +271,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -291,7 +293,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -320,7 +322,7 @@ public class TestChainProcessor {
         mockChainProcessor.addChain(mockChainTarget1);
         mockChainProcessor.addChain(mockChainTarget2);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -342,7 +344,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
@@ -364,7 +366,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
@@ -386,7 +388,7 @@ public class TestChainProcessor {
 
         mockChainProcessor.addChain(mockChainTarget);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.DROP, ruleResult.action);
@@ -401,7 +403,7 @@ public class TestChainProcessor {
         addForwardNatRule(matchingCondition, Action.ACCEPT, mockChain, 10, true, set);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -416,7 +418,7 @@ public class TestChainProcessor {
         addForwardNatRule(matchingCondition, Action.CONTINUE, mockChain, 10, true, set);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -431,7 +433,7 @@ public class TestChainProcessor {
         addForwardNatRule(matchingCondition, Action.ACCEPT, mockChain, 10, false, set);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -446,7 +448,7 @@ public class TestChainProcessor {
         addForwardNatRule(matchingCondition, Action.CONTINUE, mockChain, 10, false, set);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20);
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -458,7 +460,7 @@ public class TestChainProcessor {
         addReverseNatRule(matchingCondition, Action.ACCEPT, mockChain, 10, true);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20); //match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -470,7 +472,7 @@ public class TestChainProcessor {
         addReverseNatRule(matchingCondition, Action.ACCEPT, mockChain, 10, false);
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 20); //match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.REJECT, ruleResult.action);
@@ -487,7 +489,7 @@ public class TestChainProcessor {
         addReverseNatRule(matchingCondition, Action.RETURN, mockChain, 20, false); //no match
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 30); //no match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);
@@ -503,7 +505,7 @@ public class TestChainProcessor {
         addForwardNatRule(matchingCondition, Action.ACCEPT, mockChain, 20, false, set); //no match
         addLiteralRule(matchingCondition, Action.REJECT, mockChain, 30); //no match
 
-        RuleResult ruleResult = mockChainProcessor.applyChain(chainId,
+        RuleResult ruleResult = chainEngine.applyChain(chainId,
                 fwdInfo, pktMatch, ownerId, false);
 
         Assert.assertEquals(Action.ACCEPT, ruleResult.action);

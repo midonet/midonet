@@ -28,7 +28,7 @@ import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.ChainEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
@@ -65,19 +65,19 @@ public class Bridge implements ForwardingElement {
     private Set<UUID> localPorts = new HashSet<UUID>();
     private VRNControllerIface controller;
     private BridgeConfig myConfig;
-    private ChainProcessor chainProcessor;
+    private ChainEngine chainEngine;
     private PortConfigCache portCache;
 
     public Bridge(UUID brId, Directory zkDir, String zkBasePath,
                   Reactor reactor, VRNControllerIface ctrl,
-                  ChainProcessor chainProcessor, PortConfigCache portCache)
+                  ChainEngine chainEngine, PortConfigCache portCache)
             throws StateAccessException {
         this.bridgeId = brId;
         // The "flood ID" can be locally generated - it's only used on this VM.
         this.floodElementID = bridgeIdToFloodId(bridgeId);
         this.reactor = reactor;
         this.controller = ctrl;
-        this.chainProcessor = chainProcessor;
+        this.chainEngine = chainEngine;
         this.portCache = portCache;
         portMgr = new PortZkManager(zkDir, zkBasePath);
         this.bridgeMgr = new BridgeZkManager(zkDir, zkBasePath);
@@ -155,7 +155,7 @@ public class Bridge implements ForwardingElement {
         fwdInfo.outPortId = null;
 
         // Apply pre-bridging rules.
-        RuleResult res = chainProcessor.applyChain(
+        RuleResult res = chainEngine.applyChain(
                 myConfig.inboundFilter, fwdInfo, fwdInfo.matchIn,
                 this.bridgeId, false);
         if (res.trackConnection)
@@ -211,7 +211,7 @@ public class Bridge implements ForwardingElement {
         }
 
         // Apply post-bridging rules.
-        res = chainProcessor.applyChain(myConfig.outboundFilter, fwdInfo,
+        res = chainEngine.applyChain(myConfig.outboundFilter, fwdInfo,
                 res.match, this.bridgeId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
@@ -272,7 +272,7 @@ public class Bridge implements ForwardingElement {
     @Override
     public void freeFlowResources(OFMatch match, UUID inPortId) {
         // NOTE: resources used by the bridge's filters are managed by a
-        // a NatMapping that is handled by the singleton ChainProcessor.
+        // a NatMapping that is handled by the singleton ChainEngine.
 
         // Note: we only subscribe to removal notification for flows that arrive
         // via materialized ports. This makes it possible to use the flow

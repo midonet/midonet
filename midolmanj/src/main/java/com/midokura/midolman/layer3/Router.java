@@ -29,7 +29,7 @@ import com.midokura.packets.ICMP.UNREACH_CODE;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.ChainEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -47,7 +47,7 @@ import com.midokura.midolman.vrn.VRNControllerIface;
  * This class coordinates the routing logic for a single virtual router. It
  * delegates much of its internal logic to other class instances:
  * ReplicatedRoutingTable maintains the routing table and matches flows to
- * routes; ChainProcessor maintains the rule chains and applies their logic to
+ * routes; chainEngine maintains the rule chains and applies their logic to
  * packets in the router.
  *
  * Router is directly responsible for three main tasks:
@@ -104,7 +104,7 @@ public class Router implements ForwardingElement {
     }
 
     protected UUID routerId;
-    protected ChainProcessor ruleEngine;
+    protected ChainEngine ruleEngine;
     protected ReplicatedRoutingTable table;
     // Note that only materialized ports are tracked. Package visibility for
     // testing.
@@ -122,7 +122,7 @@ public class Router implements ForwardingElement {
 
     public Router(UUID rtrId, Directory zkDir, String zkBasePath,
                   Reactor reactor, VRNControllerIface ctrl,
-                  ChainProcessor chainProcessor, PortConfigCache portCache)
+                  ChainEngine chainEngine, PortConfigCache portCache)
             throws StateAccessException {
         this.routerId = rtrId;
         this.reactor = reactor;
@@ -165,7 +165,7 @@ public class Router implements ForwardingElement {
                                        Map<Integer, List<Callback1<MAC>>>>();
         this.loadBalancer = new DummyLoadBalancer(table);
         arpTable.addWatcher(new ArpWatcher());
-        ruleEngine = chainProcessor;
+        ruleEngine = chainEngine;
     }
 
     @Override

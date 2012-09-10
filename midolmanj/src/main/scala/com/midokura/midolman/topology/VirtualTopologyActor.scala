@@ -3,19 +3,18 @@
  */
 package com.midokura.midolman.topology
 
-import java.util.UUID
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import collection.mutable
-import scala.Some
-
-import com.midokura.packets.IntIPv4
-import com.midokura.midolman.guice.ComponentInjectorHolder
+import java.util.UUID
 import javax.inject.Inject
-import com.midokura.midolman.config.MidolmanConfig
-import com.midokura.midolman.simulation.{Chain, Bridge, Router}
-import com.midokura.midonet.cluster.Client
-import akka.actor.{ActorLogging, Props, ActorRef, Actor}
+
 import com.midokura.midolman.Referenceable
+import com.midokura.midolman.config.MidolmanConfig
+import com.midokura.midolman.guice.ComponentInjectorHolder
+import com.midokura.midolman.simulation.{Bridge, Chain, Router}
+import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.Port
+import com.midokura.packets.IntIPv4
 
 
 object VirtualTopologyActor extends Referenceable {

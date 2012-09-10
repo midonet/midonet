@@ -67,7 +67,7 @@ public class TestRouter {
     private ChainZkManager chainMgr;
     private RuleZkManager ruleMgr;
     private RouterZkManager routerMgr;
-    private ChainProcessor chainProcessor;
+    private ChainEngine chainEngine;
     private PortConfigCache portCache;
     private UUID unlinkedLogPortId;
 
@@ -93,8 +93,8 @@ public class TestRouter {
         ruleMgr = new RuleZkManager(dir, basePath);
 
         reactor = new MockReactor();
-        chainProcessor = new ChainProcessor(
-                dir, basePath, new MockCache(), reactor, null);
+        chainEngine = new ChainEngine(new ChainProcessor(
+                dir, basePath, new MockCache(), reactor, null));
         portCache = new PortConfigCache(reactor, dir, basePath);
 
         UUID rtrId = routerMgr.create();
@@ -112,7 +112,7 @@ public class TestRouter {
                 IntIPv4.fromString("192.168.200.200"), "externalIdKey", vrnId,
                 false);
         rtr = new Router(
-                rtrId, dir, basePath, reactor, controller, chainProcessor,
+                rtrId, dir, basePath, reactor, controller, chainEngine,
                 portCache);
         controllerStub = new MockControllerStub();
         controller.setControllerStub(controllerStub);

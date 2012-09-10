@@ -48,6 +48,7 @@ import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
+import com.midokura.midolman.rules.ChainEngine;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.state.*;
 import com.midokura.cache.Cache;
@@ -102,12 +103,12 @@ public class TestVRNCoordinator {
         controller.setDatapathId(679);
         PortSetMap portSetMap = new PortSetMap(dir, basePath);
         Cache cache = createCache();
-        ChainProcessor chainProcessor = new ChainProcessor(dir, basePath,
-                cache, reactor, null);
+        ChainEngine chainEngine = new ChainEngine(
+                new ChainProcessor(dir, basePath, cache, reactor, null));
         PortConfigCache portCache =
                 new PortConfigCache(reactor, dir, basePath);
         vrn = new VRNCoordinator(dir, basePath, reactor,
-                controller, portSetMap, chainProcessor, portCache);
+                controller, portSetMap, chainEngine, portCache);
 
         /*
          * Create 3 routers such that:

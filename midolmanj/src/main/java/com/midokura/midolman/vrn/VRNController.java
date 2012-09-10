@@ -21,17 +21,7 @@ import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFFlowRemoved.OFFlowRemovedReason;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionDataLayer;
-import org.openflow.protocol.action.OFActionDataLayerDestination;
-import org.openflow.protocol.action.OFActionDataLayerSource;
-import org.openflow.protocol.action.OFActionNetworkLayerAddress;
-import org.openflow.protocol.action.OFActionNetworkLayerDestination;
-import org.openflow.protocol.action.OFActionNetworkLayerSource;
-import org.openflow.protocol.action.OFActionOutput;
-import org.openflow.protocol.action.OFActionTransportLayer;
-import org.openflow.protocol.action.OFActionTransportLayerDestination;
-import org.openflow.protocol.action.OFActionTransportLayerSource;
+import org.openflow.protocol.action.*;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,33 +39,18 @@ import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchException;
 import com.midokura.midolman.portservice.PortService;
 import com.midokura.midolman.portservice.VpnPortAgent;
+import com.midokura.midolman.rules.ChainEngine;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.ChainProcessor;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.IPv4Set;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfigCache;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.PortSetMap;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
-import com.midokura.midolman.state.zkManagers.GreZkManager;
 import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnType;
-import com.midokura.packets.ARP;
-import com.midokura.packets.DHCP;
-import com.midokura.packets.Ethernet;
-import com.midokura.packets.ICMP;
-import com.midokura.packets.IPv4;
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
-import com.midokura.packets.MalformedPacketException;
-import com.midokura.packets.TCP;
-import com.midokura.packets.UDP;
+import com.midokura.packets.*;
 import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.UnaryFunctor;
@@ -116,7 +91,7 @@ public class VRNController extends AbstractController
     private PortZkManager portMgr;
     private GreZkManager greMgr;
     private BridgeZkManager bridgeMgr;
-    private ChainProcessor chainProcessor;
+    private ChainEngine chainEngine;
     private VpnZkManager vpnMgr;
     private Directory zkDir;
     PortConfigCache portCache;
@@ -139,12 +114,12 @@ public class VRNController extends AbstractController
         this.vpnMgr = new VpnZkManager(zkDir, zkBasePath);
         this.portSetMap = new PortSetMap(zkDir, zkBasePath);
         this.portSetMap.start();
-        this.chainProcessor = new ChainProcessor(zkDir, zkBasePath, cache,
-                                                 reactor, this);
+        this.chainEngine = new ChainEngine(
+                new ChainProcessor(zkDir, zkBasePath, cache, reactor, this));
         this.portCache = new PortConfigCache(reactor, zkDir, zkBasePath);
         this.connectionCache = cache;
         this.vrn = new VRNCoordinator(zkDir, zkBasePath, reactor, this,
-                                      portSetMap, chainProcessor, portCache);
+                                      portSetMap, chainEngine, portCache);
         this.localPortSetSlices = new HashMap<UUID, Set<Short>>();
 
         this.bgpService = bgpService;
@@ -679,7 +654,7 @@ public class VRNController extends AbstractController
             // exiting, so set inputPort and outputPort to null.
             // The port groups *should* be set based on the original origin
             // port, but we don't have access to that, so use null.
-            RuleResult result = chainProcessor.applyChain(
+            RuleResult result = chainEngine.applyChain(
                     portCfg.outboundFilter,
                     new EgressPacketContext(pktMatch, traversedElementIDs),
                     pktMatch, portID, true);

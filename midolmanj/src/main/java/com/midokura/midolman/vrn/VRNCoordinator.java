@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.Bridge;
 import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.openflow.MidoMatch;
-import com.midokura.midolman.rules.ChainProcessor;
+import com.midokura.midolman.rules.ChainEngine;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.*;
 import com.midokura.sdn.flows.PacketMatch;
@@ -40,13 +40,13 @@ public class VRNCoordinator implements ForwardingElement {
     private String zkBasePath;
     private VRNControllerIface controller;
     private PortSetMap portSetMap;
-    private ChainProcessor chainProcessor;
+    private ChainEngine chainEngine;
     private PortConfigCache portCache;
 
     public VRNCoordinator(Directory zkDir, String zkBasePath, Reactor reactor,
             VRNControllerIface ctrl, PortSetMap portSetMap,
-            ChainProcessor chainProcessor, PortConfigCache portCache)
-            throws StateAccessException {
+            ChainEngine chainEngine, PortConfigCache portCache)
+                throws StateAccessException {
         this.zkDir = zkDir;
         this.zkBasePath = zkBasePath;
         this.portMgr = new PortZkManager(zkDir, zkBasePath);
@@ -55,7 +55,7 @@ public class VRNCoordinator implements ForwardingElement {
         this.portSetMap = portSetMap;
         this.forwardingElements = new HashMap<UUID, ForwardingElement>();
         this.feByPortId = new HashMap<UUID, ForwardingElement>();
-        this.chainProcessor = chainProcessor;
+        this.chainEngine = chainEngine;
         this.portCache = portCache;
         portCache.addWatcher(new Callback1<UUID>() {
             @Override
@@ -80,12 +80,12 @@ public class VRNCoordinator implements ForwardingElement {
           case Router:
             fe = new Router(
                     deviceId, zkDir, zkBasePath, reactor, controller,
-                    chainProcessor, portCache);
+                    chainEngine, portCache);
             break;
           case Bridge:
             fe = new Bridge(
                     deviceId, zkDir, zkBasePath, reactor, controller,
-                    chainProcessor, portCache);
+                    chainEngine, portCache);
             break;
           case DontConstruct:
             fe = null;
@@ -149,9 +149,9 @@ public class VRNCoordinator implements ForwardingElement {
             OFMatch match, Collection<UUID> subscribers, UUID inPortID) {
         for (UUID id : subscribers) {
             // Whether the subscriber is a port, bridge or router, the
-            // chainProcessor handles freeing NAT resources.
-            // TODO(pino): why doesn't the chainProcessor need the inPortID?
-            chainProcessor.freeFlowResources(match, id);
+            // chainEngine handles freeing NAT resources.
+            // TODO(pino): why doesn't the chainEngine need the inPortID?
+            chainEngine.freeFlowResources(match, id);
             // If the subscriber is a bridge or router, call its freeResources.
             ForwardingElement fe = forwardingElements.get(id);
             if (null != fe)
@@ -316,7 +316,7 @@ public class VRNCoordinator implements ForwardingElement {
                 portCfg.inboundFilter : portCfg.outboundFilter;
         log.debug("Applying {} filter on port {} - chain ID {}", new Object[] {
                 inbound ? "inbound" : "outbound", portID, filterID});
-        RuleResult result = chainProcessor.applyChain(
+        RuleResult result = chainEngine.applyChain(
                 filterID, fwdInfo, pktMatch, portID, true);
         if (result.trackConnection)
             fwdInfo.addRemovalNotification(
