@@ -98,7 +98,8 @@ extends OpenvSwitchDatabaseConnectionBridgeConnector {
         bgpConfig = new BGP()
             .setId(portId).setLocalAS(localAs).setPeerAS(peerAs)
             .setPeerAddr(IntIPv4.fromString(peerAddr))
-        bgpId = bgpMgr.create(bgpConfig)
+        //TODO(pino): Commit 7c9d8fa50a2361e2a78fb162924cdd4f7a6308ef broke this
+        //XXX: bgpId = bgpMgr.create(bgpConfig)
     }
 }
 
