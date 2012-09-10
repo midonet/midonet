@@ -193,8 +193,8 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
                                                     new DtoLogicalBridgePort());
     }
 
-    public Subnet addSubnet() {
-        return new Subnet(resource, principalDto.getDhcpSubnets(),
+    public DhcpSubnet addDhcpSubnet() {
+        return new DhcpSubnet(resource, principalDto.getDhcpSubnets(),
                           new DtoDhcpSubnet());
     }
 
@@ -204,12 +204,12 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      * @return collection of subnets
      */
 
-    public ResourceCollection getSubnets() {
+    public ResourceCollection getDhcpSubnets() {
         return getChildResources(
             principalDto.getDhcpSubnets(),
             null,
             VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
-            Subnet.class, DtoDhcpSubnet.class);
+            DhcpSubnet.class, DtoDhcpSubnet.class);
     }
 
     @Override

@@ -12,16 +12,16 @@ import com.midokura.midonet.client.dto.DtoDhcpHost;
 import com.midokura.midonet.client.dto.DtoDhcpOption121;
 import com.midokura.midonet.client.dto.DtoDhcpSubnet;
 
-public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
+public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
 
-    public Subnet(WebResource resource, URI uriForCreation, DtoDhcpSubnet
+    public DhcpSubnet(WebResource resource, URI uriForCreation, DtoDhcpSubnet
         principalDto) {
         super(resource, uriForCreation, principalDto, VendorMediaType
             .APPLICATION_DHCP_SUBNET_JSON);
     }
 
     /**
-     * Gets URI for this Subnet
+     * Gets URI for this DhcpSubnet
      *
      * @return
      */
@@ -72,7 +72,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @param defaultGateway
      * @return this
      */
-    public Subnet defaultGateway(String defaultGateway) {
+    public DhcpSubnet defaultGateway(String defaultGateway) {
         principalDto.setDefaultGateway(defaultGateway);
         return this;
     }
@@ -83,7 +83,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @param hosts
      * @return this
      */
-    public Subnet hosts(URI hosts) {
+    public DhcpSubnet hosts(URI hosts) {
         principalDto.setHosts(hosts);
         return this;
     }
@@ -94,7 +94,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @param opt121Routes
      * @return this
      */
-    public Subnet opt121Routes(List<DtoDhcpOption121> opt121Routes) {
+    public DhcpSubnet opt121Routes(List<DtoDhcpOption121> opt121Routes) {
         principalDto.setOpt121Routes(opt121Routes);
         return this;
     }
@@ -105,7 +105,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @param subnetLength
      * @return this
      */
-    public Subnet subnetLength(int subnetLength) {
+    public DhcpSubnet subnetLength(int subnetLength) {
         principalDto.setSubnetLength(subnetLength);
         return this;
     }
@@ -116,7 +116,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
      * @param subnetPrefix
      * @return this.
      */
-    public Subnet subnetPrefix(String subnetPrefix) {
+    public DhcpSubnet subnetPrefix(String subnetPrefix) {
         principalDto.setSubnetPrefix(subnetPrefix);
         return this;
     }
@@ -147,7 +147,7 @@ public class Subnet extends ResourceBase<Subnet, DtoDhcpSubnet> {
 
     @Override
     public String toString() {
-        return String.format("{Subnet, networkp=%s, length=%s}",
+        return String.format("{DhcpSubnet, networkp=%s, length=%s}",
                              principalDto.getSubnetPrefix(),
                              principalDto.getSubnetLength());
     }

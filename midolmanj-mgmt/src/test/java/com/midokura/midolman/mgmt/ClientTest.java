@@ -121,19 +121,19 @@ public class ClientTest extends JerseyTest {
         assertThat(bp2.getOutboundFilterId(), notNullValue());
 
         // subnet
-        Subnet sn1 = b1.addSubnet()
+        DhcpSubnet sn1 = b1.addDhcpSubnet()
                        .subnetPrefix("192.168.10.0")
                        .subnetLength(24)
                        .create();
-        Subnet sn2 = b1.addSubnet()
+        DhcpSubnet sn2 = b1.addDhcpSubnet()
                        .subnetPrefix("192.168.20.0")
                        .subnetLength(24)
                        .create();
 
-        assertThat(b1.getSubnets().size(), is(2));
+        assertThat(b1.getDhcpSubnets().size(), is(2));
 
 
-        // Subnet Host
+        // DhcpSubnet Host
         SubnetHost sh1 = sn1.addSubnetHost()
                             .macAddr("00:00:00:aa:bb:cc")
                             .ipAddr("192.168.10.2")
