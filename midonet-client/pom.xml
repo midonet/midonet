@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>midonet-client</artifactId>
+    <name>MidoNet REST API client library</name>
     <build>
         <plugins>
             <plugin>
