@@ -39,7 +39,7 @@ public class BgpZkManager extends ZkManager {
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(pathManager.getBgpPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config.getData()), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
         ops.add(Op.create(pathManager.getBgpAdRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
