@@ -403,6 +403,12 @@
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j</artifactId>
+            <version>${versions.scala.akka}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit</artifactId>
             <version>${versions.scala.akka}</version>
             <scope>test</scope>

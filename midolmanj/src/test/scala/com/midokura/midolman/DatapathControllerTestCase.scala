@@ -14,6 +14,9 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+import topology.VirtualTopologyActor.PortRequest
+import com.midokura.midonet.cluster.client.ExteriorBridgePort
+import org.junit.Test
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
@@ -210,40 +213,38 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
         // make a port on the bridge
-        val port = ClusterPorts.materializedBridgePort(bridge)
-        port.setId(clusterDataClient().portsCreate(port))
+        val port1 = ClusterPorts.materializedBridgePort(bridge)
+        port1.setId(clusterDataClient().portsCreate(port1))
 
-        clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, port1.getId, "port1")
 
         initializeDatapath() should not be (null)
 
-        dpController().underlyingActor.vifPorts should contain key(port.getId)
+        dpController().underlyingActor.vifPorts should contain key(port1.getId)
         dpController().underlyingActor.vifPorts should contain value ("port1")
+
+        requestOfType[HostRequest](vtpProbe())
+        val rcuHost = replyOfType[RCUHost](vtpProbe())
+
+        rcuHost should not be null
+        rcuHost.ports should contain key (port1.getId)
+        rcuHost.ports should contain value ("port1")
+
+        requestOfType[LocalPortActive](vtpProbe())
+
 
         // make a port on the bridge
         val port2 = ClusterPorts.materializedBridgePort(bridge)
         port2.setId(clusterDataClient().portsCreate(port2))
 
         clusterDataClient().hostsAddVrnPortMapping(hostId(), port2.getId, "port2")
-
-        requestOfType[HostRequest](vtpProbe())
         replyOfType[RCUHost](vtpProbe())
+        requestOfType[LocalPortActive](vtpProbe())
 
-        val rcuHost = replyOfType[RCUHost](vtpProbe())
-
-        rcuHost should not be null
-        rcuHost.ports should contain key (port.getId)
-        rcuHost.ports should contain key (port2.getId)
-
-        rcuHost.ports should contain value ("port1")
-        rcuHost.ports should contain value ("port2")
-
-        // make sure that all the messages before this are processes by the actor
-        // (even the internal ones). This should act as a memory barrier
-        ask[Messages.Pong](
-            topActor(DatapathController.Name), Messages.Ping(null))
-
+        dpController().underlyingActor.vifPorts should contain key(port1.getId)
         dpController().underlyingActor.vifPorts should contain key(port2.getId)
+
         dpController().underlyingActor.vifPorts should contain value ("port2")
+        dpController().underlyingActor.vifPorts should contain value ("port1")
     }
 }

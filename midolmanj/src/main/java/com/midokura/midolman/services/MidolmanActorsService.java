@@ -71,7 +71,7 @@ public class MidolmanActorsService extends AbstractService {
 
         virtualToPhysicalActor =
             startActor(
-                getGuiceAwareFactory(VirtualToPhysicalMapper.class),
+                getGuiceAwareFactory(VirtualToPhysicalMapper.class).withDispatcher("midolman.actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name());
 
         datapathControllerActor =

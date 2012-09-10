@@ -3,15 +3,17 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor.{Actor, ActorContext, ActorRef}
+import akka.actor._
 import akka.dispatch.Promise
 import akka.event.Logging
 import akka.pattern.{ask, pipe}
 import akka.util.duration._
 import akka.util.Timeout
+import rcu.Host
+import rcu.RCUDeviceManager.Start
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
-import java.{lang, util}
+import java.util
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 
@@ -33,6 +35,8 @@ import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
 import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
                 GreTunnelZone, GreTunnelZoneHost, IpsecTunnelZoneHost}
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import scala.Some
 
 
 object HostConfigOperation extends Enumeration {
@@ -187,11 +191,9 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     def getById(uuid: UUID): Option[T] = devices.get(uuid)
 }
 
-class VirtualToPhysicalMapper extends Actor {
+class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
     import VirtualToPhysicalMapper._
-
-    val log = Logging(context.system, this)
 
     @Inject
     val clusterClient: Client = null
@@ -225,115 +227,129 @@ class VirtualToPhysicalMapper extends Actor {
 
     private lazy val localActivePorts = mutable.Set[UUID]()
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
+    private var activatingLocalPorts = false
 
-    protected def receive = {
 
-        case PortSetRequest(portSetId) =>
-            portSets.addSubscriber(portSetId, sender)
+    @scala.throws(classOf[Exception])
+    def onReceive(message: Any) {
+        message match {
+            case PortSetRequest(portSetId) =>
+                portSets.addSubscriber(portSetId, sender)
 
-        case portSet: PortSet =>
-            portSets.updateAndNotifySubscribers(portSet.getId, portSet)
+            case portSet: PortSet =>
+                portSets.updateAndNotifySubscribers(portSet.getId, portSet)
 
-        case HostRequest(hostId) =>
-            hosts.addSubscriber(hostId, sender)
+            case HostRequest(hostId) =>
+                hosts.addSubscriber(hostId, sender)
 
-        case host: Host =>
-            hosts.updateAndNotifySubscribers(host.id, host)
+            case host: Host =>
+                hosts.updateAndNotifySubscribers(host.id, host)
 
-        case TunnelZoneRequest(zoneId) =>
-            tunnelZones.addSubscriber(zoneId, sender)
+            case TunnelZoneRequest(zoneId) =>
+                tunnelZones.addSubscriber(zoneId, sender)
 
-        case zone: TunnelZone[_, _] =>
-            tunnelZones.updateAndNotifySubscribers(zone.getId, zone)
+            case zone: TunnelZone[_, _] =>
+                tunnelZones.updateAndNotifySubscribers(zone.getId, zone)
 
-        case zoneChanged: ZoneChanged[_] =>
-            tunnelZones.notifySubscribers(zoneChanged.zone, zoneChanged)
+            case zoneChanged: ZoneChanged[_] =>
+                tunnelZones.notifySubscribers(zoneChanged.zone, zoneChanged)
 
-        case LocalPortActive(vifId, true) =>
-            val vtaRef = VirtualTopologyActor.getRef()
-            val portReq = PortRequest(vifId, update = false)
+            case LocalPortActive(vifId, true) if (activatingLocalPorts) =>
+                stash()
 
-            implicit val timeout = Timeout(200 milliseconds)
-            implicit val ex = context.dispatcher
+            case LocalPortActive(vifId, true) if (!activatingLocalPorts)=>
+                activatingLocalPorts = true
+                val vtaRef = VirtualTopologyActor.getRef()
+                val portReq = PortRequest(vifId, update = false)
 
-            ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
-                localActivePortSets.get(port.deviceID) match {
-                    case Some(_) =>
-                        Promise.successful(_PortSetMembershipUpdated(
+                implicit val timeout = Timeout(200 milliseconds)
+                implicit val ex = context.dispatcher
+
+                ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                    localActivePortSets.get(port.deviceID) match {
+                        case Some(_) =>
+                            Promise.successful(_PortSetMembershipUpdated(
                                 vifId, port.deviceID, state = true))
 
-                    case None =>
-                        val future = Promise[String]()
-                        clusterDataClient.portSetsAsyncAddHost(
-                            port.deviceID, hostIdProvider.getHostId,
-                            new PromisingDirectoryCallback[String](future)
-                                        with DirectoryCallback.Add)
-                        future map {
-                            _ => _PortSetMembershipUpdated(
-                                          vifId, port.deviceID, state = true) }
-                }
-            } pipeTo self
-
-        case LocalPortActive(vifId, false) =>
-            val vtaRef = VirtualTopologyActor.getRef()
-            val portReq = PortRequest(vifId, update = false)
-
-            implicit val timeout = Timeout(200 milliseconds)
-            implicit val ex = context.dispatcher
-
-            ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
-                localActivePortSets.get(port.deviceID) match {
-                    case Some(ports) if ports.contains(vifId) =>
-                        if (ports.size > 1) {
-                            Promise.successful(_PortSetMembershipUpdated(
-                                vifId, port.deviceID, state = false))
-                        } else {
-                            val future = Promise[Void]()
-                            clusterDataClient.portSetsAsyncDelHost(
+                        case None =>
+                            val future = Promise[String]()
+                            clusterDataClient.portSetsAsyncAddHost(
                                 port.deviceID, hostIdProvider.getHostId,
-                                new PromisingDirectoryCallback[Void](future)
+                                new PromisingDirectoryCallback[String](future) with DirectoryCallback.Add
+                            )
+
+                            future map { _ =>
+                                _PortSetMembershipUpdated(vifId, port.deviceID, state = true)
+                            }
+                    }
+                } pipeTo self
+
+            case LocalPortActive(vifId, false) if(activatingLocalPorts) =>
+                stash()
+
+            case LocalPortActive(vifId, false) =>
+                activatingLocalPorts = true
+                val vtaRef = VirtualTopologyActor.getRef()
+                val portReq = PortRequest(vifId, update = false)
+
+                implicit val timeout = Timeout(200 milliseconds)
+                implicit val ex = context.dispatcher
+
+                ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                    localActivePortSets.get(port.deviceID) match {
+                        case Some(ports) if ports.contains(vifId) =>
+                            if (ports.size > 1) {
+                                Promise.successful(_PortSetMembershipUpdated(
+                                    vifId, port.deviceID, state = false))
+                            } else {
+                                val future = Promise[Void]()
+                                clusterDataClient.portSetsAsyncDelHost(
+                                    port.deviceID, hostIdProvider.getHostId,
+                                    new PromisingDirectoryCallback[Void](future)
                                         with DirectoryCallback.Void)
 
-                            future map {
-                                _ => _PortSetMembershipUpdated(
+                                future map {
+                                    _ => _PortSetMembershipUpdated(
                                         vifId, port.deviceID, state = false) }
-                        }
-                    case None =>
-                        Promise.successful(null).mapTo[_PortSetMembershipUpdated]
+                            }
+                        case None =>
+                            Promise.successful(null).mapTo[_PortSetMembershipUpdated]
+                    }
+                } pipeTo self
+
+            case _PortSetMembershipUpdated(vifId, portSetId, true) =>
+                localActivePorts.add(vifId)
+                localActivePortSets.get(portSetId) match {
+                    case Some(ports) => ports.add(vifId)
+                    case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
                 }
-            } pipeTo self
+                context.system.eventStream.publish(LocalPortActive(vifId, active = true))
+                activatingLocalPorts = false
+                unstashAll()
 
-        case _PortSetMembershipUpdated(vifId, portSetId, true) =>
-            localActivePorts.add(vifId)
-            localActivePortSets.get(portSetId) match {
-                case Some(ports) => ports.add(vifId)
-                case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
-            }
-            context.system.eventStream.publish(LocalPortActive(vifId, active = true))
+            case _PortSetMembershipUpdated(vifId, portSetId, false) =>
+                log.info("Port changed {} {}", vifId, portSetId)
+                localActivePorts.remove(vifId)
+                localActivePortSets.get(portSetId) match {
+                    case Some(ports) => ports.remove(vifId)
+                    case None =>
+                }
+                context.system.eventStream.publish(LocalPortActive(vifId, active = false))
+                activatingLocalPorts = false
+                unstashAll()
 
-        case _PortSetMembershipUpdated(vifId, portSetId, false) =>
-            localActivePorts.remove(vifId)
-            localActivePortSets.get(portSetId) match {
-                case Some(ports) => ports.remove(vifId)
-                case None =>
-            }
-            context.system.eventStream.publish(LocalPortActive(vifId, active = false))
+            case LocalPortsRequest(host) =>
+                actorWants.put(sender, ExpectingPorts())
+                fireHostStateUpdates(host, Some(sender))
 
-        case LocalDatapathRequest(host) =>
-            localPortsActors.put(host, sender)
-            actorWants.put(sender, ExpectingDatapath())
-            clusterClient.getHost(host, new MyHostBuilder(self, host))
+            case _LocalDataUpdatedForHost(host, datapath, ports, availabilityZones) =>
+                localHostData.put(host, (datapath, ports, availabilityZones))
+                fireHostStateUpdates(host, Some(sender))
 
-        case LocalPortsRequest(host) =>
-            actorWants.put(sender, ExpectingPorts())
-            fireHostStateUpdates(host, Some(sender))
+            case value =>
+                log.error("Unknown message: " + value)
 
-        case _LocalDataUpdatedForHost(host, datapath, ports, availabilityZones) =>
-            localHostData.put(host, (datapath, ports, availabilityZones))
-            fireHostStateUpdates(host, Some(sender))
-
-        case value =>
-            log.error("Unknown message: " + value)
+        }
     }
 
     private def fireHostStateUpdates(hostId: UUID, actorOption: Option[ActorRef]) {

@@ -90,6 +90,8 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         requestOfType[HostRequest](vtpProbe())
         replyOfType[RCUHost](vtpProbe())
 
+        requestOfType[LocalPortActive](vtpProbe())
+
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         val tzRequest = requestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be === greZone.getId
