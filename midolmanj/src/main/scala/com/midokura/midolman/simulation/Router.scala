@@ -40,22 +40,28 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         val hwDst = ingressMatch.getEthernetDestination
         val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
-        var inPort: RouterPort[_] = null
         val inPortFuture =
             expiringAsk(virtualTopologyManager,
                 PortRequest(ingressMatch.getInputPortUUID, false),
                 expiry).mapTo[RouterPort[_]]
-        inPortFuture onSuccess {
-            case null => return Promise.successful(new DropAction)(ec)
-            case port: RouterPort[_]=> inPort = port
-        }
 
-        if (inPort == null) {
-            log.error("Could not get configuration for port {}",
-                      ingressMatch.getInputPortUUID)
-            return Promise.successful(new DropAction)(ec)
+        return inPortFuture flatMap {
+            port: RouterPort[_] => port match {
+                case null => Promise.successful(new DropAction)(ec)
+                case inPort => processWithPort(inPort, ingressMatch, packet,
+                                               pktContext, expiry)
+            }
         }
+    }
 
+    private def processWithPort(
+                        inPort: RouterPort[_],
+                        ingressMatch: WildcardMatch, packet: Ethernet,
+                        pktContext: PacketContext, expiry: Long)
+                       (implicit ec: ExecutionContext,
+                        actorSystem: ActorSystem): Future[Action] = {
+
+        val hwDst = ingressMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (ingressMatch.getEtherType == ARP.ETHERTYPE &&
