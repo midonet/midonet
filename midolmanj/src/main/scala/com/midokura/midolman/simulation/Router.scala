@@ -157,9 +157,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val macFuture = getNextHopMac(rt, matchOut.getNetworkDestination, expiry)
         flow {
             val nextHopMac = macFuture()
-            if (nextHopMac == null)
+            if (nextHopMac == null) {
+                if (rt.nextHopGateway == 0 || rt.nextHopGateway == -1) {
+                    sendIcmpError(ingressMatch, packet,
+                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_HOST)
+                } else {
+                    sendIcmpError(ingressMatch, packet,
+                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+                }
                 new DropAction: Action
-            else {
+            } else {
                 matchOut.setEthernetDestination(nextHopMac)
                 new ForwardAction(rt.nextHopPort, matchOut): Action
             }
@@ -338,11 +345,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 if (interior.peerID == null) {
                     log.warn("Packet sent to dangling logical port {}",
                         rt.nextHopPort)
-                    // here lies the difference between both call paths,
-                    // one sends an ICMP, the other does not.
-                    // add a locallyGenerated: Boolean flag??
-                    //sendIcmpError(ingressMatch, packet,
-                    //   ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
                     return Promise.successful(null)(ec)
                 }
                 peerMacFuture = getPeerMac(interior, expiry)
