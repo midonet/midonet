@@ -24,7 +24,7 @@ import akka.util.duration._
 import util.{Net, Sudo}
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowActionUserspace}
+import com.midokura.sdn.dp.flows.{FlowActions, FlowActionUserspace}
 import com.midokura.sdn.dp.Ports
 import com.midokura.midonet.cluster.data.BGP
 
@@ -45,6 +45,7 @@ class BGPManager extends Actor with ActorLogging {
     private val BGP_TCP_PORT: Short = 179
 
     case class LocalPortActive(portID: UUID, active: Boolean)
+    case class KillBgp(bgpID: UUID)
 
     val localPortsCB = new Callback2[UUID, java.lang.Boolean]() {
         def call(portID: UUID, active: java.lang.Boolean) {
@@ -105,16 +106,14 @@ class BGPManager extends Actor with ActorLogging {
             handleBGPLink(bgpLink)
 
         case BGPLinkDeleted(bgpID) =>
-          //killall
-          //remove all the flows (by tag?)
+          self ! KillBgp(bgpID)
           FlowController.getRef().tell(FlowController.InvalidateFlowsByTag(bgpID))
 
         case PortInternalOpReply(internalPort, _, false, null, Some(pair)) =>
             pair match {
                 case Pair(bgpPort:ExteriorRouterPort, bgpLink:BGPLink) =>
-                    //(ExteriorRouterPort, BGPLink) =>
 
-                    // what are local and remote TPorts? TCP ports?
+                    // connect datapath flows
                     setBGPFlows(internalPort.getPortNo.shortValue(), bgpLink, bgpPort)
 
                     // launch bgpd
@@ -127,6 +126,15 @@ class BGPManager extends Actor with ActorLogging {
                     //launchBGPd(bgpLink.bgpID, bgpConfig, localAddr)
             }
 
+        case KillBgp(bgpID) =>
+            //TODO(abel) so far we kill all bgps, better to selectively kill by ID
+            try {
+                Sudo.sudoExec("killall bgpd")
+                this.run = false
+            } catch {
+                case e:InterruptedException =>
+                    log.warning("exception killing bgpd: ", e)
+            }
     }
 
 
@@ -137,7 +145,6 @@ class BGPManager extends Actor with ActorLogging {
      * - OS Interface has been configured
      */
     def handleBGPLink(bgpLink: BGPLink) {
-        // TODO: use the portID to get the mac of the interface that the portID is bound to.
         implicit val timeout = Timeout(5 seconds)
 
         val future = VirtualTopologyActor.getRef() ? PortRequest(bgpLink.portID, update = false)

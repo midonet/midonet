@@ -80,9 +80,9 @@ protected[quagga] object ZebraProtocol {
     final val InterfaceNameSize  = 20
     final val InterfaceHwAddrMax = 20
     final val MacAddrLength      = 6
-    final val ZebraInterfaceActive        = 0x01
-    final val ZebraInterfaceSub           = 0x02
-    final val ZebraInterfaceLinkdetection = 0x04
+    final val ZebraInterfaceActive        = 1 << 0
+    final val ZebraInterfaceSub           = 1 << 1
+    final val ZebraInterfaceLinkdetection = 1 << 2
 
     // Zebra message payload sizes.
     // InterfaceNameSize + MacAddrLength + Long + Int * 6 + Byte
@@ -95,32 +95,32 @@ protected[quagga] object ZebraProtocol {
                                                       4 * 2 + 1 * 3).toByte
 
     // c.f. /usr/include/net/if.h
-    final val IFF_UP          = 0x1
-    final val IFF_BROADCAST   = 0x2
-    final val IFF_DEBUG       = 0x4
-    final val IFF_LOOPBACK    = 0x8
-    final val IFF_POINTOPOINT = 0x10
-    final val IFF_NOTRAILERS  = 0x20
-    final val IFF_RUNNING     = 0x40
-    final val IFF_NOARP       = 0x80
-    final val IFF_PROMISC     = 0x100
-    final val IFF_ALLMULTI    = 0x200
-    final val IFF_MASTER      = 0x400
-    final val IFF_SLAVE       = 0x800
-    final val IFF_MULTICAST   = 0x1000
-    final val IFF_PORTSEL     = 0x2000
-    final val IFF_AUTOMEDIA   = 0x4000
-    final val IFF_DYNAMIC     = 0x8000
+    final val IFF_UP          = 1 << 0
+    final val IFF_BROADCAST   = 1 << 1
+    final val IFF_DEBUG       = 1 << 2
+    final val IFF_LOOPBACK    = 1 << 3
+    final val IFF_POINTOPOINT = 1 << 4
+    final val IFF_NOTRAILERS  = 1 << 5
+    final val IFF_RUNNING     = 1 << 6
+    final val IFF_NOARP       = 1 << 7
+    final val IFF_PROMISC     = 1 << 8
+    final val IFF_ALLMULTI    = 1 << 9
+    final val IFF_MASTER      = 1 << 10
+    final val IFF_SLAVE       = 1 << 11
+    final val IFF_MULTICAST   = 1 << 12
+    final val IFF_PORTSEL     = 1 << 13
+    final val IFF_AUTOMEDIA   = 1 << 14
+    final val IFF_DYNAMIC     = 1 << 15
 
     // Flags for connected address.
-    final val ZEBRA_IFA_SECONDARY = 0x01
-    final val ZEBRA_IFA_PEER      = 0x02
+    final val ZEBRA_IFA_SECONDARY = 1 << 0
+    final val ZEBRA_IFA_PEER      = 1 << 1
 
     // Zebra IPv4 route message API.
-    final val ZAPIMessageNextHop  = 0x01
-    final val ZAPIMessageIfIndex  = 0x02
-    final val ZAPIMessageDistance = 0x04
-    final val ZAPIMessageMetric   = 0x08
+    final val ZAPIMessageNextHop  = 1 << 0
+    final val ZAPIMessageIfIndex  = 1 << 1
+    final val ZAPIMessageDistance = 1 << 2
+    final val ZAPIMessageMetric   = 1 << 3
 
     // Zebra nexthop flags.
     final val ZebraNexthopIfIndex     = 1
