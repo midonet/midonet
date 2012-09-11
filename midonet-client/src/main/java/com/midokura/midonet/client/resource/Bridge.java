@@ -156,7 +156,6 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
             VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
-            System.out.println("pp in the bridge resource: " + pp);
             if (pp instanceof DtoLogicalRouterPort) {
                 RouterPort rp = new RouterPort<DtoLogicalRouterPort>(
                     resource,
