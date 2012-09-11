@@ -610,9 +610,7 @@ trait ZebraServer {
     def stop()
 }
 
-class ZebraServerImpl(val server: ServerSocket, val address: SocketAddress,
-                      val portMgr: PortZkManager, val routeMgr: RouteZkManager,
-                      val ovsdb: OpenvSwitchDatabaseConnection)
+class ZebraServerImpl(val server: ServerSocket, val address: SocketAddress)
 extends ZebraServer {
 
     private final val log = LoggerFactory.getLogger(this.getClass)
@@ -625,8 +623,7 @@ extends ZebraServer {
     val dispatcher = actor {
 
         def addZebraConn(dispatcher: Actor) {
-            val zebraConn = new ZebraConnection(dispatcher, portMgr, routeMgr,
-                                                ovsdb)
+            val zebraConn = new ZebraConnection(dispatcher, null, null, null)
             zebraConnPool += zebraConn
             zebraConn.start
         }

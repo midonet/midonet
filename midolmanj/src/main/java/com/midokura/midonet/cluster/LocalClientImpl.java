@@ -25,6 +25,7 @@ import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.PortSetZkManager;
 import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
+import com.midokura.midonet.cluster.client.BGPListBuilder;
 import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 import com.midokura.midonet.cluster.client.HostBuilder;
@@ -172,6 +173,11 @@ public class LocalClientImpl implements Client {
                 }
             }
         );
+    }
+
+    @Override
+    public void getPortBGPList(UUID portID, BGPListBuilder builder) {
+        // XXX TODO(pino): implement me!
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,

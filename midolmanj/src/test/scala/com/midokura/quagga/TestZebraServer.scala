@@ -120,7 +120,7 @@ class TestZebraServer {
         socketFile.delete()
         val server = AFUNIXServerSocket.newInstance
         val address = new AFUNIXSocketAddress(socketFile)
-        zebra = new ZebraServerImpl(server, address, portMgr, routeMgr, ovsdb)
+        zebra = new ZebraServerImpl(server, address)
         client = AFUNIXSocket.newInstance
 
         try {

@@ -5,12 +5,9 @@ package com.midokura.midolman.topology
 
 import akka.actor._
 import akka.dispatch.Promise
-import akka.event.Logging
 import akka.pattern.{ask, pipe}
 import akka.util.duration._
 import akka.util.Timeout
-import rcu.Host
-import rcu.RCUDeviceManager.Start
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
 import java.util
@@ -23,7 +20,6 @@ import org.apache.zookeeper.KeeperException
 import com.midokura.midolman.Referenceable
 import com.midokura.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.topology.rcu.Host
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import com.midokura.midolman.state.DirectoryCallback

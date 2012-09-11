@@ -28,24 +28,6 @@ object VirtualTopologyActor extends Referenceable {
 
     case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-    /**
-     * This message sent to the VTA requests a port's list of BGPs. The response
-     * is a sequence of BGPLink read-copy-update objects. Each BGP object
-     * includes the owner port identifier for the convenience of the caller.
-     * When a BGPLink on a port is deleted, the VTA will inform the
-     * subscriber by sending a BGPLinkDeleted message.
-     * @param portID
-     * @param update
-     */
-    case class BGPListRequest(portID: UUID, update: Boolean)
-
-    /**
-     * Sent by the VTA to subscribers when a BGP configuration is removed from
-     * a port's list of BGP links.
-     * @param bgpID
-     */
-    case class BGPLinkDeleted(bgpID: UUID)
-
     case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
@@ -73,8 +55,6 @@ object VirtualTopologyActor extends Referenceable {
     case class ChainUnsubscribe(id: UUID) extends Unsubscribe
 
     case class PortUnsubscribe(id: UUID) extends Unsubscribe
-
-    case class BGPListUnsubscribe(portID: UUID) extends Unsubscribe
 
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -182,8 +162,6 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             manageDevice(id, (x: UUID) =>
                 new RouterManager(x, clusterClient))
             deviceRequested(id, idToRouter, update)
-        case BGPListRequest =>
-        case BGPListUnsubscribe =>
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)

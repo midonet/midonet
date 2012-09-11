@@ -131,11 +131,10 @@ public class BgpPortService implements PortService {
         RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
         BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
         AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
-        ZebraServer zebraServer = new ZebraServerImpl(server, address,
-                portMgr, routeMgr, ovsdb);
+        ZebraServer zebraServer = new ZebraServerImpl(server, address);
 
         BgpVtyConnection vtyConnection = new BgpVtyConnection("localhost",
-                2605, "zebra", bgpMgr, adRouteMgr);
+                2605, "zebra");
 
         PortService bgpPortService = new BgpPortService(reactor, ovsdb,
                 "midolman_port_id", "midolman_port_service", portMgr,
@@ -341,8 +340,8 @@ public class BgpPortService implements PortService {
                     public void run() {
                         try {
                             log.debug("start,Runnable.run: setting bgp config");
-                            bgpd.create(Net.convertIntToInetAddress(localAddr),
-                                        bgpId, bgpConfig);
+                            //bgpd.create(Net.convertIntToInetAddress
+                            //    (localAddr), bgpId, bgpConfig);
                         } catch(Exception e) {
                             e.printStackTrace();
                         }
@@ -350,8 +349,8 @@ public class BgpPortService implements PortService {
                 }, 1000, TimeUnit.MILLISECONDS);
                 this.run = true;
             } else {
-                bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,
-                            bgpConfig);
+                //bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,
+                //            bgpConfig);
             }
         }
     }

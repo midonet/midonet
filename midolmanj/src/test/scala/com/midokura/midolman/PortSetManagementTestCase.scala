@@ -83,7 +83,8 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         val eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
 
-        // we should see to LocalPortActive events on the bus (fired by the VTPMapper)
+        // we should see two LocalPortActive events on the bus (fired by the
+        // VTPMapper)
         eventProbe.expectMsgClass(classOf[LocalPortActive])
         eventProbe.expectMsgClass(classOf[LocalPortActive])
 
