@@ -146,10 +146,23 @@ public interface DataClient {
     void tunnelZonesDelete(UUID uuid)
         throws StateAccessException;
 
+    boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
+
     TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException;
 
-    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(UUID uuid)
+    List<TunnelZone<?, ?>> tunnelZonesGetAll() throws StateAccessException;
+
+    void tunnelZonesUpdate(TunnelZone<?, ?> zone) throws StateAccessException;
+
+    boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
+        throws StateAccessException;
+
+    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(UUID uuid)
+        throws StateAccessException;
+
+    TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID uuid,
+                                                         UUID hostId)
         throws StateAccessException;
 
     UUID tunnelZonesAddMembership(UUID zoneId,

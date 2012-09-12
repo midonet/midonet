@@ -21,6 +21,10 @@ public class MessageProperty {
             "{midokura.javarx.PortIdIsInvalid}";
     public static final String PORT_GROUP_ID_IS_INVALID =
             "{midokura.javarx.PortGroupIdIsInvalid}";
+    public static final String TUNNEL_ZONE_ID_IS_INVALID =
+            "{midokura.javarx.TunnelZoneIdIsInvalid}";
+    public static final String HOST_ID_IS_INVALID =
+            "{midokura.javarx.HostIdIsInvalid}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable}";
 

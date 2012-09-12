@@ -3,66 +3,16 @@
 */
 package com.midokura.midonet.cluster;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.apache.zookeeper.Op;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.DirectoryCallback;
-import com.midokura.midolman.state.PathBuilder;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortConfigCache;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
-import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.ChainZkManager;
-import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
-import com.midokura.midolman.state.zkManagers.PortSetZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midolman.state.zkManagers.TenantZkManager;
-import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
-import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midonet.cluster.client.RouterBuilder;
-import com.midokura.midonet.cluster.data.AdRoute;
-import com.midokura.midonet.cluster.data.BGP;
-import com.midokura.midonet.cluster.data.Bridge;
-import com.midokura.midonet.cluster.data.BridgeName;
-import com.midokura.midonet.cluster.data.Chain;
-import com.midokura.midonet.cluster.data.ChainName;
-import com.midokura.midonet.cluster.data.Converter;
-import com.midokura.midonet.cluster.data.Port;
-import com.midokura.midonet.cluster.data.PortGroup;
-import com.midokura.midonet.cluster.data.PortGroupName;
-import com.midokura.midonet.cluster.data.Route;
-import com.midokura.midonet.cluster.data.Router;
-import com.midokura.midonet.cluster.data.RouterName;
-import com.midokura.midonet.cluster.data.Rule;
-import com.midokura.midonet.cluster.data.TunnelZone;
-import com.midokura.midonet.cluster.data.VPN;
+import com.midokura.midonet.cluster.data.*;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -76,6 +26,14 @@ import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
+import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.*;
 
 public class LocalDataClientImpl implements DataClient {
 
@@ -454,13 +412,55 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean tunnelZonesExists(UUID uuid) throws StateAccessException {
+        return zonesZkManager.exists(uuid);
+    }
+
+    @Override
     public TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException {
         return zonesZkManager.getZone(uuid, null);
     }
 
     @Override
-    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(final UUID uuid)
+    public List<TunnelZone<?, ?>> tunnelZonesGetAll()
+            throws StateAccessException {
+        Collection<UUID> ids = zonesZkManager.getZoneIds();
+
+        List<TunnelZone<?, ?>> tunnelZones = new ArrayList<TunnelZone<?, ?>>();
+
+        for (UUID id : ids) {
+            TunnelZone zone = tunnelZonesGet(id);
+            if (zone != null) {
+                tunnelZones.add(zone);
+            }
+        }
+
+        return tunnelZones;
+    }
+
+    @Override
+    public void tunnelZonesUpdate(TunnelZone<?, ?> zone)
+            throws StateAccessException {
+        zonesZkManager.updateZone(zone);
+    }
+
+    @Override
+    public boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
+            throws StateAccessException {
+        return zonesZkManager.membershipExists(uuid, hostId);
+    }
+
+    @Override
+    public TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID id,
+                                                                UUID hostId)
+        throws StateAccessException {
+        return zonesZkManager.getZoneMembership(id, hostId, null);
+    }
+
+    @Override
+    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(
+            final UUID uuid)
         throws StateAccessException {
 
         return CollectionFunctors.map(

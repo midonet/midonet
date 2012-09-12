@@ -10,9 +10,7 @@ import com.midokura.midolman.mgmt.dhcp.rest_api.BridgeFilterDbResource;
 import com.midokura.midolman.mgmt.dhcp.rest_api.DhcpHostsResource;
 import com.midokura.midolman.mgmt.filter.rest_api.ChainResource;
 import com.midokura.midolman.mgmt.filter.rest_api.RuleResource;
-import com.midokura.midolman.mgmt.host.rest_api.HostCommandResource;
-import com.midokura.midolman.mgmt.host.rest_api.HostResource;
-import com.midokura.midolman.mgmt.host.rest_api.InterfaceResource;
+import com.midokura.midolman.mgmt.host.rest_api.*;
 import com.midokura.midolman.mgmt.monitoring.rest_api.MonitoringResource;
 import com.midokura.midolman.mgmt.network.rest_api.*;
 import com.midokura.midolman.mgmt.vpn.rest_api.VpnResource;
@@ -46,6 +44,10 @@ public interface ResourceFactory {
     VpnResource getVpnResource();
 
     HostResource getHostResource();
+
+    TunnelZoneResource getTunnelZoneResource();
+
+    TunnelZoneHostResource getTunnelZoneHostResource(UUID id);
 
     MonitoringResource getMonitoringQueryResource();
 

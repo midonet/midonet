@@ -33,6 +33,7 @@ public class ResourceUriBuilder {
     public static final String METRICS = "/metrics";
     public static final String LINK = "/link";
     public static final String INTERFACE_PORT_MAP = "/interface_port_map";
+    public static final String TUNNEL_ZONES = "/tunnel_zones";
 
     private ResourceUriBuilder() {
     }
@@ -266,4 +267,23 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
     }
 
+    public static URI getTunnelZones(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(TUNNEL_ZONES).build();
+    }
+
+    public static URI getTunnelZone(URI baseUri, UUID tunnelZoneId) {
+        return UriBuilder.fromUri(getTunnelZones(baseUri)).path(
+                tunnelZoneId.toString()).build();
+    }
+
+    public static URI getTunnelZoneHosts(URI baseUri, UUID tunnelZoneId) {
+        return UriBuilder.fromUri(getTunnelZone(baseUri, tunnelZoneId
+                )).path(HOSTS).build();
+    }
+
+    public static URI getTunnelZoneHost(URI baseUri, UUID tunnelZoneId,
+                                        UUID hostId) {
+        return UriBuilder.fromUri(getTunnelZoneHosts(baseUri, tunnelZoneId
+        )).path(hostId.toString()).build();
+    }
 }
