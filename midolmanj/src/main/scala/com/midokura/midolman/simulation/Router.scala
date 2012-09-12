@@ -3,30 +3,46 @@
  */
 package com.midokura.midolman.simulation
 
+import collection.mutable
+import compat.Platform
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
+import akka.util.Duration
 import java.util.UUID
 import org.slf4j.LoggerFactory
+import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{VirtualTopologyActor, ArpTable,
+import com.midokura.midolman.topology.{VirtualTopologyActor,
                 RouterConfig, RoutingTableWrapper}
 import com.midokura.midolman.SimulationController
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
 import akka.actor.ActorSystem
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import com.midokura.midonet.cluster.client.{RouterPort, Port,
-                ExteriorRouterPort, InteriorRouterPort}
+import com.midokura.midonet.cluster.client._
+import com.midokura.midolman.simulation.Coordinator.ConsumedAction
+import com.midokura.midolman.simulation.Coordinator.DropAction
+import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.simulation.Coordinator.ForwardAction
+import com.midokura.midolman.state.ArpCacheEntry
+import com.midokura.util.functors.Callback1
 
+/* The ArpTable is called from the Coordinators' actors and
+ * processes and schedules ARPs. */
+trait ArpTable {
+    def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
+          (implicit ec: ExecutionContext, actorSystem: ActorSystem): Future[MAC]
+    def set(ip: IntIPv4, mac: MAC)
+}
 
 class Router(val id: UUID, val cfg: RouterConfig,
-             val rTable: RoutingTableWrapper, val arpTable: ArpTable,
+             val rTable: RoutingTableWrapper, val arpCache: ArpCache,
              val inFilter: Chain, val outFilter: Chain) extends Device {
-
+    private val arpTable: ArpTable = new ArpTableImpl(arpCache)
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
@@ -309,8 +325,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
     }
 
-    private def getMacForIP(port: RouterPort[_], nextHopIP: Int, expiry: Long,
-                            ec: ExecutionContext): Future[MAC] = {
+    private def getMacForIP(port: RouterPort[_], nextHopIP: Int, expiry: Long)
+                           (implicit ec: ExecutionContext,
+                            actorSystem: ActorSystem): Future[MAC] = {
         val nwAddr = new IntIPv4(nextHopIP)
         port match {
             case mPortConfig: ExteriorRouterPort =>
@@ -330,7 +347,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 }
             case _ => /* Fall through */
         }
-        return arpTable.get(nwAddr, expiry, ec)
+        arpTable.get(nwAddr, port, expiry)
     }
 
     /**
@@ -370,7 +387,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         flow {
             val nextMac = peerMacFuture()
             if (nextMac == null)
-                getMacForIP(outPort, nextHopIP, expiry, ec)()
+                getMacForIP(outPort, nextHopIP, expiry)(ec, actorSystem)()
             else
                 nextMac
         }(ec)
@@ -583,4 +600,136 @@ class Router(val id: UUID, val cfg: RouterConfig,
         SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
             ingressMatch.getInputPortUUID, eth)
     }
+
+    private class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
+        private val ARP_RETRY_MILLIS = 10 * 1000
+        private val ARP_TIMEOUT_MILLIS = 60 * 1000
+        private val ARP_STALE_MILLIS = 1800 * 1000
+        private val ARP_EXPIRATION_MILLIS = 3600 * 1000
+        private val arpWaiters = new mutable.HashMap[IntIPv4,
+                                                 mutable.Set[Promise[MAC]]] with
+                                     mutable.MultiMap[IntIPv4, Promise[MAC]]
+        // TODO -- subscribe to ArpCache changes
+        /**
+         * Schedule promise to fail with a TimeoutException at a given time.
+         *
+         * @param promise
+         * @param expiry
+         * @param onExpire If the promise is expired, onExpire will be executed
+         *                 with the promise as an argument.
+         * @param actorSystem
+         * @tparam T
+         * @return
+         */
+        private def promiseOnExpire[T](promise: Promise[T], expiry: Long,
+                            onExpire: (Promise[T]) => Unit)
+                           (implicit actorSystem: ActorSystem): Future[T] = {
+            val now = Platform.currentTime
+            if (now >= expiry) {
+                if (promise tryComplete Left(new TimeoutException()))
+                    onExpire(promise)
+                return promise
+            }
+            val when = Duration.create(expiry - now, TimeUnit.MILLISECONDS)
+            val exp = actorSystem.scheduler.scheduleOnce(when) {
+                if (promise tryComplete Left(new TimeoutException()))
+                    onExpire(promise)
+            }
+            promise onSuccess { case _ => exp.cancel() }
+            promise
+        }
+
+        def waitForArpEntry(ip: IntIPv4, expiry: Long)
+                           (implicit ec: ExecutionContext,
+                            actorSystem: ActorSystem) : Future[MAC] = {
+            val promise = Promise[MAC]()(ec)
+            arpWaiters.addBinding(ip, promise)
+            promiseOnExpire[MAC](promise, expiry, p => removeWatcher(ip, p))
+        }
+
+        private def removeWatcher(ip: IntIPv4, future: Future[MAC]) {
+            arpWaiters.get(ip) match {
+                case Some(waiters) => future match {
+                    case promise: Promise[MAC] => waiters remove promise
+                    case _ =>
+                }
+                case None =>
+            }
+        }
+
+        def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
+               (implicit ec: ExecutionContext,
+                actorSystem: ActorSystem): Future[MAC] = {
+            val promise = Promise[ArpCacheEntry]()(ec)
+            arpCache.get(ip, new Callback1[ArpCacheEntry] {
+                def call(value: ArpCacheEntry) {
+                    promise.success(value)
+                }
+            }, expiry)
+            val now = Platform.currentTime
+            flow {
+                val entry = promise()
+                if (entry == null || entry.stale < now)
+                    arpForAddress(ip, port)
+                if (entry != null && entry.expiry >= now)
+                    entry.macAddr
+                else {
+                    // There's no arpCache entry, or it's expired.
+                    // Wait for the arpCache to become populated by an ARP reply
+                    waitForArpEntry(ip, expiry).apply()
+                }
+            }(ec)
+        }
+
+        def set(ip: IntIPv4, mac: MAC) {
+            arpWaiters.remove(ip) match {
+                case Some(waiters) => waiters map { _ success mac}
+                case None =>
+            }
+            val now = Platform.currentTime
+            val entry = new ArpCacheEntry(mac, now + ARP_STALE_MILLIS,
+                                          now + ARP_EXPIRATION_MILLIS, 0)
+            arpCache.add(ip, entry)
+        }
+
+        private def arpForAddress(ip: IntIPv4, port: RouterPort[_]) {
+            // Ignore if already arp'ing for this address
+
+            val arp = new ARP()
+            arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+            arp.setProtocolType(ARP.PROTO_TYPE_IP)
+            arp.setHardwareAddressLength(6.asInstanceOf[Byte])
+            arp.setProtocolAddressLength(4.asInstanceOf[Byte])
+            arp.setOpCode(ARP.OP_REQUEST)
+            arp.setSenderHardwareAddress(port.portMac)
+            arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"))
+            arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(
+                port.portAddr.addressAsInt))
+            arp.setTargetProtocolAddress(
+                IPv4.toIPv4AddressBytes(ip.addressAsInt))
+            val pkt: Ethernet = new Ethernet
+            pkt.setPayload(arp)
+            pkt.setSourceMACAddress(port.portMac)
+            pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+            pkt.setEtherType(ARP.ETHERTYPE)
+
+            log.debug("generateArpRequest: sending {}", pkt)
+
+            //SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+            //    port.id, pkt)
+
+            // update the arpcache entry with new time info.
+
+            // this gets moved to router.scala:
+            // while (retries left)
+            //      send arp.
+            //      wait on entry update for queried IP with timeout
+            //      if entry has been resolved. break the loop.
+
+            // when out of retries, notify arpwaiters.
+
+            // more: arpcache notify notifies of changed macs not full entries.
+        }
+    }
+
 }
