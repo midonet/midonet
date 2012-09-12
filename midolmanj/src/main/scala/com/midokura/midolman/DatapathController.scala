@@ -648,14 +648,16 @@ class DatapathController() extends Actor with ActorLogging {
             case None =>
         }
 
-        if (flow.getActions != null) {
-            translateActions(flow.getActions.toList) onComplete {
-                case Right(actions) =>
-                    flow.setActions(actions.toList)
-                    FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
-                case _ =>
-                    FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
-            }
+        var flowActions = flow.getActions
+        if (flowActions == null)
+            flowActions = List().toList
+
+        translateActions(flowActions) onComplete {
+            case Right(actions) =>
+                flow.setActions(actions.toList)
+                FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
+            case _ =>
+                FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
         }
     }
 

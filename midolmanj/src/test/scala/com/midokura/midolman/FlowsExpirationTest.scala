@@ -4,34 +4,20 @@
 
 package com.midokura.midolman
 
-
-import com.midokura.midolman.FlowController.{CheckFlowExpiration, WildcardFlowRemoved, WildcardFlowAdded, AddWildcardFlow}
-import com.midokura.sdn.flows.{WildcardMatches, WildcardMatch, WildcardFlow}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
-import com.midokura.sdn.dp.flows.{FlowKeyTunnelID, FlowKeyInPort, FlowKey, FlowActions}
-import datapath.FlowActionOutputToVrnPort
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.sdn.dp._
-import parallel.Future
-import com.midokura.util.functors.Callback
-import collection.immutable.LinearSeq
-import com.midokura.sdn.dp.flows.FlowKey.FlowKeyAttr
-import collection.mutable
-import java.util.UUID
-import collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
+
 import org.apache.commons.configuration.HierarchicalConfiguration
-import org.testng.annotations.{AfterTest, BeforeTest}
-import org.junit.BeforeClass
-import java.util.concurrent.TimeUnit
+
+import com.midokura.midolman.FlowController.{WildcardFlowRemoved, CheckFlowExpiration, WildcardFlowAdded, AddWildcardFlow}
+import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow}
+import com.midokura.sdn.dp.flows.FlowKeys
+import com.midokura.sdn.dp._
+
 
 @RunWith(classOf[JUnitRunner])
-class FlowsExpirationTest extends MidolmanTestCase {
-
-    var dataPath: Datapath = null
+class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuilders{
 
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
@@ -39,67 +25,45 @@ class FlowsExpirationTest extends MidolmanTestCase {
         config
     }
 
-    @BeforeClass
-    def start(){
-
-    }
-
-    @AfterTest
-    def cleanup(){
-        dpConn().flowsFlush(dataPath)
-    }
-
     def testHardTimeExpiration() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        newHost("myself", hostId())
 
         initializeDatapath() should not be (null)
 
-        val msg: DatapathController.DatapathReady = flowProbe().expectMsgType[DatapathController.DatapathReady]
-        dataPath = msg.datapath
-        dataPath should not be (null)
+        val datapath = requestOfType[DatapathController.DatapathReady](flowProbe()).datapath
+        datapath should not be (null)
+
         val eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowRemoved])
 
-        val keys = new java.util.ArrayList[FlowKey[_]]()
-        val tunnelKey: FlowKeyTunnelID = new FlowKeyTunnelID().setTunnelID(10l)
-        keys.add(tunnelKey)
-
-        val flowMatch: FlowMatch = new FlowMatch().setKeys(keys)
+        val flowMatch = new FlowMatch()
+                                .addKey(FlowKeys.tunnelID(10l))
 
         val wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .setHardExpirationMillis(500)
+            .setActions(List().toList)
+            .setHardExpirationMillis(50)
 
         val packet = new Packet().setMatch(flowMatch)
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(packet), null, null))
-        requestOfType[AddWildcardFlow](flowProbe())
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
-        var flowFromDP = dpConn().flowsGet(dataPath, flowMatch).get()
-        flowFromDP should not be (null)
-        Thread.sleep(1000)
-       /*
+        Thread.sleep(100)
+
+        var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
+        dpFlow should not be (null)
+
         flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        flowFromDP = dpConn().flowsGet(dataPath, flowMatch).get()
-        flowFromDP should be (null)  */
+        Thread.sleep(50)
 
-
+        dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
+        dpFlow should be (null)
     }
-    /*
-    private def getFakeCallback: Callback[Flow] = {
-        new Callback[Flow](){
-            def onSuccess(data: Flow) {}
-
-            def onTimeout() {}
-
-            def onError(e: E) {}
-        }
-    }*/
 }

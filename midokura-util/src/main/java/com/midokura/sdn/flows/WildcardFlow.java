@@ -23,6 +23,8 @@ public class WildcardFlow {
     long idleExpirationMillis = 0; // default: never expire
 
     public WildcardFlow() {
+        this.match = new WildcardMatch();
+        this.actions = new ArrayList<FlowAction<?>>();
         this.creationTimeMillis = System.currentTimeMillis();
         this.lastUsedTimeMillis = System.currentTimeMillis();
     }

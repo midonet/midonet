@@ -125,7 +125,6 @@ class FlowController extends Actor with ActorLogging {
             removeWildcardFlow(flow)
             context.system.eventStream.publish(new WildcardFlowRemoved(flow))
 
-
         case SendPacket(data, actions) =>
             if (actions.size > 0) {
                 val packet = new Packet().
@@ -166,7 +165,7 @@ class FlowController extends Actor with ActorLogging {
         } */
         // TODO(pino): update tagToFlows and flowToTags
     }
-    
+
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
         datapathConnection.flowsDelete(datapath, flow, cb)
     }
