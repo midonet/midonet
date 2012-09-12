@@ -683,11 +683,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         def set(ip: IntIPv4, mac: MAC) {
-            if (mac != null) {
-                arpWaiters.remove(ip) match {
+            arpWaiters.remove(ip) match {
                     case Some(waiters) => waiters map { _ success mac}
                     case None =>
-                }
             }
             val now = Platform.currentTime
             val entry = new ArpCacheEntry(mac, now + ARP_STALE_MILLIS,
@@ -731,6 +729,12 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     }
                     return
                 }
+                // another node took over, give up. Waiters will be notified.
+                // XXX - what will happen to our waiters if another node takes
+                // over and we time out??
+                // We should do arpCache.set() with mac = null
+                if (previous > 0 && cacheEntry.lastArp != previous)
+                    return
                 // now up to date, entry was updated while the top half
                 // of the retry loop waited for the arp cache entry, waiters
                 // will be notified naturally, do nothing.
