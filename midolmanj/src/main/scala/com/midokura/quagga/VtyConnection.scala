@@ -336,7 +336,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         return networks.toSeq
     }
 
-    override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
+    override def setNetwork(as: Int, nwPrefix: String,
+                            prefixLength: Int) {
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
         request += SetNetwork.format(nwPrefix, prefixLength)

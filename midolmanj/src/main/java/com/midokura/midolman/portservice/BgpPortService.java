@@ -131,7 +131,8 @@ public class BgpPortService implements PortService {
         RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
         BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
         AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
-        ZebraServer zebraServer = new ZebraServerImpl(server, address);
+        ZebraServer zebraServer = new ZebraServerImpl(server, address,
+            null, null, null);
 
         BgpVtyConnection vtyConnection = new BgpVtyConnection("localhost",
                 2605, "zebra");

@@ -2,25 +2,25 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.midolman
+package com.midokura.midolman.routingprotocols
 
 import akka.actor.{ActorRef, Props, ActorLogging, Actor}
-import bgp.BGPPortHandler
 import com.midokura.midonet.cluster.DataClient
 import com.google.inject.Inject
 import java.util.UUID
 import com.midokura.util.functors.Callback2
 import com.midokura.midolman.config.MidolmanConfig
-import topology.VirtualTopologyActor
-import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort}
 import collection.mutable
+import com.midokura.midolman.topology.VirtualTopologyActor
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.Referenceable
 
-object BGPManager extends Referenceable {
+object RoutingManager extends Referenceable {
     val Name = "BGPManager"
 }
 
-class BGPManager extends Actor with ActorLogging {
+class RoutingManager extends Actor with ActorLogging {
 
     @Inject
     var dataClient: DataClient = null
@@ -33,6 +33,7 @@ class BGPManager extends Actor with ActorLogging {
     private val portHandlers = mutable.Map[UUID, ActorRef]()
 
     private case class LocalPortActive(portID: UUID, active: Boolean)
+
     val localPortsCB = new Callback2[UUID, java.lang.Boolean]() {
         def call(portID: UUID, active: java.lang.Boolean) {
             self ! LocalPortActive(portID, active)
@@ -55,7 +56,7 @@ class BGPManager extends Actor with ActorLogging {
 
         case LocalPortActive(portID, false) =>
             activePorts.remove(portID)
-            // TODO(pino): tear down the BGPPortHandler for this port.
+        // TODO(pino): tear down the BGPPortHandler for this port.
 
         case port: ExteriorRouterPort =>
             // Only exterior virtual router ports support BGP.
@@ -64,12 +65,13 @@ class BGPManager extends Actor with ActorLogging {
                 bgpPortIdx += 1
                 portHandlers.put(
                     port.id,
-                    context.actorOf(Props(new BGPPortHandler(port, bgpPortIdx)),
-                                    name = port.id.toString()))
+                    context.actorOf(
+                        Props(new RoutingHandler(port, bgpPortIdx)),
+                        name = port.id.toString()))
             }
 
         case port: Port[_] =>
-            // Ignore all other port types.
+        // Ignore all other port types.
     }
 
 }

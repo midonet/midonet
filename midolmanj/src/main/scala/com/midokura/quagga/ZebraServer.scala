@@ -12,16 +12,10 @@
 
 package com.midokura.quagga
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection
-import com.midokura.midolman.state.zkManagers.{PortZkManager, RouteZkManager}
-import com.midokura.midolman.state.PortDirectory.MaterializedRouterPortConfig
-import com.midokura.midolman.state.{NoStatePathException,
-                                    StatePathExistsException}
-import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.state.NoStatePathException
 
 import scala.actors._
 import scala.actors.Actor._
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -33,6 +27,8 @@ import java.util.UUID
 
 import org.slf4j.LoggerFactory
 import com.midokura.packets.IntIPv4
+import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
+import com.midokura.quagga.ZebraServer.RIBType
 
 
 case class Request(socket: Socket, reqId: Int)
@@ -225,9 +221,11 @@ object ZebraConnection {
     private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
-class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
-                      val routeMgr: RouteZkManager,
-                      val ovsdb: OpenvSwitchDatabaseConnection) extends Actor {
+class ZebraConnection(val dispatcher: Actor,
+                      val handler: ZebraProtocolHandler,
+                      val ifAddr: IntIPv4,
+                      val ifName: String)
+    extends Actor {
     import ZebraConnection._
     import ZebraProtocol._
 
@@ -244,10 +242,11 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
     implicit def outputStreamWrapper(out: OutputStream) =
         new DataOutputStream(out)
 
-    def interfaceAdd(out: DataOutputStream) {
-        val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
+    private def interfaceAdd(out: DataOutputStream) {
+        //val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
         var ifIndex = 0
 
+        /* TODO(pino): ask Yoshi why this was done per-protocol.
         for (protocol <- protocols) {
             val servicePort = ovsdb.synchronized {
                 ovsdb.getPortNamesByExternalId(OvsPortServiceExtIdKey,
@@ -279,12 +278,14 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     case BgpExtIdValue =>
                         { ribTypeToPortUUID(ZebraRouteBgp) = portUUID }
                 }
+                */
 
                 sendHeader(out, ZebraInterfaceAdd, ZebraInterfaceAddSize)
 
-                val ifName = new StringBuffer(portName)
-                ifName.setLength(InterfaceNameSize)
-                out.writeBytes(ifName.toString)
+                val ifNameBuf = new StringBuffer(ifName)
+                // TODO(pino): why does the length need to be set exactly?
+                ifNameBuf.setLength(InterfaceNameSize)
+                out.writeBytes(ifNameBuf.toString)
 
                 // Send bogus index now. c.f. ip link show <port>
                 out.writeInt(ifIndex)
@@ -322,22 +323,24 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                 out.write(AF_INET)
 
                 // TODO(yoshi): Ipv6
-                out.writeInt(portConfig.portAddr)
-                out.write(portConfig.nwLength)
+                out.writeInt(ifAddr.addressAsInt())
+                out.write(ifAddr.prefixLen())
                 // TODO(yoshi): fix dummy destination address.
                 out.writeInt(0)
 
                 log.info("ZebraInterfaceAddressAdd: index %d name %s addr %d"
-                         .format(ifIndex, ifName, portConfig.portAddr))
+                         .format(ifIndex, ifNameBuf, ifAddr))
 
                 ifIndex += 1
-            } else if (servicePort.nonEmpty) {
-                log.warn("Only one service port for each protocol")
-            }
-        }
+            //} else if (servicePort.nonEmpty) {
+            //    log.warn("Only one service port for each protocol")
+            //}
+        //}
     }
 
     def routerIdUpdate(out: DataOutputStream) {
+        // TODO(pino): shouldn't we be using the router's IP address,
+        // TODO(pino): not that of the local host?
         val ia = InetAddress.getLocalHost
         sendHeader(out, ZebraRouterIdUpdate, ZebraRouterIdUpdateSize)
         out.writeByte(AF_INET)
@@ -372,6 +375,12 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     log.info(
                         "ZebraIpv4RouteAdd: nextHopType %d addr %d".format(
                             nextHopType, addr))
+                    handler.addRoute(RIBType.fromInteger(ribType),
+                                     new IntIPv4(prefix)
+                                         .setMaskLength(prefixLen),
+                                     new IntIPv4(addr))
+
+                    /* TODO(pino): Do we need any of this?
                     // Add to router port's route if there is
                     // mapping. Ignored if not.
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
@@ -396,7 +405,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                                 }
                             }
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -438,6 +447,13 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                     log.info(
                         "ZebraIpv4RouteDelte: nextHopType %d addr %d".format(
                             nextHopType, addr))
+
+                    handler.removeRoute(RIBType.fromInteger(ribType),
+                                        new IntIPv4(prefix)
+                                            .setMaskLength(prefixLen),
+                                        new IntIPv4(addr))
+
+                    /* TODO(pino): do we need this anymore.
                     // Delete Route.
                     for (portUUID <- ribTypeToPortUUID.get(ribType)) {
                         if (zebraToRoute.contains(advertised)) {
@@ -452,7 +468,7 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
                             }
                             zebraToRoute.remove(advertised)
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -605,13 +621,37 @@ class ZebraConnection(val dispatcher: Actor, val portMgr: PortZkManager,
     }
 }
 
+object ZebraServer {
+    object RIBType extends Enumeration {
+        type RIBType = Value
+        val RIP = Value("RIP")
+        val OSPF = Value("OSPF")
+        val ISIS = Value("ISIS")
+        val BGP = Value("BGP")
+
+        import ZebraProtocol._
+        def fromInteger(ribType: Int): RIBType.Value = {
+            ribType match {
+                case ZebraRouteRip => return RIP
+                case ZebraRouteBgp => return BGP
+                case ZebraRouteOspf => return OSPF
+                case ZebraRouteIsis => return ISIS
+            }
+        }
+    }
+}
+
 trait ZebraServer {
     def start()
     def stop()
 }
 
-class ZebraServerImpl(val server: ServerSocket, val address: SocketAddress)
-extends ZebraServer {
+class ZebraServerImpl(val server: ServerSocket,
+                      val address: SocketAddress,
+                      val handler: ZebraProtocolHandler,
+                      val ifAddr: IntIPv4,
+                      val ifName: String)
+    extends ZebraServer {
 
     private final val log = LoggerFactory.getLogger(this.getClass)
     private var run = false
@@ -623,7 +663,8 @@ extends ZebraServer {
     val dispatcher = actor {
 
         def addZebraConn(dispatcher: Actor) {
-            val zebraConn = new ZebraConnection(dispatcher, null, null, null)
+            val zebraConn =
+                new ZebraConnection(dispatcher, handler, ifAddr, ifName)
             zebraConnPool += zebraConn
             zebraConn.start
         }

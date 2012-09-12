@@ -63,8 +63,9 @@ public class IntIPv4 implements Cloneable {
         this.address = address;
     }
 
-    public void setMaskLength(int maskLength) {
+    public IntIPv4 setMaskLength(int maskLength) {
         this.maskLength = maskLength;
+        return this;
     }
 
     /**

@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.midolman.bgp
+package com.midokura.midolman.routingprotocols
 
 import akka.actor.{UntypedActorWithStash, ActorLogging}
 import com.google.inject.Inject
@@ -14,7 +14,8 @@ import com.midokura.midonet.cluster.data.{AdRoute, BGP}
 import collection.mutable
 import java.io.{IOException, File}
 import org.newsclub.net.unix.{AFUNIXSocketAddress, AFUNIXServerSocket}
-import com.midokura.quagga.{BgpConnection, BgpVtyConnection, ZebraServerImpl}
+import com.midokura.quagga.{BgpConnection, BgpVtyConnection,
+                            ZebraServer, ZebraServerImpl}
 import com.midokura.midolman.{PortOperation, DatapathController, FlowController}
 import com.midokura.midolman.util.Sudo
 import akka.util.Duration
@@ -25,12 +26,35 @@ import com.midokura.midolman.datapath.FlowActionVrnPortOutput
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
 import com.midokura.sdn.dp.ports.InternalPort
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.DatapathController.CreatePortInternal
-import com.midokura.midolman.DatapathController.PortInternalOpReply
+import com.midokura.midolman.DatapathController.{CreatePortInternal, PortInternalOpReply}
 import java.util.concurrent.TimeUnit
+import com.midokura.midolman.FlowController.AddWildcardFlow
 
-class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
+/**
+ * The RoutingHandler manages the routing protocols for a single exterior
+ * virtual router port that is local to this MidoNet daemon's physical host.
+ * Currently, only BGP is supported, but we may add other routing protocols
+ * in later versions. The RoutingHandler can manage multiple BGP sessions on
+ * one router port. One RoutingHandler will launch at most one ZebraServer
+ * (implementing the server-side of the Zebra Protocol). It will launch at
+ * most one Vty connection for each routing protocol configured on the port.
+ * Therefore, multiple sessions of a single routing protocol will share the
+ * same protocol daemon (e.g. bgpd); and multiple protocols will share
+ * the same ZebraServer. This is almost identical to the Quagga architecture
+ * except that the RoutingHandler replaces the role of the Zebra daemon.
+ *
+ * Note that different exterior virtual router ports should have their routing
+ * protocol sessions managed by different RoutingHandlers even if the router
+ * ports happen to be on the save virtual router. The RoutingHandlers use
+ * MidoNet's central cluster to aggregate routes. In the general case two
+ * exterior virtual routers may be bound to physical interfaces on different
+ * physical hosts, therefore MidoNet must anyway be able to use different
+ * RoutingHandlers for different virtual ports of the same router.
+ *
+ * @param rport
+ * @param bgpIdx
+ */
+class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     extends UntypedActorWithStash with ActorLogging {
 
     import context._
@@ -40,7 +64,8 @@ class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     @Inject
     var client: Client = null
 
-    private final val BGP_PORT_NAME: String = "midobgp%d".format(bgpIdx)
+    private final val BGP_INTERNAL_PORT_NAME: String =
+        "midobgp%d".format(bgpIdx)
     private final val ZSERVE_API_SOCKET =
         "/var/run/quagga/zserv%d.api".format(bgpIdx)
     private final val BGP_VTY_PORT: Int = 26050 + bgpIdx
@@ -51,14 +76,60 @@ class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     private val bgps = mutable.Map[UUID, BGP]()
     private val adRoutes = mutable.Set[AdRoute]()
-    var internalPort: InternalPort = null
+    private var internalPort: InternalPort = null
 
-    private case class BGPD_READY()
-    private case class BGPD_DEAD()
-    private case class KillBgp(bgpID: UUID)
-    private case class AddRoute(route: AdRoute)
-    private case class RemoveRoute(route: AdRoute)
+    private case class NewBgpSession(bgp: BGP)
+    private case class ModifyBgpSession(bgp: BGP)
+    private case class RemoveBgpSession(bgpID: UUID)
+    private case class AdvertiseRoute(route: AdRoute)
+    private case class StopAdvertisingRoute(route: AdRoute)
+    override def preStart() {
+        super.preStart()
+        // Watch the BGP session information for this port.
+        // In the future we may also watch for session configurations of
+        // other routing protocols.
+        client.getPortBGPList(rport.id, new BGPListBuilder {
+            def addBGP(bgp: BGP) {
+                self ! NewBgpSession(bgp)
+            }
 
+            def updateBGP(bgp: BGP) {
+                self ! ModifyBgpSession(bgp)
+            }
+
+            def removeBGP(bgpID: UUID) {
+                self ! RemoveBgpSession(bgpID)
+            }
+
+            def addAdvertisedRoute(route: AdRoute) = {
+                self ! AdvertiseRoute(route)
+            }
+
+            def removeAdvertisedRoute(route: AdRoute) {
+                self ! StopAdvertisingRoute(route)
+            }
+        })
+
+        // Subscribe to the VTA for updates to the Port configuration.
+        VirtualTopologyActor.getRef() ! PortRequest(rport.id, true)
+    }
+
+    import ZebraServer.RIBType
+    private case class AddPeerRoute(ribType: RIBType.Value,
+                                   destination: IntIPv4, gateway: IntIPv4)
+    private case class RemovePeerRoute(ribType: RIBType.Value,
+                                       destination: IntIPv4, gateway: IntIPv4)
+    private val handler = new ZebraProtocolHandler {
+        def addRoute(ribType: RIBType.Value, destination: IntIPv4,
+                     gateway: IntIPv4) {
+            self ! AddPeerRoute(ribType, destination, gateway)
+        }
+
+        def removeRoute(ribType: RIBType.Value, destination: IntIPv4,
+                        gateway: IntIPv4) {
+            self ! RemovePeerRoute(ribType, destination, gateway)
+        }
+    }
     /**
      * This actor can be in these phases:
      * NotStarted: bgp has not been started (no known bgp configs on the port)
@@ -82,161 +153,143 @@ class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     import Phase._
     var phase = NotStarted
 
-    override def preStart() {
-        super.preStart()
-        client.getPortBGPList(rport.id, new BGPListBuilder {
-            def addBGP(bgp: BGP) {
-                self ! bgp
-            }
-
-            def updateBGP(bgp: BGP) {
-                self ! bgp
-            }
-
-            def removeBGP(bgpID: UUID) {
-                self ! KillBgp(bgpID)
-            }
-
-            def addAdvertisedRoute(route: AdRoute) = {
-                self ! AddRoute(route)
-            }
-
-            def removeAdvertisedRoute(route: AdRoute) {
-                self ! RemoveRoute(route)
-            }
-
-        })
-
-        // Subscribe to the VTA for updates to the Port configuration.
-        VirtualTopologyActor.getRef() ! PortRequest(rport.id, true)
-    }
+    private case class BGPD_READY()
+    private case class BGPD_DEAD()
 
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
         message match {
-        case port: ExteriorRouterPort =>
-            var store = true
-            phase match {
-                case Starting =>
-                    store = false
-                    stash()
-                case Started =>
+            case port: ExteriorRouterPort =>
+                var store = true
+                phase match {
+                    case Starting =>
+                        store = false
+                        stash()
+                    case Started =>
                     // TODO(pino): reconfigure the internal port now
-                case _ => // fall through
-            }
-            if (store)
-                rport = port
+                    case _ => // fall through
+                }
+                if (store)
+                    rport = port
 
-        case port: Port[_] =>
-            log.error("Cannot run BGP on anything but an exterior " +
-                "virtual router port. We got {}", port)
+            case port: Port[_] =>
+                log.error("Cannot run BGP on anything but an exterior " +
+                    "virtual router port. We got {}", port)
 
-        case bgp: BGP =>
-            phase match {
-                case NotStarted =>
-                    // This must be the first bgp we learn about.
-                    bgps.put(bgp.getId, bgp)
-                    startBGP
-                    phase = Starting
-                case Starting =>
-                    stash()
-                case Started =>
+            case NewBgpSession(bgp) =>
+                phase match {
+                    case NotStarted =>
+                        // This must be the first bgp we learn about.
+                        bgps.put(bgp.getId, bgp)
+                        startBGP
+                        phase = Starting
+                    case Starting =>
+                        stash()
+                    case Started =>
                     // TODO(pino): use vtyBgp to configure the bgp session.
                     // TODO(pino): distinguish between new and modified bgp.
-                case Stopping =>
-                    stash()
-            }
+                    case Stopping =>
+                        stash()
+                }
 
-        case PortInternalOpReply(iport, PortOperation.Create,
-                                 false, null, null) =>
-            phase match {
-                case Starting =>
-                    internalPortReady(iport)
-                case _ =>
-                    log.error("PortInternalOpReply expected only while " +
-                        "Starting - we're now in {}", phase)
-            }
+            case ModifyBgpSession(bgp) => // TODO(pino): implement me!
 
-        case PortInternalOpReply(_, _, _, _, _) => // Do nothing
+            case PortInternalOpReply(iport, PortOperation.Create,
+            false, null, null) =>
+                phase match {
+                    case Starting =>
+                        internalPortReady(iport)
+                    case _ =>
+                        log.error("PortInternalOpReply expected only while " +
+                            "Starting - we're now in {}", phase)
+                }
 
-        case BGPD_READY =>
-            phase match {
-                case Starting =>
-                    phase = Started
-                    unstashAll()
-                    for (bgp <- bgps.values) {
-                        // Use the bgpVty to set up sessions with all these peers
-                        create(rport.nwAddr(), bgp)
-                    }
-                    for (route <- adRoutes) {
-                        // Use the bgpVty to add all these routes/networks
-                    }
-                case _ =>
-                    log.error("BGP_READY expected only while " +
-                        "Starting - we're now in {}", phase)
-            }
+            case PortInternalOpReply(_, _, _, _, _) => // Do nothing
 
-        case KillBgp(bgpID) =>
-            phase match {
-                case NotStarted =>
-                    // This probably shouldn't happen. A BGP config is being
-                    // removed, implying we knew about it - we shouldn't be
-                    // NotStarted...
-                    log.error("KillBgp not expected in phase NotStarted")
-                case Starting =>
-                    stash()
-                case Started =>
-                    // TODO(pino): Use bgpVty to remove this BGP and its routes
-                    val bgp = bgps.remove(bgpID)
-                    // Remove all the flows for this BGP link
-                    FlowController.getRef().tell(
-                        FlowController.InvalidateFlowsByTag(bgpID))
+            case BGPD_READY =>
+                phase match {
+                    case Starting =>
+                        phase = Started
+                        unstashAll()
+                        for (bgp <- bgps.values) {
+                            // Use the bgpVty to set up sessions with all these peers
+                            create(rport.nwAddr(), bgp)
+                        }
+                        for (route <- adRoutes) {
+                            // Use the bgpVty to add all these routes/networks
+                        }
+                    case _ =>
+                        log.error("BGP_READY expected only while " +
+                            "Starting - we're now in {}", phase)
+                }
 
-                    // If this is the last BGP for ths port, tear everything down.
-                    if (bgps.size == 0) {
-                        phase = Stopping
-                        stopBGP
-                    }
-                case Stopping =>
-                    stash()
-            }
+            case RemoveBgpSession(bgpID) =>
+                phase match {
+                    case NotStarted =>
+                        // This probably shouldn't happen. A BGP config is being
+                        // removed, implying we knew about it - we shouldn't be
+                        // NotStarted...
+                        log.error("KillBgp not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        // TODO(pino): Use bgpVty to remove this BGP and its routes
+                        val bgp = bgps.remove(bgpID)
+                        // Remove all the flows for this BGP link
+                        FlowController.getRef().tell(
+                            FlowController.InvalidateFlowsByTag(bgpID))
 
-        case BGPD_DEAD =>
-            phase match {
-                case Stopping =>
-                    phase = NotStarted
-                    unstashAll()
-                case _ =>
-                    log.error("BGP_DEAD expected only while " +
-                        "Stopping - we're now in {}", phase)
-            }
+                        // If this is the last BGP for ths port, tear everything down.
+                        if (bgps.size == 0) {
+                            phase = Stopping
+                            stopBGP
+                        }
+                    case Stopping =>
+                        stash()
+                }
 
-        case AddRoute(rt) =>
-            phase match {
-                case NotStarted =>
-                    log.error("AddRoute not expected in phase NotStarted")
-                case Starting =>
-                    stash()
-                case Started =>
-                    adRoutes.add(rt)
-                // TODO(pino): use bgpVty to advertise the route
-                case Stopping =>
-                    stash()
-            }
+            case BGPD_DEAD =>
+                phase match {
+                    case Stopping =>
+                        phase = NotStarted
+                        unstashAll()
+                    case _ =>
+                        log.error("BGP_DEAD expected only while " +
+                            "Stopping - we're now in {}", phase)
+                }
 
-        case RemoveRoute(rt) =>
-            phase match {
-                case NotStarted =>
-                    log.error("RemoveRoute not expected in phase NotStarted")
-                case Starting =>
-                    stash()
-                case Started =>
-                    adRoutes.remove(rt)
+            case AdvertiseRoute(rt) =>
+                phase match {
+                    case NotStarted =>
+                        log.error("AddRoute not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        adRoutes.add(rt)
+                    // TODO(pino): use bgpVty to advertise the route
+                    case Stopping =>
+                        stash()
+                }
+
+            case StopAdvertisingRoute(rt) =>
+                phase match {
+                    case NotStarted =>
+                        log.error("RemoveRoute not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        adRoutes.remove(rt)
                     // TODO(pino): use bgpVty to stop advertising the route
-                case Stopping =>
-                    stash()
-            }
-    }
+                    case Stopping =>
+                        stash()
+                }
+
+            case AddPeerRoute(ribType, destination, gateway) =>
+            // TODO(pino): implement me!
+
+            case RemovePeerRoute(ribType, destination, gateway) =>
+            // TODO(pino): implement me!
+        }
     }
 
     private def startBGP() = {
@@ -254,7 +307,8 @@ class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         val server = AFUNIXServerSocket.newInstance()
         val address = new AFUNIXSocketAddress(socketFile)
 
-        zebra = new ZebraServerImpl(server, address);
+        zebra = new ZebraServerImpl(
+            server, address, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
         zebra.start()
 
         bgpVty = new BgpVtyConnection(
@@ -263,10 +317,10 @@ class BGPPortHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
             password = "zebra_password")
 
         // Create the interface bgpd will run on.
-        log.info("Adding internal port {} for BGP link", BGP_PORT_NAME)
+        log.info("Adding internal port {} for BGP link", BGP_INTERNAL_PORT_NAME)
         DatapathController.getRef() !
             CreatePortInternal(
-                Ports.newInternalPort(BGP_PORT_NAME)
+                Ports.newInternalPort(BGP_INTERNAL_PORT_NAME)
                     .setAddress(rport.portMac.getAddress), null)
     }
 

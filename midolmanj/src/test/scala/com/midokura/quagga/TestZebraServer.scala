@@ -27,6 +27,8 @@ import com.midokura.midolman.util.Net
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
 import org.scalatest.Ignore
+import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
+import com.midokura.quagga.ZebraServer.RIBType
 
 
 /**
@@ -120,7 +122,16 @@ class TestZebraServer {
         socketFile.delete()
         val server = AFUNIXServerSocket.newInstance
         val address = new AFUNIXSocketAddress(socketFile)
-        zebra = new ZebraServerImpl(server, address)
+        zebra = new ZebraServerImpl(
+            server, address,
+            new ZebraProtocolHandler {
+                def removeRoute(ribType: RIBType.Value, destination: IntIPv4,
+                                gateway: IntIPv4) {}
+
+                def addRoute(ribType: RIBType.Value, destination: IntIPv4,
+                             gateway: IntIPv4) {}
+            },
+            IntIPv4.fromString("0.0.1.1"), "midobgp33")
         client = AFUNIXSocket.newInstance
 
         try {
