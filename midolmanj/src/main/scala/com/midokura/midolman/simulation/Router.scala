@@ -298,15 +298,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val peerPortFuture = expiringAsk(virtualTopologyManager,
                 PortRequest(rtrPort.peerID, false),
                 expiry).mapTo[Port[_]]
-        flow {
-            if (peerPortFuture() == null) {
-                log.error("getPeerMac: cannot get port from VTM")
-                null
-            } else {
-                peerPortFuture() match {
-                    case rp: RouterPort[_] => rp.portMac
-                    case _ => null
-                }
+        peerPortFuture map {
+            port => port match {
+                case rp: RouterPort[_] => rp.portMac
+                case null =>
+                    log.error("getPeerMac: cannot get port {}", rtrPort.peerID)
+                    null
+                case _ => null
             }
         }
     }
