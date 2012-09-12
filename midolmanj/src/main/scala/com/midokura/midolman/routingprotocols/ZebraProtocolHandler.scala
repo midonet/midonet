@@ -4,8 +4,8 @@
 
 package com.midokura.midolman.routingprotocols
 
-import com.midokura.quagga.ZebraServer.RIBType
 import com.midokura.packets.IntIPv4
+import com.midokura.quagga.ZebraProtocol.RIBType
 
 trait ZebraProtocolHandler {
 

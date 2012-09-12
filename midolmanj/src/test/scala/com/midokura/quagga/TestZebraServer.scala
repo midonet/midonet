@@ -28,8 +28,6 @@ import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
 import org.scalatest.Ignore
 import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
-import com.midokura.quagga.ZebraServer.RIBType
-
 
 /**
  * Test for ZebraServer using Open vSwitch database connection.

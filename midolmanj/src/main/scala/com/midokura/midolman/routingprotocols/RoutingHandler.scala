@@ -29,6 +29,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.DatapathController.{CreatePortInternal, PortInternalOpReply}
 import java.util.concurrent.TimeUnit
 import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.quagga.ZebraProtocol.RIBType
 
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
@@ -114,7 +115,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         VirtualTopologyActor.getRef() ! PortRequest(rport.id, true)
     }
 
-    import ZebraServer.RIBType
     private case class AddPeerRoute(ribType: RIBType.Value,
                                    destination: IntIPv4, gateway: IntIPv4)
     private case class RemovePeerRoute(ribType: RIBType.Value,
