@@ -4,20 +4,25 @@
 
 package com.midokura.sdn.flows;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.testng.annotations.BeforeTest;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 
+import com.midokura.netlink.Callback;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.flows.FlowAction;
+import com.midokura.sdn.dp.flows.FlowActionUserspace;
 import com.midokura.sdn.dp.flows.FlowKey;
+import com.midokura.sdn.dp.flows.FlowKeyTCP;
 import com.midokura.sdn.dp.flows.FlowKeyTunnelID;
 
 public class FlowManagerTest {
@@ -27,7 +32,7 @@ public class FlowManagerTest {
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
 
-    @BeforeTest
+    @Before
     public void setUp() {
         flowManagerHelper = new FlowManagerHelperImpl();
         flowManager = new FlowManager(flowManagerHelper, maxDpFlowSize,
@@ -118,11 +123,7 @@ public class FlowManagerTest {
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
-        Thread.sleep(10);
-        keys.clear();
-
-        // add another flow that matches
-
+        Thread.sleep(21);
 
         flowManager.checkFlowsExpiration();
 
@@ -130,6 +131,125 @@ public class FlowManagerTest {
                    flowManagerHelper.getFlow(flowMatch),
                    nullValue());
 
+    }
+
+    @Test
+    public void testIdleExpirationUpdate() throws InterruptedException{
+        List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
+        FlowKeyTunnelID tunnelKey  = new FlowKeyTunnelID().setTunnelID(10l);
+        keys.add(tunnelKey);
+
+        FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+
+        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
+        actions.add(new FlowActionUserspace());
+        WildcardFlow wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .setIdleExpirationMillis(20)
+            .setActions(actions);
+
+        int numberOfFlowsAdded = 0;
+        flowManager.add(wildcardFlow);
+        flowManager.add(flowMatch, wildcardFlow);
+        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        numberOfFlowsAdded++;
+
+        Thread.sleep(10);
+
+        // add another flow that matches
+        FlowKeyTCP tcpkey = new FlowKeyTCP().setDst((short) 1024);
+        List<FlowKey<?>> keys1 = new java.util.ArrayList<FlowKey<?>>();
+        keys1.add(tcpkey);
+        keys1.addAll(keys);
+        FlowMatch flowMatch1 = new FlowMatch().setKeys(keys1);
+        Flow flow2 = flowManager.createDpFlow(flowMatch1);
+        assertThat("Flow didn't match", flow2, notNullValue());
+        // create the flow
+        flowManagerHelper.addFlow(flow2);
+
+        numberOfFlowsAdded++;
+
+        assertThat("DpFlowTable was not updated",
+                   flowManager.getDpFlowTable().size(),
+                   equalTo(numberOfFlowsAdded));
+
+        assertThat("WildcardFlowsToDpFlows was not updated",
+                   flowManager.getWildFlowToDpFlows().get(wildcardFlow).size(),
+                   equalTo(numberOfFlowsAdded));
+
+        assertThat("DpFlowToWildFlow table was not updated",
+                   flowManager.getDpFlowToWildFlow().size(),
+                   equalTo(numberOfFlowsAdded));
+
+
+        assertThat("DpFlowToWildFlow table was not updated",
+                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                              .get(wildcardFlow.getMatch()),
+                   equalTo(wildcardFlow));
+
+        Thread.sleep(12);
+
+        flowManager.checkFlowsExpiration();
+
+
+        // wildcard flow should still be there
+        assertThat("DpFlowToWildFlow table was not updated",
+                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                              .get(wildcardFlow.getMatch()),
+                   equalTo(wildcardFlow));
+
+        Thread.sleep(21);
+
+        flowManager.checkFlowsExpiration();
+        // both should be deleted
+        assertThat("Flow was not deleted",
+                   flowManagerHelper.getFlow(flowMatch),
+                   nullValue());
+        assertThat("Flow was not deleted",
+                   flowManagerHelper.getFlow(flowMatch1),
+                   nullValue());
+
+        assertThat("Wildcard flow wasn't deleted",
+                   flowManager.getWildcardTables().size(),
+                   equalTo(0));
+
+    }
+
+    @Test
+    public void testFreeSpaceDpTable(){
+        int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
+
+        for(int i=0; i<=maxAcceptedDpFlows; i++){
+            FlowKeyTCP tcpkey = new FlowKeyTCP().setDst((short)(i +1));
+            List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
+            keys.add(tcpkey);
+            FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+
+            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+            List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
+            actions.add(new FlowActionUserspace());
+            // no time out set
+            WildcardFlow wildcardFlow = new WildcardFlow()
+                .setMatch(wildcardMatch)
+                .setActions(actions);
+            flowManager.add(wildcardFlow);
+            flowManager.add(flowMatch, wildcardFlow);
+            flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        }
+        flowManager.checkFlowsExpiration();
+
+        assertThat("DpFlowTable, a flow hasn't been removed",
+                   flowManager.getDpFlowTable().size(),
+                   equalTo(maxAcceptedDpFlows-1));
+
+        assertThat("WildcardFlowsToDpFlows, a flow hasn't been removed",
+                   flowManager.getWildFlowToDpFlows().size(),
+                   equalTo(maxAcceptedDpFlows-1));
+
+        assertThat("DpFlowToWildFlow, a flow hasn't been removed",
+                   flowManager.getDpFlowToWildFlow().size(),
+                   equalTo(maxAcceptedDpFlows-1));
 
     }
 
@@ -148,20 +268,14 @@ public class FlowManagerTest {
         }
 
         @Override
-        public void removeFlow(Flow flow) {
+        public void removeFlow(Flow flow, Callback<Flow> cb) {
             flowsMap.remove(flow.getMatch());
-            flowManager.getFlowDeleteCallback(flow).onSuccess(flow);
-
+            cb.onSuccess(flow);
         }
 
         @Override
         public void removeWildcardFlow(WildcardFlow flow) {
-
-            Set<FlowMatch> matchSet = flowManager.remove(flow);
-            for( FlowMatch match: matchSet){
-                removeFlow(new Flow().setMatch(match));
-            }
-
+            flowManager.remove(flow);
         }
     }
 }

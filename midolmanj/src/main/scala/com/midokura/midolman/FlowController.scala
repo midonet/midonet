@@ -30,7 +30,7 @@ object FlowController extends Referenceable {
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
-    case class RemoveFlow(flow: Flow)
+    case class RemoveFlow(flow: Flow, cb: Callback[Flow])
 
     case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
 
@@ -117,8 +117,8 @@ class FlowController extends Actor with ActorLogging {
                         removeWildcardFlow(wildFlow)
             }
 
-        case RemoveFlow(flow: Flow) =>
-            removeFlow(flow)
+        case RemoveFlow(flow: Flow, cb: Callback[Flow]) =>
+            removeFlow(flow, cb)
 
         case RemoveWildcardFlow(flow) =>
             log.debug("Removing wcflow {}", flow)
@@ -157,19 +157,18 @@ class FlowController extends Actor with ActorLogging {
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
-        val removedDpFlowMatches = flowManager.remove(wildFlow)
-        if (removedDpFlowMatches != null) {
+        flowManager.remove(wildFlow)
+        /*if (removedDpFlowMatches != null) {
             for (flowMatch <- removedDpFlowMatches) {
                 val flow = new Flow().setMatch(flowMatch)
                 removeFlow(flow)
             }
-        }
+        } */
         // TODO(pino): update tagToFlows and flowToTags
     }
     
-    private def removeFlow(flow: Flow){
-        datapathConnection.flowsDelete(datapath, flow,
-            flowManager.getFlowDeleteCallback(flow))
+    private def removeFlow(flow: Flow, cb: Callback[Flow]){
+        datapathConnection.flowsDelete(datapath, flow, cb)
     }
 
 
@@ -279,9 +278,9 @@ class FlowController extends Actor with ActorLogging {
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper{
-        def removeFlow(flow: Flow) {
+        def removeFlow(flow: Flow, cb: Callback[Flow]) {
             log.debug("Sending myself a message to remove flow {}", flow.toString)
-            self ! RemoveFlow(flow)
+            self ! RemoveFlow(flow, cb)
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {

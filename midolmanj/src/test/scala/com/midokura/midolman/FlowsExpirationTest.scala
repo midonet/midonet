@@ -82,13 +82,13 @@ class FlowsExpirationTest extends MidolmanTestCase {
 
         var flowFromDP = dpConn().flowsGet(dataPath, flowMatch).get()
         flowFromDP should not be (null)
-        /*Thread.sleep(1000)
-
+        Thread.sleep(1000)
+       /*
         flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         flowFromDP = dpConn().flowsGet(dataPath, flowMatch).get()
-        flowFromDP should be (null) */
+        flowFromDP should be (null)  */
 
 
     }
