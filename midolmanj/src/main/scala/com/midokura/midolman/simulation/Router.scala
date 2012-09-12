@@ -609,6 +609,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         private val arpWaiters = new mutable.HashMap[IntIPv4,
                                                  mutable.Set[Promise[MAC]]] with
                                      mutable.MultiMap[IntIPv4, Promise[MAC]]
+        private val retryWaiters = new mutable.HashMap[IntIPv4, Long]
         // TODO -- subscribe to ArpCache changes
         /**
          * Schedule promise to fail with a TimeoutException at a given time.
@@ -669,8 +670,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
             val now = Platform.currentTime
             flow {
                 val entry = promise()
-                if (entry == null || entry.stale < now)
-                    arpForAddress(ip, port)
+                if (entry == null || entry.stale < now || entry.macAddr == null)
+                    arpForAddress(ip, entry, port)
                 if (entry != null && entry.expiry >= now)
                     entry.macAddr
                 else {
@@ -682,9 +683,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         def set(ip: IntIPv4, mac: MAC) {
-            arpWaiters.remove(ip) match {
-                case Some(waiters) => waiters map { _ success mac}
-                case None =>
+            if (mac != null) {
+                arpWaiters.remove(ip) match {
+                    case Some(waiters) => waiters map { _ success mac}
+                    case None =>
+                }
             }
             val now = Platform.currentTime
             val entry = new ArpCacheEntry(mac, now + ARP_STALE_MILLIS,
@@ -692,43 +695,101 @@ class Router(val id: UUID, val cfg: RouterConfig,
             arpCache.add(ip, entry)
         }
 
-        private def arpForAddress(ip: IntIPv4, port: RouterPort[_]) {
-            // Ignore if already arp'ing for this address
-
+        private def makeArpRequest(srcMac: MAC, srcIP: IntIPv4, dstIP: IntIPv4):
+                        Ethernet = {
             val arp = new ARP()
             arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
             arp.setProtocolType(ARP.PROTO_TYPE_IP)
             arp.setHardwareAddressLength(6.asInstanceOf[Byte])
             arp.setProtocolAddressLength(4.asInstanceOf[Byte])
             arp.setOpCode(ARP.OP_REQUEST)
-            arp.setSenderHardwareAddress(port.portMac)
+            arp.setSenderHardwareAddress(srcMac)
             arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"))
-            arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(
-                port.portAddr.addressAsInt))
+            arp.setSenderProtocolAddress(
+                IPv4.toIPv4AddressBytes(srcIP.addressAsInt))
             arp.setTargetProtocolAddress(
-                IPv4.toIPv4AddressBytes(ip.addressAsInt))
+                IPv4.toIPv4AddressBytes(dstIP.addressAsInt))
             val pkt: Ethernet = new Ethernet
             pkt.setPayload(arp)
-            pkt.setSourceMACAddress(port.portMac)
+            pkt.setSourceMACAddress(srcMac)
             pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
             pkt.setEtherType(ARP.ETHERTYPE)
+        }
 
-            log.debug("generateArpRequest: sending {}", pkt)
+        private def arpForAddress(ip: IntIPv4, entry: ArpCacheEntry,
+                                  port: RouterPort[_])
+                                 (implicit ec: ExecutionContext,
+                                  actorSystem: ActorSystem) {
+            def retryLoopBottomHalf(cacheEntry: ArpCacheEntry, arp: Ethernet,
+                                    previous: Long) {
+                val now = Platform.currentTime
+                // expired, no retries left.
+                if (cacheEntry.expiry <= now) {
+                    arpWaiters.remove(ip) match {
+                        case Some(waiters) => waiters map { _ success null}
+                        case None =>
+                    }
+                    return
+                }
+                // now up to date, entry was updated while the top half
+                // of the retry loop waited for the arp cache entry, waiters
+                // will be notified naturally, do nothing.
+                if (cacheEntry.macAddr != null && cacheEntry.stale > now)
+                    return
 
-            //SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
-            //    port.id, pkt)
+                val newEntry = cacheEntry.clone()
+                newEntry.lastArp = now
+                arpCache.add(ip, newEntry)
+                log.debug("generateArpRequest: sending {}", arp)
+                SimulationController.getRef(actorSystem) !
+                    EmitGeneratedPacket(port.id, arp)
+                waitForArpEntry(ip, now) onComplete {
+                    case Left(ex: TimeoutException) =>
+                        retryLoopTopHalf(arp, now)
+                    case Left(ex) =>
+                        log.error("waitForArpEntry unexpected exception {}", ex)
+                    case Right(mac) =>
+                        arpWaiters.remove(ip)
+                }
+            }
 
-            // update the arpcache entry with new time info.
+            def retryLoopTopHalf(arp: Ethernet, previous: Long) {
+                val now = Platform.currentTime
+                val promise = Promise[ArpCacheEntry]()(ec)
+                arpCache.get(ip, new Callback1[ArpCacheEntry] {
+                    def call(value: ArpCacheEntry) {
+                        promise.success(value)
+                    }
+                }, now + ARP_RETRY_MILLIS)
+                promise map {
+                    cacheEntry => retryLoopBottomHalf(cacheEntry, arp, previous)
+                }
+            }
 
-            // this gets moved to router.scala:
-            // while (retries left)
-            //      send arp.
-            //      wait on entry update for queried IP with timeout
-            //      if entry has been resolved. break the loop.
+            val now = Platform.currentTime
+            // XXX this is open to races with other nodes
+            // for now we take over sending ARPs if no ARP has been sent
+            // in RETRY_INTERVAL * 2. And, obviously, the MAC is null or stale.
+            //
+            // But when that happens (for some reason a node stopped following
+            // through with the retries) other nodes will race to take over.
+            if (entry != null && entry.lastArp + ARP_RETRY_MILLIS*2 > now)
+                return
+            // this router is already sending ARPs for this address
+            // XXX is getOrElseUpdate atomic?
+            if (retryWaiters.getOrElseUpdate(ip, now) != now)
+                return
 
-            // when out of retries, notify arpwaiters.
+            var newEntry: ArpCacheEntry = null
+            if (entry == null) {
+                newEntry = new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
+                                             now + ARP_RETRY_MILLIS, now)
+            }
+            // XXX - should expiry be updated, since somebody is trying to
+            // reach this IP address??
 
-            // more: arpcache notify notifies of changed macs not full entries.
+            val pkt = makeArpRequest(port.portMac, port.portAddr, ip)
+            retryLoopBottomHalf(newEntry, pkt, 0)
         }
     }
 
