@@ -110,8 +110,6 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPort(UUID portID, PortBuilder builder) {
-
-        log.debug("dfadffadsfasas");
         try {
             portsManager.registerNewBuilder(portID, builder);
         } catch (ClusterClientException e) {

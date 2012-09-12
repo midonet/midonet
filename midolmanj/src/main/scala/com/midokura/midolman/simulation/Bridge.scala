@@ -21,7 +21,8 @@ import com.midokura.util.functors.{Callback0, Callback1}
 import akka.actor.ActorSystem
 
 
-class Bridge(val id: UUID, val macPortMap: MacLearningTable,
+class Bridge(val id: UUID, val greKey: Long,
+             val macPortMap: MacLearningTable,
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
@@ -29,22 +30,6 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
              val rtrIpToMac: ROMap[IntIPv4, MAC]) extends Device {
 
     private val log = LoggerFactory.getLogger(classOf[Bridge])
-
-    override def hashCode = id.hashCode()
-
-    override def equals(other: Any) = other match {
-        case that: Bridge =>
-            (that canEqual this) &&
-                (this.id == that.id) &&
-                (this.inFilter == that.inFilter) &&
-                (this.outFilter == that.outFilter) &&
-                (this.macPortMap == that.macPortMap) &&
-                (this.flowCount == that.flowCount)
-        case _ =>
-            false
-    }
-
-    def canEqual(other: Any) = other.isInstanceOf[Bridge]
 
     override def process(ingressMatch: WildcardMatch, packet: Ethernet,
                          packetContext: PacketContext, expiry: Long)

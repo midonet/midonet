@@ -21,7 +21,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
 import com.midokura.midolman.{SimulationController, DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
-import com.midokura.midolman.datapath.FlowActionVrnPortOutput
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
@@ -227,7 +227,7 @@ object Coordinator {
                     case _: ExteriorPort[_] =>
                         val pkt = new Packet()
                             .setData(origEthernetPkt.serialize())
-                            .addAction(new FlowActionVrnPortOutput(
+                            .addAction(new FlowActionOutputToVrnPort(
                                                 generatedPacketEgressPort))
                         // TODO(pino): replace null with actions?
                         datapathController.tell(SendPacket(pkt.getData, null))
@@ -292,7 +292,7 @@ object Coordinator {
                             // TODO(pino): Compute actions from matches' diff.
                             val pkt = new Packet()
                                 .setData(origEthernetPkt.serialize())
-                                .addAction(new FlowActionVrnPortOutput(
+                                .addAction(new FlowActionOutputToVrnPort(
                                                 generatedPacketEgressPort))
                             if (isInternallyGenerated) {
                                 datapathController.tell(

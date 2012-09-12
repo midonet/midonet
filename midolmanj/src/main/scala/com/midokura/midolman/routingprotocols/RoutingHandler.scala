@@ -22,7 +22,7 @@ import akka.util.Duration
 import com.midokura.sdn.dp.Ports
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
-import com.midokura.midolman.datapath.FlowActionVrnPortOutput
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
 import com.midokura.sdn.dp.ports.InternalPort
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
@@ -466,7 +466,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         var wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .addAction(new FlowActionVrnPortOutput(bgpPort.id))
+            .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, bgpTagSet))
@@ -482,7 +482,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .addAction(new FlowActionVrnPortOutput(bgpPort.id))
+            .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, bgpTagSet))
@@ -526,7 +526,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .addAction(new FlowActionVrnPortOutput(bgpPort.id))
+            .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, bgpTagSet))
@@ -555,7 +555,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .addAction(new FlowActionVrnPortOutput(bgpPort.id))
+            .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, bgpTagSet))

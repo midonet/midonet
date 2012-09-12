@@ -3,34 +3,44 @@
 */
 package com.midokura.midolman
 
-import com.midokura.sdn.dp._
-import com.midokura.sdn.dp.{Flow => KernelFlow}
-import collection.JavaConversions._
-import datapath.ErrorHandlingCallback
-import flows.{FlowActionUserspace, FlowActions, FlowKeys, FlowAction}
-import ports._
-import datapath.{FlowActionVrnPortOutput, FlowKeyVrnPort}
-import services.HostIdProviderService
-import topology.rcu.{PortSet, Host}
-import topology.VirtualTopologyActor.PortRequest
-import topology.{VirtualTopologyActor, ZoneChanged, HostConfigOperation, VirtualToPhysicalMapper}
-import com.midokura.netlink.protos.OvsDatapathConnection
-import com.google.inject.Inject
-import akka.event.Logging
-import com.midokura.netlink.exceptions.NetlinkException
-import collection.{immutable, mutable}
+import akka.actor.{ActorLogging, ActorRef, Actor}
+import akka.dispatch.{Promise, Future}
 import akka.util.duration._
-import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
+import akka.util.Timeout
+import akka.pattern.ask
+import scala.collection.JavaConversions._
+import scala.collection.{mutable, immutable}
+import scala.collection.mutable.ListBuffer
+import scala.Some
+import scala.Left
+import scala.Right
+
+import com.google.inject.Inject
+
 import java.util.UUID
-import java.lang
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+
 import com.midokura.util.functors.Callback0
 import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
-import com.midokura.midonet.cluster.client.TunnelZones
-import akka.actor.{ActorRef, Actor}
+import com.midokura.midonet.cluster.client
+import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import scala.Some
+import com.midokura.midolman.services.HostIdProviderService
+import com.midokura.midolman.topology.rcu.{PortSet, Host}
+import com.midokura.midolman.datapath._
+import com.midokura.midolman.simulation.{Bridge => RCUBridge}
+import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
+import com.midokura.midolman.topology.{VirtualTopologyActor, ZoneChanged,
+                HostConfigOperation, VirtualToPhysicalMapper}
+
+import com.midokura.netlink.exceptions.NetlinkException
+import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
+import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.dp._
+import com.midokura.sdn.dp.{Flow => KernelFlow}
+import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
+import com.midokura.sdn.dp.ports._
 
 
 /**
@@ -38,6 +48,10 @@ import scala.Some
  */
 object PortOperation extends Enumeration {
     val Create, Delete = Value
+}
+
+object TunnelChangeEventOperation extends Enumeration {
+    val Established, Removed = Value
 }
 
 sealed trait PortOp[P <: Port[_ <: PortOptions, P]] {
@@ -321,7 +335,7 @@ object DatapathController extends Referenceable {
      *               {{{
      *                               val outPortUUID = ...
      *                               val pkt = new Packet()
-     *                               pkt.setData(data).addAction(new FlowActionVrnPortOutput())
+     *                               pkt.setData(data).addAction(new FlowActionOutputToVrnPort())
      *                               controller ! SendPacket(pkt)
      *               }}}
      */
@@ -330,6 +344,11 @@ object DatapathController extends Referenceable {
     case class PacketIn(packet: Packet, wMatch: WildcardMatch)
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
+
+    class TunnelChangeEvent(val myself: TunnelZone.HostConfig[_, _],
+                            val peer: TunnelZone.HostConfig[_, _],
+                            val portOption: Option[Short],
+                            val op: TunnelChangeEventOperation.Value)
 }
 
 
@@ -375,13 +394,13 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController() extends Actor {
+class DatapathController() extends Actor with ActorLogging {
 
     import DatapathController._
     import VirtualToPhysicalMapper._
     import context._
 
-    val log = Logging(system, this)
+    implicit val requestReplyTimeout = new Timeout(1 second)
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null
@@ -405,7 +424,7 @@ class DatapathController() extends Actor {
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
 
     // portSetID -> { Set[hostID] }
-    val portSets = mutable.Map[UUID, immutable.Set[UUID]]()
+    val portSetsToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
 
     var pendingUpdateCount = 0
 
@@ -494,7 +513,7 @@ class DatapathController() extends Actor {
             doDatapathZonesReply(host.zones)
 
         case zone: TunnelZone[_, _] =>
-            log.info("Got new zone notification for zone: {}", zone)
+            log.debug("Got new zone notification for zone: {}", zone)
             if (!host.zones.contains(zone.getId)) {
                 zones.remove(zone.getId)
                 zonesToHosts.remove(zone.getId)
@@ -505,10 +524,11 @@ class DatapathController() extends Actor {
             }
 
         case m: ZoneChanged[_] =>
+            log.debug("ZoneChanged: {}", m)
             handleZoneChange(m)
 
-        case PortSet(uuid, portSetContents) =>
-            portSets.add(uuid -> portSetContents)
+        case PortSet(uuid, portSetContents, _) =>
+            portSetsToHosts.add(uuid -> portSetContents)
             completePendingPortSetTranslations()
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
@@ -523,11 +543,12 @@ class DatapathController() extends Actor {
         case AddWildcardFlow(flow, packet, callbacks, tags) =>
             handleAddWildcardFlow(flow, packet, callbacks, tags)
 
+        case PacketIn(packet, wildcard) =>
+            handleFlowPacketIn(packet, wildcard)
+
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
-        case PacketIn(packet, wildcard) =>
-            handleFlowPacketIn(packet, wildcard)
     }
 
     def completePendingPortSetTranslations() {
@@ -591,7 +612,7 @@ class DatapathController() extends Actor {
     }
 
     def doDatapathZonesReply(newZones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]]) {
-        log.info("Local Zone list updated {}", newZones)
+        log.debug("Local Zone list updated {}", newZones)
         for (zone <- newZones.keys) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
         }
@@ -628,26 +649,169 @@ class DatapathController() extends Actor {
         }
 
         if (flow.getActions != null) {
-            var translatedActions = List[FlowAction[_]]()
-            for (action <- flow.getActions) {
-                action match {
-                    case a: FlowActionVrnPortOutput =>
-                        vifToLocalPortNumber(a.portId) match {
-                            case Some(p: Short) =>
-                                translatedActions ::= FlowActions.output(p)
-                            case _ =>
-                                translatedActions ::= action
-                        }
-                    case _ =>
-                        translatedActions ::= action
-                }
+            translateActions(flow.getActions.toList) onComplete {
+                case Right(actions) =>
+                    flow.setActions(actions.toList)
+                    FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
+                case _ =>
+                    FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
             }
+        }
+    }
 
-            flow.setActions(translatedActions.toList)
+    def translateActions(actions: Seq[FlowAction[_]]): Future[Seq[FlowAction[_]]] = {
+        val translated = Promise[Seq[FlowAction[_]]]()
+
+        // check for VRN port or portSet
+        var vrnPort: Option[Either[UUID, UUID]] = None
+        for (action <- actions) {
+            action match {
+                case s: FlowActionOutputToVrnPortSet if (vrnPort == None ) =>
+                    vrnPort = Some(Right(s.portSetId))
+                case p: FlowActionOutputToVrnPort if (vrnPort == None) =>
+                    vrnPort = Some(Left(p.portId))
+                case _ =>
+            }
         }
 
-        // TODO: translate the port groups.
-        FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
+        vrnPort match {
+            case Some(Right(portSet)) =>
+                // we need to expand a port set
+
+                val portSetFuture = ask(
+                    VirtualToPhysicalMapper.getRef(),
+                    PortSetRequest(portSet, update = false)).mapTo[PortSet]
+
+                val bridgeFuture = ask(
+                    VirtualTopologyActor.getRef(),
+                    BridgeRequest(portSet, update = false)).mapTo[RCUBridge]
+
+                portSetFuture map {
+                    set => bridgeFuture onSuccess {
+                        case br =>
+                            translated.success(
+                                translateToDpPorts(
+                                    actions, portSet, portsForLocalPorts(set.localPorts.toSeq),
+                                    Some(br.greKey), tunnelsForHosts(set.hosts.toSeq)))
+                    }
+                }
+
+            case Some(Left(port)) =>
+                // we need to translate a single port
+                vifToLocalPortNumber(port) match {
+                    case Some(localPort) =>
+                        translated.success(
+                            translateToDpPorts(actions, port, List(localPort), None, List()))
+                    case None =>
+                        ask(VirtualTopologyActor.getRef(), PortRequest(port, update = false)).mapTo[client.Port[_]] map {
+                            _ match {
+                                case p: ExteriorPort[_] =>
+                                    translated.success(
+                                        translateToDpPorts(
+                                            actions, port, List(),
+                                            Some(p.tunnelKey), tunnelsForHosts(List(p.hostID))))
+                            }
+                        }
+                }
+            case None =>
+                translated.success(actions)
+        }
+        translated.future
+    }
+
+    def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
+                           tunnelKey: Option[Long], tunnelIds: Seq[Short]): Seq[FlowAction[_]] = {
+        val newActs = ListBuffer[FlowAction[_]]()
+
+        var translatablePort = port
+
+        val translatedActions = localPorts.map { id =>
+            FlowActions.output(id).asInstanceOf[FlowAction[_]]
+        } ++ tunnelKey.map { key =>
+            FlowActions.setKey(FlowKeys.tunnelID(key)).asInstanceOf[FlowAction[_]]
+        } ++ tunnelIds.map { id =>
+            FlowActions.output(id).asInstanceOf[FlowAction[_]]
+        }
+
+        for ( act <- acts ) {
+            act match {
+                case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
+                    newActs ++= translatedActions
+                    translatablePort = null
+
+                case p: FlowActionOutputToVrnPortSet if (p.portSetId == translatablePort) =>
+                    newActs ++= translatedActions
+                    translatablePort = null
+
+                // we only translate the first ones.
+                case x: FlowActionOutputToVrnPort =>
+                case x: FlowActionOutputToVrnPortSet =>
+
+                case a => newActs += a
+            }
+        }
+
+        newActs
+    }
+
+    def tunnelsForHosts(hosts: Seq[UUID]): Seq[Short] = {
+        val tunnels = mutable.ListBuffer[Short]()
+
+        def tunnelForHost(host: UUID): Option[Short] = {
+            peerPorts.get(host) match {
+                case None =>
+                case Some(zoneTunnels) =>
+                    zoneTunnels.values.head match {
+                        case tunnelName: String =>
+                            localPorts.get(tunnelName) match {
+                                case Some(port) =>
+                                    return Some(port.getPortNo.shortValue())
+                                case None =>
+                            }
+                    }
+            }
+
+            None
+        }
+
+        for ( host <- hosts ) {
+            tunnelForHost(host) match {
+                case None =>
+                case Some(localTunnelValue) => tunnels += localTunnelValue
+            }
+        }
+
+        tunnels
+    }
+
+    def portsForLocalPorts(localVrnPorts: Seq[UUID]): Seq[Short] = {
+        localVrnPorts map {
+            vifToLocalPortNumber(_) match {
+                case Some(value) => value
+                case None => null.asInstanceOf[Short]
+            }
+        }
+    }
+
+    def translateToLocalPort(acts: Seq[FlowAction[_]], port: UUID, localPort: Short): Seq[FlowAction[_]] = {
+        val translatedActs = mutable.ListBuffer[FlowAction[_]]()
+
+        for (act <- acts) {
+            act match {
+                case port: FlowActionOutputToVrnPort if (port.portId == port) =>
+                    translatedActs += FlowActions.output(localPort)
+
+                case port: FlowActionOutputToVrnPort =>
+                    // this should not happen so we drop it
+                case set: FlowActionOutputToVrnPortSet =>
+                    // this should not happen so we drop it
+                case action =>
+                    translatedActs += action
+
+            }
+        }
+
+        translatedActs
     }
 
     def vifToLocalPortNumber(vif: UUID): Option[Short] = {
@@ -677,56 +841,21 @@ class DatapathController() extends Actor {
     }
 
     def handleSendPacket(packet: Packet) {
-        packet
-            .setMatch(translate(packet.getMatch))
-            .setActions(translate(packet.getActions))
 
-        datapathConnection.packetsExecute(datapath, packet, new ErrorHandlingCallback[lang.Boolean] {
-            def onSuccess(data: lang.Boolean) {
-            }
 
-            def handleError(ex: NetlinkException, timeout: Boolean) {}
-        })
-    }
-
-    private def translate(flowMatch: FlowMatch): FlowMatch = {
-        val translatedFlowMatch = new FlowMatch()
-
-        for (flowKey <- flowMatch.getKeys) {
-            flowKey match {
-                case vrnPort: FlowKeyVrnPort =>
-                    translatedFlowMatch.addKey(FlowKeys.inPort(10))
-                case value =>
-                    translatedFlowMatch.addKey(value)
-            }
-        }
-
-        translatedFlowMatch
-    }
-
-    private def translate(actions: java.util.List[FlowAction[_]]): java.util.List[FlowAction[_]] = {
-        val translatedActions = List[FlowAction[_]]()
-        for (action <- actions) {
-            action match {
-                case vrnPortAction: FlowActionVrnPortOutput =>
-                    translatedActions.add(FlowActions.output(10))
-
-                case sendToUserSpace: FlowActionUserspace =>
-                    val upCallPid = datapathConnection.getChannel.getLocalAddress.getPid
-
-                    sendToUserSpace.setUplinkPid(upCallPid)
-                    translatedActions.add(sendToUserSpace)
-
-                case value =>
-                    translatedActions.add(value)
-            }
-        }
-
-        translatedActions
+//        packet
+//            .setMatch(translate(packet.getMatch))
+//            .setActions(translateToDpPorts(packet.getActions))
+//
+//        datapathConnection.packetsExecute(datapath, packet, new ErrorHandlingCallback[lang.Boolean] {
+//            def onSuccess(data: lang.Boolean) {}
+//
+//            def handleError(ex: NetlinkException, timeout: Boolean) {}
+//        })
     }
 
     def handlePortOperationReply(opReply: PortOpReply[_]) {
-        log.info("Port operation reply: {}", opReply)
+        log.debug("Port operation reply: {}", opReply)
 
         pendingUpdateCount -= 1
 
@@ -735,10 +864,16 @@ class DatapathController() extends Actor {
                     Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
 
                 peerPorts.get(hConf.getId) match {
-                    case Some(tunnels) => tunnels.put(zone, p.getName)
+                    case Some(tunnels) =>
+                        tunnels.put(zone, p.getName)
                     case None =>
                         peerPorts.put(hConf.getId, mutable.Map(zone -> p.getName))
                 }
+
+                context.system.eventStream.publish(
+                    new TunnelChangeEvent(this.host.zones(zone), hConf,
+                        Some(p.getPortNo.shortValue()),
+                        TunnelChangeEventOperation.Established))
 
             case TunnelGreOpReply(p, PortOperation.Delete, false, null,
                     Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
@@ -752,6 +887,11 @@ class DatapathController() extends Actor {
 
                     case None =>
                 }
+
+                context.system.eventStream.publish(
+                    new TunnelChangeEvent(
+                        host.zones(zone), hConf,
+                        None, TunnelChangeEventOperation.Removed))
 
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
                 log.info("Mapping created: {} -> {}", vifId, p.getPortNo)

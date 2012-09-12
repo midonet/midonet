@@ -21,7 +21,7 @@ import com.midokura.packets.IntIPv4
 import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
 
 @RunWith(classOf[JUnitRunner])
-class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
+class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with VirtualConfigurationBuilders {
 
     private final val log: Logger = LoggerFactory.getLogger(classOf[TunnelManagementTestCase])
 
@@ -36,42 +36,37 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
     def testTunnelZone() {
 
-        // make the default gre tunnel zone
-        val greZone = new GreTunnelZone().setName("greDefault")
-        clusterDataClient().tunnelZonesCreate(greZone)
+        val greZone = greTunnelZone("default")
 
-        // make a bridge
-        val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        val host1 = newHost("me", hostId())
+        val host2 = newHost("she")
 
-        // make a port on the bridge
-        val inputPort = Ports.materializedBridgePort(bridge)
-        inputPort.setId(clusterDataClient().portsCreate(inputPort))
+        val bridge = newBridge("bridge")
 
-        // make a host for myself and put in the proper tunnel zone.
-        val me =
-            new Host(hostId())
-                .setName("myself").setTunnelZones(Set(greZone.getId))
+        val portOnHost1 = newPortOnBridge(bridge)
 
-        val myGreConfig = new GreTunnelZoneHost(me.getId)
+        materializePort(portOnHost1, host1, "port1")
+
+        clusterDataClient().tunnelZonesAddMembership(
+            greZone.getId,
+            new GreTunnelZoneHost(host1.getId)
+                .setIp(IntIPv4.fromString("192.168.100.1")))
+        clusterDataClient().tunnelZonesAddMembership(
+            greZone.getId,
+            new GreTunnelZoneHost(host2.getId)
+                .setIp(IntIPv4.fromString("192.168.200.1")))
+
+        val myGreConfig = new GreTunnelZoneHost(host1.getId)
             .setIp(IntIPv4.fromString("192.168.100.1"))
-        clusterDataClient().hostsCreate(me.getId, me)
+
         clusterDataClient()
             .tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
-        // make another host and put in the same tunnel zone.
-        val she = new Host(UUID.randomUUID())
-            .setName("herself")
-            .setTunnelZones(Set(greZone.getId))
-
-        val herGreConfig = new GreTunnelZoneHost(she.getId)
+        val herGreConfig = new GreTunnelZoneHost(host2.getId)
             .setIp(IntIPv4.fromString("192.168.200.1"))
-        clusterDataClient().hostsCreate(she.getId, she)
+
         clusterDataClient()
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
-
-        // make the bridge port to a local interface
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "port1")
 
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
         val eventProbe = newProbe()
@@ -97,7 +92,6 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         tzRequest.zoneId should be === greZone.getId
         replyOfType[GreTunnelZone](vtpProbe())
         replyOfType[GreZoneChanged](vtpProbe())
-        replyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.
         portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)
@@ -111,13 +105,13 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         // check the internal data in the datapath controller is correct
         // the host peer contains a map which maps the zone to the tunnel name
-        dpController().underlyingActor.peerPorts should contain key (she.getId)
+        dpController().underlyingActor.peerPorts should contain key (host2.getId)
         dpController().underlyingActor.peerPorts should contain value (
             scala.collection.mutable.Map(greZone.getId -> "tngreC0A8C801")
         )
 
         // update the gre ip of the second host
-        val herSecondGreConfig = new GreTunnelZoneHost(she.getId)
+        val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
             .setIp(IntIPv4.fromString("192.168.210.1"))
         clusterDataClient().tunnelZonesAddMembership(
             greZone.getId, herSecondGreConfig)
@@ -141,7 +135,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         grePort.getOptions.getDestinationIPv4 should be(herSecondGreConfig.getIp.addressAsInt())
 
         // assert the internal state of the datapath controller vas fired
-        dpController().underlyingActor.peerPorts should contain key (she.getId)
+        dpController().underlyingActor.peerPorts should contain key (host2.getId)
         dpController().underlyingActor.peerPorts should contain value (
             scala.collection.mutable.Map(greZone.getId -> "tngreC0A8D201")
         )

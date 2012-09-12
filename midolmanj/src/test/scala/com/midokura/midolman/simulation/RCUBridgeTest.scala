@@ -52,7 +52,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         rtr2mac -> rtr2port)
         val rtrIpToMac = Map(rtr1ip -> rtr1mac, rtr2ip -> rtr2mac)
 
-        bridge = new Bridge(bridgeID, macPortMap, flowCount, inFilter,
+        bridge = new Bridge(bridgeID, 0, macPortMap, flowCount, inFilter,
                             outFilter, flowRemovedCallbackGen,
                             rtrMacToLogicalPortId, rtrIpToMac)
     }

@@ -38,7 +38,7 @@ import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
-with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
+    with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
 
     var injector: Injector = null
 
@@ -190,5 +190,11 @@ with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
         assert(clazz.isInstance(m), "Reply should have been of type %s but was %s" format (clazz, m.getClass))
         clazz.cast(m)
+    }
+
+    protected def as[T](o: AnyRef)(implicit m: Manifest[T]): T = {
+        val clazz = m.erasure.asInstanceOf[Class[T]]
+        clazz.isInstance(o) should be(true)
+        o.asInstanceOf[T]
     }
 }

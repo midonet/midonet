@@ -58,7 +58,11 @@ public abstract class Port<
     }
 
     public Self setPortGroups(Set<UUID> portGroups) {
-        getData().portGroupIDs = new HashSet<UUID>(portGroups);
+        getData().portGroupIDs.clear();
+        if (portGroups != null) {
+            getData().portGroupIDs.addAll(portGroups);
+        }
+
         return self();
     }
 
@@ -76,7 +80,11 @@ public abstract class Port<
     }
 
     public Self setProperties(Map<String, String> properties) {
-        getData().properties = new HashMap<String, String>(properties);
+        getData().properties.clear();
+        if (properties != null) {
+            getData().properties.putAll(properties);
+        }
+
         return self();
     }
 
@@ -102,7 +110,7 @@ public abstract class Port<
         public UUID device_id;
         public UUID inboundFilter;
         public UUID outboundFilter;
-        public Set<UUID> portGroupIDs;
+        public Set<UUID> portGroupIDs = new HashSet<UUID>();
         public int greKey;
         public Map<String, String> properties = new HashMap<String, String>();
 

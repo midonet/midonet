@@ -9,7 +9,7 @@ import com.midokura.midolman.FlowController.{CheckFlowExpiration, WildcardFlowRe
 import com.midokura.sdn.flows.{WildcardMatches, WildcardMatch, WildcardFlow}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.sdn.dp.flows.{FlowKeyTunnelID, FlowKeyInPort, FlowKey, FlowActions}
-import datapath.FlowActionVrnPortOutput
+import datapath.FlowActionOutputToVrnPort
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.midokura.midonet.cluster.data.host.Host

@@ -116,17 +116,17 @@ public class RouterZkManager extends ZkManager {
     public List<Op> prepareRouterCreate(UUID id, RouterConfig config)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getRouterPath(id),
+        ops.add(Op.create(paths.getRouterPath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getRouterPortsPath(id), null,
+        ops.add(Op.create(paths.getRouterPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterRoutesPath(id), null,
+        ops.add(Op.create(paths.getRouterRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterRoutingTablePath(id), null,
+        ops.add(Op.create(paths.getRouterRoutingTablePath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterArpTablePath(id), null,
+        ops.add(Op.create(paths.getRouterArpTablePath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.addAll(filterZkManager.prepareCreate(id));
         return ops;
@@ -150,7 +150,7 @@ public class RouterZkManager extends ZkManager {
         for (UUID routeId : routeIds) {
             ops.addAll(routeZkManager.prepareRouteDelete(routeId));
         }
-        String routesPath = pathManager.getRouterRoutesPath(id);
+        String routesPath = paths.getRouterRoutesPath(id);
         log.debug("Preparing to delete: " + routesPath);
         ops.add(Op.delete(routesPath, -1));
 
@@ -160,21 +160,21 @@ public class RouterZkManager extends ZkManager {
             ops.addAll(portZkManager.prepareDelete(portId));
         }
 
-        String portsPath = pathManager.getRouterPortsPath(id);
+        String portsPath = paths.getRouterPortsPath(id);
         log.debug("Preparing to delete: " + portsPath);
         ops.add(Op.delete(portsPath, -1));
 
         // Delete routing table
-        String routingTablePath = pathManager.getRouterRoutingTablePath(id);
+        String routingTablePath = paths.getRouterRoutingTablePath(id);
         log.debug("Preparing to delete: " + routingTablePath);
         ops.add(Op.delete(routingTablePath, -1));
 
         // Delete ARP table
-        String arpTablePath = pathManager.getRouterArpTablePath(id);
+        String arpTablePath = paths.getRouterArpTablePath(id);
         log.debug("Preparing to delete: " + arpTablePath);
         ops.add(Op.delete(arpTablePath, -1));
 
-        String routerPath = pathManager.getRouterPath(id);
+        String routerPath = paths.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
         ops.add(Op.delete(routerPath, -1));
         ops.addAll(filterZkManager.prepareDelete(id));
@@ -231,7 +231,7 @@ public class RouterZkManager extends ZkManager {
         if (dataChanged) {
             config.properties.clear();
             config.properties.putAll(oldConfig.properties);
-            return Op.setData(pathManager.getRouterPath(id),
+            return Op.setData(paths.getRouterPath(id),
                     serializer.serialize(config), -1);
         }
         return null;
@@ -273,7 +273,7 @@ public class RouterZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getRouterPath(id));
+        return exists(paths.getRouterPath(id));
     }
 
     /**
@@ -303,17 +303,17 @@ public class RouterZkManager extends ZkManager {
      */
     public RouterConfig get(UUID id, Runnable watcher)
             throws StateAccessException {
-        byte[] data = get(pathManager.getRouterPath(id), watcher);
+        byte[] data = get(paths.getRouterPath(id), watcher);
         return serializer.deserialize(data, RouterConfig.class);
     }
 
     public Directory getRoutingTableDirectory(UUID routerId)
             throws StateAccessException {
-        return getSubDirectory(pathManager.getRouterRoutingTablePath(routerId));
+        return getSubDirectory(paths.getRouterRoutingTablePath(routerId));
     }
 
     public Directory getArpTableDirectory(UUID routerId)
             throws StateAccessException {
-        return getSubDirectory(pathManager.getRouterArpTablePath(routerId));
+        return getSubDirectory(paths.getRouterArpTablePath(routerId));
     }
 }

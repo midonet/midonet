@@ -69,14 +69,14 @@ public class PortGroupZkManager extends ZkManager {
         log.debug("PortGroupZkManager.prepareCreate: entered");
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getPortGroupPath(id),
+        ops.add(Op.create(paths.getPortGroupPath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         // Keep the references to ports and rules that reference it.
-        ops.add(Op.create(pathManager.getPortGroupPortsPath(id), null,
+        ops.add(Op.create(paths.getPortGroupPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortGroupRulesPath(id), null,
+        ops.add(Op.create(paths.getPortGroupRulesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         log.debug("PortGroupZkManager.prepareCreate: exiting");
@@ -96,14 +96,14 @@ public class PortGroupZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete all the rules that reference this port group
-        String rulesPath = pathManager.getPortGroupRulesPath(id);
+        String rulesPath = paths.getPortGroupRulesPath(id);
         Set<String> ruleIds = getChildren(rulesPath);
         for (String ruleId : ruleIds) {
             ops.addAll(ruleDao.prepareRuleDelete(UUID.fromString(ruleId)));
         }
 
         // Update all the ports that reference this port group.
-        String portsPath = pathManager.getPortGroupPortsPath(id);
+        String portsPath = paths.getPortGroupPortsPath(id);
         Set<String> portIds = getChildren(portsPath);
         for (String portId : portIds) {
             UUID portUuid = UUID.fromString(portId);
@@ -111,16 +111,16 @@ public class PortGroupZkManager extends ZkManager {
             if (port.portGroupIDs != null) { // Should never be null here.
                 port.portGroupIDs.remove(id);
             }
-            ops.add(Op.setData(pathManager.getPortPath(portUuid),
+            ops.add(Op.setData(paths.getPortPath(portUuid),
                     serializer.serialize(port), -1));
             ops.add(Op.delete(
-                    pathManager.getPortGroupPortPath(id, portUuid), -1));
+                    paths.getPortGroupPortPath(id, portUuid), -1));
         }
 
         // Delete the port group nodes
         ops.add(Op.delete(rulesPath, -1));
         ops.add(Op.delete(portsPath, -1));
-        ops.add(Op.delete(pathManager.getPortGroupPath(id), -1));
+        ops.add(Op.delete(paths.getPortGroupPath(id), -1));
 
         return ops;
 
@@ -159,7 +159,7 @@ public class PortGroupZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getPortGroupPath(id));
+        return exists(paths.getPortGroupPath(id));
     }
 
     /**
@@ -171,13 +171,13 @@ public class PortGroupZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public PortGroupConfig get(UUID id) throws StateAccessException {
-        byte[] data = get(pathManager.getPortGroupPath(id));
+        byte[] data = get(paths.getPortGroupPath(id));
         return serializer.deserialize(data, PortGroupConfig.class);
     }
 
     public boolean portIsMember(UUID id, UUID portId)
         throws StateAccessException{
-        String path = pathManager.getPortGroupPortPath(id, portId);
+        String path = paths.getPortGroupPortPath(id, portId);
         return exists(path);
     }
 
@@ -204,9 +204,9 @@ public class PortGroupZkManager extends ZkManager {
         port.portGroupIDs.add(id);
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(pathManager.getPortPath(portId),
+        ops.add(Op.setData(paths.getPortPath(portId),
                 serializer.serialize(port), -1));
-        ops.add(Op.create(pathManager.getPortGroupPortPath(id, portId), null,
+        ops.add(Op.create(paths.getPortGroupPortPath(id, portId), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         multi(ops);
     }
@@ -232,9 +232,9 @@ public class PortGroupZkManager extends ZkManager {
         port.portGroupIDs.remove(id);
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(pathManager.getPortPath(portId),
+        ops.add(Op.setData(paths.getPortPath(portId),
                 serializer.serialize(port), -1));
-        ops.add(Op.delete(pathManager.getPortGroupPortPath(id, portId), -1));
+        ops.add(Op.delete(paths.getPortGroupPortPath(id, portId), -1));
         multi(ops);
 
     }

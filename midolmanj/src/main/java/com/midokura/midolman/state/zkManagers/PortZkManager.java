@@ -52,7 +52,7 @@ public class PortZkManager extends ZkManager {
 
     public <T extends PortConfig> T get(UUID id, Class<T> clazz,
             Runnable watcher) throws StateAccessException {
-        byte[] data = get(pathManager.getPortPath(id), watcher);
+        byte[] data = get(paths.getPortPath(id), watcher);
         return serializer.deserialize(data, clazz);
     }
 
@@ -66,7 +66,7 @@ public class PortZkManager extends ZkManager {
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getPortPath(id));
+        return exists(paths.getPortPath(id));
     }
 
     private void addToPortGroupsOps(List<Op> ops, UUID id,
@@ -74,14 +74,14 @@ public class PortZkManager extends ZkManager {
         for (UUID portGroupId : portGroupIds) {
 
             // Check to make sure that the port group path exists.
-            String pgPath =  pathManager.getPortGroupPortsPath(portGroupId);
+            String pgPath =  paths.getPortGroupPortsPath(portGroupId);
             if (!exists(pgPath)) {
                 throw new IllegalArgumentException("Invalid port group " +
                         "passed in: " + portGroupId);
             }
 
             ops.add(Op.create(
-                    pathManager.getPortGroupPortPath(portGroupId, id), null,
+                    paths.getPortGroupPortPath(portGroupId, id), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
     }
@@ -90,7 +90,7 @@ public class PortZkManager extends ZkManager {
             Set<UUID> portGroupIds) {
         for (UUID portGroupId : portGroupIds) {
             ops.add(Op.delete(
-                    pathManager.getPortGroupPortPath(portGroupId, id), -1));
+                    paths.getPortGroupPortPath(portGroupId, id), -1));
         }
     }
 
@@ -98,12 +98,12 @@ public class PortZkManager extends ZkManager {
             PortDirectory.RouterPortConfig config) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
 
-        ops.add(Op.create(pathManager.getPortPath(id),
+        ops.add(Op.create(paths.getPortPath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getRouterPortPath(config.device_id, id),
+        ops.add(Op.create(paths.getRouterPortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortRoutesPath(id), null,
+        ops.add(Op.create(paths.getPortRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         ops.addAll(filterZkManager.prepareCreate(id));
@@ -127,9 +127,9 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = prepareRouterPortCreate(id, config);
 
         // Add materialized port specific operations.
-        ops.add(Op.create(pathManager.getPortBgpPath(id), null,
+        ops.add(Op.create(paths.getPortBgpPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getPortVpnPath(id), null,
+        ops.add(Op.create(paths.getPortVpnPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
@@ -152,7 +152,7 @@ public class PortZkManager extends ZkManager {
 
         List<Op> ops = new ArrayList<Op>();
 
-        ops.add(Op.create(pathManager.getPortPath(id),
+        ops.add(Op.create(paths.getPortPath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
@@ -178,7 +178,7 @@ public class PortZkManager extends ZkManager {
         List<Op> ops = prepareBridgePortCreate(id, config);
 
         // Add materialized bridge port specific operations.
-        ops.add(Op.create(pathManager.getBridgePortPath(config.device_id, id),
+        ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the port.
@@ -197,7 +197,7 @@ public class PortZkManager extends ZkManager {
 
         // Add logical bridge port specific operations.
         ops.add(Op.create(
-                pathManager.getBridgeLogicalPortPath(config.device_id, id),
+                paths.getBridgeLogicalPortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
@@ -302,9 +302,9 @@ public class PortZkManager extends ZkManager {
         typedPeerPort.setPeerId(id);
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(pathManager.getPortPath(id),
+        ops.add(Op.setData(paths.getPortPath(id),
                 serializer.serialize(port), -1));
-        ops.add(Op.setData(pathManager.getPortPath(peerId),
+        ops.add(Op.setData(paths.getPortPath(peerId),
                 serializer.serialize(peerPort), -1));
 
         return ops;
@@ -331,9 +331,9 @@ public class PortZkManager extends ZkManager {
         typedPort.setPeerId(null);
         typedPeerPort.setPeerId(null);
 
-        ops.add(Op.setData(pathManager.getPortPath(id),
+        ops.add(Op.setData(paths.getPortPath(id),
                 serializer.serialize(port), -1));
-        ops.add(Op.setData(pathManager.getPortPath(peerId),
+        ops.add(Op.setData(paths.getPortPath(peerId),
                 serializer.serialize(peerPort), -1));
 
         return ops;
@@ -352,7 +352,7 @@ public class PortZkManager extends ZkManager {
         oldConfig.outboundFilter = config.outboundFilter;
         oldConfig.properties = config.properties;
 
-        ops.add(Op.setData(pathManager.getPortPath(id),
+        ops.add(Op.setData(paths.getPortPath(id),
                 serializer.serialize(oldConfig), -1));
 
         return ops;
@@ -370,16 +370,16 @@ public class PortZkManager extends ZkManager {
         for (UUID routeId : routeIds) {
             ops.addAll(routeZkManager.prepareRouteDelete(routeId));
         }
-        String portRoutesPath = pathManager.getPortRoutesPath(id);
+        String portRoutesPath = paths.getPortRoutesPath(id);
         log.debug("Preparing to delete: " + portRoutesPath);
         ops.add(Op.delete(portRoutesPath, -1));
 
-        String routerPortPath = pathManager.getRouterPortPath(config.device_id,
+        String routerPortPath = paths.getRouterPortPath(config.device_id,
                 id);
         log.debug("Preparing to delete: " + routerPortPath);
         ops.add(Op.delete(routerPortPath, -1));
 
-        String portPath = pathManager.getPortPath(id);
+        String portPath = paths.getPortPath(id);
         log.debug("Preparing to delete: " + portPath);
         ops.add(Op.delete(portPath, -1));
         ops.addAll(filterZkManager.prepareDelete(id));
@@ -398,7 +398,7 @@ public class PortZkManager extends ZkManager {
         // Common operations for deleting logical and materialized
         // bridge ports
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getPortPath(id), -1));
+        ops.add(Op.delete(paths.getPortPath(id), -1));
         ops.addAll(filterZkManager.prepareDelete(id));
 
         // Remove the reference of this port from the port groups
@@ -416,18 +416,18 @@ public class PortZkManager extends ZkManager {
         // Add materialized router port specific operations
         List<Op> ops = new ArrayList<Op>();
         ops.addAll(bgpManager.preparePortDelete(id));
-        String path = pathManager.getPortBgpPath(id);
+        String path = paths.getPortBgpPath(id);
         log.debug("Preparing to delete: " + path);
         ops.add(Op.delete(path, -1));
 
         ops.addAll(vpnManager.preparePortDelete(id));
-        path = pathManager.getPortVpnPath(id);
+        path = paths.getPortVpnPath(id);
         log.debug("Preparing to delete: {}", path);
         ops.add(Op.delete(path, -1));
 
         // Remove the reference from the port interface mapping
         if(config.getHostId() != null) {
-            path = pathManager.getHostVrnPortMappingPath(config.getHostId(),
+            path = paths.getHostVrnPortMappingPath(config.getHostId(),
                     id);
             ops.add(Op.delete(path, -1));
         }
@@ -463,12 +463,12 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getBridgePortPath(config.device_id, id),
+        ops.add(Op.delete(paths.getBridgePortPath(config.device_id, id),
                 -1));
 
         // Remove the reference from the port interface mapping
         if(config.getHostId() != null) {
-            String path = pathManager.getHostVrnPortMappingPath(
+            String path = paths.getHostVrnPortMappingPath(
                     config.getHostId(), id);
             ops.add(Op.delete(path, -1));
         }
@@ -487,7 +487,7 @@ public class PortZkManager extends ZkManager {
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(
-                pathManager.getBridgeLogicalPortPath(config.device_id, id), -1));
+                paths.getBridgeLogicalPortPath(config.device_id, id), -1));
         ops.addAll(prepareBridgePortDelete(id, config));
 
         return ops;
@@ -545,7 +545,7 @@ public class PortZkManager extends ZkManager {
      */
     public Set<UUID> getRouterPortIDs(UUID routerId, Runnable watcher)
             throws StateAccessException {
-        return listPortIDs(pathManager.getRouterPortsPath(routerId), watcher);
+        return listPortIDs(paths.getRouterPortsPath(routerId), watcher);
     }
 
     public Set<UUID> getRouterPortIDs(UUID routerId)
@@ -566,7 +566,7 @@ public class PortZkManager extends ZkManager {
      */
     public Set<UUID> getBridgePortIDs(UUID bridgeId, Runnable watcher)
             throws StateAccessException {
-        return listPortIDs(pathManager.getBridgePortsPath(bridgeId), watcher);
+        return listPortIDs(paths.getBridgePortsPath(bridgeId), watcher);
     }
 
     public Set<UUID> getBridgePortIDs(UUID bridgeId)
@@ -587,7 +587,7 @@ public class PortZkManager extends ZkManager {
      */
     public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
             throws StateAccessException {
-        return listPortIDs(pathManager.getBridgeLogicalPortsPath(bridgeId),
+        return listPortIDs(paths.getBridgeLogicalPortsPath(bridgeId),
                 watcher);
     }
 
@@ -620,7 +620,7 @@ public class PortZkManager extends ZkManager {
     public Set<UUID> getPortGroupPortIds(UUID portGroupId)
             throws StateAccessException {
 
-        String path = pathManager.getPortGroupPortsPath(portGroupId);
+        String path = paths.getPortGroupPortsPath(portGroupId);
         Set<String> ids =  getChildren(path);
         Set<UUID> portIds = new HashSet<UUID>(ids.size());
         for (String id : ids) {

@@ -15,6 +15,7 @@ import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.HostManager;
+import com.midokura.midolman.topology.PortSetManager;
 import com.midokura.midolman.topology.TunnelZoneManager;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
@@ -48,6 +49,7 @@ public class MidolmanActorsModule extends PrivateModule {
 
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
+        bind(PortSetManager.class);
     }
 
     protected void bindMidolmanActorsService() {
