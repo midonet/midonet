@@ -37,7 +37,9 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
     private val ARP_EXPIRATION_MILLIS = 3600 * 1000
     private val arpWaiters = new mutable.HashMap[IntIPv4,
                                              mutable.Set[Promise[MAC]]] with
-                                 mutable.MultiMap[IntIPv4, Promise[MAC]]
+            mutable.MultiMap[IntIPv4, Promise[MAC]] with
+            mutable.SynchronizedMap[IntIPv4, mutable.Set[Promise[MAC]]]
+
 
     override def start() {
         arpCache.notify(new Callback2[IntIPv4, MAC] {
@@ -108,7 +110,11 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                        (implicit ec: ExecutionContext,
                         actorSystem: ActorSystem) : Future[MAC] = {
         val promise = Promise[MAC]()(ec)
-        arpWaiters.addBinding(ip, promise)
+        /* MultiMap isn't thread-safe and the SynchronizedMap trait does not
+         * help either. See: https://issues.scala-lang.org/browse/SI-6087
+         * and/or the MultiMap and SynchronizedMap source files.
+         */
+        arpWaiters.synchronized { arpWaiters.addBinding(ip, promise) }
         promiseOnExpire[MAC](promise, expiry, p => removeWatcher(ip, p))
     }
 
