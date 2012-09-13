@@ -8,7 +8,7 @@ import collection.Iterable
 import java.util.UUID
 
 import com.midokura.midolman.layer3.{Route, RoutingTable}
-import com.midokura.midolman.simulation.Router
+import com.midokura.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import com.midokura.midolman.topology.builders.RouterBuilderImpl
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.ArpCache
@@ -54,14 +54,15 @@ class RouterManager(id: UUID, val client: Client)
     private var cfg: RouterConfig = null
     private var rTable: RoutingTableWrapper = null
     private var arpCache: ArpCache = null
+    private var arpTable: ArpTable = null
     private var filterChanged = false
 
     override def chainsUpdated = makeNewRouter
 
     private def makeNewRouter() = {
-        if (chainsReady() && null != rTable)
+        if (chainsReady() && null != rTable && null != arpTable)
             context.actorFor("..").tell(
-                new Router(id, cfg, rTable, arpCache, inFilter, outFilter))
+                new Router(id, cfg, rTable, arpTable, inFilter, outFilter))
 
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -95,10 +96,12 @@ class RouterManager(id: UUID, val client: Client)
                 filterChanged = true
             }
             cfg = newCfg
-            if (arpCache == null)
+            if (arpCache == null) {
                 arpCache = newArpCache
-            else if (arpCache != newArpCache)
+                arpTable = new ArpTableImpl(arpCache)
+            } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
+            }
             rTable = newRoutingTable
             configUpdated()
     }
