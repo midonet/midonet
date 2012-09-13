@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012. Midokura Japan K.K.
+ * Copyright 2011 Midokura KK
+ * Copyright 2012 Midokura PTE LTD.
  */
 package com.midokura.midonet.client;
 
@@ -10,8 +11,6 @@ public class VendorMediaType {
 
     public static final String APPLICATION_JSON = "application/vnd.com.midokura.midolman.mgmt.Application+json";
     public static final String APPLICATION_ERROR_JSON = "application/vnd.com.midokura.midolman.mgmt.Error+json";
-    public static final String APPLICATION_TENANT_JSON = "application/vnd.com.midokura.midolman.mgmt.Tenant+json";
-    public static final String APPLICATION_TENANT_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Tenant+json";
     public static final String APPLICATION_ROUTER_JSON = "application/vnd.com.midokura.midolman.mgmt.Router+json";
     public static final String APPLICATION_ROUTER_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Router+json";
     public static final String APPLICATION_BRIDGE_JSON = "application/vnd.com.midokura.midolman.mgmt.Bridge+json";
@@ -28,6 +27,10 @@ public class VendorMediaType {
     public static final String APPLICATION_ROUTE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Route+json";
     public static final String APPLICATION_PORTGROUP_JSON = "application/vnd.com.midokura.midolman.mgmt.PortGroup+json";
     public static final String APPLICATION_PORTGROUP_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.PortGroup+json";
+    public static final String APPLICATION_PORTGROUP_PORT_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.PortGroupPort+json";
+    public static final String APPLICATION_PORTGROUP_PORT_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection.PortGroupPort+json";
     public static final String APPLICATION_CHAIN_JSON = "application/vnd.com.midokura.midolman.mgmt.Chain+json";
     public static final String APPLICATION_CHAIN_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Chain+json";
     public static final String APPLICATION_RULE_JSON = "application/vnd.com.midokura.midolman.mgmt.Rule+json";
@@ -45,11 +48,41 @@ public class VendorMediaType {
     public static final String APPLICATION_DHCP_HOST_JSON = "application/vnd.com.midokura.midolman.mgmt.DhcpHost+json";
     public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.DhcpHost+json";
 
-    public static final String APPLICATION_MONITORING_QUERY_RESPONSE_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQueryResponse+json";
-    public static final String APPLICATION_MONITORING_QUERY_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricQuery+json";
+    public static final String APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON = "application/vnd.com.midokura.midolman.collection.mgmt.MetricQueryResponse+json";
+    public static final String APPLICATION_MONITORING_QUERY_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.MetricQuery+json";
     public static final String APPLICATION_METRICS_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.Metric+json";
     public static final String APPLICATION_METRIC_TARGET_JSON = "application/vnd.com.midokura.midolman.mgmt.MetricTarget+json";
 
+    // Tunnel Zones
+    public static final String APPLICATION_TUNNEL_ZONE_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.TunnelZone+json";
+    public static final String APPLICATION_TUNNEL_ZONE_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection" +
+                    ".TunnelZone+json";
+
+    public static final String APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON =
+            "application/vnd.com.midokura.midolman.mgmt" +
+                    ".CapwapTunnelZoneHost+json";
+    public static final String
+            APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection" +
+                    ".CapwapTunnelZoneHost+json";
+    public static final String APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON =
+            "application/vnd.com.midokura.midolman.mgmt" +
+                    ".GreTunnelZoneHost+json";
+    public static final String
+            APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection" +
+                    ".GreTunnelZoneHost+json";
+    public static final String APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON =
+            "application/vnd.com.midokura.midolman.mgmt" +
+                    ".IpsecTunnelZoneHost+json";
+    public static final String
+            APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection" +
+                    ".IpsecTunnelZoneHost+json";
+
+    // Host interface - port mapping
     public static final String APPLICATION_HOST_INTERFACE_PORT_JSON =
             "application/vnd.com.midokura.midolman.mgmt" +
                     ".HostInterfacePort+json";
