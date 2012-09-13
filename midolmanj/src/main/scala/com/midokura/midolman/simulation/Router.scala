@@ -673,12 +673,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
                (implicit ec: ExecutionContext,
                 actorSystem: ActorSystem): Future[MAC] = {
             val entryFuture = fetchArpCacheEntry(ip, expiry)
-            val now = Platform.currentTime
+            entryFuture onSuccess {
+                case entry =>
+                    if (entry == null ||
+                            entry.stale < Platform.currentTime ||
+                            entry.macAddr == null)
+                        arpForAddress(ip, entry, port)
+            }
             flow {
                 val entry = entryFuture()
-                if (entry == null || entry.stale < now || entry.macAddr == null)
-                    arpForAddress(ip, entry, port)
-                if (entry != null && entry.expiry >= now)
+                if (entry != null && entry.expiry >= Platform.currentTime)
                     entry.macAddr
                 else {
                     // There's no arpCache entry, or it's expired.
@@ -812,6 +816,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                             TimeUnit.MILLISECONDS)
                 actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
             } else {
+                // XXX race: when this key is re-added to the map someone else
+                // may have written to it.
                 newEntry = entry.clone()
             }
 
