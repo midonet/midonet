@@ -5,10 +5,7 @@
 package com.midokura.midonet.cluster;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -194,8 +191,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             ArpTable.Watcher<IntIPv4, ArpCacheEntry> {
 
         ArpTable arpTable;
-        private final List<Callback2<IntIPv4, MAC>> listeners =
-                        new LinkedList<Callback2<IntIPv4, MAC>>();
+        private final Set<Callback2<IntIPv4, MAC>> listeners =
+                        new LinkedHashSet<Callback2<IntIPv4, MAC>>();
 
         ArpCacheImpl(ArpTable arpTable) {
             this.arpTable = arpTable;
@@ -259,6 +256,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 listeners.add(cb);
             }
         }
+
+        @Override
+        public void unsubscribe(Callback2<IntIPv4, MAC> cb) {
+            synchronized (listeners) {
+                listeners.remove(cb);
+            }
+        }
+
 
     }
 }

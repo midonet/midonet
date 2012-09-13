@@ -18,4 +18,5 @@ public interface ArpCache {
     void add(IntIPv4 ipAddr, ArpCacheEntry entry);
     void remove(IntIPv4 ipAddr);
     void notify(Callback2<IntIPv4, MAC> cb);
+    void unsubscribe(Callback2<IntIPv4, MAC> cb);
 }

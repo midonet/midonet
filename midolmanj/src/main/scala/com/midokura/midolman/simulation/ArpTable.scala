@@ -39,21 +39,26 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                                              mutable.Set[Promise[MAC]]] with
             mutable.MultiMap[IntIPv4, Promise[MAC]] with
             mutable.SynchronizedMap[IntIPv4, mutable.Set[Promise[MAC]]]
+    private var arpCacheCallback: Callback2[IntIPv4, MAC] = null
 
 
     override def start() {
-        arpCache.notify(new Callback2[IntIPv4, MAC] {
+        arpCacheCallback = new Callback2[IntIPv4, MAC] {
             def call(ip: IntIPv4, mac: MAC) {
                 arpWaiters.remove(ip) match {
                     case Some(waiters) => waiters map { _ success mac }
                     case None =>
                 }
             }
-        })
+        }
+        arpCache.notify(arpCacheCallback)
     }
 
     override def stop() {
-        // TODO
+        if (arpCacheCallback != null) {
+            arpCache.unsubscribe(arpCacheCallback)
+            arpCacheCallback = null
+        }
     }
 
     /**
