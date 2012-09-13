@@ -52,7 +52,8 @@ object Coordinator {
     case class ToPortSetAction(portSetID: UUID,
                                outMatch: WildcardMatch) extends ForwardAction
 
-    class PacketContext extends ChainPacketContext {
+    class PacketContext(var inPortID: UUID, var outPortID: UUID,
+                        var portGroups: JSet[UUID]) extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
         // and tags added.  Freezing it switches it from write-only to
         // read-only.
@@ -98,9 +99,9 @@ object Coordinator {
         }
 
         /* Packet context methods used by Chains. */
-        override def getInPortId(): UUID = null         //XXX
-        override def getOutPortId(): UUID = null        //XXX
-        override def getPortGroups(): JSet[UUID] = null //XXX
+        override def getInPortId(): UUID = inPortID
+        override def getOutPortId(): UUID = outPortID
+        override def getPortGroups(): JSet[UUID] = portGroups
         override def addTraversedElementID(id: UUID) { /* XXX */ }
         override def isConnTracked(): Boolean = false   //XXX
         override def isForwardFlow(): Boolean = true    //XXX
@@ -262,7 +263,7 @@ object Coordinator {
         val forwardFlow = false  //XXX
         // TODO(pino): val connectionCache
 
-        val pktContext = new PacketContext {}
+        val pktContext = new PacketContext(null, null, null) //XXX
 
         log.info("Enter the flow block.")
         flow {
