@@ -446,10 +446,7 @@ public class PortZkManager extends ZkManager {
 
         // Get logical router port specific operations
         if (config.peerId() != null) {
-            PortDirectory.LogicalRouterPortConfig peer = get(config.peerId(),
-                    PortDirectory.LogicalRouterPortConfig.class);
-            peer.setPeerId(null);
-            ops.addAll(prepareUpdate(config.peerId(), peer));
+            ops.addAll(prepareUnlink(id));
         }
 
         // Get common router port deletion operations
@@ -486,6 +483,12 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();
+
+        // Get logical router port specific operations
+        if (config.peerId() != null) {
+            ops.addAll(prepareUnlink(id));
+        }
+
         ops.add(Op.delete(
                 paths.getBridgeLogicalPortPath(config.device_id, id), -1));
         ops.addAll(prepareBridgePortDelete(id, config));
