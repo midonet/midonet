@@ -3,8 +3,10 @@
  */
 package com.midokura.midolman.simulation
 
+import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
+import akka.event.Logging
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 import org.slf4j.LoggerFactory
@@ -16,7 +18,6 @@ import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback1
-import akka.actor.ActorSystem
 
 
 class Bridge(val id: UUID, val greKey: Long,
@@ -28,7 +29,7 @@ class Bridge(val id: UUID, val greKey: Long,
              val rtrIpToMac: ROMap[IntIPv4, MAC])
              (implicit val actorSystem: ActorSystem) extends Device {
 
-    val log = akka.event.Logging(actorSystem, this.getClass)
+    val log = Logging(actorSystem, this.getClass)
     log.info("Bridge being built.")
 
     override def process(ingressMatch: WildcardMatch, packet: Ethernet,
@@ -86,6 +87,10 @@ class Bridge(val id: UUID, val greKey: Long,
                         val port = learnedPort()
                         if (port == null) {
                             /* If neither learned nor logical, flood. */
+                            // XXX(pino): The actions used for FE results
+                            // distinguish single ports (else-branch) from
+                            // port sets (this branch), represent that in
+                            // the future somehow.
                             id
                         } else
                             port
@@ -112,11 +117,8 @@ class Bridge(val id: UUID, val greKey: Long,
         //XXX: Add to traversed elements list if flooding.
 
         outPortID map {
-            portID: UUID =>
-                portID match {
-                    case null => ToPortSetAction(id, ingressMatch)
-                    case id: UUID => ToPortAction(portID, ingressMatch)
-                }
+            case null => ToPortSetAction(id, ingressMatch)
+            case portID: UUID => ToPortAction(portID, ingressMatch)
         }
     }
 

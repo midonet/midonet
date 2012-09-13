@@ -4,6 +4,7 @@ package com.midokura.midolman.simulation
 
 import akka.actor.ActorSystem
 import akka.dispatch.Await
+import akka.event.Logging
 import akka.util.duration._
 import collection.{Map, mutable}
 import compat.Platform
@@ -25,6 +26,9 @@ import com.midokura.util.functors.{Callback0, Callback1, Callback3}
 
 @RunWith(classOf[JUnitRunner])
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
+    implicit val system = ActorSystem.create("RCUBridgeTest")
+    val log = Logging(system, getClass)
+    
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
@@ -39,7 +43,6 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
             def call() {}
         }
     }
-    implicit val system = ActorSystem.create("RCUBridgeTest")
     private val rtr1mac = MAC.fromString("0a:43:02:34:06:01")
     private val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
     private val rtr1ip = IntIPv4.fromString("143.234.60.1")
@@ -58,6 +61,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     }
 
     def testUnlearnedMac() {
+        log.info("Starting testUnlearnedMac()")
         val ingressMatch = ((new WildcardMatch)
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
@@ -74,7 +78,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
             case Coordinator.ToPortSetAction(port, mmatch) =>
                 assert(port === bridgeID)
                 assert(mmatch === origMatch)
-            case _ => fail("Not ForwardAction")
+            case _ => fail("Not ForwardAction, instead: " + result.toString)
         }
         // TODO(jlm): Verify it learned the srcMAC
     }
