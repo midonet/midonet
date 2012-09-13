@@ -11,7 +11,7 @@ import java.net.{InetAddress, Socket}
 import java.util.UUID
 
 import org.apache.zookeeper.CreateMode
-import org.junit.{Assert, After, AfterClass, Before, BeforeClass, Test}
+import org.junit.{Assert, After, AfterClass, Before, BeforeClass, Test, Ignore}
 import org.junit.Assert._
 import org.newsclub.net.unix.{AFUNIXServerSocket, AFUNIXSocket,
                               AFUNIXSocketAddress}
@@ -26,7 +26,6 @@ import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.Net
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
-import org.scalatest.Ignore
 import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
 
 /**

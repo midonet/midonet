@@ -12,7 +12,7 @@ import java.lang.{Long => JLong}
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.{BeforeAndAfterAll, Suite, Ignore}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
@@ -60,6 +60,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                             rtrMacToLogicalPortId, rtrIpToMac)
     }
 
+    @Ignore //XXX(pino)
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
         val ingressMatch = ((new WildcardMatch)

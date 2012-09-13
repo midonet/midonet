@@ -5,9 +5,12 @@ package com.midokura.midolman
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 
 import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+                                             InvalidateFlowsByTag}
 import com.midokura.midolman.datapath.FlowKeyVrnPort
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
@@ -16,7 +19,6 @@ import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.sdn.dp.{FlowMatches, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.{FlowKeyInPort, FlowKeys}
 import com.midokura.sdn.flows.WildcardMatches
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -27,6 +29,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         super.fillConfig(config)
     }
 
+    @Ignore
     def testPacketInBridgeSimulation() {
 
         val host = new Host(hostId()).setName("myself")
