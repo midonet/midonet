@@ -19,7 +19,7 @@ public class FlowActions {
         return new FlowActionUserspace();
     }
 
-    public static FlowActionSetKey setKey(FlowKey flowKey) {
+    public static FlowActionSetKey setKey(FlowKey<?> flowKey) {
         return new FlowActionSetKey().setFlowKey(flowKey);
     }
 

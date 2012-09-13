@@ -23,6 +23,9 @@ public class Flow {
     Byte tcpFlags;
     Long lastUsedTime;
 
+    public Flow() {
+    }
+
     @Nullable
     public FlowMatch getMatch() {
         return match;
@@ -96,8 +99,6 @@ public class Flow {
             return false;
         if (match != null ? !match.equals(flow.match) : flow.match != null)
             return false;
-        if (lastUsedTime != null ? !lastUsedTime.equals(
-            flow.lastUsedTime) : flow.lastUsedTime != null) return false;
         if (stats != null ? !stats.equals(flow.stats) : flow.stats != null)
             return false;
         if (tcpFlags != null ? !tcpFlags.equals(
@@ -112,7 +113,6 @@ public class Flow {
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (stats != null ? stats.hashCode() : 0);
         result = 31 * result + (tcpFlags != null ? tcpFlags.hashCode() : 0);
-        result = 31 * result + (lastUsedTime != null ? lastUsedTime.hashCode() : 0);
         return result;
     }
 

@@ -4,7 +4,6 @@
  */
 package com.midokura.midolman.state.zkManagers;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -38,13 +37,13 @@ public class BgpZkManager extends ZkManager {
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getBgpPath(id),
+        ops.add(Op.create(paths.getBgpPath(id),
                 serializer.serialize(config.getData()), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getBgpAdRoutesPath(id), null,
+        ops.add(Op.create(paths.getBgpAdRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getPortBgpPath(config.getPortId(), id), null,
+        ops.add(Op.create(paths.getPortBgpPath(config.getPortId(), id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
@@ -60,19 +59,19 @@ public class BgpZkManager extends ZkManager {
 
         // Delete the advertising routes
         AdRouteZkManager adRouteManager = new AdRouteZkManager(zk,
-                pathManager.getBasePath());
+                paths.getBasePath());
         List<UUID> adRouteIds = adRouteManager.list(id);
         for (UUID adRouteId : adRouteIds) {
             ops.addAll(adRouteManager.prepareAdRouteDelete(adRouteId));
         }
-        ops.add(Op.delete(pathManager.getBgpAdRoutesPath(id), -1));
+        ops.add(Op.delete(paths.getBgpAdRoutesPath(id), -1));
 
         // Delete the port bgp entry
-        ops.add(Op.delete(pathManager.getPortBgpPath(config.getPortId(), id),
+        ops.add(Op.delete(paths.getPortBgpPath(config.getPortId(), id),
             -1));
 
         // Delete the bgp
-        ops.add(Op.delete(pathManager.getBgpPath(id), -1));
+        ops.add(Op.delete(paths.getBgpPath(id), -1));
         return ops;
     }
 
@@ -95,7 +94,7 @@ public class BgpZkManager extends ZkManager {
 
     public BGP getBGP(UUID id, Runnable watcher) throws
         StateAccessException {
-        byte[] data = get(pathManager.getBgpPath(id), watcher);
+        byte[] data = get(paths.getBgpPath(id), watcher);
         return new BGP(id, serializer.deserialize(data, BGP.Data.class));
     }
 
@@ -104,13 +103,13 @@ public class BgpZkManager extends ZkManager {
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getBgpPath(id));
+        return exists(paths.getBgpPath(id));
     }
 
     public List<UUID> list(UUID portId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
-        Set<String> bgpIds = getChildren(pathManager.getPortBgpPath(portId),
+        Set<String> bgpIds = getChildren(paths.getPortBgpPath(portId),
                 watcher);
         for (String bgpId : bgpIds) {
             // For now, get each one.
@@ -125,7 +124,7 @@ public class BgpZkManager extends ZkManager {
 
     public void update(UUID id, BGP config) throws StateAccessException {
         byte[] data = serializer.serialize(config);
-        update(pathManager.getBgpPath(id), data);
+        update(paths.getBgpPath(id), data);
     }
 
     public void delete(UUID id) throws StateAccessException {

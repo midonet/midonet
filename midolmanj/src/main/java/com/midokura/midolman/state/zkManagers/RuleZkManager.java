@@ -67,7 +67,7 @@ public class RuleZkManager extends ZkManager {
             }
             // For any node that has the >= position value, shift up.
             if (rule.position >= position) {
-                String path = pathManager.getRulePath(ruleId);
+                String path = paths.getRulePath(ruleId);
                 (rule.position)++;
                 ops.add(Op.setData(path, serializer.serialize(rule), -1));
 
@@ -96,7 +96,7 @@ public class RuleZkManager extends ZkManager {
             Rule rule = get(ruleId);
             // For any rule that has position > the deleted rule, shift down.
             if (rule.position > position) {
-                String path = pathManager.getRulePath(ruleId);
+                String path = paths.getRulePath(ruleId);
                 rule.position--;
                 ops.add(Op.setData(path, serializer.serialize(rule), -1));
             }
@@ -120,8 +120,8 @@ public class RuleZkManager extends ZkManager {
      */
     private List<Op> prepareRuleCreate(UUID id, Rule ruleConfig)
             throws ZkStateSerializationException {
-        String rulePath = pathManager.getRulePath(id);
-        String chainRulePath = pathManager.getChainRulePath(ruleConfig.chainId,
+        String rulePath = paths.getRulePath(id);
+        String chainRulePath = paths.getChainRulePath(ruleConfig.chainId,
                 id);
         List<Op> ops = new ArrayList<Op>();
         log.debug("Preparing to create: " + rulePath);
@@ -136,7 +136,7 @@ public class RuleZkManager extends ZkManager {
         UUID portGroupId = ruleConfig.getCondition().portGroup;
         if (portGroupId != null) {
             ops.add(Op.create(
-                    pathManager.getPortGroupRulePath(portGroupId, id), null,
+                    paths.getPortGroupRulePath(portGroupId, id), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
 
@@ -159,10 +159,10 @@ public class RuleZkManager extends ZkManager {
      */
     public List<Op> prepareRuleDelete(UUID id, Rule rule) {
         List<Op> ops = new ArrayList<Op>();
-        String chainRulePath = pathManager.getChainRulePath(rule.chainId, id);
+        String chainRulePath = paths.getChainRulePath(rule.chainId, id);
         log.debug("Preparing to delete: " + chainRulePath);
         ops.add(Op.delete(chainRulePath, -1));
-        String rulePath = pathManager.getRulePath(id);
+        String rulePath = paths.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
 
@@ -170,7 +170,7 @@ public class RuleZkManager extends ZkManager {
         UUID portGroupId = rule.getCondition().portGroup;
         if (portGroupId != null) {
             ops.add(Op.delete(
-                    pathManager.getPortGroupRulePath(portGroupId, id), -1));
+                    paths.getPortGroupRulePath(portGroupId, id), -1));
         }
 
         return ops;
@@ -203,12 +203,12 @@ public class RuleZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public Rule get(UUID id) throws StateAccessException {
-        byte[] data = get(pathManager.getRulePath(id), null);
+        byte[] data = get(paths.getRulePath(id), null);
         return serializer.deserialize(data, Rule.class);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getRulePath(id));
+        return exists(paths.getRulePath(id));
     }
 
     /**
@@ -223,7 +223,7 @@ public class RuleZkManager extends ZkManager {
     public Set<UUID> getRuleIds(UUID chainId, Runnable watcher)
             throws StateAccessException {
         Set<UUID> result = new HashSet<UUID>();
-        String path = pathManager.getChainRulesPath(chainId);
+        String path = paths.getChainRulesPath(chainId);
         Set<String> ruleIds = getChildren(path, watcher);
         for (String ruleId : ruleIds) {
             result.add(UUID.fromString(ruleId));

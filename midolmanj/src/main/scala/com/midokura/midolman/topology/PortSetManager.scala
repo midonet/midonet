@@ -28,7 +28,7 @@ class PortSetManager extends RCUDeviceManager {
 
         def setHosts(hosts: Set[UUID]) : LocalPortSetBuilder = {
             this.hosts.clear()
-            this.hosts ++ hosts.toSet
+            this.hosts ++= hosts.toSet
             this
         }
 
@@ -43,7 +43,7 @@ class PortSetManager extends RCUDeviceManager {
         }
 
         def build() {
-            actor ! rcu.PortSet(portSetId, immutable.Set[UUID](hosts.toList: _*))
+            actor ! rcu.PortSet(portSetId, immutable.Set[UUID](hosts.toList: _*), immutable.Set())
         }
     }
 }

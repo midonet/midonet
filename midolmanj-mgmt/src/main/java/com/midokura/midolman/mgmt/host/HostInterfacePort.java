@@ -18,7 +18,7 @@ import java.util.UUID;
  * Host interface - port map DTO
  */
 @XmlRootElement
-public class HostInterfacePortMap extends UriResource {
+public class HostInterfacePort extends UriResource {
 
     @NotNull
     private UUID hostId;
@@ -27,20 +27,20 @@ public class HostInterfacePortMap extends UriResource {
     @NotNull
     private UUID portId;
 
-    @NotNull(groups = HostInterfacePortMapCreateGroup.class)
+    @NotNull(groups = HostInterfacePortCreateGroup.class)
     private String interfaceName;
 
-    public HostInterfacePortMap(){
+    public HostInterfacePort(){
     }
 
-    public HostInterfacePortMap(UUID hostId, String interfaceName,
+    public HostInterfacePort(UUID hostId, String interfaceName,
                                 UUID portId) {
         this.hostId = hostId;
         this.portId = portId;
         this.interfaceName = interfaceName;
     }
 
-    public HostInterfacePortMap(UUID hostId, VirtualPortMapping mapping) {
+    public HostInterfacePort(UUID hostId, VirtualPortMapping mapping) {
         this(hostId, mapping.getLocalDeviceName(), mapping.getVirtualPortId());
     }
 
@@ -76,9 +76,9 @@ public class HostInterfacePortMap extends UriResource {
     }
 
     public URI getUri() {
-        if (getBaseUri() != null && hostId != null) {
-            return ResourceUriBuilder.getHostInterfacePortMap(
-                    getBaseUri(), hostId);
+        if (getBaseUri() != null && hostId != null && portId != null) {
+            return ResourceUriBuilder.getHostInterfacePort(
+                    getBaseUri(), hostId, portId);
         } else {
             return null;
         }
@@ -108,6 +108,6 @@ public class HostInterfacePortMap extends UriResource {
 
     // This group is used for validating the create process in which
     // the interface name must be provided.
-    public interface HostInterfacePortMapCreateGroup extends Default {
+    public interface HostInterfacePortCreateGroup extends Default {
     }
 }

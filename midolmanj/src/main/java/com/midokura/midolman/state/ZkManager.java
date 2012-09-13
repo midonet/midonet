@@ -46,7 +46,7 @@ public class ZkManager {
                 }
             }
         };
-    protected ZkPathManager pathManager = null;
+    protected ZkPathManager paths = null;
     protected Directory zk = null;
     protected ZkConfigSerializer serializer;
 
@@ -59,7 +59,7 @@ public class ZkManager {
      *            Path to set as the base.
      */
     public ZkManager(Directory zk, String basePath) {
-        this.pathManager = new ZkPathManager(basePath);
+        this.paths = new ZkPathManager(basePath);
         this.zk = zk;
         this.serializer = new ZkConfigSerializer(new JSONSerializer());
     }

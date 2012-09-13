@@ -52,11 +52,11 @@ public class AdRouteZkManager extends ZkManager {
             throws ZkStateSerializationException {
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getAdRoutePath(id),
+        ops.add(Op.create(paths.getAdRoutePath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBgpAdRoutePath(config.bgpId, id),
+        ops.add(Op.create(paths.getBgpAdRoutePath(config.bgpId, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
@@ -71,8 +71,8 @@ public class AdRouteZkManager extends ZkManager {
             throws ZkStateSerializationException {
         // Delete the advertising route
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(pathManager.getAdRoutePath(id), -1));
-        ops.add(Op.delete(pathManager.getBgpAdRoutePath(config.bgpId, id), -1));
+        ops.add(Op.delete(paths.getAdRoutePath(id), -1));
+        ops.add(Op.delete(paths.getBgpAdRoutePath(config.bgpId, id), -1));
         return ops;
     }
 
@@ -85,7 +85,7 @@ public class AdRouteZkManager extends ZkManager {
 
     public AdRouteConfig get(UUID id, Runnable watcher)
             throws StateAccessException {
-        byte[] data = get(pathManager.getAdRoutePath(id), watcher);
+        byte[] data = get(paths.getAdRoutePath(id), watcher);
         return serializer.deserialize(data, AdRouteConfig.class);
     }
 
@@ -94,14 +94,14 @@ public class AdRouteZkManager extends ZkManager {
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getAdRoutePath(id));
+        return exists(paths.getAdRoutePath(id));
     }
 
     public List<UUID> list(UUID bgpId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
         Set<String> adRouteIds = getChildren(
-                pathManager.getBgpAdRoutesPath(bgpId), watcher);
+                paths.getBgpAdRoutesPath(bgpId), watcher);
         for (String adRouteId : adRouteIds) {
             // For now, get each one.
             result.add(UUID.fromString(adRouteId));
@@ -116,7 +116,7 @@ public class AdRouteZkManager extends ZkManager {
     public void update(UUID id, AdRouteConfig config)
             throws StateAccessException {
         byte[] data = serializer.serialize(config);
-        update(pathManager.getAdRoutePath(id), data);
+        update(paths.getAdRoutePath(id), data);
     }
 
     public void delete(UUID id) throws StateAccessException {

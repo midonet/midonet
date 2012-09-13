@@ -34,7 +34,7 @@ public class PortSetZkManager extends ZkManager {
                                 final DirectoryCallback<Set<UUID>>
                                         portSetContentsCallback,
                                 Directory.TypedWatcher watcher) {
-        String portSetPath = pathManager.getPortSetPath(portSetId);
+        String portSetPath = paths.getPortSetPath(portSetId);
 
         zk.asyncGetChildren(
             portSetPath,
@@ -54,16 +54,40 @@ public class PortSetZkManager extends ZkManager {
                                DirectoryCallback.Add cb) {
 
         String portSetPath =
-            pathManager.getPortSetEntryPath(portSetId, memberId);
+            paths.getPortSetEntryPath(portSetId, memberId);
 
         zk.asyncAdd(portSetPath, null, CreateMode.EPHEMERAL, cb);
     }
 
+    public void addMember(UUID portSetId, UUID memberId)
+        throws StateAccessException {
+
+        String memberEntryPath =
+            paths.getPortSetEntryPath(portSetId, memberId);
+
+        try {
+            zk.add(memberEntryPath, null, CreateMode.EPHEMERAL);
+        } catch (Exception e) {
+            throw new StateAccessException(e);
+        }
+    }
+
     public void delMemberAsync(UUID portSetId, UUID entryId,
                                DirectoryCallback.Void callback) {
-        String portSetPath = pathManager.getPortSetEntryPath(portSetId,
+        String portSetPath = paths.getPortSetEntryPath(portSetId,
                                                              entryId);
         zk.asyncDelete(portSetPath, callback);
+    }
+
+    public void delMember(UUID portSetId, UUID memberID)
+        throws StateAccessException {
+        String portSetPath =
+            paths.getPortSetEntryPath(portSetId, memberID);
+        try {
+            zk.delete(portSetPath);
+        } catch (Exception e) {
+            throw new StateAccessException(e);
+        }
     }
 
     public Set<UUID> getPortSet(UUID portSetId, Directory.TypedWatcher watcher)

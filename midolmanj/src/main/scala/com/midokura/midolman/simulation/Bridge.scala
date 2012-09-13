@@ -5,52 +5,38 @@ package com.midokura.midolman.simulation
 
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
-import akka.util.duration._
-import scala.collection.{Map => ROMap, mutable}
+import scala.collection.{Map => ROMap}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import com.midokura.midolman.topology.{MacFlowCount,
                                        RemoveFlowCallbackGenerator}
 import com.midokura.midonet.cluster.client.MacLearningTable
-import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
+import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.util.functors.{Callback0, Callback1}
+import com.midokura.util.functors.Callback1
 import akka.actor.ActorSystem
 
 
-class Bridge(val id: UUID, val macPortMap: MacLearningTable,
+class Bridge(val id: UUID, val greKey: Long,
+             val macPortMap: MacLearningTable,
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: ROMap[MAC, UUID],
-             val rtrIpToMac: ROMap[IntIPv4, MAC]) extends Device {
+             val rtrIpToMac: ROMap[IntIPv4, MAC])
+             (implicit val actorSystem: ActorSystem) extends Device {
 
-    private val log = LoggerFactory.getLogger(classOf[Bridge])
-
-    override def hashCode = id.hashCode()
-
-    override def equals(other: Any) = other match {
-        case that: Bridge =>
-            (that canEqual this) &&
-                (this.id == that.id) &&
-                (this.inFilter == that.inFilter) &&
-                (this.outFilter == that.outFilter) &&
-                (this.macPortMap == that.macPortMap) &&
-                (this.flowCount == that.flowCount)
-        case _ =>
-            false
-    }
-
-    def canEqual(other: Any) = other.isInstanceOf[Bridge]
+    val log = akka.event.Logging(actorSystem, this.getClass)
+    log.info("Bridge being built.")
 
     override def process(ingressMatch: WildcardMatch, packet: Ethernet,
                          packetContext: PacketContext, expiry: Long)
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
+        log.info("Bridge's process method called.")
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(ingressMatch.getEthernetSource))
             Promise.successful(new DropAction)(ec)
@@ -83,7 +69,8 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
                 // Not an ARP request for a router's port's address.
                 // Flood to materialized ports only.
                 log.info("flooding to port set {}", id)
-                outPortID = Promise.successful(id)(ec)
+                // Leave the outPortID null in this case.
+                outPortID = Promise.successful(null)(ec)
             }
           case false =>
             // L2 unicast
@@ -124,8 +111,13 @@ class Bridge(val id: UUID, val macPortMap: MacLearningTable,
 
         //XXX: Add to traversed elements list if flooding.
 
-        outPortID map { portID: UUID =>
-                            new ForwardAction(portID, ingressMatch) }
+        outPortID map {
+            portID: UUID =>
+                portID match {
+                    case null => ToPortSetAction(id, ingressMatch)
+                    case id: UUID => ToPortAction(portID, ingressMatch)
+                }
+        }
     }
 
     private def getPortOfMac(mac: MAC, expiry: Long, ec: ExecutionContext) = {

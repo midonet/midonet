@@ -9,18 +9,18 @@ import com.midokura.netlink.messages.BaseBuilder
 import java.util.UUID
 import com.midokura.sdn.dp.flows.FlowAction.FlowActionAttr
 
-object FlowActionVrnPortOutput {
-    val key = new FlowActionAttr[FlowActionVrnPortOutput](250, false)
+object FlowActionOutputToVrnPort {
+    val key = new FlowActionAttr[FlowActionOutputToVrnPort](250, false)
 }
 /**
  * Custom `FlowAction[_]` specialization which can take an `UUID` as the
  * destination port.
  *
- * @param portId is the virtual network port (or portSet) identifier.
+ * @param portId is the virtual network port identifier.
  */
-class FlowActionVrnPortOutput(val portId: UUID) extends FlowAction[FlowActionVrnPortOutput] {
+class FlowActionOutputToVrnPort(val portId: UUID) extends FlowAction[FlowActionOutputToVrnPort] {
 
-    def getKey = FlowActionVrnPortOutput.key
+    def getKey = FlowActionOutputToVrnPort.key
 
     def getValue = this
 
@@ -29,7 +29,7 @@ class FlowActionVrnPortOutput(val portId: UUID) extends FlowAction[FlowActionVrn
     def deserialize(message: NetlinkMessage) = true
 
     override def toString:String = {
-        "FlowActionVrnPortOutput{portId='%s'}" format portId.toString
+        "FlowActionOutputToVrnPort{portId='%s'}" format portId.toString
     }
 
     override def hashCode(): Int = {
@@ -38,7 +38,7 @@ class FlowActionVrnPortOutput(val portId: UUID) extends FlowAction[FlowActionVrn
 
     override def equals(obj: Any): Boolean = {
         obj match {
-            case port: FlowActionVrnPortOutput =>
+            case port: FlowActionOutputToVrnPort =>
                 port.portId == portId
             case _ => false
         }

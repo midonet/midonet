@@ -7,6 +7,8 @@ package com.midokura.sdn.flows;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import com.midokura.sdn.dp.flows.FlowAction;
 
 public class WildcardFlow {
@@ -19,6 +21,13 @@ public class WildcardFlow {
 
     long hardExpirationMillis = 0; // default: never expire
     long idleExpirationMillis = 0; // default: never expire
+
+    public WildcardFlow() {
+        this.match = new WildcardMatch();
+        this.actions = new ArrayList<FlowAction<?>>();
+        this.creationTimeMillis = System.currentTimeMillis();
+        this.lastUsedTimeMillis = System.currentTimeMillis();
+    }
 
     public short getPriority() {
         return priority;
@@ -36,6 +45,36 @@ public class WildcardFlow {
     public WildcardFlow setMatch(WildcardMatch match) {
         this.match = match;
         return this;
+
+    }
+
+    public boolean equals(Object o){
+        if(o == this)
+            return true;
+        if(o == null || o.getClass() != this.getClass())
+            return false;
+        WildcardFlow that = (WildcardFlow)o;
+        if (that.getHardExpirationMillis() != this.getCreationTimeMillis() ||
+            that.getIdleExpirationMillis() != this.getIdleExpirationMillis() ||
+            that.getPriority() != this.getPriority())
+            return false;
+        if(actions != null ? !actions.equals(that.actions) : that.actions != null){
+            return false;
+        }
+        if(match != null ? !match.equals(that.match) : that.match != null){
+            return false;
+        }
+        return true;
+    }
+
+    public int hashCode(){
+        return new HashCodeBuilder(17, 37).
+            append(hardExpirationMillis).
+            append(idleExpirationMillis).
+            append(priority).
+            append(actions).
+            append(match).
+            toHashCode();
     }
 
     public List<FlowAction<?>> getActions() {

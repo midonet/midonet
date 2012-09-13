@@ -24,6 +24,8 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType
+        .APPLICATION_PORT_COLLECTION_JSON;
 import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
@@ -224,7 +226,7 @@ public class TestPort {
 
             // List ports
             DtoBridgePort[] ports = dtoResource.getAndVerifyOk(b.getPorts(),
-                    APPLICATION_PORT_JSON, DtoBridgePort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoBridgePort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
@@ -283,7 +285,7 @@ public class TestPort {
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(b.getPorts(),
-                    APPLICATION_PORT_JSON, DtoBridgePort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoBridgePort[].class);
             assertEquals(0, ports.length);
         }
     }
@@ -367,7 +369,7 @@ public class TestPort {
 
             // List ports
             DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_JSON, DtoRouterPort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoRouterPort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
@@ -430,7 +432,7 @@ public class TestPort {
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_JSON, DtoRouterPort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoRouterPort[].class);
             assertEquals(0, ports.length);
         }
     }
@@ -538,20 +540,20 @@ public class TestPort {
 
             // Get the peers
             DtoPort[] ports = dtoResource.getAndVerifyOk(
-                    router1.getPeerPorts(), APPLICATION_PORT_JSON,
+                    router1.getPeerPorts(), APPLICATION_PORT_COLLECTION_JSON,
                     DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of router2
             ports = dtoResource.getAndVerifyOk(router2.getPeerPorts(),
-                    APPLICATION_PORT_JSON, DtoPort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of bridge1
             ports = dtoResource.getAndVerifyOk(bridge1.getPeerPorts(),
-                    APPLICATION_PORT_JSON, DtoPort[].class);
+                    APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 

@@ -62,7 +62,7 @@ public class ClientTest extends JerseyTest {
         RuleChain c2 = mgmt.addChain().tenantId("tenant-1").name("chain-2")
                            .create();
 
-        MultivaluedMap qTenant1 = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> qTenant1 = new MultivaluedMapImpl();
         qTenant1.add("tenant_id", "tenant-1");
 
         assertThat(mgmt.getChains(qTenant1).size(), is(2));

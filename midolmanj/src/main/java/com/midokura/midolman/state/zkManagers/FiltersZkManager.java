@@ -56,9 +56,9 @@ public class FiltersZkManager extends ZkManager {
     public List<Op> prepareCreate(UUID id)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getFilterPath(id), null,
+        ops.add(Op.create(paths.getFilterPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getFilterSnatBlocksPath(id), null,
+        ops.add(Op.create(paths.getFilterSnatBlocksPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
@@ -73,12 +73,12 @@ public class FiltersZkManager extends ZkManager {
      */
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        String basePath = pathManager.getBasePath();
+        String basePath = paths.getBasePath();
 
         // Delete SNAT blocks
-        String snatBlocksPath = pathManager.getFilterSnatBlocksPath(id);
+        String snatBlocksPath = paths.getFilterSnatBlocksPath(id);
         for (String snatBlock : getChildren(snatBlocksPath, null)) {
-            String path = pathManager.getFilterSnatBlocksPath(id) + "/"
+            String path = paths.getFilterSnatBlocksPath(id) + "/"
                  + snatBlock;
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
@@ -86,7 +86,7 @@ public class FiltersZkManager extends ZkManager {
         log.debug("Preparing to delete: " + snatBlocksPath);
         ops.add(Op.delete(snatBlocksPath, -1));
 
-        String filterPath = pathManager.getFilterPath(id);
+        String filterPath = paths.getFilterPath(id);
         log.debug("Preparing to delete: " + filterPath);
         ops.add(Op.delete(filterPath, -1));
         return ops;
@@ -116,7 +116,7 @@ public class FiltersZkManager extends ZkManager {
 
     public NavigableSet<Integer> getSnatBlocks(UUID parentId, int ip)
             throws KeeperException, InterruptedException {
-        StringBuilder sb = new StringBuilder(pathManager
+        StringBuilder sb = new StringBuilder(paths
                 .getFilterSnatBlocksPath(parentId));
         sb.append("/").append(Integer.toHexString(ip));
         TreeSet<Integer> ports = new TreeSet<Integer>();
@@ -133,7 +133,7 @@ public class FiltersZkManager extends ZkManager {
 
     public void addSnatReservation(UUID parentId, int ip, int startPort)
             throws StateAccessException {
-        StringBuilder sb = new StringBuilder(pathManager
+        StringBuilder sb = new StringBuilder(paths
                 .getFilterSnatBlocksPath(parentId));
         sb.append("/").append(Integer.toHexString(ip));
 

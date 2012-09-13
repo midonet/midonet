@@ -14,8 +14,9 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.sdn.dp.{FlowMatches, FlowMatch, Packet}
-import com.midokura.sdn.dp.flows.FlowKeys
+import com.midokura.sdn.dp.flows.{FlowKeyInPort, FlowKeys}
 import com.midokura.sdn.flows.WildcardMatches
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -39,10 +40,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         val vifPort2 =
             clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
 
-        //simProbe().testActor ! PacketIn(dpPkt,
-        //    WildcardMatches.fromFlowMatch(flowMatch))
-        //val pktIn = simProbe().expectMsgType[PacketIn]
-
         clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort1, "port1")
         clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort2, "port2")
 
@@ -60,7 +57,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
                 10, 11, "My UDP packet".getBytes)
 
         val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
-            .addKey(new FlowKeyVrnPort(vifPort1))
+            .addKey(new FlowKeyInPort().setInPort(portNo))
         val dpPkt = new Packet()
             .setMatch(flowMatch)
             .setData(ethPkt.serialize())
@@ -75,10 +72,10 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         val packetInMsg = requestOfType[PacketIn](simProbe())
 
         packetInMsg.wMatch should not be null
-        // Enable once working.  TODO: Figure out why @Ignore isn't working
-        // with scalatest and fix it.
-        //XXX: packetInMsg.wMatch.getInputPortUUID should be === vifPort1
+        packetInMsg.wMatch.getInputPortUUID should be(vifPort1)
 
-        //XXX: val ingressPortRequest = requestOfType[PortRequest](vtaProbe())
+        requestOfType[InvalidateFlowsByTag](flowProbe())
+        requestOfType[AddWildcardFlow](flowProbe())
+
     }
 }

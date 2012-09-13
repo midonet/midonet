@@ -72,10 +72,10 @@ public class ChainZkManager extends ZkManager {
     public List<Op> prepareChainCreate(UUID id, ChainConfig config)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getChainPath(id),
+        ops.add(Op.create(paths.getChainPath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(pathManager.getChainRulesPath(id), null,
+        ops.add(Op.create(paths.getChainRulesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
@@ -91,18 +91,18 @@ public class ChainZkManager extends ZkManager {
     public List<Op> prepareChainDelete(UUID id) throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk,
-                pathManager.getBasePath());
+                paths.getBasePath());
         Set<UUID> ruleIds = ruleZkManager.getRuleIds(id);
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleId, rule));
         }
 
-        String chainRulePath = pathManager.getChainRulesPath(id);
+        String chainRulePath = paths.getChainRulesPath(id);
         log.debug("Preparing to delete: " + chainRulePath);
         ops.add(Op.delete(chainRulePath, -1));
 
-        String chainPath = pathManager.getChainPath(id);
+        String chainPath = paths.getChainPath(id);
         log.debug("Preparing to delete: " + chainPath);
         ops.add(Op.delete(chainPath, -1));
         return ops;
@@ -133,7 +133,7 @@ public class ChainZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getChainPath(id));
+        return exists(paths.getChainPath(id));
     }
 
     /**
@@ -145,7 +145,7 @@ public class ChainZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public ChainConfig get(UUID id) throws StateAccessException {
-        byte[] data = get(pathManager.getChainPath(id), null);
+        byte[] data = get(paths.getChainPath(id), null);
         return serializer.deserialize(data, ChainConfig.class);
     }
 
@@ -158,7 +158,7 @@ public class ChainZkManager extends ZkManager {
      */
     public void update(UUID id, ChainConfig config) throws StateAccessException {
         byte[] data = serializer.serialize(config);
-        update(pathManager.getChainPath(id), data);
+        update(paths.getChainPath(id), data);
     }
 
     /***

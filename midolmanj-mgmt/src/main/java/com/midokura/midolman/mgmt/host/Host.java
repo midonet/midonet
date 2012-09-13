@@ -112,10 +112,9 @@ public class Host extends UriResource {
     /**
      * @return the interface port map URI
      */
-    public URI getInterfacePortMap() {
+    public URI getPorts() {
         if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getHostInterfacePortMap(getBaseUri(),
-                    id);
+            return ResourceUriBuilder.getHostInterfacePorts(getBaseUri(), id);
         } else {
             return null;
         }

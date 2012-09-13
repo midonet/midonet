@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.slf4j.Logger;
@@ -26,8 +25,8 @@ import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.data.TunnelZone;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZoneHost;
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 import com.midokura.midonet.cluster.data.zones.IpsecTunnelZone;
 import com.midokura.midonet.cluster.data.zones.IpsecTunnelZoneHost;
 import com.midokura.util.functors.CollectionFunctors;
@@ -49,11 +48,31 @@ public class TunnelZoneZkManager extends ZkManager {
         );
     }
 
+    public Set<UUID> getZoneIds() throws StateAccessException {
+
+        String path = paths.getTunnelZonesPath();
+        Set<String> zoneIdSet = getChildren(path);
+        Set<UUID> zoneIds = new HashSet<UUID>(zoneIdSet.size());
+        for (String zoneId : zoneIdSet) {
+            zoneIds.add(UUID.fromString(zoneId));
+        }
+
+        return zoneIds;
+    }
+
+    public boolean exists(UUID zoneId) throws StateAccessException {
+        return exists(paths.getTunnelZonePath(zoneId));
+    }
+
     public TunnelZone<?, ?> getZone(UUID zoneId, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
-        byte[] bytes = get(pathManager.getTunnelZonePath(zoneId),
-                           watcher);
+        String tunnelZonePath = paths.getTunnelZonePath(zoneId);
+        if (!exists(tunnelZonePath)) {
+            return null;
+        }
+
+        byte[] bytes = get(tunnelZonePath, watcher);
         TunnelZone.Data data =
             serializer.deserialize(bytes, TunnelZone.Data.class);
 
@@ -75,12 +94,21 @@ public class TunnelZoneZkManager extends ZkManager {
         return null;
     }
 
+    public boolean membershipExists(UUID zoneId, UUID hostId)
+            throws StateAccessException {
+        return exists(paths.getTunnelZoneMembershipPath(zoneId, hostId));
+    }
+
     public TunnelZone.HostConfig<?, ?> getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
-        byte[] bytes =
-            get(pathManager.getTunnelZoneMembershipPath(zoneId, hostId),
-                watcher);
+        String zoneMembershipPath =
+                paths.getTunnelZoneMembershipPath(zoneId, hostId);
+        if (!exists(zoneMembershipPath)) {
+            return null;
+        }
+
+        byte[] bytes = get(zoneMembershipPath, watcher);
 
         TunnelZone.HostConfig.Data data =
             serializer.deserialize(bytes, TunnelZone.HostConfig.Data.class);
@@ -110,7 +138,7 @@ public class TunnelZoneZkManager extends ZkManager {
         throws StateAccessException {
 
         String zoneMembershipsPath =
-            pathManager.getTunnelZoneMembershipsPath(zoneId);
+            paths.getTunnelZoneMembershipsPath(zoneId);
 
         if (!exists(zoneMembershipsPath))
             return Collections.emptySet();
@@ -126,6 +154,27 @@ public class TunnelZoneZkManager extends ZkManager {
         );
     }
 
+    public void updateZone(TunnelZone<?, ?> zone) throws StateAccessException {
+
+        List<Op> updateMulti = new ArrayList<Op>();
+
+        TunnelZone oldZone = getZone(zone.getId(), null);
+        UUID id = UUID.fromString(oldZone.getId().toString());
+
+        // Allow updating of the name
+        oldZone.setName(zone.getName());
+
+        updateMulti.add(
+                getSetDataOp(
+                        paths.getTunnelZonePath(id),
+                        serializer.serialize(oldZone.getData())
+                )
+        );
+
+        multi(updateMulti);
+
+    }
+
     public UUID createZone(TunnelZone<?, ?> zone, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
@@ -138,24 +187,24 @@ public class TunnelZoneZkManager extends ZkManager {
             zoneId = UUID.randomUUID();
         }
 
-        if (!exists(pathManager.getTunnelZonesPath())) {
+        if (!exists(paths.getTunnelZonesPath())) {
             createMulti.add(
                 getPersistentCreateOp(
-                    pathManager.getTunnelZonesPath(), null
+                    paths.getTunnelZonesPath(), null
                 )
             );
         }
 
         createMulti.add(
             getPersistentCreateOp(
-                pathManager.getTunnelZonePath(zoneId),
+                paths.getTunnelZonePath(zoneId),
                 serializer.serialize(zone.getData())
             )
         );
 
         createMulti.add(
             getPersistentCreateOp(
-                pathManager.getTunnelZoneMembershipsPath(zoneId),
+                paths.getTunnelZoneMembershipsPath(zoneId),
                 null
             )
         );
@@ -167,15 +216,14 @@ public class TunnelZoneZkManager extends ZkManager {
 
     public UUID addMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
-        log.debug("Adding to availability zone {} <- {}", zoneId, hostConfig);
-
-        String zonePath = pathManager.getTunnelZonePath(zoneId);
+        log.debug("Adding to tunnel zone {} <- {}", zoneId, hostConfig);
+        String zonePath = paths.getTunnelZonePath(zoneId);
         if (!exists(zonePath))
             return null;
 
         List<Op> ops = new ArrayList<Op>();
 
-        String membershipsPath = pathManager.getTunnelZoneMembershipsPath(
+        String membershipsPath = paths.getTunnelZoneMembershipsPath(
             zoneId);
         if ( !exists(membershipsPath)) {
             ops.add(
@@ -183,7 +231,7 @@ public class TunnelZoneZkManager extends ZkManager {
             );
         }
 
-        String membershipPath = pathManager.getTunnelZoneMembershipPath(zoneId,
+        String membershipPath = paths.getTunnelZoneMembershipPath(zoneId,
                                                                         hostConfig
                                                                             .getId());
         if (exists(membershipPath)) {
@@ -195,16 +243,24 @@ public class TunnelZoneZkManager extends ZkManager {
                                   serializer.serialize(hostConfig.getData()))
         );
 
-        multi(ops);
+        String hostInZonePath =
+            paths.getHostTunnelZonePath(hostConfig.getId(), zoneId);
 
+        if (!exists(hostInZonePath)) {
+            ops.add(
+                getPersistentCreateOp(hostInZonePath, null)
+            );
+        }
+
+        multi(ops);
         return hostConfig.getId();
     }
 
     public void deleteZone(UUID uuid) throws StateAccessException {
 
-        String zonePath = pathManager.getTunnelZonePath(uuid);
+        String zonePath = paths.getTunnelZonePath(uuid);
 
-        if (!exists(zonePath)) {
+        if (exists(zonePath)) {
             multi(getRecursiveDeleteOps(zonePath));
         }
     }
@@ -212,7 +268,17 @@ public class TunnelZoneZkManager extends ZkManager {
     public void delMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
         try {
-            delete(pathManager.getTunnelZoneMembershipPath(zoneId, membershipId));
+            List<Op> ops = new ArrayList<Op>();
+
+            ops.add(
+                getDeleteOp(paths.getTunnelZoneMembershipPath(zoneId, membershipId))
+            );
+
+            ops.add(
+                getDeleteOp(paths.getHostTunnelZonePath(membershipId, zoneId))
+            );
+
+            multi(ops);
         } catch (NoStatePathException e) {
             // silently fail if the node was already deleted.
         }
