@@ -18,26 +18,26 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import java.io.IOException
-import java.net.{ServerSocket, Socket, SocketAddress}
+import java.net.{Socket, SocketAddress}
 
 import org.slf4j.LoggerFactory
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
+import org.newsclub.net.unix.AFUNIXServerSocket
 
 case class Request(socket: Socket, reqId: Int)
 case class Response(reqId: Int)
 
-trait ZebraServer {
+trait ZebraServerService {
     def start()
     def stop()
 }
 
-class ZebraServerImpl(val server: ServerSocket,
-                      val address: SocketAddress,
-                      val handler: ZebraProtocolHandler,
-                      val ifAddr: IntIPv4,
-                      val ifName: String)
-    extends ZebraServer {
+class ZebraServer(val address: SocketAddress,
+                  val handler: ZebraProtocolHandler,
+                  val ifAddr: IntIPv4,
+                  val ifName: String)
+    extends ZebraServerService {
 
     private final val log = LoggerFactory.getLogger(this.getClass)
     private var run = false
@@ -46,13 +46,15 @@ class ZebraServerImpl(val server: ServerSocket,
     val zebraConnPool = ListBuffer[ZebraConnection]()
     val zebraConnMap = mutable.Map[Int, ZebraConnection]()
 
+    val server = AFUNIXServerSocket.newInstance()
+
     val dispatcher = actor {
 
         def addZebraConn(dispatcher: Actor) {
             val zebraConn =
                 new ZebraConnection(dispatcher, handler, ifAddr, ifName)
             zebraConnPool += zebraConn
-            zebraConn.start
+            zebraConn.start()
         }
 
         loop {
@@ -79,7 +81,7 @@ class ZebraServerImpl(val server: ServerSocket,
     server.bind(address)
 
 
-    override def start() {
+    def start() {
         run = true
         log.info("start")
 
@@ -87,6 +89,12 @@ class ZebraServerImpl(val server: ServerSocket,
             var requestId = 0
             loopWhile(run) {
                 try {
+                    // this is blocking
+                    // from: http://www.scala-lang.org/node/242
+                    // "[scala] Actors are executed on a thread pool. Initially,
+                    // there are 4 worker threads. The thread pool grows if all
+                    // worker threads are blocked but there are still remaining
+                    // tasks to be processed"
                     val conn = server.accept
                     log.debug("start.actor accepted connection {}", conn)
 
@@ -102,7 +110,7 @@ class ZebraServerImpl(val server: ServerSocket,
         }
     }
 
-    override def stop() {
+    def stop() {
         log.info("stop")
         run = false
         server.close()
