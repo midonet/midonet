@@ -2,10 +2,9 @@
 
 package com.midokura.midolman.simulation
 
-import collection.{Set => ROSet}
-import akka.event.LogSource
-
 // read-only view
+import collection.{Set => ROSet}
+
 import collection.mutable
 import compat.Platform
 import util.continuations.cps
@@ -16,12 +15,14 @@ import java.util.UUID
 import akka.actor.{ActorRef, ActorSystem}
 import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.dispatch.Future._
+import akka.event.LogSource
 import akka.pattern.ask
 import akka.util.duration._
 
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
          PortRequest, RouterRequest}
-import com.midokura.midolman.{SimulationController, DatapathController, FlowController}
+import com.midokura.midolman.{DatapathController, FlowController,
+                              SimulationController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
@@ -45,7 +46,7 @@ object Coordinator {
     // TODO:       remove NotIPv4Action
     case class NotIPv4Action() extends Action
     case class ConsumedAction() extends Action
-    abstract case class ForwardAction() extends Action
+    abstract class ForwardAction extends Action
     case class ToPortAction(outPort: UUID,
                             outMatch: WildcardMatch) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID,
