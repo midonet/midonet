@@ -731,8 +731,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
             entryFuture onSuccess {
                 case entry if entry != null =>
                     val now = Platform.currentTime
-                    if (entry.expiry <= now)
+                    if (entry.expiry <= now) {
+                        arpWaiters.remove(ip) match {
+                            case Some(waiters) => waiters map { _ success null }
+                            case None =>
+                        }
                         arpCache.remove(ip)
+                    }
             }
         }
 
