@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
-import scala.collection.Map
+import scala.collection.Map;
+import scala.Option;
+import scala.Some;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,41 @@ import com.midokura.sdn.flows.PacketMatch;
 
 public class Chain {
     private final static Logger log = LoggerFactory.getLogger(Chain.class);
+
+    public UUID id;
+    private List<Rule> rules;
+    private Map<UUID, Chain> jumpTargets;
+    private String name;
+
+    public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
+                 String name_) {
+        id = id_;
+        rules = rules_;
+        jumpTargets = jumpTargets_;
+        name = name_;
+    }
+
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    public boolean equals(Object other) {
+        if (!(other instanceof Chain))
+            return false;
+        Chain that = (Chain) other;
+        return this.id.equals(that.id) && this.rules.equals(that.rules) &&
+                this.jumpTargets.equals(that.jumpTargets) &&
+                this.name.equals(that.name);
+    }
+
+    public Chain getJumpTarget(UUID to) {
+        Option<Chain> match = jumpTargets.get(to);
+        if (match.isDefined())
+            return ((Some<Chain>) match).get();
+        else
+            return null;
+    }
+
 
     /**
      * @param chainID
@@ -44,16 +81,16 @@ public class Chain {
              return res;
         }
         Chain currentChain = origChain;
-        fwdInfo.addTraversedElementID(origChain.getID());
+        fwdInfo.addTraversedElementID(origChain.id);
         log.debug("Processing chain with name {} and ID {}",
-                currentChain.getChainName(), currentChain.getID());
+                currentChain.name, currentChain.id);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
-        chainStack.push(new ChainPosition(currentChain.getID(),
-                                          currentChain.getRules(), 0));
+        chainStack.push(new ChainPosition(currentChain.id,
+                                          currentChain.rules, 0));
         // We can't use traversedElementIDs to detect loops because the same
         // chains may have been traversed by some other device's filters.
         Set<UUID> traversedChains = new HashSet<UUID>();
-        traversedChains.add(currentChain.getID());
+        traversedChains.add(currentChain.id);
 
         res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
@@ -82,7 +119,7 @@ public class Chain {
                         continue;
                     }
 
-                    UUID nextID = nextChain.getID();
+                    UUID nextID = nextChain.id;
                     if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {} cannot jump from chain " +
@@ -98,7 +135,7 @@ public class Chain {
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(
-                        new ChainPosition(nextID, nextChain.getRules(), 0));
+                        new ChainPosition(nextID, nextChain.rules, 0));
                     break;
                 } else if (res.action.equals(RuleResult.Action.RETURN)) {
                     // Stop processing this chain; return to the calling chain.
