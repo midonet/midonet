@@ -174,12 +174,12 @@ public class BridgeDhcpZkManager extends ZkManager {
     public void createSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getBridgeDhcpSubnetPath(
+        ops.add(Op.create(paths.getBridgeDhcpSubnetPath(
                 bridgeId, subnet.getSubnetAddr()),
                 serializer.serialize(subnet), ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgeDhcpHostsPath(
+        ops.add(Op.create(paths.getBridgeDhcpHostsPath(
             bridgeId, subnet.getSubnetAddr()), null,
                           ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         multi(ops);
@@ -187,20 +187,20 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public void updateSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException {
-        update(pathManager.getBridgeDhcpSubnetPath(bridgeId,
+        update(paths.getBridgeDhcpSubnetPath(bridgeId,
                 subnet.getSubnetAddr()), serializer.serialize(subnet));
     }
 
     public Subnet getSubnet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
-        byte[] data = get(pathManager.getBridgeDhcpSubnetPath(bridgeId,
+        byte[] data = get(paths.getBridgeDhcpSubnetPath(bridgeId,
                 subnetAddr), null);
         return serializer.deserialize(data, Subnet.class);
     }
 
     public boolean existsSubnet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
-        return exists(pathManager.getBridgeDhcpSubnetPath(bridgeId,
+        return exists(paths.getBridgeDhcpSubnetPath(bridgeId,
                 subnetAddr));
     }
 
@@ -210,21 +210,21 @@ public class BridgeDhcpZkManager extends ZkManager {
         // Delete the hostAssignments
         List<MAC> hosts = listHosts(bridgeId, subnetAddr);
         for (MAC mac : hosts)
-            ops.add(Op.delete(pathManager.getBridgeDhcpHostPath(
+            ops.add(Op.delete(paths.getBridgeDhcpHostPath(
                     bridgeId, subnetAddr, mac), -1));
         // Delete the 'hosts' subdirectory.
         ops.add(Op.delete(
-                pathManager.getBridgeDhcpHostsPath(bridgeId, subnetAddr), -1));
+                paths.getBridgeDhcpHostsPath(bridgeId, subnetAddr), -1));
         // Delete the subnet's root directory.
         ops.add(Op.delete(
-                pathManager.getBridgeDhcpSubnetPath(bridgeId, subnetAddr), -1));
+                paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr), -1));
         multi(ops);
     }
 
     public List<IntIPv4> listSubnets(UUID bridgeId)
             throws StateAccessException {
         Set<String> addrStrings = getChildren(
-                pathManager.getBridgeDhcpPath(bridgeId), null);
+                paths.getBridgeDhcpPath(bridgeId), null);
         List<IntIPv4> addrs = new ArrayList<IntIPv4>();
         for (String addrStr : addrStrings)
             addrs.add(IntIPv4.fromString(addrStr));
@@ -234,7 +234,7 @@ public class BridgeDhcpZkManager extends ZkManager {
     public List<Subnet> getSubnets(UUID bridgeId)
             throws StateAccessException {
         Set<String> addrStrings = getChildren(
-                pathManager.getBridgeDhcpPath(bridgeId));
+                paths.getBridgeDhcpPath(bridgeId));
         List<Subnet> subnets = new ArrayList<Subnet>();
         for (String addrStr : addrStrings)
             subnets.add(getSubnet(bridgeId, IntIPv4.fromString(addrStr)));
@@ -243,39 +243,39 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public void addHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)
             throws StateAccessException {
-        addPersistent(pathManager.getBridgeDhcpHostPath(
+        addPersistent(paths.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, host.getMac()), serializer.serialize(host));
     }
 
     public void updateHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)
             throws StateAccessException {
-        update(pathManager.getBridgeDhcpHostPath(
+        update(paths.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, host.getMac()), serializer.serialize(host));
     }
 
     public Host getHost(UUID bridgeId, IntIPv4 subnetAddr, String mac)
             throws StateAccessException {
-        byte[] data = get(pathManager.getBridgeDhcpHostPath(
+        byte[] data = get(paths.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, MAC.fromString(mac)), null);
         return serializer.deserialize(data, Host.class);
     }
 
     public void deleteHost(UUID bridgId, IntIPv4 subnetAddr, String mac)
             throws StateAccessException {
-        delete(pathManager.getBridgeDhcpHostPath(bridgId, subnetAddr,
+        delete(paths.getBridgeDhcpHostPath(bridgId, subnetAddr,
                 MAC.fromString(mac)));
     }
 
     public boolean existsHost(UUID bridgeId, IntIPv4 subnetAddr, String mac)
             throws StateAccessException {
-        return exists(pathManager.getBridgeDhcpHostPath(
+        return exists(paths.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, MAC.fromString(mac)));
     }
 
     public List<MAC> listHosts(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
         Set<String> macStrings = getChildren(
-                pathManager.getBridgeDhcpHostsPath(bridgeId, subnetAddr));
+                paths.getBridgeDhcpHostsPath(bridgeId, subnetAddr));
         List<MAC> macs = new ArrayList<MAC>();
         for (String macStr : macStrings)
             macs.add(MAC.fromString(macStr));
@@ -285,7 +285,7 @@ public class BridgeDhcpZkManager extends ZkManager {
     public List<Host> getHosts(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
         Set<String> macStrings = getChildren(
-                pathManager.getBridgeDhcpHostsPath(bridgeId, subnetAddr));
+                paths.getBridgeDhcpHostsPath(bridgeId, subnetAddr));
         List<Host> hosts = new ArrayList<Host>();
         for (String macStr : macStrings)
             hosts.add(getHost(bridgeId, subnetAddr, macStr));

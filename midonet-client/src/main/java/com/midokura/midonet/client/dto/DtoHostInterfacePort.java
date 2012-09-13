@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 
 @XmlRootElement
-public class DtoHostInterfacePortMap {
+public class DtoHostInterfacePort {
 
     private UUID hostId;
     private UUID portId;
@@ -65,7 +65,7 @@ public class DtoHostInterfacePortMap {
 
     @Override
     public String toString() {
-        return "DtoHostInterfacePortMap{" +
+        return "DtoHostInterfacePort{" +
             "hostId=" + hostId +
             ", portId=" + portId +
             ", interfaceName='" + interfaceName + '\'' +

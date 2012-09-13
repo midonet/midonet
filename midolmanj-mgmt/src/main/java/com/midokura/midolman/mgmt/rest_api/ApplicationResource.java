@@ -14,6 +14,7 @@ import com.midokura.midolman.mgmt.bgp.rest_api.BgpResource;
 import com.midokura.midolman.mgmt.filter.rest_api.ChainResource;
 import com.midokura.midolman.mgmt.filter.rest_api.RuleResource;
 import com.midokura.midolman.mgmt.host.rest_api.HostResource;
+import com.midokura.midolman.mgmt.host.rest_api.TunnelZoneResource;
 import com.midokura.midolman.mgmt.monitoring.rest_api.MonitoringResource;
 import com.midokura.midolman.mgmt.network.rest_api.*;
 import com.midokura.midolman.mgmt.vpn.rest_api.VpnResource;
@@ -167,6 +168,16 @@ public class ApplicationResource {
     @Path(ResourceUriBuilder.METRICS)
     public MonitoringResource getMonitoringQueryResource() {
         return factory.getMonitoringQueryResource();
+    }
+
+    /**
+     * Tunnel Zone resource locator
+     *
+     * @return TunnelZoneResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.TUNNEL_ZONES)
+    public TunnelZoneResource getTunnelZoneResource() {
+        return factory.getTunnelZoneResource();
     }
 
     /**

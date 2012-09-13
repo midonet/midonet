@@ -10,7 +10,12 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.midokura.packets.*;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
+import com.midokura.packets.Transport;
 
 public class WildcardMatch implements Cloneable, PacketMatch {
 

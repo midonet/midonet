@@ -146,10 +146,23 @@ public interface DataClient {
     void tunnelZonesDelete(UUID uuid)
         throws StateAccessException;
 
+    boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
+
     TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException;
 
-    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(UUID uuid)
+    List<TunnelZone<?, ?>> tunnelZonesGetAll() throws StateAccessException;
+
+    void tunnelZonesUpdate(TunnelZone<?, ?> zone) throws StateAccessException;
+
+    boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
+        throws StateAccessException;
+
+    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(UUID uuid)
+        throws StateAccessException;
+
+    TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID uuid,
+                                                         UUID hostId)
         throws StateAccessException;
 
     UUID tunnelZonesAddMembership(UUID zoneId,
@@ -189,8 +202,14 @@ public interface DataClient {
 
     void commandsDelete(UUID hostId, Integer id) throws StateAccessException;
 
-     List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
+    List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
          throws StateAccessException;
+
+    boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
+        throws StateAccessException;
+
+    VirtualPortMapping hostsGetVirtualPortMapping(UUID hostId, UUID portId)
+        throws StateAccessException;
 
     void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
         throws StateAccessException;
@@ -320,9 +339,24 @@ public interface DataClient {
     List<VPN> vpnFindByPort(UUID portId) throws StateAccessException;
 
     /* PortSet related methods */
+
+    /**
+     * This should be called AddMember but since our port set membership right
+     * now means hosts we named it accordingly.
+     *
+     * @param portSetId the id of the portset
+     * @param hostId the id of the host
+     * @param callback the callback to be fired when the operation is completed
+     */
     void portSetsAsyncAddHost(UUID portSetId, UUID hostId, DirectoryCallback.Add callback);
 
+    void portSetsAddHost(UUID portSetId, UUID hostId)
+        throws StateAccessException;
+
     void portSetsAsyncDelHost(UUID portSetId, UUID hostId, DirectoryCallback.Void callback);
+
+    void portSetsDelHost(UUID portSetId, UUID hostId)
+        throws StateAccessException;
 
     Set<UUID> portSetsGet(UUID portSet) throws StateAccessException;
 }

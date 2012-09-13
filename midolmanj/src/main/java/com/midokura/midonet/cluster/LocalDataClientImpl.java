@@ -454,13 +454,55 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean tunnelZonesExists(UUID uuid) throws StateAccessException {
+        return zonesZkManager.exists(uuid);
+    }
+
+    @Override
     public TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException {
         return zonesZkManager.getZone(uuid, null);
     }
 
     @Override
-    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMembership(final UUID uuid)
+    public List<TunnelZone<?, ?>> tunnelZonesGetAll()
+            throws StateAccessException {
+        Collection<UUID> ids = zonesZkManager.getZoneIds();
+
+        List<TunnelZone<?, ?>> tunnelZones = new ArrayList<TunnelZone<?, ?>>();
+
+        for (UUID id : ids) {
+            TunnelZone zone = tunnelZonesGet(id);
+            if (zone != null) {
+                tunnelZones.add(zone);
+            }
+        }
+
+        return tunnelZones;
+    }
+
+    @Override
+    public void tunnelZonesUpdate(TunnelZone<?, ?> zone)
+            throws StateAccessException {
+        zonesZkManager.updateZone(zone);
+    }
+
+    @Override
+    public boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
+            throws StateAccessException {
+        return zonesZkManager.membershipExists(uuid, hostId);
+    }
+
+    @Override
+    public TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID id,
+                                                                UUID hostId)
+        throws StateAccessException {
+        return zonesZkManager.getZoneMembership(id, hostId, null);
+    }
+
+    @Override
+    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(
+            final UUID uuid)
         throws StateAccessException {
 
         return CollectionFunctors.map(
@@ -910,6 +952,25 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return maps;
+    }
+
+    @Override
+    public boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
+            throws StateAccessException {
+        return hostZkManager.virtualPortMappingExists(hostId, portId);
+    }
+
+    @Override
+    public VirtualPortMapping hostsGetVirtualPortMapping(
+            UUID hostId, UUID portId) throws StateAccessException {
+        HostDirectory.VirtualPortMapping mapping =
+                hostZkManager.getVirtualPortMapping(hostId, portId);
+
+        if (mapping == null) {
+            return null;
+        }
+
+        return Converter.fromHostVirtPortMappingConfig(mapping);
     }
 
     @Override
@@ -1504,9 +1565,21 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void portSetsAddHost(UUID portSetId, UUID hostId)
+        throws StateAccessException {
+        portSetZkManager.addMember(portSetId, hostId);
+    }
+
+    @Override
     public void portSetsAsyncDelHost(UUID portSetId, UUID hostId,
                                      DirectoryCallback.Void callback) {
         portSetZkManager.delMemberAsync(portSetId, hostId, callback);
+    }
+
+    @Override
+    public void portSetsDelHost(UUID portSetId, UUID hostId)
+        throws StateAccessException {
+        portSetZkManager.delMember(portSetId, hostId);
     }
 
     @Override

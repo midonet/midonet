@@ -87,8 +87,7 @@ object TestBgpVtyConnection {
             bgpId, InetAddress.getByName("192.168.20.0"), 24)
         adRouteId = adRouteMgr.create(adRouteConfig)
 
-        vtyConn = new BgpVtyConnection("localhost", bgpdPort, bgpdPassword,
-                                       bgpMgr, adRouteMgr)
+        vtyConn = new BgpVtyConnection("localhost", bgpdPort, bgpdPassword)
         // Check if it can run bgpd w/o password. It will raise
         // IllegalThreadStateException if the bgpd gets launched correctly.
         try {
@@ -122,7 +121,7 @@ class TestBgpVtyConnection {
         try {
             // getAs should return 0 if no BGP config is set.
             assertEquals(0, vtyConn.getAs)
-            vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
+            //vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
             assertEquals(localAs, vtyConn.getAs)
         } finally {
             vtyConn.deleteAs(localAs)
@@ -136,7 +135,7 @@ class TestBgpVtyConnection {
         try {
             // getAs should return 0 if no BGP config is set.
             assertEquals(0, vtyConn.getAs)
-            vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
+            //vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
             assertEquals(localAs, vtyConn.getAs)
             // Delete the BGP config
             bgpMgr.delete(bgpId)
@@ -161,7 +160,7 @@ class TestBgpVtyConnection {
         try {
             // getAs should return 0 if no BGP config is set.
             assertEquals(0, vtyConn.getAs)
-            vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
+            //vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
             assertEquals(localAs, vtyConn.getAs)
 
             // Create advertising routes.
@@ -190,7 +189,7 @@ class TestBgpVtyConnection {
             // getAs should return 0 if no BGP config is set.
             assertEquals(0, vtyConn.getAs)
             assertEquals(0, vtyConn.getNetwork.size)
-            vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
+            //vtyConn.create(InetAddress.getByName(portAddr), bgpId, bgpConfig)
             assertEquals(localAs, vtyConn.getAs)
             // Update advertising route
             val nwAddr = "192.168.30.0"

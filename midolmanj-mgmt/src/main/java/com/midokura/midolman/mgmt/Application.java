@@ -55,6 +55,17 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the tunnel zones URI
+     */
+    public URI getTunnelZones() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTunnelZones(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the bridges URI
      */
     public URI getBridges() {

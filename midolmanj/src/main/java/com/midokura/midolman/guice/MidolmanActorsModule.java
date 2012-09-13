@@ -14,12 +14,12 @@ import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
-import com.midokura.midolman.topology.TunnelZoneManager;
 import com.midokura.midolman.topology.HostManager;
+import com.midokura.midolman.topology.PortSetManager;
+import com.midokura.midolman.topology.TunnelZoneManager;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
 import com.midokura.netlink.protos.OvsDatapathConnection;
-import com.midokura.sdn.flows.FlowManager;
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so
@@ -47,9 +47,9 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(FlowController.class).in(Singleton.class);
         bind(SimulationController.class).in(Singleton.class);
 
-        bind(FlowManager.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
+        bind(PortSetManager.class);
     }
 
     protected void bindMidolmanActorsService() {

@@ -106,8 +106,8 @@ public class WebResource {
     }
 
 
-    public <T> T get(URI uri, MultivaluedMap queryParams, Class<T> clazz,
-                     String mediaType) {
+    public <T> T get(URI uri, MultivaluedMap<String, String> queryParams,
+                     Class<T> clazz, String mediaType) {
         if (uri == null)
             throw new IllegalArgumentException(
                 "The URI can't be null. This usually means that a previous "
@@ -130,7 +130,7 @@ public class WebResource {
     public void delete(URI uri) {
         try {
             resource().uri(uri).type(MediaType.APPLICATION_JSON).delete();
-        } catch(UniformInterfaceException ex) {
+        } catch (UniformInterfaceException ex) {
             handleHttpError(ex.getResponse());
         }
     }

@@ -12,6 +12,7 @@ public class DtoApplication {
     private String version;
     private URI uri;
     private URI hosts;
+    private URI tunnelZones;
     private URI bridges;
     private URI chains;
     private URI portGroups;
@@ -71,5 +72,13 @@ public class DtoApplication {
 
     public void setHosts(URI hosts) {
         this.hosts = hosts;
+    }
+
+    public URI getTunnelZones() {
+        return tunnelZones;
+    }
+
+    public void setTunnelZones(URI tunnelZones) {
+        this.tunnelZones = tunnelZones;
     }
 }

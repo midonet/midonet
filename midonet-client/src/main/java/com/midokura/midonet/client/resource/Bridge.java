@@ -15,6 +15,7 @@ import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoDhcpSubnet;
 import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
 import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
 import com.midokura.midonet.client.dto.DtoPort;
 
 public class Bridge extends ResourceBase<Bridge, DtoBridge> {
@@ -156,7 +157,6 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
             VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
-            System.out.println("pp in the bridge resource: " + pp);
             if (pp instanceof DtoLogicalRouterPort) {
                 RouterPort rp = new RouterPort<DtoLogicalRouterPort>(
                     resource,
@@ -177,7 +177,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      *
      * @return bridge port object
      */
-    public BridgePort addMaterializedPort() {
+    public BridgePort<DtoBridgePort> addMaterializedPort() {
         return new BridgePort<DtoBridgePort>(resource, principalDto.getPorts(),
                                              new DtoBridgePort());
     }
@@ -187,7 +187,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      *
      * @return bridge port object for
      */
-    public BridgePort addLogicalPort() {
+    public BridgePort<DtoLogicalBridgePort> addLogicalPort() {
         return new BridgePort<DtoLogicalBridgePort>(resource,
                                                     principalDto.getPorts(),
                                                     new DtoLogicalBridgePort());

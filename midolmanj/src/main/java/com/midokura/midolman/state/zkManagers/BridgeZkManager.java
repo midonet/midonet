@@ -141,27 +141,27 @@ public class BridgeZkManager extends ZkManager {
         config.greKey = greKey;
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(pathManager.getBridgePath(id),
+        ops.add(Op.create(paths.getBridgePath(id),
                 serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgePortsPath(id), null,
+        ops.add(Op.create(paths.getBridgePortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgeLogicalPortsPath(id), null,
+        ops.add(Op.create(paths.getBridgeLogicalPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgeDhcpPath(id), null,
+        ops.add(Op.create(paths.getBridgeDhcpPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgeMacPortsPath(id), null,
+        ops.add(Op.create(paths.getBridgeMacPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(pathManager.getBridgePortLocationsPath(id), null,
+        ops.add(Op.create(paths.getBridgePortLocationsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add a port-set for this bridge
-        ops.add(Op.create(pathManager.getPortSetPath(id),
+        ops.add(Op.create(paths.getPortSetPath(id),
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update GreKey to reference the bridge.
@@ -215,7 +215,7 @@ public class BridgeZkManager extends ZkManager {
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
             config.greKey = oldConfig.greKey;
-            return Op.setData(pathManager.getBridgePath(id),
+            return Op.setData(paths.getBridgePath(id),
                     serializer.serialize(config), -1);
         }
         return null;
@@ -246,20 +246,20 @@ public class BridgeZkManager extends ZkManager {
             ops.addAll(portZkManager.prepareDelete(portId));
         }
 
-        ops.add(Op.delete(pathManager.getBridgePortsPath(id), -1));
-        ops.add(Op.delete(pathManager.getBridgeLogicalPortsPath(id), -1));
-        ops.addAll(getRecursiveDeleteOps(pathManager.getBridgeDhcpPath(id)));
-        ops.addAll(getRecursiveDeleteOps(pathManager.getBridgeMacPortsPath(id)));
-        ops.add(Op.delete(pathManager.getBridgePortLocationsPath(id), -1));
+        ops.add(Op.delete(paths.getBridgePortsPath(id), -1));
+        ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
+        ops.addAll(getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
+        ops.addAll(getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
+        ops.add(Op.delete(paths.getBridgePortLocationsPath(id), -1));
 
         // Delete GRE
         ops.addAll(greZkManager.prepareGreDelete(config.greKey));
 
         // Delete this bridge's port-set
-        ops.addAll(getRecursiveDeleteOps(pathManager.getPortSetPath(id)));
+        ops.addAll(getRecursiveDeleteOps(paths.getPortSetPath(id)));
 
         // Delete the bridge
-        ops.add(Op.delete(pathManager.getBridgePath(id), -1));
+        ops.add(Op.delete(paths.getBridgePath(id), -1));
 
         ops.addAll(filterZkManager.prepareDelete(id));
 
@@ -290,7 +290,7 @@ public class BridgeZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(pathManager.getBridgePath(id));
+        return exists(paths.getBridgePath(id));
     }
 
     public void update(UUID id, BridgeConfig cfg) throws StateAccessException {
@@ -326,7 +326,7 @@ public class BridgeZkManager extends ZkManager {
      */
     public BridgeConfig get(UUID id, Runnable watcher)
             throws StateAccessException {
-        byte[] data = get(pathManager.getBridgePath(id), watcher);
+        byte[] data = get(paths.getBridgePath(id), watcher);
         return serializer.deserialize(data, BridgeConfig.class);
     }
 

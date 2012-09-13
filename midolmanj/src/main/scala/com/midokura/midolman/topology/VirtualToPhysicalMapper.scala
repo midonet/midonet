@@ -5,12 +5,9 @@ package com.midokura.midolman.topology
 
 import akka.actor._
 import akka.dispatch.Promise
-import akka.event.Logging
 import akka.pattern.{ask, pipe}
 import akka.util.duration._
 import akka.util.Timeout
-import rcu.Host
-import rcu.RCUDeviceManager.Start
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
 import java.util
@@ -23,7 +20,6 @@ import org.apache.zookeeper.KeeperException
 import com.midokura.midolman.Referenceable
 import com.midokura.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.topology.rcu.Host
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import com.midokura.midolman.state.DirectoryCallback
@@ -94,7 +90,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class TunnelZoneUnsubscribe(zoneId: UUID)
 
-    case class PortSetRequest(portSetId: UUID)
+    case class PortSetRequest(portSetId: UUID, update: Boolean)
 
     case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
 
@@ -138,18 +134,33 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     val devices = mutable.Map[UUID, T]()
     val deviceHandlers = mutable.Map[UUID, ActorRef]()
     val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
+    val deviceObservers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
-    def addSubscriber(deviceId: UUID, subscriber: ActorRef) {
-        deviceSubscribers.get(deviceId) match {
-            case None =>
-                deviceSubscribers.put(deviceId, mutable.Set(subscriber))
-            case Some(subscribers) =>
-                subscribers + subscriber
+    def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
+        if (updates) {
+            deviceSubscribers.get(deviceId) match {
+                case None =>
+                    deviceSubscribers.put(deviceId, mutable.Set(subscriber))
+                case Some(subscribers) =>
+                    subscribers + subscriber
+            }
         }
 
         devices.get(deviceId) match {
             case Some(device) => subscriber ! device
             case None =>
+                deviceSubscribers.get(deviceId) map {
+                    subscribers => subscribers.find(_ == subscriber)
+                } match {
+                    case None =>
+                        deviceObservers.get(deviceId) match {
+                            case None =>
+                                deviceObservers.put(deviceId, mutable.Set(subscriber))
+                            case Some(subscribers) =>
+                                subscribers + subscriber
+                        }
+                    case _ =>
+                }
         }
 
         if (!deviceHandlers.contains(deviceId)) {
@@ -176,15 +187,19 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     def notifySubscribers(uuid: UUID)(code: (ActorRef, T) => Unit) {
         devices.get(uuid) match {
             case None =>
-            case Some(device ) =>
+            case Some(device) =>
                 deviceSubscribers.get(uuid) match {
-                    case Some(subscribers) =>
-                        for ( subscriber <- subscribers ) {
-                            code(subscriber, device)
-                        }
+                    case Some(subscribers) => subscribers map { s => code(s, device) }
                     case None =>
                         // this should not happen
                 }
+
+                deviceObservers.get(uuid) match {
+                    case Some(subscribers) => subscribers map { s => code(s, device) }
+                    case None => // it's good
+                }
+
+                deviceObservers.remove(uuid)
         }
     }
 
@@ -207,8 +222,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     @Inject
     val hostIdProvider: HostIdProviderService = null
 
-    //
-    private val localPortsActors = mutable.Map[UUID, ActorRef]()
     private val actorWants = mutable.Map[ActorRef, ExpectingState]()
     private val localHostData =
         mutable.Map[UUID, (
@@ -219,34 +232,43 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private lazy val hosts: DeviceHandlersManager[Host, HostManager] =
         new DeviceHandlersManager[Host, HostManager](context, actorsService, "host")
 
-    private lazy val portSets: DeviceHandlersManager[PortSet, PortSetManager] =
-        new DeviceHandlersManager[PortSet, PortSetManager](context, actorsService, "portset")
+    private lazy val portSets: DeviceHandlersManager[rcu.PortSet, PortSetManager] =
+        new DeviceHandlersManager[rcu.PortSet, PortSetManager](context, actorsService, "portset")
 
     private lazy val tunnelZones: DeviceHandlersManager[TunnelZone[_, _], TunnelZoneManager] =
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
     private lazy val localActivePorts = mutable.Set[UUID]()
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
+    private lazy val localPortSetSlices = mutable.Map[UUID, mutable.Set[UUID]]()
     private var activatingLocalPorts = false
 
+    implicit val requestReplyTimeout = new Timeout(1 second)
+    implicit val executor = context.dispatcher
 
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
         message match {
-            case PortSetRequest(portSetId) =>
-                portSets.addSubscriber(portSetId, sender)
+            case PortSetRequest(portSetId, updates) =>
+                portSets.addSubscriber(portSetId, sender, updates)
 
-            case portSet: PortSet =>
-                portSets.updateAndNotifySubscribers(portSet.getId, portSet)
+            case portSet: rcu.PortSet =>
+                val updatedPortSet = localPortSetSlices.get(portSet.id) match {
+                    case None => portSet
+                    case Some(ports) =>
+                        rcu.PortSet(portSet.id, portSet.hosts, ports.toSet)
+                }
+
+                portSets.updateAndNotifySubscribers(portSet.id, updatedPortSet)
 
             case HostRequest(hostId) =>
-                hosts.addSubscriber(hostId, sender)
+                hosts.addSubscriber(hostId, sender, updates = true)
 
             case host: Host =>
                 hosts.updateAndNotifySubscribers(host.id, host)
 
             case TunnelZoneRequest(zoneId) =>
-                tunnelZones.addSubscriber(zoneId, sender)
+                tunnelZones.addSubscriber(zoneId, sender, updates = true)
 
             case zone: TunnelZone[_, _] =>
                 tunnelZones.updateAndNotifySubscribers(zone.getId, zone)
@@ -259,13 +281,12 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
             case LocalPortActive(vifId, true) if (!activatingLocalPorts)=>
                 activatingLocalPorts = true
-                val vtaRef = VirtualTopologyActor.getRef()
-                val portReq = PortRequest(vifId, update = false)
 
-                implicit val timeout = Timeout(200 milliseconds)
-                implicit val ex = context.dispatcher
+                val portFuture =
+                    ask(VirtualTopologyActor.getRef(),
+                        PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                portFuture flatMap { port =>
                     localActivePortSets.get(port.deviceID) match {
                         case Some(_) =>
                             Promise.successful(_PortSetMembershipUpdated(
@@ -282,20 +303,20 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                 _PortSetMembershipUpdated(vifId, port.deviceID, state = true)
                             }
                     }
-                } pipeTo self
+                } onSuccess {
+                    case m: _PortSetMembershipUpdated => self ! m
+                }
 
             case LocalPortActive(vifId, false) if(activatingLocalPorts) =>
                 stash()
 
             case LocalPortActive(vifId, false) =>
                 activatingLocalPorts = true
-                val vtaRef = VirtualTopologyActor.getRef()
-                val portReq = PortRequest(vifId, update = false)
+                val portFuture =
+                    ask(VirtualTopologyActor.getRef(),
+                        PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                implicit val timeout = Timeout(200 milliseconds)
-                implicit val ex = context.dispatcher
-
-                ask(vtaRef, portReq).mapTo[Port[_]] flatMap { port =>
+                portFuture flatMap { port =>
                     localActivePortSets.get(port.deviceID) match {
                         case Some(ports) if ports.contains(vifId) =>
                             if (ports.size > 1) {
@@ -308,14 +329,16 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                     new PromisingDirectoryCallback[Void](future)
                                         with DirectoryCallback.Void)
 
-                                future map {
-                                    _ => _PortSetMembershipUpdated(
+                                future map { _ =>
+                                    _PortSetMembershipUpdated(
                                         vifId, port.deviceID, state = false) }
                             }
                         case None =>
                             Promise.successful(null).mapTo[_PortSetMembershipUpdated]
                     }
-                } pipeTo self
+                } onSuccess {
+                    case m: _PortSetMembershipUpdated => self ! m
+                }
 
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
                 localActivePorts.add(vifId)
@@ -323,6 +346,12 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case Some(ports) => ports.add(vifId)
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
                 }
+
+                localPortSetSlices.get(vifId) match  {
+                    case Some(ports) => ports += vifId
+                    case None => localPortSetSlices.put(portSetId, mutable.Set(vifId))
+                }
+
                 context.system.eventStream.publish(LocalPortActive(vifId, active = true))
                 activatingLocalPorts = false
                 unstashAll()
@@ -334,6 +363,12 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case Some(ports) => ports.remove(vifId)
                     case None =>
                 }
+
+                localPortSetSlices.get(portSetId) match  {
+                    case Some(ports) => ports -= vifId
+                    case None => localPortSetSlices.remove(portSetId)
+                }
+
                 context.system.eventStream.publish(LocalPortActive(vifId, active = false))
                 activatingLocalPorts = false
                 unstashAll()

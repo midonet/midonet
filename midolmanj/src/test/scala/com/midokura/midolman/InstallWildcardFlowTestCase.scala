@@ -7,7 +7,7 @@ import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.sdn.dp.flows.FlowActions
-import datapath.FlowActionVrnPortOutput
+import datapath.FlowActionOutputToVrnPort
 import java.util.Arrays
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -16,7 +16,7 @@ import com.midokura.midonet.cluster.data.host.Host
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
 
-    def testDatapathPacketIn() {
+    def testInstallFlowForLocalPort() {
 
         val host = new Host(hostId()).setName("myself")
         clusterDataClient().hostsCreate(hostId(), host)
@@ -43,7 +43,7 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val outputPortNo = dpController().underlyingActor
             .localPorts("outputPort").getPortNo
 
-        val vrnPortOutput = new FlowActionVrnPortOutput(outputPort.getId)
+        val vrnPortOutput = new FlowActionOutputToVrnPort(outputPort.getId)
         val dpPortOutput = FlowActions.output(outputPortNo)
 
         val wildcardMatch = new WildcardMatch()

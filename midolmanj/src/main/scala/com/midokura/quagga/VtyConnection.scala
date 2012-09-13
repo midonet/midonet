@@ -9,19 +9,13 @@
 
 package com.midokura.quagga
 
-import com.midokura.midolman.state.zkManagers.{BgpZkManager, AdRouteZkManager}
-import com.midokura.midolman.state.NoStatePathException
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable.{ListBuffer, Set}
+import scala.collection.mutable.ListBuffer
 
 import java.io.{BufferedReader, InputStreamReader, PrintWriter}
-import java.net.{InetAddress, Socket}
-import java.util.UUID
+import java.net.Socket
 
 import org.slf4j.LoggerFactory
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig
-import com.midokura.midonet.cluster.data.BGP
 import com.midokura.packets.IntIPv4
 
 
@@ -177,15 +171,13 @@ object BgpVtyConnection {
  * Interfaces for BgpConfig.
  */
 trait BgpConnection {
-    def create(localAddr: InetAddress, bgpUUID: UUID, bgp: BGP)
-
     def getAs(): Int
 
     def setAs(as: Int)
 
     def deleteAs(as: Int)
 
-    def setLocalNw(as: Int, localAddr: InetAddress)
+    def setLocalNw(as: Int, localAddr: IntIPv4)
 
     def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int)
 
@@ -196,61 +188,10 @@ trait BgpConnection {
     def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int)
 }
 
-class BgpVtyConnection(addr: String, port: Int, password: String,
-                       val bgpZk: BgpZkManager,
-                       val adRouteZk: AdRouteZkManager)
+class BgpVtyConnection(addr: String, port: Int, password: String)
     extends VtyConnection(addr, port, password) with BgpConnection {
 
     import BgpVtyConnection._
-
-    private class AdRouteWatcher(val localAS: Int, val adRouteUUID: UUID,
-                                 val oldConfig: AdRouteConfig,
-                                 val adRouteZk: AdRouteZkManager)
-        extends Runnable {
-        override def run() {
-            // Whether this event is update or delete, we have to
-            // delete the old config first.
-            deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
-                oldConfig.prefixLength)
-            try {
-                val adRoute = adRouteZk.get(adRouteUUID, this)
-                if (adRoute != null) {
-                    setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
-                        adRoute.prefixLength)
-                }
-            } catch {
-                case e: NoStatePathException => {
-                    log.warn("AdRouteWatcher: node already deleted")
-                }
-            }
-        }
-    }
-
-    private class BgpWatcher(val localAddr: InetAddress, var bgpUUID: UUID,
-                             var oldConfig: BGP, val adRoutes: Set[UUID],
-                             val bgpZk: BgpZkManager,
-                             val adRouteZk: AdRouteZkManager)
-        extends Runnable {
-        override def run() {
-            // Compare the length of adRoutes and only handle
-            // adRoute events when routes are added.
-            try {
-                if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
-                    val bgp = bgpZk.getBGP(bgpUUID, this)
-                    if (bgp != null) {
-                        this.bgpUUID = bgpUUID
-                        this.oldConfig = bgp
-                        create(localAddr, bgpUUID, bgp)
-                    }
-                }
-            } catch {
-                case e: NoStatePathException => {
-                    log.warn("BgpWatcher: node already deleted")
-                    deleteAs(oldConfig.getLocalAS)
-                }
-            }
-        }
-    }
 
     override def getAs(): Int = {
         val request = new ListBuffer[String]()
@@ -308,10 +249,10 @@ class BgpVtyConnection(addr: String, port: Int, password: String,
         }
     }
 
-    override def setLocalNw(as: Int, localAddr: InetAddress) {
+    override def setLocalNw(as: Int, localAddr: IntIPv4) {
         val request = ListBuffer[String]()
         request += SetAs.format(as)
-        request += SetLocalNw.format(localAddr.getHostAddress)
+        request += SetLocalNw.format(localAddr.toUnicastString)
 
         try {
             doTransacation(request.toSeq, true)
@@ -395,7 +336,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String,
         return networks.toSeq
     }
 
-    override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
+    override def setNetwork(as: Int, nwPrefix: String,
+                            prefixLength: Int) {
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
         request += SetNetwork.format(nwPrefix, prefixLength)
@@ -425,28 +367,6 @@ class BgpVtyConnection(addr: String, port: Int, password: String,
                     log.error("failed deleting advertising routes", e)
                 }
             }
-        }
-    }
-
-    override def create(localAddr: InetAddress, bgpUUID: UUID,
-                        bgp: BGP) {
-        setAs(bgp.getLocalAS)
-        setLocalNw(bgp.getLocalAS, localAddr)
-        setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
-
-        val adRoutes = Set[UUID]()
-        val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp, adRoutes,
-            bgpZk, adRouteZk)
-
-        for (adRouteUUID <- adRouteZk.list(bgpUUID, bgpWatcher)) {
-            val adRoute = adRouteZk.get(adRouteUUID)
-            setNetwork(bgp.getLocalAS, adRoute.nwPrefix.getHostAddress,
-                adRoute.prefixLength)
-            adRoutes.add(adRouteUUID)
-            // Register AdRouteWatcher.
-            adRouteZk.get(adRouteUUID,
-                new AdRouteWatcher(bgp.getLocalAS, adRouteUUID, adRoute,
-                    adRouteZk))
         }
     }
 }

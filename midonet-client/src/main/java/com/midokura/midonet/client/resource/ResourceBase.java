@@ -74,7 +74,7 @@ public abstract class ResourceBase<T, U> {
      */
     <T, U> ResourceCollection<T>
     getChildResources(URI uri,
-                      MultivaluedMap queryParams,
+                      MultivaluedMap<String, String> queryParams,
                       String mediaType,
                       Class<T> resourceClazz,
                       Class<U> newPrincipalDtoClazz) {

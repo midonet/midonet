@@ -6,23 +6,13 @@
 
 package com.midokura.quagga
 
-import java.net.InetAddress
-import java.util.UUID
 
 import org.slf4j.LoggerFactory
-import com.midokura.midonet.cluster.data.BGP
 import com.midokura.packets.IntIPv4
 
 
 class MockBgpConnection extends BgpConnection {
     private final val log = LoggerFactory.getLogger(this.getClass)
-    private var run = false
-
-
-    override def create(localAddr: InetAddress, bgpUUID: UUID,
-                        bgp: BGP) {
-        log.info("create")
-    }
 
     override def getAs(): Int = {
         log.info("getAs")
@@ -37,7 +27,7 @@ class MockBgpConnection extends BgpConnection {
         log.info("deleteAs")
     }
 
-    override def setLocalNw(as: Int, localAddr: InetAddress) {
+    override def setLocalNw(as: Int, localAddr: IntIPv4) {
         log.info("setLocalNw")
     }
 

@@ -4,42 +4,35 @@
  */
 package com.midokura.midolman.mgmt.host.rest_api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.host.Host;
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap.HostInterfacePortMapCreateGroup;
+import com.midokura.midolman.mgmt.host.HostInterfacePort;
+import com.midokura.midolman.mgmt.host.HostInterfacePort.HostInterfacePortCreateGroup;
 import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.host.VirtualPortMapping;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
@@ -132,67 +125,6 @@ public class HostResource {
 
     }
 
-    @POST
-    @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({ VendorMediaType.APPLICATION_HOST_JSON,
-            MediaType.APPLICATION_JSON })
-    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
-    public Response createHostInterfacePortMap(@PathParam("id") UUID id,
-                                               HostInterfacePortMap map)
-            throws StateAccessException {
-
-        map.setHostId(id);
-
-        Set<ConstraintViolation<HostInterfacePortMap>> violations =
-                validator.validate(map, HostInterfacePortMapCreateGroup.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
-
-        dataClient.hostsAddVrnPortMapping(id, map.getPortId(),
-                map.getInterfaceName());
-
-    	return Response.noContent().build();
-    }
-
-    @DELETE
-    @RolesAllowed({AuthRole.ADMIN})
-    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
-    public void deleteHostInterfacePortMap(@PathParam("id") UUID id,
-                                           HostInterfacePortMap map)
-            throws StateAccessException {
-
-        map.setHostId(id);
-
-        Set<ConstraintViolation<HostInterfacePortMap>> violations =
-                validator.validate(map);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
-
-        dataClient.hostsDelVrnPortMapping(id, map.getPortId());
-    }
-
-    @GET
-    @RolesAllowed({AuthRole.ADMIN})
-    @Path("{id}" + ResourceUriBuilder.INTERFACE_PORT_MAP)
-    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
-            MediaType.APPLICATION_JSON})
-    public List<HostInterfacePortMap> getHostInterfacePortMaps(
-            @PathParam("id") UUID id) throws StateAccessException {
-
-        List<VirtualPortMapping> mapConfigs =
-                dataClient.hostsGetVirtualPortMappingsByHost(id);
-        List<HostInterfacePortMap> maps = new ArrayList<HostInterfacePortMap>();
-        for (VirtualPortMapping mapConfig : mapConfigs) {
-            HostInterfacePortMap map = new HostInterfacePortMap(id, mapConfig);
-            map.setBaseUri(uriInfo.getBaseUri());
-            maps.add(map);
-        }
-
-        return maps;
-    }
-
     /**
      * Interface resource locator for hosts.
      *
@@ -217,4 +149,11 @@ public class HostResource {
         @PathParam("id") UUID hostId) {
         return factory.getHostCommandsResource(hostId);
     }
+
+    @Path("/{id}" + ResourceUriBuilder.PORTS)
+    public HostInterfacePortResource getHostInterfacePortResource(
+            @PathParam("id") UUID hostId) {
+        return factory.getHostInterfacePortResource(hostId);
+    }
+
 }

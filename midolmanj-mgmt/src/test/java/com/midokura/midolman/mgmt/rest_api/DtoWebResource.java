@@ -48,7 +48,7 @@ public class DtoWebResource {
         }
 
         ClientResponse response = res
-                .type(mediaType)
+                .accept(mediaType)
                 .get(ClientResponse.class);
         assertEquals(status, response.getStatus());
         return response;

@@ -70,7 +70,7 @@ public class GreZkManager extends ZkManager {
     public List<Op> prepareGreUpdate(int key, GreKey gre)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(pathManager.getGreKeyPath(key),
+        ops.add(Op.setData(paths.getGreKeyPath(key),
                 serializer.serialize(gre), -1));
         return ops;
     }
@@ -78,7 +78,7 @@ public class GreZkManager extends ZkManager {
     public GreKey get(int key)
             throws StateAccessException {
         GreKey gre = null;
-        byte[] data = get(pathManager.getGreKeyPath(key));
+        byte[] data = get(paths.getGreKeyPath(key));
         if (data != null) {
             gre = serializer.deserialize(data, GreKey.class);
         }
@@ -92,7 +92,7 @@ public class GreZkManager extends ZkManager {
      *            ZK entry of the gre to delete.
      */
     public List<Op> prepareGreDelete(int greKey) {
-        String path = pathManager.getGreKeyPath(greKey);
+        String path = paths.getGreKeyPath(greKey);
         log.debug("Preparing to delete: " + path);
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(path, -1));
@@ -110,12 +110,12 @@ public class GreZkManager extends ZkManager {
      */
     public int createGreKey()
             throws StateAccessException {
-        String path = addPersistentSequential(pathManager.getGrePath(), null);
+        String path = addPersistentSequential(paths.getGrePath(), null);
         int key = extractGreKeyFromPath(path);
         // We don't use Zero as a valid GRE key because our PacketIn method
         // uses that value to denote "The Tunnel ID wasn't set".
         if (0 == key) {
-            path = addPersistentSequential(pathManager.getGrePath(), null);
+            path = addPersistentSequential(paths.getGrePath(), null);
             key = extractGreKeyFromPath(path);
         }
         return key;

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import org.newsclub.net.unix.AFUNIXServerSocket;
+import com.midokura.quagga.ZebraServerService;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,6 @@ import com.midokura.packets.MAC;
 import com.midokura.quagga.BgpConnection;
 import com.midokura.quagga.BgpVtyConnection;
 import com.midokura.quagga.ZebraServer;
-import com.midokura.quagga.ZebraServerImpl;
 import com.midokura.util.eventloop.Reactor;
 
 public class BgpPortService implements PortService {
@@ -63,7 +62,7 @@ public class BgpPortService implements PortService {
     protected BgpZkManager bgpMgr;
     protected AdRouteZkManager adRouteMgr;
 
-    protected ZebraServer zebra;
+    protected ZebraServerService zebra;
     protected BgpConnection bgpd;
 
     private int bgpPortIdx = 0;
@@ -75,7 +74,7 @@ public class BgpPortService implements PortService {
                           String portIdExtIdKey, String portServiceExtIdKey,
                           PortZkManager portMgr, RouteZkManager routeMgr,
                           BgpZkManager bgpMgr, AdRouteZkManager adRouteMgr,
-                          ZebraServer zebra, BgpConnection bgpd) {
+                          ZebraServerService zebra, BgpConnection bgpd) {
         this.reactor = reactor;
         this.ovsdb = ovsdb;
         // "midolman_port_id"
@@ -94,7 +93,7 @@ public class BgpPortService implements PortService {
                           String portIdExtIdKey, String portServiceExtIdKey,
                           PortZkManager portMgr, RouteZkManager routeMgr,
                           BgpZkManager bgpMgr, AdRouteZkManager adRouteMgr,
-                          ZebraServer zebra, BgpConnection bgpd,
+                          ZebraServerService zebra, BgpConnection bgpd,
                           ServiceFlowController controller) {
         this(reactor, ovsdb, portIdExtIdKey, portServiceExtIdKey, portMgr,
              routeMgr, bgpMgr, adRouteMgr, zebra, bgpd);
@@ -123,7 +122,8 @@ public class BgpPortService implements PortService {
         if (socketFile.exists())
             socketFile.delete();
 
-        AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
+        //The server socket will now be created in ZebraServer
+        //AFUNIXServerSocket server = AFUNIXServerSocket.newInstance();
         AFUNIXSocketAddress address = new AFUNIXSocketAddress(socketFile);
 
         PortZkManager portMgr = new PortZkManager(directory,
@@ -131,11 +131,11 @@ public class BgpPortService implements PortService {
         RouteZkManager routeMgr = new RouteZkManager(directory, basePath);
         BgpZkManager bgpMgr = new BgpZkManager(directory, basePath);
         AdRouteZkManager adRouteMgr = new AdRouteZkManager(directory, basePath);
-        ZebraServer zebraServer = new ZebraServerImpl(server, address,
-                portMgr, routeMgr, ovsdb);
+        ZebraServer zebraServer = new ZebraServer(address,
+            null, null, null);
 
         BgpVtyConnection vtyConnection = new BgpVtyConnection("localhost",
-                2605, "zebra", bgpMgr, adRouteMgr);
+                2605, "zebra");
 
         PortService bgpPortService = new BgpPortService(reactor, ovsdb,
                 "midolman_port_id", "midolman_port_service", portMgr,
@@ -341,8 +341,8 @@ public class BgpPortService implements PortService {
                     public void run() {
                         try {
                             log.debug("start,Runnable.run: setting bgp config");
-                            bgpd.create(Net.convertIntToInetAddress(localAddr),
-                                        bgpId, bgpConfig);
+                            //bgpd.create(Net.convertIntToInetAddress
+                            //    (localAddr), bgpId, bgpConfig);
                         } catch(Exception e) {
                             e.printStackTrace();
                         }
@@ -350,8 +350,8 @@ public class BgpPortService implements PortService {
                 }, 1000, TimeUnit.MILLISECONDS);
                 this.run = true;
             } else {
-                bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,
-                            bgpConfig);
+                //bgpd.create(Net.convertIntToInetAddress(localAddr), bgpId,
+                //            bgpConfig);
             }
         }
     }

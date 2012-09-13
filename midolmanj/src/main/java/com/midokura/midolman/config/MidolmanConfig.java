@@ -25,7 +25,10 @@ public interface MidolmanConfig
     int getMidolmanDisconnectedTtlSeconds();
 
     @ConfigBool(key = "enable_bgp", defaultValue = true)
-    public boolean getMidolmanEnableBgp();
+    public boolean getMidolmanBGPEnabled();
+
+    @ConfigInt(key = "bgp_port_start_index", defaultValue = 0)
+    public int getMidolmanBGPPortStartIndex();
 
     @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
     int getMidolmanDhcpMtu();

@@ -9,7 +9,7 @@ import java.util.UUID;
 import com.midokura.midonet.cluster.data.AdRoute;
 import com.midokura.midonet.cluster.data.BGP;
 
-public interface BGPListBuilder extends Builder {
+public interface BGPListBuilder {
     void addBGP(BGP bgp);
     void removeBGP(UUID bgpID);
     void addAdvertisedRoute(AdRoute route);

@@ -65,6 +65,8 @@ object BridgeManager {
 //TODO(ross) handle portset?
 class BridgeManager(id: UUID, val clusterClient: Client)
         extends DeviceManager(id) {
+    implicit val system = context.system
+
     private var cfg: BridgeConfig = null
 
     private var macPortMap: MacLearningTable = null
@@ -78,19 +80,26 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
     private var rtrIpToMac: ROMap[IntIPv4, MAC] = null
 
-    private var filterChanged = false;
+    private var filterChanged = false
 
 
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
-            new Bridge(id, macPortMap, flowCounts, inFilter, outFilter,
+            new Bridge(id, getGreKey, macPortMap, flowCounts, inFilter, outFilter,
                        flowRemovedCallback, rtrMacToLogicalPortId, rtrIpToMac))
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateAllDeviceFlowsTag(id))
         }
         filterChanged = false
+    }
+
+    def getGreKey: Long = {
+        cfg match {
+            case null => 0
+            case c => c.greKey
+        }
     }
 
     override def preStart() {
@@ -101,14 +110,14 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     override def getInFilterID: UUID = {
         cfg match {
-            case null => null;
+            case null => null
             case _ => cfg.inboundFilter
         }
     }
 
     override def getOutFilterID: UUID = {
         cfg match {
-            case null => null;
+            case null => null
             case _ => cfg.outboundFilter
         }
     }

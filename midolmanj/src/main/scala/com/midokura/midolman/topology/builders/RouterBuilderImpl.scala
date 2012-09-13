@@ -28,6 +28,8 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     private val routes = new scala.collection.mutable.HashSet[Route]()
 
     def setArpCache(table: ArpCache) {
+        if (arpCache != null)
+            throw new RuntimeException("RouterBuilder: attempt to re-set arp cache")
         if (table != null)
             arpCache = table
     }

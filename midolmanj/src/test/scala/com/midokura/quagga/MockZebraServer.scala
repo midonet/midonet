@@ -8,17 +8,17 @@ package com.midokura.quagga
 
 import org.slf4j.LoggerFactory
 
-class MockZebraServer extends ZebraServer {
+class MockZebraServer extends ZebraServerService {
     private final val log = LoggerFactory.getLogger(this.getClass)
     private var run = false
 
 
-    def start() {
+    override def start() {
         run = true
         log.info("start")
     }
 
-    def stop() {
+    override def stop() {
         log.info("stop")
         run = false
     }
