@@ -10,6 +10,7 @@ import java.util.UUID;
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoHost;
+import com.midokura.midonet.client.dto.DtoHostInterfacePort;
 import com.midokura.midonet.client.dto.DtoInterface;
 
 /**
@@ -49,6 +50,7 @@ public class Host extends ResourceBase<Host, DtoHost> {
         return principalDto.isAlive();
     }
 
+
     public ResourceCollection<HostInterface> getInterfaces() {
         return getChildResources(
             principalDto.getInterfaces(), null,
@@ -56,11 +58,15 @@ public class Host extends ResourceBase<Host, DtoHost> {
             HostInterface.class, DtoInterface.class);
     }
 
-    //TODO get and add interface port map
-//    }
-//
-//    public URI getInterfacePortMap() {
-//        return principalDto.getInterfacePortMap();
-//    }
+    public ResourceCollection<HostInterfacePort> getPorts() {
+        return getChildResources(
+            principalDto.getPorts(), null,
+            VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+            HostInterfacePort.class, DtoHostInterfacePort.class);
+    }
 
+    public HostInterfacePort addHostInterfacePort() {
+        return new HostInterfacePort(resource, principalDto.getPorts(),
+                                     new DtoHostInterfacePort());
+    }
 }
