@@ -6,10 +6,14 @@ package com.midokura.midonet.cluster;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.midokura.packets.MAC;
+import com.midokura.util.functors.Callback2;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -186,12 +190,30 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     }
 
 
-    class ArpCacheImpl implements ArpCache {
+    class ArpCacheImpl implements ArpCache,
+            ArpTable.Watcher<IntIPv4, ArpCacheEntry> {
 
         ArpTable arpTable;
+        private final List<Callback2<IntIPv4, MAC>> listeners =
+                        new LinkedList<Callback2<IntIPv4, MAC>>();
 
         ArpCacheImpl(ArpTable arpTable) {
             this.arpTable = arpTable;
+            this.arpTable.addWatcher(this);
+        }
+
+        @Override
+        public void processChange(IntIPv4 key, ArpCacheEntry oldV,
+                                               ArpCacheEntry newV) {
+            if (oldV == null && newV == null)
+                return;
+            if (newV != null && oldV != null && newV.macAddr.equals(oldV.macAddr))
+                return;
+
+            synchronized (listeners) {
+                for (Callback2<IntIPv4, MAC> cb: listeners)
+                    cb.call(key, (newV != null) ? newV.macAddr : null);
+            }
         }
 
         @Override
@@ -231,6 +253,12 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 }});
         }
 
-    }
+        @Override
+        public void notify(Callback2<IntIPv4, MAC> cb) {
+            synchronized (listeners) {
+                listeners.add(cb);
+            }
+        }
 
+    }
 }
