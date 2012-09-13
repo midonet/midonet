@@ -414,7 +414,7 @@ public class Router implements ForwardingElement {
         log.debug("Packet context {} passed pre-routing in router {}",
                   fwdInfo, this);
         // Do a routing table lookup.
-        Route rt = loadBalancer.lookup(res.match);
+        Route rt = loadBalancer.lookup(res.pmatch);
         if (null == rt) {
             sendICMPforLocalPkt(fwdInfo, UNREACH_CODE.UNREACH_NET);
             fwdInfo.action = Action.DROP;
@@ -448,7 +448,7 @@ public class Router implements ForwardingElement {
                 rt.nextHopPort });
         fwdInfo.outPortId = rt.nextHopPort;
         res = ruleEngine.applyChain(myConfig.outboundFilter, fwdInfo,
-                                    res.match, this.routerId, false);
+                                    res.pmatch, this.routerId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(routerId);
         if (res.action.equals(RuleResult.Action.DROP)) {
@@ -464,7 +464,7 @@ public class Router implements ForwardingElement {
             throw new RuntimeException("Post-routing returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
 
-        fwdInfo.matchOut = res.match;
+        fwdInfo.matchOut = res.pmatch;
         RouterPortConfig outPortCfg = portCache.get(fwdInfo.outPortId,
                                                     RouterPortConfig.class);
         if (null == outPortCfg) {

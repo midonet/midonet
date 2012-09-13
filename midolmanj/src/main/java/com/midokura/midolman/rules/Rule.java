@@ -41,7 +41,7 @@ public abstract class Rule implements Comparable<Rule> {
     private void setCondition(Condition cond) { this.condition = cond; }
 
     /**
-     * If the packet specified by res.match matches this rule's condition,
+     * If the packet specified by res.pmatch matches this rule's condition,
      * apply the rule.
      *
      * @param fwdInfo
@@ -56,7 +56,7 @@ public abstract class Rule implements Comparable<Rule> {
      */
     public void process(ChainPacketContext fwdInfo, RuleResult res,
                         NatMapping natMapping, boolean isPortFilter) {
-        if (condition.matches(fwdInfo, res.match, isPortFilter))
+        if (condition.matches(fwdInfo, res.pmatch, isPortFilter))
             apply(fwdInfo.getFlowMatch(), res, natMapping);
     }
 
@@ -65,7 +65,7 @@ public abstract class Rule implements Comparable<Rule> {
     }
 
     /**
-     * Apply this rule to the packet specified by res.match.
+     * Apply this rule to the packet specified by res.pmatch.
      *
      * @param flowMatch
      *            matches the packet that originally entered the datapath. It

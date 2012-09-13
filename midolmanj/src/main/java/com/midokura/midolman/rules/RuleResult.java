@@ -17,14 +17,14 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
-    public PacketMatch match;
+    public PacketMatch pmatch;
     public boolean trackConnection;
 
     public RuleResult(Action action, UUID jumpToChain, PacketMatch match,
             boolean trackConnection) {
         this.action = action;
         this.jumpToChain = jumpToChain;
-        this.match = match;
+        this.pmatch = match;
         this.trackConnection = trackConnection;
     }
 
@@ -35,8 +35,8 @@ public class RuleResult {
             hash = hash * 13 + action.hashCode();
         if (null != jumpToChain)
             hash = hash * 11 + jumpToChain.hashCode();
-        if (null != match)
-            hash = hash * 17 + match.hashCode();
+        if (null != pmatch)
+            hash = hash * 17 + pmatch.hashCode();
         int bHash = trackConnection ? 1231 : 1237;
         return hash * 19 + bHash;
     }
@@ -60,10 +60,10 @@ public class RuleResult {
         } else if (!jumpToChain.equals(res.jumpToChain)) {
             return false;
         }
-        if (match == null || res.match == null) {
-            if (match != res.match)
+        if (pmatch == null || res.pmatch == null) {
+            if (pmatch != res.pmatch)
                 return false;
-        } else if (!match.equals(res.match)) {
+        } else if (!pmatch.equals(res.pmatch)) {
             return false;
         }
         return trackConnection == res.trackConnection;
@@ -71,7 +71,8 @@ public class RuleResult {
 
     @Override
     public String toString() {
-        return "RuleResult [action=" + action + ", jumpToChain=" + jumpToChain + ", match=" + match
-                + ", trackConnection=" + trackConnection + "]";
+        return "RuleResult [action=" + action + ", jumpToChain=" + jumpToChain +
+               ", pmatch=" + pmatch + ", trackConnection=" + trackConnection +
+               "]";
     }
 }

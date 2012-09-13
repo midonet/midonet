@@ -75,37 +75,38 @@ public class ForwardNatRule extends NatRule {
                           NatMapping natMapping) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.match.setNetworkDestination(floatingIpAddr);
+            res.pmatch.setNetworkDestination(floatingIpAddr);
             res.action = action;
             return;
         }
         // Don't attempt to do port translation on anything but udp/tcp
-        byte nwProto = res.match.getNetworkProtocol();
+        byte nwProto = res.pmatch.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
             return;
 
-        NwTpPair conn = natMapping.lookupDnatFwd(res.match.getNetworkSource(),
-                res.match.getTransportSource(), res.match
-                        .getNetworkDestination(), res.match
-                        .getTransportDestination(), flowMatch);
+        NwTpPair conn = natMapping.lookupDnatFwd(
+                res.pmatch.getNetworkSource(),
+                res.pmatch.getTransportSource(),
+                res.pmatch.getNetworkDestination(),
+                res.pmatch.getTransportDestination(), flowMatch);
         if (null == conn)
-            conn = natMapping.allocateDnat(res.match.getNetworkSource(),
-                    res.match.getTransportSource(),
-                    res.match.getNetworkDestination(),
-                    res.match.getTransportDestination(), targets, flowMatch);
+            conn = natMapping.allocateDnat(res.pmatch.getNetworkSource(),
+                    res.pmatch.getTransportSource(),
+                    res.pmatch.getNetworkDestination(),
+                    res.pmatch.getTransportDestination(), targets, flowMatch);
         else
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
                     IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                    res.match.getTransportSource() & USHORT,
-                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                    res.match.getTransportDestination() & USHORT });
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
+                    res.pmatch.getTransportSource() & USHORT,
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
+                    res.pmatch.getTransportDestination() & USHORT });
         // TODO(pino): deal with case that conn couldn't be allocated.
-        res.match.setNetworkDestination(conn.nwAddr);
-        res.match.setTransportDestination(conn.tpPort);
+        res.pmatch.setNetworkDestination(conn.nwAddr);
+        res.pmatch.setTransportDestination(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
     }
@@ -124,41 +125,42 @@ public class ForwardNatRule extends NatRule {
                           NatMapping natMapping) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
-                    IPv4.fromIPv4Address(res.match.getNetworkSource()),
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.match.setNetworkSource(floatingIpAddr);
+            res.pmatch.setNetworkSource(floatingIpAddr);
             res.action = action;
             return;
         }
         // Don't attempt to do port translation on anything but udp/tcp
-        byte nwProto = res.match.getNetworkProtocol();
+        byte nwProto = res.pmatch.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
             return;
 
-        NwTpPair conn = natMapping.lookupSnatFwd(res.match.getNetworkSource(),
-                res.match.getTransportSource(), res.match
-                        .getNetworkDestination(), res.match
-                        .getTransportDestination(), flowMatch);
+        NwTpPair conn = natMapping.lookupSnatFwd(
+                res.pmatch.getNetworkSource(),
+                res.pmatch.getTransportSource(),
+                res.pmatch.getNetworkDestination(),
+                res.pmatch.getTransportDestination(), flowMatch);
         if (null == conn)
-            conn = natMapping.allocateSnat(res.match.getNetworkSource(),
-                    res.match.getTransportSource(),
-                    res.match.getNetworkDestination(),
-                    res.match.getTransportDestination(), targets, flowMatch);
+            conn = natMapping.allocateSnat(res.pmatch.getNetworkSource(),
+                    res.pmatch.getTransportSource(),
+                    res.pmatch.getNetworkDestination(),
+                    res.pmatch.getTransportDestination(), targets, flowMatch);
         else
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
                     IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                    res.match.getTransportSource() & USHORT,
-                    IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                    res.match.getTransportDestination() & USHORT});
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
+                    res.pmatch.getTransportSource() & USHORT,
+                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
+                    res.pmatch.getTransportDestination() & USHORT});
 
         if (conn == null) {
             log.error("Could not allocate Snat");
             return;
         }
-        res.match.setNetworkSource(conn.nwAddr);
-        res.match.setTransportSource(conn.tpPort);
+        res.pmatch.setNetworkSource(conn.nwAddr);
+        res.pmatch.setTransportSource(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
     }

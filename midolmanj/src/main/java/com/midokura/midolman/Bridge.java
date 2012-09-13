@@ -212,7 +212,7 @@ public class Bridge implements ForwardingElement {
 
         // Apply post-bridging rules.
         res = chainEngine.applyChain(myConfig.outboundFilter, fwdInfo,
-                res.match, this.bridgeId, false);
+                res.pmatch, this.bridgeId, false);
         if (res.trackConnection)
             fwdInfo.addRemovalNotification(bridgeId);
         if (res.action.equals(RuleResult.Action.DROP) ||

@@ -43,7 +43,7 @@ public class ReverseNatRule extends NatRule {
     public void apply(PacketMatch flowMatch, RuleResult res,
                       NatMapping natMapping) {
         // Don't attempt to do port translation on anything but udp/tcp
-        byte nwProto = res.match.getNetworkProtocol();
+        byte nwProto = res.pmatch.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
             return;
 
@@ -61,40 +61,44 @@ public class ReverseNatRule extends NatRule {
     private void applyReverseDnat(RuleResult res, NatMapping natMapping) {
         if (null == natMapping)
             return;
-        NwTpPair origConn = natMapping.lookupDnatRev(res.match
-                .getNetworkDestination(), res.match.getTransportDestination(),
-                res.match.getNetworkSource(), res.match.getTransportSource());
+        NwTpPair origConn = natMapping.lookupDnatRev(
+                res.pmatch.getNetworkDestination(),
+                res.pmatch.getTransportDestination(),
+                res.pmatch.getNetworkSource(),
+                res.pmatch.getTransportSource());
         if (null == origConn)
             return;
         log.debug("Found reverse DNAT. Use SRC {}:{} for flow from {}:{} to "
                 + "{}:{}", new Object[] {
                 IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
-                IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                res.match.getTransportSource() & USHORT,
-                IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                res.match.getTransportDestination() & USHORT });
-        res.match.setNetworkSource(origConn.nwAddr);
-        res.match.setTransportSource(origConn.tpPort);
+                IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
+                res.pmatch.getTransportSource() & USHORT,
+                IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
+                res.pmatch.getTransportDestination() & USHORT });
+        res.pmatch.setNetworkSource(origConn.nwAddr);
+        res.pmatch.setTransportSource(origConn.tpPort);
         res.action = action;
     }
 
     private void applyReverseSnat(RuleResult res, NatMapping natMapping) {
         if (null == natMapping)
             return;
-        NwTpPair origConn = natMapping.lookupSnatRev(res.match
-                .getNetworkDestination(), res.match.getTransportDestination(),
-                res.match.getNetworkSource(), res.match.getTransportSource());
+        NwTpPair origConn = natMapping.lookupSnatRev(
+                res.pmatch.getNetworkDestination(),
+                res.pmatch.getTransportDestination(),
+                res.pmatch.getNetworkSource(),
+                res.pmatch.getTransportSource());
         if (null == origConn)
             return;
         log.debug("Found reverse SNAT. Use DST {}:{} for flow from {}:{} to "
                 + "{}:{}", new Object[] {
                 IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
-                IPv4.fromIPv4Address(res.match.getNetworkSource()),
-                res.match.getTransportSource() & USHORT,
-                IPv4.fromIPv4Address(res.match.getNetworkDestination()),
-                res.match.getTransportDestination() & USHORT });
-        res.match.setNetworkDestination(origConn.nwAddr);
-        res.match.setTransportDestination(origConn.tpPort);
+                IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
+                res.pmatch.getTransportSource() & USHORT,
+                IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
+                res.pmatch.getTransportDestination() & USHORT });
+        res.pmatch.setNetworkDestination(origConn.nwAddr);
+        res.pmatch.setTransportDestination(origConn.tpPort);
         res.action = action;
     }
 

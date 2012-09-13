@@ -658,7 +658,7 @@ public class VRNController extends AbstractController
                     portCfg.outboundFilter,
                     new EgressPacketContext(pktMatch, traversedElementIDs),
                     pktMatch, portID, true);
-            if (!mmatch.equals(result.match)) {
+            if (!mmatch.equals(result.pmatch)) {
                 log.warn("Outbound port filter {} attempted to change " +
                          "flooded packet.", portCfg.outboundFilter);
             }

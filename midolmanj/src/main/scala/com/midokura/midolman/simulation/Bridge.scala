@@ -11,6 +11,7 @@ import scala.collection.{Map => ROMap}
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
+import com.midokura.midolman.rules.RuleResult.Action
 import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.topology.{MacFlowCount,
                                        RemoveFlowCallbackGenerator}
@@ -27,7 +28,7 @@ class Bridge(val id: UUID, val greKey: Long,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: ROMap[MAC, UUID],
              val rtrIpToMac: ROMap[IntIPv4, MAC])
-             (implicit val actorSystem: ActorSystem) extends Device {
+            (implicit val actorSystem: ActorSystem) extends Device {
 
     val log = Logging(actorSystem, this.getClass)
     log.info("Bridge being built.")
@@ -47,23 +48,41 @@ class Bridge(val id: UUID, val greKey: Long,
 
     def normalProcess(ingressMatch: WildcardMatch, packet: Ethernet,
                       packetContext: PacketContext, expiry: Long,
-                      ec: ExecutionContext) = {
+                      ec: ExecutionContext): Future[Coordinator.Action] = {
         val srcDlAddress = ingressMatch.getEthernetSource
         val dstDlAddress = ingressMatch.getEthernetDestination
 
         var outPortID: Future[UUID] = null
 
         // Call ingress (pre-bridging) chain
+        // TODO: Verify with Pino that this is how the ingress port is
+        // communicated to the FE, as it's not an argument to process().
+        packetContext.inPortID = ingressMatch.getInputPortUUID
+        packetContext.outPortID = null
         val preBridgeResult = Chain.apply(inFilter, packetContext, ingressMatch,
                                           id, false)
-        //XXX
+        if (preBridgeResult.action == Action.DROP ||
+                preBridgeResult.action == Action.REJECT) {
+            // TOOD: Do something more for REJECT?
+            return Promise.successful(new DropAction)(ec)
+        } else if (preBridgeResult.action != Action.ACCEPT) {
+            log.error("Pre-bridging for {} returned an action which was {}, " +
+                      "not ACCEPT, DROP, or REJECT.", id,
+                      preBridgeResult.action)
+        }
+        if (!(preBridgeResult.pmatch.isInstanceOf[WildcardMatch])) {
+            log.error("Pre-bridging for {} returned a match which was {}, " +
+                      "not a WildcardMatch.", id, preBridgeResult.pmatch)
+            return Promise.successful(new DropAction)(ec)
+        }
+        val preBridgeMatch = preBridgeResult.pmatch.asInstanceOf[WildcardMatch]
 
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
             // L2 Multicast
-            val nwDst = ingressMatch.getNetworkDestinationIPv4
+            val nwDst = preBridgeMatch.getNetworkDestinationIPv4
             if (Ethernet.isBroadcast(dstDlAddress) &&
-                    ingressMatch.getEtherType == ARP.ETHERTYPE &&
+                    preBridgeMatch.getEtherType == ARP.ETHERTYPE &&
                     rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 val rtrMAC: MAC = rtrIpToMac.get(nwDst).get
@@ -103,25 +122,43 @@ class Bridge(val id: UUID, val greKey: Long,
 
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
-            flowCount.increment(srcDlAddress, ingressMatch.getInputPortUUID)
+            flowCount.increment(srcDlAddress, preBridgeMatch.getInputPortUUID)
             packetContext.addFlowRemovedCallback(
                         flowRemovedCallbackGen.getCallback(srcDlAddress,
-                                ingressMatch.getInputPortUUID))
+                                preBridgeMatch.getInputPortUUID))
             // Pass the tag to be used to index the flow
-            val tag = (id, srcDlAddress, ingressMatch.getInputPortUUID)
+            val tag = (id, srcDlAddress, preBridgeMatch.getInputPortUUID)
             packetContext.addFlowTag(tag)
             // Any flow invalidations caused by MACs migrating between ports
             // are done by the BridgeManager, which detects them from the
             // flowCount.increment call.
         }
 
-        //XXX: apply egress (post-bridging) chain
-
         //XXX: Add to traversed elements list if flooding.
 
-        outPortID map {
-            case null => ToPortSetAction(id, ingressMatch)
-            case portID: UUID => ToPortAction(portID, ingressMatch)
+        flow {
+            // apply egress (post-bridging) chain
+            packetContext.outPortID = outPortID()
+            val postBridgeResult = Chain.apply(outFilter, packetContext,
+                                               preBridgeMatch, id, false)
+            if (postBridgeResult.action == Action.DROP ||
+                    postBridgeResult.action == Action.REJECT) {
+                // TOOD: Do something more for REJECT?
+                new DropAction
+            } else if (postBridgeResult.action != Action.ACCEPT) {
+                log.error("Post-bridging for {} returned an action which was " +
+                          "{}, not ACCEPT, DROP, or REJECT.", id,
+                          postBridgeResult.action)
+                new DropAction
+            } else {
+                val postBridgeMatch = 
+                        postBridgeResult.pmatch.asInstanceOf[WildcardMatch]
+
+                packetContext.outPortID match {
+                    case null => ToPortSetAction(id, postBridgeMatch)
+                    case portID: UUID => ToPortAction(portID, postBridgeMatch)
+                }
+            }
         }
     }
 

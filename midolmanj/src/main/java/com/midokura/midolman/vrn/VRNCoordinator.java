@@ -334,11 +334,11 @@ public class VRNCoordinator implements ForwardingElement {
         if (!result.action.equals(RuleResult.Action.ACCEPT))
             throw new RuntimeException("Port's filter returned an action other "
                     + "than ACCEPT, DROP or REJECT.");
-        if (!pktMatch.equals(result.match)) {
+        if (!pktMatch.equals(result.pmatch)) {
             if (inbound)
-                fwdInfo.matchIn = (MidoMatch) result.match;
+                fwdInfo.matchIn = (MidoMatch) result.pmatch;
             else
-                fwdInfo.matchOut = result.match;
+                fwdInfo.matchOut = result.pmatch;
         }
     }
 }
