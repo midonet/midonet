@@ -143,6 +143,7 @@ object ZebraProtocol {
     }
 
     final def recvHeader(in: DataInputStream): (Short, Int) = {
+        // this is blocking
         val length = in.readUnsignedShort
         assert(length <= ZebraMaxPayloadSize)
         val headerMarker = in.readByte

@@ -120,8 +120,9 @@ class TestZebraServer {
         socketFile.delete()
         val server = AFUNIXServerSocket.newInstance
         val address = new AFUNIXSocketAddress(socketFile)
-        zebra = new ZebraServerImpl(
-            server, address,
+        zebra = new ZebraServer(
+            //server,
+            address,
             new ZebraProtocolHandler {
                 def removeRoute(ribType: RIBType.Value, destination: IntIPv4,
                                 gateway: IntIPv4) {}

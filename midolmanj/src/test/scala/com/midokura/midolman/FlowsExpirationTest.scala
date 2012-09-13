@@ -25,6 +25,9 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     var eventProbe: TestProbe = null
     var datapath: Datapath = null
 
+    val timeOutFlow = 50
+    val delayAsynchAddRemoveInDatapath = 20
+
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config.setProperty("max_flow_count", "3")
@@ -33,15 +36,16 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
 
     override def before() {
         newHost("myself", hostId())
+        eventProbe = newProbe()
+        actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowRemoved])
+        actors().eventStream.subscribe(eventProbe.ref, classOf[CheckFlowExpiration])
 
         initializeDatapath() should not be (null)
 
         val datapath = requestOfType[DatapathController.DatapathReady](flowProbe()).datapath
         datapath should not be (null)
 
-        eventProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowRemoved])
     }
 
     def testHardTimeExpiration() {
@@ -54,25 +58,26 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         val wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setActions(List().toList)
-            .setHardExpirationMillis(50)
+            .setHardExpirationMillis(timeOutFlow)
 
         val packet = new Packet().setMatch(flowMatch)
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(packet), null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
-        Thread.sleep(50)
+        Thread.sleep(delayAsynchAddRemoveInDatapath)
 
         var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
         dpFlow should not be (null)
 
-        flowProbe().testActor.tell(CheckFlowExpiration())
+        //flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        Thread.sleep(50)
+        Thread.sleep(delayAsynchAddRemoveInDatapath)
 
         dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
         dpFlow should be (null)
+
     }
 
     def testIdleTimeExpiration() {
@@ -85,24 +90,65 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         val wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setActions(List().toList)
-            .setIdleExpirationMillis(50)
+            .setIdleExpirationMillis(timeOutFlow)
 
         val packet = new Packet().setMatch(flowMatch)
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(packet), null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
-        Thread.sleep(50)
+        Thread.sleep(delayAsynchAddRemoveInDatapath)
 
         var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
         dpFlow should not be (null)
 
-        flowProbe().testActor.tell(CheckFlowExpiration())
+        //flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        Thread.sleep(50)
+        Thread.sleep(delayAsynchAddRemoveInDatapath)
 
         dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
         dpFlow should be (null)
+    }
+
+    def testIdleTimeExpirationUpdated() {
+
+        val flowMatch = new FlowMatch()
+            .addKey(FlowKeys.tunnelID(10l))
+
+        var wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
+
+        val wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .setActions(List().toList)
+            .setIdleExpirationMillis(timeOutFlow)
+
+        val packet = new Packet().setMatch(flowMatch)
+        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(packet), null, null))
+        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        Thread.sleep(timeOutFlow/2)
+
+        // let's add send packet that match the flow
+        flowMatch.addKey(FlowKeys.tcp(1000,1002))
+        wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
+        wildcardFlow.setMatch(wildcardMatch)
+
+        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(packet), null, null))
+        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+
+        Thread.sleep(timeOutFlow/2)
+
+        // the flow was updated, so it didn't expire
+        var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
+        dpFlow should not be (null)
+
+        eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
+        dpFlow should be (null)
+
+
     }
 }

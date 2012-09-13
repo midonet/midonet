@@ -15,7 +15,7 @@ import collection.mutable
 import java.io.{IOException, File}
 import org.newsclub.net.unix.{AFUNIXSocketAddress, AFUNIXServerSocket}
 import com.midokura.quagga.{BgpConnection, BgpVtyConnection,
-                            ZebraServer, ZebraServerImpl}
+                            ZebraServer}
 import com.midokura.midolman.{PortOperation, DatapathController, FlowController}
 import com.midokura.midolman.util.Sudo
 import akka.util.Duration
@@ -72,7 +72,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     private final val BGP_VTY_PORT: Int = 26050 + bgpIdx
     private final val BGP_TCP_PORT: Short = 179
 
-    private var zebra: ZebraServerImpl = null
+    private var zebra: ZebraServer = null
     private var bgpVty: BgpConnection = null
 
     private val bgps = mutable.Map[UUID, BGP]()
@@ -181,7 +181,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     case NotStarted =>
                         // This must be the first bgp we learn about.
                         bgps.put(bgp.getId, bgp)
-                        startBGP
+                        startBGP()
                         phase = Starting
                     case Starting =>
                         stash()
@@ -292,7 +292,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         }
     }
 
-    private def startBGP() = {
+    private def startBGP() {
         val socketFile = new File(ZSERVE_API_SOCKET)
         val socketDir = socketFile.getParentFile
         if (!socketDir.exists()) {
@@ -304,11 +304,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         if (socketFile.exists())
             socketFile.delete()
 
-        val server = AFUNIXServerSocket.newInstance()
+        // not needed anymore
+        //val server = AFUNIXServerSocket.newInstance()
         val address = new AFUNIXSocketAddress(socketFile)
 
-        zebra = new ZebraServerImpl(
-            server, address, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
+        zebra = new ZebraServer(
+            //server,  // not needed anymore
+            address, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
         zebra.start()
 
         bgpVty = new BgpVtyConnection(
