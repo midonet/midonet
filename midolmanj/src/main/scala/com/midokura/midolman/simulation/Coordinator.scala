@@ -2,7 +2,10 @@
 
 package com.midokura.midolman.simulation
 
-import collection.{Set => ROSet}   // read-only view
+import collection.{Set => ROSet}
+import akka.event.LogSource
+
+// read-only view
 import collection.mutable
 import compat.Platform
 import util.continuations.cps
@@ -42,8 +45,11 @@ object Coordinator {
     // TODO:       remove NotIPv4Action
     case class NotIPv4Action() extends Action
     case class ConsumedAction() extends Action
-    case class ForwardAction(outPort: UUID,
-                             outMatch: WildcardMatch) extends Action
+    abstract case class ForwardAction() extends Action
+    case class ToPortAction(outPort: UUID,
+                            outMatch: WildcardMatch) extends ForwardAction
+    case class ToPortSetAction(portSetID: UUID,
+                               outMatch: WildcardMatch) extends ForwardAction
 
     class PacketContext extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
@@ -178,8 +184,8 @@ object Coordinator {
                 (implicit ec: ExecutionContext,
                  actorSystem: ActorSystem): Unit = {
 
-        //val log = akka.event.Logging(actorSystem, Coordinator.getClass)
-        //log.debug("Simulate a packet.")
+        val log = akka.event.Logging(actorSystem, "pino")
+        log.info("Simulate a packet.")
 
         val datapathController = DatapathController.getRef(actorSystem)
 
@@ -257,65 +263,72 @@ object Coordinator {
 
         val pktContext = new PacketContext {}
 
+        log.info("Enter the flow block.")
         flow {
             // depth of devices traversed in the simulation
             var depth: Int = 0
-            var currentIngressPort = currentIngressPortFuture.apply
-
+            var currentIngressPort = currentIngressPortFuture()
+            log.info("Enter the device simulation loop.")
             while (currentIngressPort != null) {
                 // TODO(pino): check for too long loop
-                val ingressDeviceID: UUID = currentIngressPort.deviceID
                 // TODO(pino): apply the port's input filter.
+                log.info("Find the ingress port's device.")
                 val currentDevice = deviceOfPort(currentIngressPort,
                                                  virtualTopologyManager,
                                                  expiry)
-                val action = currentDevice().process(
-                    currentMatch, origEthernetPkt, pktContext, expiry).apply
+                val dev = currentDevice()
+                log.info("Simulate a device.")
+                val actionFuture = dev.process(
+                    currentMatch, origEthernetPkt, pktContext, expiry)
+                log.info("We have the action future.")
+                val action = actionFuture()
+                log.info("The device returned action {}", action)
 
-                if (!action.isInstanceOf[ForwardAction]) {
-                    currentIngressPort == null
+                action match {
+                    case ToPortSetAction(portSetID, wildMatch) =>
+                        datapathController.tell(
+                            AddWildcardFlow(
+                                /*XXX*/ null, null, null, null))
+                        (): Unit @cps[Future[Any]]
 
-                    handleNonForwardAction(action, isInternallyGenerated,
-                                           origMatch, datapathController,
-                                           flowController)
-                    (): Unit @cps[Future[Any]]
-                } else {
-                    // action is a ForwardAction
-                    val outPortID = action.asInstanceOf[ForwardAction].outPort
-                    val outMatch = action.asInstanceOf[ForwardAction].outMatch
-
-                    // TODO(pino): apply the port's output filter
-                    expiringAsk(virtualTopologyManager,
-                                PortRequest(outPortID, false),
-                                expiry).mapTo[Port[_]].apply match {
-                        case _: ExteriorPort[_] =>
-                            // TODO(pino): Compute actions from matches' diff.
-                            val pkt = new Packet()
-                                .setData(origEthernetPkt.serialize())
-                                .addAction(new FlowActionOutputToVrnPort(
-                                                generatedPacketEgressPort))
-                            if (isInternallyGenerated) {
-                                datapathController.tell(
-                                    SendPacket(/*XXX*/null, null))
-                            } else {
-                                datapathController.tell(
-                                    AddWildcardFlow(
-                                        /*XXX*/ null, null, null, null))
-                                // Connection-tracking blob
-                            }
-                            currentIngressPort = null
-                        case interiorPort: InteriorPort[_] =>
-                            val peerID = interiorPort.peerID
-                            currentIngressPort =
-                                expiringAsk(virtualTopologyManager,
-                                            PortRequest(peerID, false),
-                                            expiry).mapTo[Port[_]].apply
-                        case port =>
-                            throw new RuntimeException(("Port %s neither " +
-                                "interior nor exterior port") format
+                    case ToPortAction(outPortID, outMatch) =>
+                        // TODO(pino): apply the port's output filter
+                        expiringAsk(virtualTopologyManager,
+                            PortRequest(outPortID, false),
+                            expiry).mapTo[Port[_]].apply match {
+                            case _: ExteriorPort[_] =>
+                                // TODO(pino): Compute actions from matches' diff.
+                                val pkt = new Packet()
+                                    .setData(origEthernetPkt.serialize())
+                                    .addAction(new FlowActionOutputToVrnPort(
+                                    generatedPacketEgressPort))
+                                if (isInternallyGenerated) {
+                                    datapathController.tell(
+                                        SendPacket(/*XXX*/null, null))
+                                } else {
+                                    // Connection-tracking blob
+                                }
+                                currentIngressPort = null
+                            case interiorPort: InteriorPort[_] =>
+                                val peerID = interiorPort.peerID
+                                currentIngressPort =
+                                    expiringAsk(virtualTopologyManager,
+                                        PortRequest(peerID, false),
+                                        expiry).mapTo[Port[_]].apply
+                            case port =>
+                                throw new RuntimeException(("Port %s neither " +
+                                    "interior nor exterior port") format
                                     port.id.toString)
-                    } // end 'port match'
-                } // end if action.isInstanceOf
+                        } // end 'expiring ask match'
+
+                    case _ =>
+                        currentIngressPort == null
+
+                        handleNonForwardAction(action, isInternallyGenerated,
+                            origMatch, datapathController,
+                            flowController)
+                        (): Unit @cps[Future[Any]]
+                } // end action match
             } // end while loop
         }(ec) // end flow block
     } // end simulate method

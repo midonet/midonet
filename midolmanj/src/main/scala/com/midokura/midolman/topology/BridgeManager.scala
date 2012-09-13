@@ -65,6 +65,8 @@ object BridgeManager {
 //TODO(ross) handle portset?
 class BridgeManager(id: UUID, val clusterClient: Client)
         extends DeviceManager(id) {
+    implicit val system = context.system
+
     private var cfg: BridgeConfig = null
 
     private var macPortMap: MacLearningTable = null

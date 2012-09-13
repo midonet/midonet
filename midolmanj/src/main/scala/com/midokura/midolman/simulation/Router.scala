@@ -27,7 +27,6 @@ import com.midokura.midolman.simulation.Coordinator.ConsumedAction
 import com.midokura.midolman.simulation.Coordinator.DropAction
 import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
-import com.midokura.midolman.simulation.Coordinator.ForwardAction
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.util.functors.Callback1
 
@@ -197,7 +196,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 new DropAction: Action
             } else {
                 matchOut.setEthernetDestination(nextHopMac)
-                new ForwardAction(rt.nextHopPort, matchOut): Action
+                new ToPortAction(rt.nextHopPort, matchOut): Action
             }
         }(ec)
     }

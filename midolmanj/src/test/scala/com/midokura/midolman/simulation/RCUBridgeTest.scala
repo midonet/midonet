@@ -39,7 +39,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
             def call() {}
         }
     }
-    val system = ActorSystem.create("RCUBridgeTest")
+    implicit val system = ActorSystem.create("RCUBridgeTest")
     private val rtr1mac = MAC.fromString("0a:43:02:34:06:01")
     private val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
     private val rtr1ip = IntIPv4.fromString("143.234.60.1")
@@ -70,7 +70,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ForwardAction(port, mmatch) =>
+            case Coordinator.ToPortSetAction(port, mmatch) =>
                 assert(port === bridgeID)
                 assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
@@ -91,7 +91,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ForwardAction(port, mmatch) =>
+            case Coordinator.ToPortAction(port, mmatch) =>
                 assert(port === learnedPort)
                 assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
@@ -112,7 +112,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ForwardAction(port, mmatch) =>
+            case Coordinator.ToPortSetAction(port, mmatch) =>
                 assert(port === bridgeID)
                 assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
@@ -135,7 +135,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ForwardAction(port, mmatch) =>
+            case Coordinator.ToPortAction(port, mmatch) =>
                 assert(port === rtr1port)
                 assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
