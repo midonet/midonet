@@ -35,7 +35,7 @@ import com.midokura.util.functors.Callback1
 trait ArpTable {
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
           (implicit ec: ExecutionContext, actorSystem: ActorSystem): Future[MAC]
-    def set(ip: IntIPv4, mac: MAC)
+    def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem)
 }
 
 class Router(val id: UUID, val cfg: RouterConfig,
@@ -250,8 +250,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
             inPort.id, eth)
     }
 
-    private def processArpReply(pkt: ARP, portID: UUID,
-                                rtrPort: RouterPort[_]) {
+    private def processArpReply(pkt: ARP, portID: UUID, rtrPort: RouterPort[_])
+                               (implicit actorSystem: ActorSystem) {
         // Verify the reply:  It's addressed to our MAC & IP, and is about
         // the MAC for an IPv4 address.
         if (pkt.getHardwareType != ARP.HW_TYPE_ETHERNET ||
@@ -688,15 +688,18 @@ class Router(val id: UUID, val cfg: RouterConfig,
             }(ec)
         }
 
-        def set(ip: IntIPv4, mac: MAC) {
+        def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
             arpWaiters.remove(ip) match {
                     case Some(waiters) => waiters map { _ success mac}
                     case None =>
             }
             val now = Platform.currentTime
-            val entry = new ArpCacheEntry(mac, now + ARP_STALE_MILLIS,
-                                          now + ARP_EXPIRATION_MILLIS, 0)
+            val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
+                                          now + ARP_STALE_MILLIS, 0)
             arpCache.add(ip, entry)
+            val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                TimeUnit.MILLISECONDS)
+            actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
         }
 
         private def makeArpRequest(srcMac: MAC, srcIP: IntIPv4, dstIP: IntIPv4):
@@ -805,7 +808,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             if (entry == null) {
                 newEntry = new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
                                              now + ARP_RETRY_MILLIS, now)
-                val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                val when = Duration.create(ARP_TIMEOUT_MILLIS,
                             TimeUnit.MILLISECONDS)
                 actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
             } else {
