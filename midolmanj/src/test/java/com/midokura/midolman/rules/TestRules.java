@@ -213,34 +213,34 @@ public class TestRules {
         fwdInfo.inPortId = inPort;
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
-        int newNwSrc = argRes.match.getNetworkSource();
+        int newNwSrc = argRes.pmatch.getNetworkSource();
         Assert.assertTrue(0x0b000102 <= newNwSrc);
         Assert.assertTrue(newNwSrc <= 0x0b00010a);
-        short newTpSrc = argRes.match.getTransportSource();
+        short newTpSrc = argRes.pmatch.getTransportSource();
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         Assert.assertTrue(argRes.trackConnection);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.match.setNetworkSource(newNwSrc);
-        expRes.match.setTransportSource(newTpSrc);
-        Assert.assertTrue(expRes.match.equals(argRes.match));
+        expRes.pmatch.setNetworkSource(newNwSrc);
+        expRes.pmatch.setTransportSource(newTpSrc);
+        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
-        argRes.match = pktResponseMatch.clone();
+        argRes.pmatch = pktResponseMatch.clone();
         Assert.assertFalse(pktResponseMatch.getNetworkDestination() == newNwSrc);
-        argRes.match.setNetworkDestination(newNwSrc);
+        argRes.pmatch.setNetworkDestination(newNwSrc);
         Assert.assertFalse(pktResponseMatch.getTransportDestination() == newTpSrc);
-        argRes.match.setTransportDestination(newTpSrc);
+        argRes.pmatch.setTransportDestination(newTpSrc);
         argRes.action = null;
         argRes.trackConnection = false;
         revRule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.RETURN, argRes.action);
         // The generated response should be the mirror of the original.
-        Assert.assertTrue(pktResponseMatch.equals(argRes.match));
+        Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
         Assert.assertFalse(argRes.trackConnection);
     }
 
@@ -263,35 +263,35 @@ public class TestRules {
         fwdInfo.inPortId = inPort;
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.CONTINUE, argRes.action);
-        int newNwDst = argRes.match.getNetworkDestination();
+        int newNwDst = argRes.pmatch.getNetworkDestination();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
-        short newTpDst = argRes.match.getTransportDestination();
+        short newTpDst = argRes.pmatch.getTransportDestination();
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         Assert.assertTrue(argRes.trackConnection);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.match.setNetworkDestination(newNwDst);
-        expRes.match.setTransportDestination(newTpDst);
-        Assert.assertTrue(expRes.match.equals(argRes.match));
+        expRes.pmatch.setNetworkDestination(newNwDst);
+        expRes.pmatch.setTransportDestination(newTpDst);
+        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
-        argRes.match = pktResponseMatch.clone();
+        argRes.pmatch = pktResponseMatch.clone();
         Assert.assertFalse(pktResponseMatch.getNetworkSource() == newNwDst);
-        argRes.match.setNetworkSource(newNwDst);
+        argRes.pmatch.setNetworkSource(newNwDst);
         Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
-        argRes.match.setTransportSource(newTpDst);
+        argRes.pmatch.setTransportSource(newTpDst);
         argRes.action = null;
         argRes.trackConnection = false;
         fwdInfo.inPortId = null;
         revRule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
         // The generated response should be the mirror of the original.
-        Assert.assertTrue(pktResponseMatch.equals(argRes.match));
+        Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
         Assert.assertFalse(argRes.trackConnection);
     }
 
