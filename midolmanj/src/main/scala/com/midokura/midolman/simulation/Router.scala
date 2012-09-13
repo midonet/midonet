@@ -20,7 +20,7 @@ import com.midokura.midolman.SimulationController
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
-import akka.actor.ActorSystem
+import akka.actor.{Cancellable, ActorSystem}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.midolman.simulation.Coordinator.ConsumedAction
@@ -608,6 +608,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         private val arpWaiters = new mutable.HashMap[IntIPv4,
                                                  mutable.Set[Promise[MAC]]] with
                                      mutable.MultiMap[IntIPv4, Promise[MAC]]
+
         // TODO -- subscribe to ArpCache changes
 
         /**
@@ -639,12 +640,15 @@ class Router(val id: UUID, val cfg: RouterConfig,
             promise
         }
 
-        def waitForArpEntry(ip: IntIPv4, expiry: Long)
-                           (implicit ec: ExecutionContext,
-                            actorSystem: ActorSystem) : Future[MAC] = {
-            val promise = Promise[MAC]()(ec)
-            arpWaiters.addBinding(ip, promise)
-            promiseOnExpire[MAC](promise, expiry, p => removeWatcher(ip, p))
+        private def fetchArpCacheEntry(ip: IntIPv4, expiry: Long)
+            (implicit ec: ExecutionContext) : Future[ArpCacheEntry] = {
+            val promise = Promise[ArpCacheEntry]()(ec)
+            arpCache.get(ip, new Callback1[ArpCacheEntry] {
+                def call(value: ArpCacheEntry) {
+                    promise.success(value)
+                }
+            }, expiry)
+            promise
         }
 
         private def removeWatcher(ip: IntIPv4, future: Future[MAC]) {
@@ -657,18 +661,21 @@ class Router(val id: UUID, val cfg: RouterConfig,
             }
         }
 
+        def waitForArpEntry(ip: IntIPv4, expiry: Long)
+                           (implicit ec: ExecutionContext,
+                            actorSystem: ActorSystem) : Future[MAC] = {
+            val promise = Promise[MAC]()(ec)
+            arpWaiters.addBinding(ip, promise)
+            promiseOnExpire[MAC](promise, expiry, p => removeWatcher(ip, p))
+        }
+
         def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
                (implicit ec: ExecutionContext,
                 actorSystem: ActorSystem): Future[MAC] = {
-            val promise = Promise[ArpCacheEntry]()(ec)
-            arpCache.get(ip, new Callback1[ArpCacheEntry] {
-                def call(value: ArpCacheEntry) {
-                    promise.success(value)
-                }
-            }, expiry)
+            val entryFuture = fetchArpCacheEntry(ip, expiry)
             val now = Platform.currentTime
             flow {
-                val entry = promise()
+                val entry = entryFuture()
                 if (entry == null || entry.stale < now || entry.macAddr == null)
                     arpForAddress(ip, entry, port)
                 if (entry != null && entry.expiry >= now)
@@ -713,6 +720,22 @@ class Router(val id: UUID, val cfg: RouterConfig,
             pkt.setEtherType(ARP.ETHERTYPE)
         }
 
+        // XXX
+        // cancel scheduled expires when an entry is refreshed?
+        // what happens if this node crashes before
+        // expiration, is there a global clean-up task?
+        private def expireCacheEntry(ip: IntIPv4)
+                                    (implicit ec: ExecutionContext) {
+            val now = Platform.currentTime
+            val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
+            entryFuture onSuccess {
+                case entry if entry != null =>
+                    val now = Platform.currentTime
+                    if (entry.expiry <= now)
+                        arpCache.remove(ip)
+            }
+        }
+
         private def arpForAddress(ip: IntIPv4, entry: ArpCacheEntry,
                                   port: RouterPort[_])
                                  (implicit ec: ExecutionContext,
@@ -740,9 +763,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 if (cacheEntry.macAddr != null && cacheEntry.stale > now)
                     return
 
-                val newEntry = cacheEntry.clone()
-                newEntry.lastArp = now
-                arpCache.add(ip, newEntry)
+                cacheEntry.lastArp = now
+                arpCache.add(ip, cacheEntry)
                 log.debug("generateArpRequest: sending {}", arp)
                 SimulationController.getRef(actorSystem) !
                     EmitGeneratedPacket(port.id, arp)
@@ -757,14 +779,10 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
             def retryLoopTopHalf(arp: Ethernet, previous: Long) {
                 val now = Platform.currentTime
-                val promise = Promise[ArpCacheEntry]()(ec)
-                arpCache.get(ip, new Callback1[ArpCacheEntry] {
-                    def call(value: ArpCacheEntry) {
-                        promise.success(value)
-                    }
-                }, now + ARP_RETRY_MILLIS)
-                promise map {
-                    cacheEntry => retryLoopBottomHalf(cacheEntry, arp, previous)
+                val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
+                entryFuture onSuccess {
+                    case null => retryLoopBottomHalf(null, arp, previous)
+                    case e => retryLoopBottomHalf(e.clone(), arp, previous)
                 }
             }
 
@@ -782,12 +800,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
             if (entry == null) {
                 newEntry = new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
                                              now + ARP_RETRY_MILLIS, now)
-                // TODO - schedule expiration.
+                val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                            TimeUnit.MILLISECONDS)
+                actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+            } else {
+                newEntry = entry.clone()
             }
 
             val pkt = makeArpRequest(port.portMac, port.portAddr, ip)
             retryLoopBottomHalf(newEntry, pkt, 0)
         }
-    }
 
+    }
 }
