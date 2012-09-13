@@ -72,7 +72,8 @@ class FlowController extends Actor with ActorLogging {
         new HashMap[WildcardFlow, Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    val flowExpirationCheckInterval: Duration = Duration(50, TimeUnit.MILLISECONDS)
+    val flowExpirationCheckInterval: Duration = Duration(100, TimeUnit.MILLISECONDS)
+
 
     override def preStart() {
         super.preStart()
@@ -81,12 +82,6 @@ class FlowController extends Actor with ActorLogging {
 
         flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
 
-        // schedule next check for flow expiration after 20 ms and then after
-        // every flowExpirationCheckInterval ms
-        context.system.scheduler.schedule(Duration(20, TimeUnit.MILLISECONDS),
-            flowExpirationCheckInterval,
-            self,
-            CheckFlowExpiration)
     }
 
     def receive = {
@@ -95,6 +90,12 @@ class FlowController extends Actor with ActorLogging {
                 datapath = dp
                 installPacketInHook()
                 log.info("Datapath hook installed")
+                // schedule next check for flow expiration after 20 ms and then after
+                // every flowExpirationCheckInterval ms
+                context.system.scheduler.schedule(Duration(20, TimeUnit.MILLISECONDS),
+                    flowExpirationCheckInterval,
+                    self,
+                    new CheckFlowExpiration)
             }
 
         case packetIn(packet) =>
@@ -234,7 +235,9 @@ class FlowController extends Actor with ActorLogging {
                     dpMatchToPendedPackets.remove(packet.getMatch)
                 val dpFlow = new Flow().
                     setMatch(packet.getMatch).
-                    setActions(wildcardFlow.getActions)
+                    setActions(wildcardFlow.getActions).
+                    setLastUsedTime(System.currentTimeMillis())
+
 
                 datapathConnection.flowsCreate(datapath, dpFlow,
                     flowManager.getFlowCreatedCallback(dpFlow))

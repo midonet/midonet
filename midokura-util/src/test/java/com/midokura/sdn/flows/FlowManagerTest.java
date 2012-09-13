@@ -174,7 +174,6 @@ public class FlowManagerTest {
 
         flowManager.checkFlowsExpiration();
 
-
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
