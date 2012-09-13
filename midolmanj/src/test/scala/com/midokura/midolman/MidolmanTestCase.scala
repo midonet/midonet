@@ -35,6 +35,7 @@ import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.sdn.dp.{Datapath, Packet, Port}
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
+import com.sun.tools.corba.se.idl.Noop
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -79,11 +80,21 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
+
+        before()
     }
 
     after {
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
+
+        after()
     }
+
+    // These methods can be overridden by each class mixing MidolmanTestCase
+    // to add custom operations before each test and after each tests
+    protected def before() {()}
+
+    protected def after() {()}
 
     val probesByName = mutable.Map[String, TestKit]()
     val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
