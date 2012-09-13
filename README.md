@@ -103,3 +103,10 @@ virtue of being executed remotely.
 
 See the [Metrics & Monitoring document](docs/monitoring.md) for details on the
 metrics monitoring subsystem.
+
+## Intellij Tips
+If you use Intellij the following variables can be useful
+* $PROJECT_DIR$
+* $APPLICATION_HOME_DIR$
+* $MODULE_DIR$
+* $USER_HOME$

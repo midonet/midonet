@@ -6,7 +6,6 @@ package com.midokura.sdn.flows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -20,10 +19,7 @@ import com.midokura.netlink.Callback;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
-import com.midokura.sdn.dp.flows.FlowActionUserspace;
-import com.midokura.sdn.dp.flows.FlowKey;
-import com.midokura.sdn.dp.flows.FlowKeyTCP;
-import com.midokura.sdn.dp.flows.FlowKeyTunnelID;
+import com.midokura.sdn.dp.flows.FlowKeys;
 
 public class FlowManagerTest {
 
@@ -42,16 +38,13 @@ public class FlowManagerTest {
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
-        List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
-        FlowKeyTunnelID tunnelKey  = new FlowKeyTunnelID().setTunnelID(10l);
-        keys.add(tunnelKey);
-
-        FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
 
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
+            .setActions(new ArrayList<FlowAction<?>>())
             .setHardExpirationMillis(20);
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
@@ -89,16 +82,13 @@ public class FlowManagerTest {
     @Test
     public void testIdleExpiration() throws InterruptedException {
 
-        List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
-        FlowKeyTunnelID tunnelKey  = new FlowKeyTunnelID().setTunnelID(10l);
-        keys.add(tunnelKey);
-
-        FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
 
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
+            .setActions(new ArrayList<FlowAction<?>>())
             .setIdleExpirationMillis(20);
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
@@ -135,19 +125,14 @@ public class FlowManagerTest {
 
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
-        List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
-        FlowKeyTunnelID tunnelKey  = new FlowKeyTunnelID().setTunnelID(10l);
-        keys.add(tunnelKey);
 
-        FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
-        List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
-        actions.add(new FlowActionUserspace());
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setIdleExpirationMillis(20)
-            .setActions(actions);
+            .setActions(new ArrayList<FlowAction<?>>());
 
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
@@ -158,11 +143,8 @@ public class FlowManagerTest {
         Thread.sleep(10);
 
         // add another flow that matches
-        FlowKeyTCP tcpkey = new FlowKeyTCP().setDst((short) 1024);
-        List<FlowKey<?>> keys1 = new java.util.ArrayList<FlowKey<?>>();
-        keys1.add(tcpkey);
-        keys1.addAll(keys);
-        FlowMatch flowMatch1 = new FlowMatch().setKeys(keys1);
+        FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10l))
+                                      .addKey(FlowKeys.tcp(1000,1002));
         Flow flow2 = flowManager.createDpFlow(flowMatch1);
         assertThat("Flow didn't match", flow2, notNullValue());
         // create the flow
@@ -221,18 +203,14 @@ public class FlowManagerTest {
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
 
         for(int i=0; i<=maxAcceptedDpFlows; i++){
-            FlowKeyTCP tcpkey = new FlowKeyTCP().setDst((short)(i +1));
-            List<FlowKey<?>> keys = new java.util.ArrayList<FlowKey<?>>();
-            keys.add(tcpkey);
-            FlowMatch flowMatch = new FlowMatch().setKeys(keys);
+
+            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
 
             WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
-            List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
-            actions.add(new FlowActionUserspace());
             // no time out set
             WildcardFlow wildcardFlow = new WildcardFlow()
                 .setMatch(wildcardMatch)
-                .setActions(actions);
+                .setActions(new ArrayList<FlowAction<?>>());
             flowManager.add(wildcardFlow);
             flowManager.add(flowMatch, wildcardFlow);
             flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
