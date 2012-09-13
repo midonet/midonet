@@ -5,6 +5,7 @@
 package com.midokura.midolman
 
 import org.junit.runner.RunWith
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import scala.collection.JavaConversions._
 
@@ -19,7 +20,7 @@ import org.scalatest.{BeforeAndAfterEach, AbstractSuite}
 import akka.testkit.TestProbe
 
 
-@RunWith(classOf[JUnitRunner])
+@RunWith(classOf[JUnitRunner]) @Ignore
 class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuilders{
 
     var eventProbe: TestProbe = null
