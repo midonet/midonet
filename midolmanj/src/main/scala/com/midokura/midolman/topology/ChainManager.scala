@@ -99,7 +99,7 @@ class ChainManager(val id: UUID) extends Actor {
         // Finally, send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains)
             context.actorFor("..").tell(
-                new Chain(id, rules.toList, idToChain.toMap, null /*XXX: name*/))
+                new Chain(id, rules.toList, idToChain.toMap, cfg.name))
     }
 
     private def chainUpdate(chain: Chain): Unit = {
@@ -112,7 +112,7 @@ class ChainManager(val id: UUID) extends Actor {
                         if (0 == waitingForChains)
                             context.actorFor("..").tell(
                                 new Chain(id, rules.toList, idToChain.toMap,
-                                          chain.getChainName))
+                                          cfg.name))
                     case _ =>  // Nothing else to do.
                 }
         }

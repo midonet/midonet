@@ -42,8 +42,8 @@ public class ChainZkManager extends ZkManager {
         }
     }
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ChainZkManager.class);
+    private final static Logger log =
+        LoggerFactory.getLogger(ChainZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.
