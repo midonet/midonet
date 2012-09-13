@@ -7,18 +7,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
+import scala.collection.Map
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NatMapping;
+import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
+import com.midokura.midolman.rules.RuleResult;
 import com.midokura.sdn.flows.PacketMatch;
 
 
-public class ChainProcessor {
-    private final static Logger log =
-        LoggerFactory.getLogger(ChainEngine.class);
+public class Chain {
+    private final static Logger log = LoggerFactory.getLogger(Chain.class);
 
     /**
      * @param chainID
@@ -33,26 +35,25 @@ public class ChainProcessor {
      *            whether the chain is being processed in a port filter context
      * @return
      */
-    public RuleResult applyChain(Chain origChain, ChainPacketContext fwdInfo,
-                                 PacketMatch pktMatch, UUID ownerId,
-                                 boolean isPortFilter)
-            throws StateAccessException {
+    public static RuleResult applyChain(
+            Chain origChain, ChainPacketContext fwdInfo,
+            PacketMatch pktMatch, UUID ownerId, boolean isPortFilter) {
         RuleResult res = new RuleResult(
                 RuleResult.Action.ACCEPT, null, pktMatch, false);
         if (null == origChain) {
              return res;
         }
         Chain currentChain = origChain;
-        fwdInfo.addTraversedElementID(origChain.id);
+        fwdInfo.addTraversedElementID(origChain.getID());
         log.debug("Processing chain with name {} and ID {}",
-                currentChain.getChainName(), currentChain.id);
+                currentChain.getChainName(), currentChain.getID());
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
-        chainStack.push(new ChainPosition(currentChain.id, currentChain.rules,
-                                          0));
+        chainStack.push(new ChainPosition(currentChain.getID(),
+                                          currentChain.getRules(), 0));
         // We can't use traversedElementIDs to detect loops because the same
         // chains may have been traversed by some other device's filters.
         Set<UUID> traversedChains = new HashSet<UUID>();
-        traversedChains.add(currentChain.id);
+        traversedChains.add(currentChain.getID());
 
         res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
@@ -72,7 +73,7 @@ public class ChainProcessor {
                         || res.action.equals(RuleResult.Action.REJECT)) {
                     return res;
                 } else if (res.action.equals(RuleResult.Action.JUMP)) {
-                    Chain nextChain = currentChain.jumpTargets.get(
+                    Chain nextChain = currentChain.getJumpTarget(
                                             res.jumpToChain);
                     if (null == nextChain) {
                         // Let's just ignore jumps to non-existent chains.
@@ -81,7 +82,7 @@ public class ChainProcessor {
                         continue;
                     }
 
-                    UUID nextID = nextChain.id;
+                    UUID nextID = nextChain.getID();
                     if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {} cannot jump from chain " +
@@ -97,7 +98,7 @@ public class ChainProcessor {
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(
-                        new ChainPosition(nextID, nextChain.rules, 0));
+                        new ChainPosition(nextID, nextChain.getRules(), 0));
                     break;
                 } else if (res.action.equals(RuleResult.Action.RETURN)) {
                     // Stop processing this chain; return to the calling chain.
@@ -118,11 +119,11 @@ public class ChainProcessor {
         return res;
     }
 
-    private NatMapping getNatMapping(UUID ownerID) {
+    private static NatMapping getNatMapping(UUID ownerID) {
         return null;  //XXX
     }
 
-    private class ChainPosition {
+    private static class ChainPosition {
         UUID id;
         List<Rule> rules;
         int position;

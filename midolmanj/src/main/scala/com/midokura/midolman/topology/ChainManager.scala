@@ -4,12 +4,16 @@
 package com.midokura.midolman.topology
 
 import akka.actor.Actor
+import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
-import com.midokura.midolman.rules.{JumpRule, Rule}
-import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
+
 import com.midokura.midolman.simulation.Chain
-import com.midokura.midolman.topology.VirtualTopologyActor.{ChainUnsubscribe, ChainRequest}
+import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
+import com.midokura.midolman.rules.{JumpRule, Rule}
+import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest,
+                                                            ChainUnsubscribe}
+
 
 class ChainManager(val id: UUID) extends Actor {
     // Kick off the first attempt to construct the device.
@@ -95,20 +99,21 @@ class ChainManager(val id: UUID) extends Actor {
         // Finally, send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains)
             context.actorFor("..").tell(
-                new Chain(id, rules.toList, idToChain.toMap))
+                new Chain(id, rules.toList, idToChain.toMap, null /*XXX: name*/))
     }
 
     private def chainUpdate(chain: Chain): Unit = {
         idToRefCount.get(chain.id) match {
-            case None =>; // we don't care about this chain anymore
+            case None =>  // we don't care about this chain anymore
             case Some(count) =>
                 idToChain.put(chain.id, chain) match {
                     case None =>
                         waitingForChains -= 1
                         if (0 == waitingForChains)
                             context.actorFor("..").tell(
-                                new Chain(id, rules.toList, idToChain.toMap))
-                    case _ =>; // Nothing else to do.
+                                new Chain(id, rules.toList, idToChain.toMap,
+                                          chain.getChainName))
+                    case _ =>  // Nothing else to do.
                 }
         }
     }
