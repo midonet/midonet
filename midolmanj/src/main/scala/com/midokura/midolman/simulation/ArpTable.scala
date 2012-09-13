@@ -103,7 +103,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
         promise
     }
 
-    private def removeWatcher(ip: IntIPv4, future: Promise[MAC]) {
+    private def removeWatcher(ip: IntIPv4, promise: Promise[MAC]) {
         arpWaiters.get(ip) match {
             case Some(waiters) => waiters.remove(promise)
             case None =>
