@@ -5,19 +5,21 @@ package com.midokura.midolman.simulation
 
 import collection.mutable
 import compat.Platform
+import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import akka.util.Duration
 import java.util.concurrent.{TimeUnit, TimeoutException}
+
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.SimulationController
-import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
-import akka.actor.ActorSystem
-import com.midokura.midonet.cluster.client.{ArpCache, RouterPort}
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.state.ArpCacheEntry
+import com.midokura.midonet.cluster.client.{ArpCache, RouterPort}
+import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.util.functors.{Callback2, Callback1}
+
 
 /* The ArpTable is called from the Coordinators' actors and
  * processes and schedules ARPs. */
