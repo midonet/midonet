@@ -79,7 +79,8 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
-        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null, null))
+        dpProbe().testActor.tell(AddWildcardFlow(
+            wildcardFlow, None, null, null, null))
 
         requestOfType[InvalidateFlowsByTag](flowProbe())
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
@@ -87,7 +88,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         addFlowMsg should not be null
-        addFlowMsg.packet should not be null
+        addFlowMsg.pktBytes should not be null
         addFlowMsg.flow should not be null
         addFlowMsg.flow.getMatch.getInputPortUUID should be(null)
         addFlowMsg.flow.getMatch.getInputPortNumber should be(localPortNumber)

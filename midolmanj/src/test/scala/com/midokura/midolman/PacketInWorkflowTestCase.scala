@@ -54,7 +54,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         val packetIn = requestOfType[PacketIn](dpProbe())
 
         packetIn should not be null
-        packetIn.packet should not be null
+        packetIn.cookie should not be None
         packetIn.wMatch should not be null
 
         val packetInMsg = requestOfType[PacketIn](simProbe())

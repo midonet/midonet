@@ -62,12 +62,13 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPort(portOnHost2.getId))
 
-        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null, null))
+        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None, null,
+            null, null))
 
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
 
         addFlowMsg should not be null
-        addFlowMsg.packet should not be null
+        addFlowMsg.pktBytes should not be null
         addFlowMsg.flow should not be null
         addFlowMsg.flow.getMatch.getInputPortUUID should be(null)
         addFlowMsg.flow.getMatch.getInputPortNumber should be(inputPortNo)

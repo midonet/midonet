@@ -67,7 +67,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase {
         val packetIn = requestOfType[PacketIn](dpProbe())
 
         packetIn should not be null
-        packetIn.packet should not be null
+        packetIn.pktBytes should not be null
         packetIn.wMatch should not be null
 
         val packetInMsg = requestOfType[PacketIn](simProbe())

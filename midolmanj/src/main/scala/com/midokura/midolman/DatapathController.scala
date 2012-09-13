@@ -341,7 +341,8 @@ object DatapathController extends Referenceable {
      */
     case class SendPacket(packet: Packet)
 
-    case class PacketIn(packet: Packet, wMatch: WildcardMatch)
+    case class PacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
+                        reason: Packet.Reason, cookie: Option[Int])
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 
@@ -540,11 +541,11 @@ class DatapathController() extends Actor with ActorLogging {
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
 
-        case AddWildcardFlow(flow, packet, callbacks, tags) =>
-            handleAddWildcardFlow(flow, packet, callbacks, tags)
+        case AddWildcardFlow(flow, cookie, pktBytes, callbacks, tags) =>
+            handleAddWildcardFlow(flow, cookie, pktBytes, callbacks, tags)
 
-        case PacketIn(packet, wildcard) =>
-            handleFlowPacketIn(packet, wildcard)
+        case PacketIn(wMatch, pktBytes, reason, cookie) =>
+            handleFlowPacketIn(wMatch, pktBytes, reason, cookie)
 
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
@@ -635,9 +636,11 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def handleAddWildcardFlow(flow: WildcardFlow, packet: Option[Packet],
-                              callbacks: mutable.Set[Callback0],
-                              tags: immutable.Set[AnyRef]) {
+    def handleAddWildcardFlow(flow: WildcardFlow,
+                              cookie: Option[Int],
+                              pktBytes: Array[Byte],
+                              callbacks: immutable.Set[Callback0],
+                              tags: immutable.Set[Any]) {
         val flowMatch = flow.getMatch
 
         vifToLocalPortNumber(flowMatch.getInputPortUUID) match {
@@ -655,9 +658,12 @@ class DatapathController() extends Actor with ActorLogging {
         translateActions(flowActions) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
-                FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
+                FlowController.getRef() ! AddWildcardFlow(flow, cookie,
+                    pktBytes, callbacks, tags)
             case _ =>
-                FlowController.getRef() ! AddWildcardFlow(flow, packet, callbacks, tags)
+                // TODO(pino): should we push a temporary drop flow instead?
+                FlowController.getRef() ! AddWildcardFlow(flow, cookie,
+                    pktBytes, callbacks, tags)
         }
     }
 
@@ -827,15 +833,18 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def handleFlowPacketIn(packet: Packet, wildcard: WildcardMatch) {
-        wildcard.getInputPortNumber match {
+    def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
+                           reason: Packet.Reason, cookie: Option[Int]) {
+        wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
-                wildcard.setInputPortUUID(dpPortToVifId(port))
+                wMatch.setInputPortUUID(dpPortToVifId(port))
+                // TODO(pino): handle the error case of no mapped UUID.
             case null =>
 
         }
 
-        SimulationController.getRef() ! PacketIn(packet, wildcard)
+        SimulationController.getRef().tell(
+            PacketIn(wMatch, pktBytes, reason, cookie))
     }
 
     private def dpPortToVifId(port: Short): UUID = {
