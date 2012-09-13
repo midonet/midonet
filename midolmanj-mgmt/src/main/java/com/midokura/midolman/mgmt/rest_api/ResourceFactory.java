@@ -49,6 +49,8 @@ public interface ResourceFactory {
 
     TunnelZoneHostResource getTunnelZoneHostResource(UUID id);
 
+    HostInterfacePortResource getHostInterfacePortResource(UUID id);
+
     MonitoringResource getMonitoringQueryResource();
 
     AdRouteResource.BgpAdRouteResource getBgpAdRouteResource(UUID id);

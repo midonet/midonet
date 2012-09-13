@@ -202,8 +202,14 @@ public interface DataClient {
 
     void commandsDelete(UUID hostId, Integer id) throws StateAccessException;
 
-     List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
+    List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
          throws StateAccessException;
+
+    boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
+        throws StateAccessException;
+
+    VirtualPortMapping hostsGetVirtualPortMapping(UUID hostId, UUID portId)
+        throws StateAccessException;
 
     void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
         throws StateAccessException;

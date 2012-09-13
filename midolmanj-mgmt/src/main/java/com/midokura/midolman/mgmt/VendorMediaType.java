@@ -81,4 +81,13 @@ public class VendorMediaType {
             APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON =
             "application/vnd.com.midokura.midolman.mgmt.collection" +
                     ".IpsecTunnelZoneHost+json";
+
+    // Host interface - port mapping
+    public static final String APPLICATION_HOST_INTERFACE_PORT_JSON =
+            "application/vnd.com.midokura.midolman.mgmt" +
+                    ".HostInterfacePort+json";
+    public static final String
+            APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON =
+            "application/vnd.com.midokura.midolman.mgmt.collection" +
+                    ".HostInterfacePort+json";
 }

@@ -471,7 +471,24 @@ public class HostZkManager extends ZkManager {
             String.class);
     }
 
-    public Set<HostDirectory.VirtualPortMapping> getVirtualPortMappings(UUID hostIdentifier, Directory.TypedWatcher watcher)
+    public boolean virtualPortMappingExists(UUID hostId, UUID portId)
+            throws StateAccessException {
+        return exists(paths.getHostVrnPortMappingPath(hostId, portId));
+    }
+
+    public HostDirectory.VirtualPortMapping getVirtualPortMapping(
+            UUID hostId, UUID portId) throws StateAccessException {
+        String path = paths.getHostVrnPortMappingPath(hostId, portId);
+        if (!exists(path)) {
+            return null;
+        }
+
+        return serializer.deserialize(get(path),
+                HostDirectory.VirtualPortMapping.class);
+    }
+
+    public Set<HostDirectory.VirtualPortMapping> getVirtualPortMappings(
+            UUID hostIdentifier, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
         String virtualPortMappingPath =
@@ -497,7 +514,8 @@ public class HostZkManager extends ZkManager {
         return portMappings;
     }
 
-    public void addVirtualDatapathMapping(UUID hostIdentifier, String datapathMapping)
+    public void addVirtualDatapathMapping(UUID hostIdentifier,
+                                          String datapathMapping)
         throws StateAccessException {
 
         List<Op> operations = new ArrayList<Op>();
@@ -529,7 +547,8 @@ public class HostZkManager extends ZkManager {
         multi(operations);
     }
 
-    public void addVirtualPortMapping(UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
+    public void addVirtualPortMapping(
+            UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
         throws StateAccessException {
 
         // Make sure that the portID is valid
@@ -625,7 +644,8 @@ public class HostZkManager extends ZkManager {
 
     }
 
-    public Set<UUID> getTunnelZoneIds(UUID hostId, Directory.TypedWatcher watcher)
+    public Set<UUID> getTunnelZoneIds(UUID hostId,
+                                      Directory.TypedWatcher watcher)
         throws StateAccessException {
         String zonesPath = paths.getHostTunnelZonesPath(hostId);
 

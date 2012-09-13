@@ -955,6 +955,25 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
+            throws StateAccessException {
+        return hostZkManager.virtualPortMappingExists(hostId, portId);
+    }
+
+    @Override
+    public VirtualPortMapping hostsGetVirtualPortMapping(
+            UUID hostId, UUID portId) throws StateAccessException {
+        HostDirectory.VirtualPortMapping mapping =
+                hostZkManager.getVirtualPortMapping(hostId, portId);
+
+        if (mapping == null) {
+            return null;
+        }
+
+        return Converter.fromHostVirtPortMappingConfig(mapping);
+    }
+
+    @Override
     public boolean portsExists(UUID id) throws StateAccessException {
         return portZkManager.exists(id);
     }

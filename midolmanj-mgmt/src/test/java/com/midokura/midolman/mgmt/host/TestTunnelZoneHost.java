@@ -69,8 +69,6 @@ public class TestTunnelZoneHost {
         @Test
         public void testCrud() throws Exception {
 
-            DtoApplication app = topology.getApplication();
-            URI tunnelZonesUri = app.getTunnelZones();
             DtoGreTunnelZone tz1 = topology.getGreTunnelZone("tz1");
 
             // List mappings.  There should be none.

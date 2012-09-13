@@ -1,7 +1,11 @@
+/*
+ * Copyright 2012 Midokura PTE LTD.
+ */
 package com.midokura.midolman.mgmt.host.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
@@ -28,6 +32,7 @@ import java.util.UUID;
 /**
  * REST API handler for tunnel zone - host mapping.
  */
+@RequestScoped
 public class TunnelZoneHostResource {
 
     private final UUID tunnelZoneId;
