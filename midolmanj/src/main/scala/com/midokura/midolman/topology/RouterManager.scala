@@ -99,6 +99,7 @@ class RouterManager(id: UUID, val client: Client)
             if (arpCache == null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache)
+                arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
             }

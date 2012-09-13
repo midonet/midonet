@@ -17,7 +17,7 @@ import akka.actor.ActorSystem
 import com.midokura.midonet.cluster.client.{ArpCache, RouterPort}
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.state.ArpCacheEntry
-import com.midokura.util.functors.Callback1
+import com.midokura.util.functors.{Callback2, Callback1}
 
 /* The ArpTable is called from the Coordinators' actors and
  * processes and schedules ARPs. */
@@ -25,6 +25,8 @@ trait ArpTable {
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
           (implicit ec: ExecutionContext, actorSystem: ActorSystem): Future[MAC]
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem)
+    def start()
+    def stop()
 }
 
 class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
@@ -37,7 +39,20 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                                              mutable.Set[Promise[MAC]]] with
                                  mutable.MultiMap[IntIPv4, Promise[MAC]]
 
-    // TODO -- subscribe to ArpCache changes
+    override def start() {
+        arpCache.notify(new Callback2[IntIPv4, MAC] {
+            def call(ip: IntIPv4, mac: MAC) {
+                arpWaiters.remove(ip) match {
+                    case Some(waiters) => waiters map { _ success mac }
+                    case None =>
+                }
+            }
+        })
+    }
+
+    override def stop() {
+        // TODO
+    }
 
     /**
      * Schedule promise to fail with a TimeoutException at a given time.
