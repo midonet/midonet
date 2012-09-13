@@ -58,7 +58,6 @@ public class Chain {
             return null;
     }
 
-
     /**
      * @param chainID
      * @param fwdInfo
@@ -72,7 +71,7 @@ public class Chain {
      *            whether the chain is being processed in a port filter context
      * @return
      */
-    public static RuleResult applyChain(
+    public static RuleResult apply(
             Chain origChain, ChainPacketContext fwdInfo,
             PacketMatch pktMatch, UUID ownerId, boolean isPortFilter) {
         RuleResult res = new RuleResult(

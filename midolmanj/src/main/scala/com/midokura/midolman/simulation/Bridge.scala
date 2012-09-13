@@ -53,7 +53,10 @@ class Bridge(val id: UUID, val greKey: Long,
 
         var outPortID: Future[UUID] = null
 
-        //XXX: Call ingress (pre-bridging) chain
+        // Call ingress (pre-bridging) chain
+        val preBridgeResult = Chain.apply(inFilter, packetContext, ingressMatch,
+                                          id, false)
+        //XXX
 
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
