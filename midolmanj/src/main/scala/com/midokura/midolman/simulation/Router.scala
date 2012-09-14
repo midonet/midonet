@@ -3,26 +3,24 @@
  */
 package com.midokura.midolman.simulation
 
+import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.dispatch.Future.flow
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
+import com.midokura.midolman.SimulationController
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{VirtualTopologyActor,
-                RouterConfig, RoutingTableWrapper}
-import com.midokura.midolman.SimulationController
+import com.midokura.midolman.topology.{VirtualTopologyActor, RouterConfig,
+                                       RoutingTableWrapper}
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
-import akka.actor.ActorSystem
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import com.midokura.midonet.cluster.client._
-import com.midokura.midolman.simulation.Coordinator.ConsumedAction
-import com.midokura.midolman.simulation.Coordinator.DropAction
-import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,

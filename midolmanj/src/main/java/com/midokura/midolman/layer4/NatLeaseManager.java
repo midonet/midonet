@@ -31,8 +31,8 @@ import com.midokura.util.eventloop.Reactor;
 
 public class NatLeaseManager implements NatMapping {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(NatLeaseManager.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(NatLeaseManager.class);
     private static final int USHORT = 0xffff;
 
     public static final String FWD_DNAT_PREFIX = "dnatfwd";
@@ -55,8 +55,8 @@ public class NatLeaseManager implements NatMapping {
     private String rtrIdStr;
     private Cache cache;
     private Reactor reactor;
-    private Map<PacketMatch, Set<String>> matchToNatKeys;
-    private Map<PacketMatch, ScheduledFuture> matchToFuture;
+    private Map<Object, Set<String>> matchToNatKeys;
+    private Map<Object, ScheduledFuture> matchToFuture;
     private Random rand;
     private int refreshSeconds;
 
@@ -70,14 +70,14 @@ public class NatLeaseManager implements NatMapping {
         this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
         this.rand = new Random();
-        this.matchToNatKeys = new HashMap<PacketMatch, Set<String>>();
-        this.matchToFuture = new HashMap<PacketMatch, ScheduledFuture>();
+        this.matchToNatKeys = new HashMap<Object, Set<String>>();
+        this.matchToFuture = new HashMap<Object, ScheduledFuture>();
     }
 
     private class RefreshNatMappings implements Runnable {
-        PacketMatch match;
+        Object match;
 
-        private RefreshNatMappings(PacketMatch match) {
+        private RefreshNatMappings(Object match) {
             this.match = match;
         }
 
@@ -96,8 +96,7 @@ public class NatLeaseManager implements NatMapping {
                 try {
                     String val = cache.getAndTouch(key);
                     log.debug("RefreshNatMappings found value {}", val);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     log.error("RefreshNatMappings caught: {}", e);
                 }
             }
@@ -110,7 +109,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, Set<NatTarget> nats, PacketMatch origMatch) {
+            short oldTpDst_, Set<NatTarget> nats, Object origMatch) {
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
@@ -138,14 +137,15 @@ public class NatLeaseManager implements NatMapping {
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
                 oldTpDst);
         cache.set(fwdKey, makeCacheValue(newNwDst, newTpDst));
-        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst, newTpDst);
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst,
+                                     newTpDst);
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
         scheduleRefresh(origMatch, fwdKey, revKey);
         return new NwTpPair(newNwDst, (short)newTpDst);
     }
 
-    private void scheduleRefresh(PacketMatch origMatch, String fwdKey,
+    private void scheduleRefresh(Object origMatch, String fwdKey,
             String revKey) {
         Set<String> refreshKeys = matchToNatKeys.get(origMatch);
         if (null == refreshKeys) {
@@ -186,7 +186,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, PacketMatch origMatch) {
+            short oldTpDst_, Object resourceKey) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
@@ -203,7 +203,7 @@ public class NatLeaseManager implements NatMapping {
         String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 pair.nwAddr, pair.tpPort);
         cache.getAndTouch(revKey);
-        scheduleRefresh(origMatch, fwdKey, revKey);
+        scheduleRefresh(resourceKey, fwdKey, revKey);
         return pair;
     }
 
@@ -223,7 +223,7 @@ public class NatLeaseManager implements NatMapping {
 
     private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
             int newNwSrc, int newTpSrc, int nwDst, int tpDst,
-            PacketMatch origMatch) {
+            Object origMatch) {
         log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
                 + "newTpSrc {} nw Dst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
@@ -257,7 +257,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, Set<NatTarget> nats, PacketMatch origMatch) {
+            short tpDst_, Set<NatTarget> nats, Object origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         // First try to find a port in a block we've already leased.
@@ -396,7 +396,7 @@ public class NatLeaseManager implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, PacketMatch origMatch) {
+            short tpDst_, Object origMatch) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
@@ -440,7 +440,7 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match) {
+    public void freeFlowResources(Object match) {
         log.debug("freeFlowResources: match {}", match);
 
         // Cancel refreshing of any keys associated with this match.

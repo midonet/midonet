@@ -4,7 +4,6 @@ package com.midokura.midolman.simulation
 
 // read-only view
 import collection.immutable.{Set => ROSet}
-import com.midokura.sdn.dp.flows.FlowAction
 
 import collection.mutable
 import collection.JavaConversions._
@@ -23,12 +22,14 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
-import com.midokura.midolman.datapath.{FlowActionOutputToVrnPortSet, FlowActionOutputToVrnPort}
+import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
+                                       FlowActionOutputToVrnPortSet}
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet
-import com.midokura.sdn.flows.{WildcardFlow, PacketMatch, WildcardMatch}
+import com.midokura.sdn.dp.flows.FlowAction
+import com.midokura.sdn.flows.{PacketMatch, WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
 
 
@@ -134,8 +135,8 @@ object Coordinator {
          */
         def process(pktMatch: WildcardMatch, packet: Ethernet,
                     pktContext: PacketContext, expiry: Long)
-                    (implicit ec: ExecutionContext,
-                     actorSystem: ActorSystem): Future[Action]
+                   (implicit ec: ExecutionContext,
+                    actorSystem: ActorSystem): Future[Action]
     }
 
     def expiringAsk(actor: ActorRef, message: Any, expiry: Long)

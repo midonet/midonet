@@ -12,7 +12,6 @@ import java.util.Set;
 import org.openflow.protocol.OFMatch;
 
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.sdn.flows.PacketMatch;
 
 
 public class MockNatMapping implements NatMapping {
@@ -37,7 +36,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats, PacketMatch origMatch) {
+            short oldTpDst, Set<NatTarget> nats, Object origMatch) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -52,7 +51,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, PacketMatch origMatch) {
+            short oldTpDst, Object origMatch) {
         return dnatFwdMap.get(new PacketSignature(nwSrc, tpSrc, oldNwDst,
                 oldTpDst));
     }
@@ -66,7 +65,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats, PacketMatch origMatch) {
+            short tpDst, Set<NatTarget> nats, Object origMatch) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -81,7 +80,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, PacketMatch origMatch) {
+            short tpDst, Object origMatch) {
         return snatFwdMap.get(new PacketSignature(oldNwSrc, oldTpSrc, nwDst,
                 tpDst));
     }
@@ -105,7 +104,7 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public void freeFlowResources(OFMatch match) {
-        // TODO Auto-generated method stub
+    public void freeFlowResources(Object match) {
+        // Do nothing.
     }
 }
