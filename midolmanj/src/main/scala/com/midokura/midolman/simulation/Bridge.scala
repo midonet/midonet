@@ -55,8 +55,6 @@ class Bridge(val id: UUID, val greKey: Long,
         var outPortID: Future[UUID] = null
 
         // Call ingress (pre-bridging) chain
-        // TODO: Verify with Pino that this is how the ingress port is
-        // communicated to the FE, as it's not an argument to process().
         packetContext.inPortID = ingressMatch.getInputPortUUID
         packetContext.outPortID = null
         val preBridgeResult = Chain.apply(inFilter, packetContext, ingressMatch,
@@ -69,6 +67,7 @@ class Bridge(val id: UUID, val greKey: Long,
             log.error("Pre-bridging for {} returned an action which was {}, " +
                       "not ACCEPT, DROP, or REJECT.", id,
                       preBridgeResult.action)
+            return Promise.successful(new ErrorDropAction)(ec)
         }
         if (!(preBridgeResult.pmatch.isInstanceOf[WildcardMatch])) {
             log.error("Pre-bridging for {} returned a match which was {}, " +
@@ -151,7 +150,7 @@ class Bridge(val id: UUID, val greKey: Long,
                           postBridgeResult.action)
                 new DropAction
             } else {
-                val postBridgeMatch = 
+                val postBridgeMatch =
                         postBridgeResult.pmatch.asInstanceOf[WildcardMatch]
 
                 packetContext.outPortID match {

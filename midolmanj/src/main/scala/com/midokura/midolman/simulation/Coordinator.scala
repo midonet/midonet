@@ -54,6 +54,7 @@ object Coordinator {
     case class ToPortSetAction(portSetID: UUID,
                                outMatch: WildcardMatch) extends ForwardAction
 
+    /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
     class PacketContext(var inPortID: UUID, var outPortID: UUID,
                         var portGroups: JSet[UUID]) extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
@@ -227,7 +228,7 @@ class Coordinator(val origMatch: WildcardMatch,
      * When this method completes, it may send a message to the Datapath
      * Controller to install a flow or send a packet.
      */
-    def simulate(): Unit = {
+    def simulate() {
         log.info("Simulate a packet.")
 
         generatedPacketEgressPort match {
@@ -263,7 +264,7 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
-    private def packetIngressesDevice(port: Port[_]): Unit = {
+    private def packetIngressesDevice(port: Port[_]) {
         var deviceFuture: Future[Any] = null
         port match {
             case _: BridgePort[_] =>
@@ -294,7 +295,7 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
-    private def handleActionFuture(actionF: Future[Action]): Unit = {
+    private def handleActionFuture(actionF: Future[Action]) {
         actionF.onComplete {
             case Left(err) => dropFlow(true)
             case Right(action) =>
@@ -357,7 +358,7 @@ class Coordinator(val origMatch: WildcardMatch,
         } // end onComplete
     }
 
-    private def packetIngressesPort(portID: UUID): Unit = {
+    private def packetIngressesPort(portID: UUID) {
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             dropFlow(true)
@@ -365,9 +366,8 @@ class Coordinator(val origMatch: WildcardMatch,
         }
 
         // Get the RCU port object and start simulation.
-        expiringAsk(virtualTopologyManager,
-            PortRequest(portID, false), expiry)
-            .onComplete {
+        expiringAsk(virtualTopologyManager, PortRequest(portID, false),
+                    expiry) onComplete {
             case Left(err) => dropFlow(true)
             case Right(portReply) =>
                 if (!portReply.isInstanceOf[Port[_]]) {
@@ -375,7 +375,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     dropFlow(true)
                     return
                 }
-                //TODO(pino): apply the port's input filter here.
+                //TODO(jlm,pino): apply the port's input filter here.
                 packetIngressesDevice(portReply.asInstanceOf[Port[_]])
         }
     }
@@ -385,7 +385,7 @@ class Coordinator(val origMatch: WildcardMatch,
      * for output-ing to PortSets.
      * @param portID
      */
-    private def packetEgressesPort(portID: UUID): Unit = {
+    private def packetEgressesPort(portID: UUID) {
         expiringAsk(virtualTopologyManager,
             PortRequest(portID, false), expiry)
             .onComplete {
@@ -420,7 +420,7 @@ class Coordinator(val origMatch: WildcardMatch,
      * @param outputID The ID of the virtual port or PortSet from which the
      *                 packet must be emitted.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean): Unit = {
+    private def emit(outputID: UUID, isPortSet: Boolean) {
         val actions = actionsFromMatchDiff(origMatch, modifMatch)
         isPortSet match {
             case false =>
