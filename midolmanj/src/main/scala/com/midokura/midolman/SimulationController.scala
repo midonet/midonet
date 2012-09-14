@@ -26,7 +26,7 @@ class SimulationController() extends Actor with ActorLogging {
     val timeout = (5 minutes).toMillis
 
     def receive = {
-        case PacketIn(wMatch, pktBytes, reason, cookie) =>
+        case PacketIn(wMatch, pktBytes, _, _, cookie) =>
             new Coordinator(
                 wMatch, Ethernet.deserialize(pktBytes), cookie, None,
                 Platform.currentTime + timeout).simulate

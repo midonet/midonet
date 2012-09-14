@@ -342,7 +342,8 @@ object DatapathController extends Referenceable {
     case class SendPacket(packet: Packet)
 
     case class PacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
-                        reason: Packet.Reason, cookie: Option[Int])
+                        dpMatch: FlowMatch, reason: Packet.Reason,
+                        cookie: Option[Int])
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 
@@ -544,8 +545,8 @@ class DatapathController() extends Actor with ActorLogging {
         case AddWildcardFlow(flow, cookie, pktBytes, callbacks, tags) =>
             handleAddWildcardFlow(flow, cookie, pktBytes, callbacks, tags)
 
-        case PacketIn(wMatch, pktBytes, reason, cookie) =>
-            handleFlowPacketIn(wMatch, pktBytes, reason, cookie)
+        case PacketIn(wMatch, pktBytes, dpMatch, reason, cookie) =>
+            handleFlowPacketIn(wMatch, pktBytes, dpMatch, reason, cookie)
 
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
@@ -834,7 +835,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
-                           reason: Packet.Reason, cookie: Option[Int]) {
+                           dpMatch: FlowMatch, reason: Packet.Reason,
+                           cookie: Option[Int]) {
         wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
                 wMatch.setInputPortUUID(dpPortToVifId(port))
@@ -844,7 +846,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
 
         SimulationController.getRef().tell(
-            PacketIn(wMatch, pktBytes, reason, cookie))
+            PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
     }
 
     private def dpPortToVifId(port: Short): UUID = {

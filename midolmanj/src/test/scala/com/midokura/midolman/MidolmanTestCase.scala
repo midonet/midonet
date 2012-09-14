@@ -33,9 +33,11 @@ import com.midokura.midonet.cluster.{DataClient, Client}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.sdn.dp.{Datapath, Packet, Port}
+import com.midokura.sdn.dp.{FlowMatches, Datapath, Packet, Port}
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.sun.tools.corba.se.idl.Noop
+import com.midokura.packets.Ethernet
+import com.midokura.sdn.dp.flows.FlowKeyInPort
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -160,6 +162,19 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         dpProbe().expectMsgType[OutgoingMessage] should not be null
 
         result
+    }
+
+    protected def getPortNumber(portName: String): Int = {
+        dpController().underlyingActor.localPorts(portName).getPortNo
+    }
+
+    protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
+        val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
+            .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
+        val dpPkt = new Packet()
+            .setMatch(flowMatch)
+            .setData(ethPkt.serialize())
+        triggerPacketIn(dpPkt)
     }
 
     protected def triggerPacketIn(packet: Packet) {

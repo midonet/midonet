@@ -15,9 +15,9 @@ import com.midokura.midolman.FlowController.{WildcardFlowRemoved, CheckFlowExpir
 import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow}
 import com.midokura.sdn.dp.flows.FlowKeys
 import com.midokura.sdn.dp._
-import org.junit.Before
-import org.scalatest.{BeforeAndAfterEach, AbstractSuite}
 import akka.testkit.TestProbe
+import com.midokura.packets.{IntIPv4, MAC, Packets}
+import com.midokura.midolman.DatapathController.PacketIn
 
 
 @RunWith(classOf[JUnitRunner]) @Ignore
@@ -26,8 +26,16 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     var eventProbe: TestProbe = null
     var datapath: Datapath = null
 
-    val timeOutFlow = 50
+    val timeOutFlow = 200
     val delayAsynchAddRemoveInDatapath = 20
+
+    val ethPkt = Packets.udp(
+        MAC.fromString("02:11:22:33:44:10"),
+        MAC.fromString("02:11:22:33:44:11"),
+        IntIPv4.fromString("10.0.1.10"),
+        IntIPv4.fromString("10.0.1.11"),
+        10, 11, "My UDP packet".getBytes)
+
 
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
@@ -36,131 +44,103 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     }
 
     override def before() {
-        newHost("myself", hostId())
+        val myHost = newHost("myself", hostId())
         eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowRemoved])
         actors().eventStream.subscribe(eventProbe.ref, classOf[CheckFlowExpiration])
 
+        val bridge = newBridge("bridge")
+
+        val port1 = newPortOnBridge(bridge)
+        val port2 = newPortOnBridge(bridge)
+
+        materializePort(port1, myHost, "port1")
+        materializePort(port2, myHost, "port2")
+
         initializeDatapath() should not be (null)
 
-        val datapath = requestOfType[DatapathController.DatapathReady](flowProbe()).datapath
-        datapath should not be (null)
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
+        // Now disable sending messages to the DatapathController
+        dpProbe().testActor.tell("stop")
+        dpProbe().expectMsg("stop")
     }
 
     def testHardTimeExpiration() {
+        triggerPacketIn("port1", ethPkt)
 
-        val flowMatch = new FlowMatch()
-                                .addKey(FlowKeys.tunnelID(10l))
-
-        val wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
-
-        val wildcardFlow = new WildcardFlow()
-            .setMatch(wildcardMatch)
+        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val wFlow = new WildcardFlow()
+            .setMatch(pktInMsg.wMatch)
             .setActions(List().toList)
             .setHardExpirationMillis(timeOutFlow)
 
-        val packet = new Packet().setMatch(flowMatch)
-        val cookie = 4
-        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow,
-            Option(cookie), packet.getData, null, null))
+        flowProbe().testActor.tell(
+            AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
+                            null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
         Thread.sleep(delayAsynchAddRemoveInDatapath)
 
-        var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        /* TODO(pino): re-enable this.
-        dpFlow should not be (null)
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
-        //flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         Thread.sleep(delayAsynchAddRemoveInDatapath)
 
-        dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        dpFlow should be (null)
-        */
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
     }
 
     def testIdleTimeExpiration() {
+        triggerPacketIn("port1", ethPkt)
 
-        val flowMatch = new FlowMatch()
-            .addKey(FlowKeys.tunnelID(10l))
-
-        val wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
-
-        val wildcardFlow = new WildcardFlow()
-            .setMatch(wildcardMatch)
-            .setActions(List().toList)
+        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val wFlow = new WildcardFlow()
+            .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(timeOutFlow)
 
-        val packet = new Packet().setMatch(flowMatch)
-        val cookie = 1
-        dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, Option(cookie),
-            packet.getData, null, null))
+        flowProbe().testActor.tell(
+            AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
+                null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
         Thread.sleep(delayAsynchAddRemoveInDatapath)
 
-        var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        /* TODO(pino): re-enable this.
-        dpFlow should not be (null)
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
-        //flowProbe().testActor.tell(CheckFlowExpiration())
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         Thread.sleep(delayAsynchAddRemoveInDatapath)
 
-        dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        dpFlow should be (null)
-        */
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
     }
 
     def testIdleTimeExpirationUpdated() {
+        triggerPacketIn("port1", ethPkt)
 
-        val flowMatch = new FlowMatch()
-            .addKey(FlowKeys.tunnelID(10l))
-
-        var wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
-
-        val wildcardFlow = new WildcardFlow()
-            .setMatch(wildcardMatch)
-            .setActions(List().toList)
+        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val wFlow = new WildcardFlow()
+            .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(timeOutFlow)
 
-        val packet = new Packet().setMatch(flowMatch)
-        val cookie = 3
-        dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, Option(cookie), packet.getData, null, null))
+        flowProbe().testActor.tell(
+            AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
+                null, null))
+
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        Thread.sleep(2*timeOutFlow/3)
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
-        Thread.sleep(timeOutFlow/2)
+        // Now trigger another packet that matches the flow.
+        triggerPacketIn("port1", ethPkt)
 
-        // let's add send packet that match the flow
-        flowMatch.addKey(FlowKeys.tcp(1000,1002))
-        wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch)
-        wildcardFlow.setMatch(wildcardMatch)
-
-        dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, Option(cookie), packet.getData, null, null))
-        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
-
-        Thread.sleep(timeOutFlow/2)
-
-        /* TODO(pino): re-enable this.
-        // the flow was updated, so it didn't expire
-        var dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        dpFlow should not be (null)
+        Thread.sleep(2*timeOutFlow/3)
+        // The flow should not have expired since it was used again.
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        dpFlow = dpConn().flowsGet(datapath, flowMatch).get()
-        dpFlow should be (null)
-        */
-
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
     }
 }

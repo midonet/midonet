@@ -72,8 +72,10 @@ class FlowController extends Actor with ActorLogging {
     @Inject
     var midolmanConfig: MidolmanConfig = null
 
-    private val dpMatchToPendedPackets: MultiMap[FlowMatch, Packet] =
-        new HashMap[FlowMatch, Set[Packet]] with MultiMap[FlowMatch, Packet]
+    type Cookie = Int
+    private val dpMatchToCookie = HashMap[FlowMatch, Cookie]()
+    private val cookieToPendedPackets: MultiMap[Cookie, Packet] =
+        new HashMap[Cookie, Set[Packet]] with MultiMap[Cookie, Packet]
 
     @Inject
     var datapathConnection: OvsDatapathConnection = null
@@ -118,12 +120,11 @@ class FlowController extends Actor with ActorLogging {
 
         case AddWildcardFlow(wildcardFlow, cookie, pktBytes,
                              flowRemovalCallbacks, tags) =>
-            //handleNewWildcardFlow(wildcardFlow, cookie)
+            handleNewWildcardFlow(wildcardFlow, cookie)
             context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
 
-
-        case DiscardPacket(cookie) =>
-            //dpMatchToPendedPackets.remove(packet.getMatch)
+        case DiscardPacket(cookieOpt) =>
+            freePendedPackets(cookieOpt)
 
         case InvalidateFlowsByTag(tag) =>
             val flowsOption = tagToFlows.get(tag)
@@ -163,6 +164,15 @@ class FlowController extends Actor with ActorLogging {
             flowManager.checkFlowsExpiration()
     }
 
+    private def freePendedPackets(cookieOpt: Option[Cookie]): Unit = {
+        cookieOpt match {
+            case None => // no pended packets
+            case Some(cookie) =>
+                val pended = cookieToPendedPackets.remove(cookie)
+                val packet = pended.head.last
+                dpMatchToCookie.remove(packet.getMatch)
+        }
+    }
     /**
      * Internal message posted by the netlink callback hook when a new packet not
      * matching any flows appears on one of the datapath ports.
@@ -186,8 +196,6 @@ class FlowController extends Actor with ActorLogging {
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
         datapathConnection.flowsDelete(datapath, flow, cb)
     }
-
-
 
     private def handlePacketIn(packet: Packet) {
         // In case the PacketIn notify raced a flow rule installation, see if
@@ -226,38 +234,49 @@ class FlowController extends Actor with ActorLogging {
             // Otherwise, pass the packetIn up to the next layer for handling.
             // Keep track of these packets so that for every FlowMatch, only
             // one such call goes to the next layer.
-            if (dpMatchToPendedPackets.get(packet.getMatch) == None) {
-                cookieCounter += 1
-                val cookie = cookieCounter
-                DatapathController.getRef().tell(
-                    DatapathController.PacketIn(
-                        WildcardMatches.fromFlowMatch(packet.getMatch),
-                        packet.getData, packet.getReason, Some(cookie)))
-                // TODO(pino): map the cookie to the outstanding Packet/Flow
+            dpMatchToCookie.get(packet.getMatch) match {
+                case None =>
+                    cookieCounter += 1
+                    val cookie = cookieCounter
+                    dpMatchToCookie.put(packet.getMatch, cookie)
+                    DatapathController.getRef().tell(
+                        DatapathController.PacketIn(
+                            WildcardMatches.fromFlowMatch(packet.getMatch),
+                            packet.getData, packet.getMatch, packet.getReason,
+                            Some(cookie)))
+                    cookieToPendedPackets.addBinding(cookie, packet)
+
+                case Some(cookie) =>
+                    // Simulation in progress. Just pend the packet.
+                    cookieToPendedPackets.addBinding(cookie, packet)
             }
-            dpMatchToPendedPackets.addBinding(packet.getMatch, packet)
         }
     }
 
     private def handleNewWildcardFlow(wildcardFlow: WildcardFlow,
-                                      packetOption: Option[Packet]) {
+                                      cookieOpt: Option[Cookie]) {
         if (!flowManager.add(wildcardFlow)){
             log.error("FlowManager failed to install wildcard flow {}",
                 wildcardFlow)
-            // TODO(ross): in case of error should we process the packet?
+            // TODO(pino, ross): should we send Packet commands for pended?
+            // For now, just free the pended packets.
+            freePendedPackets(cookieOpt)
             return
         }
-        packetOption match {
-            case None =>
-            case Some(packet) =>
-                flowManager.add(packet.getMatch, wildcardFlow)
+        // Now install any datapath flows that are needed.
+        cookieOpt match {
+            case None => // No packets pended. Do nothing.
+            case Some(cookie) =>
                 val pendedPackets =
-                    dpMatchToPendedPackets.remove(packet.getMatch)
+                    cookieToPendedPackets.remove(cookie)
+                val packet = pendedPackets.head.last
+                dpMatchToCookie.remove(packet.getMatch)
+                flowManager.add(packet.getMatch, wildcardFlow)
+
                 val dpFlow = new Flow().
                     setMatch(packet.getMatch).
                     setActions(wildcardFlow.getActions).
                     setLastUsedTime(System.currentTimeMillis())
-
 
                 datapathConnection.flowsCreate(datapath, dpFlow,
                     flowManager.getFlowCreatedCallback(dpFlow))
@@ -265,8 +284,7 @@ class FlowController extends Actor with ActorLogging {
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
-                if (pendedPackets != None
-                    && wildcardFlow.getActions.size() > 0) {
+                if (wildcardFlow.getActions.size() > 0) {
                     for (unpendedPacket <- pendedPackets.get) {
                         unpendedPacket.setActions(wildcardFlow.getActions)
                         datapathConnection.packetsExecute(datapath, unpendedPacket,
