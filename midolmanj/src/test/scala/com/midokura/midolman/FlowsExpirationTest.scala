@@ -11,9 +11,9 @@ import scala.collection.JavaConversions._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 
-import com.midokura.midolman.FlowController.{WildcardFlowRemoved, CheckFlowExpiration, WildcardFlowAdded, AddWildcardFlow}
-import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow}
-import com.midokura.sdn.dp.flows.FlowKeys
+import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
+    CheckFlowExpiration, WildcardFlowAdded, AddWildcardFlow}
+import com.midokura.sdn.flows.WildcardFlow
 import com.midokura.sdn.dp._
 import akka.testkit.TestProbe
 import com.midokura.packets.{IntIPv4, MAC, Packets}

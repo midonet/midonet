@@ -54,12 +54,11 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
             .setMatch(wildcardMatch)
 
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, null))
+            wildcardFlow, None, "My packet".getBytes, null, null))
 
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
 
         addFlowMsg should not be null
-        /* TODO(pino): re-enable this.
         addFlowMsg.pktBytes should not be null
         addFlowMsg.flow should not be null
         addFlowMsg.flow.getMatch.getInputPortUUID should be(null)
@@ -69,6 +68,5 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         actions should not be null
         actions.contains(dpPortOutput) should be (true)
         actions.contains(vrnPortOutput) should be (false)
-        */
     }
 }
