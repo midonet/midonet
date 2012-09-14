@@ -18,13 +18,14 @@ import akka.pattern.ask
 import akka.util.duration._
 
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-         PortRequest, RouterRequest}
+         ChainRequest, PortRequest, RouterRequest}
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
                                              SendPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
 import com.midokura.midolman.rules.ChainPacketContext
+import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.Ethernet
@@ -369,14 +370,47 @@ class Coordinator(val origMatch: WildcardMatch,
         expiringAsk(virtualTopologyManager, PortRequest(portID, false),
                     expiry) onComplete {
             case Left(err) => dropFlow(true)
-            case Right(portReply) =>
-                if (!portReply.isInstanceOf[Port[_]]) {
+            case Right(portReply) => portReply match {
+                case port: Port[_] =>
+                    applyPortFilter(port, port.inFilterID,
+                                    packetIngressesDevice _)
+                case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(true)
-                    return
-                }
-                //TODO(jlm,pino): apply the port's input filter here.
-                packetIngressesDevice(portReply.asInstanceOf[Port[_]])
+            }
+        }
+    }
+
+    def applyPortFilter(port: Port[_], filterID: UUID,
+                        thunk: (Port[_]) => Unit) {
+        if (filterID == null)
+            thunk(port)
+        else expiringAsk(virtualTopologyManager, ChainRequest(filterID, false),
+                         expiry) onComplete {
+            case Left(err) => dropFlow(true)
+            case Right(chainReply) => chainReply match {
+                case chain: Chain =>
+                    pktContext.inPortID = null
+                    pktContext.outPortID = null
+                    val result = Chain.apply(chain, pktContext, modifMatch,
+                                             port.id, true)
+                    if (result.action == RuleAction.ACCEPT) {
+                        //XXX(jlm,pino): Replace the pktContext's match with
+                        // result.pmatch.asInstanceOf[WildcardMatch]
+                        //XXX modifMatch = result.pmatch
+                        thunk(port)
+                    } else if (result.action == RuleAction.DROP ||
+                               result.action == RuleAction.REJECT) {
+                        dropFlow(false)
+                    } else {
+                        log.error("Port filter {} returned {}, not ACCEPT, " +
+                                  "DROP, or REJECT.", filterID, result.action)
+                        dropFlow(true)
+                    }
+                case _ =>
+                    log.error("VirtualTopologyActor didn't return a chain!")
+                    dropFlow(true)
+            }
         }
     }
 
@@ -386,9 +420,8 @@ class Coordinator(val origMatch: WildcardMatch,
      * @param portID
      */
     private def packetEgressesPort(portID: UUID) {
-        expiringAsk(virtualTopologyManager,
-            PortRequest(portID, false), expiry)
-            .onComplete {
+        expiringAsk(virtualTopologyManager, PortRequest(portID, false),
+                    expiry) onComplete {
             case Left(err) => dropFlow(true)
             case Right(portReply) =>
                 if (!portReply.isInstanceOf[Port[_]]) {
@@ -397,7 +430,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     return
                 }
 
-                //TODO(pino): apply the port's output filter here.
+                //TODO(jlm,pino): apply the port's output filter here.
 
                 portReply match {
                     case _: ExteriorPort[_] =>

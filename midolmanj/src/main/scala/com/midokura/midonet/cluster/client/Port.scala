@@ -1,12 +1,13 @@
-package com.midokura.midonet.cluster.client
-
 /*
  * Copyright 2012 Midokura Europe SARL
  */
 
-import java.util.UUID
-import com.midokura.packets.{IntIPv4, MAC}
+package com.midokura.midonet.cluster.client
+
 import collection.JavaConversions._
+import java.util.UUID
+
+import com.midokura.packets.{IntIPv4, MAC}
 
 trait Port[T] {
     var id: UUID = null
