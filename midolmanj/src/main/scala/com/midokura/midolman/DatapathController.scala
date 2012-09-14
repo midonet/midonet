@@ -15,6 +15,11 @@ import java.util.UUID
 
 import com.google.inject.Inject
 
+import java.util.UUID
+import java.lang
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
@@ -37,6 +42,9 @@ import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
 import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
+import scala.Some
+import com.midokura.midolman.MonitoringActor.PortStatsRequest
+import com.midokura.netlink.Callback
 
 
 /**
@@ -341,6 +349,12 @@ object DatapathController extends Referenceable {
                         dpMatch: FlowMatch, reason: Packet.Reason,
                         cookie: Option[Int])
 
+   /**
+    * This message encapsulates a given port stats to the monitoring agent.
+    * @param stats
+    */
+    case class PortStats(portID: UUID, stats: Port.Stats)
+
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 
     class TunnelChangeEvent(val myself: TunnelZone.HostConfig[_, _],
@@ -547,7 +561,30 @@ class DatapathController() extends Actor with ActorLogging {
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
-    }
+        case PortStatsRequest(portID) =>
+            vifPorts.get(portID) match {
+              case Some(portName) =>
+                log.info("Got a PORT STATS REQUEST for port {}, installing callback.", portID)
+                datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
+                def onSuccess(data: Port[_, _]) {
+                  log.info("Got response for the callback, sending port stats to monitoring agent.")
+                  MonitoringActor.getRef() ! PortStats(portID, data.getStats);
+                }
+
+                def onTimeout() {
+                  log.info("Timeout when retrieving port stats")
+                }
+
+                def onError(e: NetlinkException) {
+                  log.info("Error retrieving port stats: {}", e )
+                }
+              });
+
+              case None =>
+                log.debug("Port was not found {}", portID)
+            }
+
+   }
 
     def completePendingPortSetTranslations() {
         //

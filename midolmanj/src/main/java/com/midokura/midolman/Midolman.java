@@ -334,11 +334,6 @@ public class Midolman implements SelectListener {
                                   externalIdKey, vrnId, useNxm,
                                   bgpPortService, vpnPortService, dhcpMtu);
 
-            if (monitoringAgent != null) {
-                vrnController.addControllerObserver(
-                    monitoringAgent.createVRNObserver());
-            }
-
             controller = vrnController;
 
             ControllerStubImpl controllerStubImpl =

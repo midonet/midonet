@@ -5,6 +5,8 @@ package com.midokura.midolman.guice;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
+import com.midokura.midolman.MonitoringActor;
+import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +46,15 @@ public class MidolmanActorsModule extends PrivateModule {
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
 
+        bind(VifMetrics.class).in(Singleton.class);
+
         bind(VirtualTopologyActor.class).in(Singleton.class);
         bind(VirtualToPhysicalMapper.class).in(Singleton.class);
         bind(DatapathController.class).in(Singleton.class);
         bind(FlowController.class).in(Singleton.class);
         bind(SimulationController.class).in(Singleton.class);
         bind(RemoteServer.class).in(Singleton.class);
-
+        bind(MonitoringActor.class).in(Singleton.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
         bind(PortSetManager.class);

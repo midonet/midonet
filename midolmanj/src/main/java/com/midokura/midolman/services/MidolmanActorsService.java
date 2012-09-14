@@ -27,7 +27,6 @@ import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.RemoteServer;
 import com.midokura.midolman.SimulationController;
-import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
@@ -42,9 +41,6 @@ public class MidolmanActorsService extends AbstractService {
 
     private static final Logger log =
         LoggerFactory.getLogger(MidolmanActorsService.class);
-
-    @Inject
-    MidolmanConfig config;
 
     @Inject
     Injector injector;
@@ -123,7 +119,7 @@ public class MidolmanActorsService extends AbstractService {
         return new Props(new GuiceActorFactory(injector, actorClass));
     }
 
-    private void stopActor(ActorRef actorRef) {
+    public void stopActor(ActorRef actorRef) {
         log.debug("Stopping actor: {}", actorRef.toString());
         try {
             Future<Boolean> stopFuture =
@@ -137,7 +133,7 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    private ActorRef startActor(Props actorProps, String actorName) {
+    public ActorRef startActor(Props actorProps, String actorName) {
         ActorRef actorRef = null;
 
         try {

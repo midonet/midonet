@@ -160,6 +160,16 @@ public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, 
         long rxErrors, txErrors;
         long rxDropped, txDropped;
 
+
+        public long getRxPackets() {return rxPackets;}
+        public long getTxPackets() {return txPackets; }
+        public long getRxBytes() {return rxBytes;}
+        public long getTxBytes() {return txBytes;}
+        public long getRxErrors() {return rxErrors;}
+        public long getTxErrors() {return txErrors;}
+        public long getRxDropped() {return rxDropped;}
+        public long getTxDropped() {return txDropped;}
+
         @Override
         public void serialize(BaseBuilder builder) {
             builder.addValue(rxPackets);

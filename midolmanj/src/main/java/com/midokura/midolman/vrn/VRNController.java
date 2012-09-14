@@ -55,7 +55,7 @@ import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.UnaryFunctor;
 
-
+// THIS IS GOING AWAY, replaced by the simulatin controller & company
 public class VRNController extends AbstractController
     implements ServiceFlowController, VRNControllerIface {
 

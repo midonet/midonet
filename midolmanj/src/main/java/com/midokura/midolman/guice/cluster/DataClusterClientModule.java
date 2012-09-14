@@ -104,6 +104,7 @@ public class DataClusterClientModule extends PrivateModule {
         bind(Store.class).toProvider(CassandraStoreProvider.class)
                 .asEagerSingleton();
         expose(Store.class);
+        expose(MonitoringConfiguration.class);
     }
 
     protected void bindZkManagers() {

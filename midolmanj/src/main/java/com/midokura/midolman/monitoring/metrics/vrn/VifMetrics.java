@@ -3,14 +3,12 @@
 */
 package com.midokura.midolman.monitoring.metrics.vrn;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.UUID;
+import java.util.*;
+
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import com.midokura.sdn.dp.Port;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Metric;
@@ -33,22 +31,23 @@ import com.midokura.midolman.vrn.VRNController;
  */
 public class VifMetrics {
 
+    Map<UUID, Counters> countersMap;
+
+    public VifMetrics() {
+        countersMap = new HashMap<UUID, Counters>();
+    }
+
     private static final Logger log = LoggerFactory
         .getLogger(VifMetrics.class);
 
-    static final long MIN_STAT_REQUESTS_RATE = SECONDS.toMillis(1);
-    static final long MAX_STAT_REPLY_TIMEOUT = MILLISECONDS.toMillis(300);
 
-    static Set<UUID> watchedPorts = new HashSet<UUID>();
-
-    public static String groupName() {
+    public String groupName() {
         return VifMetrics.class.getPackage().getName();
     }
 
-    public static void enableVirtualPortMetrics(final VRNController controller,
-                                                short portNum,
-                                                final UUID portId,
-                                                String portName) {
+    public void enableVirtualPortMetrics(
+                                                final UUID portId
+                                                ) {
         final Counters counters = new Counters();
 
         counters.rxBytes = makeCounter(portId, "rxBytes");
@@ -56,127 +55,60 @@ public class VifMetrics {
         counters.rxPackets = makeCounter(portId, "rxPackets");
         counters.txPackets = makeCounter(portId, "txPackets");
 
-        counters.controller = controller;
         counters.portId = portId;
-        counters.portNum = portNum;
-        counters.portName = portName;
-
-        watchedPorts.add(portId);
 
         MidoReporter.notifyNewMetricTypeForTarget(
             new MetricName(VifMetrics.class, "", portId.toString()));
 
-
-        schedulePortStatsRequest(controller, counters, portId, System.currentTimeMillis());
     }
 
-    public static void disableVirtualPortMetrics(VRNController controller,
-                                                 int num, final UUID portId) {
 
-        watchedPorts.remove(portId);
-
-        SortedMap<String, SortedMap<MetricName, Metric>> metrics =
-            Metrics.defaultRegistry().groupedMetrics(new MetricPredicate() {
-                @Override
-                public boolean matches(MetricName name, Metric metric) {
-                    return name.getScope().equals(portId.toString());
-                }
-            });
-
-        for (SortedMap<MetricName, Metric> metricsSet : metrics.values()) {
-            for (MetricName metricName : metricsSet.keySet()) {
-                Metrics.defaultRegistry().removeMetric(metricName);
-            }
-        }
-    }
-    private static void schedulePortStatsRequest(final VRNController reactor,
-                                                 final Counters counters,
-                                                 final UUID portId,
-                                                 final long lastScheduledMillis) {
-        if ( ! watchedPorts.contains(portId) )
-            return;
-
-        long remainingTimeout =
-            Math.max(0, MIN_STAT_REQUESTS_RATE - (System.currentTimeMillis() - lastScheduledMillis));
-
-        reactor.getReactor().schedule(new Runnable() {
-            @Override
-            public void run() {
-                sendPortStatsRequest(reactor, counters, portId, MAX_STAT_REPLY_TIMEOUT);
-            }
-        }, remainingTimeout, MILLISECONDS);
-    }
-
-    private static void sendPortStatsRequest(final VRNController reactor,
-                                             final Counters counters,
-                                             final UUID portId,
-                                             final long timeout) {
-
-        final long lastSendTime = System.currentTimeMillis();
-
-        reactor.sendPortStatsRequest(
-            counters.portNum,
-            new SuccessHandler<List<OFPortStatisticsReply>>() {
-                @Override
-                public void onSuccess(List<OFPortStatisticsReply> data) {
-                    try {
-                        processStatsReply(data, counters);
-                    } finally {
-                        schedulePortStatsRequest(reactor, counters,
-                                                 portId, lastSendTime);
-                    }
-                }
-            },
-            timeout,
-            new TimeoutHandler() {
-                @Override
-                public void onTimeout() {
-                    schedulePortStatsRequest(reactor, counters, portId,
-                                             lastSendTime);
-                }
-            }
-        );
-    }
-
-    private static void processStatsReply(List<OFPortStatisticsReply> portStatistics,
-                                          Counters counters) {
+    public void processStatsReply(UUID portID, Port.Stats portStatistics) {
         if (portStatistics == null) {
             log.error("We got an empty statistics reply");
             return;
         }
 
-        int rxPackets = 0;
-        int txPackets = 0;
-        int rxBytes = 0;
-        int txBytes = 0;
-
-        for (OFPortStatisticsReply portStatistic : portStatistics) {
-            rxPackets += portStatistic.getReceievePackets();
-            txPackets += portStatistic.getTransmitPackets();
-            rxBytes += portStatistic.getReceiveBytes();
-            txBytes += portStatistic.getTransmitBytes();
+        Counters counters = countersMap.get(portID);
+        if (counters != null) {
+            log.debug("Updating counters for a port");
+            updateCounter(counters.rxPackets, (int) portStatistics.getRxPackets());
+            updateCounter(counters.txPackets, (int)portStatistics.getTxPackets());
+            updateCounter(counters.rxBytes, (int)portStatistics.getRxBytes());
+            updateCounter(counters.txBytes, (int)portStatistics.getTxBytes());
         }
-
-        updateCounter(counters.rxPackets, rxPackets);
-        updateCounter(counters.txPackets, txPackets);
-        updateCounter(counters.rxBytes, rxBytes);
-        updateCounter(counters.txBytes, txBytes);
     }
 
-    private static void updateCounter(Counter counter, int value) {
+    public void disableVirtualPortMetrics(final UUID portID) {
+       log.debug("Disabling the metrics for port {}", portID);
+       SortedMap<String, SortedMap<MetricName, Metric>> metrics =
+               Metrics.defaultRegistry().groupedMetrics(new MetricPredicate() {
+
+                 @Override
+                 public boolean matches(MetricName name, Metric metric) {
+                                        return name.getScope().equals(portID.toString());
+                 }
+               });
+
+               for (SortedMap<MetricName, Metric> metricsSet : metrics.values()) {
+                   for (MetricName metricName : metricsSet.keySet()) {
+                       Metrics.defaultRegistry().removeMetric(metricName);
+                   }
+               }
+      }
+
+
+    private void updateCounter(Counter counter, int value) {
         counter.inc(value - counter.count());
     }
 
-    private static Counter makeCounter(UUID portId, String metricName) {
+    private Counter makeCounter(UUID portId, String metricName) {
         return Metrics.newCounter(
             new MetricName(VifMetrics.class, metricName, portId.toString()));
     }
 
-    static class Counters {
+    public class Counters {
         UUID portId;
-        short portNum;
-        String portName;
-        VRNController controller;
 
         Counter rxPackets, txPackets;
         Counter rxBytes, txBytes;

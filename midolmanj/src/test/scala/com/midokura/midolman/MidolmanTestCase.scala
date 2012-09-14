@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman
 
+import monitoring.{MockMonitoringModule, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID
@@ -22,7 +23,7 @@ import com.midokura.midolman.guice._
 import actors.OutgoingMessage
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
 TestableMidolmanActorsModule}
-import com.midokura.midolman.guice.cluster.ClusterClientModule
+import cluster.{MockClusterClientModule, ClusterClientModule}
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
@@ -80,18 +81,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     before {
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
-            asJavaIterable(getModules(config))
+          getModulesAsJavaIterable(config)
         )
 
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
+        injector.getInstance(classOf[MonitoringAgent]).startMonitoring()
 
         before()
     }
 
     after {
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
-
         after()
     }
 
@@ -103,6 +104,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     val probesByName = mutable.Map[String, TestKit]()
     val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
+
+    protected def getModulesAsJavaIterable(config: HierarchicalConfiguration) : java.lang.Iterable[Module] = {
+      asJavaIterable(getModules(config))
+    }
 
     protected def getModules(config: HierarchicalConfiguration): Iterable[Module] = {
         List(
@@ -119,7 +124,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
                 }
             },
             new ReactorModule(),
-            new ClusterClientModule(),
+            new MockClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
             new MidolmanModule()
         )

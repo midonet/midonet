@@ -33,7 +33,7 @@ import com.midokura.midolman.vrn.AbstractVrnControllerTest;
 public class MonitoringVrnObserverTest extends AbstractVrnControllerTest {
 
     private static final Logger log = LoggerFactory
-        .getLogger(MonitoringVrnObserverTest.class);
+            .getLogger(MonitoringVrnObserverTest.class);
 
     OFPhysicalPort port1;
     OFPhysicalPort port2;
@@ -46,9 +46,6 @@ public class MonitoringVrnObserverTest extends AbstractVrnControllerTest {
 
         // get the target metrics registry
         registry = Metrics.defaultRegistry();
-
-        // enable the MonitoringObserver (add/delete metrics on port add/delete)
-        getVrnController().addControllerObserver(new VRNMonitoringObserver());
 
         UUID routerId = createNewRouter();
 
@@ -165,7 +162,7 @@ public class MonitoringVrnObserverTest extends AbstractVrnControllerTest {
             hasKey(
                 allOf(
                     hasProperty("scope", is(port2uuid)),
-                    hasProperty("group", is(VifMetrics.groupName())),
+                    //hasProperty("group", is(VifMetrics.groupName())),
                     hasProperty("name", is(metricName))
                 )));
     }

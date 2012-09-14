@@ -4,25 +4,24 @@
 
 package com.midokura.midolman.monitoring;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import static java.lang.String.format;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
+import akka.actor.ActorRef;
+import akka.util.Duration;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
+import com.midokura.midolman.MonitoringActor;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.services.MidolmanActorsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.monitoring.vrn.VRNMonitoringObserver;
-import com.midokura.midolman.services.HostIdProviderService;
-import com.midokura.midolman.vrn.VRNControllerObserver;
 
 /**
  * This is the main entry point to the monitoring functionality. It's called
@@ -38,10 +37,10 @@ public class MonitoringAgent {
     private Store store;
 
     @Inject
-    MonitoringConfiguration configuration;
+    MidolmanConfig config;
 
     @Inject
-    HostKeyService hostKeyService;
+    MonitoringConfiguration configuration;
 
     @Inject
     VMMetricsCollection vmMetrics;
@@ -49,9 +48,16 @@ public class MonitoringAgent {
     @Inject
     ZookeeperMetricsCollection zookeeperMetrics;
 
+    @Inject
+    MidolmanActorsService midolmanActorsService = null;
+
     MidoReporter reporter;
 
+    ActorRef monitoringActor;
+
     public void startMonitoring() {
+
+       if (config.getMidolmanEnableMonitoring()) {
 
         vmMetrics.registerMetrics();
 
@@ -75,38 +81,22 @@ public class MonitoringAgent {
                          "because the store was not initialized. Most likely " +
                          "the connection to cassandra failed.");
         }
+
+        // spawn the actor.
+        monitoringActor = midolmanActorsService.startActor(
+                midolmanActorsService.getGuiceAwareFactory(MonitoringActor.class)
+                , "MonitoringActor");
+        log.info("Monitoring actor should be running.");
+       }
     }
 
     public void stop() {
         log.info("Monitoring agent is shutting down");
         if (reporter != null)
             reporter.shutdown();
+
+        // stop the actor.
+        midolmanActorsService.stopActor(monitoringActor);
     }
 
-    public static MonitoringAgent bootstrapMonitoring(
-        final ConfigProvider configProvider, final HostIdProviderService hostIdProvider) {
-        Injector injector = Guice.createInjector(
-            new AbstractModule() {
-                @Override
-                protected void configure() {
-                    bind(ConfigProvider.class)
-                        .toInstance(configProvider);
-
-                    bind(HostIdProviderService.class)
-                        .toInstance(hostIdProvider);
-                }
-            },
-            new MonitoringModule());
-
-        MonitoringAgent monitoringAgent =
-            injector.getInstance(MonitoringAgent.class);
-
-        monitoringAgent.startMonitoring();
-
-        return monitoringAgent;
-    }
-
-    public VRNControllerObserver createVRNObserver() {
-        return new VRNMonitoringObserver();
-    }
 }
