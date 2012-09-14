@@ -423,26 +423,23 @@ class Coordinator(val origMatch: WildcardMatch,
         expiringAsk(virtualTopologyManager, PortRequest(portID, false),
                     expiry) onComplete {
             case Left(err) => dropFlow(true)
-            case Right(portReply) =>
-                if (!portReply.isInstanceOf[Port[_]]) {
+            case Right(portReply) => portReply match {
+                case port: Port[_] =>
+                    applyPortFilter(port, port.outFilterID, {
+                        case _: ExteriorPort[_] =>
+                            emit(portID, false)
+                        case interiorPort: InteriorPort[_] =>
+                            packetIngressesPort(interiorPort.peerID)
+                        case _ =>
+                            log.error(
+                                "Port {} neither interior nor exterior port",
+                                port)
+                            dropFlow(true)
+                    })
+                case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(true)
-                    return
-                }
-
-                //TODO(jlm,pino): apply the port's output filter here.
-
-                portReply match {
-                    case _: ExteriorPort[_] =>
-                        emit(portID, false)
-                    case interiorPort: InteriorPort[_] =>
-                        packetIngressesPort(interiorPort.peerID)
-                    case _ =>
-                        log.error(
-                            "Port {} neither interior nor exterior port",
-                            portReply)
-                        dropFlow(true)
-                }
+            }
         }
     }
 
