@@ -26,7 +26,6 @@ import com.midokura.midolman.state.zkManagers._
 import com.midokura.midolman.util.Net
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
-import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
 
 /**
  * Test for ZebraServer using Open vSwitch database connection.

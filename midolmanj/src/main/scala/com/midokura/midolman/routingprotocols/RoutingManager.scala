@@ -17,7 +17,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.Referenceable
 
 object RoutingManager extends Referenceable {
-    val Name = "BGPManager"
+    val Name = "RoutingManager"
 }
 
 class RoutingManager extends Actor with ActorLogging {
@@ -50,13 +50,15 @@ class RoutingManager extends Actor with ActorLogging {
 
     override def receive = {
         case LocalPortActive(portID, true) =>
-            activePorts.add(portID)
-            // Request the port configuration
-            VirtualTopologyActor.getRef() ! PortRequest(portID, false)
+            if (!activePorts(portID)) {
+                activePorts.add(portID)
+                // Request the port configuration
+                VirtualTopologyActor.getRef() ! PortRequest(portID, update = false)
+            }
 
         case LocalPortActive(portID, false) =>
             activePorts.remove(portID)
-        // TODO(pino): tear down the BGPPortHandler for this port.
+            context.stop(portHandlers(portID))
 
         case port: ExteriorRouterPort =>
             // Only exterior virtual router ports support BGP.
@@ -67,11 +69,12 @@ class RoutingManager extends Actor with ActorLogging {
                     port.id,
                     context.actorOf(
                         Props(new RoutingHandler(port, bgpPortIdx)),
-                        name = port.id.toString()))
+                        name = port.id.toString))
             }
 
-        case port: Port[_] =>
-        // Ignore all other port types.
+        case port: Port[_] => log.error("Port type not supported.")
+
+        case _ => log.error("Unknown message.")
     }
 
 }

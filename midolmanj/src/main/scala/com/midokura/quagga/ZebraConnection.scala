@@ -6,7 +6,6 @@ package com.midokura.quagga
 
 import org.slf4j.LoggerFactory
 import actors.Actor
-import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
 import com.midokura.packets.IntIPv4
 import collection.mutable
 import java.util.UUID
