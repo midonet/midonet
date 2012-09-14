@@ -22,7 +22,6 @@ import java.net.{Socket, SocketAddress}
 
 import org.slf4j.LoggerFactory
 import com.midokura.packets.IntIPv4
-import com.midokura.midolman.routingprotocols.ZebraProtocolHandler
 import org.newsclub.net.unix.AFUNIXServerSocket
 
 case class Request(socket: Socket, reqId: Int)
@@ -115,4 +114,7 @@ class ZebraServer(val address: SocketAddress,
         run = false
         server.close()
     }
+
 }
+
+

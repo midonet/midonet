@@ -12,24 +12,21 @@ import java.util.UUID
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
 import com.midokura.midonet.cluster.data.{AdRoute, BGP}
 import collection.mutable
-import java.io.{IOException, File}
-import org.newsclub.net.unix.{AFUNIXSocketAddress, AFUNIXServerSocket}
-import com.midokura.quagga.{BgpConnection, BgpVtyConnection,
-                            ZebraServer}
+import java.io.File
+import org.newsclub.net.unix.AFUNIXSocketAddress
+import com.midokura.quagga._
 import com.midokura.midolman.{PortOperation, DatapathController, FlowController}
-import com.midokura.midolman.util.Sudo
-import akka.util.Duration
 import com.midokura.sdn.dp.Ports
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
 import com.midokura.sdn.dp.ports.InternalPort
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.DatapathController.{CreatePortInternal, PortInternalOpReply}
-import java.util.concurrent.TimeUnit
-import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.quagga.ZebraProtocol.RIBType
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.DatapathController.CreatePortInternal
+import com.midokura.midolman.DatapathController.PortInternalOpReply
 
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
@@ -69,7 +66,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         "midobgp%d".format(bgpIdx)
     private final val ZSERVE_API_SOCKET =
         "/var/run/quagga/zserv%d.api".format(bgpIdx)
-    private final val BGP_VTY_PORT: Int = 26050 + bgpIdx
+    private final val BGP_VTY_PORT: Int = 2605 + bgpIdx
     private final val BGP_TCP_PORT: Short = 179
 
     private var zebra: ZebraServer = null
@@ -79,11 +76,16 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     private val adRoutes = mutable.Set[AdRoute]()
     private var internalPort: InternalPort = null
 
+    // At this moment we only support one bgpd process
+    private var bgpdProcess: BgpdProcess = null
+
     private case class NewBgpSession(bgp: BGP)
     private case class ModifyBgpSession(bgp: BGP)
     private case class RemoveBgpSession(bgpID: UUID)
     private case class AdvertiseRoute(route: AdRoute)
     private case class StopAdvertisingRoute(route: AdRoute)
+
+
     override def preStart() {
         super.preStart()
         // Watch the BGP session information for this port.
@@ -102,7 +104,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                 self ! RemoveBgpSession(bgpID)
             }
 
-            def addAdvertisedRoute(route: AdRoute) = {
+            def addAdvertisedRoute(route: AdRoute) {
                 self ! AdvertiseRoute(route)
             }
 
@@ -112,7 +114,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         })
 
         // Subscribe to the VTA for updates to the Port configuration.
-        VirtualTopologyActor.getRef() ! PortRequest(rport.id, true)
+        VirtualTopologyActor.getRef() ! PortRequest(rport.id, update = true)
+    }
+
+    override def postStop() {
+        super.postStop()
+        //TODO(abel) tear down
     }
 
     private case class AddPeerRoute(ribType: RIBType.Value,
@@ -153,8 +160,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     import Phase._
     var phase = NotStarted
 
-    private case class BGPD_READY()
-    private case class BGPD_DEAD()
+    // BgpProcess will notify via these messages
+    case class BGPD_READY()
+    case class BGPD_DEAD()
 
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
@@ -304,8 +312,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         if (socketFile.exists())
             socketFile.delete()
 
-        // not needed anymore
-        //val server = AFUNIXServerSocket.newInstance()
         val address = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
@@ -326,57 +332,19 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     .setAddress(rport.portMac.getAddress), null)
     }
 
-    private def stopBGP() = {
-        // Kill our bgpd
-        try {
-            Sudo.sudoExec("killall bgpd")
-        } catch {
-            case e: InterruptedException =>
-                log.warning("exception killing bgpd: ", e)
+    private def stopBGP() {
+        if (bgpdProcess != null) {
+            bgpdProcess.stopBgpdProcess()
         }
-        // TODO(pino): kill the bgpVty and zebra
-        // TODO(pino): figure out when the bgpd is dead.
-        // For now, just schedule a DEAD message in 2 seconds.
-        system.scheduler.scheduleOnce(
-            Duration.create(3000, TimeUnit.MILLISECONDS),
-            self,
-            BGPD_DEAD)
     }
 
     private def internalPortReady(newPort: InternalPort) {
         internalPort = newPort
         // The internal port is ready. Set up the flows
-        for (bgp <- bgps.values)
+        for (bgp <- bgps.values) {
             setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
-        // And start bgpd
-        Runtime.getRuntime.exec("sudo /usr/lib/quagga/bgpd")
-        // TODO(pino): need to pass BGP_VTY_PORT in the -P option
-        // TODO(pino): neet to pass BGP_TCP_PORT in the -p option
-
-        //TODO(abel) make into a future
-        Runtime.getRuntime addShutdownHook new Thread {
-            new Runnable() {
-                override def run() {
-                    log.info("killing bgpd")
-                    // Calling killall because bgpdProcess.destroy()
-                    // doesn't seem to work.
-                    try {
-                        Sudo.sudoExec("killall bgpd")
-                    } catch {
-                        case e: IOException =>
-                            log.warning("killall bgpd", e)
-                        case e: InterruptedException =>
-                            log.warning("killall bgpd", e)
-                    }
-                }
-            }
+            bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
         }
-        // TODO(pino): figure out when the bgpd is ready.
-        // For now, just schedule a READY message in 2 seconds.
-        system.scheduler.scheduleOnce(
-            Duration.create(3000, TimeUnit.MILLISECONDS),
-            self,
-            BGPD_READY)
     }
 
     // TODO(pino): remove these watchers after assimilating what they do.
