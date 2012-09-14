@@ -5,7 +5,6 @@ package com.midokura.midonet.functional_test.mocks;
 
 import java.net.URI;
 
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midonet.client.dto.*;
 
 public interface MidolmanMgmt {
@@ -76,9 +75,4 @@ public interface MidolmanMgmt {
 
     DtoPortGroup addPortGroup(DtoTenant tenant, DtoPortGroup group);
 
-    void addHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap);
-
-    void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap);
-
-    HostInterfacePortMap[] getInterfacePortMap(DtoHost host);
 }

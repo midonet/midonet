@@ -6,7 +6,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.inject.servlet.GuiceFilter;
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -305,27 +304,6 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
         URI uri = post(tenant.getPortGroups(), group,
                 VendorMediaType.APPLICATION_PORTGROUP_JSON);
         return get(uri, DtoPortGroup.class);
-    }
-
-    @Override
-    public void deleteHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
-        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();    }
-
-    @Override
-    public void addHostInterfacePortMap(DtoHost host, HostInterfacePortMap portMap) {
-        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
-        post(uri, portMap);
-    }
-
-    @Override
-    public HostInterfacePortMap[] getInterfacePortMap(DtoHost host) {
-        URI uri = UriBuilder.fromUri(host.getUri()).path("interface_port_map").build();
-        ClientResponse clientResponse = get(uri,
-                ClientResponse.class);
-        if (clientResponse.getClientResponseStatus() == ClientResponse.Status.OK) {
-            return clientResponse.getEntity(HostInterfacePortMap[].class);
-        }
-        else return new HostInterfacePortMap[0];
     }
 
     @Override

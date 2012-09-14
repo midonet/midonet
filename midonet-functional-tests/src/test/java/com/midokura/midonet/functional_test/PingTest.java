@@ -6,13 +6,9 @@ package com.midokura.midonet.functional_test;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 
-import com.midokura.midonet.client.resource.Host;
-import com.midokura.midonet.client.resource.ResourceCollection;
-import com.midokura.midonet.client.resource.Router;
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
+import com.midokura.midonet.client.resource.*;
 import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -54,7 +50,6 @@ public class PingTest {
     PacketHelper helper1;
     MidolmanLauncher midolman;
     MockMgmtStarter apiStarter;
-    //MidolmanMgmt api;
     MidonetMgmt apiClient;
     ServiceController svcController;
     ZkPathManager pathManager;
@@ -88,18 +83,11 @@ public class PingTest {
 
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
-
-        //log.debug("Building tenant");
-        //tenant1 = new Tenant.Builder(api).setName("tenant-ping").build();
-        //log.debug("Building router");
-        //rtr = tenant1.addRouter().setName("rtr1").build();
-
         log.debug("Building router");
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME).name("rtr1").create();
         log.debug("Router done!: " + rtr.getName());
         p1 = rtr.addMaterializedRouterPort().portAddress(ip1.toString());
 
-        // TODO hardcore host id somewhere in the midolmanj starter
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
         Host host = null;
@@ -115,20 +103,16 @@ public class PingTest {
 
         tap1 = new TapWrapper("pingTestTap1");
 
-       // HostInterfacePortMap hipMap = new HostInterfacePortMap(host.getId(), TAPNAME, p1.getId());
+        HostInterfacePort interfacePort = host.addHostInterfacePort()
+                .interfaceName(TAPNAME)
+                .portId(p1.getId());
 
-        //log.debug("Adding the interface port map");
-      //  api.addHostInterfacePortMap(host, hipMap);
 
-        //p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        //p3 = rtr.addMaterializedRouterPort().portAddress(ip3.toString());
+        p3 = rtr.addMaterializedRouterPort().portAddress(ip3.toString());
 
-        //ovsBridge.addInternalPort(p3.port.getId(), internalPortName, ip3, 24);
-
-       // helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
+        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
 
         log.debug("Waiting for the systems to start properly.");
-       // TimeUnit.SECONDS.sleep(10);
     }
 
     @After
@@ -147,25 +131,23 @@ public class PingTest {
         byte[] request;
 
         // First arp for router's mac.
-     /*   assertThat("The ARP request was sent properly",
+        assertThat("The ARP request was sent properly",
                 tap1.send(helper1.makeArpRequest()));
 
         MAC rtrMac = helper1.checkArpReply(tap1.recv());
         helper1.setGwMac(rtrMac);
-       */
-        /*
+
+
         // Ping router's port.
         request = helper1.makeIcmpEchoRequest(rtrIp);
-        assertThat(
-            format("The tap %s should have sent the packet", tap1.getName()),
+        assertThat(String.format("The tap %s should have sent the packet", tap1.getName()),
             tap1.send(request));
 
-/*        // Note: Midolman's virtual router currently does not ARP before
+        // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
-        */
 
-        /*    // Ping internal port p3.
+        // Ping internal port p3.
         request = helper1.makeIcmpEchoRequest(ip3);
         assertThat("The tap should have sent the packet again",
                 tap1.send(request));
@@ -177,8 +159,5 @@ public class PingTest {
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
         assertNoMorePacketsOnTap(tap1);
-        */
-
-        log.debug("============== FINISH TEST ======================");
     }
 }

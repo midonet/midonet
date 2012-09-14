@@ -1,7 +1,6 @@
 package com.midokura.midonet.functional_test.mocks;
 
 import com.google.inject.servlet.GuiceFilter;
-import com.midokura.midolman.mgmt.host.HostInterfacePortMap;
 import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.dto.*;
