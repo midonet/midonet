@@ -20,7 +20,7 @@ import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.midolman.DatapathController.PacketIn
 
 
-@RunWith(classOf[JUnitRunner]) @Ignore
+/*@RunWith(classOf[JUnitRunner])*/ @Ignore
 class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuilders{
 
     var eventProbe: TestProbe = null
