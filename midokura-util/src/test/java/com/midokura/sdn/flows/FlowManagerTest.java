@@ -15,7 +15,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 
-import com.midokura.netlink.Callback;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
@@ -27,6 +26,8 @@ public class FlowManagerTest {
     int dpFlowRemoveBatchSize = 2;
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
+    long timeOut = 30;
+    long operationExecutionTime = 5;
 
     @Before
     public void setUp() {
@@ -45,7 +46,7 @@ public class FlowManagerTest {
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setActions(new ArrayList<FlowAction<?>>())
-            .setHardExpirationMillis(20);
+            .setHardExpirationMillis(timeOut);
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
         flowManager.add(flowMatch, wildcardFlow);
@@ -69,12 +70,12 @@ public class FlowManagerTest {
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
-        Thread.sleep(20);
+        Thread.sleep(timeOut);
 
         flowManager.checkFlowsExpiration();
 
         assertThat("Flow was not deleted",
-                   flowManagerHelper.getFlow(flowMatch),
+                   flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
 
     }
@@ -89,7 +90,7 @@ public class FlowManagerTest {
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setActions(new ArrayList<FlowAction<?>>())
-            .setIdleExpirationMillis(20);
+            .setIdleExpirationMillis(timeOut);
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
         flowManager.add(flowMatch, wildcardFlow);
@@ -113,12 +114,12 @@ public class FlowManagerTest {
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
-        Thread.sleep(21);
+        Thread.sleep(timeOut+1);
 
         flowManager.checkFlowsExpiration();
 
         assertThat("Flow was not deleted",
-                   flowManagerHelper.getFlow(flowMatch),
+                   flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
 
     }
@@ -131,8 +132,10 @@ public class FlowManagerTest {
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
-            .setIdleExpirationMillis(20)
+            .setIdleExpirationMillis(timeOut)
             .setActions(new ArrayList<FlowAction<?>>());
+
+        long time1 = System.currentTimeMillis();
 
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
@@ -140,7 +143,7 @@ public class FlowManagerTest {
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
         numberOfFlowsAdded++;
 
-        Thread.sleep(10);
+        Thread.sleep(timeOut/2);
 
         // add another flow that matches
         FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10l))
@@ -149,6 +152,7 @@ public class FlowManagerTest {
         assertThat("Flow didn't match", flow2, notNullValue());
         // create the flow
         flowManagerHelper.addFlow(flow2);
+
 
         numberOfFlowsAdded++;
 
@@ -166,13 +170,23 @@ public class FlowManagerTest {
 
 
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                   flowManager.getWildcardTables().get(
+                       wildcardFlow.getMatch().getUsedFields())
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
-        Thread.sleep(12);
+        long time2 = System.currentTimeMillis();
+        // this test is very sensitive to time, it's better to calibrate the sleep
+        // according to the speed of the operations
+        long sleepTime = timeOut - (time2-time1) + 1;
+        if(sleepTime < 0){
+            throw new RuntimeException("This machine is too slow, increase timeout!");
+        }
+        Thread.sleep(sleepTime);
 
         flowManager.checkFlowsExpiration();
+        // the previous operation takes some ms to complete
+        Thread.sleep(operationExecutionTime);
 
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
@@ -180,15 +194,15 @@ public class FlowManagerTest {
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
-        Thread.sleep(21);
+        Thread.sleep(timeOut);
 
         flowManager.checkFlowsExpiration();
         // both should be deleted
         assertThat("Flow was not deleted",
-                   flowManagerHelper.getFlow(flowMatch),
+                   flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
         assertThat("Flow was not deleted",
-                   flowManagerHelper.getFlow(flowMatch1),
+                   flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
 
         assertThat("Wildcard flow wasn't deleted",
@@ -218,36 +232,37 @@ public class FlowManagerTest {
 
         assertThat("DpFlowTable, a flow hasn't been removed",
                    flowManager.getDpFlowTable().size(),
-                   equalTo(maxAcceptedDpFlows-1));
+                   equalTo(maxAcceptedDpFlows));
 
         assertThat("WildcardFlowsToDpFlows, a flow hasn't been removed",
                    flowManager.getWildFlowToDpFlows().size(),
-                   equalTo(maxAcceptedDpFlows-1));
+                   equalTo(maxAcceptedDpFlows));
 
         assertThat("DpFlowToWildFlow, a flow hasn't been removed",
                    flowManager.getDpFlowToWildFlow().size(),
-                   equalTo(maxAcceptedDpFlows-1));
+                   equalTo(maxAcceptedDpFlows));
 
     }
 
     class FlowManagerHelperImpl implements FlowManagerHelper {
 
-        Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
+        public Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
 
         public void addFlow(Flow flow){
+            flow.setLastUsedTime(System.currentTimeMillis());
             flowsMap.put(flow.getMatch(), flow);
-            flowManager.getFlowCreatedCallback(flow).onSuccess(flow);
+            flowManager.addFlowCompleted(flow);
         }
 
         @Override
-        public Flow getFlow(FlowMatch flowMatch) {
-            return flowsMap.get(flowMatch);
+        public void getFlow(FlowMatch flowMatch) {
+            flowManager.updateFlowLastUsedTimeCompleted(flowsMap.get(flowMatch));
         }
 
         @Override
-        public void removeFlow(Flow flow, Callback<Flow> cb) {
+        public void removeFlow(Flow flow) {
             flowsMap.remove(flow.getMatch());
-            cb.onSuccess(flow);
+            flowManager.removeFlowCompleted(flow);
         }
 
         @Override

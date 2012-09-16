@@ -25,8 +25,6 @@ public class WildcardFlow {
     public WildcardFlow() {
         this.match = new WildcardMatch();
         this.actions = new ArrayList<FlowAction<?>>();
-        this.creationTimeMillis = System.currentTimeMillis();
-        this.lastUsedTimeMillis = System.currentTimeMillis();
     }
 
     public short getPriority() {

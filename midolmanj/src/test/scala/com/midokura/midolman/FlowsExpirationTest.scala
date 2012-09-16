@@ -48,7 +48,6 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream.subscribe(eventProbe.ref, classOf[CheckFlowExpiration])
 
         val bridge = newBridge("bridge")
 
@@ -129,7 +128,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
                 null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        Thread.sleep(2*timeOutFlow/3)
+        Thread.sleep(timeOutFlow/3)
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         // Now trigger another packet that matches the flow.
@@ -137,6 +136,28 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
 
         Thread.sleep(2*timeOutFlow/3)
         // The flow should not have expired since it was used again.
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
+
+        eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
+    }
+
+    def testIdleAndHardTimeOutOfTheSameFlow() {
+        triggerPacketIn("port1", ethPkt)
+
+        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val wFlow = new WildcardFlow()
+            .setMatch(pktInMsg.wMatch)
+            .setIdleExpirationMillis(timeOutFlow)
+            .setHardExpirationMillis(timeOutFlow)
+
+        flowProbe().testActor.tell(
+            AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
+                null, null))
+
+        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        Thread.sleep(delayAsynchAddRemoveInDatapath)
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])

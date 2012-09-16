@@ -20,6 +20,7 @@ import collection.immutable
 import com.midokura.util.functors.{Callback1, Callback0}
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
+import com.midokura.midolman.FlowController
 
 object FlowController extends Referenceable {
     val Name = "FlowController"
@@ -162,6 +163,15 @@ class FlowController extends Actor with ActorLogging {
         case CheckFlowExpiration() =>
             log.info("Checking flow expiration")
             flowManager.checkFlowsExpiration()
+
+        case flowUpdated(flow) =>
+            flowManager.updateFlowLastUsedTimeCompleted(flow)
+
+        case flowAdded(flow) =>
+            flowManager.addFlowCompleted(flow)
+
+        case flowRemoved(flow) =>
+        flowManager.removeFlowCompleted(flow)
     }
 
     private def freePendedPackets(cookieOpt: Option[Cookie]): Unit = {
@@ -180,17 +190,17 @@ class FlowController extends Actor with ActorLogging {
      * @param packet the packet data
      */
     case class packetIn(packet: Packet)
+    case class flowUpdated(flow: Flow)
+    case class flowAdded(flow: Flow)
+    case class flowRemoved(flow: Flow)
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         flowManager.remove(wildFlow)
-        /*if (removedDpFlowMatches != null) {
-            for (flowMatch <- removedDpFlowMatches) {
-                val flow = new Flow().setMatch(flowMatch)
-                removeFlow(flow)
-            }
-        } */
-        // TODO(pino): update tagToFlows and flowToTags
+        val tags = flowToTags.remove(wildFlow)
+        for (tag <- tags){
+            tagToFlows.remove(tag)
+        }
     }
 
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
@@ -220,15 +230,16 @@ class FlowController extends Actor with ActorLogging {
         val dpFlow = flowManager.createDpFlow(packet.getMatch)
         if (dpFlow != null) {
             datapathConnection.flowsCreate(datapath, dpFlow,
-                new ErrorHandlingCallback[Flow] {
-                    def onSuccess(data: Flow) {}
+            new ErrorHandlingCallback[Flow] {
+                def onSuccess(data: Flow) {
+                    self ! flowAdded(data)
+                }
 
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error(ex,
-                            "Failed to install a flow {} due to {}", dpFlow,
-                            if (timeout) "timeout" else "error")
-                    }
-                })
+                def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error("Got an exception {} or timeout {} when trying to add flow" +
+                            "with flow match {}", ex.toString, timeout, dpFlow.getMatch.toString)
+                }
+            })
             return
         } else {
             // Otherwise, pass the packetIn up to the next layer for handling.
@@ -279,7 +290,16 @@ class FlowController extends Actor with ActorLogging {
                     setLastUsedTime(System.currentTimeMillis())
 
                 datapathConnection.flowsCreate(datapath, dpFlow,
-                    flowManager.getFlowCreatedCallback(dpFlow))
+                new ErrorHandlingCallback[Flow] {
+                    def onSuccess(data: Flow) {
+                        self ! flowAdded(data)
+                    }
+
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error("Got an exception {} or timeout {} when trying to add flow" +
+                            "with flow match {}", ex.toString, timeout, dpFlow.getMatch.toString)
+                    }
+                })
                 log.debug("Flow created {}", dpFlow.getMatch.toString)
 
                 // Send all pended packets with the same action list (unless
@@ -318,9 +338,18 @@ class FlowController extends Actor with ActorLogging {
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper{
-        def removeFlow(flow: Flow, cb: Callback[Flow]) {
-            log.debug("Sending myself a message to remove flow {}", flow.toString)
-            self ! RemoveFlow(flow, cb)
+        def removeFlow(flow: Flow) {
+            datapathConnection.flowsDelete(datapath, flow,
+            new ErrorHandlingCallback[Flow] {
+                def handleError(ex: NetlinkException, timeout: Boolean) {
+                    log.error("Got an exception {} or timeout {} when trying to remove flow" +
+                        "with flow match {}", ex.toString, timeout, flow.getMatch.toString)
+                }
+
+                def onSuccess(data: Flow) {
+                    self ! flowRemoved(data)
+                }
+            })
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {
@@ -328,23 +357,23 @@ class FlowController extends Actor with ActorLogging {
             self ! RemoveWildcardFlow(flow)
         }
 
-        def getFlow(flowMatch: FlowMatch): Flow = {
+        def getFlow(flowMatch: FlowMatch) {
 
-            val flowFuture: java.util.concurrent.Future[Flow] =
-                datapathConnection.flowsGet(datapath, flowMatch)
+                datapathConnection.flowsGet(datapath, flowMatch,
+                new ErrorHandlingCallback[Flow] {
 
-            try {
-                val kernelFlow: Flow = flowFuture.get
-                kernelFlow
-            }catch {
-                case e: Exception => {
-                    log.error("Got an exception when trying to flowsGet()" +
-                        "for flow match {}", flowMatch, e)
-                    null
-                }
-            }
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error("Got an exception {} or timeout {} when trying to flowsGet()" +
+                            "for flow match {}", ex.toString, timeout, flowMatch.toString)
+                    }
 
+                    def onSuccess(data: Flow) {
+                        self ! flowUpdated(data)
+                    }
+
+                })
 
         }
     }
+
 }

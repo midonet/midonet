@@ -9,19 +9,11 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.netlink.Callback;
-import com.midokura.netlink.exceptions.NetlinkException;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
 
 // not thread-safe
-// TODO(pino): document this
-// TODO(pino): implement eviction of wildcard flows
-// TODO(pino): implement flow removal notification. Keep in mind that during
-// TODO:       simulation, the match for the installed flow is not yet known.
-// TODO(ross) write a unit test for this class
-
 //TODO(ross) check the values mentioned in the doc below
 /**
  * Hard Time-out
@@ -50,6 +42,8 @@ public class FlowManager {
 
     private static final Logger log = LoggerFactory.getLogger(FlowManager.class);
 
+    private ProfilingTimer profiler = new ProfilingTimer(log);
+
     private FlowManagerHelper flowManagerHelper;
     private long maxDpFlows;
     //TODO(ross) is this a reasonable value? Take it from conf file?
@@ -57,10 +51,10 @@ public class FlowManager {
 
     /** Since we want to be able to add flows in constant time, every time
      * a wcflow  matches and a new flow is created, instead of updating immediately
-     * the wcflow lastMatchedTime, we add it to this list. We will process the list later
+     * the wcflow LastUsedTime, we add it to this list. We will process the list later
      * when we check for flows expiration.
      */
-    private List<WildcardFlow> wildcardFlowsToUpdate = new ArrayList<WildcardFlow>();
+    //private List<WildcardFlow> wildcardFlowsToUpdate = new ArrayList<WildcardFlow>();
 
     public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows) {
         this.maxDpFlows = maxDpFlows;
@@ -82,8 +76,8 @@ public class FlowManager {
     * table.
     */
     private Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>
-            wildcardTables = new HashMap<Set<WildcardMatch.Field>,
-                    Map<WildcardMatch, WildcardFlow>>();
+        wildcardTables = new HashMap<Set<WildcardMatch.Field>,
+        Map<WildcardMatch, WildcardFlow>>();
 
     /* The datapath flow table is a map of datapath FlowMatch to a list of
      * FlowActions. The datapath flow table is a LinkedHashMap so that we
@@ -94,14 +88,14 @@ public class FlowManager {
      * addiction of a flow.
      */
     private LinkedHashMap<FlowMatch, List<FlowAction<?>>> dpFlowTable =
-            new LinkedHashMap<FlowMatch, List<FlowAction<?>>>();
+        new LinkedHashMap<FlowMatch, List<FlowAction<?>>>();
 
     /* Map each datapath flow back to its wildcard flow */
     private Map<FlowMatch, WildcardFlow> dpFlowToWildFlow =
-            new HashMap<FlowMatch, WildcardFlow>();
+        new HashMap<FlowMatch, WildcardFlow>();
     /* Map each wildcard flow to the set of datapath flows it generated. */
     private Map<WildcardFlow, Set<FlowMatch>> wildFlowToDpFlows =
-            new HashMap<WildcardFlow, Set<FlowMatch>>();
+        new HashMap<WildcardFlow, Set<FlowMatch>>();
     //TODO(ross) size for the priority queue?
     final int priorityQueueSize = 10000;
     /* Priority queue to evict flows based on hard time-out */
@@ -115,7 +109,7 @@ public class FlowManager {
     public int getNumDpFlows() {
         return dpFlowTable.size();
     }
-
+    /*
     public List<FlowMatch> removeOldestDpFlows(int numToRemove) {
         if (numToRemove <= 0)
             throw new IllegalArgumentException("numToRemove must be positive");
@@ -126,7 +120,7 @@ public class FlowManager {
             it.remove();
         }
         return removed;
-    }
+    } */
 
     /**
      * Add a new wildcard flow.
@@ -137,16 +131,10 @@ public class FlowManager {
      *         match.
      */
     public boolean add(WildcardFlow wildFlow) {
-        // check if there's enough space
-        if(isFlowTableFull()){
-            //TODO(ross) maybe stash the message if the table if full?
-            log.error("The flow table is full, flow {} couldn't be added",
-                      wildFlow.getMatch().toString());
-            return false;
-        }
+
         // Get the WildcardFlowTable for this wild flow's pattern.
         Set<WildcardMatch.Field> pattern =
-                wildFlow.getMatch().getUsedFields();
+            wildFlow.getMatch().getUsedFields();
         Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.get(pattern);
         if (null == wildTable) {
             wildTable = new HashMap<WildcardMatch, WildcardFlow>();
@@ -155,7 +143,8 @@ public class FlowManager {
         if (!wildTable.containsKey(wildFlow.match)) {
             wildTable.put(wildFlow.match, wildFlow);
             wildFlowToDpFlows.put(wildFlow, new HashSet<FlowMatch>());
-
+            wildFlow.setCreationTimeMillis(System.currentTimeMillis());
+            wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
             if(wildFlow.getHardExpirationMillis() > 0){
                 hardTimeOutQueue.add(wildFlow);
                 log.debug("Flow {} has hard time out set {}", wildFlow.toString(),
@@ -163,10 +152,10 @@ public class FlowManager {
             }
             if(wildFlow.getIdleExpirationMillis() > 0){
                 idleTimeOutQueue.add(wildFlow);
-                log.debug("Flow {} has idle time out set {}", wildFlow.toString(),
+                log.debug("Wildcard flow {} has idle time out set {}", wildFlow.toString(),
                           wildFlow.getIdleExpirationMillis());
             }
-            log.debug("Added flow {}", wildFlow.getMatch());
+            log.debug("Added wildcard flow {}", wildFlow.getMatch());
             return true;
         }
         return false;
@@ -186,11 +175,19 @@ public class FlowManager {
     public boolean add(FlowMatch flowMatch, WildcardFlow wildFlow) {
         if (dpFlowTable.containsKey(flowMatch))
             return false;
+        // check if there's enough space
+        if(howManyFlowsToRemoveToFreeSpace() > 0){
+            log.error("The flow table is full, cannot add flow with match {}",
+                      flowMatch.toString());
+            // There's no point in trying to free space, because the remove operation
+            // won't take please until the FlowController receive and process the
+            // message RemoveFlow
+        }
         dpFlowToWildFlow.put(flowMatch, wildFlow);
         wildFlowToDpFlows.get(wildFlow).add(flowMatch);
-        // put the wcflow in the list to update later its lastMatchedTime
-        wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
-        wildcardFlowsToUpdate.add(wildFlow);
+
+        log.debug("Added flow with match {} that matches wildcard flow {}", flowMatch.toString(),
+                  wildFlow.toString());
         return true;
     }
 
@@ -208,10 +205,9 @@ public class FlowManager {
         if (removedDpFlows != null){
             for (FlowMatch flowMatch : removedDpFlows) {
                 dpFlowToWildFlow.remove(flowMatch);
-                flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch),
-                                   getFlowDeleteCallback(flowMatch));
+                flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch));
             }
-            // Get the WildcardFlowTable for this wild flow's pattern and remove
+            // Get the WildcardFlowTable for this wildflow's pattern and remove
             // the wild flow.
             Map<WildcardMatch, WildcardFlow> wcMap = wildcardTables.get(wildFlow.getMatch().getUsedFields());
             if(wcMap != null){
@@ -253,12 +249,12 @@ public class FlowManager {
         WildcardFlow wFlowCandidate = null;
         WildcardMatch flowWildMatch = WildcardMatches.fromFlowMatch(flowMatch);
         for (Map.Entry<Set<WildcardMatch.Field>,
-                Map<WildcardMatch, WildcardFlow>> wTableEntry :
-                wildcardTables.entrySet()) {
+            Map<WildcardMatch, WildcardFlow>> wTableEntry :
+            wildcardTables.entrySet()) {
             Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
             Set<WildcardMatch.Field> pattern = wTableEntry.getKey();
             WildcardMatch projectedFlowMatch = WildcardMatches.project(
-                    pattern, flowWildMatch);
+                pattern, flowWildMatch);
             WildcardFlow nextWFlowCandidate = table.get(projectedFlowMatch);
             if (null != nextWFlowCandidate) {
                 if (null == wFlowCandidate)
@@ -268,134 +264,167 @@ public class FlowManager {
             }
         }
         // If we found a valid wildcard flow, create a Flow for the FlowMatch.
-        if (null == wFlowCandidate)
+        if (null == wFlowCandidate){
+            log.debug("FlowMatch {} didn't match any wildcard flow", flowMatch.toString());
             return null;
+        }
         else {
             Flow dpFlow = new Flow().setMatch(flowMatch)
-                    .setActions(wFlowCandidate.getActions());
+                                    .setActions(wFlowCandidate.getActions());
             assert(add(flowMatch, wFlowCandidate));
+            log.debug("FlowMatch {} matched wildcard flow {} ", flowMatch.toString(),
+                      wFlowCandidate.toString());
             return dpFlow;
         }
     }
 
     private void checkHardTimeOutExpiration(){
+        profiler.start();
         WildcardFlow flowToExpire;
         while((flowToExpire = hardTimeOutQueue.peek()) != null){
+            // since we remove the element lazily let's check if this el
+            // has already been removed
+            if(!wildFlowToDpFlows.containsKey(flowToExpire)){
+                hardTimeOutQueue.poll();
+                continue;
+            }
             long timeLived = System.currentTimeMillis() - flowToExpire.getCreationTimeMillis();
             if( timeLived > flowToExpire.getHardExpirationMillis()){
                 hardTimeOutQueue.poll();
-                // since we remove the element lazily let's check if this el
-                // has already been removed
-                if(wildFlowToDpFlows.containsKey(flowToExpire)){
-                    flowManagerHelper.removeWildcardFlow(flowToExpire);
-                }
+                flowManagerHelper.removeWildcardFlow(flowToExpire);
                 log.debug("Removing flow {} for hard expiration, expired {} ms ago", flowToExpire.toString(),
                           timeLived - flowToExpire.getHardExpirationMillis() );
-            }
-            else
+            }else
                 return;
         }
+        profiler.end();
     }
 
-    private boolean checkMicroFlowsExpiration(WildcardFlow flowToExpire){
-        // check from the kernel the last time the flows of this wildcardflows
-        // were used
+    private void updateKernelFlowsLastUsedTime(WildcardFlow flowToExpire){
+        // check from the kernel the last time the flows of this wildcard flows
+        // were used. This is totally asynchronous, a callback will update
+        // the flows
         Set<FlowMatch> flowMatches = wildFlowToDpFlows.get(flowToExpire);
-        Iterator<FlowMatch> matchIterator = flowMatches.iterator();
-         while (matchIterator.hasNext()) {
-             FlowMatch match = matchIterator.next();
-             Flow kernelFlow = flowManagerHelper.getFlow(match);
-             if( kernelFlow != null && kernelFlow.getLastUsedTime() != null){
-                 if (System.currentTimeMillis() - kernelFlow.getLastUsedTime()
-                     < flowToExpire.getIdleExpirationMillis()) {
-                     // no need to check other flows, let's update the wildcardflow
-                     flowToExpire.setLastUsedTimeMillis(kernelFlow.getLastUsedTime());
-                     log.debug("flow {} lastUsedTime update to {}", flowToExpire, kernelFlow.getLastUsedTime());
-                     idleTimeOutQueue.add(flowToExpire);
-                     return true;
-                 } else {
-                     //delete the flow if it's expired
-                     flowManagerHelper.removeFlow(kernelFlow, getFlowDeleteCallback(match));
-                     dpFlowToWildFlow.remove(match);
-                     matchIterator.remove();
-                 }
-             }
-             else{
-                 log.debug("getFlow, flow {} was null or had no lastUsedTime set "
-                     , match.toString());
-             }
-
+        for(FlowMatch match: flowMatches) {
+            flowManagerHelper.getFlow(match);
         }
-        return false;
     }
 
     private void checkIdleTimeExpiration(){
+        profiler.start();
         WildcardFlow flowToExpire;
         while((flowToExpire = idleTimeOutQueue.peek()) != null){
-            long timeLived = System.currentTimeMillis() - flowToExpire.getLastUsedTimeMillis();
-            if( timeLived > flowToExpire.getIdleExpirationMillis()){
+            // since we remove the element lazily let's check if this element
+            // has already been removed
+            if(!wildFlowToDpFlows.containsKey(flowToExpire)){
                 idleTimeOutQueue.poll();
-                // since we remove the element lazily let's check if this element
-                // has already been removed
-                if(!wildFlowToDpFlows.containsKey(flowToExpire)){
-                    continue;
-                }
-                boolean flowsAlive = checkMicroFlowsExpiration(flowToExpire);
-                if(!flowsAlive){
-                    flowManagerHelper.removeWildcardFlow(flowToExpire);
-                    log.debug("Removing flow {} for idle expiration, expired {} ms ago", flowToExpire.toString(),
-                              timeLived - flowToExpire.getHardExpirationMillis() );
-                }
+                continue;
             }
-            else
+            long timeLived = System.currentTimeMillis() - flowToExpire.getLastUsedTimeMillis();
+            if(timeLived > flowToExpire.getIdleExpirationMillis()/2){
+                // these flows needs to be expired
+                if( timeLived > flowToExpire.getIdleExpirationMillis()){
+                    idleTimeOutQueue.poll();
+
+                    flowManagerHelper.removeWildcardFlow(flowToExpire);
+                    log.debug("Removing flow {} for idle expiration, expired {} ms ago, now {}",
+                              new Object[]{flowToExpire.toString(),
+                              timeLived - flowToExpire.getIdleExpirationMillis(),
+                              System.currentTimeMillis()});
+                }
+                // these flows are going to expire soon, we have to retrieve the
+                // flow lastUsedTime from the kernel
+                else{
+                    updateKernelFlowsLastUsedTime(flowToExpire);
+                }
+            }else
                 return;
         }
-    }
-
-    private void updateWildcardFlowLastMatchedTime(){
-        for(WildcardFlow flow: wildcardFlowsToUpdate){
-            // we can remove the old flow using the update one because in the
-            // equal method we don't take into consideration the field lastMatchedTime
-            if(idleTimeOutQueue.remove(flow)){
-                // this flow will contain the updated lastMatchedTime
-                idleTimeOutQueue.add(flow);
-            }
-        }
-        wildcardFlowsToUpdate.clear();
+        profiler.end();
     }
 
     private void manageDPFlowTableSpace() {
-        if (isFlowTableFull()) {
-            int size = dpFlowTable.keySet().size();
-            // we create an array because if the flowManagerHelper.removeFlow
-            // operation is executed immediately we'd get a ConcurrentModificationEx
-            // because we'd iterate in dpFlowTable.keySet and delete and element
-            // of the set in the callback triggered by flowManagerHelper.removeFlow
-            FlowMatch[] matches = dpFlowTable.keySet().toArray(new FlowMatch[size]);
-            int removedFlowsCount = 0;
-            while (removedFlowsCount < dpFlowRemoveBatchSize && removedFlowsCount < size) {
-                flowManagerHelper.removeFlow(new Flow().setMatch(matches[removedFlowsCount]),
-                                             getFlowDeleteCallback(matches[removedFlowsCount]));
-                WildcardFlow wcFlow = dpFlowToWildFlow.remove(matches[removedFlowsCount]);
-                wildFlowToDpFlows.get(wcFlow).remove(matches[removedFlowsCount]);
+        removeOldestDpFlows((int) howManyFlowsToRemoveToFreeSpace());
+    }
+
+    private void removeOldestDpFlows(int nFlowsToRemove) {
+        if (nFlowsToRemove <= 0)
+            return;
+
+        for (int i = 0; i < nFlowsToRemove; i++){
+        Iterator<FlowMatch> it = dpFlowTable.keySet().iterator();
+            if(it.hasNext()){
+                FlowMatch match = it.next();
+                // this call will eventually lead to the removal of this flow
+                // from dpFlowTable
+                flowManagerHelper.removeFlow(new Flow().setMatch(match));
+                WildcardFlow wcFlow = dpFlowToWildFlow.remove(match);
+                wildFlowToDpFlows.get(wcFlow).remove(match);
                 if(wildFlowToDpFlows.get(wcFlow).size() == 0)
                     wildFlowToDpFlows.remove(wcFlow);
-                removedFlowsCount++;
             }
         }
     }
 
-    private boolean isFlowTableFull() {
-        return (getNumDpFlows() > maxDpFlows - dpFlowRemoveBatchSize);
+    private long howManyFlowsToRemoveToFreeSpace() {
+        return (getNumDpFlows() - (maxDpFlows - dpFlowRemoveBatchSize));
     }
 
     public void checkFlowsExpiration(){
-
+        profiler.start();
         checkHardTimeOutExpiration();
-        updateWildcardFlowLastMatchedTime();
+        //updateWildcardLastUsedTime();
         checkIdleTimeExpiration();
         // check if there's enough space in the DP table
         manageDPFlowTableSpace();
+        profiler.end();
+    }
+
+    public void updateFlowLastUsedTimeCompleted(Flow flow){
+        profiler.start();
+        WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
+        // the wildcard flow was deleted
+        if(null == wcFlow)
+            return;
+        if (flow.getLastUsedTime() != null){
+            if (flow.getLastUsedTime() > wcFlow.getLastUsedTimeMillis()) {
+                log.debug("Wildcard flow {} lastUsedTime updated to {}", wcFlow, flow.getLastUsedTime());
+                // TODO(ross) this is not optimal because we can may get a series of updates
+                // of many kernel flows corresponding to this wc flow, we spend time
+                // repositioning this wc in the queue but this could be done once
+                // if we get all the flows updates together.
+                wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
+            }
+            //TODO(ross) is this cleanup necessary?
+            /*
+            else if (wcFlow.getHardExpirationMillis() > 0 && System.currentTimeMillis() - flow.getLastUsedTime()
+                > wcFlow.getHardExpirationMillis() ||
+                wcFlow.getIdleExpirationMillis() > 0 && System.currentTimeMillis() - flow.getLastUsedTime()
+                    > wcFlow.getIdleExpirationMillis()) {
+                //this is a good place to clean up old flows
+                flowManagerHelper.removeFlow(flow);
+                dpFlowToWildFlow.remove(flow.getMatch());
+            } */
+        }
+        else{
+            log.debug("getFlow, flow with match {} was null or had no lastUsedTime set "
+                , flow.getMatch().toString());
+        }
+        profiler.end();
+    }
+
+    public void addFlowCompleted(Flow flow){
+        dpFlowTable.put(flow.getMatch(), flow.getActions());
+        WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
+        if(wcFlow.getIdleExpirationMillis() > 0){
+            wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
+            log.debug("LastUsedTime updated for wildcard flow {}, new value {}",
+                      wcFlow.toString(), flow.getLastUsedTime().toString());
+        }
+    }
+
+    public void removeFlowCompleted(Flow flow){
+        dpFlowTable.remove(flow.getMatch());
     }
 
     private abstract class WildcardFlowComparator implements Comparator<WildcardFlow>{
@@ -418,8 +447,8 @@ public class FlowManager {
     private class WildcardFlowHardTimeComparator extends WildcardFlowComparator{
         @Override
         protected long getTimeToLive(WildcardFlow flow, long now) {
-             return  now - flow.getCreationTimeMillis()
-                 - flow.getHardExpirationMillis();
+            return  now - flow.getCreationTimeMillis()
+                - flow.getHardExpirationMillis();
         }
     }
 
@@ -429,62 +458,6 @@ public class FlowManager {
             return  now - flow.getLastUsedTimeMillis()
                 - flow.getIdleExpirationMillis();
         }
-    }
-
-    private abstract class FlowManagerCallback implements Callback<Flow> {
-        Flow flowToRemove;
-
-        protected FlowManagerCallback(Flow flowToRemove) {
-            this.flowToRemove = flowToRemove;
-        }
-
-        @Override
-        public void onTimeout() {
-            String match = flowToRemove.getMatch() == null ? "" :
-                flowToRemove.getMatch().toString();
-            log.error("Failed to" + getActionName() + "flow {} due to time out",
-                      match);
-        }
-
-        @Override
-        public void onError(NetlinkException e) {
-            String match = flowToRemove.getMatch() == null ? "" :
-                flowToRemove.getMatch().toString();
-            log.error("Failed to" + getActionName() + "flow {} due to", match, e);
-        }
-        abstract String getActionName();
-    }
-
-    private Callback<Flow> getFlowDeleteCallback(final FlowMatch match){
-        return new FlowManagerCallback(new Flow().setMatch(match)) {
-
-            @Override
-            public void onSuccess(Flow data) {
-                // now we can remove the flow
-                dpFlowTable.remove(data.getMatch());
-            }
-
-            @Override
-            String getActionName() {
-                return "remove";
-            }
-        };
-    }
-
-
-    public Callback<Flow> getFlowCreatedCallback(final Flow flowToAdd){
-        return new FlowManagerCallback(flowToAdd) {
-            @Override
-            public void onSuccess(Flow data) {
-                // add the flow to the table
-                dpFlowTable.put(data.getMatch(), data.getActions());
-            }
-
-            @Override
-            String getActionName() {
-                return "add";
-            }
-        };
     }
 
     Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> getWildcardTables() {
