@@ -60,7 +60,6 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                             rtrMacToLogicalPortId, rtrIpToMac)
     }
 
-    @Ignore //XXX(pino)
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
         val ingressMatch = ((new WildcardMatch)

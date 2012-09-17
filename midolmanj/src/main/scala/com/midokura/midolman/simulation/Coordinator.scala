@@ -22,18 +22,15 @@ import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+    ChainRequest, RouterRequest, PortRequest}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
+    SendPacket}
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{UDP, TCP, Ethernet}
+import com.midokura.packets.{Ethernet, TCP, UDP}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
-import scala.Left
-import com.midokura.midolman.topology.VirtualTopologyActor.{RouterRequest,
-    BridgeRequest, ChainRequest, PortRequest}
-import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
-    SendPacket}
-import scala.Some
-import scala.Right
 
 
 object Coordinator {
@@ -314,14 +311,14 @@ class Coordinator(val origMatch: WildcardMatch,
                 if (!deviceReply.isInstanceOf[Device]) {
                     log.error("VirtualTopologyManager didn't return a device!")
                     dropFlow(true)
-                    return
-                }
-                numDevicesSimulated += 1
-                devicesSimulated.put(port.deviceID, numDevicesSimulated)
+                } else {
+                    numDevicesSimulated += 1
+                    devicesSimulated.put(port.deviceID, numDevicesSimulated)
 
-                pktContext.setInPortID(port.id).setOutPortID(null)
-                handleActionFuture(deviceReply.asInstanceOf[Device].process(
-                    modifMatch, modifEthPkt, pktContext, expiry))
+                    pktContext.setInPortID(port.id).setOutPortID(null)
+                    handleActionFuture(deviceReply.asInstanceOf[Device].process(
+                        modifMatch, modifEthPkt, pktContext, expiry))
+                }
         }
     }
 
@@ -406,7 +403,7 @@ class Coordinator(val origMatch: WildcardMatch,
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
                     if (getPortGroups &&
-                        port.isInstanceOf[ExteriorPort[_]]) {
+                            port.isInstanceOf[ExteriorPort[_]]) {
                         pktContext.setPortGroups(
                             port.asInstanceOf[ExteriorPort[_]].portGroups)
                     }

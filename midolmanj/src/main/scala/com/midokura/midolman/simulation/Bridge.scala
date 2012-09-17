@@ -42,8 +42,7 @@ class Bridge(val id: UUID, val greKey: Long,
         if (Ethernet.isMcast(ingressMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
             return Promise.successful(DropAction())
-        }
-        else
+        } else
             normalProcess(ingressMatch, packet, packetContext, expiry)
     }
 

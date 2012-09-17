@@ -2,25 +2,25 @@
 
 package com.midokura.midolman
 
+import akka.actor._
+import akka.util.Duration
 import collection.JavaConversions._
+import collection.immutable
 import collection.mutable.{HashMap, MultiMap, Set}
-import config.MidolmanConfig
-import datapath.ErrorHandlingCallback
-
-import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
-
-import com.midokura.sdn.flows.{FlowManagerHelper, WildcardMatches, FlowManager, WildcardFlow}
-import com.midokura.sdn.dp.flows.FlowAction
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import com.midokura.netlink.protos.OvsDatapathConnection
+
+import com.midokura.midolman.config.MidolmanConfig
+import com.midokura.midolman.datapath.ErrorHandlingCallback
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
-import akka.actor._
-import collection.immutable
-import com.midokura.util.functors.{Callback1, Callback0}
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
-import com.midokura.midolman.FlowController
+import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
+import com.midokura.sdn.dp.flows.FlowAction
+import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
+                               WildcardMatches}
+import com.midokura.util.functors.{Callback0, Callback1}
+
 
 object FlowController extends Referenceable {
     val Name = "FlowController"
