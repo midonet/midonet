@@ -10,9 +10,12 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.typesafe.config.ConfigFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MidolmanEvents {
-
+    private final static Logger log =
+        LoggerFactory.getLogger(MidolmanEvents.class);
     static ActorSystem system = null;
     static ActorRef observer = null;
     static {
@@ -21,12 +24,13 @@ public class MidolmanEvents {
     }
 
     public static void startObserver() {
-        if (null != observer) {
-            ActorRef observer = system.actorOf(
+        if (null == observer) {
+            observer = system.actorOf(
                 new Props(MidolmanObserver.class), "midolmanObserver");
             ActorRef midolman = system.actorFor(
                 "akka://MidolmanActors@127.0.0.1:2552/user/remoteServer");
-            observer.tell("LocalPorts", midolman);
+            midolman.tell("LocalPorts", observer);
+            log.info("Started Midolman observer: {}", observer);
         }
     }
 
