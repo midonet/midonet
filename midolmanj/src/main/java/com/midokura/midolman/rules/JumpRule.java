@@ -41,7 +41,7 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(PacketMatch flowMatch, RuleResult res,
+    public void apply(Object flowCookie, RuleResult res,
                       NatMapping natMapping) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;

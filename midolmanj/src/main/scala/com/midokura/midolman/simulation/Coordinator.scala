@@ -9,29 +9,31 @@ import collection.mutable
 import collection.JavaConversions._
 import compat.Platform
 import java.util.concurrent.TimeoutException
-import java.util.{Set => JSet}
-import java.util.UUID
+import java.util.{UUID, Set => JSet}
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.pattern.ask
 import akka.util.duration._
 
-import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-         ChainRequest, PortRequest, RouterRequest}
 import com.midokura.midolman.{DatapathController, FlowController}
-import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
-                                             SendPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.Ethernet
-import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.sdn.flows.{PacketMatch, WildcardFlow, WildcardMatch}
+import com.midokura.packets.{UDP, TCP, Ethernet}
+import com.midokura.sdn.dp.flows._
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
+import scala.Left
+import com.midokura.midolman.topology.VirtualTopologyActor.{RouterRequest,
+    BridgeRequest, ChainRequest, PortRequest}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
+    SendPacket}
+import scala.Some
+import scala.Right
 
 
 object Coordinator {
@@ -49,20 +51,46 @@ object Coordinator {
     // TODO:       remove NotIPv4Action
     case class NotIPv4Action() extends Action
     case class ConsumedAction() extends Action
-    abstract class ForwardAction extends Action
-    case class ToPortAction(outPort: UUID,
-                            outMatch: WildcardMatch) extends ForwardAction
-    case class ToPortSetAction(portSetID: UUID,
-                               outMatch: WildcardMatch) extends ForwardAction
+    abstract case class ForwardAction extends Action
+    case class ToPortAction(outPort: UUID) extends ForwardAction
+    case class ToPortSetAction(portSetID: UUID) extends ForwardAction
 
+    /**
+     * The PacketContext is a serialization token for the devices during the
+     * simulation of a packet's traversal of the virtual topology.
+     * A device may not modify the PacketContext after the Future[Action]
+     * returned by the process method completes.
+     */
     /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
-    class PacketContext(var inPortID: UUID, var outPortID: UUID,
-                        var portGroups: JSet[UUID]) extends ChainPacketContext {
+    class PacketContext(var inPortID: UUID, var outPortID: UUID)
+        extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
         // and tags added.  Freezing it switches it from write-only to
         // read-only.
         private var frozen = false
         def isFrozen() = frozen
+        private var flowCookie: Any = null
+        private var portGroups: JSet[UUID] = null
+
+        def setFlowCookie(cookie: Any): PacketContext = {
+            flowCookie = cookie
+            this
+        }
+
+        def setPortGroups(groups: JSet[UUID]): PacketContext = {
+            portGroups = groups
+            this
+        }
+
+        def setInPortID(id: UUID): PacketContext = {
+            inPortID = id
+            this
+        }
+
+        def setOutPortID(id: UUID): PacketContext = {
+            outPortID = id
+            this
+        }
 
         // This set will store the callback to call when this flow is removed
         private val flowRemovedCallbacks = mutable.Set[Callback0]()
@@ -109,7 +137,7 @@ object Coordinator {
         override def addTraversedElementID(id: UUID) { /* XXX */ }
         override def isConnTracked(): Boolean = false   //XXX
         override def isForwardFlow(): Boolean = true    //XXX
-        override def getFlowMatch(): PacketMatch = null //XXX
+        override def getFlowCookie(): Object = null //XXX
     }
 
     trait Device {
@@ -183,7 +211,7 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     var numDevicesSimulated = 0
     val devicesSimulated = mutable.Map[UUID, Int]()
-    val pktContext = new PacketContext(null, null, null)
+    val pktContext = new PacketContext(null, null).setFlowCookie(cookie)
     val modifMatch = origMatch.clone()
     val modifEthPkt = Ethernet.deserialize(origEthernetPkt.serialize())
 
@@ -245,7 +273,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(true)
 
                     case id: UUID =>
-                        packetIngressesPort(id)
+                        packetIngressesPort(id, true)
                 }
 
             case Some(egressID) =>
@@ -291,6 +319,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 numDevicesSimulated += 1
                 devicesSimulated.put(port.deviceID, numDevicesSimulated)
 
+                pktContext.setInPortID(port.id).setOutPortID(null)
                 handleActionFuture(deviceReply.asInstanceOf[Device].process(
                     modifMatch, modifEthPkt, pktContext, expiry))
         }
@@ -298,13 +327,16 @@ class Coordinator(val origMatch: WildcardMatch,
 
     private def handleActionFuture(actionF: Future[Action]) {
         actionF.onComplete {
-            case Left(err) => dropFlow(true)
+            case Left(err) =>
+                log.error("Error instead of Action - {}", err)
+                dropFlow(true)
             case Right(action) =>
+                log.info("Received action: {}", action)
                 action match {
-                    case ToPortSetAction(portSetID, _) =>
+                    case ToPortSetAction(portSetID) =>
                         emit(portSetID, true)
 
-                    case ToPortAction(outPortID, _) =>
+                    case ToPortAction(outPortID) =>
                         packetEgressesPort(outPortID)
 
                     case _: ConsumedAction =>
@@ -334,6 +366,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
+                                pktContext.freeze()
                                 val notIPv4Match =
                                     (new WildcardMatch()
                                         .setInputPortUUID(origMatch.getInputPortUUID)
@@ -353,13 +386,13 @@ class Coordinator(val origMatch: WildcardMatch,
 
 
                     case _ =>
-                        log.error("Device returned nexpected action!")
+                        log.error("Device returned unexpected action!")
                         dropFlow(true)
                 } // end action match
         } // end onComplete
     }
 
-    private def packetIngressesPort(portID: UUID) {
+    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean) {
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             dropFlow(true)
@@ -372,6 +405,12 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
+                    if (getPortGroups &&
+                        port.isInstanceOf[ExteriorPort[_]]) {
+                        pktContext.setPortGroups(
+                            port.asInstanceOf[ExteriorPort[_]].portGroups)
+                    }
+
                     applyPortFilter(port, port.inFilterID,
                                     packetIngressesDevice _)
                 case _ =>
@@ -390,8 +429,7 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
-                    pktContext.inPortID = null
-                    pktContext.outPortID = null
+                    pktContext.setInPortID(null).setOutPortID(null)
                     val result = Chain.apply(chain, pktContext, modifMatch,
                                              port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
@@ -429,7 +467,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         case _: ExteriorPort[_] =>
                             emit(portID, false)
                         case interiorPort: InteriorPort[_] =>
-                            packetIngressesPort(interiorPort.peerID)
+                            packetIngressesPort(interiorPort.peerID, false)
                         case _ =>
                             log.error(
                                 "Port {} neither interior nor exterior port",
@@ -464,6 +502,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 datapathController.tell(
                     SendPacket(origEthernetPkt.serialize(), actions.toList))
             case Some(_) =>
+                pktContext.freeze()
                 val wFlow = new WildcardFlow()
                     .setMatch(origMatch)
                     .setActions(actions.toList)
@@ -479,7 +518,43 @@ class Coordinator(val origMatch: WildcardMatch,
     private def actionsFromMatchDiff(orig: WildcardMatch,
                                      modif: WildcardMatch)
     : mutable.ListBuffer[FlowAction[_]] = {
-        // TODO(pino): implement me!
-        null
+        val actions = mutable.ListBuffer[FlowAction[_]]()
+        if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||
+            !orig.getEthernetDestination.equals(modif.getEthernetDestination)) {
+            actions.append(FlowActions.setKey(FlowKeys.ethernet(
+                modif.getDataLayerSource, modif.getDataLayerDestination)))
+        }
+        if (!orig.getNetworkSourceIPv4.equals(modif.getNetworkSourceIPv4) ||
+            !orig.getNetworkDestinationIPv4.equals(
+                modif.getNetworkDestinationIPv4)) {
+            actions.append(FlowActions.setKey(
+                FlowKeys.ipv4(
+                    modif.getNetworkDestination,
+                    modif.getNetworkSource,
+                    modif.getNetworkProtocol)
+                //.setFrag(?)
+                .setProto(modif.getNetworkProtocol)
+                .setTos(modif.getNetworkTypeOfService)
+                .setTtl(modif.getNetworkTTL)
+            ))
+        }
+        if (!orig.getTransportSourceObject.equals(
+            modif.getTransportSourceObject) ||
+            !orig.getTransportDestinationObject.equals(
+            modif.getTransportDestinationObject)) {
+            val actSetKey = FlowActions.setKey(null)
+            actions.append(actSetKey)
+            modif.getNetworkProtocol match {
+                case TCP.PROTOCOL_NUMBER =>
+                    actSetKey.setFlowKey(FlowKeys.tcp(
+                        modif.getTransportSource,
+                        modif.getTransportDestination))
+                case UDP.PROTOCOL_NUMBER =>
+                    actSetKey.setFlowKey(FlowKeys.udp(
+                        modif.getTransportSource,
+                        modif.getTransportDestination))
+            }
+        }
+        return actions
     }
 } // end Coordinator class

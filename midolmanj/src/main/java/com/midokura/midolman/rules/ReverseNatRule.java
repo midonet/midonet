@@ -40,7 +40,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketMatch flowMatch, RuleResult res,
+    public void apply(Object flowCookie, RuleResult res,
                       NatMapping natMapping) {
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.pmatch.getNetworkProtocol();

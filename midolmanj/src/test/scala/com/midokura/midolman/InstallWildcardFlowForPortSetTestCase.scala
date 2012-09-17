@@ -96,12 +96,10 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val flowActs = addFlowMsg.flow.getActions.toList
 
         flowActs should not be (null)
-        flowActs should have size (4)
+        // The ingress port should not be in the expanded port set
+        flowActs should have size (3)
 
-        val outToLocal = as[FlowActionOutput](flowActs.get(0))
-        outToLocal.getPortNumber should be(localPortNumber)
-
-        val setKeyAction = as[FlowActionSetKey](flowActs.get(1))
+        val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getGreKey)
 
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)

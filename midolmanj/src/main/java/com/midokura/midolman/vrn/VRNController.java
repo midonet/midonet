@@ -694,7 +694,7 @@ public class VRNController extends AbstractController
         public Set<UUID> getPortGroups() { return null; }
         public boolean isConnTracked() { return false; }
         public boolean isForwardFlow() { return true; }
-        public PacketMatch getFlowMatch() { return match; }
+        public Object getFlowCookie() { return null; }
     }
 
     private List<OFAction> makeActionsForFlow(MidoMatch origMatch,

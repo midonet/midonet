@@ -132,6 +132,11 @@ public class ForwardInfo implements ChainPacketContext {
         return forwardFlow;
     }
 
+    @Override
+    public Object getFlowCookie() {
+        return null;
+    }
+
     public static String connectionKey(int ip1, short port1, int ip2,
                                        short port2, short proto, UUID fe) {
         return new StringBuilder(Net.convertIntAddressToString(ip1))
@@ -145,11 +150,6 @@ public class ForwardInfo implements ChainPacketContext {
     @Override
     public Set<UUID> getPortGroups() {
         return portGroups;
-    }
-
-    @Override
-    public MidoMatch getFlowMatch() {
-        return flowMatch;
     }
 
     public void addTraversedFE(UUID deviceId) {
@@ -189,7 +189,6 @@ public class ForwardInfo implements ChainPacketContext {
         return internallyGenerated;
     }
 
-    @Override
     public UUID getInPortId() {
         return inPortId;
     }

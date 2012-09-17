@@ -42,7 +42,7 @@ public class LiteralRule extends Rule {
     }
 
     @Override
-    public void apply(PacketMatch flowMatch, RuleResult res,
+    public void apply(Object flowCookie, RuleResult res,
                       NatMapping natMapping) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);

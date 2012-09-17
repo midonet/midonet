@@ -643,8 +643,9 @@ class DatapathController() extends Actor with ActorLogging {
                               callbacks: immutable.Set[Callback0],
                               tags: immutable.Set[Any]) {
         val flowMatch = flow.getMatch
+        val inPortUUID = flowMatch.getInputPortUUID
 
-        vifToLocalPortNumber(flowMatch.getInputPortUUID) match {
+        vifToLocalPortNumber(inPortUUID) match {
             case Some(portNo: Short) =>
                 flowMatch
                     .setInputPortNumber(portNo)
@@ -656,7 +657,7 @@ class DatapathController() extends Actor with ActorLogging {
         if (flowActions == null)
             flowActions = List().toList
 
-        translateActions(flowActions) onComplete {
+        translateActions(flowActions, inPortUUID) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
@@ -668,7 +669,8 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def translateActions(actions: Seq[FlowAction[_]]): Future[Seq[FlowAction[_]]] = {
+    def translateActions(actions: Seq[FlowAction[_]],
+                         inPortUUID: UUID): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
         // check for VRN port or portSet
@@ -698,10 +700,19 @@ class DatapathController() extends Actor with ActorLogging {
                 portSetFuture map {
                     set => bridgeFuture onSuccess {
                         case br =>
+                            // Don't include the input port in the expanded
+                            // port set.
+                            log.info("inPort: {}", inPortUUID)
+                            log.info("local ports: {}", set.localPorts)
+                            log.info("local ports - inPort: {}",
+                                set.localPorts - inPortUUID)
                             translated.success(
                                 translateToDpPorts(
-                                    actions, portSet, portsForLocalPorts(set.localPorts.toSeq),
-                                    Some(br.greKey), tunnelsForHosts(set.hosts.toSeq)))
+                                    actions, portSet,
+                                    portsForLocalPorts(
+                                        (set.localPorts-inPortUUID).toSeq),
+                                    Some(br.greKey),
+                                    tunnelsForHosts(set.hosts.toSeq)))
                     }
                 }
 

@@ -28,7 +28,7 @@ import com.midokura.util.functors.{Callback0, Callback1, Callback3}
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     implicit val system = ActorSystem.create("RCUBridgeTest")
     val log = Logging(system, getClass)
-    
+
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
@@ -68,7 +68,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null,
-                                    new PacketContext(null, null, null),
+                                    new PacketContext(null, null),
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
@@ -76,9 +76,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ToPortSetAction(port, mmatch) =>
+            case Coordinator.ToPortSetAction(port) =>
                 assert(port === bridgeID)
-                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction, instead: " + result.toString)
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -90,7 +89,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null,
-                                    new PacketContext(null, null, null),
+                                    new PacketContext(null, null),
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
@@ -98,9 +97,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ToPortAction(port, mmatch) =>
+            case Coordinator.ToPortAction(port) =>
                 assert(port === learnedPort)
-                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -112,7 +110,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null,
-                                    new PacketContext(null, null, null),
+                                    new PacketContext(null, null),
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
@@ -120,9 +118,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ToPortSetAction(port, mmatch) =>
+            case Coordinator.ToPortSetAction(port) =>
                 assert(port === bridgeID)
-                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -136,7 +133,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null,
-                                    new PacketContext(null, null, null),
+                                    new PacketContext(null, null),
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 
@@ -144,9 +141,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 
         val result = Await.result(future, 1 second)
         result match {
-            case Coordinator.ToPortAction(port, mmatch) =>
+            case Coordinator.ToPortAction(port) =>
                 assert(port === rtr1port)
-                assert(mmatch === origMatch)
             case _ => fail("Not ForwardAction")
         }
     }
@@ -157,7 +153,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val future = bridge.process(ingressMatch, null,
-                                    new PacketContext(null, null, null),
+                                    new PacketContext(null, null),
                                     Platform.currentTime + 10000)(
                                     system.dispatcher, system)
 

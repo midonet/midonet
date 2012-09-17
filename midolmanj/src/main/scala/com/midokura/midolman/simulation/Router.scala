@@ -221,7 +221,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 new DropAction: Action
             case nextHopMac =>
                 matchOut.setEthernetDestination(nextHopMac)
-                new ToPortAction(rt.nextHopPort, matchOut): Action
+                new ToPortAction(rt.nextHopPort): Action
         }
     }
 

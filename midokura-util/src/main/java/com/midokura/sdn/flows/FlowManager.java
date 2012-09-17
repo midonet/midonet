@@ -65,6 +65,8 @@ public class FlowManager {
     public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows) {
         this.maxDpFlows = maxDpFlows;
         this.flowManagerHelper = flowManagerHelper;
+        if (dpFlowRemoveBatchSize > maxDpFlows)
+            dpFlowRemoveBatchSize = 1;
     }
 
     public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
@@ -109,7 +111,7 @@ public class FlowManager {
     /* Priority queue to evict flows based on idle time-out */
     private PriorityQueue<WildcardFlow> idleTimeOutQueue =
         new PriorityQueue<WildcardFlow>(priorityQueueSize, new WildcardFlowIdleTimeComparator());
-    
+
     public int getNumDpFlows() {
         return dpFlowTable.size();
     }
@@ -294,7 +296,7 @@ public class FlowManager {
                 return;
         }
     }
-    
+
     private boolean checkMicroFlowsExpiration(WildcardFlow flowToExpire){
         // check from the kernel the last time the flows of this wildcardflows
         // were used
@@ -326,7 +328,7 @@ public class FlowManager {
         }
         return false;
     }
-    
+
     private void checkIdleTimeExpiration(){
         WildcardFlow flowToExpire;
         while((flowToExpire = idleTimeOutQueue.peek()) != null){
@@ -349,7 +351,7 @@ public class FlowManager {
                 return;
         }
     }
-    
+
     private void updateWildcardFlowLastMatchedTime(){
         for(WildcardFlow flow: wildcardFlowsToUpdate){
             // we can remove the old flow using the update one because in the
@@ -386,7 +388,7 @@ public class FlowManager {
     private boolean isFlowTableFull() {
         return (getNumDpFlows() > maxDpFlows - dpFlowRemoveBatchSize);
     }
-    
+
     public void checkFlowsExpiration(){
 
         checkHardTimeOutExpiration();
@@ -412,7 +414,7 @@ public class FlowManager {
 
         protected abstract long getTimeToLive(WildcardFlow flow, long now);
     }
-    
+
     private class WildcardFlowHardTimeComparator extends WildcardFlowComparator{
         @Override
         protected long getTimeToLive(WildcardFlow flow, long now) {
@@ -420,7 +422,7 @@ public class FlowManager {
                  - flow.getHardExpirationMillis();
         }
     }
-    
+
     private class WildcardFlowIdleTimeComparator extends WildcardFlowComparator{
         @Override
         protected long getTimeToLive(WildcardFlow flow, long now) {
@@ -428,7 +430,7 @@ public class FlowManager {
                 - flow.getIdleExpirationMillis();
         }
     }
-    
+
     private abstract class FlowManagerCallback implements Callback<Flow> {
         Flow flowToRemove;
 
@@ -452,7 +454,7 @@ public class FlowManager {
         }
         abstract String getActionName();
     }
-    
+
     private Callback<Flow> getFlowDeleteCallback(final FlowMatch match){
         return new FlowManagerCallback(new Flow().setMatch(match)) {
 
@@ -469,7 +471,7 @@ public class FlowManager {
         };
     }
 
-    
+
     public Callback<Flow> getFlowCreatedCallback(final Flow flowToAdd){
         return new FlowManagerCallback(flowToAdd) {
             @Override
