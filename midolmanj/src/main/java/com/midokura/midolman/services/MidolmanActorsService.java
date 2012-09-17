@@ -18,12 +18,14 @@ import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
+import com.midokura.midolman.RemoteServer;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
@@ -54,6 +56,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef virtualToPhysicalActor;
     ActorRef flowControllerActor;
     ActorRef simulationControllerActor;
+    ActorRef remoteServer;
 
     @Override
     protected void doStart() {
@@ -62,7 +65,13 @@ public class MidolmanActorsService extends AbstractService {
         log.info("Booting up actors service");
 
         log.debug("Creating actors system.");
-        actorSystem = ActorSystem.create("midolmanActors");
+        actorSystem = ActorSystem.create("MidolmanActors",
+            ConfigFactory.load().getConfig("midolman"));
+
+        remoteServer =
+            startActor(
+                getGuiceAwareFactory(RemoteServer.class),
+                "remoteServer");
 
         virtualTopologyActor =
             startActor(
@@ -94,6 +103,7 @@ public class MidolmanActorsService extends AbstractService {
     @Override
     protected void doStop() {
         try {
+            stopActor(remoteServer);
             stopActor(datapathControllerActor);
             stopActor(virtualTopologyActor);
             stopActor(virtualToPhysicalActor);

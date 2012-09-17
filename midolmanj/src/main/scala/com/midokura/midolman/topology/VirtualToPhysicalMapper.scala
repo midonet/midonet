@@ -281,12 +281,15 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
             case LocalPortActive(vifId, true) if (!activatingLocalPorts)=>
                 activatingLocalPorts = true
+                clusterDataClient.portsSetLocalAndActive(vifId, true)
 
                 val portFuture =
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]
 
                 portFuture flatMap { port =>
+                    // TODO(pino): this code suggests every device is mapped
+                    // TODO: to a port set. That seems wrong.
                     localActivePortSets.get(port.deviceID) match {
                         case Some(_) =>
                             Promise.successful(_PortSetMembershipUpdated(

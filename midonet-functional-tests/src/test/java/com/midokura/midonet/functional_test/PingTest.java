@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.ZkPathManager;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.HostInterfacePort;
@@ -20,9 +19,8 @@ import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
@@ -40,7 +38,6 @@ public class PingTest {
     IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
-    String internalPortName = "pingTestInt";
     final String TENANT_NAME = "tenant-ping";
 
     RouterPort p1;
@@ -50,9 +47,6 @@ public class PingTest {
     MidolmanLauncher midolman;
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
-    ServiceController svcController;
-    ZkPathManager pathManager;
-
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
@@ -69,8 +63,6 @@ public class PingTest {
 
     @Before
     public void setUp() throws Exception {
-
-        final String TAPNAME = "pingTestTap1";
 
         //fixQuaggaFolderPermissions();
 
@@ -103,7 +95,7 @@ public class PingTest {
         tap1 = new TapWrapper("pingTestTap1");
 
         HostInterfacePort interfacePort = host.addHostInterfacePort()
-                .interfaceName(TAPNAME)
+                .interfaceName(tap1.getName())
                 .portId(p1.getId());
 
 

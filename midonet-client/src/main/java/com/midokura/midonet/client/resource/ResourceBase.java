@@ -26,6 +26,7 @@ import com.midokura.midonet.client.WebResource;
  * @param <T> concrete class
  * @param <U> type of principal DTO
  */
+// TODO(pino): ResourceBase<T extends ResourceBase<T>, U>?
 public abstract class ResourceBase<T, U> {
 
     final WebResource resource;
