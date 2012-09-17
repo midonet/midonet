@@ -381,7 +381,7 @@ public class FlowManager {
     }
 
     public void updateFlowLastUsedTimeCompleted(Flow flow){
-        profiler.start();
+        //profiler.start();
         WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
         // the wildcard flow was deleted
         if(null == wcFlow)
@@ -410,7 +410,7 @@ public class FlowManager {
             log.debug("getFlow, flow with match {} was null or had no lastUsedTime set "
                 , flow.getMatch().toString());
         }
-        profiler.end();
+        //profiler.end();
     }
 
     public void addFlowCompleted(Flow flow){
