@@ -26,8 +26,8 @@ public class FlowManagerTest {
     int dpFlowRemoveBatchSize = 2;
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
-    long timeOut = 200;
-    long operationExecutionTime = 20;
+    long timeOut = 300;
+    long operationExecutionTime = 10;
 
     @Before
     public void setUp() {
