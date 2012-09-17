@@ -172,18 +172,20 @@ public class ZkDirectory implements Directory {
     public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
         zk.getZooKeeper().getData(
             getAbsolutePath(relativePath),
-            wrapCallback(watcher), new AsyncCallback.DataCallback() {
-            @Override
-            public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
-                if (rc == KeeperException.Code.OK.intValue()) {
-                    dataCallback.onSuccess(
-                        new DirectoryCallback.Result<byte[]>(data, stat));
-                } else {
-                    dataCallback.onError(KeeperException.create(
-                        KeeperException.Code.get(rc), path));
+            (null == watcher)? null : wrapCallback(watcher),
+            new AsyncCallback.DataCallback() {
+                @Override
+                public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+                    if (rc == KeeperException.Code.OK.intValue()) {
+                        dataCallback.onSuccess(
+                            new DirectoryCallback.Result<byte[]>(data, stat));
+                    } else {
+                        dataCallback.onError(KeeperException.create(
+                            KeeperException.Code.get(rc), path));
+                    }
                 }
-            }
-        }, null);
+            },
+            null);
     }
 
     @Override
