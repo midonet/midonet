@@ -134,7 +134,7 @@ public class ForwardInfo implements ChainPacketContext {
 
     @Override
     public Object getFlowCookie() {
-        return null;
+        return flowMatch;
     }
 
     public static String connectionKey(int ip1, short port1, int ip2,
