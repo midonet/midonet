@@ -42,7 +42,7 @@ import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
@@ -52,7 +52,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanup
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;

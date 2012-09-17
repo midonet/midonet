@@ -24,7 +24,7 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
@@ -38,7 +38,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>

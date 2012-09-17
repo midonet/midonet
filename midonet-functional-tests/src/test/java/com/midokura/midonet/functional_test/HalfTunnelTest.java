@@ -23,7 +23,7 @@ import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.openflow.PrimaryController;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.process.ProcessHelper;
 

@@ -1,4 +1,4 @@
-package com.midokura.midonet.functional_test.topology;
+package com.midokura.midonet.functional_test.utils;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -6,7 +6,6 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midonet.functional_test.utils.Tap;
 import com.midokura.packets.ARP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.LLDP;

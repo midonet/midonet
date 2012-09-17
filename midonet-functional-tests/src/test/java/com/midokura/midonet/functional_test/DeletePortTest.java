@@ -30,7 +30,7 @@ import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
@@ -40,7 +40,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeT
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolmanMgmt;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 
 public class DeletePortTest {

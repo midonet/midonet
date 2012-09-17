@@ -4,12 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-
-import com.midokura.midonet.client.resource.*;
-import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,21 +11,27 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
+import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.HostInterfacePort;
+import com.midokura.midonet.client.resource.ResourceCollection;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.openflow.ServiceController;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class PingTest {
 
@@ -43,7 +43,6 @@ public class PingTest {
     String internalPortName = "pingTestInt";
     final String TENANT_NAME = "tenant-ping";
 
-    Tenant tenant1;
     RouterPort p1;
     RouterPort p3;
     TapWrapper tap1;

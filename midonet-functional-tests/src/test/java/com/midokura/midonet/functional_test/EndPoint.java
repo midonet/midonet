@@ -11,7 +11,7 @@ import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;

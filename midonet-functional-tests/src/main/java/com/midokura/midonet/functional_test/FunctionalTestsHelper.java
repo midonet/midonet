@@ -22,7 +22,7 @@ import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.RemoteTap;

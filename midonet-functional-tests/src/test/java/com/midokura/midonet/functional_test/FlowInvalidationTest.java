@@ -16,7 +16,7 @@ import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.Rule;
 import com.midokura.midonet.functional_test.topology.RuleChain;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 
 
 import static com.midokura.midonet.functional_test.EndPoint.*;

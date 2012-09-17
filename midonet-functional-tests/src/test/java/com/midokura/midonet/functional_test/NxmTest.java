@@ -35,7 +35,7 @@ import com.midokura.midonet.functional_test.openflow.PrimaryController;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.PacketIn;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.Protocol;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.TapWrapper;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.util.lock.LockHelper;
 
 public class NxmTest {
