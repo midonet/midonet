@@ -51,7 +51,7 @@ object Coordinator {
     // TODO:       remove NotIPv4Action
     case class NotIPv4Action() extends Action
     case class ConsumedAction() extends Action
-    abstract case class ForwardAction extends Action
+    trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
 
