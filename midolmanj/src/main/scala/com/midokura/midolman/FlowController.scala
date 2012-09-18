@@ -92,13 +92,17 @@ class FlowController extends Actor with ActorLogging {
         new HashMap[WildcardFlow, mutable.Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    val flowExpirationCheckInterval: Duration = Duration(10, TimeUnit.SECONDS)
+    var flowExpirationCheckInterval: Duration = null
 
 
     override def preStart() {
         super.preStart()
 
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
+
+        flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
+            TimeUnit.SECONDS)
+
 
         flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
     }

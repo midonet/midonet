@@ -39,6 +39,9 @@ public interface MidolmanConfig
     @ConfigBool(key = "enable_monitoring", defaultValue = true)
     public boolean getMidolmanEnableMonitoring();
 
+    @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10)
+    public int getFlowExpirationInterval();
+
     @ConfigGroup("vrn")
     @ConfigString(key = "router_network_id",
                   defaultValue = "01234567-0123-0123-aaaa-0123456789ab")
