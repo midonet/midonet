@@ -120,7 +120,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     override def postStop() {
         super.postStop()
-        //TODO(abel) tear down
+        stopBGP()
     }
 
     private case class AddPeerRoute(ribType: RIBType.Value,
@@ -251,7 +251,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         // If this is the last BGP for ths port, tear everything down.
                         if (bgps.size == 0) {
                             phase = Stopping
-                            stopBGP
+                            stopBGP()
                         }
                     case Stopping =>
                         stash()
@@ -314,6 +314,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     case Started =>
                         val route = new Route()
                         route.setDstNetworkAddr(destination.toUnicastString)
+                        route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
@@ -331,6 +332,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     case Started =>
                         val route = new Route()
                         route.setDstNetworkAddr(destination.toUnicastString)
+                        route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
                         peerRoutes.get(route) match {
                             case Some(routeId) => dataClient.routesDelete(routeId)
