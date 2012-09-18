@@ -40,7 +40,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
     private var router: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
-    private val uplinkNwAddr = 0x000000
+    private val uplinkNwAddr = "180.0.1.0"
     private val uplinkNwLen = 30
     private val uplinkPortAddr = "180.0.1.2"
     private val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
@@ -63,8 +63,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         router = newRouter("router")
         // Create one port that works as an uplink for the router.
         uplinkPort = newPortOnRouter(router, uplinkMacAddr, uplinkPortAddr,
-                                     uplinkPortAddr, uplinkNwLen,
-                                     uplinkPortAddr, uplinkNwLen)
+                                     uplinkNwAddr, uplinkNwLen,
+                                     uplinkNwAddr, uplinkNwLen)
 
         initializeDatapath() should not be (null)
 
