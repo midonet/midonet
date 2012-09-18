@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.midokura.util.Waiters;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +46,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midkura.com>
@@ -163,14 +163,14 @@ public class BgpTest {
 
         bgpPeerVm.startup();
 
-        waitFor("The new route is advertised to the router",
+        Waiters.waitFor("The new route is advertised to the router",
                 TimeUnit.SECONDS.toMillis(100),
                 TimeUnit.SECONDS.toMillis(1),
                 new Timed.Execution<Boolean>() {
                     @Override
                     public void _runOnce() throws Exception {
                         setResult(
-                            checkPeerAdRouteIsRegistered(router.getRoutes()));
+                                checkPeerAdRouteIsRegistered(router.getRoutes()));
                         setCompleted(getResult());
                     }
                 });

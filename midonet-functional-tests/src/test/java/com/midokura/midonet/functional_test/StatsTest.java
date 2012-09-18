@@ -6,6 +6,8 @@ package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
 import java.util.List;
+
+import static com.midokura.util.Waiters.sleepBecause;
 import static java.lang.String.format;
 
 import org.junit.AfterClass;
@@ -40,7 +42,6 @@ import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 
 public class StatsTest {

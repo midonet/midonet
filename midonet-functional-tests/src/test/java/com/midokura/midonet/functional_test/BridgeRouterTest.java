@@ -5,6 +5,8 @@
 package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
+
+import static com.midokura.util.Waiters.sleepBecause;
 import static java.lang.String.format;
 
 import org.junit.After;
@@ -41,7 +43,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuag
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 

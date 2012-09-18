@@ -5,13 +5,14 @@ package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
+
+import static com.midokura.util.Waiters.waitFor;
 import static java.lang.String.format;
 
 import com.midokura.packets.ARP;
 import com.midokura.packets.Ethernet;
 import com.midokura.midonet.functional_test.utils.RemoteTap;
 import com.midokura.tools.timed.Timed;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>

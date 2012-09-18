@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.midokura.util.Waiters.waitFor;
 import static java.lang.String.format;
 
 import com.sun.jersey.test.framework.WebAppDescriptor;
@@ -53,7 +55,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitFor;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Default;
 

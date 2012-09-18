@@ -31,6 +31,7 @@ import com.midokura.util.process.ProcessHelper;
 import static com.midokura.midonet.functional_test.EndPoint.exchangeArpWithGw;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
+import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;

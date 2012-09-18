@@ -32,6 +32,7 @@ import com.midokura.util.lock.LockHelper;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
+import static com.midokura.util.Waiters.sleepBecause;
 
 public abstract class RouterBridgeBaseTest {
     static OpenvSwitchDatabaseConnection ovsdb;

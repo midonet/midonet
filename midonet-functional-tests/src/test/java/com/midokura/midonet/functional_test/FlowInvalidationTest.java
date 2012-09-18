@@ -20,7 +20,7 @@ import com.midokura.midonet.functional_test.utils.TapWrapper;
 
 
 import static com.midokura.midonet.functional_test.EndPoint.*;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.sleepBecause;
+import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 

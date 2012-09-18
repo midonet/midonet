@@ -32,6 +32,8 @@ import com.midokura.util.lock.LockHelper;
 
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.util.Waiters.sleepBecause;
+import static com.midokura.util.Waiters.waitFor;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -141,19 +143,19 @@ public class BridgeTestOneDatapath {
             }
         });
         waitFor("The Midolman daemon should bring up the ports.",
-            new Timed.Execution<DtoInterface>() {
-                @Override
-                protected void _runOnce() throws Exception {
-                    for (Map.Entry<UUID, Boolean> portStat :
-                        portStatus.entrySet()) {
-                        if (!portStat.getValue()) {
-                            setCompleted(false);
-                            return;
+                new Timed.Execution<DtoInterface>() {
+                    @Override
+                    protected void _runOnce() throws Exception {
+                        for (Map.Entry<UUID, Boolean> portStat :
+                                portStatus.entrySet()) {
+                            if (!portStat.getValue()) {
+                                setCompleted(false);
+                                return;
+                            }
                         }
+                        setCompleted(true);
                     }
-                    setCompleted(true);
                 }
-            }
         );
         sleepBecause("we need the network to boot up", 10);
     }
