@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
@@ -32,37 +34,9 @@ import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
-import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.ChainZkManager;
-import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
-import com.midokura.midolman.state.zkManagers.PortSetZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midolman.state.zkManagers.TenantZkManager;
-import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
-import com.midokura.midolman.state.zkManagers.VpnZkManager;
-import com.midokura.midonet.cluster.client.RouterBuilder;
-import com.midokura.midonet.cluster.data.AdRoute;
-import com.midokura.midonet.cluster.data.BGP;
-import com.midokura.midonet.cluster.data.Bridge;
-import com.midokura.midonet.cluster.data.BridgeName;
-import com.midokura.midonet.cluster.data.Chain;
-import com.midokura.midonet.cluster.data.ChainName;
-import com.midokura.midonet.cluster.data.Converter;
-import com.midokura.midonet.cluster.data.Port;
-import com.midokura.midonet.cluster.data.PortGroup;
-import com.midokura.midonet.cluster.data.PortGroupName;
-import com.midokura.midonet.cluster.data.Route;
-import com.midokura.midonet.cluster.data.Router;
-import com.midokura.midonet.cluster.data.RouterName;
-import com.midokura.midonet.cluster.data.Rule;
-import com.midokura.midonet.cluster.data.TunnelZone;
-import com.midokura.midonet.cluster.data.VPN;
+import com.midokura.midolman.state.zkManagers.*;
+import com.midokura.midolman.util.JSONSerializer;
+import com.midokura.midonet.cluster.data.*;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -571,24 +545,23 @@ public class LocalDataClientImpl implements DataClient {
                 } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
                     final UUID deviceId = config.device_id;
                     try {
+                        Directory routeDir = routerZkManager.getRoutingTableDirectory(deviceId);
+                        RoutesManager routes = new RoutesManager(routeDir);
                         L3DevicePort port = new L3DevicePort(portCache,
                                                              routeMgr, portID);
-                        RouterBuilder builder = routerManager.getBuilder(
-                            deviceId);
                         // register a watcher
-                        port.addListener(new RouterPortListener(builder));
+                        port.addListener(new RouterPortListener(routes));
                         for (com.midokura.midolman.layer3.Route rt :
                             port.getRoutes()) {
                             if (active) {
-                                builder.addRoute(rt);
+                                routes.addRoute(rt);
                             } else {
-                                builder.removeRoute(rt);
+                                routes.remove(rt);
                             }
                         }
-                        builder.build();
                     } catch (Exception e) {
                         log.error(
-                            "Error creating the L3DevicePort for port {} ",
+                            "Error adding routes for port {} ",
                             portID, e);
                     }
 
@@ -597,11 +570,41 @@ public class LocalDataClientImpl implements DataClient {
         });
     }
 
-    private class RouterPortListener implements L3DevicePort.Listener {
-        private RouterBuilder builder;
+    //TODO(rossella) remove this class, create a new one using zk asynch api
+    private class RoutesManager {
+        JSONSerializer serializer = new JSONSerializer();
+        Directory dir;
 
-        private RouterPortListener(RouterBuilder builder) {
-            this.builder = builder;
+        private RoutesManager(Directory dir) {
+            this.dir = dir;
+        }
+
+        void addRoute(com.midokura.midolman.layer3.Route item){
+
+            try {
+                String path = "/" + new String(serializer.objToBytes(item));
+                dir.add(path, null, CreateMode.EPHEMERAL);
+            } catch (Exception e) {
+                log.error("Error creating route {}", item.toString(), e);
+            }
+        }
+
+        public void remove(com.midokura.midolman.layer3.Route item){
+
+            try {
+                dir.delete("/" + new String(serializer.objToBytes(item)));
+            } catch (Exception e) {
+                log.error("Error removing route {}", item.toString(), e);
+            }
+        }
+    }
+
+    private class RouterPortListener implements L3DevicePort.Listener {
+
+        RoutesManager routes;
+
+        private RouterPortListener(RoutesManager routes) {
+            this.routes = routes;
         }
 
         @Override
@@ -609,13 +612,14 @@ public class LocalDataClientImpl implements DataClient {
                                   Collection<com.midokura.midolman.layer3.Route> added,
                                   Collection<com.midokura.midolman.layer3.Route> removed) {
             for (com.midokura.midolman.layer3.Route rt : added) {
-                log.debug("{} routesChanged adding {} to table", builder, rt);
-                    builder.addRoute(rt);
+                routes.addRoute(rt);
+                log.debug("{} routesChanged adding {} to table", rt);
+
             }
             for (com.midokura.midolman.layer3.Route rt : removed) {
-                log.debug("{} routesChanged removing {} from table", builder,
+                routes.remove(rt);
+                log.debug("{} routesChanged removing {} from table",
                           rt);
-                    builder.removeRoute(rt);
                 }
             }
         }
@@ -1591,4 +1595,5 @@ public class LocalDataClientImpl implements DataClient {
     public Set<UUID> portSetsGet(UUID portSetId) throws StateAccessException {
         return portSetZkManager.getPortSet(portSetId, null);
     }
+
 }
