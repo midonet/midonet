@@ -25,9 +25,6 @@ import com.midokura.midolman.services.HostIdProviderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Date: 4/25/12
- */
 public class MockMonitoringModule extends PrivateModule {
 
     private final static Logger log =

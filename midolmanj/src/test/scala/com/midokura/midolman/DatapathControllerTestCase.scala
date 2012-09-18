@@ -43,7 +43,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         val ports = datapathPorts(datapaths.head)
         ports should have size 1
         ports should contain key ("midonet")
-        fail("1")
     }
 
     def testDatapathAddMappingAfter() {
@@ -77,8 +76,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should have size 2
         ports should contain key ("midonet")
         ports should contain key ("tapDevice")
-      fail("2")
-
     }
 
     def testDatapathEmpty() {
@@ -100,8 +97,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         val ports = datapathPorts(datapaths.head)
         ports should have size 1
         ports should contain key ("test")
-      fail("3")
-
     }
 
     def testDatapathEmptyOnePort() {
@@ -133,8 +128,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should have size 2
         ports should contain key ("test")
         ports should contain key ("port1")
-      fail("4")
-
     }
 
     def testDatapathExistingMore() {
@@ -171,8 +164,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports should have size 2
         ports should contain key ("test")
         ports should contain key ("port1")
-      fail("5")
-
     }
 
     def testDatapathBasicOperations() {
@@ -211,8 +202,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
         ports = datapathPorts(datapaths.head)
         ports should have size 1
         ports should contain key ("test")
-      fail("6")
-
     }
 
     def testInternalControllerState() {
@@ -257,7 +246,5 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
         dpController().underlyingActor.vifPorts should contain value ("port2")
         dpController().underlyingActor.vifPorts should contain value ("port1")
-      fail("7")
-
     }
 }
