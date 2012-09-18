@@ -6,10 +6,11 @@ package com.midokura.midonet.functional_test;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 import static java.lang.String.format;
 
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.util.Waiters;
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
@@ -216,38 +217,11 @@ public class FunctionalTestsHelper {
         }
     }
 
-    protected static <T> T waitFor(String what, Timed.Execution<T> assertion)
-            throws Exception {
-        return waitFor(what,
-                TimeUnit.SECONDS.toMillis(10),
-                TimeUnit.MILLISECONDS.toMillis(500),
-                assertion);
-    }
-
-    public static <T> T waitFor(String what, long total, long between,
-                                Timed.Execution<T> assertion)
-            throws Exception {
-        long start = System.currentTimeMillis();
-        Timed.ExecutionResult<T> executionResult =
-                newTimedExecution()
-                        .until(total)
-                        .waiting(between)
-                        .execute(assertion);
-
-        assertThat(
-                String.format("The wait for: \"%s\" didn't complete successfully " +
-                        "(waited %d seconds)", what,
-                        (System.currentTimeMillis() - start) / 1000),
-                executionResult.completed());
-
-        return executionResult.result();
-    }
-
     public static void waitForBridgeToConnect(
             final ServiceController controller)
             throws Exception {
 
-        waitFor(
+        Waiters.waitFor(
                 "waiting for the bridge to connect to the controller on port: " +
                         controller.getPortNum(),
                 new Timed.Execution<Boolean>() {
@@ -265,16 +239,7 @@ public class FunctionalTestsHelper {
         }
     }
 
-    public static void sleepBecause(String condition, long seconds)
-            throws InterruptedException {
-        log.debug(
-                format("Sleeping %d seconds because: \"%s\"", seconds, condition));
 
-        TimeUnit.SECONDS.sleep(seconds);
-
-        log.debug(
-                format("Sleeping done: \"%s\"", condition));
-    }
 
     public static void destroyVM(VMController vm) {
         try {
