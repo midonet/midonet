@@ -3,8 +3,7 @@
 */
 package com.midokura.midolman
 
-import monitoring.metrics.vrn.{VifMetrics}
-import monitoring.{MockMonitoringModule, MonitoringAgent}
+import monitoring.MonitoringAgent
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID

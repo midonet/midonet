@@ -4,28 +4,21 @@
 package com.midokura.midolman.monitoring
 
 import com.midokura.midolman._
-import com.midokura.midonet.cluster.data.{Ports, Bridge}
 import com.yammer.metrics.Metrics
 import com.yammer.metrics.core.Metric
 import com.yammer.metrics.core.MetricName
 import com.yammer.metrics.core.MetricsRegistry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.testng.annotations.{BeforeTest, Test}
+import org.testng.annotations.Test
 import java.util._
 import org.hamcrest.MatcherAssert.assertThat
-import java.util
 import collection.{mutable, immutable}
 import scala.collection.JavaConversions._
 import store.{Store, MockCassandraStore}
-import com.midokura.sdn.dp.{Datapath, Ports}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
 Ports => ClusterPorts}
-import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
-import topology.VirtualToPhysicalMapper
-import topology.VirtualToPhysicalMapper.LocalPortActive
 import com.midokura.util.functors.Callback0
 import com.midokura.tools.timed.Timed
 import com.midokura.util.Waiters.waitFor
