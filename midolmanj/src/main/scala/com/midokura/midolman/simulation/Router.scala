@@ -132,16 +132,22 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val rt: Route = loadBalancer.lookup(preRoutingMatch)
         if (rt == null) {
             // No route to network
+            log.debug("Route lookup: No route to network (dst:{}), {}",
+                preRoutingMatch.getNetworkDestinationIPv4, rTable.rTable)
             sendIcmpError(inPort, preRoutingMatch, packet,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
+            log.debug("Dropping packet, BLACKHOLE route (dst:{})",
+                preRoutingMatch.getNetworkDestinationIPv4)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
             sendIcmpError(inPort, preRoutingMatch, packet,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+            log.debug("Dropping packet, REJECT route (dst:{})",
+                preRoutingMatch.getNetworkDestinationIPv4)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop != Route.NextHop.PORT) {
