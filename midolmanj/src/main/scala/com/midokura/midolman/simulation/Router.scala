@@ -58,6 +58,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (ingressMatch.getEtherType == ARP.ETHERTYPE &&
                     ingressMatch.getNetworkProtocol == ARP.OP_REQUEST) {
+                log.debug("Processing ARP request")
                 processArpRequest(packet.getPayload.asInstanceOf[ARP], inPort)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
@@ -74,6 +75,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (ingressMatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
             if (ingressMatch.getNetworkProtocol == ARP.OP_REPLY) {
+                log.info("Processing ARP reply")
                 processArpReply(packet.getPayload.asInstanceOf[ARP],
                                 ingressMatch.getInputPortUUID, inPort)
                 return Promise.successful(new ConsumedAction)(ec)
@@ -85,6 +87,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (nwDst == inPort.portAddr) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
             if (isIcmpEchoRequest(ingressMatch)) {
+                log.debug("got ICMP echo")
                 sendIcmpEchoReply(ingressMatch, packet, expiry)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
@@ -181,9 +184,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
                                             preRoutingMatch, id, false)
-        if (postRoutingResult.action == RuleAction.DROP)
+        if (postRoutingResult.action == RuleAction.DROP) {
+            log.debug("PostRouting DROP rule")
             return Promise.successful(new DropAction)
-        else if (postRoutingResult.action == RuleAction.REJECT) {
+        } else if (postRoutingResult.action == RuleAction.REJECT) {
+            log.debug("PostRouting REJECT rule")
             sendIcmpError(inPort, preRoutingMatch, packet,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return Promise.successful(new DropAction)
@@ -203,9 +208,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         if (postRoutingMatch.getNetworkDestinationIPv4 == outPort.portAddr) {
             if (isIcmpEchoRequest(postRoutingMatch)) {
+                log.debug("got icmp echo reply")
                 sendIcmpEchoReply(postRoutingMatch, packet, expiry)
                 return Promise.successful(new ConsumedAction)(ec)
             } else {
+                log.debug("dropping IPv4 packet addressed to me")
                 return Promise.successful(new DropAction)(ec)
             }
         }
@@ -218,14 +225,17 @@ class Router(val id: UUID, val cfg: RouterConfig,
         macFuture map {
             case null =>
                 if (rt.nextHopGateway == 0 || rt.nextHopGateway == -1) {
+                    log.debug("icmp host unreachable, host mac unknown")
                     sendIcmpError(inPort, postRoutingMatch, packet,
                         ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_HOST)
                 } else {
+                    log.debug("icmp net unreachable, gw mac unknown")
                     sendIcmpError(inPort, postRoutingMatch, packet,
                         ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
                 }
                 new DropAction: Action
             case nextHopMac =>
+                log.debug("routing packet to {}", nextHopMac)
                 matchOut.setEthernetDestination(nextHopMac)
                 new ToPortAction(rt.nextHopPort): Action
         }
@@ -357,19 +367,19 @@ class Router(val id: UUID, val cfg: RouterConfig,
                             actorSystem: ActorSystem): Future[MAC] = {
         val nwAddr = new IntIPv4(nextHopIP)
         port match {
-            case mPortConfig: ExteriorRouterPort =>
-                val shift = 32 - mPortConfig.nwLength
+            case extPort: ExteriorRouterPort =>
+                val shift = 32 - extPort.nwLength
                 // Shifts by 32 in java are no-ops (see
                 // http://www.janeg.ca/scjp/oper/shift.html), so special case
                 // nwLength=0 <=> shift=32 to always match.
                 if ((nextHopIP >>> shift) !=
-                        (mPortConfig.nwAddr.addressAsInt >>> shift) &&
+                        (extPort.nwAddr.addressAsInt >>> shift) &&
                         shift != 32) {
                     log.warn("getMacForIP: cannot get MAC for {} - address " +
                         "not in network segment of port {} ({}/{})",
                         Array[Object](nwAddr, port.id,
-                            mPortConfig.nwAddr.toString,
-                            mPortConfig.nwLength.toString))
+                            extPort.nwAddr.toString,
+                            extPort.nwLength.toString))
                     return Promise.successful(null)(ec)
                 }
             case _ => /* Fall through */
@@ -410,14 +420,10 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
             nextHopIP = ipv4Dest
         }
-
-        flow {
-            val nextMac = peerMacFuture()
-            if (nextMac == null)
-                getMacForIP(outPort, nextHopIP, expiry)(ec, actorSystem)()
-            else
-                nextMac
-        }(ec)
+        peerMacFuture flatMap {
+            case null => getMacForIP(outPort, nextHopIP, expiry)(ec, actorSystem)
+            case mac => Promise.successful(mac)
+        }
     }
 
     /**
