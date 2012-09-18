@@ -12,10 +12,12 @@ import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoBridge;
+import com.midokura.midonet.client.dto.DtoGreTunnelZone;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoPortGroup;
 import com.midokura.midonet.client.dto.DtoRouter;
 import com.midokura.midonet.client.dto.DtoRuleChain;
+import com.midokura.midonet.client.dto.DtoTunnelZone;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -28,7 +30,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     WebResource resource;
 
     public Application(WebResource resource, DtoApplication app) {
-        super(resource, null, app, VendorMediaType.APPLICATION_TENANT_JSON);
+        super(resource, null, app, VendorMediaType.APPLICATION_JSON);
         this.app = app;
         this.resource = resource;
     }
@@ -121,6 +123,19 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                                  Host.class, DtoHost.class);
     }
 
+    /**
+     * Gets Tunnel Zones.
+     *
+     * @return collection of tunnel zones
+     */
+    public ResourceCollection<TunnelZone> getTunnelZones(
+        MultivaluedMap queryParams) {
+        return getChildResources(principalDto.getTunnelZones(),
+                                 queryParams,
+                                 VendorMediaType
+                                     .APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                                 TunnelZone.class, DtoTunnelZone.class);
+    }
 
     /**
      * Adds a bridge.
@@ -160,5 +175,16 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     public PortGroup addPortGroup() {
         return new PortGroup(resource, principalDto.getPortGroups(),
                              new DtoPortGroup());
+    }
+
+    /**
+     * Adds a tunnel zone
+     *
+     * @return new gre tunnel zone.
+     */
+    public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
+        return new TunnelZone<DtoGreTunnelZone>(resource,
+                                                principalDto.getTunnelZones(),
+                                                new DtoGreTunnelZone());
     }
 }

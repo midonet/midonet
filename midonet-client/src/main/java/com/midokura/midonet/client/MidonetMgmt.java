@@ -5,6 +5,8 @@ import java.net.URI;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoGreTunnelZone;
+import com.midokura.midonet.client.dto.DtoTunnelZone;
 import com.midokura.midonet.client.resource.Application;
 import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.Host;
@@ -12,6 +14,7 @@ import com.midokura.midonet.client.resource.PortGroup;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RuleChain;
+import com.midokura.midonet.client.resource.TunnelZone;
 
 
 /**
@@ -84,6 +87,16 @@ public class MidonetMgmt {
     }
 
     /**
+     * Adds a GRE tunnel zone
+     *
+     * @return gre tunnel zone resource
+     */
+    public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
+        ensureApplication();
+        return application.addGreTunnelZone();
+    }
+
+    /**
      * Gets Bridges.
      *
      * @return collection of bridge
@@ -132,6 +145,17 @@ public class MidonetMgmt {
     public ResourceCollection<Host> getHosts() {
         ensureApplication();
         return application.getHosts(null);
+    }
+
+    /**
+     * Gets Tunnel Zones
+     *
+     * @return collection of tunnel zone
+     */
+    public ResourceCollection<TunnelZone>
+        getTunnelZones() {
+        ensureApplication();
+        return application.getTunnelZones(null);
     }
 
     private void ensureApplication() {

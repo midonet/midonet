@@ -11,6 +11,7 @@ import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoGreTunnelZone;
 import com.midokura.midonet.client.dto.DtoTunnelZone;
@@ -37,6 +38,7 @@ public class TestTunnelZone {
         private HostTopology topology;
         private HostZkManager hostManager;
         private Directory rootDirectory;
+        private MidonetMgmt mgmt;
 
         private UUID host1Id = UUID.randomUUID();
 
@@ -54,6 +56,11 @@ public class TestTunnelZone {
 
             topology = new HostTopology.Builder(dtoResource, hostManager)
                     .build();
+
+            URI baseUri = resource().getURI();
+            mgmt = new MidonetMgmt(baseUri.toString());
+            mgmt.enableLogging();
+
         }
 
         @After
