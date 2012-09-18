@@ -19,6 +19,7 @@ import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.guice._
+import actors.OutgoingMessage
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
 TestableMidolmanActorsModule}
 import com.midokura.midolman.guice.cluster.ClusterClientModule
@@ -33,11 +34,13 @@ import com.midokura.midonet.cluster.{DataClient, Client}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.sdn.dp.{FlowMatches, Datapath, Packet, Port}
+import com.midokura.sdn.dp._
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.sun.tools.corba.se.idl.Noop
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
+import com.midokura.midolman.DatapathController.InitializationComplete
+import com.midokura.midolman.DatapathController.Initialize
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -181,8 +184,16 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].triggerPacketIn(packet)
     }
 
+    protected def setFlowLastUsedTimeToNow(flow: FlowMatch) {
+        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].setFlowLastUsedTimeToNow(flow)
+    }
+
     protected def dpController(): TestActorRef[DatapathController] = {
         actorByName(DatapathController.Name)
+    }
+
+    protected def flowController(): TestActorRef[FlowController] = {
+        actorByName(FlowController.Name)
     }
 
     protected def dpProbe(): TestKit = {

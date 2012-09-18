@@ -58,6 +58,8 @@ object FlowController extends Referenceable {
     case class WildcardFlowAdded(f: WildcardFlow)
 
     case class WildcardFlowRemoved(f: WildcardFlow)
+
+    case class FlowUpdateCompleted(flow: Flow)
 }
 
 
@@ -90,7 +92,7 @@ class FlowController extends Actor with ActorLogging {
         new HashMap[WildcardFlow, Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    val flowExpirationCheckInterval: Duration = Duration(100, TimeUnit.MILLISECONDS)
+    val flowExpirationCheckInterval: Duration = Duration(10, TimeUnit.SECONDS)
 
 
     override def preStart() {
@@ -99,7 +101,6 @@ class FlowController extends Actor with ActorLogging {
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
 
         flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
-
     }
 
     def receive = {
@@ -161,17 +162,17 @@ class FlowController extends Actor with ActorLogging {
                     })
             }
         case CheckFlowExpiration() =>
-            log.info("Checking flow expiration")
             flowManager.checkFlowsExpiration()
 
         case flowUpdated(flow) =>
             flowManager.updateFlowLastUsedTimeCompleted(flow)
+            context.system.eventStream.publish(new FlowUpdateCompleted(flow))
 
         case flowAdded(flow) =>
             flowManager.addFlowCompleted(flow)
 
         case flowRemoved(flow) =>
-        flowManager.removeFlowCompleted(flow)
+            flowManager.removeFlowCompleted(flow)
     }
 
     private def freePendedPackets(cookieOpt: Option[Cookie]): Unit = {
@@ -353,7 +354,6 @@ class FlowController extends Actor with ActorLogging {
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {
-            log.debug("Sending myself a message to remove wildcard flow {}", flow.toString)
             self ! RemoveWildcardFlow(flow)
         }
 

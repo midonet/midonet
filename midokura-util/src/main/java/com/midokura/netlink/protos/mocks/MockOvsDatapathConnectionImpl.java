@@ -317,7 +317,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
           callback.onSuccess(true);
     }
 
-    public void updateFlowLastUsedTime(FlowMatch match){
+    public void setFlowLastUsedTimeToNow(FlowMatch match){
         flowsTable.get(match).setLastUsedTime(System.currentTimeMillis());
     }
 

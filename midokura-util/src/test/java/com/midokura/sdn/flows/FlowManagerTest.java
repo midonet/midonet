@@ -37,6 +37,7 @@ public class FlowManagerTest {
                                                   dpFlowRemoveBatchSize);
     }
 
+    @Ignore
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
@@ -80,7 +81,7 @@ public class FlowManagerTest {
                    nullValue());
 
     }
-
+    @Ignore
     @Test
     public void testIdleExpiration() throws InterruptedException {
 
@@ -212,7 +213,56 @@ public class FlowManagerTest {
                    equalTo(0));
 
     }
+    @Ignore
+    @Test
+    public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
+        throws InterruptedException {
 
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
+
+        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardFlow wildcardFlow = new WildcardFlow()
+            .setMatch(wildcardMatch)
+            .setIdleExpirationMillis(timeOut)
+            .setActions(new ArrayList<FlowAction<?>>());
+
+        flowManager.add(wildcardFlow);
+        flowManager.add(flowMatch, wildcardFlow);
+        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+
+        Thread.sleep(timeOut/2);
+
+        // update the flow in the kernel
+        flowManagerHelper.setLastUsedTimeToNow(flowMatch);
+
+        flowManager.checkFlowsExpiration();
+        // the previous operation takes some ms to complete
+        Thread.sleep(operationExecutionTime);
+
+        assertThat("Wildcard flow LastUsedTime was not update", wildcardFlow.getLastUsedTimeMillis(),
+                   equalTo(flowManagerHelper.flowsMap.get(flowMatch).getLastUsedTime()));
+
+        flowManager.checkFlowsExpiration();
+
+        // wildcard flow should still be there
+        assertThat("DpFlowToWildFlow table was not updated",
+                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                              .get(wildcardFlow.getMatch()),
+                   equalTo(wildcardFlow));
+
+        Thread.sleep(timeOut);
+
+        flowManager.checkFlowsExpiration();
+        // both should be deleted
+        assertThat("Flow was not deleted",
+                   flowManagerHelper.flowsMap.get(flowMatch),
+                   nullValue());
+
+        assertThat("Wildcard flow wasn't deleted",
+                   flowManager.getWildcardTables().size(),
+                   equalTo(0));
+    }
+    @Ignore
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
@@ -254,6 +304,10 @@ public class FlowManagerTest {
             flow.setLastUsedTime(System.currentTimeMillis());
             flowsMap.put(flow.getMatch(), flow);
             flowManager.addFlowCompleted(flow);
+        }
+
+        public void setLastUsedTimeToNow(FlowMatch match) {
+            flowsMap.get(match).setLastUsedTime(System.currentTimeMillis());
         }
 
         @Override
