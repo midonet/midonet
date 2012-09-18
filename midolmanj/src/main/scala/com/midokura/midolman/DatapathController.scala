@@ -3,44 +3,40 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{ActorLogging, ActorRef, Actor}
-import akka.dispatch.{Promise, Future}
+import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.dispatch.{Future, Promise}
 import akka.util.duration._
 import akka.util.Timeout
 import akka.pattern.ask
 import scala.collection.JavaConversions._
-import scala.collection.{mutable, immutable}
+import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
-import scala.Some
-import scala.Left
-import scala.Right
+import java.util.UUID
 
 import com.google.inject.Inject
 
-import java.util.UUID
-
-import com.midokura.util.functors.Callback0
-import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
+import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.services.HostIdProviderService
-import com.midokura.midolman.topology.rcu.{PortSet, Host}
+import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.simulation.{Bridge => RCUBridge}
-import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
-import com.midokura.midolman.topology.{VirtualTopologyActor, ZoneChanged,
-                HostConfigOperation, VirtualToPhysicalMapper}
-
+import com.midokura.midolman.topology.{HostConfigOperation,
+        VirtualTopologyActor, VirtualToPhysicalMapper, ZoneChanged}
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+                                                            PortRequest}
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.sdn.dp._
-import com.midokura.sdn.dp.{Flow => KernelFlow}
+import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
+                            Port, Ports, PortOptions}
 import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
+import com.midokura.util.functors.Callback0
 
 
 /**
@@ -640,8 +636,8 @@ class DatapathController() extends Actor with ActorLogging {
     def handleAddWildcardFlow(flow: WildcardFlow,
                               cookie: Option[Int],
                               pktBytes: Array[Byte],
-                              callbacks: immutable.Set[Callback0],
-                              tags: immutable.Set[Any]) {
+                              callbacks: ROSet[Callback0],
+                              tags: ROSet[Any]) {
         val flowMatch = flow.getMatch
         val inPortUUID = flowMatch.getInputPortUUID
 
