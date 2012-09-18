@@ -29,7 +29,7 @@ import com.midokura.midolman.vrn.VRNController;
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 5/2/12
  */
-public class VifMetrics {
+public class VifMetrics  {
 
     Map<UUID, Counters> countersMap;
 

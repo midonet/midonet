@@ -48,15 +48,21 @@ public interface MonitoringConfiguration extends CassandraConfig {
     int getMonitoringCassandraExpirationTimeout();
 
     /**
-     * @return the pooling time between two metric gathering data entries.
+     * @return the pulling time between two metric gathering data entries.
      */
-    @ConfigInt(key = "cassandra_reporter_pooling_time",
+    @ConfigInt(key = "cassandra_reporter_pulling_time",
                defaultValue = 1000)
-    int getMonitoringCassandraReporterPoolTime();
+    int getMonitoringCassandraReporterPullTime();
 
     /**
      * @return the zookeeper daemon jmx port on the current machine.
      */
     @ConfigInt(key = "zookeeper_jmx_port", defaultValue = -1)
     int getMonitoringZookeeperJMXPort();
+
+    /**
+     * @return the milliseconds between port stats requests.
+     */
+    @ConfigInt(key = "port_stats_request_time", defaultValue=2000)
+    int getPortStatsRequestTime();
 }

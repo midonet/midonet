@@ -8,17 +8,17 @@ import akka.event.{Logging}
 import com.google.inject.Inject
 import com.midokura.midolman.topology.VirtualToPhysicalMapper
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration
-import monitoring.metrics.vrn.VifMetrics
 import collection.mutable
-import actors.Scheduler
 import java.util.UUID
 import com.midokura.midolman.MonitoringActor.PortStatsRequest
-import akka.util.{FiniteDuration, Duration}
+import akka.util.FiniteDuration
+import monitoring.metrics.vrn.VifMetrics
 
 /**
- * This is the main entry point to the monitoring functionality. It's called
- * by {@link com.midokura.midolman.Midolman#run(String[])} if it was enabled in
- * the configuration file.
+ * This actor periodically sends requests to the DatapathController to get stats for the ports.
+ *
+ * A better way to do this would be if the DatapathController sends the port updates to the eventstream, so this
+ * actor would only need to subscribe for these kind of messages instead of asking periodically.
  */
 
 object MonitoringActor extends Referenceable {
@@ -45,7 +45,6 @@ class MonitoringActor extends Actor {
   val portsMap = new mutable.HashMap[UUID, Cancellable]
 
   override def preStart {
-    log.info("Starting Monitor Actor.")
 
     // subscribe to the LocalPortActive messages (the ones that create and remove local ports).
     context.system.eventStream.subscribe(self, classOf[LocalPortActive])
@@ -65,10 +64,9 @@ class MonitoringActor extends Actor {
          // create the metric for this port.
         vifMetrics.enableVirtualPortMetrics(portID);
 
-        log.info("Scheduling a port stats request every 5 secs.")
         val task = system.scheduler.schedule(
-          new FiniteDuration(0, "seconds"),
-          new FiniteDuration(10, "milliseconds"),
+          new FiniteDuration(0, "milliseconds"),
+          new FiniteDuration(configuration.getPortStatsRequestTime, "milliseconds"),
           DatapathController.getRef(),
           PortStatsRequest(portID))
 

@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman
 
+import monitoring.metrics.vrn.{VifMetrics}
 import monitoring.{MockMonitoringModule, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -42,6 +43,7 @@ import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.midolman.DatapathController.InitializationComplete
 import com.midokura.midolman.DatapathController.Initialize
+import javax.inject.Singleton
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -79,6 +81,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
     before {
+
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
           getModulesAsJavaIterable(config)
@@ -199,6 +202,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def flowController(): TestActorRef[FlowController] = {
         actorByName(FlowController.Name)
+
+    protected def monitoringController(): TestActorRef[MonitoringActor] = {
+        actorByName(MonitoringActor.Name)
     }
 
     protected def dpProbe(): TestKit = {

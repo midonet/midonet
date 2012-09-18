@@ -74,7 +74,7 @@ public class MonitoringAgent {
         if (store != null) {
             reporter = new MidoReporter(store, "MidonetMonitoring");
             reporter.start(
-                configuration.getMonitoringCassandraReporterPoolTime(),
+                configuration.getMonitoringCassandraReporterPullTime(),
                 TimeUnit.MILLISECONDS);
         } else {
             log.warn("The metrics publisher to Cassandra store didn't start " +

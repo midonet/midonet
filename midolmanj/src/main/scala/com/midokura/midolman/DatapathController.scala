@@ -564,19 +564,17 @@ class DatapathController() extends Actor with ActorLogging {
         case PortStatsRequest(portID) =>
             vifPorts.get(portID) match {
               case Some(portName) =>
-                log.info("Got a PORT STATS REQUEST for port {}, installing callback.", portID)
                 datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
                 def onSuccess(data: Port[_, _]) {
-                  log.info("Got response for the callback, sending port stats to monitoring agent.")
                   MonitoringActor.getRef() ! PortStats(portID, data.getStats);
                 }
 
                 def onTimeout() {
-                  log.info("Timeout when retrieving port stats")
+                  log.error("Timeout when retrieving port stats")
                 }
 
                 def onError(e: NetlinkException) {
-                  log.info("Error retrieving port stats: {}", e )
+                  log.error("Error retrieving port stats: {}", e )
                 }
               });
 

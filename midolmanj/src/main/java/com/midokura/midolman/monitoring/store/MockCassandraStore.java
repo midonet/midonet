@@ -6,24 +6,29 @@ package com.midokura.midolman.monitoring.store;
 
 import com.midokura.cassandra.CassandraClient;
 import com.midokura.midolman.monitoring.GMTTime;
+import com.midokura.util.functors.Callback0;
+import com.midokura.util.functors.Callback1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class MockCassandraStore implements Store {
+
+    Map<String, Set<String>> targetMetric;
 
     private static int maxNumberQueryResult = 1024;
 
     private static final Logger log =
             LoggerFactory.getLogger(MockCassandraStore.class);
 
+    public Map<String, Callback0> callbacks;
 
     public MockCassandraStore(CassandraClient client)
     {
+        targetMetric = new HashMap<String, Set<String>>();
+        callbacks = new HashMap<String, Callback0>();
     }
 
     @Override
@@ -34,6 +39,13 @@ public class MockCassandraStore implements Store {
     public void addTSPoint(String type, String targetIdentifier,
                            String metricName,
                            long time, long value) {
+        if (!targetMetric.containsKey(metricName)) {
+            targetMetric.put(targetIdentifier, new HashSet<String>());
+        }
+        targetMetric.get(targetIdentifier).add(metricName);
+        if (callbacks.containsKey(targetIdentifier)) {
+            callbacks.get(targetIdentifier).call();
+        }
     }
 
     @Override
@@ -76,5 +88,20 @@ public class MockCassandraStore implements Store {
     }
 
     public static void setMaxNumberQueryResult(int maxNumberQueryResult) {
+    }
+
+    public Set<String> getMetricNamesForTarget(String target) {
+        return targetMetric.get(target);
+    }
+
+    public Set<String> getTargets() {
+        return targetMetric.keySet();
+    }
+
+    public void subscribeToChangesRegarding(String id, Callback0 callback) {
+        if (!callbacks.containsKey(id)) {
+            callbacks.put(id, callback);
+        }
+
     }
 }
