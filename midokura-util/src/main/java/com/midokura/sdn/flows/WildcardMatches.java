@@ -143,7 +143,8 @@ public class WildcardMatches {
                     wildcardMatch
                             .setNetworkSource(new IntIPv4(arp.getSip()))
                             .setNetworkDestination(new IntIPv4(arp.getTip()))
-                            .setEtherType(ARP.ETHERTYPE);
+                            .setEtherType(ARP.ETHERTYPE)
+                            .setNetworkProtocol((byte)(arp.getOp() & 0xff));
                     break;
 
                 case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
