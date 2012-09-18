@@ -10,7 +10,7 @@ import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midolman.topology.VirtualTopologyActor
 import java.util.UUID
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
-import com.midokura.midonet.cluster.data.{AdRoute, BGP}
+import com.midokura.midonet.cluster.data.{Route, AdRoute, BGP}
 import collection.mutable
 import java.io.File
 import org.newsclub.net.unix.AFUNIXSocketAddress
@@ -74,6 +74,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     private val bgps = mutable.Map[UUID, BGP]()
     private val adRoutes = mutable.Set[AdRoute]()
+    private val peerRoutes = mutable.Map[Route, UUID]()
     private var internalPort: InternalPort = null
 
     // At this moment we only support one bgpd process
@@ -274,8 +275,14 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         stash()
                     case Started =>
                         adRoutes.add(rt)
-                    // TODO(pino): use bgpVty to advertise the route
+                        val bgp = bgps.get(rt.getBgpId)
+                        bgp match {
+                            case b: BGP => val as = b.getLocalAS
+                                bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                            case _ =>
+                        }
                     case Stopping =>
+                        //TODO(abel) do we need to stash the message when stopping?
                         stash()
                 }
 
@@ -287,16 +294,52 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         stash()
                     case Started =>
                         adRoutes.remove(rt)
-                    // TODO(pino): use bgpVty to stop advertising the route
+                        val bgp = bgps.get(rt.getBgpId)
+                        bgp match {
+                            case b: BGP => val as = b.getLocalAS
+                                bgpVty.deleteNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                            case _ =>
+                        }
                     case Stopping =>
+                        //TODO(abel) do we need to stash the message when stopping?
                         stash()
                 }
 
             case AddPeerRoute(ribType, destination, gateway) =>
-            // TODO(pino): implement me!
+                phase match {
+                    case NotStarted =>
+                        log.error("AddPeerRoute not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        val route = new Route()
+                        route.setDstNetworkAddr(destination.toUnicastString)
+                        route.setNextHopGateway(gateway.toUnicastString)
+                        val routeId = dataClient.routesCreateEphemeral(route)
+                        peerRoutes.put(route, routeId)
+                    case Stopping =>
+                        //TODO(abel) do we need to stash the message when stopping?
+                        stash()
+                }
 
             case RemovePeerRoute(ribType, destination, gateway) =>
-            // TODO(pino): implement me!
+                phase match {
+                    case NotStarted =>
+                        log.error("AddPeerRoute not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        val route = new Route()
+                        route.setDstNetworkAddr(destination.toUnicastString)
+                        route.setNextHopGateway(gateway.toUnicastString)
+                        peerRoutes.get(route) match {
+                            case Some(routeId) => dataClient.routesDelete(routeId)
+                            case None =>
+                        }
+                    case Stopping =>
+                        //TODO(abel) do we need to stash the message when stopping?
+                        stash()
+                }
         }
     }
 
@@ -340,80 +383,22 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     private def internalPortReady(newPort: InternalPort) {
         internalPort = newPort
-        // The internal port is ready. Set up the flows
+        // The internal port is ready. Set up ƒthe flows
         for (bgp <- bgps.values) {
             setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
             bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
         }
     }
 
-    // TODO(pino): remove these watchers after assimilating what they do.
-    /*private class AdRouteWatcher(val localAS: Int, val adRouteUUID: UUID,
-                                 val oldConfig: AdRouteConfig,
-                                 val adRouteZk: AdRouteZkManager)
-        extends Runnable {
-        override def run() {
-            // Whether this event is update or delete, we have to
-            // delete the old config first.
-            deleteNetwork(localAS, oldConfig.nwPrefix.getHostAddress,
-                oldConfig.prefixLength)
-            try {
-                val adRoute = adRouteZk.get(adRouteUUID, this)
-                if (adRoute != null) {
-                    setNetwork(localAS, adRoute.nwPrefix.getHostAddress,
-                        adRoute.prefixLength)
-                }
-            } catch {
-                case e: NoStatePathException => {
-                    log.warn("AdRouteWatcher: node already deleted")
-                }
-            }
-        }
-    }
-
-    private class BgpWatcher(val localAddr: InetAddress, var bgpUUID: UUID,
-                             var oldConfig: BGP, val adRoutes: Set[UUID],
-                             val bgpZk: BgpZkManager,
-                             val adRouteZk: AdRouteZkManager)
-        extends Runnable {
-        override def run() {
-            // Compare the length of adRoutes and only handle
-            // adRoute events when routes are added.
-            try {
-                if (adRoutes.size < adRouteZk.list(bgpUUID).size) {
-                    val bgp = bgpZk.getBGP(bgpUUID, this)
-                    if (bgp != null) {
-                        this.bgpUUID = bgpUUID
-                        this.oldConfig = bgp
-                        create(localAddr, bgpUUID, bgp)
-                    }
-                }
-            } catch {
-                case e: NoStatePathException => {
-                    log.warn("BgpWatcher: node already deleted")
-                    deleteAs(oldConfig.getLocalAS)
-                }
-            }
-        }
-    }*/
-
     def create(localAddr: IntIPv4, bgp: BGP) {
         bgpVty.setAs(bgp.getLocalAS)
         bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
 
-        //val adRoutes = Set[UUID]()
-        //val bgpWatcher = new BgpWatcher(localAddr, bgpUUID, bgp, adRoutes,
-        //    bgpZk, adRouteZk)
-
         for (adRoute <- adRoutes) {
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             adRoutes.add(adRoute)
-            // Register AdRouteWatcher.
-            //adRouteZk.get(adRouteUUID,
-            //    new AdRouteWatcher(bgp.getLocalAS, adRouteUUID, adRoute,
-            //        adRouteZk))
         }
     }
 

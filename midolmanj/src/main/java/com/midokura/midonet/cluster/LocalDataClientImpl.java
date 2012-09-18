@@ -1323,6 +1323,11 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public UUID routesCreateEphemeral(@Nonnull Route route) throws StateAccessException {
+        return routeZkManager.create(Converter.toRouteConfig(route), false);
+    }
+
+    @Override
     public List<Route> routesFindByRouter(UUID routerId)
             throws StateAccessException {
 

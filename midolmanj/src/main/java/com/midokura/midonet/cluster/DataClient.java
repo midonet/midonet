@@ -299,6 +299,8 @@ public interface DataClient {
 
     UUID routesCreate(@Nonnull Route route) throws StateAccessException;
 
+    UUID routesCreateEphemeral(@Nonnull Route route) throws StateAccessException;
+
     List<Route> routesFindByRouter(UUID routerId) throws StateAccessException;
 
 

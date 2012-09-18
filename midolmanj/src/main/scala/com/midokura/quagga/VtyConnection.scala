@@ -251,7 +251,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def setLocalNw(as: Int, localAddr: IntIPv4) {
         val request = ListBuffer[String]()
-        request += SetAs.format(as)
+        //request += SetAs.format(as)
         request += SetLocalNw.format(localAddr.toUnicastString)
 
         try {
@@ -266,7 +266,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int) {
         val request = ListBuffer[String]()
-        request += SetAs.format(as)
+        //request += SetAs.format(as)
         request += SetPeer.format(peerAddr.toUnicastString, peerAs)
 
         try {
@@ -339,7 +339,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     override def setNetwork(as: Int, nwPrefix: String,
                             prefixLength: Int) {
         val request = new ListBuffer[String]()
-        request += SetAs.format(as)
+        //request += SetAs.format(as)
         request += SetNetwork.format(nwPrefix, prefixLength)
 
         try {
@@ -356,7 +356,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
                                prefixLength: Int) = {
         if (getAs != 0) {
             val request = new ListBuffer[String]()
-            request += SetAs.format(as)
+            //request += SetAs.format(as)
             request += DeleteNetwork.format(nwPrefix, prefixLength)
 
             try {
