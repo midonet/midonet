@@ -54,8 +54,8 @@ class Bridge(val id: UUID, val greKey: Long,
         val dstDlAddress = ingressMatch.getEthernetDestination
 
         // Call ingress (pre-bridging) chain
-        packetContext.inPortID = ingressMatch.getInputPortUUID
-        packetContext.outPortID = null
+        packetContext.setInputPort(ingressMatch.getInputPortUUID)
+        packetContext.setOutputPort(null)
         val preBridgeResult = Chain.apply(inFilter, packetContext, ingressMatch,
                                           id, false)
         log.info("The ingress chain returned {}", preBridgeResult)
@@ -140,26 +140,26 @@ class Bridge(val id: UUID, val greKey: Long,
         // Otherwise, apply egress (post-bridging) chain
         act match {
             case a: Coordinator.ToPortAction =>
-                packetContext.outPortID = a.outPort
+                packetContext.setOutputPort(a.outPort)
             case a: Coordinator.ToPortSetAction =>
-                packetContext.outPortID = a.portSetID
+                packetContext.setOutputPort(a.portSetID)
             case _ =>
                 return act
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
             preBridgeMatch, id, false)
         if (postBridgeResult.action == Action.DROP ||
-            postBridgeResult.action == Action.REJECT) {
+                postBridgeResult.action == Action.REJECT) {
             // TODO: Do something more for REJECT?
             return DropAction()
         } else if (postBridgeResult.action != Action.ACCEPT) {
-            log.error("Post-bridging for {} returned an action which was " +
-                "{}, not ACCEPT, DROP, or REJECT.", id,
-                postBridgeResult.action)
+            log.error("Post-bridging for {} returned an action which was {}, " +
+                      "not ACCEPT, DROP, or REJECT.", id,
+                      postBridgeResult.action)
             // TODO(pino): decrement the mac-port reference count?
             return ErrorDropAction()
         } else {
-            // TODO(pino): can the filter change the output port?
+            // Note that the filter is not permitted to change the output port.
             return act
         }
     }

@@ -94,7 +94,7 @@ public class ForwardInfo implements ChainPacketContext {
     }
 
     @Override
-    public boolean isForwardFlow() {
+    public boolean isForwardFlow(PacketMatch pmatch) {
         // Connection tracking:  isConnTracked starts out as false.
         // If isForwardFlow is called, isConnTracked becomes true and
         // a lookup into Cassandra determines which direction this packet
@@ -113,19 +113,19 @@ public class ForwardInfo implements ChainPacketContext {
 
         // Non-IPv4 and and non-(TCP or UDP) packets aren't connection
         // tracked, always treated as forward flows.
-        if (flowMatch.getDataLayerType() != IPv4.ETHERTYPE ||
-                (flowMatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 flowMatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER)) {
+        if (pmatch.getDataLayerType() != IPv4.ETHERTYPE ||
+                (pmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
+                 pmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER)) {
             return true;
         }
 
         connectionTracked = true;
         // Query connectionCache.
-        String key = connectionKey(flowMatch.getNetworkSource(),
-                                   flowMatch.getTransportSource(),
-                                   flowMatch.getNetworkDestination(),
-                                   flowMatch.getTransportDestination(),
-                                   flowMatch.getNetworkProtocol(),
+        String key = connectionKey(pmatch.getNetworkSource(),
+                                   pmatch.getTransportSource(),
+                                   pmatch.getNetworkDestination(),
+                                   pmatch.getTransportDestination(),
+                                   pmatch.getNetworkProtocol(),
                                    ingressFE);
         String value = connectionCache.get(key);
         forwardFlow = !("r".equals(value));

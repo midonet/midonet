@@ -665,7 +665,7 @@ public class TestVRNController {
     public void testTrackedFlowFwd() {
         ForwardInfo fwdInfo = createFwdInfo();
         // Turn on connection tracking by querying flow direction
-        Assert.assertTrue(fwdInfo.isForwardFlow());
+        Assert.assertTrue(fwdInfo.isForwardFlow(new MidoMatch()));
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());
@@ -683,7 +683,7 @@ public class TestVRNController {
     public void testTrackedFlowReturn() {
         ForwardInfo fwdInfo = createFwdInfo();
         cache.set(connectionKey1 + bridgeID.toString(), "r");
-        Assert.assertFalse(fwdInfo.isForwardFlow());
+        Assert.assertFalse(fwdInfo.isForwardFlow(new MidoMatch()));
         Assert.assertEquals(0, controllerStub.sentPackets.size());
         Assert.assertEquals(0, controllerStub.addedFlows.size());
         Assert.assertEquals(0, controllerStub.droppedPktBufIds.size());

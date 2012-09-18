@@ -16,7 +16,10 @@ import akka.dispatch.{Future, ExecutionContext, Promise}
 import akka.pattern.ask
 import akka.util.duration._
 
+import com.midokura.cache.Cache
 import com.midokura.midolman.{DatapathController, FlowController}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
+    SendPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
 import com.midokura.midolman.rules.ChainPacketContext
@@ -24,12 +27,11 @@ import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
     ChainRequest, RouterRequest, PortRequest}
-import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
-    SendPacket}
+import com.midokura.midolman.util.Net
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{Ethernet, TCP, UDP}
+import com.midokura.packets.{Ethernet, IPv4, TCP, UDP}
 import com.midokura.sdn.dp.flows._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.flows.{PacketMatch, WildcardFlow, WildcardMatch}
 import com.midokura.util.functors.Callback0
 
 
@@ -59,18 +61,22 @@ object Coordinator {
      * returned by the process method completes.
      */
     /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
-    class PacketContext(var inPortID: UUID, var outPortID: UUID)
-        extends ChainPacketContext {
+    class PacketContext(val flowCookie: Object) extends ChainPacketContext {
         // PacketContext starts unfrozen, in which mode it can have callbacks
         // and tags added.  Freezing it switches it from write-only to
         // read-only.
         private var frozen = false
         def isFrozen() = frozen
-        private var flowCookie: Any = null
+        private var ingressFE: UUID = null
         private var portGroups: JSet[UUID] = null
+        private var connectionTracked = false
+        private var forwardFlow = false
+        private var connectionCache: Cache = null   //XXX
+        private var inPortID: UUID = null
+        private var outPortID: UUID = null
 
-        def setFlowCookie(cookie: Any): PacketContext = {
-            flowCookie = cookie
+        def setIngressFE(fe: UUID): PacketContext = {
+            ingressFE = fe
             this
         }
 
@@ -79,12 +85,12 @@ object Coordinator {
             this
         }
 
-        def setInPortID(id: UUID): PacketContext = {
+        def setInputPort(id: UUID): PacketContext = {
             inPortID = id
             this
         }
 
-        def setOutPortID(id: UUID): PacketContext = {
+        def setOutputPort(id: UUID): PacketContext = {
             outPortID = id
             this
         }
@@ -132,9 +138,44 @@ object Coordinator {
         override def getOutPortId(): UUID = outPortID
         override def getPortGroups(): JSet[UUID] = portGroups
         override def addTraversedElementID(id: UUID) { /* XXX */ }
-        override def isConnTracked(): Boolean = false   //XXX
-        override def isForwardFlow(): Boolean = true    //XXX
-        override def getFlowCookie(): Object = null //XXX
+        override def getFlowCookie(): Object = flowCookie
+        override def isConnTracked(): Boolean = connectionTracked
+        override def isForwardFlow(pmatch: PacketMatch): Boolean = {
+            // Connection tracking:  connectionTracked starts out as false.
+            // If isForwardFlow is called, connectionTracked becomes true and
+            // a lookup into Cassandra determines which direction this packet
+            // is considered to be going.
+
+            if (connectionTracked)
+                return forwardFlow
+
+            // Packets which aren't TCP-or-UDP over IPv4 aren't connection
+            // tracked, and always treated as forward flows.
+            if (pmatch.getDataLayerType() != IPv4.ETHERTYPE ||
+                    (pmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
+                     pmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER))
+                return true
+
+            connectionTracked = true
+            val key = connectionKey(pmatch.getNetworkSource(),
+                                    pmatch.getTransportSource(),
+                                    pmatch.getNetworkDestination(),
+                                    pmatch.getTransportDestination(),
+                                    pmatch.getNetworkProtocol())
+            val value = connectionCache.get(key)
+            forwardFlow = (value != "r")
+            return forwardFlow
+        }
+
+        private def connectionKey(ip1: Int, port1: Short, ip2: Int,
+                                  port2: Short, proto: Short) = {
+            new StringBuilder(Net.convertIntAddressToString(ip1))
+                    .append('|').append(port1).append('|')
+                    .append(Net.convertIntAddressToString(ip2))
+                    .append('|').append(port2).append('|')
+                    .append(proto).append('|')
+                    .append(ingressFE.toString()).toString()
+        }
     }
 
     trait Device {
@@ -208,9 +249,9 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     var numDevicesSimulated = 0
     val devicesSimulated = mutable.Map[UUID, Int]()
-    val pktContext = new PacketContext(null, null).setFlowCookie(cookie)
     val modifMatch = origMatch.clone()
     val modifEthPkt = Ethernet.deserialize(origEthernetPkt.serialize())
+    val pktContext = new PacketContext(cookie)
 
     private def dropFlow(temporary: Boolean) {
         // If the packet is from the datapath, install a temporary Drop flow.
@@ -300,8 +341,8 @@ class Coordinator(val origMatch: WildcardMatch,
                 deviceFuture = expiringAsk(virtualTopologyManager,
                     RouterRequest(port.deviceID, false), expiry)
             case _ =>
-                log.error("Port {} belongs to neither a bridge or router!",
-                    port)
+                log.error("Port {} belongs to device {} which is neither a " +
+                          "bridge or router!", port, port.deviceID)
                 dropFlow(true)
                 return
         }
@@ -312,10 +353,11 @@ class Coordinator(val origMatch: WildcardMatch,
                     log.error("VirtualTopologyManager didn't return a device!")
                     dropFlow(true)
                 } else {
+                    pktContext.setInputPort(port.id)
+                              .setIngressFE(port.deviceID)
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
 
-                    pktContext.setInPortID(port.id).setOutPortID(null)
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         modifMatch, modifEthPkt, pktContext, expiry))
                 }
@@ -426,7 +468,7 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
-                    pktContext.setInPortID(null).setOutPortID(null)
+                    pktContext.setInputPort(null).setOutputPort(null)
                     val result = Chain.apply(chain, pktContext, modifMatch,
                                              port.id, true)
                     if (result.action == RuleAction.ACCEPT) {

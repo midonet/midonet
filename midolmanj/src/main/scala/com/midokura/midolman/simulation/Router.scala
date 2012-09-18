@@ -92,8 +92,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         // Apply the pre-routing (ingress) chain
-        pktContext.inPortID = ingressMatch.getInputPortUUID
-        pktContext.outPortID = null
+        pktContext.setInputPort(ingressMatch.getInputPortUUID)
+        pktContext.setOutputPort(null)
         val preRoutingResult = Chain.apply(inFilter, pktContext, ingressMatch,
                                            id, false)
         if (preRoutingResult.action == RuleAction.DROP)
@@ -172,7 +172,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                             actorSystem: ActorSystem): Future[Action] = {
 
         // Apply post-routing (egress) chain.
-        pktContext.outPortID = outPort.id
+        pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
                                             preRoutingMatch, id, false)
         if (postRoutingResult.action == RuleAction.DROP)

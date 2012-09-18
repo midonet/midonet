@@ -86,11 +86,11 @@ public class Condition {
          * we return 'NOT conjunctionInv'.
          */
         if (matchForwardFlow) {
-            if (!fwdInfo.isForwardFlow())
+            if (!fwdInfo.isForwardFlow(pktMatch))
                 return conjunctionInv;
         }
         if (matchReturnFlow) {
-            if (fwdInfo.isForwardFlow())
+            if (fwdInfo.isForwardFlow(pktMatch))
                 return conjunctionInv;
         }
         if (null != inPortIds && inPortIds.size() > 0
