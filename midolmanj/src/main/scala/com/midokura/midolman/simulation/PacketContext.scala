@@ -21,6 +21,12 @@ import com.midokura.util.functors.Callback0
  * simulation of a packet's traversal of the virtual topology.
  * A device may not modify the PacketContext after the Future[Action]
  * returned by the process method completes.
+ *
+ * More specifically:  Ownership of a PacketContext passes to the forwarding
+ * element with the call to ForwardingElement::process().  It passes back
+ * to the Coordinator when the Future returned by process() completes.
+ * Coordinators and ForwardingElements are to read from and write to a
+ * PacketContext only during the period in which they own it.
  */
 /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Object) extends ChainPacketContext {

@@ -90,6 +90,8 @@ public class Chain {
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(currentChain.id);
 
+        // TODO: If we adopt the convention that we assume ownership of
+        // pktMatch, we won't have to clone it.  Investigate whether we should.
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
         while (!chainStack.empty()) {
