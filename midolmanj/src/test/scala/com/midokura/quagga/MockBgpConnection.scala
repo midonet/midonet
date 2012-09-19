@@ -14,9 +14,9 @@ import com.midokura.packets.IntIPv4
 class MockBgpConnection extends BgpConnection {
     private final val log = LoggerFactory.getLogger(this.getClass)
 
-    override def getAs(): Int = {
+    override def getAs: Int = {
         log.info("getAs")
-        return 0
+        0
     }
 
     override def setAs(as: Int) {
@@ -35,9 +35,13 @@ class MockBgpConnection extends BgpConnection {
         log.info("setPeer")
     }
 
-    override def getNetwork(): Seq[String] = {
+    override def deletePeer(as: Int, peerAddr: IntIPv4) {
+        log.info("deletePeer")
+    }
+
+    override def getNetwork: Seq[String] = {
         log.info("getNetwork")
-        return Seq[String]()
+        Seq[String]()
     }
 
     override def setNetwork(as: Int, nwPrefix: String, prefixLength: Int) {

@@ -44,7 +44,7 @@ import com.midokura.midolman.DatapathController.Initialize
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
-    with BeforeAndAfter with OneInstancePerTest with ShouldMatchers {
+    with BeforeAndAfter with OneInstancePerTest with ShouldMatchers with Dilation {
 
     var injector: Injector = null
 
@@ -235,3 +235,22 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         o.asInstanceOf[T]
     }
 }
+
+trait Dilation {
+
+    protected def actors(): ActorSystem
+
+    protected def getDilationTime = {
+        TestKitExtension(actors()).TestTimeFactor.toLong
+    }
+
+    def dilatedSleep(sleepTime: Long) {
+        Thread.sleep(getDilationTime * sleepTime)
+    }
+
+    def getDilatedTime(time: Long): Long = {
+        getDilationTime * time
+    }
+
+}
+

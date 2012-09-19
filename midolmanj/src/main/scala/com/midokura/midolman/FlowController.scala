@@ -20,6 +20,7 @@ import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatches}
 import com.midokura.util.functors.{Callback0, Callback1}
+import akka.event.LoggingReceive
 
 
 object FlowController extends Referenceable {
@@ -57,7 +58,7 @@ object FlowController extends Referenceable {
 
     case class WildcardFlowAdded(f: WildcardFlow)
 
-    case class WildcardFlowRemoved(f: WildcardFlow)
+    case class  WildcardFlowRemoved(f: WildcardFlow)
 
     case class FlowUpdateCompleted(flow: Flow)
 }
@@ -92,18 +93,22 @@ class FlowController extends Actor with ActorLogging {
         new HashMap[WildcardFlow, mutable.Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    val flowExpirationCheckInterval: Duration = Duration(10, TimeUnit.SECONDS)
+    var flowExpirationCheckInterval: Duration = null
 
 
     override def preStart() {
         super.preStart()
-
+        //ComponentInjectorHolder.inject(this)
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
+
+        flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
+            TimeUnit.MILLISECONDS)
+
 
         flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
     }
 
-    def receive = {
+    def receive = LoggingReceive {
         case DatapathController.DatapathReady(dp) =>
             if (null == datapath) {
                 datapath = dp
@@ -212,7 +217,7 @@ class FlowController extends Actor with ActorLogging {
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
         val actions = flowManager.getActionsForDpFlow(packet.getMatch)
-        if (actions != null) {
+        if (actions != null && actions.size() > 0) {
             packet.setActions(actions)
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
