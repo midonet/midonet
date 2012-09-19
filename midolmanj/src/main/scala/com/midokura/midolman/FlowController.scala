@@ -5,7 +5,8 @@ package com.midokura.midolman
 import akka.actor._
 import akka.util.Duration
 import collection.JavaConversions._
-import collection.mutable.{HashMap, MultiMap, Set}
+import collection.{Set => ROSet, mutable}
+import collection.mutable.{HashMap, MultiMap}
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
