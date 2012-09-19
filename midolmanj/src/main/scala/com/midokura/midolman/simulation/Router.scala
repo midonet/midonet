@@ -14,8 +14,8 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{VirtualTopologyActor, RouterConfig,
-                                       RoutingTableWrapper}
+import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper,
+                                       VirtualTopologyActor}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
@@ -29,37 +29,38 @@ class Router(val id: UUID, val cfg: RouterConfig,
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
-    override def process(ingressMatch: WildcardMatch, packet: Ethernet,
-                         pktContext: PacketContext, expiry: Long)
+    override def process(pktContext: PacketContext)
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem): Future[Action] = {
-        if (ingressMatch.getEtherType != IPv4.ETHERTYPE &&
-                ingressMatch.getEtherType != ARP.ETHERTYPE)
+        if (pktContext.getMatch.getEtherType != IPv4.ETHERTYPE &&
+                pktContext.getMatch.getEtherType != ARP.ETHERTYPE)
             return Promise.successful(new NotIPv4Action)(ec)
 
-        getRouterPort(ingressMatch.getInputPortUUID, expiry) flatMap {
+        getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
             case null => Promise.successful(new DropAction)(ec)
-            case inPort => preRouting(inPort, ingressMatch, packet,
-                                      pktContext, expiry)
+            case inPort => preRouting(pktContext, inPort)
         }
     }
 
     /* Does pre-routing and routing phases. Delegates post-routing and out
      * phases to postRouting()
      */
-    private def preRouting(inPort: RouterPort[_], ingressMatch: WildcardMatch,
-                           packet: Ethernet, pktContext: PacketContext,
-                           expiry: Long)
+    private def preRouting(pktContext: PacketContext, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem): Future[Action] = {
-
-        val hwDst = ingressMatch.getEthernetDestination
+        val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
-            if (ingressMatch.getEtherType == ARP.ETHERTYPE &&
-                    ingressMatch.getNetworkProtocol == ARP.OP_REQUEST) {
+            if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE &&
+                    pktContext.getMatch.getNetworkProtocol == ARP.OP_REQUEST) {
                 log.debug("Processing ARP request")
-                processArpRequest(packet.getPayload.asInstanceOf[ARP], inPort)
+                val arpPayload = pktContext.getFrame.getPayload
+                if (arpPayload.isInstanceOf[ARP]) {
+                    processArpRequest(arpPayload.asInstanceOf[ARP], inPort)
+                } else {
+                    log.warn("Non-ARP packet with ethertype ARP: {}",
+                             arpPayload)
+                }
                 return Promise.successful(new ConsumedAction)(ec)
             } else
                 return Promise.successful(new DropAction)(ec)
@@ -72,37 +73,44 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new DropAction)(ec)
         }
 
-        if (ingressMatch.getEtherType == ARP.ETHERTYPE) {
+        if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
-            if (ingressMatch.getNetworkProtocol == ARP.OP_REPLY) {
+            if (pktContext.getMatch.getNetworkProtocol == ARP.OP_REPLY) {
                 log.info("Processing ARP reply")
-                processArpReply(packet.getPayload.asInstanceOf[ARP],
-                                ingressMatch.getInputPortUUID, inPort)
+                val arpPayload = pktContext.getFrame.getPayload
+                if (arpPayload.isInstanceOf[ARP]) {
+                    processArpReply(arpPayload.asInstanceOf[ARP],
+                                    pktContext.getInPortId, inPort)
+                } else {
+                    log.warn("Non-ARP packet with ethertype ARP: {}",
+                             arpPayload)
+                }
                 return Promise.successful(new ConsumedAction)(ec)
             } else
                 return Promise.successful(new DropAction)(ec)
         }
 
-        val nwDst = ingressMatch.getNetworkDestinationIPv4
+        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
         if (nwDst == inPort.portAddr) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
-            if (isIcmpEchoRequest(ingressMatch)) {
+            if (isIcmpEchoRequest(pktContext.getMatch)) {
                 log.debug("got ICMP echo")
-                sendIcmpEchoReply(ingressMatch, packet, expiry)
+                sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
+                                  pktContext.getExpiry)
                 return Promise.successful(new ConsumedAction)(ec)
             } else
                 return Promise.successful(new DropAction)(ec)
         }
 
         // Apply the pre-routing (ingress) chain
-        pktContext.setInputPort(ingressMatch.getInputPortUUID)
+        // InputPort already set.
         pktContext.setOutputPort(null)
-        val preRoutingResult = Chain.apply(inFilter, pktContext, ingressMatch,
-                                           id, false)
+        val preRoutingResult = Chain.apply(inFilter, pktContext,
+                                           pktContext.getMatch, id, false)
         if (preRoutingResult.action == RuleAction.DROP)
             return Promise.successful(new DropAction)(ec)
         else if (preRoutingResult.action == RuleAction.REJECT) {
-            sendIcmpError(inPort, ingressMatch, packet,
+            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return Promise.successful(new DropAction)(ec)
         } else if (preRoutingResult.action != RuleAction.ACCEPT) {
@@ -111,46 +119,44 @@ class Router(val id: UUID, val cfg: RouterConfig,
                       preRoutingResult.action)
             return Promise.successful(new ErrorDropAction)(ec)
         }
-        if (!(preRoutingResult.pmatch.isInstanceOf[WildcardMatch])) {
-            log.error("Pre-routing for {} returned a match which was {}, " +
-                      "not a WildcardMatch.", id, preRoutingResult.pmatch)
+        if (preRoutingResult.pmatch ne pktContext.getMatch) {
+            log.error("Pre-routing for {} returned a different match object.",
+                      id)
             return Promise.successful(new ErrorDropAction)(ec)
         }
-        val preRoutingMatch = preRoutingResult.pmatch
-                                              .asInstanceOf[WildcardMatch]
 
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
          * so that there need only be one sim. run for different TTLs.  */
-        if (preRoutingMatch.getNetworkTTL != null) {
-            val ttl: Byte = preRoutingMatch.getNetworkTTL
+        if (pktContext.getMatch.getNetworkTTL != null) {
+            val ttl: Byte = pktContext.getMatch.getNetworkTTL
             if (ttl <= 1) {
-                sendIcmpError(inPort, preRoutingMatch, packet,
+                sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                     ICMP.TYPE_TIME_EXCEEDED, EXCEEDED_CODE.EXCEEDED_TTL)
                 return Promise.successful(new DropAction)(ec)
             } else {
-                preRoutingMatch.setNetworkTTL((ttl - 1).toByte)
+                pktContext.getMatch.setNetworkTTL((ttl - 1).toByte)
             }
         }
 
-        val rt: Route = loadBalancer.lookup(preRoutingMatch)
+        val rt: Route = loadBalancer.lookup(pktContext.getMatch)
         if (rt == null) {
             // No route to network
             log.debug("Route lookup: No route to network (dst:{}), {}",
-                preRoutingMatch.getNetworkDestinationIPv4, rTable.rTable)
-            sendIcmpError(inPort, preRoutingMatch, packet,
+                pktContext.getMatch.getNetworkDestinationIPv4, rTable.rTable)
+            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
             log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                preRoutingMatch.getNetworkDestinationIPv4)
+                pktContext.getMatch.getNetworkDestinationIPv4)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop == Route.NextHop.REJECT) {
-            sendIcmpError(inPort, preRoutingMatch, packet,
+            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             log.debug("Dropping packet, REJECT route (dst:{})",
-                preRoutingMatch.getNetworkDestinationIPv4)
+                pktContext.getMatch.getNetworkDestinationIPv4)
             return Promise.successful(new DropAction)(ec)
         }
         if (rt.nextHop != Route.NextHop.PORT) {
@@ -166,30 +172,26 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new DropAction)(ec)
         }
 
-        getRouterPort(rt.nextHopPort, expiry) flatMap {
+        getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
             case null => Promise.successful(new DropAction)(ec)
-            case outPort => postRouting(inPort, outPort, rt, preRoutingMatch,
-                                        packet, pktContext, expiry)
+            case outPort => postRouting(inPort, outPort, rt, pktContext)
         }
     }
 
     private def postRouting(inPort: RouterPort[_], outPort: RouterPort[_],
-                            rt: Route, preRoutingMatch: WildcardMatch,
-                            packet: Ethernet, pktContext: PacketContext,
-                            expiry: Long)
+                            rt: Route, pktContext: PacketContext)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
-
         // Apply post-routing (egress) chain.
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
-                                            preRoutingMatch, id, false)
+                                            pktContext.getMatch, id, false)
         if (postRoutingResult.action == RuleAction.DROP) {
             log.debug("PostRouting DROP rule")
             return Promise.successful(new DropAction)
         } else if (postRoutingResult.action == RuleAction.REJECT) {
             log.debug("PostRouting REJECT rule")
-            sendIcmpError(inPort, preRoutingMatch, packet,
+            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
             return Promise.successful(new DropAction)
         } else if (postRoutingResult.action != RuleAction.ACCEPT) {
@@ -198,45 +200,47 @@ class Router(val id: UUID, val cfg: RouterConfig,
                       postRoutingResult.action)
             return Promise.successful(new ErrorDropAction)
         }
-        if (!(postRoutingResult.pmatch.isInstanceOf[WildcardMatch])) {
-            log.error("Post-routing for {} returned a match which was {}, " +
-                      "not a WildcardMatch.", id, postRoutingResult.pmatch)
+        if (postRoutingResult.pmatch ne pktContext.getMatch) {
+            log.error("Post-routing for {} returned a different match object.",
+                      id)
             return Promise.successful(new ErrorDropAction)(ec)
         }
-        val postRoutingMatch = postRoutingResult.pmatch
-                                                .asInstanceOf[WildcardMatch]
 
-        if (postRoutingMatch.getNetworkDestinationIPv4 == outPort.portAddr) {
-            if (isIcmpEchoRequest(postRoutingMatch)) {
+        if (pktContext.getMatch.getNetworkDestinationIPv4 == outPort.portAddr) {
+            if (isIcmpEchoRequest(pktContext.getMatch)) {
                 log.debug("got icmp echo reply")
-                sendIcmpEchoReply(postRoutingMatch, packet, expiry)
+                sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
+                                  pktContext.getExpiry)
                 return Promise.successful(new ConsumedAction)(ec)
             } else {
                 log.debug("dropping IPv4 packet addressed to me")
                 return Promise.successful(new DropAction)(ec)
             }
         }
-        var matchOut: WildcardMatch = postRoutingMatch.clone
+
         // Set HWSrc
-        matchOut.setEthernetSource(outPort.portMac)
+        pktContext.getMatch.setEthernetSource(outPort.portMac)
         // Set HWDst
         val macFuture = getNextHopMac(outPort, rt,
-                            matchOut.getNetworkDestination, expiry)
+                                      pktContext.getMatch.getNetworkDestination,
+                                      pktContext.getExpiry)
         macFuture map {
             case null =>
                 if (rt.nextHopGateway == 0 || rt.nextHopGateway == -1) {
                     log.debug("icmp host unreachable, host mac unknown")
-                    sendIcmpError(inPort, postRoutingMatch, packet,
-                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_HOST)
+                    sendIcmpError(inPort, pktContext.getMatch,
+                                  pktContext.getFrame, ICMP.TYPE_UNREACH,
+                                  UNREACH_CODE.UNREACH_HOST)
                 } else {
                     log.debug("icmp net unreachable, gw mac unknown")
-                    sendIcmpError(inPort, postRoutingMatch, packet,
-                        ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+                    sendIcmpError(inPort, pktContext.getMatch,
+                                  pktContext.getFrame, ICMP.TYPE_UNREACH,
+                                  UNREACH_CODE.UNREACH_NET)
                 }
                 new DropAction: Action
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
-                matchOut.setEthernetDestination(nextHopMac)
+                pktContext.getMatch.setEthernetDestination(nextHopMac)
                 new ToPortAction(rt.nextHopPort): Action
         }
     }
