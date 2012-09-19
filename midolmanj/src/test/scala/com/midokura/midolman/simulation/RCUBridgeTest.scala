@@ -86,7 +86,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null, 
+        val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
@@ -107,7 +107,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null, 
+        val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
@@ -130,7 +130,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setNetworkDestination(rtr1ip)
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null, 
+        val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
@@ -150,7 +150,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetSource(MAC.fromString("ff:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null, 
+        val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)

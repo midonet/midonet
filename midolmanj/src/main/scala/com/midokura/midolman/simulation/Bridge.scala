@@ -54,7 +54,7 @@ class Bridge(val id: UUID, val greKey: Long,
         // Call ingress (pre-bridging) chain
         // InputPort is already set.
         packetContext.setOutputPort(null)
-        val preBridgeResult = Chain.apply(inFilter, packetContext, 
+        val preBridgeResult = Chain.apply(inFilter, packetContext,
                                           packetContext.getMatch, id, false)
         log.info("The ingress chain returned {}", preBridgeResult)
 

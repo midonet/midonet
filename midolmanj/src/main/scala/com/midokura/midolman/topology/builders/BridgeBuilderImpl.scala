@@ -87,7 +87,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             //1. MAC was deleted
             if (newPort == null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateAllMACFlowsTag(id, mac))
+                    FlowTagger.invalidateAllMacFlowsTag(id, mac))
             }
             //2. MAC moved from port-x to port-y
             if (newPort != null && oldPort != null) {
@@ -102,18 +102,18 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // had no port of this bridge, we need a flow to the port that has
             // the tunnel to it
             flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateBroadCastFlows(id))
+                    FlowTagger.invalidateBroadcastFlows(id))
         }
     }
 
     def setLocalExteriorPortActive(port: UUID, mac: MAC, active: Boolean) {
         // invalidate the flood flows in both cases (active/not active)
         flowController ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateBroadCastFlows(id))
+            FlowTagger.invalidateBroadcastFlows(id))
 
         if (!active) {
             flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateAllMACFlowsTag(id, mac)
+                FlowTagger.invalidateAllMacFlowsTag(id, mac)
             )
         }
     }

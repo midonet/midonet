@@ -22,7 +22,7 @@ object VirtualTopologyActor extends Referenceable {
 
     /*
      * VirtualTopologyActor's clients use these messages to request the most
-     * recent state of a device and, optionally, notifications when the state 
+     * recent state of a device and, optionally, notifications when the state
      * changes.
      */
     sealed trait DeviceRequest
