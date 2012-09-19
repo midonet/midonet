@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.mgmt.host;
 
+import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.host.rest_api.HostTopology;
@@ -11,7 +12,13 @@ import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.*;
+import com.midokura.midonet.client.resource.*;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.TunnelZone;
+import com.midokura.midonet.client.resource.TunnelZoneHost;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
@@ -22,8 +29,12 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -109,6 +120,40 @@ public class TestTunnelZoneHost {
                             .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(0, tzHosts.length);
+        }
+
+        @Test
+        public void testClient() throws Exception {
+
+            URI baseUri = resource().getURI();
+            MidonetMgmt mgmt = new MidonetMgmt(baseUri.toString());
+            mgmt.enableLogging();
+
+            UUID hostId = UUID.randomUUID();
+
+            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+            metadata.setName("test");
+            metadata.setAddresses(new InetAddress[]{
+                InetAddress.getByAddress(
+                    new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
+            });
+
+            hostManager.createHost(hostId, metadata);
+            hostManager.makeAlive(hostId);
+
+            ResourceCollection<Host> hosts = mgmt.getHosts();
+            com.midokura.midonet.client.resource.Host host = hosts.get(0);
+
+            TunnelZone greTunnelZone = mgmt.addGreTunnelZone()
+                                           .name("gre-tunnel-zone-1")
+                                           .create();
+
+            TunnelZoneHost tzHost = greTunnelZone.addTunnelZoneHost()
+                                                 .ipAddress("1.1.1.1")
+                                                 .hostId(hostId).create();
+
+            assertThat("There is one host entry under the tunnel zone.",
+                       greTunnelZone.getHosts().size(), is(1));
         }
     }
 

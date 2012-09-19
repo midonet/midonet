@@ -64,10 +64,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
             .asInstanceOf[MaterializedRouterPort]
 
-    def newPortOnRouter(router: ClusterRouter, mac: MAC,
+    def newPortOnRouter(router: ClusterRouter, mac: MAC, portAddr: String,
                         localNwAddr: String, localNwLen: Int,
                         nwAddr: String, nwLen: Int): MaterializedRouterPort = {
         newPortOnRouter(router, Ports.materializedRouterPort(router)
+            .setPortAddr(portAddr)
             .setLocalNwAddr(localNwAddr)
             .setLocalNwLength(localNwLen)
             .setNwAddr(nwAddr)

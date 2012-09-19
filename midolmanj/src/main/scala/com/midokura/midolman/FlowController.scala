@@ -5,8 +5,8 @@ package com.midokura.midolman
 import akka.actor._
 import akka.util.Duration
 import collection.JavaConversions._
-import collection.immutable
-import collection.mutable.{HashMap, MultiMap, Set}
+import collection.{Set => ROSet, mutable}
+import collection.mutable.{HashMap, MultiMap}
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -15,7 +15,7 @@ import com.midokura.midolman.datapath.ErrorHandlingCallback
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.protos.OvsDatapathConnection
-import com.midokura.sdn.dp.{FlowMatch, Flow, Datapath, Packet}
+import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatches}
@@ -40,8 +40,8 @@ object FlowController extends Referenceable {
     case class AddWildcardFlow(flow: WildcardFlow,
                                cookie: Option[Int],
                                pktBytes: Array[Byte],
-                               flowRemovalCallbacks: immutable.Set[Callback0],
-                               tags: immutable.Set[Any])
+                               flowRemovalCallbacks: ROSet[Callback0],
+                               tags: ROSet[Any])
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
@@ -58,6 +58,8 @@ object FlowController extends Referenceable {
     case class WildcardFlowAdded(f: WildcardFlow)
 
     case class WildcardFlowRemoved(f: WildcardFlow)
+
+    case class FlowUpdateCompleted(flow: Flow)
 }
 
 
@@ -76,7 +78,7 @@ class FlowController extends Actor with ActorLogging {
     type Cookie = Int
     private val dpMatchToCookie = HashMap[FlowMatch, Cookie]()
     private val cookieToPendedPackets: MultiMap[Cookie, Packet] =
-        new HashMap[Cookie, Set[Packet]] with MultiMap[Cookie, Packet]
+        new HashMap[Cookie, mutable.Set[Packet]] with MultiMap[Cookie, Packet]
 
     @Inject
     var datapathConnection: OvsDatapathConnection = null
@@ -84,13 +86,13 @@ class FlowController extends Actor with ActorLogging {
     var flowManager: FlowManager = null
 
     val tagToFlows: MultiMap[AnyRef, WildcardFlow] =
-        new HashMap[AnyRef, Set[WildcardFlow]]
+        new HashMap[AnyRef, mutable.Set[WildcardFlow]]
             with MultiMap[AnyRef, WildcardFlow]
     val flowToTags: MultiMap[WildcardFlow, AnyRef] =
-        new HashMap[WildcardFlow, Set[AnyRef]]
+        new HashMap[WildcardFlow, mutable.Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
 
-    val flowExpirationCheckInterval: Duration = Duration(100, TimeUnit.MILLISECONDS)
+    val flowExpirationCheckInterval: Duration = Duration(10, TimeUnit.SECONDS)
 
 
     override def preStart() {
@@ -99,7 +101,6 @@ class FlowController extends Actor with ActorLogging {
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
 
         flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
-
     }
 
     def receive = {
@@ -161,17 +162,17 @@ class FlowController extends Actor with ActorLogging {
                     })
             }
         case CheckFlowExpiration() =>
-            log.info("Checking flow expiration")
             flowManager.checkFlowsExpiration()
 
         case flowUpdated(flow) =>
             flowManager.updateFlowLastUsedTimeCompleted(flow)
+            context.system.eventStream.publish(new FlowUpdateCompleted(flow))
 
         case flowAdded(flow) =>
             flowManager.addFlowCompleted(flow)
 
         case flowRemoved(flow) =>
-        flowManager.removeFlowCompleted(flow)
+            flowManager.removeFlowCompleted(flow)
     }
 
     private def freePendedPackets(cookieOpt: Option[Cookie]): Unit = {
@@ -326,15 +327,16 @@ class FlowController extends Actor with ActorLogging {
         log.info("Installing packet in handler")
         // TODO: try to make this cleaner (right now we are just waiting for
         // the install future thus blocking the current thread).
-        datapathConnection.datapathsSetNotificationHandler(datapath, new Callback[Packet] {
-            def onSuccess(data: Packet) {
-                self ! packetIn(data)
-            }
+        datapathConnection.datapathsSetNotificationHandler(datapath,
+            new Callback[Packet] {
+                def onSuccess(data: Packet) {
+                    self ! packetIn(data)
+                }
 
-            def onTimeout() {}
+                def onTimeout() {}
 
-            def onError(e: NetlinkException) {}
-        }).get()
+                def onError(e: NetlinkException) {}
+            }).get()
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper{
@@ -353,7 +355,6 @@ class FlowController extends Actor with ActorLogging {
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {
-            log.debug("Sending myself a message to remove wildcard flow {}", flow.toString)
             self ! RemoveWildcardFlow(flow)
         }
 

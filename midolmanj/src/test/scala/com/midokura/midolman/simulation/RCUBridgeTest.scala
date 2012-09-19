@@ -12,12 +12,11 @@ import java.lang.{Long => JLong}
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, Suite, Ignore}
+import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.topology._
-import com.midokura.midolman.simulation.Coordinator.PacketContext
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, IntIPv4, MAC}
 import com.midokura.sdn.flows.WildcardMatch

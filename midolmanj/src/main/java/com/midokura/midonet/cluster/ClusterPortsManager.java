@@ -132,7 +132,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     }
 
     void setRouterPortFields(RouterPort port, PortDirectory.RouterPortConfig cfg){
-        port.setPortAddr(IntIPv4.fromString(cfg.getPortAddr()));
+        port.setPortAddr(IntIPv4.fromString(cfg.getPortAddr(), cfg.nwLength));
         port.setPortMac(cfg.getHwAddr());
     }
 

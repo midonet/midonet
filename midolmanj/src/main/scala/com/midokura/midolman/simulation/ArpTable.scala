@@ -48,7 +48,9 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
         arpCacheCallback = new Callback2[IntIPv4, MAC] {
             def call(ip: IntIPv4, mac: MAC) {
                 arpWaiters.remove(ip) match {
-                    case Some(waiters) => waiters map { _ success mac }
+                    case Some(waiters) =>
+                        log.debug("ArpCache.notify cb, fwd to {} waiters", waiters.size)
+                        waiters map { _ success mac }
                     case None =>
                 }
             }
@@ -76,7 +78,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
      */
     private def promiseOnExpire[T](promise: Promise[T], expiry: Long,
                         onExpire: (Promise[T]) => Unit)
-                       (implicit actorSystem: ActorSystem): Future[T] = {
+                       (implicit actorSystem: ActorSystem): Promise[T] = {
         val now = Platform.currentTime
         if (now >= expiry) {
             if (promise tryComplete Left(new TimeoutException()))
@@ -100,7 +102,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                 promise.success(value)
             }
         }, expiry)
-        promise
+        promise.future
     }
 
     private def removeWatcher(ip: IntIPv4, promise: Promise[MAC]) {
@@ -112,7 +114,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
 
     def waitForArpEntry(ip: IntIPv4, expiry: Long)
                        (implicit ec: ExecutionContext,
-                        actorSystem: ActorSystem) : Future[MAC] = {
+                        actorSystem: ActorSystem) : Promise[MAC] = {
         val promise = Promise[MAC]()(ec)
         /* MultiMap isn't thread-safe and the SynchronizedMap trait does not
          * help either. See: https://issues.scala-lang.org/browse/SI-6087
@@ -125,6 +127,8 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
            (implicit ec: ExecutionContext,
             actorSystem: ActorSystem): Future[MAC] = {
+        log.debug("Resolving MAC for {}", ip)
+        val macPromise = waitForArpEntry(ip, expiry)
         val entryFuture = fetchArpCacheEntry(ip, expiry)
         entryFuture onSuccess {
             case entry =>
@@ -133,21 +137,28 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                         entry.macAddr == null)
                     arpForAddress(ip, entry, port)
         }
-        flow {
-            val entry = entryFuture()
-            if (entry != null && entry.expiry >= Platform.currentTime)
-                entry.macAddr
-            else {
-                // There's no arpCache entry, or it's expired.
-                // Wait for the arpCache to become populated by an ARP reply
-                waitForArpEntry(ip, expiry).apply()
-            }
-        }(ec)
+        entryFuture flatMap {
+            case entry: ArpCacheEntry =>
+                if (entry != null && entry.expiry >= Platform.currentTime) {
+                    log.debug("MAC for {} resolved directly", ip)
+                    removeWatcher(ip, macPromise)
+                    Promise.successful(entry.macAddr)
+                } else {
+                    log.debug("MAC for {} not ready, waiting on future", ip)
+                    macPromise.future
+                }
+            case _ =>
+                log.debug("MAC for {} not ready, waiting on future", ip)
+                macPromise.future
+        }
     }
 
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
+        log.debug("Got address for {}: {}", ip, mac)
         arpWaiters.remove(ip) match {
-                case Some(waiters) => waiters map { _ success mac}
+                case Some(waiters) =>
+                    log.debug("notifying {} waiters", waiters.size)
+                    waiters map { _ success mac}
                 case None =>
         }
         val now = Platform.currentTime
@@ -233,7 +244,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
             log.debug("generateArpRequest: sending {}", arp)
             SimulationController.getRef(actorSystem) !
                 EmitGeneratedPacket(port.id, arp)
-            waitForArpEntry(ip, now + ARP_RETRY_MILLIS) onComplete {
+            waitForArpEntry(ip, now + ARP_RETRY_MILLIS).future onComplete {
                 case Left(ex: TimeoutException) =>
                     retryLoopTopHalf(arp, now)
                 case Left(ex) =>

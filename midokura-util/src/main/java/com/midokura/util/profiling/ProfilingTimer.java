@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.sdn.flows;
+package com.midokura.util.profiling;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class ProfilingTimer {
             long end = System.currentTimeMillis();
             // it's useful to print the line because in the IDE you can navigate to
             // it directly
-            log.debug("{} execution time: {}", new Object[]{
+            log.trace("{} execution time: {}", new Object[]{
                 methodNameWithLine, (end-methodToStartTimeMap.get(methodName))});
             methodToStartTimeMap.remove(methodName);
         }

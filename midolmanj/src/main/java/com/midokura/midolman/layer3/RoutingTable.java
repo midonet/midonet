@@ -80,7 +80,7 @@ public class RoutingTable {
 
         @Override
         public String toString() {
-            return "TrieNode [bitlen=" + bitlen + ", addr=" + addr + ", parent=" + parent + ", left=" + left
+            return "TrieNode [bitlen=" + bitlen + ", addr=" + addr + ", left=" + left
                     + ", right=" + right + ", routes=" + routes + "]";
         }
     }
