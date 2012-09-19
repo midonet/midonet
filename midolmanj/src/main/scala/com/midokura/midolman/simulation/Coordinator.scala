@@ -327,10 +327,9 @@ class Coordinator(val origMatch: WildcardMatch,
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
                     pktContext.setInputPort(null).setOutputPort(null)
-                    val result = Chain.apply(chain, pktContext, modifMatch,
-                                             port.id, true)
+                    val result = Chain.apply(chain, pktContext,
+                                             pktContext.getMatch, port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
-                        modifMatch = result.pmatch.asInstanceOf[WildcardMatch]
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
                                result.action == RuleAction.REJECT) {
@@ -384,7 +383,7 @@ class Coordinator(val origMatch: WildcardMatch,
      *                 packet must be emitted.
      */
     private def emit(outputID: UUID, isPortSet: Boolean) {
-        val actions = actionsFromMatchDiff(origMatch, modifMatch)
+        val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
         isPortSet match {
             case false =>
                 actions.append(new FlowActionOutputToVrnPort(outputID))
