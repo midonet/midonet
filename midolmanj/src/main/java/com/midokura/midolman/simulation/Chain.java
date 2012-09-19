@@ -64,7 +64,7 @@ public class Chain {
      *            The packet's PacketContext.
      * @param pktMatch
      *            matches the packet that would be seen in this router/chain. It
-     *            will NOT be modified by the rule chain.
+     *            WILL be modified by the rule chain if it affects matches.
      * @param ownerId
      *            UUID of the element using chainId.
      * @param isPortFilter
@@ -90,10 +90,8 @@ public class Chain {
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(currentChain.id);
 
-        // TODO: If we adopt the convention that we assume ownership of
-        // pktMatch, we won't have to clone it.  Investigate whether we should.
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
-                pktMatch.clone(), false);
+                pktMatch, false);
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();
             while (cp.position < cp.rules.size()) {

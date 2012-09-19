@@ -9,7 +9,7 @@ import java.util.concurrent.TimeoutException
 import java.util.UUID
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.dispatch.{Future, ExecutionContext, Promise}
+import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.pattern.ask
 import akka.util.duration._
 
@@ -54,24 +54,14 @@ object Coordinator {
          * - it does not reflect the changes made by other devices' handling of
          * the packet (whereas the match object does).
          *
-         * @param pktMatch The wildcard match that describes the packet's
-         * fields at the time it ingresses the device. This match contains the
-         * UUID of the ingress port; it can be accessed via getInputPortUUID.
-         * @param packet The original packet that ingressed the virtual network,
-         * which may be different from the packet that actually arrives at this
-         * device.
          * @param pktContext The context for the simulation of this packet's
          * traversal of the virtual network. Use the context to subscribe
          * for notifications on the removal of any resulting flows, or to tag
          * any resulting flows for indexing.
-         * @param expiry The expiration time for processing this packet, i.e.
-         * terminate processing when Platform.currentTime >= expiry.
-         * @param ec the Coordinator actor's execution context.
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
-        def process(pktMatch: WildcardMatch, packet: Ethernet,
-                    pktContext: PacketContext, expiry: Long)
+        def process(pktContext: PacketContext)
                    (implicit ec: ExecutionContext,
                     actorSystem: ActorSystem): Future[Action]
     }
@@ -118,9 +108,8 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     var numDevicesSimulated = 0
     val devicesSimulated = mutable.Map[UUID, Int]()
-    var modifMatch = origMatch.clone()
-    val modifEthPkt = Ethernet.deserialize(origEthernetPkt.serialize())
-    val pktContext = new PacketContext(cookie)
+    val pktContext = new PacketContext(cookie, origEthernetPkt, expiry)
+    pktContext.setMatch(origMatch.clone)
 
     private def dropFlow(temporary: Boolean) {
         // If the packet is from the datapath, install a temporary Drop flow.
@@ -228,7 +217,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
 
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
-                        modifMatch, modifEthPkt, pktContext, expiry))
+                        pktContext))
                 }
         }
     }
@@ -341,8 +330,6 @@ class Coordinator(val origMatch: WildcardMatch,
                     val result = Chain.apply(chain, pktContext, modifMatch,
                                              port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
-                        //XXX(jlm,pino): Replace the modifMatch with
-                        // result.pmatch.asInstanceOf[WildcardMatch]
                         modifMatch = result.pmatch.asInstanceOf[WildcardMatch]
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||

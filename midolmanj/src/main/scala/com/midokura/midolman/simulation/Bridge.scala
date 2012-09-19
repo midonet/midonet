@@ -32,39 +32,36 @@ class Bridge(val id: UUID, val greKey: Long,
     val log = Logging(actorSystem, this.getClass)
     log.info("Bridge being built.")
 
-    override def process(ingressMatch: WildcardMatch, packet: Ethernet,
-                         packetContext: PacketContext, expiry: Long)
+    override def process(packetContext: PacketContext)
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
         log.info("Bridge's process method called.")
         // Drop the packet if its L2 source is a multicast address.
-        if (Ethernet.isMcast(ingressMatch.getEthernetSource)) {
+        if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
-            return Promise.successful(DropAction())
+            Promise.successful(DropAction())
         } else
-            normalProcess(ingressMatch, packet, packetContext, expiry)
+            normalProcess(packetContext)
     }
 
-    def normalProcess(ingressMatch: WildcardMatch, packet: Ethernet,
-                      packetContext: PacketContext, expiry: Long)
+    def normalProcess(packetContext: PacketContext)
                      (implicit ec: ExecutionContext)
     : Future[Coordinator.Action] = {
-        val srcDlAddress = ingressMatch.getEthernetSource
-        val dstDlAddress = ingressMatch.getEthernetDestination
+        val srcDlAddress = packetContext.getMatch.getEthernetSource
+        val dstDlAddress = packetContext.getMatch.getEthernetDestination
 
         // Call ingress (pre-bridging) chain
-        packetContext.setInputPort(ingressMatch.getInputPortUUID)
+        // InputPort is already set.
         packetContext.setOutputPort(null)
-        val preBridgeResult = Chain.apply(inFilter, packetContext, ingressMatch,
-                                          id, false)
+        val preBridgeResult = Chain.apply(inFilter, packetContext, 
+                                          packetContext.getMatch, id, false)
         log.info("The ingress chain returned {}", preBridgeResult)
 
         if (preBridgeResult.action == Action.DROP ||
                 preBridgeResult.action == Action.REJECT) {
             // TOOD: Do something more for REJECT?
-            learnMacOnPort(srcDlAddress, ingressMatch.getInputPortUUID,
-                           packetContext)
+            learnMacOnPort(srcDlAddress, packetContext)
             return Promise.successful(DropAction())
         } else if (preBridgeResult.action != Action.ACCEPT) {
             log.error("Pre-bridging for {} returned an action which was {}, " +
@@ -72,20 +69,19 @@ class Bridge(val id: UUID, val greKey: Long,
                       preBridgeResult.action)
             return Promise.successful(ErrorDropAction())
         }
-        if (!(preBridgeResult.pmatch.isInstanceOf[WildcardMatch])) {
-            log.error("Pre-bridging for {} returned a match which was {}, " +
-                      "not a WildcardMatch.", id, preBridgeResult.pmatch)
+        if (preBridgeResult.pmatch ne packetContext.getMatch) {
+            log.error("Pre-bridging for {} returned a different match object",
+                      id)
             return Promise.successful(ErrorDropAction())
         }
-        val preBridgeMatch = preBridgeResult.pmatch.asInstanceOf[WildcardMatch]
 
         var action: Future[Coordinator.Action] = null
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
             // L2 Multicast
-            val nwDst = preBridgeMatch.getNetworkDestinationIPv4
+            val nwDst = packetContext.getMatch.getNetworkDestinationIPv4
             if (Ethernet.isBroadcast(dstDlAddress) &&
-                    preBridgeMatch.getEtherType == ARP.ETHERTYPE &&
+                    packetContext.getMatch.getEtherType == ARP.ETHERTYPE &&
                     rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
                 log.info("The packet is intended for an interior router port.")
@@ -112,7 +108,8 @@ class Bridge(val id: UUID, val greKey: Long,
                     // Not a logical port's MAC.  Is dst MAC in
                     // macPortMap? (ie, learned)
                     log.info("Have we learned this mac address already?")
-                    val port = getPortOfMac(dstDlAddress, expiry, ec)
+                    val port = getPortOfMac(dstDlAddress, packetContext.expiry,
+                                            ec)
 
                     action = port map {
                         case null =>
@@ -124,16 +121,14 @@ class Bridge(val id: UUID, val greKey: Long,
             }
         }
 
-        return action map doPostBridging(packetContext, preBridgeMatch)
+        return action map doPostBridging(packetContext)
     }
 
-    private def doPostBridging(packetContext: PacketContext,
-                               preBridgeMatch: WildcardMatch)
+    private def doPostBridging(packetContext: PacketContext)
                               (act: Coordinator.Action): Coordinator.Action = {
         // First, learn the mac-port entry.
         // TODO(pino): what if the filters can modify the L2 addresses?
-        learnMacOnPort(preBridgeMatch.getEthernetSource,
-            preBridgeMatch.getInputPortUUID, packetContext)
+        learnMacOnPort(packetContext.getMatch.getEthernetSource, packetContext)
         //XXX: Add to traversed elements list if flooding.
 
         // If the packet's not being forwarded, we're done.
@@ -147,7 +142,7 @@ class Bridge(val id: UUID, val greKey: Long,
                 return act
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
-            preBridgeMatch, id, false)
+                                           packetContext.getMatch, id, false)
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
             // TODO: Do something more for REJECT?
@@ -164,15 +159,16 @@ class Bridge(val id: UUID, val greKey: Long,
         }
     }
 
-    private def learnMacOnPort(srcDlAddress: MAC, inPort: UUID,
+    private def learnMacOnPort(srcDlAddress: MAC,
                                packetContext: PacketContext) {
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
-            flowCount.increment(srcDlAddress, inPort)
+            flowCount.increment(srcDlAddress, packetContext.getInPortId)
             packetContext.addFlowRemovedCallback(
-                flowRemovedCallbackGen.getCallback(srcDlAddress, inPort))
+                flowRemovedCallbackGen.getCallback(srcDlAddress,
+                                                   packetContext.getInPortId))
             // Pass the tag to be used to index the flow
-            val tag = (id, srcDlAddress, inPort)
+            val tag = (id, srcDlAddress, packetContext.getInPortId)
             packetContext.addFlowTag(tag)
             // Any flow invalidations caused by MACs migrating between ports
             // are done by the BridgeManager, which detects them from the

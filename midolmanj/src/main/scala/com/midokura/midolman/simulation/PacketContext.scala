@@ -11,8 +11,8 @@ import java.util.{Set => JSet, UUID}
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.util.Net
-import com.midokura.packets.{IPv4, TCP, UDP}
-import com.midokura.sdn.flows.PacketMatch
+import com.midokura.packets.{Ethernet, IPv4, TCP, UDP}
+import com.midokura.sdn.flows.{PacketMatch, WildcardMatch}
 import com.midokura.util.functors.Callback0
 
 
@@ -27,14 +27,20 @@ import com.midokura.util.functors.Callback0
  * to the Coordinator when the Future returned by process() completes.
  * Coordinators and ForwardingElements are to read from and write to a
  * PacketContext only during the period in which they own it.
+ *
+ * TODO: This convention could be made explicit by having the contents
+ * of the returned Future contain the PacketContext which the Coordinator
+ * was to use and pass on to the next forwarding element, instead of being
+ * a singleton-per-simulation token.  Investigate whether that'd be better.
  */
 /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
-class PacketContext(val flowCookie: Object) extends ChainPacketContext {
+class PacketContext(val flowCookie: Object, val frame: Ethernet,
+                    val expiry: Long) extends ChainPacketContext {
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
     private var frozen = false
-    def isFrozen() = frozen
+    private var wcmatch: WildcardMatch = null
     private var ingressFE: UUID = null
     private var portGroups: JSet[UUID] = null
     private var connectionTracked = false
@@ -42,6 +48,19 @@ class PacketContext(val flowCookie: Object) extends ChainPacketContext {
     private var connectionCache: Cache = null   //XXX
     private var inPortID: UUID = null
     private var outPortID: UUID = null
+
+    def isFrozen() = frozen
+
+    def getFrame(): Ethernet = frame
+
+    def getExpiry(): Long = expiry
+
+    def setMatch(m: WildcardMatch): PacketContext = {
+        wcmatch = m
+        this
+    }
+
+    def getMatch(): WildcardMatch = wcmatch
 
     def setIngressFE(fe: UUID): PacketContext = {
         ingressFE = fe
