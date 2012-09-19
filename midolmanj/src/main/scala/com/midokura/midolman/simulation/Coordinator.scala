@@ -118,7 +118,7 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     var numDevicesSimulated = 0
     val devicesSimulated = mutable.Map[UUID, Int]()
-    val modifMatch = origMatch.clone()
+    var modifMatch = origMatch.clone()
     val modifEthPkt = Ethernet.deserialize(origEthernetPkt.serialize())
     val pktContext = new PacketContext(cookie)
 
@@ -341,9 +341,9 @@ class Coordinator(val origMatch: WildcardMatch,
                     val result = Chain.apply(chain, pktContext, modifMatch,
                                              port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
-                        //XXX(jlm,pino): Replace the pktContext's match with
+                        //XXX(jlm,pino): Replace the modifMatch with
                         // result.pmatch.asInstanceOf[WildcardMatch]
-                        //XXX modifMatch = result.pmatch
+                        modifMatch = result.pmatch.asInstanceOf[WildcardMatch]
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
                                result.action == RuleAction.REJECT) {

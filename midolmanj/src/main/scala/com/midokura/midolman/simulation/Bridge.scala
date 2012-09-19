@@ -48,7 +48,7 @@ class Bridge(val id: UUID, val greKey: Long,
 
     def normalProcess(ingressMatch: WildcardMatch, packet: Ethernet,
                       packetContext: PacketContext, expiry: Long)
-                      (implicit ec: ExecutionContext)
+                     (implicit ec: ExecutionContext)
     : Future[Coordinator.Action] = {
         val srcDlAddress = ingressMatch.getEthernetSource
         val dstDlAddress = ingressMatch.getEthernetDestination

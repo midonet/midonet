@@ -58,7 +58,7 @@ class ChainManager(val id: UUID) extends Actor {
                 idToRefCount.remove(ruleId)
                 idToChain.remove(ruleId) match {
                     case None => waitingForChains -= 1
-                    case Some(chain) =>; // do nothing
+                    case Some(chain) =>  // do nothing
                 }
             }
         }

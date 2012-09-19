@@ -17,7 +17,6 @@ import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
-import com.midokura.sdn.flows.PacketMatch;
 
 
 public class ForwardNatRule extends NatRule {

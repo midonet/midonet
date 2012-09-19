@@ -21,9 +21,10 @@ object VirtualTopologyActor extends Referenceable {
     val Name: String = "VirtualTopologyActor"
 
     /*
-    * VirtualTopologyActor's clients use these messages to request the most recent
-    * state of a device and, optionally, notifications when the state changes.
-    */
+     * VirtualTopologyActor's clients use these messages to request the most
+     * recent state of a device and, optionally, notifications when the state 
+     * changes.
+     */
     sealed trait DeviceRequest
 
     case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
@@ -34,9 +35,9 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-    // The VPN Actor sends this message to the Virtual Topology Actor to register
-    // interest in managing VPNs. The VTA subsequently will try to 'lock' VPNs
-    // on behalf of the local host ID and send notifications of any acquired
+    // The VPN Actor sends this message to the Virtual Topology Actor to
+    // register VPNs. The VTA subsequently will try to 'lock' VPNs on
+    // behalf of the local host ID and send notifications of any acquired
     // VPN locks to the local VPNManager.
     case class RegisterVPNHandler()
 
@@ -57,7 +58,6 @@ object VirtualTopologyActor extends Referenceable {
     case class PortUnsubscribe(id: UUID) extends Unsubscribe
 
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
-
 }
 
 class VirtualTopologyActor() extends Actor with ActorLogging {
@@ -121,12 +121,13 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             log.info("Send subscriber the device update.")
             client ! device
         }
-        for (client <- idToUnansweredClients(id))
+        for (client <- idToUnansweredClients(id)) {
         // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
                 log.info("Send unanswered client the device update.")
                 client ! device
             }
+        }
         idToUnansweredClients(id).clear()
     }
 
@@ -150,8 +151,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
             log.info("Chain requested for {} with update={}", id, update)
-            manageDevice(id, (x: UUID) =>
-                new ChainManager(x))
+            manageDevice(id, (x: UUID) => new ChainManager(x))
             deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
             log.info("Port requested for {} with update={}", id, update)
@@ -159,8 +159,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
             log.info("Router requested for {} with update={}", id, update)
-            manageDevice(id, (x: UUID) =>
-                new RouterManager(x, clusterClient))
+            manageDevice(id, (x: UUID) => new RouterManager(x, clusterClient))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)

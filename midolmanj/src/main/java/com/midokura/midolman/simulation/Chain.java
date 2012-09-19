@@ -74,15 +74,14 @@ public class Chain {
     public static RuleResult apply(
             Chain origChain, ChainPacketContext fwdInfo,
             PacketMatch pktMatch, UUID ownerId, boolean isPortFilter) {
-        RuleResult res = new RuleResult(
-                RuleResult.Action.ACCEPT, null, pktMatch, false);
         if (null == origChain) {
-             return res;
+             return new RuleResult(
+                RuleResult.Action.ACCEPT, null, pktMatch, false);
         }
         Chain currentChain = origChain;
         fwdInfo.addTraversedElementID(origChain.id);
         log.debug("Processing chain with name {} and ID {}",
-                currentChain.name, currentChain.id);
+                  currentChain.name, currentChain.id);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(currentChain.id,
                                           currentChain.rules, 0));
@@ -91,7 +90,7 @@ public class Chain {
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(currentChain.id);
 
-        res = new RuleResult(RuleResult.Action.CONTINUE, null,
+        RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch.clone(), false);
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();
@@ -122,7 +121,7 @@ public class Chain {
                     if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
                         log.warn("applyChain {} cannot jump from chain " +
-                                 " {} to chain {} -- already visited",
+                                 "{} to chain {} -- already visited",
                                 new Object[] { origChain, currentChain,
                                                nextChain });
                         continue;
