@@ -39,7 +39,7 @@ public interface MidolmanConfig
     @ConfigBool(key = "enable_monitoring", defaultValue = true)
     public boolean getMidolmanEnableMonitoring();
 
-    @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10)
+    @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
 
     @ConfigGroup("vrn")
