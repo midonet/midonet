@@ -3,38 +3,40 @@
 */
 package com.midokura.midolman
 
+import collection.mutable
 import compat.Platform
-import scala.collection.mutable
 import java.util.UUID
-import akka.util.duration._
+
 import akka.dispatch.Await
 import akka.testkit.TestProbe
+import akka.util.Timeout
+import akka.util.duration._
+import guice.actors.OutgoingMessage
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
-import org.slf4j.LoggerFactory
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Ignore
-import guice.actors.OutgoingMessage
+import org.slf4j.LoggerFactory
 
-
-import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
-import com.midokura.packets._
-import com.midokura.midolman.FlowController._
-import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
-import simulation.{Router => SimRouter}
-import layer3.Route.{NextHop, NO_GATEWAY}
-import topology.VirtualToPhysicalMapper.{HostRequest, LocalPortActive}
-import topology.VirtualTopologyActor.{PortRequest, RouterRequest}
-import com.midokura.midonet.cluster.client.ExteriorRouterPort
-import akka.util.Timeout
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController._
+import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
+import com.midokura.midolman.simulation.{Router => SimRouter}
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.{LocalPortActive,
+                                                               HostRequest}
+import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
+                                                            RouterRequest}
+import com.midokura.midonet.cluster.client.ExteriorRouterPort
+import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
+import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
+import com.midokura.packets._
+
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
         VirtualConfigurationBuilders {
-    private final val log = LoggerFactory.getLogger(classOf[RouterSimulationTestCase])
+    private final val log =
+         LoggerFactory.getLogger(classOf[RouterSimulationTestCase])
 
     private var flowEventsProbe: TestProbe = null
 
@@ -74,8 +76,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
         requestOfType[LocalPortActive](vtpProbe())
 
-        upLinkRoute = newRoute(router, "0.0.0.0", 0, "45.0.0.0", 8, NextHop.PORT,
-            uplinkPort.getId, uplinkGatewayAddr, 1)
+        upLinkRoute = newRoute(router, "0.0.0.0", 0, "45.0.0.0", 8,
+            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
 
         router should not be null
         uplinkPort should not be null
@@ -86,7 +88,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             val nwAddr = 0x0a000000 + (i << 8)
             // All ports in this subnet share the same ip address: 10.0.<i>.1
             val portAddr = nwAddr + 1
-            for (j <- 1 to  3) {
+            for (j <- 1 to 3) {
                 val macAddr = MAC.fromString("0a:0b:0c:0d:0" + i + ":0" + j)
                 val portNum = i * 10 + j
                 val portName = "port" + portNum
@@ -244,27 +246,31 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestFulfilledLocally() {
+        // TODO: This test sometimes fails with the MAC not being found.
+        //       A race condition?
+        val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         feedArpCache("uplinkPort",
-            IPv4.toIPv4Address(uplinkGatewayAddr),
-            MAC.fromString("aa:bb:aa:cc:dd:cc"),
+            IPv4.toIPv4Address(uplinkGatewayAddr), mac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
 
         requestOfType[PortRequest](vtaProbe())
         requestOfType[OutgoingMessage](vtaProbe()) // ExteriorRouterPort
         requestOfType[PortRequest](vtaProbe())
-        val port = requestOfType[OutgoingMessage](vtaProbe()).m.asInstanceOf[ExteriorRouterPort]
+        val port = requestOfType[OutgoingMessage](vtaProbe()).m
+                        .asInstanceOf[ExteriorRouterPort]
 
         requestOfType[RouterRequest](vtaProbe())
         val router = replyOfType[SimRouter](vtaProbe())
         requestOfType[PacketIn](simProbe())
 
         val expiry = Platform.currentTime + 1000
-        val arpPromise = router.arpTable.get(IntIPv4.fromString(uplinkGatewayAddr),
-            port, expiry)(actors().dispatcher, actors())
+        val arpPromise = router.arpTable.get(
+            IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
+            actors().dispatcher, actors())
         val t = Timeout(3 seconds)
-        val mac = Await.result(arpPromise, t.duration)
-        mac should equal(MAC.fromString("aa:bb:aa:cc:dd:cc"))
+        val arpResult = Await.result(arpPromise, t.duration)
+        arpResult should be === mac
     }
 
     /*
