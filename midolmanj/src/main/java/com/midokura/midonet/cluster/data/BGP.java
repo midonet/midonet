@@ -10,6 +10,16 @@ import java.util.UUID;
 
 import com.midokura.packets.IntIPv4;
 
+
+/* TODO(abel): This BGP class should be split into two classes:
+ * - one that deals with the actual BGP connection:
+ *   - local AS
+ *   - BGP router Id
+ * - one that deals with the BGP peers for one BGP connection:
+ *   - peer IP address
+ *   - peer AS number
+ *   - (maybe) port Id
+ */
 public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
 
     public enum Property {

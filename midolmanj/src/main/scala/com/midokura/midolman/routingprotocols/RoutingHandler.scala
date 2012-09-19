@@ -86,6 +86,14 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     private case class AdvertiseRoute(route: AdRoute)
     private case class StopAdvertisingRoute(route: AdRoute)
 
+    private case class AddPeerRoute(ribType: RIBType.Value,
+                                    destination: IntIPv4, gateway: IntIPv4)
+    private case class RemovePeerRoute(ribType: RIBType.Value,
+                                       destination: IntIPv4, gateway: IntIPv4)
+
+    // BgpdProcess will notify via these messages
+    case class BGPD_READY()
+    case class BGPD_DEAD()
 
     override def preStart() {
         super.preStart()
@@ -123,10 +131,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         stopBGP()
     }
 
-    private case class AddPeerRoute(ribType: RIBType.Value,
-                                   destination: IntIPv4, gateway: IntIPv4)
-    private case class RemovePeerRoute(ribType: RIBType.Value,
-                                       destination: IntIPv4, gateway: IntIPv4)
     private val handler = new ZebraProtocolHandler {
         def addRoute(ribType: RIBType.Value, destination: IntIPv4,
                      gateway: IntIPv4) {
@@ -161,10 +165,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     import Phase._
     var phase = NotStarted
 
-    // BgpProcess will notify via these messages
-    case class BGPD_READY()
-    case class BGPD_DEAD()
-
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
         message match {
@@ -189,22 +189,75 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                 phase match {
                     case NotStarted =>
                         // This must be the first bgp we learn about.
+                        if (bgps.size != 0) {
+                            log.error("This should be the first bgp connection" +
+                            " but there was already other connections configured")
+                            return
+                        }
                         bgps.put(bgp.getId, bgp)
                         startBGP()
                         phase = Starting
                     case Starting =>
                         stash()
                     case Started =>
-                    // TODO(pino): use vtyBgp to configure the bgp session.
-                    // TODO(pino): distinguish between new and modified bgp.
+                        // The first bgp will enforce the AS
+                        // for the other bgps. For a given routingHandler, we
+                        // only have one bgpd process and all the BGP configs
+                        // that specify different peers must have that field
+                        // in common.
+                        if (bgps.size == 0) {
+                            log.error("This shouldn't be the first bgp connection" +
+                            " but other connections were already configured")
+                        }
+
+                        val bgpPair = bgps.toList.head
+                        val originalBgp = bgpPair._2
+
+                        if (bgp.getLocalAS != originalBgp.getLocalAS) {
+                            log.error("new BGP connections must have same AS")
+                            return
+                        }
+
+                        bgps.put(bgp.getId, bgp)
+                        bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
+
+                    case Stopping =>
+                }
+
+            case ModifyBgpSession(bgp) =>
+                //TODO(abel) case not implemented (yet)
+                phase match {
+                    case _ => log.debug("message not implemented: ModifyBgpSession")
+                }
+
+            case RemoveBgpSession(bgpID) =>
+                phase match {
+                    case NotStarted =>
+                        // This probably shouldn't happen. A BGP config is being
+                        // removed, implying we knew about it - we shouldn't be
+                        // NotStarted...
+                        log.error("KillBgp not expected in phase NotStarted")
+                    case Starting =>
+                        stash()
+                    case Started =>
+                        // TODO(pino): Use bgpVty to remove this BGP and its routes
+                        val Some(bgp) = bgps.remove(bgpID)
+                        bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
+                        // Remove all the flows for this BGP link
+                        FlowController.getRef().tell(
+                            FlowController.InvalidateFlowsByTag(bgpID))
+
+                        // If this is the last BGP for ths port, tear everything down.
+                        if (bgps.size == 0) {
+                            phase = Stopping
+                            stopBGP()
+                        }
                     case Stopping =>
                         stash()
                 }
 
-            case ModifyBgpSession(bgp) => // TODO(pino): implement me!
-
             case PortInternalOpReply(iport, PortOperation.Create,
-            false, null, null) =>
+                                     false, null, null) =>
                 phase match {
                     case Starting =>
                         internalPortReady(iport)
@@ -230,31 +283,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     case _ =>
                         log.error("BGP_READY expected only while " +
                             "Starting - we're now in {}", phase)
-                }
-
-            case RemoveBgpSession(bgpID) =>
-                phase match {
-                    case NotStarted =>
-                        // This probably shouldn't happen. A BGP config is being
-                        // removed, implying we knew about it - we shouldn't be
-                        // NotStarted...
-                        log.error("KillBgp not expected in phase NotStarted")
-                    case Starting =>
-                        stash()
-                    case Started =>
-                        // TODO(pino): Use bgpVty to remove this BGP and its routes
-                        val bgp = bgps.remove(bgpID)
-                        // Remove all the flows for this BGP link
-                        FlowController.getRef().tell(
-                            FlowController.InvalidateFlowsByTag(bgpID))
-
-                        // If this is the last BGP for ths port, tear everything down.
-                        if (bgps.size == 0) {
-                            phase = Stopping
-                            stopBGP()
-                        }
-                    case Stopping =>
-                        stash()
                 }
 
             case BGPD_DEAD =>
@@ -312,6 +340,22 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     case Starting =>
                         stash()
                     case Started =>
+                        if (peerRoutes.size > 100) {
+                            /*
+                             * TODO(abel) in order not to overwhelm the cluster,
+                             * we will limit the max amount of routes we store
+                             * at least for this version of the code.
+                             * Note that peer routes, if not limited by bgpd
+                             * or by the peer, can grow to hundreds of thousands
+                             * of entries.
+                             * I won't use a constant for this number because
+                             * this problem should be tackled in a more elegant
+                             * way and it's not used elsewhere.
+                             */
+                            log.error("Max amount of peer routes reached (100)")
+                            return
+                        }
+
                         val route = new Route()
                         route.setDstNetworkAddr(destination.toUnicastString)
                         route.setDstNetworkLength(destination.prefixLen())
@@ -360,7 +404,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         val address = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
-            //server,  // not needed anymore
             address, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
         zebra.start()
 
@@ -385,11 +428,18 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     private def internalPortReady(newPort: InternalPort) {
         internalPort = newPort
-        // The internal port is ready. Set up ƒthe flows
-        for (bgp <- bgps.values) {
-            setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
-            bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
+        // The internal port is ready. Set up the flows
+        if (bgps.size <= 0) {
+            log.warning("No BGPs configured for this port: {}", newPort)
+            return
         }
+
+        // Of all the possible BGPs configured for this port, we only consider
+        // the very first one to create the BGPd process
+        val bgpPair = bgps.toList.head
+        val bgp = bgpPair._2
+        setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
+        bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
     }
 
     def create(localAddr: IntIPv4, bgp: BGP) {
@@ -398,6 +448,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
 
         for (adRoute <- adRoutes) {
+            // If an adRoute is already configured in bgp, it will be
+            // silently ignored
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             adRoutes.add(adRoute)
