@@ -3,22 +3,21 @@
 */
 package com.midokura.midolman
 
-import collection.mutable
-import compat.Platform
+import scala.collection.mutable
+import scala.compat.Platform
 import java.util.UUID
 
 import akka.dispatch.Await
 import akka.testkit.TestProbe
-import akka.util.Timeout
 import akka.util.duration._
+import akka.util.Timeout
+
 import guice.actors.OutgoingMessage
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import com.midokura.midolman.simulation.{Router => SimRouter}
@@ -30,7 +29,11 @@ import com.midokura.midonet.cluster.client.ExteriorRouterPort
 import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.packets._
-
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.FlowController.WildcardFlowAdded
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.sdn.dp.flows.{FlowKeyEthernet, FlowActionSetKey,
+                                  FlowActionOutput}
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
@@ -76,8 +79,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
         requestOfType[LocalPortActive](vtpProbe())
 
-        upLinkRoute = newRoute(router, "0.0.0.0", 0, "45.0.0.0", 8,
-            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
+        upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
+            uplinkPort.getId, uplinkGatewayAddr, 1)
 
         router should not be null
         uplinkPort should not be null
@@ -187,6 +190,10 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         pktInMsg
     }
 
+    private def expectFlowActionSetKey[T](action: AnyRef)(implicit m: Manifest[T]) : T = {
+        as[T](as[FlowActionSetKey](action).getFlowKey)
+    }
+
     def testDropsIPv6() {
         val onPort = 12
         val IPv6_ETHERTYPE: Short = 0x86dd.toShort
@@ -211,10 +218,11 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         addFlowMsg.flow.getActions.size() should equal(0)
     }
 
-    @Ignore def testForwardToUplink() {
+    def testForwardToUplink() {
         // Make a packet that comes in on port 23 (dlDst set to port 23's mac,
         // nwSrc inside 10.0.2.12/30) and has a nwDst that matches the uplink
         // port (e.g. anything outside 10.  0.0.0/16).
+        val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val onPort = 23
         val eth = Packets.udp(
             MAC.fromString("01:02:03:04:05:06"),
@@ -226,7 +234,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectPacketOnPort(onPort)
         feedArpCache("uplinkPort",
             IntIPv4.fromString(uplinkGatewayAddr).addressAsInt,
-            MAC.fromString("aa:bb:aa:cc:dd:cc"),
+            gwMac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
 
@@ -241,8 +249,13 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.getMatch.getNetworkProtocol should equal(UDP.PROTOCOL_NUMBER)
         flow.getMatch.getTransportSource should equal(10)
         flow.getMatch.getTransportDestination should equal(11)
-        // two actions: set hw.dst and emit through port
-        flow.getActions.size() should not equal(0)
+        flow.getActions.size() should equal(2)
+        val ethKey =
+            expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
+        ethKey.getDst should be === gwMac.getAddress
+        ethKey.getSrc should be === uplinkMacAddr.getAddress
+        flow.getActions.get(1).getClass should equal(classOf[FlowActionOutput])
+
     }
 
     def testArpRequestFulfilledLocally() {
