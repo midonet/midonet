@@ -53,7 +53,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     private def recvMessage(): Seq[String] = {
-        var lines = new ListBuffer[String]()
+        val lines = new ListBuffer[String]()
         var line: String = null
         while ( {
             line = in.readLine; line != null
@@ -61,7 +61,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
             lines.append(line)
             //println(line)
         }
-        return lines.toSeq
+        lines.toSeq
     }
 
     private def dropMessage() {
@@ -71,33 +71,33 @@ abstract class VtyConnection(val addr: String, val port: Int,
 
     private def openConnection() {
         socket = new Socket(addr, port)
-        out = new PrintWriter(socket.getOutputStream(), true)
+        out = new PrintWriter(socket.getOutputStream, true)
         in = new BufferedReader(new InputStreamReader(socket.getInputStream),
             BufSize)
 
         // Quagga returns, blank line, hello message, two blank lines,
         // user access verification message and blank line upon connection.
         for (i <- 0 until SkipHello if in.ready) {
-            dropMessage
+            dropMessage()
         }
         sendMessage(password)
         // Drop password echo back.
-        dropMessage
-        enable
+        dropMessage()
+        enable()
         connected = true
     }
 
     private def closeConnection() {
         connected = false
-        out.close
-        in.close
+        out.close()
+        in.close()
     }
 
     protected def doTransacation(messages: Seq[String],
                                  isConfigure: Boolean): Seq[String] = {
-        openConnection
+        openConnection()
         if (isConfigure) {
-            configureTerminal
+            configureTerminal()
         }
 
         for (message <- messages) {
@@ -106,33 +106,33 @@ abstract class VtyConnection(val addr: String, val port: Int,
         }
 
         if (isConfigure) {
-            end
+            end()
         }
         // Send exit here to get EOF on read.
-        exit
+        exit()
 
-        val response = recvMessage
-        closeConnection
-        return response
+        val response = recvMessage()
+        closeConnection()
+        response
     }
 
-    protected def isConnected(): Boolean = {
-        return connected
+    protected def isConnected: Boolean = {
+        connected
     }
 
     protected def enable() {
         sendMessage(Enable)
-        dropMessage
+        dropMessage()
     }
 
     protected def disable() {
         sendMessage(Disable)
-        dropMessage
+        dropMessage()
     }
 
     protected def configureTerminal() {
         sendMessage(ConfigureTerminal)
-        dropMessage
+        dropMessage()
     }
 
     protected def exit() {
@@ -155,6 +155,7 @@ object BgpVtyConnection {
     private final val DeleteAs = "no router bgp %s"
     private final val SetLocalNw = "bgp router-id %s"
     private final val SetPeer = "neighbor %s remote-as %d"
+    private final val DeletePeer = "no neighbor %s"
     private final val GetNetwork = "show ip bgp"
     // The first regex ^[sdh\*>irSR]* expects the following status codes:
     // s suppressed, d damped, h history, * valid, > best, i internal,
@@ -171,7 +172,7 @@ object BgpVtyConnection {
  * Interfaces for BgpConfig.
  */
 trait BgpConnection {
-    def getAs(): Int
+    def getAs: Int
 
     def setAs(as: Int)
 
@@ -181,7 +182,9 @@ trait BgpConnection {
 
     def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int)
 
-    def getNetwork(): Seq[String]
+    def deletePeer(as: Int, peerAddr: IntIPv4)
+
+    def getNetwork: Seq[String]
 
     def setNetwork(as: Int, nwPrefix: String, prefixLength: Int)
 
@@ -193,14 +196,14 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     import BgpVtyConnection._
 
-    override def getAs(): Int = {
+    override def getAs: Int = {
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
 
         request += GetAs
 
         try {
-            response = doTransacation(request.toSeq, false)
+            response = doTransacation(request.toSeq, isConfigure = false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -218,7 +221,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
             }
         }
 
-        return 0
+        0
     }
 
     override def setAs(as: Int) {
@@ -226,7 +229,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetAs.format(as)
 
         try {
-            doTransacation(request.toSeq, true)
+            doTransacation(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -235,12 +238,15 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         }
     }
 
+    /*
+     * this will delete the entire AS config, including peers and networks
+     */
     override def deleteAs(as: Int) {
         val request = new ListBuffer[String]()
         request += DeleteAs.format(as)
 
         try {
-            doTransacation(request.toSeq, true)
+            doTransacation(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -251,11 +257,11 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def setLocalNw(as: Int, localAddr: IntIPv4) {
         val request = ListBuffer[String]()
-        //request += SetAs.format(as)
+        request += SetAs.format(as) // this is actually needed
         request += SetLocalNw.format(localAddr.toUnicastString)
 
         try {
-            doTransacation(request.toSeq, true)
+            doTransacation(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -266,11 +272,11 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int) {
         val request = ListBuffer[String]()
-        //request += SetAs.format(as)
+        request += SetAs.format(as) // this is actually needed
         request += SetPeer.format(peerAddr.toUnicastString, peerAs)
 
         try {
-            doTransacation(request.toSeq, true)
+            doTransacation(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -279,14 +285,29 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         }
     }
 
-    def getPeerNetwork(): Seq[(String, String, String, String)] = {
+    override def deletePeer(as: Int, peerAddr: IntIPv4) {
+        val request = ListBuffer[String]()
+        request += SetAs.format(as) // this is actually needed
+        request += DeletePeer.format(peerAddr.toUnicastString)
+
+        try {
+            doTransacation(request.toSeq, isConfigure = true)
+        } catch {
+            // TODO(yoshi): finer exception handling.
+            case e: Exception => {
+                log.error("failed deleting peer", e)
+            }
+        }
+    }
+
+    def getPeerNetwork: Seq[(String, String, String, String)] = {
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
 
         request += GetNetwork
 
         try {
-            response = doTransacation(request.toSeq, false)
+            response = doTransacation(request.toSeq, isConfigure = false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -317,10 +338,10 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
                     rmatch.group(4))) // path
             }
         }
-        return peerNetworks.toSeq
+        peerNetworks.toSeq
     }
 
-    override def getNetwork(): Seq[String] = {
+    override def getNetwork: Seq[String] = {
         var networks = new ListBuffer[String]()
         for (peerNetwork <- getPeerNetwork) {
             // If the next hop is 0.0.0.0, it should be the network we're
@@ -333,17 +354,17 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
                 log.debug("getNetwork: {}", peerNetwork._1)
             }
         }
-        return networks.toSeq
+        networks.toSeq
     }
 
     override def setNetwork(as: Int, nwPrefix: String,
                             prefixLength: Int) {
         val request = new ListBuffer[String]()
-        //request += SetAs.format(as)
+        request += SetAs.format(as) // this is actually needed
         request += SetNetwork.format(nwPrefix, prefixLength)
 
         try {
-            doTransacation(request.toSeq, true)
+            doTransacation(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -353,20 +374,19 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def deleteNetwork(as: Int, nwPrefix: String,
-                               prefixLength: Int) = {
-        if (getAs != 0) {
-            val request = new ListBuffer[String]()
-            //request += SetAs.format(as)
-            request += DeleteNetwork.format(nwPrefix, prefixLength)
+                               prefixLength: Int) {
+        val request = new ListBuffer[String]()
+        request += SetAs.format(as) // this is actually needed
+        request += DeleteNetwork.format(nwPrefix, prefixLength)
 
-            try {
-                doTransacation(request.toSeq, true)
-            } catch {
-                // TODO(yoshi): finer exception handling.
-                case e: Exception => {
-                    log.error("failed deleting advertising routes", e)
-                }
+        try {
+            doTransacation(request.toSeq, isConfigure = true)
+        } catch {
+            // TODO(yoshi): finer exception handling.
+            case e: Exception => {
+                log.error("failed deleting advertising routes", e)
             }
         }
     }
+
 }
