@@ -18,25 +18,23 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import com.midokura.midolman.simulation.{Router => SimRouter, ArpTableImpl}
-import com.midokura.midolman.topology.VirtualToPhysicalMapper.{LocalPortActive,
-                                                               HostRequest}
+import com.midokura.midolman.simulation.{ArpTableImpl, Router => SimRouter}
+import com.midokura.midolman.state.ArpCacheEntry
+import com.midokura.midolman.state.ReplicatedMap.Watcher
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.{HostRequest,
+                                                               LocalPortActive}
 import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
                                                             RouterRequest}
-import com.midokura.midonet.cluster.client.{RouterPort, ExteriorRouterPort}
+import com.midokura.midonet.cluster.client.{ExteriorRouterPort, RouterPort}
 import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.packets._
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.sdn.dp.flows.{FlowKeyIPv4, FlowKeyEthernet,
-                                  FlowActionSetKey, FlowActionOutput}
-import com.midokura.midolman.state.ArpCacheEntry
-import com.midokura.midolman.state.ReplicatedMap.Watcher
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
+                                  FlowKeyEthernet, FlowKeyIPv4}
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with

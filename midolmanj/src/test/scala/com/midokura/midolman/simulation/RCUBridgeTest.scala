@@ -66,7 +66,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000)
+                                        Platform.currentTime + 10000, null)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -87,7 +87,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000)
+                                        Platform.currentTime + 10000, null)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -108,7 +108,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000)
+                                        Platform.currentTime + 10000, null)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -131,7 +131,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000)
+                                        Platform.currentTime + 10000, null)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -151,7 +151,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000)
+                                        Platform.currentTime + 10000, null)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 

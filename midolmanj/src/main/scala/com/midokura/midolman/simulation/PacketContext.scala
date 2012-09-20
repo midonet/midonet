@@ -35,7 +35,8 @@ import com.midokura.util.functors.Callback0
  */
 /* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Object, val frame: Ethernet,
-                    val expiry: Long) extends ChainPacketContext {
+                    val expiry: Long, val connectionCache: Cache)
+         extends ChainPacketContext {
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
@@ -45,7 +46,6 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     private var portGroups: JSet[UUID] = null
     private var connectionTracked = false
     private var forwardFlow = false
-    private var connectionCache: Cache = null   //XXX
     private var inPortID: UUID = null
     private var outPortID: UUID = null
 

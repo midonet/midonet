@@ -13,6 +13,7 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.pattern.ask
 import akka.util.duration._
 
+import com.midokura.cache.Cache
 import com.midokura.midolman.{DatapathController, FlowController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
     SendPacket}
@@ -86,6 +87,9 @@ object Coordinator {
  *                                  by a virtual device. It's the ID of
  *                                  the port via which the packet
  *                                  egresses the device.
+ * @param expiry The time (as returned by currentTime) at which to expire
+ *               this simulation.
+ * @param connectionCache The Cache to use for connection tracking.
  * @param ec
  * @param actorSystem
  */
@@ -93,7 +97,8 @@ class Coordinator(val origMatch: WildcardMatch,
                   val origEthernetPkt: Ethernet,
                   val cookie: Option[Int],
                   val generatedPacketEgressPort: Option[UUID],
-                  val expiry: Long)
+                  val expiry: Long,
+                  val connectionCache: Cache)
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     import Coordinator._
@@ -108,7 +113,8 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     var numDevicesSimulated = 0
     val devicesSimulated = mutable.Map[UUID, Int]()
-    val pktContext = new PacketContext(cookie, origEthernetPkt, expiry)
+    val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
+                                       connectionCache)
     pktContext.setMatch(origMatch.clone)
 
     private def dropFlow(temporary: Boolean) {

@@ -7,6 +7,7 @@ import akka.actor.{Actor, ActorLogging}
 import akka.util.duration._
 import java.util.UUID
 
+import com.midokura.cache.Cache
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.simulation.Coordinator
 import com.midokura.packets.Ethernet
@@ -24,16 +25,18 @@ class SimulationController() extends Actor with ActorLogging {
     import context._
 
     val timeout = (5 minutes).toMillis
+    val connectionCache: Cache = null  //XXX
 
     def receive = {
         case PacketIn(wMatch, pktBytes, _, _, cookie) =>
             new Coordinator(
                 wMatch, Ethernet.deserialize(pktBytes), cookie, None,
-                Platform.currentTime + timeout).simulate
+                Platform.currentTime + timeout, connectionCache).simulate
 
         case EmitGeneratedPacket(egressPort, ethPkt) =>
             new Coordinator(
                 WildcardMatches.fromEthernetPacket(ethPkt), ethPkt, None,
-                Some(egressPort), Platform.currentTime + timeout).simulate
+                Some(egressPort), Platform.currentTime + timeout,
+                connectionCache).simulate
     }
 }
