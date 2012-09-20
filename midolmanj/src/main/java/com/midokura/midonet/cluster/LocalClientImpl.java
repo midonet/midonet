@@ -55,7 +55,7 @@ public class LocalClientImpl implements Client {
     HostZkManager hostManager;
 
     @Inject
-    BgpZkManager bgpZkManager;
+    ClusterBgpManager bgpManager;
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
@@ -175,7 +175,12 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPortBGPList(UUID portID, BGPListBuilder builder) {
-        // XXX TODO(pino): implement me!
+        try {
+            bgpManager.registerNewBuilder(portID, builder);
+            reactorLoop.submit(bgpManager.getConfig(portID));
+        } catch (ClusterClientException e) {
+            //TODO(ross) what should be send back in case of error?
+        }
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,

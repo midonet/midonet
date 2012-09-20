@@ -218,6 +218,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                             return
                         }
 
+                        if (bgps.contains(bgp.getId)) bgps.remove(bgp.getId)
                         bgps.put(bgp.getId, bgp)
                         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
 
