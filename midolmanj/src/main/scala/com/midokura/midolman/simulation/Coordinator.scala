@@ -434,7 +434,8 @@ class Coordinator(val origMatch: WildcardMatch,
         }
         if (!orig.getNetworkSourceIPv4.equals(modif.getNetworkSourceIPv4) ||
             !orig.getNetworkDestinationIPv4.equals(
-                modif.getNetworkDestinationIPv4)) {
+                modif.getNetworkDestinationIPv4) ||
+            !orig.getNetworkTTL.equals(modif.getNetworkTTL)) {
             actions.append(FlowActions.setKey(
                 FlowKeys.ipv4(
                     modif.getNetworkDestination,
