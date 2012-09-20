@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,7 +27,6 @@ public class FlowManagerTest {
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
     long timeOut = 300;
-    long operationExecutionTime = 10;
 
     @Before
     public void setUp() {
@@ -37,7 +35,7 @@ public class FlowManagerTest {
                                                   dpFlowRemoveBatchSize);
     }
 
-    @Ignore
+    
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
@@ -81,7 +79,7 @@ public class FlowManagerTest {
                    nullValue());
 
     }
-    @Ignore
+    
     @Test
     public void testIdleExpiration() throws InterruptedException {
 
@@ -126,7 +124,7 @@ public class FlowManagerTest {
 
     }
 
-    @Ignore
+    
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
 
@@ -155,7 +153,6 @@ public class FlowManagerTest {
         assertThat("Flow didn't match", flow2, notNullValue());
         // create the flow
         flowManagerHelper.addFlow(flow2);
-
 
         numberOfFlowsAdded++;
 
@@ -188,8 +185,6 @@ public class FlowManagerTest {
         Thread.sleep(sleepTime);
 
         flowManager.checkFlowsExpiration();
-        // the previous operation takes some ms to complete
-        Thread.sleep(operationExecutionTime);
 
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
@@ -213,7 +208,7 @@ public class FlowManagerTest {
                    equalTo(0));
 
     }
-    @Ignore
+    
     @Test
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
         throws InterruptedException {
@@ -226,6 +221,8 @@ public class FlowManagerTest {
             .setIdleExpirationMillis(timeOut)
             .setActions(new ArrayList<FlowAction<?>>());
 
+        long time1 = System.currentTimeMillis();
+
         flowManager.add(wildcardFlow);
         flowManager.add(flowMatch, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
@@ -236,11 +233,16 @@ public class FlowManagerTest {
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
 
         flowManager.checkFlowsExpiration();
-        // the previous operation takes some ms to complete
-        Thread.sleep(operationExecutionTime);
 
         assertThat("Wildcard flow LastUsedTime was not update", wildcardFlow.getLastUsedTimeMillis(),
                    equalTo(flowManagerHelper.flowsMap.get(flowMatch).getLastUsedTime()));
+
+        long time2 = System.currentTimeMillis();
+
+        long sleepTime = timeOut - (time2-time1) + 1;
+        if(sleepTime < 0){
+            throw new RuntimeException("This machine is too slow, increase timeout!");
+        }
 
         flowManager.checkFlowsExpiration();
 
@@ -262,7 +264,7 @@ public class FlowManagerTest {
                    flowManager.getWildcardTables().size(),
                    equalTo(0));
     }
-    @Ignore
+    
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
