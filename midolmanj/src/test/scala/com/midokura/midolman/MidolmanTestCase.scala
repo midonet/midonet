@@ -235,9 +235,17 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         o.asInstanceOf[T]
     }
 
-    protected def clearMessages(testKit: TestKit) {
+    protected def drainProbe(testKit: TestKit) {
         while (testKit.msgAvailable)
             testKit.receiveOne(testKit.remaining)
+    }
+
+    protected def drainProbes() {
+        drainProbe(vtaProbe())
+        drainProbe(simProbe())
+        drainProbe(flowProbe())
+        drainProbe(vtpProbe())
+        drainProbe(dpProbe())
     }
 }
 

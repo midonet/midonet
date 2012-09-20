@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import com.midokura.midolman.simulation.{Router => SimRouter}
+import com.midokura.midolman.simulation.{Router => SimRouter, ArpTableImpl}
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.{LocalPortActive,
                                                                HostRequest}
 import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
                                                             RouterRequest}
-import com.midokura.midonet.cluster.client.ExteriorRouterPort
+import com.midokura.midonet.cluster.client.{RouterPort, ExteriorRouterPort}
 import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.packets._
@@ -34,6 +34,9 @@ import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.sdn.dp.flows.{FlowKeyEthernet, FlowActionSetKey,
                                   FlowActionOutput}
+import com.midokura.midolman.state.ArpCacheEntry
+import com.midokura.midolman.state.ReplicatedMap.Watcher
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
@@ -41,8 +44,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private final val log =
          LoggerFactory.getLogger(classOf[RouterSimulationTestCase])
 
+    val IPv6_ETHERTYPE: Short = 0x86dd.toShort
     private var flowEventsProbe: TestProbe = null
-
     private var router: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
     private val uplinkNwAddr = "180.0.1.0"
@@ -156,6 +159,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flowEventsProbe = newProbe()
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        drainProbes()
     }
 
     private def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
@@ -194,20 +198,31 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         as[T](as[FlowActionSetKey](action).getFlowKey)
     }
 
+    private def fetchRouterAndPort(portName: String) : (SimRouter, RouterPort[_]) = {
+        // Simulate a dummy packet so the system creates the Router RCU object
+        val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
+            setDestinationMACAddress(MAC.fromString("de:de:de:de:de:de")).
+            setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
+            setPad(true)
+        triggerPacketIn(portName, eth)
+
+        requestOfType[PortRequest](vtaProbe())
+        val port = requestOfType[OutgoingMessage](vtaProbe()).m.asInstanceOf[RouterPort[_]]
+        requestOfType[RouterRequest](vtaProbe())
+        val router = replyOfType[SimRouter](vtaProbe())
+        drainProbes()
+        (router, port)
+    }
+
     def testDropsIPv6() {
         val onPort = 12
-        val IPv6_ETHERTYPE: Short = 0x86dd.toShort
-        val eth = new Ethernet()
-        eth.setDestinationMACAddress(portNumToMac(onPort))
-        eth.setSourceMACAddress(MAC.fromString("01:02:03:04:05:06"))
-        eth.setEtherType(IPv6_ETHERTYPE)
-        eth.setPad(true)
+        val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
+            setDestinationMACAddress(portNumToMac(onPort)).
+            setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
+            setPad(true)
         triggerPacketIn(portNumToName(onPort), eth)
-
         expectPacketOnPort(onPort)
-
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
         addFlowMsg should not be null
         addFlowMsg.flow should not be null
@@ -249,40 +264,58 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.getMatch.getNetworkProtocol should equal(UDP.PROTOCOL_NUMBER)
         flow.getMatch.getTransportSource should equal(10)
         flow.getMatch.getTransportDestination should equal(11)
+        // XXX - there should be a FlowKeyIPv4 action to set the ttl here
         flow.getActions.size() should equal(2)
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
         ethKey.getDst should be === gwMac.getAddress
         ethKey.getSrc should be === uplinkMacAddr.getAddress
         flow.getActions.get(1).getClass should equal(classOf[FlowActionOutput])
-
     }
 
     def testArpRequestFulfilledLocally() {
-        // TODO: This test sometimes fails with the MAC not being found.
-        //       A race condition?
+        val tuple = fetchRouterAndPort("uplinkPort")
+        val router: SimRouter = tuple._1
+        val port: RouterPort[_] = tuple._2
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
+        val expiry = Platform.currentTime + 1000
+
+        val arpPromise = router.arpTable.get(
+            IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
+            actors().dispatcher, actors())
+
+        requestOfType[EmitGeneratedPacket](simProbe())
+
         feedArpCache("uplinkPort",
             IPv4.toIPv4Address(uplinkGatewayAddr), mac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
 
-        requestOfType[PortRequest](vtaProbe())
-        requestOfType[OutgoingMessage](vtaProbe()) // ExteriorRouterPort
-        requestOfType[PortRequest](vtaProbe())
-        val port = requestOfType[OutgoingMessage](vtaProbe()).m
-                        .asInstanceOf[ExteriorRouterPort]
-
-        requestOfType[RouterRequest](vtaProbe())
-        val router = replyOfType[SimRouter](vtaProbe())
-        requestOfType[PacketIn](simProbe())
-
-        val expiry = Platform.currentTime + 1000
-        val arpPromise = router.arpTable.get(
-            IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
-            actors().dispatcher, actors())
         val t = Timeout(3 seconds)
         val arpResult = Await.result(arpPromise, t.duration)
+        arpResult should be === mac
+    }
+
+    def testArpRequestFulfilledRemotely() {
+        val tuple = fetchRouterAndPort("uplinkPort")
+        val router: SimRouter = tuple._1
+        val port: RouterPort[_] = tuple._2
+
+        val ip = IntIPv4.fromString(uplinkGatewayAddr)
+        val mac = MAC.fromString("fe:fe:fe:da:da:da")
+
+        val arpTable = router.arpTable.asInstanceOf[ArpTableImpl]
+        val arpCache = arpTable.arpCache.asInstanceOf[Watcher[IntIPv4,
+                                                              ArpCacheEntry]]
+        val macFuture = router.arpTable.get(
+            ip, port,
+            Platform.currentTime + 30*1000)(actors().dispatcher, actors())
+
+        val now = Platform.currentTime
+        arpCache.processChange(ip, null,
+            new ArpCacheEntry(mac, now + 60*1000, now + 30*1000, 0))
+        val t = Timeout(3 seconds)
+        val arpResult = Await.result(macFuture, t.duration)
         arpResult should be === mac
     }
 
@@ -297,12 +330,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     @Ignore def testArpRequestTimeout() {
-    }
-
-    @Ignore def testArpRequestFulfilledLocally() {
-    }
-
-    @Ignore def testArpRequestFulfilledRemotely() {
     }
 
     @Ignore def testArpReceivedRequestProcessing() {
