@@ -411,15 +411,16 @@ class Coordinator(val origMatch: WildcardMatch,
 
     /*
      * Compares two objects, which may be null, to determine if they should cause flow actions.
-     * The catch here is that if `modif` is null, the verdict is false regardless
+     * The catch here is that if `modif` is null, the verdict is true regardless
      * because we don't create actions that set values to null.
      */
-    private def matchObjectsDiffer(orig: Any, modif: Any): Boolean = {
-        if (orig == null && modif != null)
-            return true
-        if (orig != null && !orig.equals(modif))
-            return true
-        false
+    private def matchObjectsSame(orig: Any, modif: Any): Boolean = {
+        if (orig == null)
+            modif == null
+        else if (modif != null)
+            orig.equals(modif)
+        else
+            true
     }
 
     private def actionsFromMatchDiff(orig: WildcardMatch,
@@ -445,10 +446,10 @@ class Coordinator(val origMatch: WildcardMatch,
                 .setTtl(modif.getNetworkTTL)
             ))
         }
-        if (matchObjectsDiffer(orig.getTransportSourceObject,
-                               modif.getTransportSourceObject) ||
-            matchObjectsDiffer(orig.getTransportDestinationObject,
-                               modif.getTransportDestinationObject)) {
+        if (!matchObjectsSame(orig.getTransportSourceObject,
+                              modif.getTransportSourceObject) ||
+            !matchObjectsSame(orig.getTransportDestinationObject,
+                              modif.getTransportDestinationObject)) {
             val actSetKey = FlowActions.setKey(null)
             actions.append(actSetKey)
             modif.getNetworkProtocol match {
