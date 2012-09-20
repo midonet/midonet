@@ -6,11 +6,15 @@ package com.midokura.midolman.guice;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.zookeeper.Watcher;
 
+import com.midokura.cache.Cache;
 import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.CacheFactory;
+import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.services.DatapathConnectionService;
@@ -32,6 +36,7 @@ public class MidolmanModule extends PrivateModule {
         requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
+        requireBinding(SimulationController.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
@@ -41,7 +46,13 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
         expose(MidolmanConfig.class);
 
-        Named watcherAnnotation = Names.named(ZKConnectionProvider.WATCHER_NAME_TAG);
+        bind(Cache.class)
+            .toProvider(CacheProvider.class)
+            .in(Singleton.class);
+        expose(Cache.class);
+
+        Named watcherAnnotation = Names.named(
+                ZKConnectionProvider.WATCHER_NAME_TAG);
 
         bind(Watcher.class)
             .annotatedWith(watcherAnnotation)
@@ -66,5 +77,15 @@ public class MidolmanModule extends PrivateModule {
             return configProvider.getConfig(MidolmanConfig.class);
         }
     }
-}
 
+    public static class CacheProvider implements Provider<Cache> {
+        @Inject
+        ConfigProvider configProvider;
+
+        @Override
+        public Cache get() {
+            return CacheFactory.create(
+                        configProvider.getConfig(MidolmanConfig.class));
+        }
+    }
+}
