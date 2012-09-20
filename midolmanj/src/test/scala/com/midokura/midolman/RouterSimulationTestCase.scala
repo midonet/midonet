@@ -37,6 +37,7 @@ import com.midokura.sdn.dp.flows.{FlowKeyIPv4, FlowKeyEthernet,
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
@@ -217,6 +218,16 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private def makeAddressInSegment(portNum: Int) : IntIPv4 =
         new IntIPv4((portNumToSegmentAddr(portNum) + 2))
 
+    private def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
+        wmatch.getEthernetDestination should be === pkt.getDestinationMACAddress
+        wmatch.getEthernetSource should be === pkt.getSourceMACAddress
+        wmatch.getEtherType should be === pkt.getEtherType
+        val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
+        wmatch.getNetworkDestination should be === ipPkt.getDestinationAddress
+        wmatch.getNetworkSource should be === ipPkt.getSourceAddress
+        wmatch.getNetworkProtocol should be === ipPkt.getProtocol
+    }
+
     def testDropsIPv6() {
         val onPort = 12
         val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
@@ -297,17 +308,47 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         addFlowMsg should not be null
         addFlowMsg.flow should not be null
         val flowMatch = addFlowMsg.flow.getMatch
-        flowMatch.getEthernetDestination should be === uplinkMacAddr
-        flowMatch.getEthernetSource should be === fromMac
-        flowMatch.getEtherType should be === IPv4.ETHERTYPE
-        flowMatch.getNetworkProtocol should be === UDP.PROTOCOL_NUMBER
-        flowMatch.getNetworkDestinationIPv4 should be === toIp
-        flowMatch.getNetworkSourceIPv4 should be === fromIp
+        expectMatchForIPv4Packet(eth, flowMatch)
         flowMatch.getTransportSource should be === fromUdp
         flowMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
         addFlowMsg.flow.getActions.size() should equal(0)
+
+        // XXX check that no packet is emitted
     }
+
+    def testRejectRoute() {
+        // Make a packet that comes in on the uplink port from a nw address in
+        // 12.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
+        val toPort = 21
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val fromIp = IntIPv4.fromString("12.0.0.31")
+        val toIp = makeAddressInSegment(toPort)
+        val fromUdp: Short = 10
+        val toUdp: Short = 11
+        val eth = Packets.udp(fromMac, uplinkMacAddr, fromIp, toIp,
+            fromUdp, toUdp, "My UDP packet".getBytes)
+        triggerPacketIn("uplinkPort", eth)
+        expectPacketOnPort(uplinkPort.getId)
+
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        addFlowMsg.flow should not be null
+        val flowMatch = addFlowMsg.flow.getMatch
+        expectMatchForIPv4Packet(eth, flowMatch)
+        flowMatch.getTransportSource should be === fromUdp
+        flowMatch.getTransportDestination should be === toUdp
+        // A flow with no actions drops matching packets
+        addFlowMsg.flow.getActions.size() should equal(0)
+
+        val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        errorPkt.getEtherType should be === IPv4.ETHERTYPE
+        val errorIpPkt = errorPkt.getPayload.asInstanceOf[IPv4]
+        errorIpPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
+        errorIpPkt.getDestinationAddress should be === fromIp.addressAsInt
+    }
+
 
 
     def testArpRequestFulfilledLocally() {
@@ -378,11 +419,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // (i.e. inside 10.0.1.8/30).
     }
 
-
-    @Ignore def testRejectRoute() {
-        // Make a packet that comes in on the uplink port from a nw address in
-        // 12.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
-    }
 
     @Ignore def testNoRoute() {
     }
