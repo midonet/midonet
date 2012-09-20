@@ -32,8 +32,8 @@ import com.midokura.packets._
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.sdn.dp.flows.{FlowKeyEthernet, FlowActionSetKey,
-                                  FlowActionOutput}
+import com.midokura.sdn.dp.flows.{FlowKeyIPv4, FlowKeyEthernet,
+                                  FlowActionSetKey, FlowActionOutput}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
@@ -239,12 +239,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // port (e.g. anything outside 10.  0.0.0/16).
         val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val onPort = 23
+        val ttl: Byte = 17
         val eth = Packets.udp(
             MAC.fromString("01:02:03:04:05:06"),
             portNumToMac(onPort),
             new IntIPv4((portNumToSegmentAddr(onPort) + 2)),
             IntIPv4.fromString("45.44.33.22"),
             10, 11, "My UDP packet".getBytes)
+        eth.getPayload.asInstanceOf[IPv4].setTtl(ttl)
         triggerPacketIn(portNumToName(onPort), eth)
         expectPacketOnPort(onPort)
         feedArpCache("uplinkPort",
@@ -265,12 +267,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.getMatch.getTransportSource should equal(10)
         flow.getMatch.getTransportDestination should equal(11)
         // XXX - there should be a FlowKeyIPv4 action to set the ttl here
-        flow.getActions.size() should equal(2)
+        flow.getActions.size() should equal(3)
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
         ethKey.getDst should be === gwMac.getAddress
         ethKey.getSrc should be === uplinkMacAddr.getAddress
-        flow.getActions.get(1).getClass should equal(classOf[FlowActionOutput])
+        val ipKey = expectFlowActionSetKey[FlowKeyIPv4](flow.getActions.get(1))
+        ipKey.getTtl should be === (ttl-1)
+        flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
     }
 
     def testArpRequestFulfilledLocally() {
