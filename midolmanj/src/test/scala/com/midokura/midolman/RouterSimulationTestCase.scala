@@ -183,14 +183,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         triggerPacketIn(portName, eth)
     }
 
-    private def expectPacketOnPort(portNum: Int): PacketIn = {
+    private def expectPacketOnPort(port: UUID): PacketIn = {
         dpProbe().expectMsgClass(classOf[PacketIn])
 
         val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
         pktInMsg should not be null
         pktInMsg.pktBytes should not be null
         pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be(portNumToId(portNum))
+        pktInMsg.wMatch.getInputPortUUID should be === port
         pktInMsg
     }
 
@@ -214,6 +214,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         (router, port)
     }
 
+    private def makeAddressInSegment(portNum: Int) : IntIPv4 =
+        new IntIPv4((portNumToSegmentAddr(portNum) + 2))
+
     def testDropsIPv6() {
         val onPort = 12
         val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
@@ -221,7 +224,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
             setPad(true)
         triggerPacketIn(portNumToName(onPort), eth)
-        expectPacketOnPort(onPort)
+        expectPacketOnPort(portNumToId(onPort))
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
         addFlowMsg should not be null
@@ -241,14 +244,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val onPort = 23
         val ttl: Byte = 17
         val eth = Packets.udp(
-            MAC.fromString("01:02:03:04:05:06"),
-            portNumToMac(onPort),
-            new IntIPv4((portNumToSegmentAddr(onPort) + 2)),
-            IntIPv4.fromString("45.44.33.22"),
+            MAC.fromString("01:02:03:04:05:06"), portNumToMac(onPort),
+            makeAddressInSegment(onPort), IntIPv4.fromString("45.44.33.22"),
             10, 11, "My UDP packet".getBytes)
         eth.getPayload.asInstanceOf[IPv4].setTtl(ttl)
         triggerPacketIn(portNumToName(onPort), eth)
-        expectPacketOnPort(onPort)
+        expectPacketOnPort(portNumToId(onPort))
         feedArpCache("uplinkPort",
             IntIPv4.fromString(uplinkGatewayAddr).addressAsInt,
             gwMac,
@@ -276,6 +277,38 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         ipKey.getTtl should be === (ttl-1)
         flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
     }
+
+    def testBlackholeRoute() {
+        // Make a packet that comes in on the uplink port from a nw address in
+        // 11.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
+        val toPort = 21
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val fromIp = IntIPv4.fromString("11.0.0.31")
+        val toIp = makeAddressInSegment(toPort)
+        val fromUdp: Short = 10
+        val toUdp: Short = 11
+        val eth = Packets.udp(fromMac, uplinkMacAddr, fromIp, toIp,
+                              fromUdp, toUdp, "My UDP packet".getBytes)
+        triggerPacketIn("uplinkPort", eth)
+        expectPacketOnPort(uplinkPort.getId)
+
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        addFlowMsg.flow should not be null
+        val flowMatch = addFlowMsg.flow.getMatch
+        flowMatch.getEthernetDestination should be === uplinkMacAddr
+        flowMatch.getEthernetSource should be === fromMac
+        flowMatch.getEtherType should be === IPv4.ETHERTYPE
+        flowMatch.getNetworkProtocol should be === UDP.PROTOCOL_NUMBER
+        flowMatch.getNetworkDestinationIPv4 should be === toIp
+        flowMatch.getNetworkSourceIPv4 should be === fromIp
+        flowMatch.getTransportSource should be === fromUdp
+        flowMatch.getTransportDestination should be === toUdp
+        // A flow with no actions drops matching packets
+        addFlowMsg.flow.getActions.size() should equal(0)
+    }
+
 
     def testArpRequestFulfilledLocally() {
         val tuple = fetchRouterAndPort("uplinkPort")
@@ -345,10 +378,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // (i.e. inside 10.0.1.8/30).
     }
 
-    @Ignore def testBlackholeRoute() {
-        // Make a packet that comes in on the uplink port from a nw address in
-        // 11.0.0.0/24 and with a nwAddr that matches port 21 - in 10.0.2.4/30.
-    }
 
     @Ignore def testRejectRoute() {
         // Make a packet that comes in on the uplink port from a nw address in
