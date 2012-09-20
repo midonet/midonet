@@ -31,7 +31,7 @@ trait ArpTable {
     def stop()
 }
 
-class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
+class ArpTableImpl(val arpCache: ArpCache) extends ArpTable {
     private val log = LoggerFactory.getLogger(classOf[ArpTableImpl])
     private val ARP_RETRY_MILLIS = 10 * 1000
     private val ARP_TIMEOUT_MILLIS = 60 * 1000
@@ -43,15 +43,17 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
             mutable.SynchronizedMap[IntIPv4, mutable.Set[Promise[MAC]]]
     private var arpCacheCallback: Callback2[IntIPv4, MAC] = null
 
-
     override def start() {
         arpCacheCallback = new Callback2[IntIPv4, MAC] {
             def call(ip: IntIPv4, mac: MAC) {
+                if (mac == null)
+                    return
                 arpWaiters.remove(ip) match {
-                    case Some(waiters) =>
-                        log.debug("ArpCache.notify cb, fwd to {} waiters", waiters.size)
+                    case Some(waiters)  =>
+                        log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
+                                  waiters.size, mac)
                         waiters map { _ success mac }
-                    case None =>
+                    case _ =>
                 }
             }
         }
@@ -81,8 +83,11 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                        (implicit actorSystem: ActorSystem): Promise[T] = {
         val now = Platform.currentTime
         if (now >= expiry) {
-            if (promise tryComplete Left(new TimeoutException()))
-                onExpire(promise)
+            if (promise tryComplete Left(new TimeoutException())) {
+                actorSystem.dispatcher.execute(new Runnable {
+                    def run = onExpire(promise)
+                })
+            }
             return promise
         }
         val when = Duration.create(expiry - now, TimeUnit.MILLISECONDS)
@@ -90,7 +95,11 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
             if (promise tryComplete Left(new TimeoutException()))
                 onExpire(promise)
         }
-        promise onSuccess { case _ => exp.cancel() }
+        promise onComplete {
+            case _ =>
+                if (!exp.isCancelled)
+                    exp.cancel()
+        }
         promise
     }
 
@@ -98,17 +107,18 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
         (implicit ec: ExecutionContext) : Future[ArpCacheEntry] = {
         val promise = Promise[ArpCacheEntry]()(ec)
         arpCache.get(ip, new Callback1[ArpCacheEntry] {
-            def call(value: ArpCacheEntry) {
-                promise.success(value)
-            }
+            def call(value: ArpCacheEntry) { promise.success(value) }
         }, expiry)
         promise.future
     }
 
-    private def removeWatcher(ip: IntIPv4, promise: Promise[MAC]) {
-        arpWaiters.get(ip) match {
-            case Some(waiters) => waiters.remove(promise)
-            case None =>
+    private def removeArpWaiter(ip: IntIPv4, promise: Promise[MAC]) {
+        /* MultiMap isn't thread-safe and the SynchronizedMap trait does not
+        * help either. See: https://issues.scala-lang.org/browse/SI-6087
+        * and/or the MultiMap and SynchronizedMap source files.
+        */
+        arpWaiters.synchronized {
+            arpWaiters.removeBinding(ip, promise)
         }
     }
 
@@ -120,35 +130,45 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
          * help either. See: https://issues.scala-lang.org/browse/SI-6087
          * and/or the MultiMap and SynchronizedMap source files.
          */
-        arpWaiters.synchronized { arpWaiters.addBinding(ip, promise) }
-        promiseOnExpire[MAC](promise, expiry, p => removeWatcher(ip, p))
+        arpWaiters.synchronized {
+            arpWaiters.addBinding(ip, promise)
+        }
+        promiseOnExpire[MAC](promise, expiry, p => removeArpWaiter(ip, p))
     }
 
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
            (implicit ec: ExecutionContext,
             actorSystem: ActorSystem): Future[MAC] = {
         log.debug("Resolving MAC for {}", ip)
+        /*
+         * We must invoke waitForArpEntry() before requesting the ArpCacheEntry.
+         * Otherwise there would be a race condition:
+         *   - get() asks for the ArpCacheEntry
+         *   - get() receives null for the entry, it does not exist.
+         *   - at this point, the entry is populated because an ARP
+         *     reply arrives to a node. This ArpTableImpl is notified but no one
+         *     is waiting for this entry.
+         *   - get() We calls waitForArpEntry too late, missing the notification.
+         */
         val macPromise = waitForArpEntry(ip, expiry)
         val entryFuture = fetchArpCacheEntry(ip, expiry)
         entryFuture onSuccess {
             case entry =>
+                val now = Platform.currentTime
                 if (entry == null ||
-                        entry.stale < Platform.currentTime ||
+                        (entry.stale < Platform.currentTime &&
+                         entry.lastArp+ARP_RETRY_MILLIS > now)  ||
                         entry.macAddr == null)
                     arpForAddress(ip, entry, port)
         }
         entryFuture flatMap {
             case entry: ArpCacheEntry =>
                 if (entry != null && entry.expiry >= Platform.currentTime) {
-                    log.debug("MAC for {} resolved directly", ip)
-                    removeWatcher(ip, macPromise)
+                    removeArpWaiter(ip, macPromise)
                     Promise.successful(entry.macAddr)
-                } else {
-                    log.debug("MAC for {} not ready, waiting on future", ip)
+                } else
                     macPromise.future
-                }
             case _ =>
-                log.debug("MAC for {} not ready, waiting on future", ip)
                 macPromise.future
         }
     }
@@ -156,9 +176,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
         log.debug("Got address for {}: {}", ip, mac)
         arpWaiters.remove(ip) match {
-                case Some(waiters) =>
-                    log.debug("notifying {} waiters", waiters.size)
-                    waiters map { _ success mac}
+                case Some(waiters) => waiters map { _ success mac}
                 case None =>
         }
         val now = Platform.currentTime
@@ -191,24 +209,15 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
         pkt.setEtherType(ARP.ETHERTYPE)
     }
 
-    // XXX
-    // cancel scheduled expires when an entry is refreshed?
-    // what happens if this node crashes before
-    // expiration, is there a global clean-up task?
+    // XXX cancel scheduled expires when an entry is refreshed?
     private def expireCacheEntry(ip: IntIPv4)
                                 (implicit ec: ExecutionContext) {
         val now = Platform.currentTime
         val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
         entryFuture onSuccess {
             case entry if entry != null =>
-                val now = Platform.currentTime
-                if (entry.expiry <= now) {
-                    arpWaiters.remove(ip) match {
-                        case Some(waiters) => waiters map { _ success null }
-                        case None =>
-                    }
+                if (entry.expiry <= Platform.currentTime)
                     arpCache.remove(ip)
-                }
         }
     }
 
@@ -220,17 +229,9 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
                                 previous: Long) {
             val now = Platform.currentTime
             // expired, no retries left.
-            if (cacheEntry == null || cacheEntry.expiry <= now) {
-                arpWaiters.remove(ip) match {
-                    case Some(waiters) => waiters map { _ success null}
-                    case None =>
-                }
+            if (cacheEntry == null || cacheEntry.expiry <= now)
                 return
-            }
             // another node took over, give up. Waiters will be notified.
-            // XXX - what will happen to our waiters if another node takes
-            // over and we time out??
-            // We should do arpCache.set() with mac = null
             if (previous > 0 && cacheEntry.lastArp != previous)
                 return
             // now up to date, entry was updated while the top half
@@ -244,12 +245,15 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
             log.debug("generateArpRequest: sending {}", arp)
             SimulationController.getRef(actorSystem) !
                 EmitGeneratedPacket(port.id, arp)
-            waitForArpEntry(ip, now + ARP_RETRY_MILLIS).future onComplete {
-                case Left(ex: TimeoutException) =>
-                    retryLoopTopHalf(arp, now)
-                case Left(ex) =>
-                    log.error("waitForArpEntry unexpected exception {}", ex)
-                case Right(mac) =>
+            // we don't retry for stale entries.
+            if (cacheEntry.macAddr == null) {
+                waitForArpEntry(ip, now + ARP_RETRY_MILLIS).future onComplete {
+                    case Left(ex: TimeoutException) =>
+                        retryLoopTopHalf(arp, now)
+                    case Left(ex) =>
+                        log.error("waitForArpEntry unexpected exception {}", ex)
+                    case Right(mac) =>
+                }
             }
         }
 
@@ -263,7 +267,7 @@ class ArpTableImpl(arpCache: ArpCache) extends ArpTable {
         }
 
         val now = Platform.currentTime
-        // XXX this is open to races with other nodes
+        // this is open to races with other nodes
         // for now we take over sending ARPs if no ARP has been sent
         // in RETRY_INTERVAL * 2. And, obviously, the MAC is null or stale.
         //
