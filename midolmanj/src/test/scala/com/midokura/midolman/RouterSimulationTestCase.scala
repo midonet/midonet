@@ -313,8 +313,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flowMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
         addFlowMsg.flow.getActions.size() should equal(0)
-
-        // XXX check that no packet is emitted
+        simProbe().expectNoMsg(Timeout(2 seconds).duration)
     }
 
     def testRejectRoute() {
@@ -344,9 +343,13 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
         errorPkt.getEtherType should be === IPv4.ETHERTYPE
-        val errorIpPkt = errorPkt.getPayload.asInstanceOf[IPv4]
-        errorIpPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        errorIpPkt.getDestinationAddress should be === fromIp.addressAsInt
+        val ipErrorPkt = errorPkt.getPayload.asInstanceOf[IPv4]
+        ipErrorPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
+        ipErrorPkt.getDestinationAddress should be === fromIp.addressAsInt
+        val icmpPkt = ipErrorPkt.getPayload.asInstanceOf[ICMP]
+        icmpPkt.getType should be === ICMP.TYPE_UNREACH
+        icmpPkt.getCode should be === ICMP.UNREACH_CODE.
+                                        UNREACH_FILTER_PROHIB.toChar
     }
 
 
