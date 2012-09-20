@@ -234,6 +234,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         clazz.isInstance(o) should be(true)
         o.asInstanceOf[T]
     }
+
+    protected def clearMessages(testKit: TestKit) {
+        while (testKit.msgAvailable)
+            testKit.receiveOne(testKit.remaining)
+    }
 }
 
 trait Dilation {
