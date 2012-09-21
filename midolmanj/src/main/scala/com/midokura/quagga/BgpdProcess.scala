@@ -12,7 +12,7 @@ class BgpdProcess(routingHandler: RoutingHandler, vtyPortNumber: Int) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
 
-    def startBgpdProcess() {
+    def start() {
         try {
             bgpdProcess = Runtime.getRuntime.exec("sudo /usr/lib/quagga/bgpd -P " + vtyPortNumber)
             routingHandler.BGPD_READY
@@ -21,7 +21,7 @@ class BgpdProcess(routingHandler: RoutingHandler, vtyPortNumber: Int) {
         }
     }
 
-    def stopBgpdProcess() {
+    def stop() {
         if (bgpdProcess != null)
             bgpdProcess.destroy()
         else
