@@ -432,10 +432,12 @@ class Coordinator(val origMatch: WildcardMatch,
             actions.append(FlowActions.setKey(FlowKeys.ethernet(
                 modif.getDataLayerSource, modif.getDataLayerDestination)))
         }
-        if (!orig.getNetworkSourceIPv4.equals(modif.getNetworkSourceIPv4) ||
-            !orig.getNetworkDestinationIPv4.equals(
-                modif.getNetworkDestinationIPv4) ||
-            !orig.getNetworkTTL.equals(modif.getNetworkTTL)) {
+        if (!matchObjectsSame(orig.getNetworkSourceIPv4,
+                              modif.getNetworkSourceIPv4) ||
+            !matchObjectsSame(orig.getNetworkDestinationIPv4,
+                              modif.getNetworkDestinationIPv4) ||
+            !matchObjectsSame(orig.getNetworkTTL,
+                              modif.getNetworkTTL)) {
             actions.append(FlowActions.setKey(
                 FlowKeys.ipv4(
                     modif.getNetworkDestination,
