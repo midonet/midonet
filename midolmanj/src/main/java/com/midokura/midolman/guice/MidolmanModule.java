@@ -14,7 +14,6 @@ import org.apache.zookeeper.Watcher;
 import com.midokura.cache.Cache;
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.CacheFactory;
-import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.services.DatapathConnectionService;
@@ -36,7 +35,6 @@ public class MidolmanModule extends PrivateModule {
         requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
-        requireBinding(SimulationController.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
