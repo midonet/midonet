@@ -37,7 +37,7 @@ import com.midokura.sdn.dp.flows.{FlowKeyIPv4, FlowKeyEthernet,
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
-import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
@@ -202,6 +202,13 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private def myAddressOnPort(portNum: Int): IntIPv4 =
         new IntIPv4(portNumToSegmentAddr(portNum) + 1)
 
+    private def expectFlowAddedMessage(): WildcardFlow = {
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        addFlowMsg.flow should not be null
+        addFlowMsg.flow
+    }
+
     private def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
         wmatch.getEthernetDestination should be === pkt.getDestinationMACAddress
         wmatch.getEthernetSource should be === pkt.getSourceMACAddress
@@ -220,15 +227,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setPad(true)
         triggerPacketIn(portNumToName(onPort), eth)
         expectPacketOnPort(portNumToId(onPort))
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
-        addFlowMsg.flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
-        addFlowMsg.flow.getMatch.getEtherType should equal(IPv6_ETHERTYPE)
+        val flow = expectFlowAddedMessage()
+        flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
+        flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
+        flow.getMatch.getEtherType should equal(IPv6_ETHERTYPE)
         // A flow with no actions drops matching packets
-        addFlowMsg.flow.getActions.size() should equal(0)
+        flow.getActions.size() should equal(0)
     }
 
     def testForwardToUplink() {
@@ -252,14 +256,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             uplinkMacAddr)
 
         requestOfType[DiscardPacket](flowProbe())
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        val flow = addFlowMsg.flow
-        flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
-        flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
-        flow.getMatch.getEtherType should equal(IPv4.ETHERTYPE)
-        flow.getMatch.getNetworkProtocol should equal(UDP.PROTOCOL_NUMBER)
+
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
         flow.getMatch.getTransportSource should equal(10)
         flow.getMatch.getTransportDestination should equal(11)
         // XXX - there should be a FlowKeyIPv4 action to set the ttl here
@@ -287,16 +286,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         triggerPacketIn("uplinkPort", eth)
         expectPacketOnPort(uplinkPort.getId)
 
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        val flowMatch = addFlowMsg.flow.getMatch
-        expectMatchForIPv4Packet(eth, flowMatch)
-        flowMatch.getTransportSource should be === fromUdp
-        flowMatch.getTransportDestination should be === toUdp
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        flow.getMatch.getTransportSource should be === fromUdp
+        flow.getMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
-        addFlowMsg.flow.getActions.size() should equal(0)
+        flow.getActions.size() should equal(0)
         simProbe().expectNoMsg(Timeout(2 seconds).duration)
     }
 
@@ -314,16 +309,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         triggerPacketIn("uplinkPort", eth)
         expectPacketOnPort(uplinkPort.getId)
 
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        val flowMatch = addFlowMsg.flow.getMatch
-        expectMatchForIPv4Packet(eth, flowMatch)
-        flowMatch.getTransportSource should be === fromUdp
-        flowMatch.getTransportDestination should be === toUdp
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        flow.getMatch.getTransportSource should be === fromUdp
+        flow.getMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
-        addFlowMsg.flow.getActions.size() should equal(0)
+        flow.getActions.size() should equal(0)
 
         val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
         errorPkt.getEtherType should be === IPv4.ETHERTYPE
@@ -361,15 +352,10 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         triggerPacketIn(portNumToName(inPort), eth)
         expectPacketOnPort(portNumToId(inPort))
 
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        val flow = addFlowMsg.flow
-        flow should not be null
-        val flowMatch = flow.getMatch
-        expectMatchForIPv4Packet(eth, flowMatch)
-        flowMatch.getTransportSource should be === fromUdp
-        flowMatch.getTransportDestination should be === toUdp
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        flow.getMatch.getTransportSource should be === fromUdp
+        flow.getMatch.getTransportDestination should be === toUdp
         flow.getActions.size() should be === 3
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
@@ -378,11 +364,11 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
     }
 
-    /*
     def testNoRoute() {
         clusterDataClient().routesDelete(upLinkRoute)
+
+
     }
-    */
 
     def testArpRequestFulfilledLocally() {
         val tuple = fetchRouterAndPort("uplinkPort")
