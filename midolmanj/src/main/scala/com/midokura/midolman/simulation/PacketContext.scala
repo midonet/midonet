@@ -12,7 +12,7 @@ import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.util.Net
 import com.midokura.packets.{Ethernet, IPv4, TCP, UDP}
-import com.midokura.sdn.flows.{PacketMatch, WildcardMatch}
+import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
 
 
@@ -33,7 +33,7 @@ import com.midokura.util.functors.Callback0
  * was to use and pass on to the next forwarding element, instead of being
  * a singleton-per-simulation token.  Investigate whether that'd be better.
  */
-/* TODO(D-release): Move inPortID & outPortID out of PacketContext. */
+/* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Object, val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache)
          extends ChainPacketContext {
@@ -129,7 +129,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     override def getFlowCookie(): Object = flowCookie
     override def isConnTracked(): Boolean = connectionTracked
 
-    override def isForwardFlow(pmatch: PacketMatch): Boolean = {
+    override def isForwardFlow(): Boolean = {
         // Connection tracking:  connectionTracked starts out as false.
         // If isForwardFlow is called, connectionTracked becomes true and
         // a lookup into Cassandra determines which direction this packet
@@ -140,17 +140,17 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
 
         // Packets which aren't TCP-or-UDP over IPv4 aren't connection
         // tracked, and always treated as forward flows.
-        if (pmatch.getDataLayerType() != IPv4.ETHERTYPE ||
-                (pmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 pmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER))
+        if (wcmatch.getDataLayerType() != IPv4.ETHERTYPE ||
+                (wcmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
+                 wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER))
             return true
 
         connectionTracked = true
-        val key = connectionKey(pmatch.getNetworkSource(),
-                                pmatch.getTransportSource(),
-                                pmatch.getNetworkDestination(),
-                                pmatch.getTransportDestination(),
-                                pmatch.getNetworkProtocol())
+        val key = connectionKey(wcmatch.getNetworkSource(),
+                                wcmatch.getTransportSource(),
+                                wcmatch.getNetworkDestination(),
+                                wcmatch.getTransportDestination(),
+                                wcmatch.getNetworkProtocol())
         val value = connectionCache.get(key)
         forwardFlow = (value != "r")
         return forwardFlow
