@@ -1,30 +1,31 @@
 /*
  * Copyright (c) 2012 Midokura Pte.Ltd.
  */
-package com.midokura.midolman
+package com.midokura.midolman.monitoring
 
 import akka.actor.{Cancellable, Actor}
-import akka.event.{Logging}
+import akka.event.Logging
 import com.google.inject.Inject
 import com.midokura.midolman.topology.VirtualToPhysicalMapper
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration
 import collection.mutable
 import java.util.UUID
-import com.midokura.midolman.MonitoringActor.PortStatsRequest
 import akka.util.FiniteDuration
-import monitoring.metrics.vrn.VifMetrics
+import metrics.vrn.VifMetrics
+import com.midokura.midolman.{Referenceable, DatapathController}
 
 /**
  * This actor periodically sends requests to the DatapathController to get stats for the ports.
  *
- * A better way to do this would be if the DatapathController sends the port updates to the eventstream, so this
- * actor would only need to subscribe for these kind of messages instead of asking periodically.
+ * TODO A better way to do this would be if the DatapathController sends the port updates to the eventstream, so this
+ * actor would only need to subscribe for these kind of messages instead of asking periodically. Yet another solution
+ * would be that the scheduler sends a message to the this agent instead of the DatapathController Actor. This way the
+ * request would be made by the MonitoringActor, and the DatapathController Actor would get a valid sender.
  */
 
 object MonitoringActor extends Referenceable {
   val Name = "MonitoringActor"
 
-  case class PortStatsRequest(portID: UUID)
 }
 
 class MonitoringActor extends Actor {
@@ -58,10 +59,10 @@ class MonitoringActor extends Actor {
 
   def receive = {
 
-    case LocalPortActive(portID, true ) =>
+    case LocalPortActive(portID, true) =>
       if (!portsMap.contains(portID)) {
 
-         // create the metric for this port.
+        // create the metric for this port.
         vifMetrics.enableVirtualPortMetrics(portID);
 
         val task = system.scheduler.schedule(
@@ -76,7 +77,6 @@ class MonitoringActor extends Actor {
 
 
     case LocalPortActive(portID, false) =>
-      log.info("Got one down " + portID.toString)
       if (portsMap.contains(portID)) {
         portsMap.get(portID).get.cancel()
         portsMap.remove(portID);
@@ -85,9 +85,7 @@ class MonitoringActor extends Actor {
 
 
     case PortStats(portID, stats) =>
-      log.info("Received stats for port: " + portID)
-      log.info(stats.toString)
-      vifMetrics.processStatsReply(portID, stats);
+      vifMetrics.updateStats(portID, stats);
 
     case _ => log.info("RECEIVED UNKNOWN MESSAGE")
   }

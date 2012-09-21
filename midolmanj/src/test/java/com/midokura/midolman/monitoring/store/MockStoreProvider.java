@@ -8,17 +8,17 @@ import com.google.inject.Provider;
 import com.midokura.cassandra.CassandraClient;
 
 /**
- * Providers CassandraStore
+ * Provides a Mock (memory based) Store.
  */
-public class MockCassandraStoreProvider implements Provider<MockCassandraStore> {
+public class MockStoreProvider implements Provider<MockStore> {
 
 
     @Inject
-    public MockCassandraStoreProvider(CassandraClient client) {
+    public MockStoreProvider(CassandraClient client) {
     }
 
     @Override
-    public MockCassandraStore get() {
-        return new MockCassandraStore(null);
+    public MockStore get() {
+        return new MockStore(null);
     }
 }

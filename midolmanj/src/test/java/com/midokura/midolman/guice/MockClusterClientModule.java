@@ -1,13 +1,14 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.midolman.guice.cluster;
+package com.midokura.midolman.guice;
 
 import com.midokura.cassandra.CassandraClient;
+import com.midokura.midolman.guice.cluster.DataClusterClientModule;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.guice.MonitoringConfigurationProvider;
 import com.midokura.midolman.monitoring.store.CassandraClientProvider;
-import com.midokura.midolman.monitoring.store.MockCassandraStoreProvider;
+import com.midokura.midolman.monitoring.store.MockStoreProvider;
 import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midonet.cluster.Client;
@@ -47,7 +48,7 @@ public class MockClusterClientModule extends DataClusterClientModule {
                 .asEagerSingleton();
 
          // expose the mock cassandra stuff instead of the real one for the tests.
-        bind(Store.class).toProvider(MockCassandraStoreProvider.class)
+        bind(Store.class).toProvider(MockStoreProvider.class)
                 .asEagerSingleton();
         expose(Store.class);
         expose(MonitoringConfiguration.class);

@@ -162,7 +162,7 @@ public abstract class Port<PortOptions extends com.midokura.sdn.dp.PortOptions, 
 
 
         public long getRxPackets() {return rxPackets;}
-        public long getTxPackets() {return txPackets; }
+        public long getTxPackets() {return txPackets;}
         public long getRxBytes() {return rxBytes;}
         public long getTxBytes() {return txBytes;}
         public long getRxErrors() {return rxErrors;}

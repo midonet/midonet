@@ -4,15 +4,13 @@
 
 package com.midokura.midolman.monitoring;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import static java.lang.String.format;
 
 import akka.actor.ActorRef;
-import akka.util.Duration;
 import com.google.inject.Inject;
-import com.midokura.midolman.MonitoringActor;
+import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.MidolmanActorsService;
 import org.slf4j.Logger;
@@ -53,9 +51,7 @@ public class MonitoringAgent {
 
     MidoReporter reporter;
 
-    ActorRef monitoringActor;
-
-    public void startMonitoring() {
+    public void startMonitoringIfEnabled() {
 
        if (config.getMidolmanEnableMonitoring()) {
 
@@ -82,11 +78,7 @@ public class MonitoringAgent {
                          "the connection to cassandra failed.");
         }
 
-        // spawn the actor.
-        monitoringActor = midolmanActorsService.startActor(
-                midolmanActorsService.getGuiceAwareFactory(MonitoringActor.class)
-                , "MonitoringActor");
-        log.info("Monitoring actor should be running.");
+
        }
     }
 
@@ -95,8 +87,6 @@ public class MonitoringAgent {
         if (reporter != null)
             reporter.shutdown();
 
-        // stop the actor.
-        midolmanActorsService.stopActor(monitoringActor);
     }
 
 }

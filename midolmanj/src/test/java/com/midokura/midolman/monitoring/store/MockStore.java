@@ -5,27 +5,24 @@
 package com.midokura.midolman.monitoring.store;
 
 import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.monitoring.GMTTime;
 import com.midokura.util.functors.Callback0;
-import com.midokura.util.functors.Callback1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
-public class MockCassandraStore implements Store {
+public class MockStore implements Store {
 
     Map<String, Set<String>> targetMetric;
 
     private static int maxNumberQueryResult = 1024;
 
     private static final Logger log =
-            LoggerFactory.getLogger(MockCassandraStore.class);
+            LoggerFactory.getLogger(MockStore.class);
 
     public Map<String, Callback0> callbacks;
 
-    public MockCassandraStore(CassandraClient client)
+    public MockStore(CassandraClient client)
     {
         targetMetric = new HashMap<String, Set<String>>();
         callbacks = new HashMap<String, Callback0>();

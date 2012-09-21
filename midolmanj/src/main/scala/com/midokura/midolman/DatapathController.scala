@@ -8,6 +8,7 @@ import akka.dispatch.{Future, Promise}
 import akka.util.duration._
 import akka.util.Timeout
 import akka.pattern.ask
+import monitoring.MonitoringActor
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
@@ -44,6 +45,7 @@ import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import scala.Some
 import com.midokura.midolman.MonitoringActor.PortStatsRequest
+import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 
 
@@ -361,6 +363,13 @@ object DatapathController extends Referenceable {
                             val peer: TunnelZone.HostConfig[_, _],
                             val portOption: Option[Short],
                             val op: TunnelChangeEventOperation.Value)
+
+  /**
+   * This message requests stats for a given port.
+   * @param portID
+   */
+    case class PortStatsRequest(portID: UUID)
+
 }
 
 

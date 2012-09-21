@@ -3,7 +3,7 @@
 */
 package com.midokura.midolman
 
-import monitoring.MonitoringAgent
+import monitoring.{MonitoringActor, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID
@@ -20,10 +20,13 @@ import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.guice._
+import guice._
 import actors.OutgoingMessage
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
 TestableMidolmanActorsModule}
-import cluster.{MockClusterClientModule, ClusterClientModule}
+import com.midokura.midolman.DatapathController.InitializationComplete
+import com.midokura.midolman.DatapathController.Initialize
+import cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
@@ -88,8 +91,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
-        injector.getInstance(classOf[MonitoringAgent]).startMonitoring()
-
+        injector.getInstance(classOf[MonitoringAgent]).startMonitoringIfEnabled()
         before()
     }
 

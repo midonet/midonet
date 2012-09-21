@@ -41,21 +41,11 @@ public class VifMetrics  {
         .getLogger(VifMetrics.class);
 
 
-    public String groupName() {
-        return VifMetrics.class.getPackage().getName();
-    }
-
     public void enableVirtualPortMetrics(
                                                 final UUID portId
                                                 ) {
-        final Counters counters = new Counters();
 
-        counters.rxBytes = makeCounter(portId, "rxBytes");
-        counters.txBytes = makeCounter(portId, "txBytes");
-        counters.rxPackets = makeCounter(portId, "rxPackets");
-        counters.txPackets = makeCounter(portId, "txPackets");
-
-        counters.portId = portId;
+        countersMap.put(portId, new Counters(portId));
 
         MidoReporter.notifyNewMetricTypeForTarget(
             new MetricName(VifMetrics.class, "", portId.toString()));
@@ -63,7 +53,7 @@ public class VifMetrics  {
     }
 
 
-    public void processStatsReply(UUID portID, Port.Stats portStatistics) {
+    public void updateStats(UUID portID, Port.Stats portStatistics) {
         if (portStatistics == null) {
             log.error("We got an empty statistics reply");
             return;
@@ -72,45 +62,59 @@ public class VifMetrics  {
         Counters counters = countersMap.get(portID);
         if (counters != null) {
             log.debug("Updating counters for a port");
-            updateCounter(counters.rxPackets, (int) portStatistics.getRxPackets());
-            updateCounter(counters.txPackets, (int)portStatistics.getTxPackets());
-            updateCounter(counters.rxBytes, (int)portStatistics.getRxBytes());
-            updateCounter(counters.txBytes, (int)portStatistics.getTxBytes());
+            counters.update(
+                    (int) portStatistics.getRxPackets(),
+                    (int) portStatistics.getTxPackets(),
+                    (int) portStatistics.getRxBytes(),
+                    (int) portStatistics.getTxBytes()
+            );
         }
     }
 
     public void disableVirtualPortMetrics(final UUID portID) {
-       log.debug("Disabling the metrics for port {}", portID);
-       SortedMap<String, SortedMap<MetricName, Metric>> metrics =
-               Metrics.defaultRegistry().groupedMetrics(new MetricPredicate() {
-
-                 @Override
-                 public boolean matches(MetricName name, Metric metric) {
-                                        return name.getScope().equals(portID.toString());
-                 }
-               });
-
-               for (SortedMap<MetricName, Metric> metricsSet : metrics.values()) {
-                   for (MetricName metricName : metricsSet.keySet()) {
-                       Metrics.defaultRegistry().removeMetric(metricName);
-                   }
-               }
+        if (countersMap.containsKey(portID)) {
+            countersMap.get(portID).disable();
+        }
       }
 
 
-    private void updateCounter(Counter counter, int value) {
-        counter.inc(value - counter.count());
-    }
-
-    private Counter makeCounter(UUID portId, String metricName) {
-        return Metrics.newCounter(
-            new MetricName(VifMetrics.class, metricName, portId.toString()));
-    }
-
     public class Counters {
-        UUID portId;
+        private Counter rxPackets, txPackets;
+        private Counter rxBytes, txBytes;
 
-        Counter rxPackets, txPackets;
-        Counter rxBytes, txBytes;
+        private UUID portId;
+
+        public Counters(UUID portId) {
+            this.portId = portId;
+
+            rxBytes = makeCounter(portId, "rxBytes");
+            txBytes = makeCounter(portId, "txBytes");
+            rxPackets = makeCounter(portId, "rxPackets");
+            txPackets = makeCounter(portId, "txPackets");
+        }
+
+        public void update(int rxPackets, int txPackets, int rxBytes, int txBytes) {
+            updateCounter(this.rxPackets, rxPackets);
+            updateCounter(this.rxBytes, rxBytes);
+            updateCounter(this.txPackets, txPackets);
+            updateCounter(this.txBytes, txBytes);
+        }
+
+        private Counter makeCounter(UUID portId, String metricName) {
+            return Metrics.newCounter(
+                    new MetricName(VifMetrics.class, metricName, portId.toString()));
+        }
+
+        private void updateCounter(Counter counter, int value) {
+            counter.inc(value - counter.count());
+        }
+
+        private void disable() {
+            Metrics.defaultRegistry().removeMetric(new MetricName(VifMetrics.class, "rxBytes", portId.toString()));
+            Metrics.defaultRegistry().removeMetric(new MetricName(VifMetrics.class, "txBytes", portId.toString()));
+            Metrics.defaultRegistry().removeMetric(new MetricName(VifMetrics.class, "rxPackets", portId.toString()));
+            Metrics.defaultRegistry().removeMetric(new MetricName(VifMetrics.class, "txPackets", portId.toString()));
+        }
+
     }
 }

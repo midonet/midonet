@@ -76,7 +76,7 @@ public class MidoReporter extends AbstractPollingReporter
             if (!storedMetrics.containsKey(metric.getType() + metric.getName())) {
                 store.addMetricToType(metric.getType(), metric.getName());
                 storedMetrics.put(metric.getType() + metric.getName(), 1);
-                log.info("Added metric {} to type {}",
+                log.debug("Added metric {} to type {}",
                         new Object[]{metric.getName(), metric.getType()});
             }
         }

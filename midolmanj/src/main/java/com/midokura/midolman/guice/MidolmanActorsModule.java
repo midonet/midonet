@@ -5,7 +5,7 @@ package com.midokura.midolman.guice;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
-import com.midokura.midolman.MonitoringActor;
+import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

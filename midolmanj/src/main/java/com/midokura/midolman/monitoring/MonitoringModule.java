@@ -24,9 +24,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MonitoringModule extends PrivateModule {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(MonitoringModule.class);
-
     @Override
     protected void configure() {
         binder().requireExplicitBindings();

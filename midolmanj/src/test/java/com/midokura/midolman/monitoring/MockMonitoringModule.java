@@ -8,7 +8,6 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.guice.config.ConfigFromFileProvider;
 import com.midokura.midolman.host.HostInterfaceWatcher;
 import com.midokura.midolman.host.commands.executors.CommandInterpreter;
 import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
@@ -19,7 +18,7 @@ import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
-import com.midokura.midolman.monitoring.store.MockCassandraStore;
+import com.midokura.midolman.monitoring.store.MockStore;
 import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.services.HostIdProviderService;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ public class MockMonitoringModule extends PrivateModule {
         requireBinding(HostIdProviderService.class);
         requireBinding(ConfigProvider.class);
         requireBinding(MonitoringConfiguration.class);
-        bind(Store.class).to(MockCassandraStore.class);
+        bind(Store.class).to(MockStore.class);
 
         bind(VMMetricsCollection.class);
         bind(ZookeeperMetricsCollection.class);

@@ -15,7 +15,7 @@ import java.util._
 import org.hamcrest.MatcherAssert.assertThat
 import collection.{mutable, immutable}
 import scala.collection.JavaConversions._
-import store.{Store, MockCassandraStore}
+import store.{MockStore, Store}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
 Ports => ClusterPorts}
 import com.midokura.midonet.cluster.data.host.Host
@@ -43,7 +43,7 @@ class MonitoringTest extends MidolmanTestCase {
       "rxPackets","txPackets")
 
     val store : Store = injector.getInstance(classOf[Store])
-    val cassandraStore = store.asInstanceOf[MockCassandraStore]
+    val cassandraStore = store.asInstanceOf[MockStore]
     assertThat("Initial ports are empty", cassandraStore.getTargets.isEmpty);
 
     var called : Boolean = false;

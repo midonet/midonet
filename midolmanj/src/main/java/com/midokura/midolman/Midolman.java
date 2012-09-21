@@ -19,7 +19,6 @@ import java.util.concurrent.ScheduledFuture;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.midokura.midolman.monitoring.MonitoringModule;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -152,8 +151,11 @@ public class Midolman implements SelectListener {
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
+        injector.getInstance(MonitoringAgent.class).startMonitoringIfEnabled();
 
         log.info("{} was initialized", MidolmanActorsService.class);
+
+
 
 //        basePath = config.getMidolmanRootKey();
 //        localNwAddr = IntIPv4.fromString(config.getOpenFlowPublicIpAddress());

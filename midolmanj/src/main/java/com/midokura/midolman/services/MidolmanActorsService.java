@@ -18,6 +18,8 @@ import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.monitoring.MonitoringActor;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,9 @@ public class MidolmanActorsService extends AbstractService {
     @Inject
     Injector injector;
 
+    @Inject
+    MidolmanConfig config;
+
     protected ActorSystem actorSystem;
 
     ActorRef virtualTopologyActor;
@@ -53,6 +58,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef flowControllerActor;
     ActorRef simulationControllerActor;
     ActorRef remoteServer;
+    ActorRef monitoringActor;
 
     @Override
     protected void doStart() {
@@ -92,6 +98,11 @@ public class MidolmanActorsService extends AbstractService {
             startActor(getGuiceAwareFactory(SimulationController.class),
                        SimulationController.Name());
 
+        if (config.getMidolmanEnableMonitoring()) {
+            monitoringActor = startActor(getGuiceAwareFactory(MonitoringActor.class),
+                        MonitoringActor.Name());
+        }
+
         notifyStarted();
         log.info("Actors system started");
     }
@@ -106,6 +117,10 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(flowControllerActor);
             stopActor(simulationControllerActor);
 
+            if (config.getMidolmanEnableMonitoring()) {
+                stopActor(monitoringActor);
+            }
+
             log.debug("Stopping the actor system");
             actorSystem.shutdown();
             notifyStopped();
@@ -119,7 +134,7 @@ public class MidolmanActorsService extends AbstractService {
         return new Props(new GuiceActorFactory(injector, actorClass));
     }
 
-    public void stopActor(ActorRef actorRef) {
+    private void stopActor(ActorRef actorRef) {
         log.debug("Stopping actor: {}", actorRef.toString());
         try {
             Future<Boolean> stopFuture =
@@ -133,7 +148,7 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    public ActorRef startActor(Props actorProps, String actorName) {
+    private ActorRef startActor(Props actorProps, String actorName) {
         ActorRef actorRef = null;
 
         try {
