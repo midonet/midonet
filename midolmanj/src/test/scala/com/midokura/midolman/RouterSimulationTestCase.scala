@@ -69,7 +69,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
     override def before() {
         flowEventsProbe = newProbe()
+        val portEventsProbe = newProbe()
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
 
         val host = newHost("myself", hostId())
         host should not be null
@@ -87,7 +89,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[OutgoingMessage](vtpProbe())
         requestOfType[LocalPortActive](vtpProbe())
-        //requestOfType[LocalPortActive](flowEventsProbe)
+        requestOfType[LocalPortActive](portEventsProbe)
 
         upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
             uplinkPort.getId, uplinkGatewayAddr, 1)
@@ -111,7 +113,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 materializePort(port, host, portName)
                 requestOfType[OutgoingMessage](vtpProbe())
                 requestOfType[LocalPortActive](vtpProbe())
-                //requestOfType[LocalPortActive](flowEventsProbe)
+                requestOfType[LocalPortActive](portEventsProbe)
 
                 // store port info for later use
                 portConfigs.put(portNum, port)
@@ -351,8 +353,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val eth = Packets.udp(inFromMac, inToMac, fromIp, toIp,
             fromUdp, toUdp, "My UDP packet".getBytes)
 
-        log.debug("forwarding from {} to {}", fromIp, toIp)
-
         feedArpCache(portNumToName(outPort), toIp.addressAsInt, outToMac,
                      myAddressOnPort(outPort).addressAsInt, outFromMac)
         requestOfType[DiscardPacket](flowProbe())
@@ -377,6 +377,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         ethKey.getSrc should be === outFromMac.getAddress
         flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
     }
+
+    /*
+    def testNoRoute() {
+        clusterDataClient().routesDelete(upLinkRoute)
+    }
+    */
 
     def testArpRequestFulfilledLocally() {
         val tuple = fetchRouterAndPort("uplinkPort")
@@ -412,6 +418,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                                                               ArpCacheEntry]]
         val macFuture = router.arpTable.get(ip, port,
             Platform.currentTime + 30*1000)(actors().dispatcher, actors())
+        requestOfType[EmitGeneratedPacket](simProbe())
 
         val now = Platform.currentTime
         arpCache.processChange(ip, null,
@@ -443,9 +450,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // (i.e. inside 10.0.1.8/30).
     }
 
-
-    @Ignore def testNoRoute() {
-    }
 
     @Ignore def testICMPEcho() {
     }
