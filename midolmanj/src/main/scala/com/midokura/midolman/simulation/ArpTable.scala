@@ -31,6 +31,21 @@ trait ArpTable {
     def stop()
 }
 
+/* MultiMap isn't thread-safe and the SynchronizedMap trait does not
+ * help either. See: https://issues.scala-lang.org/browse/SI-6087
+ * and/or the MultiMap and SynchronizedMap source files.
+ */
+trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
+        mutable.SynchronizedMap[A, mutable.Set[B]] {
+    override def addBinding(k: A, v: B): this.type = synchronized[this.type] {
+        super.addBinding(k, v)
+    }
+
+    override def removeBinding(k: A, v: B): this.type = synchronized[this.type] {
+        super.removeBinding(k, v)
+    }
+}
+
 class ArpTableImpl(val arpCache: ArpCache) extends ArpTable {
     private val log = LoggerFactory.getLogger(classOf[ArpTableImpl])
     private val ARP_RETRY_MILLIS = 10 * 1000
@@ -39,8 +54,7 @@ class ArpTableImpl(val arpCache: ArpCache) extends ArpTable {
     private val ARP_EXPIRATION_MILLIS = 3600 * 1000
     private val arpWaiters = new mutable.HashMap[IntIPv4,
                                              mutable.Set[Promise[MAC]]] with
-            mutable.MultiMap[IntIPv4, Promise[MAC]] with
-            mutable.SynchronizedMap[IntIPv4, mutable.Set[Promise[MAC]]]
+            SynchronizedMultiMap[IntIPv4, Promise[MAC]]
     private var arpCacheCallback: Callback2[IntIPv4, MAC] = null
 
     override def start() {
@@ -113,26 +127,14 @@ class ArpTableImpl(val arpCache: ArpCache) extends ArpTable {
     }
 
     private def removeArpWaiter(ip: IntIPv4, promise: Promise[MAC]) {
-        /* MultiMap isn't thread-safe and the SynchronizedMap trait does not
-        * help either. See: https://issues.scala-lang.org/browse/SI-6087
-        * and/or the MultiMap and SynchronizedMap source files.
-        */
-        arpWaiters.synchronized {
-            arpWaiters.removeBinding(ip, promise)
-        }
+        arpWaiters.removeBinding(ip, promise)
     }
 
     def waitForArpEntry(ip: IntIPv4, expiry: Long)
                        (implicit ec: ExecutionContext,
                         actorSystem: ActorSystem) : Promise[MAC] = {
         val promise = Promise[MAC]()(ec)
-        /* MultiMap isn't thread-safe and the SynchronizedMap trait does not
-         * help either. See: https://issues.scala-lang.org/browse/SI-6087
-         * and/or the MultiMap and SynchronizedMap source files.
-         */
-        arpWaiters.synchronized {
-            arpWaiters.addBinding(ip, promise)
-        }
+        arpWaiters.addBinding(ip, promise)
         promiseOnExpire[MAC](promise, expiry, p => removeArpWaiter(ip, p))
     }
 
