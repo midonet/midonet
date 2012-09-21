@@ -91,7 +91,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
-        if (nwDst == inPort.portAddr) {
+        if (nwDst.getAddress == inPort.portAddr.getAddress) {
             // We're the L3 destination.  Reply to ICMP echos, drop the rest.
             if (isIcmpEchoRequest(pktContext.getMatch)) {
                 log.debug("got ICMP echo")
@@ -206,7 +206,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new ErrorDropAction)(ec)
         }
 
-        if (pktContext.getMatch.getNetworkDestinationIPv4 == outPort.portAddr) {
+        if (pktContext.getMatch.getNetworkDestinationIPv4.getAddress ==
+                                         outPort.portAddr.getAddress) {
             if (isIcmpEchoRequest(pktContext.getMatch)) {
                 log.debug("got icmp echo reply")
                 sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
