@@ -13,19 +13,28 @@ import java.util.*;
 
 public class MockStore implements Store {
 
-    Map<String, Set<String>> targetMetric;
-
     private static int maxNumberQueryResult = 1024;
 
     private static final Logger log =
             LoggerFactory.getLogger(MockStore.class);
 
-    public Map<String, Callback0> callbacks;
+    Map<String, Callback0> callbacks;
+    Map<String, Long> points;
 
-    public MockStore(CassandraClient client)
+    // needed for the tests
+    Map<String, Set<String>> target_MetricName;
+    Map<String, Set<String>> metricType_targetIdentifier;
+    Map<String, Set<String>> type_metricNames;
+
+    public MockStore()
     {
-        targetMetric = new HashMap<String, Set<String>>();
         callbacks = new HashMap<String, Callback0>();
+        points = new HashMap<String, Long>();
+
+        target_MetricName = new HashMap<String, Set<String>>();
+        metricType_targetIdentifier = new HashMap<String, Set<String>>();
+        type_metricNames = new HashMap<String, Set<String>>();
+
     }
 
     @Override
@@ -36,10 +45,20 @@ public class MockStore implements Store {
     public void addTSPoint(String type, String targetIdentifier,
                            String metricName,
                            long time, long value) {
-        if (!targetMetric.containsKey(metricName)) {
-            targetMetric.put(targetIdentifier, new HashSet<String>());
+
+        if (!target_MetricName.containsKey(targetIdentifier)) {
+            target_MetricName.put(targetIdentifier, new HashSet<String>());
         }
-        targetMetric.get(targetIdentifier).add(metricName);
+        target_MetricName.get(targetIdentifier).add(metricName);
+
+        addMetricTypeToTarget(type, targetIdentifier);
+
+        // add the value
+        String key = asKey(type, targetIdentifier, metricName, time);
+        points.put(key, value);
+
+
+        // if there is a registered callback for this targetidentifier, call it.
         if (callbacks.containsKey(targetIdentifier)) {
             callbacks.get(targetIdentifier).call();
         }
@@ -48,51 +67,75 @@ public class MockStore implements Store {
     @Override
     public long getTSPoint(String type, String targetIdentifier,
                            String metricName, long time) {
-        return 0l;
+        return points.get(asKey(type, targetIdentifier, metricName, time));
     }
+
 
     private String asKey(String type, String targetIdentifier,
                          String metricName, long time) {
-        return "";
+        return new StringBuffer()
+                .append(type)
+                .append(targetIdentifier)
+                .append(metricName)
+                .append(time)
+                .toString();
     }
 
     @Override
     public Map<String, Long> getTSPoints(String type, String targetIdentifier,
                                          String metricName, long timeStart,
                                          long timeEnd) {
+        // TODO
         return null;
     }
 
 
     @Override
-    public void addMetricTypeToTarget(String targetIdentifier, String type) {
+    public void addMetricTypeToTarget(String type, String targetIdentifier) {
+        if (!metricType_targetIdentifier.containsKey(type)) {
+            metricType_targetIdentifier.put(type, new HashSet<String>());
+        }
+        metricType_targetIdentifier.get(type).add(targetIdentifier);
     }
 
 
     @Override
     public List<String> getMetricsTypeForTarget(String targetIdentifier) {
-        return null;
+        List<String> result = null;
+        if (!metricType_targetIdentifier.containsKey(targetIdentifier)) {
+            result = new ArrayList<String>(metricType_targetIdentifier.get(targetIdentifier));
+        }
+        return result;
     }
 
     @Override
     public void addMetricToType(String type,
                                 String metricName) {
+        if(!type_metricNames.containsKey(type)) {
+            type_metricNames.put(type, new HashSet<String>());
+        }
+        type_metricNames.get(type).add(metricName);
     }
 
     @Override
     public List<String> getMetricsForType(String type) {
-        return null;
+        List<String> result = null;
+        if (type_metricNames.containsKey(type)) {
+            result = new ArrayList<String>(type_metricNames.get(type));
+        }
+        return result;
     }
 
     public static void setMaxNumberQueryResult(int maxNumberQueryResult) {
+        MockStore.maxNumberQueryResult = maxNumberQueryResult;
     }
 
     public Set<String> getMetricNamesForTarget(String target) {
-        return targetMetric.get(target);
+        return target_MetricName.get(target);
     }
 
     public Set<String> getTargets() {
-        return targetMetric.keySet();
+        return target_MetricName.keySet();
     }
 
     public void subscribeToChangesRegarding(String id, Callback0 callback) {

@@ -73,9 +73,9 @@ public class MonitoringAgent {
                 configuration.getMonitoringCassandraReporterPullTime(),
                 TimeUnit.MILLISECONDS);
         } else {
-            log.warn("The metrics publisher to Cassandra store didn't start " +
+            log.warn("The metrics publisher to the data store didn't start " +
                          "because the store was not initialized. Most likely " +
-                         "the connection to cassandra failed.");
+                         "the connection to the store failed.");
         }
 
 
@@ -83,9 +83,10 @@ public class MonitoringAgent {
     }
 
     public void stop() {
-        log.info("Monitoring agent is shutting down");
-        if (reporter != null)
+        if (reporter != null) {
+            log.info("Monitoring agent is shutting down");
             reporter.shutdown();
+        }
 
     }
 

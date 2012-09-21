@@ -14,11 +14,11 @@ public class MockStoreProvider implements Provider<MockStore> {
 
 
     @Inject
-    public MockStoreProvider(CassandraClient client) {
+    public MockStoreProvider() {
     }
 
     @Override
     public MockStore get() {
-        return new MockStore(null);
+        return new MockStore();
     }
 }

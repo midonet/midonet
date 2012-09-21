@@ -26,6 +26,10 @@ import com.midokura.midolman.vrn.VRNController;
 /**
  * Class that can add/delete Counters for different virtual ports on demand.
  *
+ * This class is thread safe because:
+ *  - There is only one class writing to a counter (this one)
+ *  - The Counter.class is using an AtomicLong under the hood to store the value, so the incs/reads will be atomic.
+ *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 5/2/12
  */
