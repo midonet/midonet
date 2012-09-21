@@ -68,55 +68,52 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     override def before() {
+        flowEventsProbe = newProbe()
+        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+
         val host = newHost("myself", hostId())
+        host should not be null
         router = newRouter("router")
-        // Create one port that works as an uplink for the router.
-        uplinkPort = newPortOnRouter(router, uplinkMacAddr, uplinkPortAddr,
-                                     uplinkNwAddr, uplinkNwLen,
-                                     uplinkNwAddr, uplinkNwLen)
+        router should not be null
 
         initializeDatapath() should not be (null)
-
-        materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
+
+        // Create one port that works as an uplink for the router.
+        uplinkPort = newPortOnRouter(router, uplinkMacAddr, uplinkPortAddr,
+            uplinkNwAddr, uplinkNwLen)
+        uplinkPort should not be null
+        materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[OutgoingMessage](vtpProbe())
         requestOfType[LocalPortActive](vtpProbe())
+        //requestOfType[LocalPortActive](flowEventsProbe)
 
         upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
             uplinkPort.getId, uplinkGatewayAddr, 1)
-
-        router should not be null
-        uplinkPort should not be null
         upLinkRoute should not be null
 
         for (i <- 0 to 2) {
             // Nw address is 10.0.<i>.0/24
             val nwAddr = 0x0a000000 + (i << 8)
-            // All ports in this subnet share the same ip address: 10.0.<i>.1
-            val portAddr = nwAddr + 1
             for (j <- 1 to 3) {
                 val macAddr = MAC.fromString("0a:0b:0c:0d:0" + i + ":0" + j)
                 val portNum = i * 10 + j
                 val portName = "port" + portNum
                 // The port will route to 10.0.<i>.<j*4>/30
-                val segmentAddr = new IntIPv4(nwAddr + (j * 4))
+                val segmentAddr = new IntIPv4(nwAddr + j*4)
+                val portAddr = new IntIPv4(nwAddr + j*4 + 1)
 
-                val port = newPortOnRouter(router, macAddr,
-                    new IntIPv4(portAddr).toString,
-                    segmentAddr.toString, 30,
-                    new IntIPv4(nwAddr).toString, 24)
-
+                val port = newPortOnRouter(router, macAddr, portAddr.toString,
+                                           segmentAddr.toString, 30)
                 port should not be null
 
                 materializePort(port, host, portName)
                 requestOfType[OutgoingMessage](vtpProbe())
                 requestOfType[LocalPortActive](vtpProbe())
+                //requestOfType[LocalPortActive](flowEventsProbe)
 
-
-                log.debug("Created router port {}, {}", portName, macAddr)
-
-                // store port for later use
+                // store port info for later use
                 portConfigs.put(portNum, port)
                 portNumToId.put(portNum, port.getId)
                 portNumToMac.put(portNum, macAddr)
@@ -124,41 +121,23 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 portNumToSegmentAddr.put(portNum, segmentAddr.addressAsInt)
 
                 // Default route to port based on destination only.  Weight 2.
-                var rt = newRoute(router, "0.0.0.0", 0, segmentAddr.toString, 30,
+                newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
                     NextHop.PORT, port.getId, new IntIPv4(NO_GATEWAY).toString,
                     2)
-                /* XXX - discuss.
-                if (1 == j) {
-                    // The first port's routes are added manually because the
-                    // first port will be treated as remote.
-                    rTable.addRoute(rt)
-                }
-                */
-
                 // Anything from 10.0.0.0/16 is allowed through.  Weight 1.
-                rt = newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
+                newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
                     NextHop.PORT, port.getId, new IntIPv4(NO_GATEWAY).toString,
                     1)
-                // XXX see above.
-
                 // Anything from 11.0.0.0/24 is silently dropped.  Weight 1.
-                rt = newRoute(router, "11.0.0.0", 24, segmentAddr.toString, 30,
+                newRoute(router, "11.0.0.0", 24, segmentAddr.toString, 30,
                     NextHop.BLACKHOLE, null, null, 1)
-
                 // Anything from 12.0.0.0/24 is rejected (ICMP filter
                 // prohibited).
-                rt = newRoute(router, "12.0.0.0", 24, segmentAddr.toString, 30,
+                newRoute(router, "12.0.0.0", 24, segmentAddr.toString, 30,
                     NextHop.REJECT, null, null, 1)
-                /* XXX - discuss
-                if (1 != j) {
-                    // Except for the first port, add them locally.
-                    rtr.addPort(portId)
-                }*/
-            } // end for-loop on j
-        } // end for-loop on i
+            }
+        }
 
-        flowEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
         drainProbes()
     }
@@ -216,7 +195,10 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     private def makeAddressInSegment(portNum: Int) : IntIPv4 =
-        new IntIPv4((portNumToSegmentAddr(portNum) + 2))
+        new IntIPv4(portNumToSegmentAddr(portNum) + 2)
+
+    private def myAddressOnPort(portNum: Int): IntIPv4 =
+        new IntIPv4(portNumToSegmentAddr(portNum) + 1)
 
     private def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
         wmatch.getEthernetDestination should be === pkt.getDestinationMACAddress
@@ -352,7 +334,49 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                                         UNREACH_FILTER_PROHIB.toChar
     }
 
+    def testForwardBetweenDownlinks() {
+        // Make a packet that comes in on port 23 (dlDst set to port 23's mac,
+        // nwSrc inside 10.0.2.12/30) and has a nwDst that matches port 12
+        // (i.e. inside 10.0.1.8/30).
+        val inPort = 23
+        val outPort = 12
+        val inFromMac = MAC.fromString("23:23:23:ff:ff:ff")
+        val outToMac = MAC.fromString("12:12:12:aa:aa:aa")
+        val inToMac = portNumToMac(23)
+        val outFromMac = portNumToMac(12)
+        val fromIp = makeAddressInSegment(inPort)
+        val toIp = makeAddressInSegment(outPort)
+        val fromUdp: Short = 10
+        val toUdp: Short = 11
+        val eth = Packets.udp(inFromMac, inToMac, fromIp, toIp,
+            fromUdp, toUdp, "My UDP packet".getBytes)
 
+        log.debug("forwarding from {} to {}", fromIp, toIp)
+
+        feedArpCache(portNumToName(outPort), toIp.addressAsInt, outToMac,
+                     myAddressOnPort(outPort).addressAsInt, outFromMac)
+        requestOfType[DiscardPacket](flowProbe())
+        expectPacketOnPort(portNumToId(outPort))
+        drainProbes()
+        triggerPacketIn(portNumToName(inPort), eth)
+        expectPacketOnPort(portNumToId(inPort))
+
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        val flow = addFlowMsg.flow
+        flow should not be null
+        val flowMatch = flow.getMatch
+        expectMatchForIPv4Packet(eth, flowMatch)
+        flowMatch.getTransportSource should be === fromUdp
+        flowMatch.getTransportDestination should be === toUdp
+        flow.getActions.size() should be === 3
+        val ethKey =
+            expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
+        ethKey.getDst should be === outToMac.getAddress
+        ethKey.getSrc should be === outFromMac.getAddress
+        flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
+    }
 
     def testArpRequestFulfilledLocally() {
         val tuple = fetchRouterAndPort("uplinkPort")
@@ -364,14 +388,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val arpPromise = router.arpTable.get(
             IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
             actors().dispatcher, actors())
-
         requestOfType[EmitGeneratedPacket](simProbe())
 
         feedArpCache("uplinkPort",
             IPv4.toIPv4Address(uplinkGatewayAddr), mac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
-
         val t = Timeout(3 seconds)
         val arpResult = Await.result(arpPromise, t.duration)
         arpResult should be === mac
@@ -388,8 +410,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val arpTable = router.arpTable.asInstanceOf[ArpTableImpl]
         val arpCache = arpTable.arpCache.asInstanceOf[Watcher[IntIPv4,
                                                               ArpCacheEntry]]
-        val macFuture = router.arpTable.get(
-            ip, port,
+        val macFuture = router.arpTable.get(ip, port,
             Platform.currentTime + 30*1000)(actors().dispatcher, actors())
 
         val now = Platform.currentTime
