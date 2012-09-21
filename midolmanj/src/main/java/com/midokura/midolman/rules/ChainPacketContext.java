@@ -5,8 +5,6 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.sdn.flows.PacketMatch;
-
 
 public interface ChainPacketContext {
     UUID getInPortId();
@@ -14,6 +12,6 @@ public interface ChainPacketContext {
     Set<UUID> getPortGroups();
     void addTraversedElementID(UUID id);
     boolean isConnTracked();
-    boolean isForwardFlow(PacketMatch pmatch);
+    boolean isForwardFlow();
     Object getFlowCookie();
 }

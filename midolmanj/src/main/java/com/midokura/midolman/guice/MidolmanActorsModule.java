@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.cache.Cache;
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.RemoteServer;
@@ -36,6 +37,7 @@ public class MidolmanActorsModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
+        requireBinding(Cache.class);
         requireBinding(OvsDatapathConnection.class);
         requireBinding(HostIdProviderService.class);
 

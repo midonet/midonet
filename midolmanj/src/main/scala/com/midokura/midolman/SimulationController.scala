@@ -6,6 +6,7 @@ import compat.Platform
 import akka.actor.{Actor, ActorLogging}
 import akka.util.duration._
 import java.util.UUID
+import javax.annotation.Nullable
 
 import com.google.inject.Inject
 
@@ -27,7 +28,7 @@ class SimulationController() extends Actor with ActorLogging {
     import context._
 
     val timeout = (5 minutes).toMillis
-    @Inject var connectionCache: Cache = null
+    @Inject @Nullable var connectionCache: Cache = null
 
     def receive = {
         case PacketIn(wMatch, pktBytes, _, _, cookie) =>

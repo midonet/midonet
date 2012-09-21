@@ -506,7 +506,7 @@ public class VRNController extends AbstractController
         }
 
         // Track the connection if needed, but not for PortSets.
-        if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow(null) &&
+        if (fwdInfo.isConnTracked() && fwdInfo.isForwardFlow() &&
                 !portSetMap.containsKey(fwdInfo.outPortId)) {
             installConnectionCacheEntry(fwdInfo.outPortId,
                 fwdInfo.matchOut == null ? fwdInfo.matchIn : fwdInfo.matchOut);
@@ -693,7 +693,7 @@ public class VRNController extends AbstractController
         public UUID getOutPortId() { return null; }
         public Set<UUID> getPortGroups() { return null; }
         public boolean isConnTracked() { return false; }
-        public boolean isForwardFlow(PacketMatch match) { return true; }
+        public boolean isForwardFlow() { return true; }
         public Object getFlowCookie() { return null; }
     }
 

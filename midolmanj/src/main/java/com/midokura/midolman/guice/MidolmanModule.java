@@ -10,11 +10,12 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.cache.Cache;
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.CacheFactory;
-import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.services.DatapathConnectionService;
@@ -36,7 +37,6 @@ public class MidolmanModule extends PrivateModule {
         requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
-        //requireBinding(SimulationController.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
@@ -79,13 +79,20 @@ public class MidolmanModule extends PrivateModule {
     }
 
     public static class CacheProvider implements Provider<Cache> {
+        Logger log = LoggerFactory.getLogger(CacheProvider.class);
+
         @Inject
         ConfigProvider configProvider;
 
         @Override
         public Cache get() {
-            return CacheFactory.create(
+            try { 
+                return CacheFactory.create(
                         configProvider.getConfig(MidolmanConfig.class));
+            } catch (Exception e) {
+                log.error("Exception trying to create Cache:", e);
+                return null;
+            }
         }
     }
 }
