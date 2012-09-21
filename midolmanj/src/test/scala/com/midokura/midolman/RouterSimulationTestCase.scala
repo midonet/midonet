@@ -87,8 +87,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
-        requestOfType[OutgoingMessage](vtpProbe())
-        requestOfType[LocalPortActive](vtpProbe())
         requestOfType[LocalPortActive](portEventsProbe)
 
         upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
@@ -111,8 +109,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 port should not be null
 
                 materializePort(port, host, portName)
-                requestOfType[OutgoingMessage](vtpProbe())
-                requestOfType[LocalPortActive](vtpProbe())
                 requestOfType[LocalPortActive](portEventsProbe)
 
                 // store port info for later use
@@ -217,6 +213,17 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         wmatch.getNetworkDestination should be === ipPkt.getDestinationAddress
         wmatch.getNetworkSource should be === ipPkt.getSourceAddress
         wmatch.getNetworkProtocol should be === ipPkt.getProtocol
+
+        ipPkt.getProtocol match {
+            case UDP.PROTOCOL_NUMBER =>
+                val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
+                wmatch.getTransportDestination should be === udpPkt.getDestinationPort
+                wmatch.getTransportSource should be === udpPkt.getSourcePort
+            case TCP.PROTOCOL_NUMBER =>
+                val tcpPkt = ipPkt.getPayload.asInstanceOf[TCP]
+                wmatch.getTransportDestination should be === tcpPkt.getDestinationPort
+                wmatch.getTransportSource should be === tcpPkt.getSourcePort
+        }
     }
 
     def testDropsIPv6() {
@@ -259,9 +266,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getMatch.getTransportSource should equal(10)
-        flow.getMatch.getTransportDestination should equal(11)
-        // XXX - there should be a FlowKeyIPv4 action to set the ttl here
         flow.getActions.size() should equal(3)
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
@@ -288,11 +292,23 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getMatch.getTransportSource should be === fromUdp
-        flow.getMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
         flow.getActions.size() should equal(0)
         simProbe().expectNoMsg(Timeout(2 seconds).duration)
+    }
+
+    private def expectIcmpError(fromMac: MAC, fromIp: IntIPv4,
+                                toMac: MAC, toIp: IntIPv4,
+                                icmpType: Char, icmpCode: Char) {
+        val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        errorPkt.getEtherType should be === IPv4.ETHERTYPE
+        val ipErrorPkt = errorPkt.getPayload.asInstanceOf[IPv4]
+        ipErrorPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
+        ipErrorPkt.getDestinationAddress should be === toIp.addressAsInt
+        ipErrorPkt.getSourceAddress should be === fromIp.addressAsInt
+        val icmpPkt = ipErrorPkt.getPayload.asInstanceOf[ICMP]
+        icmpPkt.getType should be === icmpType
+        icmpPkt.getCode should be === icmpCode
     }
 
     def testRejectRoute() {
@@ -311,20 +327,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getMatch.getTransportSource should be === fromUdp
-        flow.getMatch.getTransportDestination should be === toUdp
         // A flow with no actions drops matching packets
         flow.getActions.size() should equal(0)
 
-        val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
-        errorPkt.getEtherType should be === IPv4.ETHERTYPE
-        val ipErrorPkt = errorPkt.getPayload.asInstanceOf[IPv4]
-        ipErrorPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        ipErrorPkt.getDestinationAddress should be === fromIp.addressAsInt
-        val icmpPkt = ipErrorPkt.getPayload.asInstanceOf[ICMP]
-        icmpPkt.getType should be === ICMP.TYPE_UNREACH
-        icmpPkt.getCode should be === ICMP.UNREACH_CODE.
-                                        UNREACH_FILTER_PROHIB.toChar
+        expectIcmpError(uplinkMacAddr, IntIPv4.fromString(uplinkPortAddr),
+                        fromMac, fromIp, ICMP.TYPE_UNREACH,
+                        ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toChar)
     }
 
     def testForwardBetweenDownlinks() {
@@ -354,8 +362,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getMatch.getTransportSource should be === fromUdp
-        flow.getMatch.getTransportDestination should be === toUdp
         flow.getActions.size() should be === 3
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
@@ -367,7 +373,22 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     def testNoRoute() {
         clusterDataClient().routesDelete(upLinkRoute)
 
+        val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
+        val onPort = 23
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val eth = Packets.udp(
+            fromMac, portNumToMac(onPort),
+            makeAddressInSegment(onPort), IntIPv4.fromString("45.44.33.22"),
+            10, 11, "My UDP packet".getBytes)
+        triggerPacketIn(portNumToName(onPort), eth)
+        expectPacketOnPort(portNumToId(onPort))
 
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        flow.getActions.size() should equal(0)
+        expectIcmpError(portNumToMac(onPort), myAddressOnPort(onPort),
+            fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
+            ICMP.UNREACH_CODE.UNREACH_NET.toChar)
     }
 
     def testArpRequestFulfilledLocally() {
