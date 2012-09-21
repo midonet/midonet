@@ -286,8 +286,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                // TODO(pino): this code suggests every device is mapped
-                // TODO: to a port set. That seems wrong.
+                // assume that every device is mapped to a portSet. If it's not
+                // the case, do nothing but complete the activation
                 portFuture onComplete {
                     case Left(ex) =>
                         self ! _ActivatedLocalPort(vifId, active = false,
@@ -363,8 +363,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None => localPortSetSlices.put(portSetId, mutable.Set(vifId))
                 }
 
-                self ! _ActivatedLocalPort(vifId, active = true, success = true)
-
+                completeLocalPortActivation(vifId, active = true, success = true)
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
                 log.info("Port changed {} {}", vifId, portSetId)
@@ -378,13 +377,10 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None => localPortSetSlices.remove(portSetId)
                 }
 
-                self ! _ActivatedLocalPort(vifId, active = false, success = true)
+                completeLocalPortActivation(vifId, active = false, success = true)
 
             case _ActivatedLocalPort(vifId, active, success) =>
-                if (success)
-                    context.system.eventStream.publish(LocalPortActive(vifId, active))
-                activatingLocalPorts = false
-                unstashAll()
+                completeLocalPortActivation(vifId, active, success)
 
             case LocalPortsRequest(host) =>
                 actorWants.put(sender, ExpectingPorts())
@@ -398,6 +394,16 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 log.error("Unknown message: " + value)
 
         }
+    }
+
+    /* must be called from the actor's thread
+     */
+    private def completeLocalPortActivation(vifId: UUID, active: Boolean,
+                                                     success: Boolean) {
+        if (success)
+            context.system.eventStream.publish(LocalPortActive(vifId, active))
+        activatingLocalPorts = false
+        unstashAll()
     }
 
     private def fireHostStateUpdates(hostId: UUID, actorOption: Option[ActorRef]) {
