@@ -463,6 +463,36 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             ICMP.CODE_NONE)
     }
 
+    def testIcmpEchoFarPort() {
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val fromIp = "10.0.50.25"
+        val farPort = 21
+
+        feedArpCache("uplinkPort",
+            IntIPv4.fromString(uplinkGatewayAddr).addressAsInt,
+            fromMac,
+            IntIPv4.fromString(uplinkPortAddr).addressAsInt,
+            uplinkMacAddr)
+        expectPacketOnPort(uplinkPort.getId)
+
+        val echo = new ICMP()
+        echo.setEchoRequest(16, 32, "My ICMP".getBytes)
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(fromMac).
+            setDestinationMACAddress(uplinkMacAddr).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(fromIp).
+            setDestinationAddress(myAddressOnPort(farPort).addressAsInt()).
+            setProtocol(ICMP.PROTOCOL_NUMBER).
+            setPayload(echo))
+        triggerPacketIn("uplinkPort", eth)
+        expectPacketOnPort(uplinkPort.getId)
+        requestOfType[DiscardPacket](flowProbe())
+        expectEmitIcmp(uplinkMacAddr, myAddressOnPort(farPort),
+            fromMac, IntIPv4.fromString(fromIp), ICMP.TYPE_ECHO_REPLY,
+            ICMP.CODE_NONE)
+    }
+
     /*
     @Ignore def testArpRequestNonLocalAddress() {
     }

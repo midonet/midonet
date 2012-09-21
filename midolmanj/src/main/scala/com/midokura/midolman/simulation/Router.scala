@@ -209,7 +209,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (pktContext.getMatch.getNetworkDestinationIPv4.getAddress ==
                                          outPort.portAddr.getAddress) {
             if (isIcmpEchoRequest(pktContext.getMatch)) {
-                log.debug("got icmp echo reply")
+                log.debug("got icmp echo request")
                 sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
                                   pktContext.getExpiry)
                 return Promise.successful(new ConsumedAction)(ec)
