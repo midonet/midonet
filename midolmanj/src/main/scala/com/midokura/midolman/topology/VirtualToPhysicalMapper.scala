@@ -238,7 +238,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private lazy val tunnelZones: DeviceHandlersManager[TunnelZone[_, _], TunnelZoneManager] =
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
-    private lazy val localActivePorts = mutable.Set[UUID]()
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
     private lazy val localPortSetSlices = mutable.Map[UUID, mutable.Set[UUID]]()
     private var activatingLocalPorts = false
@@ -279,7 +278,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
             case LocalPortActive(vifId, true) if (activatingLocalPorts) =>
                 stash()
 
-            case LocalPortActive(vifId, true) if (!activatingLocalPorts)=>
+            case LocalPortActive(vifId, true) if (!activatingLocalPorts) =>
                 activatingLocalPorts = true
                 clusterDataClient.portsSetLocalAndActive(vifId, true)
 
@@ -287,27 +286,33 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                portFuture flatMap { port =>
-                    // TODO(pino): this code suggests every device is mapped
-                    // TODO: to a port set. That seems wrong.
-                    localActivePortSets.get(port.deviceID) match {
-                        case Some(_) =>
-                            Promise.successful(_PortSetMembershipUpdated(
-                                vifId, port.deviceID, state = true))
+                // TODO(pino): this code suggests every device is mapped
+                // TODO: to a port set. That seems wrong.
+                portFuture onComplete {
+                    case Left(ex) =>
+                        self ! _ActivatedLocalPort(vifId, active = false,
+                                                          success = false)
+                    case Right(port) =>
+                        localActivePortSets.get(port.deviceID) match {
+                            case Some(_) =>
+                                self ! _PortSetMembershipUpdated(
+                                    vifId, port.deviceID, state = true)
+                            case None =>
+                                val future = Promise[String]()
+                                clusterDataClient.portSetsAsyncAddHost(
+                                    port.deviceID, hostIdProvider.getHostId,
+                                    new PromisingDirectoryCallback[String](future) with
+                                        DirectoryCallback.Add)
 
-                        case None =>
-                            val future = Promise[String]()
-                            clusterDataClient.portSetsAsyncAddHost(
-                                port.deviceID, hostIdProvider.getHostId,
-                                new PromisingDirectoryCallback[String](future) with DirectoryCallback.Add
-                            )
-
-                            future map { _ =>
-                                _PortSetMembershipUpdated(vifId, port.deviceID, state = true)
-                            }
-                    }
-                } onSuccess {
-                    case m: _PortSetMembershipUpdated => self ! m
+                                future onComplete {
+                                    case Left(ex) =>
+                                        self ! _ActivatedLocalPort(
+                                            vifId, active = true, success = true)
+                                    case Right(_) =>
+                                        self ! _PortSetMembershipUpdated(
+                                            vifId, port.deviceID, state = true)
+                                }
+                        }
                 }
 
             case LocalPortActive(vifId, false) if(activatingLocalPorts) =>
@@ -319,32 +324,35 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                portFuture flatMap { port =>
-                    localActivePortSets.get(port.deviceID) match {
-                        case Some(ports) if ports.contains(vifId) =>
-                            if (ports.size > 1) {
-                                Promise.successful(_PortSetMembershipUpdated(
-                                    vifId, port.deviceID, state = false))
-                            } else {
+                portFuture onComplete {
+                    case Left(ex) =>
+                        self ! _ActivatedLocalPort(
+                            vifId, active = false, success = false)
+                    case Right(port) =>
+                        localActivePortSets.get(port.deviceID) match {
+                            case Some(ports) if ports.contains(vifId) =>
                                 val future = Promise[Void]()
-                                clusterDataClient.portSetsAsyncDelHost(
-                                    port.deviceID, hostIdProvider.getHostId,
-                                    new PromisingDirectoryCallback[Void](future)
-                                        with DirectoryCallback.Void)
+                                if (ports.size > 1) {
+                                    future.success(null)
+                                } else {
+                                    clusterDataClient.portSetsAsyncDelHost(
+                                        port.deviceID, hostIdProvider.getHostId,
+                                        new PromisingDirectoryCallback[Void](future)
+                                            with DirectoryCallback.Void)
+                                }
+                                future onComplete {
+                                    case _ =>
+                                        self ! _PortSetMembershipUpdated(
+                                            vifId, port.deviceID, state = false)
+                                }
 
-                                future map { _ =>
-                                    _PortSetMembershipUpdated(
-                                        vifId, port.deviceID, state = false) }
-                            }
-                        case None =>
-                            Promise.successful(null).mapTo[_PortSetMembershipUpdated]
-                    }
-                } onSuccess {
-                    case m: _PortSetMembershipUpdated => self ! m
+                            case _ =>
+                                self ! _ActivatedLocalPort(
+                                    vifId, active = false, success = true)
+                        }
                 }
 
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
-                localActivePorts.add(vifId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.add(vifId)
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
@@ -355,13 +363,11 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None => localPortSetSlices.put(portSetId, mutable.Set(vifId))
                 }
 
-                context.system.eventStream.publish(LocalPortActive(vifId, active = true))
-                activatingLocalPorts = false
-                unstashAll()
+                self ! _ActivatedLocalPort(vifId, active = true, success = true)
+
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
                 log.info("Port changed {} {}", vifId, portSetId)
-                localActivePorts.remove(vifId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.remove(vifId)
                     case None =>
@@ -372,7 +378,11 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None => localPortSetSlices.remove(portSetId)
                 }
 
-                context.system.eventStream.publish(LocalPortActive(vifId, active = false))
+                self ! _ActivatedLocalPort(vifId, active = false, success = true)
+
+            case _ActivatedLocalPort(vifId, active, success) =>
+                if (success)
+                    context.system.eventStream.publish(LocalPortActive(vifId, active))
                 activatingLocalPorts = false
                 unstashAll()
 
@@ -486,6 +496,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private case class ExpectingPorts() extends ExpectingState
 
     private case class _PortSetMembershipUpdated(vif: UUID, setId: UUID, state: Boolean)
+
+    private case class _ActivatedLocalPort(vif: UUID, active: Boolean, success: Boolean)
 }
 
 object PromisingDirectoryCallback {
