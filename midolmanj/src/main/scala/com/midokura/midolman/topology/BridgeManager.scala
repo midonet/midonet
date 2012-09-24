@@ -90,7 +90,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                        flowRemovedCallback, rtrMacToLogicalPortId, rtrIpToMac))
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateAllDeviceFlowsTag(id))
+            FlowTagger.invalidateFlowsByDevice(id))
         }
         filterChanged = false
     }
@@ -132,6 +132,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             flowCountMap.get((mac, port)) match {
                 case None =>
                     flowCountMap.put((mac, port), 1)
+                    macPortMap.add(mac, port)
                     //XXX: Remove any delayed deletes for this MAC/port
                     //XXX: Check for migration from another port, and invalidate
                     //     flows to this MAC going to another port.
