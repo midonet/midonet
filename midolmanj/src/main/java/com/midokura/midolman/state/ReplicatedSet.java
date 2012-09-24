@@ -23,38 +23,33 @@ public abstract class ReplicatedSet<T> {
         void process(Collection<T1> added, Collection<T1> removed);
     }
 
-    private class DirectoryWatcher implements Runnable {
+    private void updateItems(Set<String> newStrings){
+        Set<String> oldStrings = strings;
+        // Compute the newly added strings
+        Set<String> addedStrings = new HashSet<String>(newStrings);
+        addedStrings.removeAll(oldStrings);
+        Set<T> addedItems = new HashSet<T>();
+        for (String str : addedStrings) {
+            addedItems.add(decode(str));
+        }
+        // Compute the newly deleted strings
+        oldStrings.removeAll(newStrings);
+        Set<T> deletedItems = new HashSet<T>();
+        for (String str : oldStrings) {
+            deletedItems.add(decode(str));
+        }
+        if (addedItems.size() > 0 || deletedItems.size() > 0) {
+            notifyWatchers(addedItems, deletedItems);
+        }
+        strings = newStrings;
+    }
+
+    private class DirectoryWatcher extends Directory.DefaultTypedWatcher
+    {
         public void run() {
-            if (!running) {
+            if (!running)
                 return;
-            }
-            Set<String> oldStrings = strings;
-            try {
-                strings = new HashSet<String>(dir.getChildren("", this));
-            } catch (KeeperException e) {
-                log.error("DirectoryWatcher.run", e);
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                log.error("DirectoryWatcher.run", e);
-                Thread.currentThread().interrupt();
-            }
-            // Compute the newly added strings
-            Set<String> addedStrings = new HashSet<String>(strings);
-            addedStrings.removeAll(oldStrings);
-            Set<T> addedItems = new HashSet<T>();
-            for (String str : addedStrings) {
-                addedItems.add(decode(str));
-            }
-            // Compute the newly deleted strings
-            oldStrings.removeAll(strings);
-            Set<T> deletedItems = new HashSet<T>();
-            for (String str : oldStrings) {
-                deletedItems.add(decode(str));
-            }
-            if (addedItems.size() > 0 || deletedItems.size() > 0) {
-                notifyWatchers(addedItems, deletedItems);
-            }
+            dir.asyncGetChildren("", new GetItemsCallback(), this);
         }
     }
 
@@ -99,36 +94,13 @@ public abstract class ReplicatedSet<T> {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         String path = "/" + encode(item);
-        try {
-            dir.add(path, null, createMode);
-        } catch (NodeExistsException e) {
-            // If the route already exists and we need it to be ephemeral, we
-            // delete it and re-create it so that it belongs to this ZK client
-            // and will only be removed when this client's session expires.
-            if (createMode.equals(CreateMode.EPHEMERAL)) {
-                log.warn("Item {} already exists. Delete it and recreate it " +
-                        "as an Ephemeral node in order to own it.", item);
-                try {
-                    // TODO(pino): can it be done in a multi to save a trip?
-                    dir.delete(path);
-                    dir.add(path, null, createMode);
-                } catch (InterruptedException e1) {
-                    log.error("Interrupted", e1);
-                }
-            }
-        } catch (InterruptedException e) {
-            log.error("Interrupted should never happen.", e);
-        }
+        dir.asyncAdd(path, null, createMode, new AddCallback(item));
     }
 
     public void remove(T item) throws KeeperException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
-        try {
-            dir.delete("/" + encode(item));
-        } catch (InterruptedException e) {
-            log.error("Interrupted should never happen.", e);
-        }
+        dir.asyncDelete("/" + encode(item), new DeleteCallback(item));
     }
 
     public Set<String> getStrings() {
@@ -139,6 +111,85 @@ public abstract class ReplicatedSet<T> {
             Collection<T> removedItems) {
         for (Watcher<T> watcher : changeWatchers) {
             watcher.process(addedItems, removedItems);
+        }
+    }
+
+    class GetItemsCallback implements DirectoryCallback<Set<String>> {
+        @Override
+        public void onSuccess(Result<Set<String>> data) {
+            updateItems(data.getData());
+        }
+
+        @Override
+        public void onTimeout() {
+            log.error("ReplicatedSet getChildren {} timed out.");
+        }
+
+        @Override
+        public void onError(KeeperException e) {
+
+            log.error("ReplicatedSet GetChildren {} failed", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    class DeleteCallback implements DirectoryCallback.Void {
+        private T item;
+
+        private DeleteCallback(T item) {
+            this.item = item;
+        }
+
+        @Override
+        public void onSuccess(Result<java.lang.Void> data) {
+            log.debug("ReplicatedSet delete {} succeeded", item);
+        }
+
+        @Override
+        public void onTimeout() {
+            log.error("ReplicatedSet delete {} timed out.", item);
+        }
+
+        @Override
+        public void onError(KeeperException e) {
+            log.error("ReplicatedSet Delete {} failed", item, e);
+        }
+    }
+
+    private class AddCallback implements DirectoryCallback.Add {
+        private T item;
+
+        AddCallback(T v) {
+            item = v;
+        }
+
+        public void onSuccess(Result<String> result) {
+            log.info("ReplicatedSet Add {} succeeded", item);
+        }
+
+        public void onError(KeeperException ex) {
+            if(ex instanceof NodeExistsException){
+                // If the route already exists and we need it to be ephemeral, we
+                // delete it and re-create it so that it belongs to this ZK client
+                // and will only be removed when this client's session expires.
+                if (createMode.equals(CreateMode.EPHEMERAL)) {
+                    log.warn("Item {} already exists. Delete it and recreate it " +
+                                 "as an Ephemeral node in order to own it.", item);
+                    String path = "/" + encode(item);
+                    try {
+                        // TODO(pino): can it be done in a multi to save a trip?
+                        dir.delete(path);
+                    } catch (Exception e) {
+                        log.error("Exception when trying to delete", e);
+                    }
+                    dir.asyncAdd(path, null, createMode, new AddCallback(item));
+                }
+            }
+            log.error("ReplicatedSet Add {} failed", item, ex);
+        }
+
+        public void onTimeout() {
+            log.error("ReplicatedSet Add {} timed out.", item);
         }
     }
 

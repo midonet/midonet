@@ -5,16 +5,11 @@
 package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -22,11 +17,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.Route;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.DirectoryCallback;
+import com.midokura.midolman.state.DirectoryCallbackFactory;
+import com.midokura.midolman.state.PortConfig;
+import com.midokura.midolman.state.PortDirectory;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
 
 /**
  * Class to manage the routing ZooKeeper data.
  */
 public class RouteZkManager extends ZkManager {
+
+    protected final Functor<String, Route> strToRouteMapper =
+        new Functor<String, Route>() {
+            @Override
+            public Route apply(String arg0) {
+                try {
+                    return get(UUID.fromString(arg0));
+                } catch (StateAccessException e) {
+                    log.error("Exception when trying to get route UUID {}", arg0, e);
+                    return null;
+                }
+            }
+        };
 
     private final static Logger log = LoggerFactory
             .getLogger(RouteZkManager.class);
@@ -234,6 +252,25 @@ public class RouteZkManager extends ZkManager {
             result.add(UUID.fromString(routeId));
         }
         return result;
+    }
+
+    public void listPortRoutesAsynch(UUID portId,
+                        final DirectoryCallback<Set<Route>> listPortRoutesCallback,
+                        Directory.TypedWatcher watcher){
+
+        zk.asyncGetChildren(
+            paths.getPortRoutesPath(portId),
+            DirectoryCallbackFactory.transform(
+                listPortRoutesCallback,
+                new Functor<Set<String>, Set<Route>>() {
+                    @Override
+                    public Set<Route> apply(Set<String> arg0) {
+                        return CollectionFunctors.map(
+                            arg0, strToRouteMapper, new HashSet<Route>());
+                    }
+                }
+            ), watcher);
+
     }
 
     /**

@@ -543,28 +543,9 @@ public class LocalDataClientImpl implements DataClient {
                                      active);
                     //TODO(ross) add to port set
                 } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
-                    final UUID deviceId = config.device_id;
-                    try {
-                        Directory routeDir = routerZkManager.getRoutingTableDirectory(deviceId);
-                        RoutesManager routes = new RoutesManager(routeDir);
-                        L3DevicePort port = new L3DevicePort(portCache,
-                                                             routeMgr, portID);
-                        // register a watcher
-                        port.addListener(new RouterPortListener(routes));
-                        for (com.midokura.midolman.layer3.Route rt :
-                            port.getRoutes()) {
-                            if (active) {
-                                routes.addRoute(rt);
-                            } else {
-                                routes.remove(rt);
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.error(
-                            "Error adding routes for port {} ",
-                            portID, e);
-                    }
-
+                    UUID deviceId = config.device_id;
+                    routerManager.updateRoutesBecauseLocalPortChangedStatus(deviceId,
+                                                                 portID, active);
                 }
             }
         });
