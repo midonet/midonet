@@ -67,7 +67,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateAllDeviceFlowsTag(id))
+            FlowTagger.invalidateFlowsByDevice(id))
         }
         filterChanged = false
     }

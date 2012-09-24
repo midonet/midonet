@@ -67,7 +67,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // invalidate all the flows if there's some change in the logical ports
         if(newRtrIpToMac != rtrIpToMac){
             flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateAllDeviceFlowsTag(id))
+                FlowTagger.invalidateFlowsByDevice(id))
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
         rtrIpToMac = newRtrIpToMac
@@ -87,12 +87,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             //1. MAC was deleted
             if (newPort == null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateAllMacFlowsTag(id, mac))
+                    FlowTagger.invalidateFlowsByMac(id, mac))
             }
             //2. MAC moved from port-x to port-y
             if (newPort != null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateAllMacPortFlows(id, mac, oldPort))
+                    FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
             //3. MAC was added -> do nothing
 
@@ -113,7 +113,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
         if (!active) {
             flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateAllMacFlowsTag(id, mac)
+                FlowTagger.invalidateFlowsByMac(id, mac)
             )
         }
     }

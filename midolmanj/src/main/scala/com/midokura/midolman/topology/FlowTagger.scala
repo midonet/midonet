@@ -10,13 +10,13 @@ import com.midokura.packets.MAC
 
 object FlowTagger {
 
-    def invalidateAllDeviceFlowsTag(device: UUID): AnyRef =
+    def invalidateFlowsByDevice(device: UUID): AnyRef =
         (device)
 
-    def invalidateAllMacFlowsTag(bridgeId: UUID, mac: MAC): AnyRef =
+    def invalidateFlowsByMac(bridgeId: UUID, mac: MAC): AnyRef =
         (bridgeId, mac)
 
-    def invalidateAllMacPortFlows(bridgeId: UUID, mac: MAC,
+    def invalidateFlowsByPort(bridgeId: UUID, mac: MAC,
                                   port: UUID): AnyRef =
         (bridgeId, mac, port)
 
