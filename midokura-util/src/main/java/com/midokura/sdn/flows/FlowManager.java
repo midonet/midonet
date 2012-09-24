@@ -419,9 +419,13 @@ public class FlowManager {
         dpFlowTable.put(flow.getMatch(), flow.getActions());
         WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
         if(wcFlow.getIdleExpirationMillis() > 0){
-            wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
-            log.trace("LastUsedTime updated for wildcard flow {}, new value {}",
-                      wcFlow.toString(), flow.getLastUsedTime().toString());
+            // TODO(pino): check with Rossella. Newly created flows will
+            // TODO: always have a null lastUsedTime.
+            if (null == flow.getLastUsedTime())
+                wcFlow.setLastUsedTimeMillis(System.currentTimeMillis());
+            else
+                wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
+            log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
         }
     }
 

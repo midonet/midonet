@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,7 +27,7 @@ public class FlowManagerTest {
     int dpFlowRemoveBatchSize = 2;
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
-    long timeOut = 300;
+    long timeOut = 2000;
 
     @Before
     public void setUp() {
@@ -35,7 +36,7 @@ public class FlowManagerTest {
                                                   dpFlowRemoveBatchSize);
     }
 
-    
+
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
@@ -79,7 +80,7 @@ public class FlowManagerTest {
                    nullValue());
 
     }
-    
+
     @Test
     public void testIdleExpiration() throws InterruptedException {
 
@@ -124,7 +125,7 @@ public class FlowManagerTest {
 
     }
 
-    
+
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
 
@@ -208,7 +209,7 @@ public class FlowManagerTest {
                    equalTo(0));
 
     }
-    
+
     @Test
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
             throws InterruptedException {
@@ -226,14 +227,14 @@ public class FlowManagerTest {
         flowManager.add(flowMatch, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
 
-        Thread.sleep(timeOut/4);
+        Thread.sleep(timeOut/6);
 
         // update the flow in the kernel
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
-
+        Thread.sleep(timeOut/6);
         flowManager.checkFlowsExpiration();
 
-        Thread.sleep(timeOut/4);
+        Thread.sleep(timeOut/6);
 
         assertThat("Wildcard flow LastUsedTime was not updated",
                    wildcardFlow.getLastUsedTimeMillis(),
@@ -269,7 +270,7 @@ public class FlowManagerTest {
                    flowManager.getWildcardTables().size(),
                    equalTo(0));
     }
-    
+
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);

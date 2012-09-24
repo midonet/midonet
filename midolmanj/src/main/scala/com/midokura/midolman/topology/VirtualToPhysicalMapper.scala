@@ -239,7 +239,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
-    private lazy val localPortSetSlices = mutable.Map[UUID, mutable.Set[UUID]]()
     private var activatingLocalPorts = false
 
     implicit val requestReplyTimeout = new Timeout(1 second)
@@ -252,7 +251,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 portSets.addSubscriber(portSetId, sender, updates)
 
             case portSet: rcu.PortSet =>
-                val updatedPortSet = localPortSetSlices.get(portSet.id) match {
+                val updatedPortSet = localActivePortSets.get(portSet.id)
+                match {
                     case None => portSet
                     case Some(ports) =>
                         rcu.PortSet(portSet.id, portSet.hosts, ports.toSet)
@@ -358,23 +358,13 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
                 }
 
-                localPortSetSlices.get(vifId) match  {
-                    case Some(ports) => ports += vifId
-                    case None => localPortSetSlices.put(portSetId, mutable.Set(vifId))
-                }
-
                 completeLocalPortActivation(vifId, active = true, success = true)
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
                 log.info("Port changed {} {}", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.remove(vifId)
-                    case None =>
-                }
-
-                localPortSetSlices.get(portSetId) match  {
-                    case Some(ports) => ports -= vifId
-                    case None => localPortSetSlices.remove(portSetId)
+                    case None => localActivePortSets.remove(portSetId)
                 }
 
                 completeLocalPortActivation(vifId, active = false, success = true)

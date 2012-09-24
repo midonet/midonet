@@ -117,17 +117,17 @@ public class BridgeTestOneDatapath {
         tap1 = new TapWrapper("tapBridge1");
         host.addHostInterfacePort()
             .interfaceName(tap1.getName())
-            .portId(port1.getId());
+            .portId(port1.getId()).create();
 
         tap2 = new TapWrapper("tapBridge2");
         host.addHostInterfacePort()
             .interfaceName(tap2.getName())
-            .portId(port2.getId());
+            .portId(port2.getId()).create();
 
         tap3 = new TapWrapper("tapBridge3");
         host.addHostInterfacePort()
             .interfaceName(tap3.getName())
-            .portId(port3.getId());
+            .portId(port3.getId()).create();
 
         helper1_2 = new PacketHelper(mac1, ip1, mac2, ip2);
         helper2_1 = new PacketHelper(mac2, ip2, mac1, ip1);
@@ -138,6 +138,7 @@ public class BridgeTestOneDatapath {
         MidolmanEvents.setObserverCallback(new MidolmanEvents.EventCallback() {
             @Override
             public void portStatus(UUID portID, boolean up) {
+                log.info("Observer callback: {} {}", portID, up);
                 if (!up || !portStatus.containsKey(portID)) return;
                 portStatus.put(portID, true);
             }
