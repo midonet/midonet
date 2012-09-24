@@ -27,7 +27,7 @@ public class FlowManagerTest {
     int dpFlowRemoveBatchSize = 2;
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
-    long timeOut = 2000;
+    long timeOut = 4000;
 
     @Before
     public void setUp() {
@@ -227,14 +227,13 @@ public class FlowManagerTest {
         flowManager.add(flowMatch, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
 
-        Thread.sleep(timeOut/6);
+        Thread.sleep(5*timeOut/8);
 
         // update the flow in the kernel
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
-        Thread.sleep(timeOut/6);
         flowManager.checkFlowsExpiration();
 
-        Thread.sleep(timeOut/6);
+        Thread.sleep(timeOut/8);
 
         assertThat("Wildcard flow LastUsedTime was not updated",
                    wildcardFlow.getLastUsedTimeMillis(),
