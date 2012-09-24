@@ -126,4 +126,17 @@ public class WildcardFlow {
         this.creationTimeMillis = creationTimeMillis;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "WildcardFlow{" +
+            "actions=" + actions +
+            ", priority=" + priority +
+            ", match=" + match +
+            ", creationTimeMillis=" + creationTimeMillis +
+            ", lastUsedTimeMillis=" + lastUsedTimeMillis +
+            ", hardExpirationMillis=" + hardExpirationMillis +
+            ", idleExpirationMillis=" + idleExpirationMillis +
+            '}';
+    }
 }

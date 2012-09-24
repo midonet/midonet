@@ -88,7 +88,7 @@ public class NetlinkSelectorProvider extends SelectorProvider {
                 clazz.getConstructor(SelectorProvider.class, Netlink.Protocol.class);
 
             return constructor.newInstance(this, protocol);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Exception while instantiating class of type: {}", NAME, e);
             return null;
         }

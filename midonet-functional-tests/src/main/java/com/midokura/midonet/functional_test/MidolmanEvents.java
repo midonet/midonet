@@ -29,7 +29,7 @@ public class MidolmanEvents {
                 new Props(MidolmanObserver.class), "midolmanObserver");
             ActorRef midolman = system.actorFor(
                 "akka://MidolmanActors@127.0.0.1:2552/user/remoteServer");
-            midolman.tell("LocalPorts", observer);
+            midolman.tell("LocalPortsStart", observer);
             log.info("Started Midolman observer: {}", observer);
         }
     }

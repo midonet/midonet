@@ -743,10 +743,15 @@ class DatapathController() extends Actor with ActorLogging {
 
         val translatedActions = localPorts.map { id =>
             FlowActions.output(id).asInstanceOf[FlowAction[_]]
-        } ++ tunnelKey.map { key =>
-            FlowActions.setKey(FlowKeys.tunnelID(key)).asInstanceOf[FlowAction[_]]
-        } ++ tunnelIds.map { id =>
-            FlowActions.output(id).asInstanceOf[FlowAction[_]]
+        }
+
+        if (null != tunnelIds && tunnelIds.length > 0) {
+            translatedActions ++ tunnelKey.map { key =>
+                FlowActions.setKey(FlowKeys.tunnelID(key))
+                    .asInstanceOf[FlowAction[_]]
+            } ++ tunnelIds.map { id =>
+                FlowActions.output(id).asInstanceOf[FlowAction[_]]
+            }
         }
 
         for ( act <- acts ) {
