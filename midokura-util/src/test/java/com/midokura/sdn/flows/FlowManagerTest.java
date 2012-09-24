@@ -211,9 +211,8 @@ public class FlowManagerTest {
     
     @Test
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
-        throws InterruptedException {
-
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
+            throws InterruptedException {
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow = new WildcardFlow()
@@ -227,28 +226,34 @@ public class FlowManagerTest {
         flowManager.add(flowMatch, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
 
-        Thread.sleep(timeOut/2);
+        Thread.sleep(timeOut/4);
 
         // update the flow in the kernel
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
 
         flowManager.checkFlowsExpiration();
 
-        assertThat("Wildcard flow LastUsedTime was not update", wildcardFlow.getLastUsedTimeMillis(),
-                   equalTo(flowManagerHelper.flowsMap.get(flowMatch).getLastUsedTime()));
+        Thread.sleep(timeOut/4);
+
+        assertThat("Wildcard flow LastUsedTime was not updated",
+                   wildcardFlow.getLastUsedTimeMillis(),
+                   equalTo(flowManagerHelper.flowsMap.get(flowMatch)
+                                            .getLastUsedTime()));
 
         long time2 = System.currentTimeMillis();
 
         long sleepTime = timeOut - (time2-time1) + 1;
-        if(sleepTime < 0){
-            throw new RuntimeException("This machine is too slow, increase timeout!");
+        if (sleepTime < 0) {
+            throw new RuntimeException(
+                "This machine is too slow, increase timeout!");
         }
 
         flowManager.checkFlowsExpiration();
 
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                   flowManager.getWildcardTables().get(
+                                   wildcardFlow.getMatch().getUsedFields())
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
