@@ -86,7 +86,7 @@ public class MidolmanModule extends PrivateModule {
 
         @Override
         public Cache get() {
-            try { 
+            try {
                 return CacheFactory.create(
                         configProvider.getConfig(MidolmanConfig.class));
             } catch (Exception e) {

@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,7 +39,7 @@ public class FlowManagerTest {
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
 
@@ -67,7 +66,8 @@ public class FlowManagerTest {
 
 
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                   flowManager.getWildcardTables().get(
+                                   wildcardFlow.getMatch().getUsedFields())
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
@@ -83,8 +83,7 @@ public class FlowManagerTest {
 
     @Test
     public void testIdleExpiration() throws InterruptedException {
-
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
 
@@ -111,7 +110,8 @@ public class FlowManagerTest {
 
 
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                   flowManager.getWildcardTables().get(
+                                   wildcardFlow.getMatch().getUsedFields())
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
@@ -128,8 +128,7 @@ public class FlowManagerTest {
 
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
-
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10l));
+        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow = new WildcardFlow()
@@ -148,7 +147,7 @@ public class FlowManagerTest {
         Thread.sleep(timeOut/2);
 
         // add another flow that matches
-        FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10l))
+        FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10L))
                                       .addKey(FlowKeys.tcp(1000, 1002));
         Flow flow2 = flowManager.createDpFlow(flowMatch1);
         assertThat("Flow didn't match", flow2, notNullValue());
@@ -177,11 +176,12 @@ public class FlowManagerTest {
                    equalTo(wildcardFlow));
 
         long time2 = System.currentTimeMillis();
-        // this test is very sensitive to time, it's better to calibrate the sleep
-        // according to the speed of the operations
+        // this test is very sensitive to time, it's better to calibrate the
+        // sleep according to the speed of the operations
         long sleepTime = timeOut - (time2-time1) + 1;
-        if(sleepTime < 0){
-            throw new RuntimeException("This machine is too slow, increase timeout!");
+        if (sleepTime < 0) {
+            throw new RuntimeException(
+                "This machine is too slow, increase timeout!");
         }
         Thread.sleep(sleepTime);
 
@@ -189,7 +189,8 @@ public class FlowManagerTest {
 
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getWildcardTables().get(wildcardFlow.getMatch().getUsedFields())
+                   flowManager.getWildcardTables().get(
+                                   wildcardFlow.getMatch().getUsedFields())
                               .get(wildcardFlow.getMatch()),
                    equalTo(wildcardFlow));
 
@@ -274,11 +275,11 @@ public class FlowManagerTest {
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
 
-        for(int i=0; i<=maxAcceptedDpFlows; i++){
-
-            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
-
-            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        for (int i=0; i<=maxAcceptedDpFlows; i++) {
+            FlowMatch flowMatch =
+                new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
+            WildcardMatch wildcardMatch =
+                WildcardMatches.fromFlowMatch(flowMatch);
             // no time out set
             WildcardFlow wildcardFlow = new WildcardFlow()
                 .setMatch(wildcardMatch)
