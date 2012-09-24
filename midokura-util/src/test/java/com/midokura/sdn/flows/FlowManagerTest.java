@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,7 +36,7 @@ public class FlowManagerTest {
                                                   dpFlowRemoveBatchSize);
     }
 
-    
+
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
@@ -79,7 +80,7 @@ public class FlowManagerTest {
                    nullValue());
 
     }
-    
+
     @Test
     public void testIdleExpiration() throws InterruptedException {
 
@@ -124,7 +125,7 @@ public class FlowManagerTest {
 
     }
 
-    
+
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
 
@@ -208,7 +209,8 @@ public class FlowManagerTest {
                    equalTo(0));
 
     }
-    
+
+    @Ignore
     @Test
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
         throws InterruptedException {
@@ -234,7 +236,8 @@ public class FlowManagerTest {
 
         flowManager.checkFlowsExpiration();
 
-        assertThat("Wildcard flow LastUsedTime was not update", wildcardFlow.getLastUsedTimeMillis(),
+        assertThat("Wildcard flow LastUsedTime was not updated",
+            wildcardFlow.getLastUsedTimeMillis(),
                    equalTo(flowManagerHelper.flowsMap.get(flowMatch).getLastUsedTime()));
 
         long time2 = System.currentTimeMillis();
@@ -264,7 +267,7 @@ public class FlowManagerTest {
                    flowManager.getWildcardTables().size(),
                    equalTo(0));
     }
-    
+
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
