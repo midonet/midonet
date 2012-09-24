@@ -76,12 +76,12 @@ public class TunnelZoneResource {
     public TunnelZone get(@PathParam("id") UUID id)
         throws StateAccessException {
 
-        com.midokura.midonet.cluster.data.TunnelZone zoneData =
-                dataClient.tunnelZonesGet(id);
-        if (zoneData == null) {
+        if (!dataClient.tunnelZonesExists(id)) {
             throw new NotFoundHttpException();
         }
 
+        com.midokura.midonet.cluster.data.TunnelZone zoneData =
+                dataClient.tunnelZonesGet(id);
         TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
         zone.setBaseUri(uriInfo.getBaseUri());
 
