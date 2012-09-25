@@ -5,10 +5,15 @@
 package com.midokura.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.midolman.state.DirectoryCallback;
+import com.midokura.midolman.state.DirectoryCallbackFactory;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -102,6 +107,29 @@ public class BgpZkManager extends ZkManager {
         return getBGP(id, null);
     }
 
+    public void getBGPAsync(final UUID bgpId, DirectoryCallback <BGP> bgpDirectoryCallback,
+                            final Directory.TypedWatcher watcher) {
+
+        String bgpPath = paths.getBgpPath(bgpId);
+
+        zk.asyncGet(bgpPath,
+                DirectoryCallbackFactory.transform(
+                        bgpDirectoryCallback,
+                        new Functor<byte[], BGP>() {
+                            @Override
+                            public BGP apply(byte[] arg0) {
+                                try {
+                                    BGP.Data bgpData = serializer.deserialize(arg0, BGP.Data.class);
+                                    return new BGP(bgpId, bgpData);
+                                } catch (ZkStateSerializationException e) {
+                                    log.warn("Could not deserialize BGP data");
+                                }
+                                return null;
+                            }
+                        }),
+                watcher);
+    }
+
     public boolean exists(UUID id) throws StateAccessException {
         return exists(paths.getBgpPath(id));
     }
@@ -116,6 +144,26 @@ public class BgpZkManager extends ZkManager {
             result.add(UUID.fromString(bgpId));
         }
         return result;
+    }
+
+    public void getBgpListAsync(UUID portId,
+                                final DirectoryCallback<Set<UUID>>
+                                        bgpContentsCallback,
+                                Directory.TypedWatcher watcher) {
+        String bgpPath = paths.getPortBgpPath(portId);
+
+        zk.asyncGetChildren(
+                bgpPath,
+                DirectoryCallbackFactory.transform(
+                        bgpContentsCallback,
+                        new Functor<Set<String>, Set<UUID>>() {
+                            @Override
+                            public Set<UUID> apply(Set<String> arg0) {
+                                return CollectionFunctors.map(
+                                        arg0, strToUUIDMapper, new HashSet<UUID>());
+                            }
+                        }
+                ), watcher);
     }
 
     public List<UUID> list(UUID portId) throws StateAccessException {
