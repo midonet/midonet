@@ -93,11 +93,8 @@ public class PortSetMap {
             throw new StateAccessException("No portset with ID " +
                     key.toString());
         }
-        try {
-            ipv4Set.add(addr);
-        } catch (KeeperException e) {
-            throw new StateAccessException(e);
-        }
+        ipv4Set.add(addr);
+
     }
 
     public void deleteIPv4Addr(UUID key, IntIPv4 addr)
@@ -107,11 +104,7 @@ public class PortSetMap {
             throw new StateAccessException("No portset with ID " +
                     key.toString());
         }
-        try {
-            ipv4Set.remove(addr);
-        } catch (KeeperException e) {
-            throw new StateAccessException(e);
-        }
+        ipv4Set.remove(addr);
     }
 
     private class DirectoryWatcher implements Runnable {

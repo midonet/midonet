@@ -99,8 +99,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
 
         dpProbe().expectMsgClass(classOf[AddWildcardFlow])
-
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
         addFlowMsg.pktBytes should not be null
         Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)

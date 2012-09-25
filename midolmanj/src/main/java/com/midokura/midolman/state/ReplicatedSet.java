@@ -90,14 +90,14 @@ public abstract class ReplicatedSet<T> {
         strings.clear();
     }
 
-    public void add(T item) throws KeeperException {
+    public void add(T item) {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         String path = "/" + encode(item);
         dir.asyncAdd(path, null, createMode, new AddCallback(item));
     }
 
-    public void remove(T item) throws KeeperException {
+    public void remove(T item) {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         dir.asyncDelete("/" + encode(item), new DeleteCallback(item));
@@ -185,7 +185,8 @@ public abstract class ReplicatedSet<T> {
                     dir.asyncAdd(path, null, createMode, new AddCallback(item));
                 }
             }
-            log.error("ReplicatedSet Add {} failed", item, ex);
+            else
+                log.error("ReplicatedSet Add {} failed", item, ex);
         }
 
         public void onTimeout() {

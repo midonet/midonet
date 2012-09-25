@@ -156,18 +156,6 @@ public class TestReplicatedSet {
         stringSet.add("foo");
     }
 
-    @Test(expected = KeeperException.NoNodeException.class)
-    public void testRemoveStringDoesNotExist() throws KeeperException,
-            InterruptedException {
-        stringSet.start();
-        try {
-            stringSet.add("foo");
-        } catch (KeeperException.NoNodeException e) {
-            Assert.fail();
-        }
-        stringSet.remove("bar");
-    }
-
     private class MyWatcher implements ReplicatedSet.Watcher<String> {
         Set<String> strings = new HashSet<String>();
 

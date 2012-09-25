@@ -273,11 +273,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 // If we get a NoStatePathException it means the someone removed
                 // the port routes. Remove all routes
                 for (Route route: oldRoutes) {
-                    try {
-                        routingTable.remove(route);
-                    } catch (KeeperException e1) {
-                        log.error("Error removing route {}", route.toString(), e);
-                    }
+                     routingTable.remove(route);
                 }
                 mapPortIdToRoutes.remove(portId);
             }
@@ -358,8 +354,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
             // If it's not the first time we execute this code, it means that
             // the ReplicatedSe fired an update, so we have to notify the builder
-            //if(isUpdate)
-            builder.build();
+            if(isUpdate)
+                builder.build();
 
             //TODO(ross) is there a better way?
             isUpdate = true;
