@@ -383,7 +383,7 @@ class Coordinator(val origMatch: WildcardMatch,
 
     /**
      * Complete the simulation by emitting the packet from the specified
-     * virtual port (NOT a PortSet). If the packet was internally generated
+     * virtual port or PortSet.  If the packet was internally generated
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
      * @param outputID The ID of the virtual port or PortSet from which the
      *                 packet must be emitted.
