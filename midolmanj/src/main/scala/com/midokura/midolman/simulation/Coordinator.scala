@@ -451,8 +451,7 @@ class Coordinator(val origMatch: WildcardMatch,
             true
     }
 
-    private def actionsFromMatchDiff(orig: WildcardMatch,
-                                     modif: WildcardMatch)
+    private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
     : mutable.ListBuffer[FlowAction[_]] = {
         val actions = mutable.ListBuffer[FlowAction[_]]()
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||
