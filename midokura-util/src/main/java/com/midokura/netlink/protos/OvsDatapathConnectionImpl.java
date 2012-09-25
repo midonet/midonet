@@ -913,6 +913,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttrNested(PacketFamily.AttrKey.ACTIONS)
                 .addAttrs(packet.getActions())
                 .build()
+            // TODO(pino): find out why ovs_packet_cmd_execute throws an
+            // EINVAL if we put the PACKET attribute right after the
+            // datapathId. I examined the ByteBuffers constructed with that
+            // ordering of attributes and compared it to this one, and found
+            // only the expected difference.
+            .addAttr(PacketFamily.AttrKey.PACKET, packet.getData())
             .build();
 
         newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)

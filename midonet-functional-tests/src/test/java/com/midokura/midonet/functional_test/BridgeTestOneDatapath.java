@@ -134,7 +134,7 @@ public class BridgeTestOneDatapath {
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
-        MidolmanEvents.startObserver();
+        /*MidolmanEvents.startObserver();
         MidolmanEvents.setObserverCallback(new MidolmanEvents.EventCallback() {
             @Override
             public void portStatus(UUID portID, boolean up) {
@@ -157,8 +157,8 @@ public class BridgeTestOneDatapath {
                         setCompleted(true);
                     }
                 }
-        );
-        sleepBecause("we need the network to boot up", 10);
+        );*/
+        sleepBecause("we need the network to boot up", 20);
     }
 
     @After

@@ -19,7 +19,7 @@ import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatches}
-import com.midokura.util.functors.{Callback0, Callback1}
+import com.midokura.util.functors.Callback0
 import akka.event.LoggingReceive
 
 
@@ -313,6 +313,7 @@ class FlowController extends Actor with ActorLogging {
                 if (wildcardFlow.getActions.size() > 0) {
                     for (unpendedPacket <- pendedPackets.get) {
                         unpendedPacket.setActions(wildcardFlow.getActions)
+
                         datapathConnection.packetsExecute(datapath, unpendedPacket,
                             new ErrorHandlingCallback[java.lang.Boolean] {
                                 def onSuccess(data: java.lang.Boolean) {}

@@ -19,6 +19,7 @@ import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midonet.cluster.client.{ArpCache, RouterPort}
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import com.midokura.util.functors.{Callback2, Callback1}
+import com.midokura.midolman.config.MidolmanConfig
 
 
 /* The ArpTable is called from the Coordinators' actors and
@@ -46,12 +47,12 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
     }
 }
 
-class ArpTableImpl(val arpCache: ArpCache) extends ArpTable {
+class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable {
     private val log = LoggerFactory.getLogger(classOf[ArpTableImpl])
-    private val ARP_RETRY_MILLIS = 10 * 1000
-    private val ARP_TIMEOUT_MILLIS = 60 * 1000
-    private val ARP_STALE_MILLIS = 1800 * 1000
-    private val ARP_EXPIRATION_MILLIS = 3600 * 1000
+    private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
+    private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
+    private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
+    private val ARP_EXPIRATION_MILLIS = cfg.getArpExpirationSeconds * 1000
     private val arpWaiters = new mutable.HashMap[IntIPv4,
                                              mutable.Set[Promise[MAC]]] with
             SynchronizedMultiMap[IntIPv4, Promise[MAC]]

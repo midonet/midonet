@@ -159,7 +159,8 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
             log.info("Router requested for {} with update={}", id, update)
-            manageDevice(id, (x: UUID) => new RouterManager(x, clusterClient))
+            manageDevice(id,
+                (x: UUID) => new RouterManager(x, clusterClient, config))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
