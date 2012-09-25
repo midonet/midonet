@@ -46,7 +46,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
     val IPv6_ETHERTYPE: Short = 0x86dd.toShort
     private var flowEventsProbe: TestProbe = null
-    private var router: ClusterRouter = null
+    private var clusterRouter: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
     private val uplinkNwAddr = "180.0.1.0"
     private val uplinkNwLen = 30
@@ -74,22 +74,22 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val host = newHost("myself", hostId())
         host should not be null
-        router = newRouter("router")
-        router should not be null
+        clusterRouter = newRouter("router")
+        clusterRouter should not be null
 
         initializeDatapath() should not be (null)
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
         // Create one port that works as an uplink for the router.
-        uplinkPort = newPortOnRouter(router, uplinkMacAddr, uplinkPortAddr,
-            uplinkNwAddr, uplinkNwLen)
+        uplinkPort = newPortOnRouter(clusterRouter, uplinkMacAddr,
+            uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[LocalPortActive](portEventsProbe)
 
-        upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
-            uplinkPort.getId, uplinkGatewayAddr, 1)
+        upLinkRoute = newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0,
+            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
         upLinkRoute should not be null
 
         for (i <- 0 to 2) {
@@ -103,8 +103,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 val segmentAddr = new IntIPv4(nwAddr + j*4)
                 val portAddr = new IntIPv4(nwAddr + j*4 + 1)
 
-                val port = newPortOnRouter(router, macAddr, portAddr.toString,
-                                           segmentAddr.toString, 30)
+                val port = newPortOnRouter(clusterRouter, macAddr,
+                    portAddr.toString, segmentAddr.toString, 30)
                 port should not be null
 
                 materializePort(port, host, portName)
@@ -118,19 +118,19 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 portNumToSegmentAddr.put(portNum, segmentAddr.addressAsInt)
 
                 // Default route to port based on destination only.  Weight 2.
-                newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
+                newRoute(clusterRouter, "10.0.0.0", 16, segmentAddr.toString, 30,
                     NextHop.PORT, port.getId, new IntIPv4(NO_GATEWAY).toString,
                     2)
                 // Anything from 10.0.0.0/16 is allowed through.  Weight 1.
-                newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
+                newRoute(clusterRouter, "10.0.0.0", 16, segmentAddr.toString, 30,
                     NextHop.PORT, port.getId, new IntIPv4(NO_GATEWAY).toString,
                     1)
                 // Anything from 11.0.0.0/24 is silently dropped.  Weight 1.
-                newRoute(router, "11.0.0.0", 24, segmentAddr.toString, 30,
+                newRoute(clusterRouter, "11.0.0.0", 24, segmentAddr.toString, 30,
                     NextHop.BLACKHOLE, null, null, 1)
                 // Anything from 12.0.0.0/24 is rejected (ICMP filter
                 // prohibited).
-                newRoute(router, "12.0.0.0", 24, segmentAddr.toString, 30,
+                newRoute(clusterRouter, "12.0.0.0", 24, segmentAddr.toString, 30,
                     NextHop.REJECT, null, null, 1)
             }
         }
@@ -394,7 +394,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val (router, port) = fetchRouterAndPort("uplinkPort")
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val expiry = Platform.currentTime + 1000
-
         val arpPromise = router.arpTable.get(
             IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
             actors().dispatcher, actors())
@@ -410,9 +409,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestFulfilledRemotely() {
-        val tuple = fetchRouterAndPort("uplinkPort")
-        val router: SimRouter = tuple._1
-        val port: RouterPort[_] = tuple._2
+        val (router, port) = fetchRouterAndPort("uplinkPort")
 
         val ip = IntIPv4.fromString(uplinkGatewayAddr)
         val mac = MAC.fromString("fe:fe:fe:da:da:da")
@@ -563,10 +560,30 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             ICMP.CODE_NONE)
     }
 
-    /*
-    @Ignore def testArpRequestNonLocalAddress() {
+    def testNextHopNonLocalAddress() {
+        val badGwAddr = "179.0.0.1"
+        clusterDataClient().routesDelete(upLinkRoute)
+        newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
+            uplinkPort.getId, badGwAddr, 1)
+        val fromMac = MAC.fromString("01:02:03:03:02:01")
+        val onPort = 23
+        val eth = Packets.udp(
+            fromMac, portNumToMac(onPort),
+            makeAddressInSegment(onPort), IntIPv4.fromString("45.44.33.22"),
+            10, 11, "My UDP packet".getBytes)
+        triggerPacketIn(portNumToName(onPort), eth)
+
+        requestOfType[PacketIn](simProbe())
+        expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
+            fromMac, makeAddressInSegment(onPort),
+            ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar)
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        // A flow with no actions drops matching packets
+        flow.getActions.size() should equal(0)
     }
 
+    /*
     @Ignore def testArpRequestRetry() {
     }
 
