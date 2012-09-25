@@ -534,8 +534,8 @@ public class LocalDataClientImpl implements DataClient {
                 // inactive and wasn't taken into consideration when installing
                 // the flow for the flood.
                 if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
-                    bridgeManager.getBuilder(config.device_id)
-                                 .setLocalExteriorPortActive(
+                    bridgeManager.setLocalExteriorPortActive(
+                                     config.device_id,
                                      portID,
                                      ((PortDirectory.MaterializedRouterPortConfig)
                                          config)

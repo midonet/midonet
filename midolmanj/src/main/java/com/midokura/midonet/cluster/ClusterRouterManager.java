@@ -6,11 +6,9 @@ package com.midokura.midonet.cluster;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -28,7 +26,6 @@ import com.midokura.midolman.state.ArpCacheEntry;
 import com.midokura.midolman.state.ArpTable;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
-import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.ReplicatedSet;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
@@ -100,11 +97,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                                 id, e);
                         }
                         try {
-                            ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
-                                routerMgr.getRoutingTableDirectory(id),
-                                CreateMode.EPHEMERAL, builder);
-                            routeSet.start();
-                            mapRouterIdToRoutes.put(id, routeSet);
+                            startRoutingTable(id, builder);
                         } catch (StateAccessException e) {
                             log.error("Couldn't retrieve the RoutingTableDirectory", e);
                         }
@@ -114,6 +107,27 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 log.info("Update configuration for router {}", id);
             }
         };
+    }
+
+    private void startRoutingTable(UUID routerId, RouterBuilder builder)
+        throws StateAccessException {
+        ReplicatedRouteSet routeSet;
+        if( mapRouterIdToRoutes.containsKey(routerId) ){
+            // we already have this routing table, we must have added it to keep
+            // track of the local port active notification. Add the builder to
+            // the notification
+            routeSet = mapRouterIdToRoutes.get(routerId);
+            routeSet.addWatcher(builder);
+        }
+        else{
+            routeSet = new ReplicatedRouteSet(
+                routerMgr.getRoutingTableDirectory(routerId),
+                CreateMode.EPHEMERAL, builder);
+            mapRouterIdToRoutes.put(routerId, routeSet);
+        }
+        // no need to check if it's not running, start will take care of that
+        routeSet.start();
+        log.debug("Started Routing Table for router {}", routerId);
     }
 
     Runnable watchRouter(final UUID id) {
@@ -154,7 +168,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 log.error("The cluster client has already requested the routes for this port");
             }
 
-            mapPortIdToRoutes.put(portId, new HashSet<Route>());
+            //mapPortIdToRoutes.put(portId, new HashSet<Route>());
             getPortRoutes(routerId, portId);
         } catch (Exception e) {
             log.error("Error when trying to get routes for port {} that became " +
@@ -191,19 +205,18 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
 
         if(oldRoutes == null){
-            log.error("There no routes set for this port {}", portId);
+            mapPortIdToRoutes.put(portId, new HashSet<Route>());
+
+//            log.error("There no routes set for this port {}", portId);
             return;
         }
 
         if(routingTable == null){
-            // we never request this router, let's schedule that
-            reactorLoop.submit(getConfig(routerId));
-            // let's put this call in the queue
-            reactorLoop.submit(new PortRoutesWatcher(routerId, portId));
-            return;
+            // we never request this router, we don't have a routing table,
+            // let's get it
+            startRoutingTable(routerId, null);
         }
 
-        List<UUID> entries = Collections.emptyList();
         routeManager.listPortRoutesAsynch(portId,
                                           new PortRoutesCallback(routerId, portId),
                                           new PortRoutesWatcher(routerId, portId)) ;
@@ -264,13 +277,17 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void onError(KeeperException e) {
-            // TODO(ross) check that
-            if (e.getClass().equals(NoStatePathException.class)) {
+            if (e instanceof KeeperException.NoNodeException) {
                 ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
+                if (routingTable == null) {
+                    log.error("Null Routing Table for router {} when trying to delete" +
+                                  "all routes for NoStatePathException", routerId, e);
+                    return;
+                }
                 Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
                 // If we get a NoStatePathException it means the someone removed
                 // the port routes. Remove all routes
-                for(Route route: oldRoutes){
+                for (Route route: oldRoutes) {
                     try {
                         routingTable.remove(route);
                     } catch (KeeperException e1) {
@@ -293,7 +310,12 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public ReplicatedRouteSet(Directory d, CreateMode mode,
                                   RouterBuilder builder) {
             super(d, mode);
-            this.addWatcher(new RouteWatcher(builder));
+            addWatcher(builder);
+        }
+
+        public void addWatcher(RouterBuilder builder){
+            if(builder != null)
+                this.addWatcher(new RouteWatcher(builder));
         }
 
         protected String encode(Route rt) {
