@@ -20,13 +20,10 @@ import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.guice._
-import guice._
 import actors.OutgoingMessage
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
 TestableMidolmanActorsModule}
-import com.midokura.midolman.DatapathController.InitializationComplete
-import com.midokura.midolman.DatapathController.Initialize
-import cluster.ClusterClientModule
+import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
@@ -45,7 +42,6 @@ import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.midolman.DatapathController.InitializationComplete
 import com.midokura.midolman.DatapathController.Initialize
-import javax.inject.Singleton
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -209,6 +205,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def flowController(): TestActorRef[FlowController] = {
         actorByName(FlowController.Name)
+    }
 
     protected def monitoringController(): TestActorRef[MonitoringActor] = {
         actorByName(MonitoringActor.Name)

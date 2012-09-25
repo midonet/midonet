@@ -44,7 +44,6 @@ import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import scala.Some
-import com.midokura.midolman.MonitoringActor.PortStatsRequest
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 
