@@ -391,9 +391,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestFulfilledLocally() {
-        val tuple = fetchRouterAndPort("uplinkPort")
-        val router: SimRouter = tuple._1
-        val port: RouterPort[_] = tuple._2
+        val (router, port) = fetchRouterAndPort("uplinkPort")
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val expiry = Platform.currentTime + 1000
 
@@ -432,6 +430,34 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val t = Timeout(3 seconds)
         val arpResult = Await.result(macFuture, t.duration)
         arpResult should be === mac
+    }
+
+    def testArpRequestGeneration() {
+        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val expiry = Platform.currentTime + 1000
+        val fromIp = IntIPv4.fromString(uplinkPortAddr)
+        val toIp = IntIPv4.fromString(uplinkGatewayAddr)
+
+        val arpPromise = router.arpTable.get(toIp, port, expiry)(
+            actors().dispatcher, actors())
+        val msg = requestOfType[EmitGeneratedPacket](simProbe())
+        msg.egressPort should be === uplinkPort.getId
+        msg.ethPkt.getEtherType should be === ARP.ETHERTYPE
+        msg.ethPkt.getSourceMACAddress should be === uplinkMacAddr
+        msg.ethPkt.getDestinationMACAddress.toString should be === "ff:ff:ff:ff:ff:ff"
+        msg.ethPkt.getPayload.getClass should be === classOf[ARP]
+        val arp = msg.ethPkt.getPayload.asInstanceOf[ARP]
+        arp.getOpCode should be === ARP.OP_REQUEST
+        new IntIPv4(arp.getTargetProtocolAddress) should be === toIp
+        arp.getSenderHardwareAddress should be === uplinkMacAddr
+        new IntIPv4(arp.getSenderProtocolAddress) should be === fromIp
+
+        val t = Timeout(100 milliseconds)
+        try {
+            Await.result(arpPromise, t.duration)
+        } catch {
+            case e: java.util.concurrent.TimeoutException =>
+        }
     }
 
     def testIcmpEchoNearPort() {
@@ -497,9 +523,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     @Ignore def testArpRequestNonLocalAddress() {
     }
 
-    @Ignore def testArpRequestGeneration() {
-    }
-
     @Ignore def testArpRequestRetry() {
     }
 
@@ -508,13 +531,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
     @Ignore def testArpReceivedRequestProcessing() {
     }
-
-    @Ignore def testForwardBetweenDownlinks() {
-        // Make a packet that comes in on port 23 (dlDst set to port 23's mac,
-        // nwSrc inside 10.0.2.12/30) and has a nwDst that matches port 12
-        // (i.e. inside 10.0.1.8/30).
-    }
-
 
     @Ignore def testUnlinkedLogicalPort() {
     }
