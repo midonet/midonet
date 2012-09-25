@@ -47,10 +47,10 @@ public class MidoReporter extends AbstractPollingReporter
 
     private Store store;
 
-    public MidoReporter(Store cassandraStore, String name) {
+    public MidoReporter(Store store, String name) {
         // TODO(rossella) MetricsRegistry allow a maximum of 1024 items
         super(Metrics.defaultRegistry(), name);
-        store = cassandraStore;
+        this.store = store;
         Metrics.defaultRegistry().addListener(this);
     }
 

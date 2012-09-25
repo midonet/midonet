@@ -33,7 +33,7 @@ public class VMMetricsCollection {
     private static final MBeanServer SERVER =
             ManagementFactory.getPlatformMBeanServer();
 
-    private static int metricsCount = 0;
+    private int metricsCount = 0;
 
     @Inject
     HostKeyService hostKeyService;
@@ -41,6 +41,8 @@ public class VMMetricsCollection {
     String hostName;
 
     public void registerMetrics() {
+
+        metricsCount = 0;
 
         hostName = hostKeyService.getHostId();
 
@@ -129,7 +131,7 @@ public class VMMetricsCollection {
         metricsCount++;
     }
 
-    public static int getMetricsCount() {
+    public int getMetricsCount() {
         return metricsCount;
     }
 }

@@ -53,7 +53,7 @@ class MonitoringActor extends Actor {
   }
 
   override def postStop {
-    log.info("Monitoring agent is shutting down")
+    log.info("Monitoring actor is shutting down")
   }
 
 

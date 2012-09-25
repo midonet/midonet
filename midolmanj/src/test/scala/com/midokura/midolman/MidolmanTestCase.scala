@@ -52,6 +52,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     with BeforeAndAfter with OneInstancePerTest with ShouldMatchers with Dilation {
 
     var injector: Injector = null
+    var mAgent: MonitoringAgent = null
 
     protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
@@ -91,14 +92,19 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
-        injector.getInstance(classOf[MonitoringAgent]).startMonitoringIfEnabled()
+        mAgent = injector.getInstance(classOf[MonitoringAgent])
+        mAgent.startMonitoringIfEnabled()
         before()
     }
 
-    after {
-        injector.getInstance(classOf[MidolmanService]).stopAndWait()
-        after()
+  after {
+    injector.getInstance(classOf[MidolmanService]).stopAndWait()
+    if (mAgent != null) {
+      mAgent.stop()
     }
+
+    after()
+  }
 
     // These methods can be overridden by each class mixing MidolmanTestCase
     // to add custom operations before each test and after each tests

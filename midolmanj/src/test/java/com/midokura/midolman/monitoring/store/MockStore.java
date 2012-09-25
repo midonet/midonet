@@ -24,7 +24,7 @@ public class MockStore implements Store {
     // needed for the tests
     Map<String, Set<String>> target_MetricName;
     Map<String, Set<String>> metricType_targetIdentifier;
-    Map<String, Set<String>> type_metricNames;
+    Map<String, List<String>> type_metricNames;
 
     public MockStore()
     {
@@ -33,7 +33,7 @@ public class MockStore implements Store {
 
         target_MetricName = new HashMap<String, Set<String>>();
         metricType_targetIdentifier = new HashMap<String, Set<String>>();
-        type_metricNames = new HashMap<String, Set<String>>();
+        type_metricNames = new HashMap<String, List<String>>();
 
     }
 
@@ -82,11 +82,17 @@ public class MockStore implements Store {
     }
 
     @Override
+    /**
+     * Return all values, do not check the key.
+     */
     public Map<String, Long> getTSPoints(String type, String targetIdentifier,
                                          String metricName, long timeStart,
                                          long timeEnd) {
-        // TODO
-        return null;
+        Map<String, Long> result = new HashMap<String, Long>();
+        for ( Map.Entry<String, Long> keyValue : points.entrySet()) {
+            result.put(keyValue.getKey(), keyValue.getValue());
+        }
+        return result;
     }
 
 
@@ -101,8 +107,8 @@ public class MockStore implements Store {
 
     @Override
     public List<String> getMetricsTypeForTarget(String targetIdentifier) {
-        List<String> result = null;
-        if (!metricType_targetIdentifier.containsKey(targetIdentifier)) {
+        List<String> result = new ArrayList<String>();
+        if (metricType_targetIdentifier.containsKey(targetIdentifier)) {
             result = new ArrayList<String>(metricType_targetIdentifier.get(targetIdentifier));
         }
         return result;
@@ -112,14 +118,21 @@ public class MockStore implements Store {
     public void addMetricToType(String type,
                                 String metricName) {
         if(!type_metricNames.containsKey(type)) {
-            type_metricNames.put(type, new HashSet<String>());
+            log.debug("ADDING METRIC FOR {}", type);
+            type_metricNames.put(type, new LinkedList<String>());
         }
+
         type_metricNames.get(type).add(metricName);
     }
 
     @Override
     public List<String> getMetricsForType(String type) {
-        List<String> result = null;
+        List<String> result = new ArrayList<String>();
+        log.debug("GET METRICS FOR TYPE: {}", type);
+
+        for (String key : type_metricNames.keySet()) {
+            log.debug("KEY: " + key);
+        }
         if (type_metricNames.containsKey(type)) {
             result = new ArrayList<String>(type_metricNames.get(type));
         }
