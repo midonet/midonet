@@ -22,6 +22,7 @@ import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.util.functors.Callback0
 import com.midokura.tools.timed.Timed
 import com.midokura.util.Waiters.waitFor
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 object MonitoringTest {
 }
@@ -33,6 +34,12 @@ class MonitoringTest extends MidolmanTestCase {
   var monitoringAgent: MonitoringAgent = null
   var registry: MetricsRegistry = null
 
+  override protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
+    config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
+    config.setProperty("midolman.enable_monitoring", "true")
+
+    config
+  }
 
   @Test def testActualMonitoring {
 

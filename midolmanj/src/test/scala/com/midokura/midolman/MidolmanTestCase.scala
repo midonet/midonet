@@ -51,8 +51,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     var mAgent: MonitoringAgent = null
 
     protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
-        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config
+      config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
+      config.setProperty("midolman.enable_monitoring", "false")
+
+      config
     }
 
     protected def dpConn(): OvsDatapathConnection = {
