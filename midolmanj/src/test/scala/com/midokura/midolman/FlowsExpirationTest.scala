@@ -72,7 +72,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         config
     }
 
-    override def before() {
+    override def beforeTest() {
         val myHost = newHost("myself", hostId())
         eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[WildcardFlowAdded])
