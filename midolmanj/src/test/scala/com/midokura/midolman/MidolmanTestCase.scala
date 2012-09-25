@@ -42,6 +42,7 @@ import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.midolman.DatapathController.InitializationComplete
 import com.midokura.midolman.DatapathController.Initialize
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -53,7 +54,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
       config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
       config.setProperty("midolman.enable_monitoring", "false")
-
+      config.setProperty("cassandra.servers", "localhost:9171")
       config
     }
 
@@ -83,6 +84,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     before {
 
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(
           getModulesAsJavaIterable(config)
@@ -96,11 +98,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
   after {
+    EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
     injector.getInstance(classOf[MidolmanService]).stopAndWait()
     if (mAgent != null) {
       mAgent.stop()
     }
-
       afterTest()
   }
 
