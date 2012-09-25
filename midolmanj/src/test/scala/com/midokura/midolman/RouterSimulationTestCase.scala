@@ -460,6 +460,50 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         }
     }
 
+    def testArpReceivedRequestProcessing() {
+        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
+        val myIp = IntIPv4.fromString(uplinkPortAddr)
+        val hisMac = MAC.fromString("ab:cd:ef:ab:cd:ef")
+        val myMac = uplinkMacAddr
+        val eth = new Ethernet().setEtherType(ARP.ETHERTYPE).
+            setSourceMACAddress(hisMac).
+            setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+        eth.setPayload(new ARP().
+            setHardwareType(ARP.HW_TYPE_ETHERNET).
+            setProtocolType(ARP.PROTO_TYPE_IP).
+            setHardwareAddressLength(6:Byte).
+            setProtocolAddressLength(4:Byte).
+            setOpCode(ARP.OP_REQUEST).
+            setSenderHardwareAddress(hisMac).
+            setSenderProtocolAddress(IPv4.toIPv4AddressBytes(hisIp.addressAsInt())).
+            setTargetProtocolAddress(IPv4.toIPv4AddressBytes(myIp.addressAsInt())).
+            setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff")))
+        triggerPacketIn("uplinkPort", eth)
+        requestOfType[PacketIn](simProbe())
+        val msg = requestOfType[EmitGeneratedPacket](simProbe())
+        msg.egressPort should be === uplinkPort.getId
+        msg.ethPkt.getEtherType should be === ARP.ETHERTYPE
+        msg.ethPkt.getSourceMACAddress should be === myMac
+        msg.ethPkt.getDestinationMACAddress should be === hisMac
+        msg.ethPkt.getPayload.getClass should be === classOf[ARP]
+        val arp = msg.ethPkt.getPayload.asInstanceOf[ARP]
+        arp.getOpCode should be === ARP.OP_REPLY
+        new IntIPv4(arp.getSenderProtocolAddress) should be === myIp
+        arp.getSenderHardwareAddress should be === myMac
+        new IntIPv4(arp.getTargetProtocolAddress) should be === hisIp
+        arp.getTargetHardwareAddress should be === hisMac
+
+        // the arp cache should be updated without generating a request
+        val expiry = Platform.currentTime + 1000
+        val arpPromise = router.arpTable.get(hisIp, port, expiry)(
+            actors().dispatcher, actors())
+        val t = Timeout(1 second)
+        val arpResult = Await.result(arpPromise, t.duration)
+        arpResult should be === hisMac
+        simProbe().expectNoMsg(Timeout(2 seconds).duration)
+    }
+
     def testIcmpEchoNearPort() {
         val fromMac = MAC.fromString("01:02:03:04:05:06")
         val fromIp = "50.25.50.25"
@@ -527,9 +571,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     @Ignore def testArpRequestTimeout() {
-    }
-
-    @Ignore def testArpReceivedRequestProcessing() {
     }
 
     @Ignore def testUnlinkedLogicalPort() {
