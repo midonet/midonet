@@ -30,8 +30,9 @@ import com.midokura.midolman.topology.VirtualToPhysicalMapper.{HostRequest,
 import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
                                                             RouterRequest}
 import com.midokura.midonet.cluster.client.{ExteriorRouterPort, RouterPort}
-import com.midokura.midonet.cluster.data.{Router => ClusterRouter}
-import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
+import com.midokura.midonet.cluster.data.{Router => ClusterRouter, Ports}
+import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedRouterPort}
+import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets._
 import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
                                   FlowKeyEthernet, FlowKeyIPv4}
@@ -54,6 +55,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
     private var uplinkPort: MaterializedRouterPort = null
     private var upLinkRoute: UUID = null
+    private var host: Host = null
 
     private val portConfigs = mutable.Map[Int, MaterializedRouterPort]()
     private val portNumToId = mutable.Map[Int, UUID]()
@@ -72,7 +74,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
         actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
 
-        val host = newHost("myself", hostId())
+        host = newHost("myself", hostId())
         host should not be null
         clusterRouter = newRouter("router")
         clusterRouter should not be null
@@ -581,6 +583,41 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
         flow.getActions.size() should equal(0)
+    }
+
+    def testUnlinkedLogicalPort() {
+        log.debug("creating logical port on router")
+        val portAddr = "13.13.13.1"
+        val nwAddr = "13.0.0.0"
+        val nwLen = 8
+        val hwAddr = MAC.fromString("34:12:34:12:34:12")
+        var logicalPort = Ports.logicalRouterPort(clusterRouter).
+            setPortAddr(portAddr).
+            setNwAddr(nwAddr).
+            setNwLength(nwLen).
+            setNwAddr(nwAddr).
+            setNwLength(nwLen)
+        logicalPort = clusterDataClient().portsGet(clusterDataClient().
+            portsCreate(logicalPort)).asInstanceOf[LogicalRouterPort]
+        logicalPort should not be null
+        newRoute(clusterRouter, "0.0.0.0", 0, "16.0.0.0", 8,
+            NextHop.PORT, logicalPort.getId, "13.13.13.2", 1)
+
+        val onPort = 23
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val eth = Packets.udp(
+            fromMac, portNumToMac(onPort),
+            makeAddressInSegment(onPort), IntIPv4.fromString("16.0.0.1"),
+            10, 11, "My UDP packet".getBytes)
+        triggerPacketIn(portNumToName(onPort), eth)
+
+        expectPacketOnPort(portNumToId(onPort))
+        val flow = expectFlowAddedMessage()
+        expectMatchForIPv4Packet(eth, flow.getMatch)
+        flow.getActions.size() should equal(0)
+        expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
+            fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
+            ICMP.UNREACH_CODE.UNREACH_NET.toChar)
     }
 
     /*
