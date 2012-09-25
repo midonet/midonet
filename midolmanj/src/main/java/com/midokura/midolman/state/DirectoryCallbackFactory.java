@@ -14,7 +14,7 @@ import com.midokura.util.functors.Functor;
  */
 public class DirectoryCallbackFactory {
 
-    public static <From, To, E extends Exception> DirectoryCallback<From>
+    public static <From, To> DirectoryCallback<From>
         transform(@Nonnull final DirectoryCallback<To> callback,
                   @Nonnull final Functor<From, To> functor) {
         return new AdaptingCallback<From, To>(callback, functor);
