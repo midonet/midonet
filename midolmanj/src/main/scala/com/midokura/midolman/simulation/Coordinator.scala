@@ -237,7 +237,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.info("Received action: {}", action)
                 action match {
                     case ToPortSetAction(portSetID) =>
-                        emit(portSetID, true)
+                        emit(portSetID, true, null)
 
                     case ToPortAction(outPortID) =>
                         packetEgressesPort(outPortID)
@@ -365,7 +365,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 case port: Port[_] =>
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
-                            emit(portID, false)
+                            emit(portID, false, port)
                         case interiorPort: InteriorPort[_] =>
                             packetIngressesPort(interiorPort.peerID, false)
                         case _ =>
@@ -383,12 +383,14 @@ class Coordinator(val origMatch: WildcardMatch,
 
     /**
      * Complete the simulation by emitting the packet from the specified
-     * virtual port (NOT a PortSet). If the packet was internall generated
+     * virtual port (NOT a PortSet). If the packet was internally generated
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
      * @param outputID The ID of the virtual port or PortSet from which the
      *                 packet must be emitted.
+     * @param isPortSet Whether the packet is output to a port set.
+     * @param port The port output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean) {
+    private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]) {
         val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
         isPortSet match {
             case false =>
@@ -403,6 +405,12 @@ class Coordinator(val origMatch: WildcardMatch,
                     SendPacket(origEthernetPkt.serialize(), actions.toList))
             case Some(_) =>
                 pktContext.freeze()
+                if (!isPortSet && pktContext.isConnTracked &&
+                        !pktContext.isForwardFlow) {
+                    // Write the packet's data to the connectionCache.
+                    installConnectionCacheEntry(outputID, pktContext.getMatch,
+                                                port)
+                }
                 val wFlow = new WildcardFlow()
                     .setMatch(origMatch)
                     .setActions(actions.toList)
@@ -415,8 +423,15 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
+    private def installConnectionCacheEntry(outPortID: UUID,
+                                            flowMatch: PacketMatch,
+                                            portConfig: Port[_]) {
+        //XXX
+    }
+
     /*
-     * Compares two objects, which may be null, to determine if they should cause flow actions.
+     * Compares two objects, which may be null, to determine if they should
+     * cause flow actions.
      * The catch here is that if `modif` is null, the verdict is true regardless
      * because we don't create actions that set values to null.
      */
