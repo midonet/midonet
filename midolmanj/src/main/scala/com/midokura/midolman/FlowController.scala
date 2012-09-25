@@ -243,7 +243,7 @@ class FlowController extends Actor with ActorLogging {
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error("Got an exception {} or timeout {} when trying to add flow" +
-                            "with flow match {}", ex.toString, timeout, dpFlow.getMatch.toString)
+                            "with flow match {}", ex, timeout, dpFlow.getMatch)
                 }
             })
             return
@@ -303,10 +303,10 @@ class FlowController extends Actor with ActorLogging {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error("Got an exception {} or timeout {} when trying to add flow" +
-                            "with flow match {}", ex.toString, timeout, dpFlow.getMatch.toString)
+                            "with flow match {}", ex, timeout, dpFlow.getMatch)
                     }
                 })
-                log.debug("Flow created {}", dpFlow.getMatch.toString)
+                log.debug("Flow created {}", dpFlow.getMatch)
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
@@ -351,7 +351,7 @@ class FlowController extends Actor with ActorLogging {
             new ErrorHandlingCallback[Flow] {
                 def handleError(ex: NetlinkException, timeout: Boolean) {
                     log.error("Got an exception {} or timeout {} when trying to remove flow" +
-                        "with flow match {}", ex.toString, timeout, flow.getMatch.toString)
+                        "with flow match {}", ex, timeout, flow.getMatch)
                 }
 
                 def onSuccess(data: Flow) {
@@ -371,7 +371,7 @@ class FlowController extends Actor with ActorLogging {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error("Got an exception {} or timeout {} when trying to flowsGet()" +
-                            "for flow match {}", ex.toString, timeout, flowMatch.toString)
+                            "for flow match {}", ex, timeout, flowMatch)
                     }
 
                     def onSuccess(data: Flow) {
