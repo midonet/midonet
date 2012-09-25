@@ -268,6 +268,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return
         // TODO - spoofL2Network check ... discuss.
 
+        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        arpTable.set(new IntIPv4(spa), pkt.getSenderHardwareAddress)
+
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
         arp.setProtocolType(ARP.PROTO_TYPE_IP)
@@ -278,7 +281,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
         arp.setSenderProtocolAddress(pkt.getTargetProtocolAddress)
         arp.setTargetHardwareAddress(pkt.getSenderHardwareAddress)
         arp.setTargetProtocolAddress(pkt.getSenderProtocolAddress)
-        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
 
         log.debug("replying to ARP request from {} for {} with own mac {}",
             Array[Object] (IPv4.fromIPv4Address(spa),
