@@ -4,7 +4,6 @@
 
 package com.midokura.midonet.cluster;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,9 +27,10 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.ReplicatedSet;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.ZkConfigSerializer;
+import com.midokura.midolman.state.ZkStateSerializationException;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.client.ArpCache;
 import com.midokura.midonet.cluster.client.RouterBuilder;
 import com.midokura.packets.IntIPv4;
@@ -51,6 +51,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
+
+    @Inject
+    ZkConfigSerializer serializer;
 
     Map<UUID, Set<Route>> mapPortIdToRoutes =
         new HashMap<UUID, Set<Route>>();
@@ -111,21 +114,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     private void startRoutingTable(UUID routerId, RouterBuilder builder)
         throws StateAccessException {
-        ReplicatedRouteSet routeSet;
-        if( mapRouterIdToRoutes.containsKey(routerId) ){
-            // we already have this routing table, we must have added it to keep
-            // track of the local port active notification. Add the builder to
-            // the notification
-            routeSet = mapRouterIdToRoutes.get(routerId);
-            routeSet.addWatcher(builder);
-        }
-        else{
-            routeSet = new ReplicatedRouteSet(
-                routerMgr.getRoutingTableDirectory(routerId),
-                CreateMode.EPHEMERAL, builder);
-            mapRouterIdToRoutes.put(routerId, routeSet);
-        }
-        // no need to check if it's not running, start will take care of that
+        ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
+            routerMgr.getRoutingTableDirectory(routerId),
+            CreateMode.EPHEMERAL, builder);
+        mapRouterIdToRoutes.put(routerId, routeSet);
         routeSet.start();
         log.debug("Started Routing Table for router {}", routerId);
     }
@@ -167,9 +159,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             if(mapPortIdToRoutes.containsKey(portId)){
                 log.error("The cluster client has already requested the routes for this port");
             }
-
-            //mapPortIdToRoutes.put(portId, new HashSet<Route>());
-            getPortRoutes(routerId, portId);
+            Directory dir = routerMgr.getRoutingTableDirectory(routerId);
+            getPortRoutes(routerId, portId, dir);
         } catch (Exception e) {
             log.error("Error when trying to get routes for port {} that became " +
                           "active locally", portId, e);
@@ -180,16 +171,18 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     class PortRoutesWatcher extends Directory.DefaultTypedWatcher {
         UUID routeId;
         UUID portId;
+        Directory dir;
 
-        PortRoutesWatcher(UUID routeId, UUID portId) {
+        PortRoutesWatcher(UUID routeId, UUID portId, Directory dir) {
             this.routeId = routeId;
             this.portId = portId;
+            this.dir = dir;
         }
 
         @Override
         public void run() {
             try {
-                getPortRoutes(routeId, portId);
+                getPortRoutes(routeId, portId, dir);
             } catch (Exception e) {
                 log.error("Got exception when running watcher for the routes of " +
                               "port {}", portId.toString(), e);
@@ -198,36 +191,28 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     }
 
-    private void getPortRoutes(UUID routerId, UUID portId)
+    private void getPortRoutes(UUID routerId, UUID portId, Directory dir)
         throws StateAccessException, KeeperException {
 
-        ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
 
         if(oldRoutes == null){
             mapPortIdToRoutes.put(portId, new HashSet<Route>());
-
-//            log.error("There no routes set for this port {}", portId);
-            return;
-        }
-
-        if(routingTable == null){
-            // we never request this router, we don't have a routing table,
-            // let's get it
-            startRoutingTable(routerId, null);
         }
 
         routeManager.listPortRoutesAsynch(portId,
-                                          new PortRoutesCallback(routerId, portId),
-                                          new PortRoutesWatcher(routerId, portId)) ;
+                                          new PortRoutesCallback(routerId, portId, dir),
+                                          new PortRoutesWatcher(routerId, portId, dir)) ;
 
     }
 
     private void updateRoutingTableAfterGettingRoutes(UUID routerId, UUID portId,
+                                                      Directory dir,
                                                       Set<Route> newRoutes) {
 
         ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
+        RouteEncoder encoder = new RouteEncoder();
 
         if (newRoutes.equals(oldRoutes))
             return;
@@ -235,22 +220,17 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         removedRoutes.removeAll(newRoutes);
         Set<Route> addedRoutes = new HashSet<Route>(newRoutes);
         addedRoutes.removeAll(oldRoutes);
-        if( routingTable == null){
-            log.error("Null routing table for router {}", routerId);
-            return;
-        }
-        try {
-            for(Route routeToAdd: addedRoutes){
-                routingTable.add(routeToAdd);
-            }
 
-            for(Route routeToRemove: removedRoutes){
-                routingTable.remove(routeToRemove);
-            }
-        } catch (KeeperException e) {
-            log.error("Exception when adding new routes to the routing table of " +
-                          "router {}", routerId, e);
+        for(Route routeToAdd: addedRoutes){
+            String path = "/" + encoder.encode(routeToAdd);
+            dir.asyncAdd(path, null, CreateMode.EPHEMERAL);
         }
+
+        for(Route routeToRemove: removedRoutes){
+            String path = "/" + encoder.encode(routeToRemove);
+            dir.asyncDelete(path);
+        }
+
         mapPortIdToRoutes.put(portId, newRoutes);
     }
 
@@ -258,15 +238,20 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         UUID routerId;
         UUID portId;
+        Directory dir;
 
-        PortRoutesCallback(UUID routerId, UUID portId) {
+        PortRoutesCallback(UUID routerId, UUID portId, Directory dir) {
             this.routerId = routerId;
             this.portId = portId;
+            this.dir = dir;
         }
 
         @Override
         public void onSuccess(Result<Set<Route>> data) {
-            updateRoutingTableAfterGettingRoutes(routerId, portId, data.getData());
+            log.debug("PortRoutesCallback success, received {} routes: {}",
+                      data.getData().size(), data.getData());
+            updateRoutingTableAfterGettingRoutes(routerId, portId, dir,
+                                                 data.getData());
         }
 
         @Override
@@ -303,9 +288,30 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
     }
 
+    class RouteEncoder {
+
+        protected String encode(Route rt) {
+            //TODO(dmd): this is slightly ghetto
+            try {
+                return new String(serializer.serialize(rt));
+            } catch (ZkStateSerializationException e) {
+                log.warn("Encoding route {}", rt, e);
+                return null;
+            }
+        }
+
+        protected Route decode(String str) {
+            try {
+                return serializer.deserialize(str.getBytes(), Route.class);
+            } catch (ZkStateSerializationException e) {
+                log.warn("Decoding route {}", str, e);
+                return null;
+            }
+        }
+    }
+
     class ReplicatedRouteSet extends ReplicatedSet<Route> {
-        //TODO(ross) check if we have to inject this
-        JSONSerializer serializer = new JSONSerializer();
+        RouteEncoder encoder = new RouteEncoder();
 
         public ReplicatedRouteSet(Directory d, CreateMode mode,
                                   RouterBuilder builder) {
@@ -318,23 +324,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 this.addWatcher(new RouteWatcher(builder));
         }
 
-        protected String encode(Route rt) {
-            //TODO(dmd): this is slightly ghetto
-            try {
-                return new String(serializer.objToBytes(rt));
-            } catch (IOException e) {
-                log.warn("ReplicatedRouteSet.encode", e);
-                return null;
-            }
+        @Override
+        protected String encode(Route item) {
+            return encoder.encode(item);
         }
 
+        @Override
         protected Route decode(String str) {
-            try {
-                return serializer.bytesToObj(str.getBytes(), Route.class);
-            } catch (Exception e) {
-                log.warn("ReplicatedRouteSet.decode", e);
-                return null;
-            }
+            return encoder.decode(str);
         }
     }
 
@@ -361,8 +358,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
             // If it's not the first time we execute this code, it means that
             // the ReplicatedSe fired an update, so we have to notify the builder
-            if(isUpdate)
-               builder.build();
+            //if(isUpdate)
+            builder.build();
 
             //TODO(ross) is there a better way?
             isUpdate = true;

@@ -81,6 +81,18 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
+    public void asyncAdd(String relativePath, final byte[] data, CreateMode mode) {
+
+        final String absPath = getAbsolutePath(relativePath);
+
+        zk.getZooKeeper().create(absPath, data, acl, mode, new AsyncCallback.StringCallback() {
+            @Override
+            public void processResult(int rc, String path, Object ctx, String name) {
+            }
+        }, null);
+    }
+
+    @Override
     public void update(String relativePath, byte[] data)
         throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
@@ -249,6 +261,16 @@ public class ZkDirectory implements Directory {
                 } else {
                     callback.onError(KeeperException.create(KeeperException.Code.get(rc), path));
                 }
+            }
+        }, null);
+    }
+
+    @Override
+    public void asyncDelete(String relativePath) {
+        zk.getZooKeeper().delete(relativePath, -1, new AsyncCallback.VoidCallback() {
+            @Override
+            public void processResult(int rc, String path, Object ctx) {
+
             }
         }, null);
     }

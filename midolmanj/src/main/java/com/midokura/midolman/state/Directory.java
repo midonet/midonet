@@ -20,6 +20,8 @@ public interface Directory {
     void asyncAdd(String relativePath, byte[] data, CreateMode mode,
                   DirectoryCallback.Add cb);
 
+    void asyncAdd(String relativePath, byte[] data, CreateMode mode);
+
     void update(String relativePath, byte[] data) throws KeeperException,
             InterruptedException;
 
@@ -43,6 +45,9 @@ public interface Directory {
             InterruptedException;
 
     void asyncDelete(String relativePath, DirectoryCallback.Void callback);
+
+    void asyncDelete(String relativePath);
+
 
     Directory getSubDirectory(String relativePath) throws KeeperException;
 
