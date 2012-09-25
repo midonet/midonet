@@ -77,7 +77,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         super.fillConfig(config)
     }
 
-    override def before() {
+    override def beforeTest() {
         flowEventsProbe = newProbe()
         val portEventsProbe = newProbe()
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])

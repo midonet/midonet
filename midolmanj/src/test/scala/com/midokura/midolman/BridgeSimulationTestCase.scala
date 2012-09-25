@@ -32,7 +32,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         super.fillConfig(config)
     }
 
-    override def before {
+    override def beforeTest {
         val tunnelZone = greTunnelZone("default")
 
         val host1 = newHost("host1", hostId())

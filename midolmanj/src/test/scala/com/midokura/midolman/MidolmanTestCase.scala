@@ -92,7 +92,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         injector.getInstance(classOf[MidolmanService]).startAndWait()
         mAgent = injector.getInstance(classOf[MonitoringAgent])
         mAgent.startMonitoringIfEnabled()
-        before()
+        beforeTest()
     }
 
   after {
@@ -101,14 +101,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
       mAgent.stop()
     }
 
-    after()
+      afterTest()
   }
 
     // These methods can be overridden by each class mixing MidolmanTestCase
     // to add custom operations before each test and after each tests
-    protected def before() {()}
+    protected def beforeTest() {}
 
-    protected def after() {()}
+    protected def afterTest() {}
 
     val probesByName = mutable.Map[String, TestKit]()
     val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
