@@ -424,9 +424,16 @@ class Coordinator(val origMatch: WildcardMatch,
     }
 
     private def installConnectionCacheEntry(outPortID: UUID,
-                                            flowMatch: PacketMatch,
+                                            flowMatch: WildcardMatch,
                                             portConfig: Port[_]) {
-        //XXX
+        val key = PacketContext.connectionKey(
+                        flowMatch.getNetworkDestination(),
+                        flowMatch.getTransportDestination(),
+                        flowMatch.getNetworkSource(),
+                        flowMatch.getTransportSource(),
+                        flowMatch.getNetworkProtocol(),
+                        portConfig.deviceID)
+        connectionCache.set(key, "r")
     }
 
     /*

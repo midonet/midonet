@@ -37,6 +37,7 @@ import com.midokura.util.functors.Callback0
 class PacketContext(val flowCookie: Object, val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache)
          extends ChainPacketContext {
+    import PacketContext._
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
@@ -150,19 +151,21 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
                                 wcmatch.getTransportSource(),
                                 wcmatch.getNetworkDestination(),
                                 wcmatch.getTransportDestination(),
-                                wcmatch.getNetworkProtocol())
+                                wcmatch.getNetworkProtocol(), ingressFE)
         val value = connectionCache.get(key)
         forwardFlow = (value != "r")
         return forwardFlow
     }
+}
 
-    private def connectionKey(ip1: Int, port1: Short, ip2: Int,
-                              port2: Short, proto: Short): String = {
+object PacketContext {
+    def connectionKey(ip1: Int, port1: Short, ip2: Int, port2: Short,
+                      proto: Short, deviceID: UUID): String = {
         new StringBuilder(Net.convertIntAddressToString(ip1))
                 .append('|').append(port1).append('|')
                 .append(Net.convertIntAddressToString(ip2)).append('|')
                 .append(port2).append('|').append(proto).append('|')
-                .append(ingressFE.toString()).toString()
+                .append(deviceID.toString()).toString()
     }
 }
 
