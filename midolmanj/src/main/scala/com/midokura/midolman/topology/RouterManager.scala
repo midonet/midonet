@@ -15,6 +15,7 @@ import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.topology.RouterManager.TriggerUpdate
+import com.midokura.midolman.config.MidolmanConfig
 
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
@@ -49,7 +50,7 @@ class RouterConfig {
     def canEqual(other: Any) = other.isInstanceOf[RouterConfig]
 }
 
-class RouterManager(id: UUID, val client: Client)
+class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
     private var rTable: RoutingTableWrapper = null
@@ -98,7 +99,7 @@ class RouterManager(id: UUID, val client: Client)
             cfg = newCfg
             if (arpCache == null) {
                 arpCache = newArpCache
-                arpTable = new ArpTableImpl(arpCache)
+                arpTable = new ArpTableImpl(arpCache, config)
                 arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
