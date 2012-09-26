@@ -176,6 +176,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                 // Note that this will delete the mac-port entry in the shared
                 // state only if it still belongs to us. So we don't need
                 // to worry about e.g. the vport migrated to another host.
+                log.debug("Removing mac-port entry for {} on {}", mac, port)
                 macPortMap.remove(mac, port)
             }
 

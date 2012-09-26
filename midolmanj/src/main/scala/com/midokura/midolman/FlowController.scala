@@ -177,13 +177,16 @@ class FlowController extends Actor with ActorLogging {
             flowManager.checkFlowsExpiration()
 
         case flowUpdated(flow) =>
+            log.debug("DP confirmed that flow was updated: {}", flow)
             flowManager.updateFlowLastUsedTimeCompleted(flow)
             context.system.eventStream.publish(new FlowUpdateCompleted(flow))
 
         case flowAdded(flow) =>
+            log.debug("DP confirmed that flow was added: {}", flow)
             flowManager.addFlowCompleted(flow)
 
         case flowRemoved(flow) =>
+            log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
     }
 
@@ -221,6 +224,7 @@ class FlowController extends Actor with ActorLogging {
                 for( cb <- set)
                     cb.call()
         }
+
     }
 
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
@@ -228,10 +232,20 @@ class FlowController extends Actor with ActorLogging {
     }
 
     private def handlePacketIn(packet: Packet) {
+        log.debug("Received packet {}", packet)
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
         val actions = flowManager.getActionsForDpFlow(packet.getMatch)
-        if (actions != null && actions.size() > 0) {
+        if (actions != null) {
+            // This should only happen as a race condition.
+            // TODO(pino): detect if this is happening a lot, it implies a
+            // TODO: badly installed dp flow. Try to re-install it.
+            log.debug("We have a matching cached DP flow with actions {}",
+                actions)
+            if (actions.size() == 0) {
+                // Empty action list means DROP. Do nothing.
+                return;
+            }
             packet.setActions(actions)
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
@@ -249,6 +263,8 @@ class FlowController extends Actor with ActorLogging {
         // wildcard flow.
         val dpFlow = flowManager.createDpFlow(packet.getMatch)
         if (dpFlow != null) {
+            log.debug("A matching wildcard flow returned actions {}",
+                dpFlow.getActions)
             datapathConnection.flowsCreate(datapath, dpFlow,
             new ErrorHandlingCallback[Flow] {
                 def onSuccess(data: Flow) {
@@ -261,26 +277,29 @@ class FlowController extends Actor with ActorLogging {
                 }
             })
             return
-        } else {
-            // Otherwise, pass the packetIn up to the next layer for handling.
-            // Keep track of these packets so that for every FlowMatch, only
-            // one such call goes to the next layer.
-            dpMatchToCookie.get(packet.getMatch) match {
-                case None =>
-                    cookieCounter += 1
-                    val cookie = cookieCounter
-                    dpMatchToCookie.put(packet.getMatch, cookie)
-                    DatapathController.getRef().tell(
-                        DatapathController.PacketIn(
-                            WildcardMatches.fromFlowMatch(packet.getMatch),
-                            packet.getData, packet.getMatch, packet.getReason,
-                            Some(cookie)))
-                    cookieToPendedPackets.addBinding(cookie, packet)
+        }
+        // Otherwise, pass the packetIn up to the next layer for handling.
+        // Keep track of these packets so that for every FlowMatch, only
+        // one such call goes to the next layer.
+        dpMatchToCookie.get(packet.getMatch) match {
+            case None =>
+                cookieCounter += 1
+                val cookie = cookieCounter
+                log.debug("Pass packet to simulation layer with cookie {}",
+                    cookie)
+                dpMatchToCookie.put(packet.getMatch, cookie)
+                DatapathController.getRef().tell(
+                    DatapathController.PacketIn(
+                        WildcardMatches.fromFlowMatch(packet.getMatch),
+                        packet.getData, packet.getMatch, packet.getReason,
+                        Some(cookie)))
+                cookieToPendedPackets.addBinding(cookie, packet)
 
-                case Some(cookie) =>
-                    // Simulation in progress. Just pend the packet.
-                    cookieToPendedPackets.addBinding(cookie, packet)
-            }
+            case Some(cookie) =>
+                log.debug("A matching packet with cookie {} is already in " +
+                    "the simulation layer.")
+                // Simulation in progress. Just pend the packet.
+                cookieToPendedPackets.addBinding(cookie, packet)
         }
     }
 
