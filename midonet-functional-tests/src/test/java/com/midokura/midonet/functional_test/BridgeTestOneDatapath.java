@@ -32,6 +32,7 @@ import com.midokura.util.lock.LockHelper;
 
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.util.Waiters.sleepBecause;
 import static com.midokura.util.Waiters.waitFor;
 import static org.junit.Assert.assertArrayEquals;
@@ -172,46 +173,54 @@ public class BridgeTestOneDatapath {
         cleanupZooKeeperServiceData();
     }
 
+    public void sendAndExpectPacket(byte[] pkt, TapWrapper fromTap,
+            TapWrapper[] expectArrives, TapWrapper[] expectDoesNotArrive) {
+        // Send the packet
+        assertPacketWasSentOnTap(fromTap, pkt);
+        // Read it on each of the taps where it's expected to arrive.
+        for (TapWrapper t : expectArrives)
+            assertArrayEquals(pkt, t.recv());
+        // Confirm it does not arrive on any tap where it's not expected.
+        for (TapWrapper t : expectDoesNotArrive)
+            assertNull(t.recv());
+    }
+
     @Test
     public void testPing() {
         byte[] pkt1to2 = helper1_2.makeIcmpEchoRequest(ip2);
         byte[] pkt2to1 = helper2_1.makeIcmpEchoRequest(ip1);
 
-        // First send pkt1to2 from tap1 so mac1 is learned.
-        assertPacketWasSentOnTap(tap1, pkt1to2);
+        // First send pkt1to2 from tap1 so mac1 is learned. This packet
+        // should be flooded to all ports (except the ingress of course).
+        sendAndExpectPacket(pkt1to2, tap1,
+            new TapWrapper[]{tap2, tap3}, new TapWrapper[]{tap1});
 
-        // Since mac2 hasn't been learnt, the packet will be
-        // delivered to all the ports except the one that sent it.
-        assertArrayEquals(pkt1to2, tap3.recv());
-        assertArrayEquals(pkt1to2, tap2.recv());
-        assertNull("The packet should not be flooded to the inPort.",
-                tap1.recv());
+        // Resend the same packet, the same thing should happen.
+        sendAndExpectPacket(pkt1to2, tap1,
+            new TapWrapper[]{tap2, tap3}, new TapWrapper[]{tap1});
 
-        // Now send pkt2to1 from tap2.
-        assertPacketWasSentOnTap(tap2, pkt2to1);
-        // Mac1 was learnt, so the message will be sent only to tap1.
-        assertArrayEquals(pkt2to1, tap1.recv());
-        assertNull(tap2.recv());
-        assertNull(tap3.recv());
+        // Now send pkt2to1 from tap2. This packet should only be delivered to
+        // tap1. Also, it should cause the first flow to be invalidated because
+        // mac2 is learned.
+        sendAndExpectPacket(pkt2to1, tap2,
+            new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
+
+        // Resend the same packet, the same thing should happen.
+        sendAndExpectPacket(pkt2to1, tap2,
+            new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
+
         // Now re-send pkt1to2 from tap1 - it should arrive only at tap2
-        assertPacketWasSentOnTap(tap1, pkt1to2);
-        assertArrayEquals(pkt1to2, tap2.recv());
-        assertNull(tap3.recv());
-        assertNull(tap1.recv());
+        sendAndExpectPacket(pkt1to2, tap1,
+            new TapWrapper[]{tap2}, new TapWrapper[]{tap1, tap3});
 
         // Simulate mac2 moving to tap3 by sending pkt2to1 from there.
-        assertPacketWasSentOnTap(tap3, pkt2to1);
-        assertArrayEquals("The packet should still arrive only at tap1.",
-                pkt2to1, tap1.recv());
-        assertNull(tap2.recv());
-        assertNull(tap3.recv());
+        // The packet should still be delivered only to tap1.
+        sendAndExpectPacket(pkt2to1, tap3,
+            new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
 
         // Now if we send pkt1to2 from tap1, it's forwarded only to tap3.
-        assertPacketWasSentOnTap(tap1, pkt1to2);
-        assertArrayEquals("The packet should arrive only at tap3.",
-                pkt1to2, tap3.recv());
-        assertNull(tap2.recv());
-        assertNull(tap1.recv());
+        sendAndExpectPacket(pkt1to2, tap1,
+            new TapWrapper[]{tap3}, new TapWrapper[]{tap1, tap2});
     }
 }
 

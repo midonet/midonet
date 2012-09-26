@@ -306,7 +306,7 @@ class FlowController extends Actor with ActorLogging {
                             "with flow match {}", ex, timeout, dpFlow.getMatch)
                     }
                 })
-                log.debug("Flow created {}", dpFlow.getMatch)
+                log.debug("Flow created {}", dpFlow)
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)

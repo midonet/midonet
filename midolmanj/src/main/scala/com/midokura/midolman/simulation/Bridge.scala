@@ -107,15 +107,18 @@ class Bridge(val id: UUID, val greKey: Long,
                 case None =>
                     // Not a logical port's MAC.  Is dst MAC in
                     // macPortMap? (ie, learned)
-                    log.info("Have we learned this mac address already?")
                     val port = getPortOfMac(dstDlAddress, packetContext.expiry,
                                             ec)
 
                     action = port map {
                         case null =>
                             // The mac has not been learned. Flood.
+                            log.debug("Dst MAC {} is not learned. Flood",
+                                dstDlAddress)
                             ToPortSetAction(id)
                         case portID: UUID =>
+                            log.debug("Dst MAC {} is on port {}. Forward.",
+                                dstDlAddress, portID)
                             ToPortAction(portID)
                     }
             }
@@ -139,12 +142,14 @@ class Bridge(val id: UUID, val greKey: Long,
             case a: Coordinator.ToPortSetAction =>
                 packetContext.setOutputPort(a.portSetID)
             case _ =>
+                log.debug("Dropping the packet after mac-learning.")
                 return act
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
                                            packetContext.getMatch, id, false)
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
+            log.debug("Dropping the packet due to egress filter.")
             // TODO: Do something more for REJECT?
             return DropAction()
         } else if (postBridgeResult.action != Action.ACCEPT) {
@@ -154,6 +159,7 @@ class Bridge(val id: UUID, val greKey: Long,
             // TODO(pino): decrement the mac-port reference count?
             return ErrorDropAction()
         } else {
+            log.debug("Forwarding the packet with action {}", act)
             // Note that the filter is not permitted to change the output port.
             return act
         }
@@ -163,6 +169,8 @@ class Bridge(val id: UUID, val greKey: Long,
                                packetContext: PacketContext) {
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
+            log.debug("Increasing the reference count for MAC {} on port {}",
+                srcDlAddress, packetContext.getInPortId())
             flowCount.increment(srcDlAddress, packetContext.getInPortId)
             packetContext.addFlowRemovedCallback(
                 flowRemovedCallbackGen.getCallback(srcDlAddress,

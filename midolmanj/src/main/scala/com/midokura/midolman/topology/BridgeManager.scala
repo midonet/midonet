@@ -131,12 +131,17 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         case FlowIncrement(mac, port) =>
             flowCountMap.get((mac, port)) match {
                 case None =>
+                    log.debug("Incrementing reference count of {} on {} to 1",
+                        mac, port)
                     flowCountMap.put((mac, port), 1)
                     macPortMap.add(mac, port)
                     //XXX: Remove any delayed deletes for this MAC/port
                     //XXX: Check for migration from another port, and invalidate
                     //     flows to this MAC going to another port.
-                case Some(i: Int) => flowCountMap.put((mac, port), i+1)
+                case Some(i: Int) =>
+                    log.debug("Incrementing reference count of {} on {} to {}",
+                        mac, port, i+1)
+                    flowCountMap.put((mac, port), i+1)
             }
 
         case FlowDecrement(mac, port) =>
@@ -145,10 +150,15 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                     log.error("Decrement of nonexistant flow count {} {}",
                         mac, port)
                 case Some(1) => {
+                    log.debug("Decrementing reference count of {} on {} to 0",
+                        mac, port)
                     flowCountMap.remove((mac, port))
                     macPortMap.remove(mac, port)
                 }
-                case Some(i: Int) => flowCountMap.put((mac, port), i-1)
+                case Some(i: Int) =>
+                    log.debug("Decrementing reference count of {} on {} to {}",
+                        mac, port, i-1)
+                    flowCountMap.put((mac, port), i-1)
             }
 
         case TriggerUpdate(newCfg, newMacLeaningTable, newRtrMacToLogicalPortId,
