@@ -469,7 +469,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
             val eth = (new Ethernet()).setEtherType(IPv4.ETHERTYPE)
             eth.setPayload(packet)
-            eth.setDestinationMACAddress(outPort.portMac)
+            eth.setSourceMACAddress(outPort.portMac)
 
             val macFuture = getNextHopMac(outPort, rt,
                                 packet.getDestinationAddress, expiry)
@@ -479,10 +479,17 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 case mac =>
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
-                    val egrPktContext = new PacketContext(null, eth, 0, null)
+                    var egrMatch: WildcardMatch = null
+                    log.debug("JLM: before fromEthernetPacket")
+                    try {
+                        egrMatch = WildcardMatches.fromEthernetPacket(eth)
+                    } catch {
+                        case ex => log.error("JLM: ", ex); return
+                    }
+                    log.debug("JLM: after fromEthernetPacket")
                     /*
+                    val egrPktContext = new PacketContext(null, eth, 0, null)
                     egrPktContext.setOutputPort(outPort.id)
-                    val egrMatch = WildcardMatches.fromEthernetPacket(eth)
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
                     postRoutingResult.action = RuleAction.ACCEPT
