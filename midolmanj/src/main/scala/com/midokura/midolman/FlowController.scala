@@ -52,7 +52,7 @@ object FlowController extends Referenceable {
 
     case class DiscardPacket(cookie: Option[Int])
 
-    case class InvalidateFlowsByTag(tag: AnyRef)
+    case class InvalidateFlowsByTag(tag: Any)
 
     case class CheckFlowExpiration()
 
@@ -86,12 +86,12 @@ class FlowController extends Actor with ActorLogging {
 
     var flowManager: FlowManager = null
 
-    val tagToFlows: MultiMap[AnyRef, WildcardFlow] =
-        new HashMap[AnyRef, mutable.Set[WildcardFlow]]
-            with MultiMap[AnyRef, WildcardFlow]
-    val flowToTags: MultiMap[WildcardFlow, AnyRef] =
-        new HashMap[WildcardFlow, mutable.Set[AnyRef]]
-            with MultiMap[WildcardFlow, AnyRef]
+    val tagToFlows: MultiMap[Any, WildcardFlow] =
+        new HashMap[Any, mutable.Set[WildcardFlow]]
+            with MultiMap[Any, WildcardFlow]
+    val flowToTags: MultiMap[WildcardFlow, Any] =
+        new HashMap[WildcardFlow, mutable.Set[Any]]
+            with MultiMap[WildcardFlow, Any]
     val flowRemovalCallbacks =
         new mutable.HashMap[WildcardFlow, ROSet[Callback0]]
 
@@ -210,10 +210,14 @@ class FlowController extends Actor with ActorLogging {
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         flowManager.remove(wildFlow)
-        val tags = flowToTags.remove(wildFlow)
+        // XXX TODO(pino): fix me!
+        /*val tags = flowToTags.remove(wildFlow)
         for (tag <- tags){
             tagToFlows.remove(tag)
         }
+        val callbacks = flowRemovalCallbacks.remove(wildFlow)
+        for (cb <- callbacks)
+            cb.*/
     }
 
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
@@ -287,7 +291,7 @@ class FlowController extends Actor with ActorLogging {
             // TODO(pino, ross): should we send Packet commands for pended?
             // For now, just free the pended packets.
             freePendedPackets(cookieOpt)
-            for (cb <- flowRemovalCallbacks)
+            for (cb <- callbacks)
                 cb.call()
             return
         }

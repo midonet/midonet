@@ -87,7 +87,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
         def call(mac: MAC, oldPort: UUID, newPort: UUID) {
             log.debug("Mac-Port mapping for MAC {} was updated from {} to {}",
-                mac, oldPort, newPort)
+                Array(mac, oldPort, newPort))
 
             //1. MAC was removed from port
             if (newPort == null && oldPort != null) {
