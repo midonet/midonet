@@ -210,14 +210,17 @@ class FlowController extends Actor with ActorLogging {
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         flowManager.remove(wildFlow)
-        // XXX TODO(pino): fix me!
-        /*val tags = flowToTags.remove(wildFlow)
-        for (tag <- tags){
-            tagToFlows.remove(tag)
+        flowToTags.remove(wildFlow) map {
+            set: mutable.Set[Any] =>
+                for (tag <- set){
+                    tagToFlows.remove(tag)
+                }
         }
-        val callbacks = flowRemovalCallbacks.remove(wildFlow)
-        for (cb <- callbacks)
-            cb.*/
+        flowRemovalCallbacks.remove(wildFlow) map {
+            set: ROSet[Callback0] =>
+                for( cb <- set)
+                    cb.call()
+        }
     }
 
     private def removeFlow(flow: Flow, cb: Callback[Flow]){
