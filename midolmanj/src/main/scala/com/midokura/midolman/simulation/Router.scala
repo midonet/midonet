@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.SimulationController
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.rules.RuleResult
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper,
@@ -481,8 +482,12 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     val egrPktContext = new PacketContext(null, eth, 0, null)
                     egrPktContext.setOutputPort(outPort.id)
                     val egrMatch = WildcardMatches.fromEthernetPacket(eth)
+                    /*
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
+                    */
+                    val postRoutingResult = new RuleResult(RuleAction.ACCEPT,
+                        null, null, false)
                     if (postRoutingResult.action == RuleAction.ACCEPT) {
                         SimulationController.getRef(actorSystem).tell(
                             EmitGeneratedPacket(rt.nextHopPort, eth))

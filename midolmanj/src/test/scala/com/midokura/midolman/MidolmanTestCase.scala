@@ -83,12 +83,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
     before {
-
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         val config = fillConfig(new HierarchicalConfiguration())
-        injector = Guice.createInjector(
-          getModulesAsJavaIterable(config)
-        )
+        injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
@@ -97,14 +94,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         beforeTest()
     }
 
-  after {
-    EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
-    injector.getInstance(classOf[MidolmanService]).stopAndWait()
-    if (mAgent != null) {
-      mAgent.stop()
+    after {
+        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+        injector.getInstance(classOf[MidolmanService]).stopAndWait()
+        if (mAgent != null) {
+            mAgent.stop()
+        }
+        afterTest()
     }
-      afterTest()
-  }
 
     // These methods can be overridden by each class mixing MidolmanTestCase
     // to add custom operations before each test and after each tests
