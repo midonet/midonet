@@ -176,8 +176,16 @@ public class LocalClientImpl implements Client {
     @Override
     public void getPortBGPList(UUID portID, BGPListBuilder builder) {
         try {
+            // register a builder for this BGP port ID, only once.
             bgpManager.registerNewBuilder(portID, builder);
+
+            // trigger the updates mechanism. From now on, all changes in
+            // the BGP status for this port ID will be notified to the
+            // builder. This function doesn't need to be called again for
+            // the same port ID.
+            // TODO(abel) we should provide a way to de-register the BGP
             reactorLoop.submit(bgpManager.getConfig(portID));
+
         } catch (ClusterClientException e) {
             //TODO(ross) what should be send back in case of error?
         }
