@@ -480,11 +480,12 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrPktContext = new PacketContext(null, eth, 0, null)
+                    /*
                     egrPktContext.setOutputPort(outPort.id)
                     val egrMatch = WildcardMatches.fromEthernetPacket(eth)
-                    /*
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
+                    postRoutingResult.action = RuleAction.ACCEPT
                     */
                     val postRoutingResult = new RuleResult(RuleAction.ACCEPT,
                         null, null, false)
