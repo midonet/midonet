@@ -173,7 +173,8 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         triggerPacketIn("port1", ethPkt)
 
         val pktInMsg = dpProbe().expectMsgType[PacketIn]
-        val flowMatch = new FlowMatch().addKey(FlowKeys.etherType(ethPkt.getEtherType))
+        val flowMatch = new FlowMatch().addKey(
+                                FlowKeys.etherType(ethPkt.getEtherType))
         val wFlow = new WildcardFlow()
             .setMatch(WildcardMatches.fromFlowMatch(flowMatch))
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
@@ -185,9 +186,9 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
 
-
-        // this sleep is also for triggering the packet-in after reasonable amount
-        // of time to be able to check if the flow lastUsedTime was updated
+        // this sleep is also for triggering the packet-in after reasonable
+        // amount of time to be able to check if the flow lastUsedTime was
+        // updated
         dilatedSleep(timeOutFlow/3)
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
@@ -201,7 +202,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         val timeDeleted: Long = System.currentTimeMillis()
 
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
-        (timeDeleted - timeAdded) should (be >= timeOutFlow + timeOutFlow/3)
+        (timeDeleted - timeAdded) should be >= timeOutFlow
     }
 
     def testIdleAndHardTimeOutOfTheSameFlow() {
