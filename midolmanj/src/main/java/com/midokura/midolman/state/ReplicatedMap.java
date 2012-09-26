@@ -59,6 +59,7 @@ public abstract class ReplicatedMap<K, V> {
             }
             Set<String> curPaths = null;
             try {
+                // XXX TODO(pino, rossella): make this asynchronous.
                 curPaths = dir.getChildren("/", this);
             } catch (KeeperException e) {
                 log.error("DirectoryWatcher.run", e);

@@ -144,7 +144,7 @@ class FlowController extends Actor with ActorLogging {
                         tag)
                 case Some(flowSet) =>
                     log.debug("There are {} flows to invalidate for tag {}",
-                        tag)
+                        flowSet.size, tag)
                     for (wildFlow <- flowSet)
                         removeWildcardFlow(wildFlow)
             }

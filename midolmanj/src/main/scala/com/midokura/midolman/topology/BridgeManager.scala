@@ -8,7 +8,7 @@ import collection.JavaConversions._
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.ask
 import java.util.{Map, UUID}
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{TimeUnit, ConcurrentHashMap}
 
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.simulation.Bridge
@@ -18,6 +18,7 @@ import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.{Callback0, Callback1, Callback3}
+import akka.util.Duration
 
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
@@ -70,6 +71,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var cfg: BridgeConfig = null
 
     private var macPortMap: MacLearningTable = null
+    private val mac_port_timeout_millis = 30*1000;
     private val flowCounts = new MacFlowCountImpl
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
@@ -126,6 +128,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private case class FlowDecrement(mac: MAC, port: UUID)
 
+    private case class RemoveUnreferencedMacPortEntry(mac: MAC, port: UUID)
+
     override def receive = super.receive orElse {
 
         case FlowIncrement(mac, port) =>
@@ -153,13 +157,26 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                     log.debug("Decrementing reference count of {} on {} to 0",
                         mac, port)
                     flowCountMap.remove((mac, port))
-                    // TODO(pino): should this removal be scheduled for later?
-                    macPortMap.remove(mac, port)
+                    context.system.scheduler.scheduleOnce(
+                        Duration(mac_port_timeout_millis,
+                            TimeUnit.MILLISECONDS),
+                        self,
+                        RemoveUnreferencedMacPortEntry(mac, port)
+                    )
                 }
                 case Some(i: Int) =>
                     log.debug("Decrementing reference count of {} on {} to {}",
                         mac, port, i-1)
                     flowCountMap.put((mac, port), i-1)
+            }
+
+        case RemoveUnreferencedMacPortEntry(mac, port) =>
+            // If we now have references for this mac-port pair, do nothing.
+            if (!flowCountMap.contains((mac, port))) {
+                // Note that this will delete the mac-port entry in the shared
+                // state only if it still belongs to us. So we don't need
+                // to worry about e.g. the vport migrated to another host.
+                macPortMap.remove(mac, port)
             }
 
         case TriggerUpdate(newCfg, newMacLeaningTable, newRtrMacToLogicalPortId,
@@ -185,6 +202,9 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             self ! FlowDecrement(mac, port)
         }
 
+        // TODO(pino): ask JLM if we can remove this unused method.
+        // TODO: If so, flowCountMap will be private to the BridgeManager and
+        // TODO need not be a concurrent map.
         override def getCount(mac: MAC, port: UUID): Int = {
             flowCountMap.get((mac, port)) match {
                 case None => 0

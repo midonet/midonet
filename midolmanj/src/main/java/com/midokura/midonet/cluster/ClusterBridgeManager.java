@@ -197,7 +197,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setTunnelKey(config.greKey);
         // If it's an update macPortMap will be null
         if (macPortMap != null) {
-            builder.setMacLearningTable(new MacLearningTableImpl(macPortMap));
+            builder.setMacLearningTable(
+                new MacLearningTableImpl(id, macPortMap));
         }
         builder.build();
 
@@ -206,14 +207,18 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     class MacLearningTableImpl implements MacLearningTable {
 
         MacPortMap map;
+        UUID bridgeID;
 
-        MacLearningTableImpl(MacPortMap map) {
+        MacLearningTableImpl(UUID bridgeID, MacPortMap map) {
+            this.bridgeID = bridgeID;
             this.map = map;
         }
 
         @Override
         public void get(final MAC mac, final Callback1<UUID> cb,
                         final Long expirationTime) {
+            // It's ok to do a synchronous get on the map because it only
+            // queries local state (doesn't go remote like the other calls.
             cb.call(map.get(mac));
         }
 
@@ -233,7 +238,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 }
             });
             log.info("Added mac {} to port {} for bridge {}",
-                     new Object[]{mac, portID});
+                     new Object[]{mac, portID, bridgeID});
         }
 
         @Override

@@ -393,6 +393,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public void get(final IntIPv4 ipAddr,
                         final Callback1<ArpCacheEntry> cb,
                         final Long expirationTime) {
+            // It's ok to do a synchronous get on the map because it only
+            // queries local state (doesn't go remote like the other calls.
             cb.call(arpTable.get(ipAddr));
         }
 
