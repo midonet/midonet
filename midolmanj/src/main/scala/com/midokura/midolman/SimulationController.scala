@@ -15,8 +15,7 @@ import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.simulation.Coordinator
 import com.midokura.packets.{DHCP, UDP, IPv4, Ethernet}
 import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
-import parallel.Future
-import akka.dispatch.Promise
+import akka.dispatch.{Future, Promise}
 
 
 object SimulationController extends Referenceable {
