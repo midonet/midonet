@@ -153,6 +153,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                     log.debug("Decrementing reference count of {} on {} to 0",
                         mac, port)
                     flowCountMap.remove((mac, port))
+                    // TODO(pino): should this removal be scheduled for later?
                     macPortMap.remove(mac, port)
                 }
                 case Some(i: Int) =>

@@ -4,14 +4,13 @@
 
 package com.midokura.midolman.topology.builders
 
-import akka.actor.{ActorContext, ActorRef}
+import akka.actor.ActorRef
 import scala.collection.mutable.Map
-import java.util.{UUID}
+import java.util.UUID
 
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
-import com.midokura.midonet.cluster.client.{BridgeBuilder,
-        ForwardingElementBuilder, MacLearningTable, SourceNatResource}
+import com.midokura.midonet.cluster.client.{BridgeBuilder, MacLearningTable, SourceNatResource}
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback3
 

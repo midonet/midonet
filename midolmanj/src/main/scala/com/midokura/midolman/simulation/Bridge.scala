@@ -60,8 +60,9 @@ class Bridge(val id: UUID, val greKey: Long,
 
         if (preBridgeResult.action == Action.DROP ||
                 preBridgeResult.action == Action.REJECT) {
-            // TOOD: Do something more for REJECT?
             learnMacOnPort(srcDlAddress, packetContext)
+            // No point in tagging by dst-MAC+Port because the outPort was
+            // not used in deciding to drop the flow.
             return Promise.successful(DropAction())
         } else if (preBridgeResult.action != Action.ACCEPT) {
             log.error("Pre-bridging for {} returned an action which was {}, " +
@@ -110,15 +111,23 @@ class Bridge(val id: UUID, val greKey: Long,
                     val port = getPortOfMac(dstDlAddress, packetContext.expiry,
                                             ec)
 
+                    // Tag the flow with the (dst-port, dst-mac) pair so we can
+                    // invalidate the flow if the MAC migrates.
                     action = port map {
                         case null =>
                             // The mac has not been learned. Flood.
                             log.debug("Dst MAC {} is not learned. Flood",
                                 dstDlAddress)
+                            // TODO(pino): this case requires the bridge's ID
+                            // TODO: in the tag because MACs may not be unique.
+                            val tag = (null, srcDlAddress)
+                            packetContext.addFlowTag(tag)
                             ToPortSetAction(id)
                         case portID: UUID =>
                             log.debug("Dst MAC {} is on port {}. Forward.",
                                 dstDlAddress, portID)
+                            val tag = (portID, srcDlAddress)
+                            packetContext.addFlowTag(tag)
                             ToPortAction(portID)
                     }
             }
@@ -150,13 +159,13 @@ class Bridge(val id: UUID, val greKey: Long,
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
             log.debug("Dropping the packet due to egress filter.")
-            // TODO: Do something more for REJECT?
             return DropAction()
         } else if (postBridgeResult.action != Action.ACCEPT) {
             log.error("Post-bridging for {} returned an action which was {}, " +
                       "not ACCEPT, DROP, or REJECT.", id,
                       postBridgeResult.action)
             // TODO(pino): decrement the mac-port reference count?
+            // TODO(pino): remove the flow tag?
             return ErrorDropAction()
         } else {
             log.debug("Forwarding the packet with action {}", act)
@@ -172,15 +181,17 @@ class Bridge(val id: UUID, val greKey: Long,
             log.debug("Increasing the reference count for MAC {} on port {}",
                 srcDlAddress, packetContext.getInPortId())
             flowCount.increment(srcDlAddress, packetContext.getInPortId)
+            // Add a flow-removal callback that decrements the reference count.
             packetContext.addFlowRemovedCallback(
                 flowRemovedCallbackGen.getCallback(srcDlAddress,
                                                    packetContext.getInPortId))
+            // TODO(pino): ask Rossella why we need to tag by src MAC+Port
+            // TODO: Also, the the tag differs from MacTableNotifyCallBack's.
             // Pass the tag to be used to index the flow
             val tag = (id, srcDlAddress, packetContext.getInPortId)
             packetContext.addFlowTag(tag)
-            // Any flow invalidations caused by MACs migrating between ports
-            // are done by the BridgeManager, which detects them from the
-            // flowCount.increment call.
+            // Flow invalidations caused by MACs migrating between ports
+            // are done by the BridgeManager's MacTableNotifyCallBack.
         }
     }
 

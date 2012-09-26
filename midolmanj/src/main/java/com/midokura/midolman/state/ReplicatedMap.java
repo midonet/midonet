@@ -235,6 +235,9 @@ public abstract class ReplicatedMap<K, V> {
         return ownedVersions.contains(mv.version);
     }
 
+    // TODO(pino): it might be useful to take the value as another argument.
+    // TODO: e.g. to prevent a delayed callback meant to remove an old value
+    // TODO: from removing a newer one.
     public V removeIfOwner(K key) throws KeeperException, InterruptedException {
         MapValue mv;
         synchronized(this) {
