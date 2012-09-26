@@ -130,8 +130,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     override def getFlowCookie(): Object = flowCookie
     override def isConnTracked(): Boolean = connectionTracked
 
-    override def isForwardFlow(): Boolean = true
-    /*override*/ def isForwardFlowXXX(): Boolean = {
+    override def isForwardFlow(): Boolean = {
         // Connection tracking:  connectionTracked starts out as false.
         // If isForwardFlow is called, connectionTracked becomes true and
         // a lookup into Cassandra determines which direction this packet
