@@ -92,6 +92,8 @@ class FlowController extends Actor with ActorLogging {
     val flowToTags: MultiMap[WildcardFlow, AnyRef] =
         new HashMap[WildcardFlow, mutable.Set[AnyRef]]
             with MultiMap[WildcardFlow, AnyRef]
+    val flowRemovalCallbacks =
+        new mutable.HashMap[WildcardFlow, ROSet[Callback0]]
 
     var flowExpirationCheckInterval: Duration = null
 
@@ -127,7 +129,8 @@ class FlowController extends Actor with ActorLogging {
 
         case AddWildcardFlow(wildcardFlow, cookie, pktBytes,
                              flowRemovalCallbacks, tags) =>
-            handleNewWildcardFlow(wildcardFlow, cookie)
+            handleNewWildcardFlow(wildcardFlow, cookie,
+                                  flowRemovalCallbacks, tags)
             context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
 
         case DiscardPacket(cookieOpt) =>
@@ -137,7 +140,11 @@ class FlowController extends Actor with ActorLogging {
             val flowsOption = tagToFlows.get(tag)
             flowsOption match {
                 case None =>
+                    log.debug("There are no flows to invalidate for tag {}",
+                        tag)
                 case Some(flowSet) =>
+                    log.debug("There are {} flows to invalidate for tag {}",
+                        tag)
                     for (wildFlow <- flowSet)
                         removeWildcardFlow(wildFlow)
             }
@@ -271,15 +278,26 @@ class FlowController extends Actor with ActorLogging {
     }
 
     private def handleNewWildcardFlow(wildcardFlow: WildcardFlow,
-                                      cookieOpt: Option[Cookie]) {
+                                      cookieOpt: Option[Cookie],
+                                      callbacks: ROSet[Callback0],
+                                      tags: ROSet[Any]) {
         if (!flowManager.add(wildcardFlow)){
             log.error("FlowManager failed to install wildcard flow {}",
                 wildcardFlow)
             // TODO(pino, ross): should we send Packet commands for pended?
             // For now, just free the pended packets.
             freePendedPackets(cookieOpt)
+            for (cb <- flowRemovalCallbacks)
+                cb.call()
             return
         }
+
+        flowRemovalCallbacks.put(wildcardFlow, callbacks)
+        for (tag <- tags) {
+            flowToTags.addBinding(wildcardFlow, tag)
+            tagToFlows.addBinding(tag, wildcardFlow)
+        }
+
         // Now install any datapath flows that are needed.
         cookieOpt match {
             case None => // No packets pended. Do nothing.

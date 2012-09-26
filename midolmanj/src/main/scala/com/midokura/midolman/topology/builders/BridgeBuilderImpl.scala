@@ -13,6 +13,7 @@ import com.midokura.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
 import com.midokura.midonet.cluster.client.{BridgeBuilder, MacLearningTable, SourceNatResource}
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback3
+import org.slf4j.LoggerFactory
 
 
 /**
@@ -81,7 +82,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     }
 
     private class MacTableNotifyCallBack extends Callback3[MAC, UUID, UUID] {
+        final val log =
+            LoggerFactory.getLogger(classOf[MacTableNotifyCallBack])
+
         def call(mac: MAC, oldPort: UUID, newPort: UUID) {
+            log.debug("Mac-Port mapping for MAC {} was updated from {} to {}",
+                mac, oldPort, newPort)
 
             //1. MAC was removed from port
             if (newPort == null && oldPort != null) {
