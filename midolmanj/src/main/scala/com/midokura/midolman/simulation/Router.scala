@@ -5,7 +5,6 @@ package com.midokura.midolman.simulation
 
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.dispatch.Future.flow
 import java.util.UUID
 import org.slf4j.LoggerFactory
 
@@ -20,7 +19,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
@@ -459,9 +458,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
         def _sendIPPacket(outPort: RouterPort[_], rt: Route) {
             if (packet.getDestinationAddress == outPort.portAddr.addressAsInt) {
                 /* should never happen: it means we are trying to send a packet
-                 * to ourselves, probably means that somebody sent an ip packet
-                 * with source and dest addresses belonging to this router.
+                 * to ourselves, probably means that somebody sent an IP packet
+                 * with a forged source address belonging to this router.
                  */
+                log.error("Router {} trying to send a packet {} to itself.",
+                          id, packet)
                 return
             }
 
@@ -476,8 +477,21 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     log.error("Failed to get MAC address to emit local packet")
                 case mac =>
                     eth.setDestinationMACAddress(mac)
-                    SimulationController.getRef(actorSystem).tell(
-                        EmitGeneratedPacket(rt.nextHopPort, eth))
+                    // Apply post-routing (egress) chain.
+                    val egrPktContext = new PacketContext(null, eth, 0, null)
+                    egrPktContext.setOutputPort(outPort.id)
+                    val egrMatch = WildcardMatches.fromEthernetPacket(eth)
+                    val postRoutingResult = Chain.apply(outFilter,
+                                       egrPktContext, egrMatch, id, false)
+                    if (postRoutingResult.action == RuleAction.ACCEPT) {
+                        SimulationController.getRef(actorSystem).tell(
+                            EmitGeneratedPacket(rt.nextHopPort, eth))
+                    } else if (postRoutingResult.action != RuleAction.DROP &&
+                               postRoutingResult.action != RuleAction.REJECT) {
+                        log.error("Post-routing for {} returned an action " +
+                                  "which was {}, not ACCEPT, DROP, or REJECT.",
+                                  id, postRoutingResult.action)
+                    }
             }
         }
 
@@ -489,8 +503,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return
         if (rt.nextHopPort == null)
             return
-
-        // XXX: Apply post-routing (egress) chain.
 
         getRouterPort(rt.nextHopPort, expiry) onSuccess {
             case null => log.error("Failed to get port to emit local packet")
