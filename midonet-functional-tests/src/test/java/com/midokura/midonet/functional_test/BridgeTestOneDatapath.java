@@ -173,16 +173,31 @@ public class BridgeTestOneDatapath {
         cleanupZooKeeperServiceData();
     }
 
-    public void sendAndExpectPacket(byte[] pkt, TapWrapper fromTap,
-            TapWrapper[] expectArrives, TapWrapper[] expectDoesNotArrive) {
-        // Send the packet
-        assertPacketWasSentOnTap(fromTap, pkt);
-        // Read it on each of the taps where it's expected to arrive.
-        for (TapWrapper t : expectArrives)
-            assertArrayEquals(pkt, t.recv());
-        // Confirm it does not arrive on any tap where it's not expected.
-        for (TapWrapper t : expectDoesNotArrive)
-            assertNull(t.recv());
+    public void sendAndExpectPacket(byte[] pkt, int iterations,
+            TapWrapper fromTap, TapWrapper[] expectArrives,
+            TapWrapper[] expectDoesNotArrive) {
+        for (int i=0; i<iterations; i++) {
+            // Send the packet
+            assertPacketWasSentOnTap(fromTap, pkt);
+            // Read it on each of the taps where it's expected to arrive.
+            for (TapWrapper t : expectArrives) {
+                byte[] received = t.recv();
+                assertNotNull(
+                    String.format("Needed bytes from %s on iteration %d",
+                        t.getName(),
+                    received));
+                assertArrayEquals(
+                    String.format("Bytes from %s differ on iteration %d",
+                        t.getName(), i),
+                    pkt, received);
+            }
+            // Confirm it does not arrive on any tap where it's not expected.
+            for (TapWrapper t : expectDoesNotArrive)
+                assertNull(
+                    String.format("Should not get byts from %s on iteration %d",
+                        t.getName(), i),
+                    t.recv());
+        }
     }
 
     @Test
@@ -192,34 +207,26 @@ public class BridgeTestOneDatapath {
 
         // First send pkt1to2 from tap1 so mac1 is learned. This packet
         // should be flooded to all ports (except the ingress of course).
-        sendAndExpectPacket(pkt1to2, tap1,
-            new TapWrapper[]{tap2, tap3}, new TapWrapper[]{tap1});
-
-        // Resend the same packet, the same thing should happen.
-        sendAndExpectPacket(pkt1to2, tap1,
+        sendAndExpectPacket(pkt1to2, 2, tap1,
             new TapWrapper[]{tap2, tap3}, new TapWrapper[]{tap1});
 
         // Now send pkt2to1 from tap2. This packet should only be delivered to
         // tap1. Also, it should cause the first flow to be invalidated because
         // mac2 is learned.
-        sendAndExpectPacket(pkt2to1, tap2,
-            new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
-
-        // Resend the same packet, the same thing should happen.
-        sendAndExpectPacket(pkt2to1, tap2,
+        sendAndExpectPacket(pkt2to1, 2, tap2,
             new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
 
         // Now re-send pkt1to2 from tap1 - it should arrive only at tap2
-        sendAndExpectPacket(pkt1to2, tap1,
+        sendAndExpectPacket(pkt1to2, 2, tap1,
             new TapWrapper[]{tap2}, new TapWrapper[]{tap1, tap3});
 
         // Simulate mac2 moving to tap3 by sending pkt2to1 from there.
         // The packet should still be delivered only to tap1.
-        sendAndExpectPacket(pkt2to1, tap3,
+        sendAndExpectPacket(pkt2to1, 2, tap3,
             new TapWrapper[]{tap1}, new TapWrapper[]{tap2, tap3});
 
         // Now if we send pkt1to2 from tap1, it's forwarded only to tap3.
-        sendAndExpectPacket(pkt1to2, tap1,
+        sendAndExpectPacket(pkt1to2, 4, tap1,
             new TapWrapper[]{tap3}, new TapWrapper[]{tap1, tap2});
     }
 }
