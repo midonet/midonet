@@ -43,6 +43,7 @@ class PortSetManager extends RCUDeviceManager {
         }
 
         def build() {
+            // XXX TODO(pino): invalidate flows by the PortSet tag here?
             actor ! rcu.PortSet(portSetId, immutable.Set[UUID](hosts.toList: _*), immutable.Set())
         }
     }

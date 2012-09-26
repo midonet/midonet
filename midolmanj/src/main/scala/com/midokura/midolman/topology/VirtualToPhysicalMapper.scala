@@ -251,13 +251,15 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 portSets.addSubscriber(portSetId, sender, updates)
 
             case portSet: rcu.PortSet =>
-                val updatedPortSet = localActivePortSets.get(portSet.id)
-                match {
+                val updatedPortSet = localActivePortSets.get(portSet.id) match
+                {
                     case None => portSet
                     case Some(ports) =>
                         rcu.PortSet(portSet.id, portSet.hosts, ports.toSet)
                 }
 
+                // TODO(pino, rossella): should we invalidate the flows with
+                // TODO: the PortSet ID tag here vs. in the PortSetManager?
                 portSets.updateAndNotifySubscribers(portSet.id, updatedPortSet)
 
             case HostRequest(hostId) =>
@@ -353,6 +355,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 }
 
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
+                // TODO(pino, rossella): consider invalidating flows by PortSet
+                // TODO: ID tag here rather than in the BridgeBuilderImpl.
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.add(vifId)
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
@@ -361,6 +365,11 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 completeLocalPortActivation(vifId, active = true, success = true)
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
+                // TODO(pino, rossella): consider invalidating flows by PortSet
+                // TODO: ID tag here rather than in the BridgeBuilderImpl.
+                // TODO: Also consider doing nothing because the DatapathCtrl's
+                // TODO: tag by ShortPortNo will invalidate all relevant flows
+                // TODO: anyway.
                 log.info("Port changed {} {}", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.remove(vifId)
@@ -491,6 +500,13 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
     private case class ExpectingPorts() extends ExpectingState
 
+    /**
+     * Message sent by the Mapper to itself to track membership changes in a
+     * PortSet - but ONLY about vports that are/were materialized locally.
+     * @param vif
+     * @param setId
+     * @param state
+     */
     private case class _PortSetMembershipUpdated(vif: UUID, setId: UUID, state: Boolean)
 
     private case class _ActivatedLocalPort(vif: UUID, active: Boolean, success: Boolean)
