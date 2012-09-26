@@ -30,8 +30,8 @@ public class DatapathModule extends PrivateModule {
 
     protected void bindOvsDatapathConnection() {
         bind(OvsDatapathConnection.class)
-            .toProvider(OvsDatapathConnectionProvider.class)
-            //.toProvider(MockOvsDatapathConnectionProvider.class)
+            //.toProvider(OvsDatapathConnectionProvider.class)
+            .toProvider(MockOvsDatapathConnectionProvider.class)
             .in(Singleton.class);
     }
 }

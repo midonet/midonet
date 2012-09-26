@@ -10,6 +10,7 @@ import java.util.List;
 import static java.lang.String.format;
 
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.*;
 import com.midokura.util.Waiters;
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -22,11 +23,7 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.midonet.functional_test.utils.RemoteTap;
-import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
@@ -260,6 +257,22 @@ public class FunctionalTestsHelper {
                 format("We couldn't send a packet via tap %s", tap.getName()),
                 tap.send(packet));
 
+    }
+
+    public static int startEmbeddedZookeeper(int port) {
+        return EmbeddedZKLauncher.start(port);
+    }
+
+    public static void stopEmbeddedZookeeper() {
+        EmbeddedZKLauncher.stop();
+    }
+
+    public static void startCassandra(String cassandraConfiguration) {
+        try {
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(cassandraConfiguration);
+        } catch (Exception e) {
+            log.error("Failed to start embedded Cassandra.", e);
+        }
     }
 
     public static void startCassandra() {

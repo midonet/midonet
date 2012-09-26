@@ -78,7 +78,7 @@ public class BridgeTestOneDatapath {
     @Before
     public void setUp() throws Exception {
 
-        startCassandra();
+       // startCassandra();
         midolman = MidolmanLauncher.start("BridgeTestOneDatapath");
         apiStarter = new MockMgmtStarter(false);
         apiClient = new MidonetMgmt(apiStarter.getURI());
