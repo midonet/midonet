@@ -83,16 +83,17 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private class MacTableNotifyCallBack extends Callback3[MAC, UUID, UUID] {
         def call(mac: MAC, oldPort: UUID, newPort: UUID) {
 
-            //1. MAC was deleted
+            //1. MAC was removed from port
             if (newPort == null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFlowsByMac(id, mac))
+                    FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
             //2. MAC moved from port-x to port-y
             if (newPort != null && oldPort != null) {
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
+            // else: newPort != null && oldPort == null
             //3. MAC was added -> do nothing
 
             // in any case we need to re-compute the broadcast flows. If a port
@@ -100,8 +101,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // deleted we have to remove it. If a port moved to a new host that
             // had no port of this bridge, we need a flow to the port that has
             // the tunnel to it
+            // TODO(pino): I'm only invalidating flooded flows to that MAC.
+            // TODO: so we need to invalidate all the flooded flows when the
+            // TODO: hosts in the port set change or the local ports in the
+            // TODO: PortSet change. This should be done in VTPM.
             flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateBroadcastFlows(id))
+                FlowTagger.invalidateFlowsByMac(id, mac))
         }
     }
 

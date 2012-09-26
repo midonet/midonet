@@ -5,18 +5,15 @@ package com.midokura.midolman.simulation
 
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.dispatch.Future.flow
 import akka.event.Logging
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 
 import com.midokura.midolman.rules.RuleResult.Action
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{MacFlowCount,
-                                       RemoveFlowCallbackGenerator}
+import com.midokura.midolman.topology.{FlowTagger, MacFlowCount, RemoveFlowCallbackGenerator}
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
-import com.midokura.sdn.flows.{PacketMatch, WildcardMatch}
 import com.midokura.util.functors.Callback1
 
 
@@ -118,16 +115,16 @@ class Bridge(val id: UUID, val greKey: Long,
                             // The mac has not been learned. Flood.
                             log.debug("Dst MAC {} is not learned. Flood",
                                 dstDlAddress)
-                            // TODO(pino): this case requires the bridge's ID
-                            // TODO: in the tag because MACs may not be unique.
-                            val tag = (null, srcDlAddress)
-                            packetContext.addFlowTag(tag)
+                            packetContext.addFlowTag(
+                                FlowTagger.invalidateFlowsByMac(
+                                    id, srcDlAddress))
                             ToPortSetAction(id)
                         case portID: UUID =>
                             log.debug("Dst MAC {} is on port {}. Forward.",
                                 dstDlAddress, portID)
-                            val tag = (portID, srcDlAddress)
-                            packetContext.addFlowTag(tag)
+                            packetContext.addFlowTag(
+                                FlowTagger.invalidateFlowsByPort(
+                                    id, srcDlAddress, portID))
                             ToPortAction(portID)
                     }
             }
@@ -186,10 +183,9 @@ class Bridge(val id: UUID, val greKey: Long,
                 flowRemovedCallbackGen.getCallback(srcDlAddress,
                                                    packetContext.getInPortId))
             // TODO(pino): ask Rossella why we need to tag by src MAC+Port
-            // TODO: Also, the the tag differs from MacTableNotifyCallBack's.
             // Pass the tag to be used to index the flow
-            val tag = (id, srcDlAddress, packetContext.getInPortId)
-            packetContext.addFlowTag(tag)
+            //val tag = (id, srcDlAddress, packetContext.getInPortId)
+            //packetContext.addFlowTag(tag)
             // Flow invalidations caused by MACs migrating between ports
             // are done by the BridgeManager's MacTableNotifyCallBack.
         }
