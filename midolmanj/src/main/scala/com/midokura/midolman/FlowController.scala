@@ -318,10 +318,13 @@ class FlowController extends Actor with ActorLogging {
             return
         }
 
-        flowRemovalCallbacks.put(wildcardFlow, callbacks)
-        for (tag <- tags) {
-            flowToTags.addBinding(wildcardFlow, tag)
-            tagToFlows.addBinding(tag, wildcardFlow)
+        if (null != callbacks)
+            flowRemovalCallbacks.put(wildcardFlow, callbacks)
+        if (null != tags) {
+            for (tag <- tags) {
+                flowToTags.addBinding(wildcardFlow, tag)
+                tagToFlows.addBinding(tag, wildcardFlow)
+            }
         }
 
         // Now install any datapath flows that are needed.
