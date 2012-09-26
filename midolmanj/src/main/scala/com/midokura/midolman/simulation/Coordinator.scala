@@ -103,17 +103,17 @@ class Coordinator(val origMatch: WildcardMatch,
                   val actorSystem: ActorSystem) {
     import Coordinator._
     val log = akka.event.Logging(actorSystem, "Coordinator.simulate")
-    val datapathController = DatapathController.getRef(actorSystem)
-    val flowController = FlowController.getRef(actorSystem)
-    val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
-    val TEMPORARY_DROP_MILLIS = 5 * 1000
-    val IDLE_EXPIRATION_MILLIS = 60 * 1000
-    val MAX_DEVICES_TRAVERSED = 12
+    private val datapathController = DatapathController.getRef(actorSystem)
+    private val flowController = FlowController.getRef(actorSystem)
+    private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
+    private val TEMPORARY_DROP_MILLIS = 5 * 1000
+    private val IDLE_EXPIRATION_MILLIS = 60 * 1000
+    private val MAX_DEVICES_TRAVERSED = 12
 
     // Used to detect loops: devices simulated (with duplicates).
-    var numDevicesSimulated = 0
-    val devicesSimulated = mutable.Map[UUID, Int]()
-    val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
+    private var numDevicesSimulated = 0
+    private val devicesSimulated = mutable.Map[UUID, Int]()
+    private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
                                        connectionCache)
     pktContext.setMatch(origMatch.clone)
 

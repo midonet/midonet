@@ -11,11 +11,16 @@ import javax.annotation.Nullable
 import com.google.inject.Inject
 
 import com.midokura.cache.Cache
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.midolman.simulation.Coordinator
-import com.midokura.packets.{DHCP, UDP, IPv4, Ethernet}
-import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
+import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
+import com.midokura.packets._
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import akka.dispatch.{Future, Promise}
+import com.midokura.midonet.cluster.DataClient
+import scala.Left
+import com.midokura.midolman.DatapathController.PacketIn
+import scala.Right
+import scala.Some
+import com.midokura.midolman.FlowController.AddWildcardFlow
 
 
 object SimulationController extends Referenceable {
@@ -30,14 +35,22 @@ class SimulationController() extends Actor with ActorLogging {
 
     val timeout = (5 minutes).toMillis
     @Inject @Nullable var connectionCache: Cache = null
-    //val dhcpHandler = new DhcpHandler()
+    @Inject val clusterDataClient: DataClient = null
+    val datapathController = DatapathController.getRef()
 
     def receive = {
         case PacketIn(wMatch, pktBytes, _, _, cookie) =>
             val ethPkt = Ethernet.deserialize(pktBytes)
             handleDHCP(wMatch, cookie, ethPkt) onComplete {
                 case Left(err) =>
-                    //TODO(pino): drop the flow?
+                    // On error drop the flow temporarily (empty action list).
+                    datapathController.tell(
+                        AddWildcardFlow(
+                            new WildcardFlow()
+                                .setHardExpirationMillis(5 * 1000)
+                                .setMatch(wMatch),
+                            cookie, null, null, null))
+
                 case Right(true) =>
                     //Nothing to do
                 case Right(false) =>
@@ -65,12 +78,10 @@ class SimulationController() extends Actor with ActorLogging {
                     && udp.getDestinationPort() == 67) {
                     val dhcp = udp.getPayload().asInstanceOf[DHCP];
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
-                        log.debug("got a DHCP bootrequest");
-                        if (true)
-                        //if (dhcpHandler.handleDhcpRequest(inPortId, dhcp,
-                        //        ethPkt.getSourceMACAddress())) {
-                        //        freeBuffer(bufferId);
-                            return Promise.successful(true);
+                        log.debug("Got a DHCP bootrequest");
+                        return new DhcpImpl(
+                            clusterDataClient, wMatch.getInputPortUUID, dhcp,
+                            ethPkt.getSourceMACAddress, cookie).handleDHCP
                     }
                 }
             }
