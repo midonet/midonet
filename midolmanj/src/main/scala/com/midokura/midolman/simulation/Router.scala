@@ -265,9 +265,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val tpa = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
         if (tpa != inPort.portAddr.addressAsInt)
             return
-        // TODO - spoofL2Network check ... discuss.
 
         val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val spaNet = new IntIPv4(spa, inPort.portAddr.getMaskLength)
+        if (inPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
+            log.debug("Ignoring ARP request from address {} not in the " +
+                "ingress port network {}",
+                spaNet, inPort.portAddr.toNetworkAddress)
+            return
+        }
+
         arpTable.set(new IntIPv4(spa), pkt.getSenderHardwareAddress)
 
         val arp = new ARP()
@@ -315,8 +322,15 @@ class Router(val id: UUID, val cfg: RouterConfig,
         // existing cache entry and make noise if so?
 
         val sha: MAC = pkt.getSenderHardwareAddress
-        val spa = new IntIPv4(pkt.getSenderProtocolAddress)
-        arpTable.set(spa, sha)
+        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val spaNet = new IntIPv4(spa, rtrPort.portAddr.getMaskLength)
+        if (rtrPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
+            log.debug("Ignoring ARP reply from address {} not in the ingress " +
+                "port network {}", spaNet, rtrPort.portAddr.toNetworkAddress)
+            return
+        }
+
+        arpTable.set(new IntIPv4(spa), sha)
     }
 
     private def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {
