@@ -69,6 +69,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config.setProperty("datapath.max_flow_count", 3)
         config.setProperty("midolman.check_flow_expiration_interval", 10)
+        config.setProperty("midolman.enable_monitoring", "false")
         config
     }
 
@@ -193,7 +194,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         // Now trigger another packet that matches the flow.
-        triggerPacketIn("port1", ethPkt)
+        triggerPacketIn("port1", ethPkt1)
 
         eventProbe.expectMsgClass(classOf[FlowUpdateCompleted])
 
@@ -202,7 +203,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         val timeDeleted: Long = System.currentTimeMillis()
 
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
-        (timeDeleted - timeAdded) should be >= timeOutFlow
+        (timeDeleted - timeAdded) should be >= (timeOutFlow + timeOutFlow/3)
     }
 
     def testIdleAndHardTimeOutOfTheSameFlow() {

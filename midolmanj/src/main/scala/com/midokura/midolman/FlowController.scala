@@ -244,7 +244,7 @@ class FlowController extends Actor with ActorLogging {
                 actions)
             if (actions.size() == 0) {
                 // Empty action list means DROP. Do nothing.
-                return;
+                return
             }
             packet.setActions(actions)
             datapathConnection.packetsExecute(datapath, packet,
