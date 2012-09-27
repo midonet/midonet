@@ -119,7 +119,13 @@ class InteriorBridgePort
 
 class ExteriorRouterPort
     extends ExteriorPort[ExteriorRouterPort]
-    with RouterPort[ExteriorRouterPort] {}
+    with RouterPort[ExteriorRouterPort] {
+    var localNwAddr: IntIPv4 = null
+
+    def setLocalNwAddr(addr: IntIPv4): ExteriorRouterPort = {
+        this.localNwAddr = addr; self
+    }
+}
 
 class InteriorRouterPort
     extends InteriorPort[InteriorRouterPort]
