@@ -33,7 +33,7 @@ import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
  */
 public class ZkManager {
 
-    private final static Logger log = LoggerFactory.getLogger(ZkManager.class);
+    protected final static Logger log = LoggerFactory.getLogger(ZkManager.class);
 
     protected static final Functor<String, UUID> strToUUIDMapper =
         new Functor<String, UUID>() {

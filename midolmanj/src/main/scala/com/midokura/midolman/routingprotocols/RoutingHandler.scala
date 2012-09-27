@@ -218,6 +218,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                             return
                         }
 
+                        if (bgps.contains(bgp.getId)) bgps.remove(bgp.getId)
                         bgps.put(bgp.getId, bgp)
                         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
 
@@ -422,7 +423,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     private def stopBGP() {
         if (bgpdProcess != null) {
-            bgpdProcess.stopBgpdProcess()
+            bgpdProcess.stop()
         }
     }
 
@@ -440,6 +441,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         val bgp = bgpPair._2
         setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
         bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
+        bgpdProcess.start()
     }
 
     def create(localAddr: IntIPv4, bgp: BGP) {
