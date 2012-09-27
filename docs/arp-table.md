@@ -59,9 +59,9 @@ Each iteration checks that an arp request needs to be sent:
 
 ### `set()` method
 
-The set method sets the entry with the new information on the ArpCache
-and notifies all the waiters. This is invoked by the Router when an ARP
-reply is received.
+The set method notifies all the interested local waiters about the newly learned
+MAC address and writes an entry in the `ArpCache` so that it will make its way
+to ZooKeeper and to waiters in other nodes.
 
 ### Processing of ARP packets
 
