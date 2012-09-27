@@ -69,47 +69,43 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
      * @param isUpdate
      * @return
      */
-    public Runnable getRouterConf(final UUID id, final boolean isUpdate) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                log.info("Updating configuration for router {}", id);
-                RouterBuilder builder = getBuilder(id);
+    public void getRouterConf(final UUID id, final boolean isUpdate) {
+        log.info("Updating configuration for router {}", id);
+        RouterBuilder builder = getBuilder(id);
 
-                if(builder == null){
-                    log.error("Null builder for router {}", id.toString());
-                }
+        if(builder == null){
+            log.error("Null builder for router {}", id.toString());
+        }
 
-                RouterZkManager.RouterConfig config = null;
+        RouterZkManager.RouterConfig config = null;
+        try {
+            config = routerMgr.get(id, watchRouter(id));
+        } catch (StateAccessException e) {
+            log.error("Cannot retrieve the configuration for bridge {}",
+                      id, e);
+        }
+
+        ArpTable arpTable = null;
+        if (config != null) {
+            if (!isUpdate) {
                 try {
-                    config = routerMgr.get(id, watchRouter(id));
+                    arpTable = new ArpTable(
+                        routerMgr.getArpTableDirectory(id));
+                    arpTable.start();
                 } catch (StateAccessException e) {
-                    log.error("Cannot retrieve the configuration for bridge {}",
-                              id, e);
+                    log.error(
+                        "Error retrieving ArpTable for bridge {}",
+                        id, e);
                 }
-                ArpTable arpTable = null;
-                if (config != null) {
-                    if (!isUpdate) {
-                        try {
-                            arpTable = new ArpTable(
-                                routerMgr.getArpTableDirectory(id));
-                            arpTable.start();
-                        } catch (StateAccessException e) {
-                            log.error(
-                                "Error retrieving ArpTable for bridge {}",
-                                id, e);
-                        }
-                        try {
-                            startRoutingTable(id, builder);
-                        } catch (StateAccessException e) {
-                            log.error("Couldn't retrieve the RoutingTableDirectory", e);
-                        }
-                    }
+                try {
+                    startRoutingTable(id, builder);
+                } catch (StateAccessException e) {
+                    log.error("Couldn't retrieve the RoutingTableDirectory", e);
                 }
-                buildRouterFromConfig(id, config, builder, arpTable);
-                log.info("Update configuration for router {}", id);
             }
-        };
+        }
+        buildRouterFromConfig(id, config, builder, arpTable);
+        log.info("Update configuration for router {}", id);
     }
 
     private void startRoutingTable(UUID routerId, RouterBuilder builder)
@@ -127,7 +123,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             @Override
             public void run() {
                 // return fast and update later
-                reactorLoop.submit(getRouterConf(id, true));
+                getRouterConf(id, true);
                 log.info("Added watcher for router {}", id);
             }
         };
@@ -144,8 +140,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     }
 
     @Override
-    public Runnable getConfig(UUID id) {
-        return getRouterConf(id, false);
+    protected void getConfig(UUID id) {
+        getRouterConf(id, false);
     }
 
     public void updateRoutesBecauseLocalPortChangedStatus(UUID routerId, UUID portId,

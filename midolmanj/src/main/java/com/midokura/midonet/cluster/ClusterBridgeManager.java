@@ -40,10 +40,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     BridgeZkManager bridgeMgr;
 
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
-    Reactor reactorLoop;
-
-    @Inject
     ZookeeperConfig zkConfig;
 
     @Inject
@@ -59,58 +55,51 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         .getLogger(ClusterBridgeManager.class);
 
     @Override
-    public Runnable getConfig(UUID id) {
-        return getBridgeConf(id, false);
+    protected void getConfig(UUID id) {
+        getBridgeConf(id, false);
     }
 
-    Runnable getBridgeConf(final UUID id, final boolean isUpdate) {
-        return new Runnable() {
+    void getBridgeConf(final UUID id, final boolean isUpdate) {
+        log.info("Updating configuration for bridge {}", id);
+        BridgeBuilder builder = getBuilder(id);
+        if(builder == null){
+            log.error("Null builder for bridge {}", id.toString());
+        }
 
-            @Override
-            public void run() {
-                log.info("Updating configuration for bridge {}", id);
-                BridgeBuilder builder = getBuilder(id);
-                if(builder == null){
-                    log.error("Null builder for bridge {}", id.toString());
-                }
+        BridgeZkManager.BridgeConfig config = null;
+        try {
+            config = bridgeMgr.get(id, watchBridge(id));
+        } catch (StateAccessException e) {
+            // TODO send error message?
+            log.error("Cannot retrieve the configuration for bridge {}",
+                      id, e);
+        }
 
-                BridgeZkManager.BridgeConfig config = null;
+        if (config != null) {
+            MacPortMap macPortMap = null;
+
+            // we don't need to get the macPortMap again if it's an
+            // update nor to create the logical port table.
+            // For detecting changes to these maps we did set watchers.
+            if (!isUpdate) {
                 try {
-                    config = bridgeMgr.get(id, watchBridge(id));
-                } catch (StateAccessException e) {
-                    // TODO send error message?
-                    log.error("Cannot retrieve the configuration for bridge {}",
-                              id, e);
+                    ZkPathManager pathManager = new ZkPathManager(
+                        zkConfig.getMidolmanRootKey());
+                    macPortMap = new MacPortMap(dir.getSubDirectory(
+                        pathManager.getBridgeMacPortsPath(id)));
+                } catch (KeeperException e) {
+                    log.error(
+                        "Error retrieving MacPortTable for bridge {}",
+                        id, e);
                 }
-
-                if (config != null) {
-                    MacPortMap macPortMap = null;
-
-                    // we don't need to get the macPortMap again if it's an
-                    // update nor to create the logical port table.
-                    // For detecting changes to these maps we did set watchers.
-                    if (!isUpdate) {
-                        try {
-                            ZkPathManager pathManager = new ZkPathManager(
-                                zkConfig.getMidolmanRootKey());
-                            macPortMap = new MacPortMap(dir.getSubDirectory(
-                                pathManager.getBridgeMacPortsPath(id)));
-                        } catch (KeeperException e) {
-                            log.error(
-                                "Error retrieving MacPortTable for bridge {}",
-                                id, e);
-                        }
-                        if (macPortMap != null)
-                            macPortMap.start();
-                        updateLogicalPorts(builder, id, false);
-                    }
-
-                    buildBridgeFromConfig(id, config, builder, macPortMap);
-                    log.info("Update configuration for bridge {}", id);
-                }
+                if (macPortMap != null)
+                    macPortMap.start();
+                updateLogicalPorts(builder, id, false);
             }
-        };
 
+            buildBridgeFromConfig(id, config, builder, macPortMap);
+            log.info("Update configuration for bridge {}", id);
+        }
     }
 
     Runnable watchBridge(final UUID id) {
@@ -118,7 +107,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             @Override
             public void run() {
                 // return fast and update later
-                reactorLoop.submit(getBridgeConf(id, true));
+                getBridgeConf(id, true);
                 log.info("Added watcher for bridge {}", id);
             }
         };

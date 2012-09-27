@@ -81,27 +81,14 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getBridge(UUID bridgeID, BridgeBuilder builder) {
-        // asynchronous call, we will process it later
-        try {
-            bridgeManager.registerNewBuilder(bridgeID, builder);
-        } catch (ClusterClientException e) {
-            //TODO(ross) what should be sent back in case of error?
-        }
-        reactorLoop.submit(
-            bridgeManager.getConfig(bridgeID));
-        log.info("getBridge {}", bridgeID);
+        bridgeManager.registerNewBuilder(bridgeID, builder);
+        log.debug("getBridge {}", bridgeID);
     }
 
     @Override
     public void getRouter(UUID routerID, RouterBuilder builder) {
-        try {
-            routerManager.registerNewBuilder(routerID, builder);
-        } catch (ClusterClientException e) {
-            //TODO(ross) what should be send back in case of error?
-        }
-        reactorLoop.submit(
-            routerManager.getConfig(routerID));
-        log.info("getRouter {}", routerID);
+        routerManager.registerNewBuilder(routerID, builder);
+        log.debug("getRouter {}", routerID);
     }
 
     @Override
@@ -110,12 +97,7 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPort(UUID portID, PortBuilder builder) {
-        try {
-            portsManager.registerNewBuilder(portID, builder);
-        } catch (ClusterClientException e) {
-            //TODO(ross) what should be send back in case of error?
-        }
-        reactorLoop.submit(portsManager.getConfig(portID));
+        portsManager.registerNewBuilder(portID, builder);
     }
 
     @Override
@@ -175,20 +157,7 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getPortBGPList(UUID portID, BGPListBuilder builder) {
-        try {
-            // register a builder for this BGP port ID, only once.
-            bgpManager.registerNewBuilder(portID, builder);
-
-            // trigger the updates mechanism. From now on, all changes in
-            // the BGP status for this port ID will be notified to the
-            // builder. This function doesn't need to be called again for
-            // the same port ID.
-            // TODO(abel) we should provide a way to de-register the BGP
-            reactorLoop.submit(bgpManager.getConfig(portID));
-
-        } catch (ClusterClientException e) {
-            //TODO(ross) what should be send back in case of error?
-        }
+        bgpManager.registerNewBuilder(portID, builder);
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,
