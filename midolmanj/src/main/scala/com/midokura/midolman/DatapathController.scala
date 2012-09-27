@@ -20,11 +20,13 @@ import java.util.UUID
 import java.lang
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost,
+                                                GreTunnelZone,
+                                                CapwapTunnelZone,
+                                                CapwapTunnelZoneHost}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.topology.rcu.{Host, PortSet}
@@ -42,8 +44,6 @@ import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
                             Port, Ports, PortOptions}
 import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
-import com.midokura.util.functors.Callback0
-import scala.Some
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 
@@ -927,39 +927,59 @@ class DatapathController() extends Actor with ActorLogging {
 
         pendingUpdateCount -= 1
 
+        def _handleTunnelCreate(port: Port[_,_],
+                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+            peerPorts.get(hConf.getId) match {
+                case Some(tunnels) =>
+                    tunnels.put(zone, port.getName)
+                case None =>
+                    peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
+            }
+            context.system.eventStream.publish(
+                new TunnelChangeEvent(this.host.zones(zone), hConf,
+                    Some(port.getPortNo.shortValue()),
+                    TunnelChangeEventOperation.Established))
+        }
+
+        def _handleTunnelDelete(port: Port[_,_],
+                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+            peerPorts.get(hConf.getId) match {
+                case Some(zoneTunnelMap) =>
+                    zoneTunnelMap.remove(zone)
+                    if (zoneTunnelMap.size == 0) {
+                        peerPorts.remove(hConf.getId)
+                    }
+
+                case None =>
+            }
+            context.system.eventStream.publish(
+                new TunnelChangeEvent(
+                    host.zones(zone), hConf,
+                    None, TunnelChangeEventOperation.Removed))
+        }
+
+        case class TunnelCapwapOpReply(port: CapWapTunnelPort, op: PortOperation.Value,
+                                       timeout: Boolean, error: NetlinkException,
+                                       tag: Option[AnyRef])
+            extends PortOpReply[CapWapTunnelPort]
+
         opReply match {
+
             case TunnelGreOpReply(p, PortOperation.Create, false, null,
                     Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
+                _handleTunnelCreate(p, hConf, zone)
 
-                peerPorts.get(hConf.getId) match {
-                    case Some(tunnels) =>
-                        tunnels.put(zone, p.getName)
-                    case None =>
-                        peerPorts.put(hConf.getId, mutable.Map(zone -> p.getName))
-                }
+            case TunnelCapwapOpReply(p, PortOperation.Create, false, null,
+                    Some((hConf: CapwapTunnelZoneHost, zone: UUID))) =>
+                _handleTunnelCreate(p, hConf, zone)
 
-                context.system.eventStream.publish(
-                    new TunnelChangeEvent(this.host.zones(zone), hConf,
-                        Some(p.getPortNo.shortValue()),
-                        TunnelChangeEventOperation.Established))
+            case TunnelCapwapOpReply(p, PortOperation.Delete, false, null,
+                    Some((hConf: CapwapTunnelZoneHost, zone: UUID))) =>
+                _handleTunnelDelete(p, hConf, zone)
 
             case TunnelGreOpReply(p, PortOperation.Delete, false, null,
                     Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
-
-                peerPorts.get(hConf.getId) match {
-                    case Some(zoneTunnelMap) =>
-                        zoneTunnelMap.remove(zone)
-                        if (zoneTunnelMap.size == 0) {
-                            peerPorts.remove(hConf.getId)
-                        }
-
-                    case None =>
-                }
-
-                context.system.eventStream.publish(
-                    new TunnelChangeEvent(
-                        host.zones(zone), hConf,
-                        None, TunnelChangeEventOperation.Removed))
+                _handleTunnelDelete(p, hConf, zone)
 
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
                 log.info("Mapping created: {} -> {}", vifId, p.getPortNo)
@@ -977,7 +997,6 @@ class DatapathController() extends Actor with ActorLogging {
                 }
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
-            //            case TunnelCapwapOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
             case reply =>
         }
