@@ -17,6 +17,10 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
 	implementations, `IPv4Addr` and `IPv6Addr`.  It may also be desirable
 	to split out a parallel trait for IP subnets,
  	`IPSubnet`/`IPv4Subnet`/`IPv6Subnet`.
+ * For parsing IPv6 packets, we'll have to make an `IPv6` class in
+	`com.midokura.packets`.  IPv6 can have several layer 3 payloads
+	until it gets to layer 4, which can even be hidden by IPSec.  We
+	should probably parse the packet the same way the kernel module does.
  * Create `getSourceIPAddress` and `getDestinationIPAddress` getters in the
 	match classes which return `IPAddr`.
  * Remove the IPv4 `getNetwork*` getters from the match classes.
