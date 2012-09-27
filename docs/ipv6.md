@@ -13,20 +13,22 @@ Currently MidoNet uses the `IntIPv4` class in the `com.midokura.packets` package
 to represent an internet address.
 There are some legacy uses of `int` in the codebase also, but that is rare.
 
- * Make a trait (interface) `IPAddr` in `com.midokura.packets`, with two 
-	implementations, `IPv4Addr` and `IPv6Addr`.
- * Create `getSourceIPAddress` and `getDestinationIPAddress` getters in the 
+ * Make a trait (interface) `IPAddr` in `com.midokura.packets`, with two
+	implementations, `IPv4Addr` and `IPv6Addr`.  It may also be desirable
+	to split out a parallel trait for IP subnets,
+ 	`IPSubnet`/`IPv4Subnet`/`IPv6Subnet`.
+ * Create `getSourceIPAddress` and `getDestinationIPAddress` getters in the
 	match classes which return `IPAddr`.
  * Remove the IPv4 `getNetwork*` getters from the match classes.
 	(Transitioning all match interfacing code to `IPAddr`.)
- * Remove the `IntIPv4` class.  (Transitioning all IP address using code 
+ * Remove the `IntIPv4` class.  (Transitioning all IP address using code
 	to `IPAddr`, all the way up the MidoNet stack.)
 	(TODO: There's a lot of code stacked up here.  Make a transition
 	plan for each module.)
 
 ### Behavior changes to MidoNet Core
 
- * For the address range checks (eg, for IPv4 multicast), also check 
+ * For the address range checks (eg, for IPv4 multicast), also check
 	IPv6 addresses against the IPv6 ranges.
  * The `Port` classes will have to know the IPv6 address as well as the IPv4
 	address of a port (for supporting dual stacks).  They also should
@@ -36,7 +38,7 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
 	provisioned from multiple upstreams, or IP mobility).
  * The `Bridge` should recognize the all-routers IPv6 address, and send
 	such packets to all connected virtual routers to be consumed, and
-	out all materialized ports (except the ingress port) which are 
+	out all materialized ports (except the ingress port) which are
 	connected to routers.  This should probably be done using a flag
 	in the `Port` specifying whether it connects to a router.
  * Support DHCPv6
@@ -62,3 +64,4 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
  * Support NAT64
  * Support mobile IP
  * Support SEND (RFC 3971)
+ * Support router alert option (RFC 2711)
