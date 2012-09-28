@@ -11,8 +11,10 @@ import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortStatus;
 
-import com.midokura.midolman.layer3.TestRouter;
+import com.midokura.packets.ARP;
+import com.midokura.packets.Data;
 import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midolman.rules.Condition;
@@ -22,6 +24,7 @@ import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.packets.UDP;
 
 public class BridgePort {
 
@@ -118,14 +121,33 @@ public class BridgePort {
         return (short)(10000 + rnd.nextInt() % 50000);
     }
 
+    public static Ethernet makeUDP(MAC dlSrc, MAC dlDst, int nwSrc,
+                                   int nwDst, short tpSrc, short tpDst, byte[] data) {
+        UDP udp = new UDP();
+        udp.setDestinationPort(tpDst);
+        udp.setSourcePort(tpSrc);
+        udp.setPayload(new Data(data));
+        IPv4 ip = new IPv4();
+        ip.setDestinationAddress(nwDst);
+        ip.setSourceAddress(nwSrc);
+        ip.setProtocol(UDP.PROTOCOL_NUMBER);
+        ip.setPayload(udp);
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(dlDst);
+        eth.setSourceMACAddress(dlSrc);
+        eth.setEtherType(IPv4.ETHERTYPE);
+        eth.setPayload(ip);
+        return eth;
+    }
+
     public byte[] sendUDP(BridgePort dstBridgePort, boolean expectFlood) {
         byte[] payload = new byte[100];
         rnd.nextBytes(payload);
-        Ethernet pkt = TestRouter.makeUDP(hwAddr,
-                (bridge == dstBridgePort.bridge)
-                        ? dstBridgePort.getMAC() : bridge.routerMac,
-                nwAddr.getAddress(), dstBridgePort.nwAddr.getAddress(),
-                randomUdpPort(), randomUdpPort(), payload);
+        Ethernet pkt = makeUDP(hwAddr,
+            (bridge == dstBridgePort.bridge)
+                ? dstBridgePort.getMAC() : bridge.routerMac,
+            nwAddr.getAddress(), dstBridgePort.nwAddr.getAddress(),
+            randomUdpPort(), randomUdpPort(), payload);
         byte[] data = pkt.serialize();
         host.getController().onPacketIn(rnd.nextInt(), data.length,
                 ovsPort.getPortNumber(), data);
@@ -136,11 +158,11 @@ public class BridgePort {
                         boolean expectFlood) {
         byte[] payload = new byte[100];
         rnd.nextBytes(payload);
-        Ethernet pkt = TestRouter.makeUDP(srcMac,
-                (bridge == dstBridgePort.bridge)
-                        ? dstBridgePort.getMAC() : bridge.routerMac,
-                nwAddr.getAddress(), dstBridgePort.nwAddr.getAddress(),
-                randomUdpPort(), randomUdpPort(), payload);
+        Ethernet pkt = makeUDP(srcMac,
+            (bridge == dstBridgePort.bridge)
+                ? dstBridgePort.getMAC() : bridge.routerMac,
+            nwAddr.getAddress(), dstBridgePort.nwAddr.getAddress(),
+            randomUdpPort(), randomUdpPort(), payload);
         byte[] data = pkt.serialize();
         host.getController().onPacketIn(rnd.nextInt(), data.length,
                 ovsPort.getPortNumber(), data);
@@ -150,18 +172,39 @@ public class BridgePort {
         IntIPv4 dstIp = IntIPv4.fromString(destination);
         byte[] payload = new byte[100];
         rnd.nextBytes(payload);
-        Ethernet pkt = TestRouter.makeUDP(
-                hwAddr, bridge.routerMac, nwAddr.getAddress(),
-                dstIp.getAddress(), randomUdpPort(), randomUdpPort(), payload);
+        Ethernet pkt = makeUDP(
+            hwAddr, bridge.routerMac, nwAddr.getAddress(),
+            dstIp.getAddress(), randomUdpPort(), randomUdpPort(), payload);
         byte[] data = pkt.serialize();
         host.getController().onPacketIn(rnd.nextInt(), data.length,
                 ovsPort.getPortNumber(), data);
     }
 
+    public static Ethernet makeArpReply(MAC sha, MAC tha, int spa, int tpa) {
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareAddressLength((byte) 6);
+        arp.setProtocolAddressLength((byte) 4);
+        arp.setOpCode(ARP.OP_REPLY);
+        arp.setSenderHardwareAddress(sha);
+        arp.setTargetHardwareAddress(tha);
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(spa));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(tpa));
+        // TODO(pino) logging.
+        Ethernet pkt = new Ethernet();
+        pkt.setPayload(arp);
+        pkt.setSourceMACAddress(sha);
+        pkt.setDestinationMACAddress(tha);
+        pkt.setEtherType(ARP.ETHERTYPE);
+        //pkt.setPad(true);
+        return pkt;
+    }
+
     public void sendRouterArpReply() {
-        Ethernet pkt = TestRouter.makeArpReply(
-                hwAddr, bridge.routerMac,
-                nwAddr.getAddress(), bridge.routerIp.getAddress());
+        Ethernet pkt = makeArpReply(
+            hwAddr, bridge.routerMac,
+            nwAddr.getAddress(), bridge.routerIp.getAddress());
         byte[] data = pkt.serialize();
         host.getController().onPacketIn(rnd.nextInt(), data.length,
                 ovsPort.getPortNumber(), data);

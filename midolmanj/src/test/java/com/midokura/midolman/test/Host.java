@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
 
-import com.midokura.midolman.CookieMonster;
+import com.midokura.midolman.openflow.Controller;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.openflow.MockControllerStub;
 import com.midokura.midolman.openvswitch.MockOpenvSwitchDatabaseConnection;
@@ -20,11 +20,11 @@ import com.midokura.midolman.portservice.NullPortService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.cache.Cache;
-import com.midokura.midolman.vrn.VRNController;
+//import com.midokura.midolman.vrn.VRNController;
 
 
 public class Host {
-    VRNController controller;
+    //VRNController controller;
     MockOpenvSwitchDatabaseConnection ovsDbConnection;
     MockControllerStub stub;
 
@@ -37,14 +37,14 @@ public class Host {
                 getExternalIdKey(),
                 getMidonetDatapathId().toString());
 
-        controller = new VRNController(
+        /*controller = null; new VRNController(
                 baseDirectory, basePath, hostAddr,
-                ovsDbConnection /* ovsdb */,
+                ovsDbConnection,
                 new MockReactor(), cache,
                 getExternalIdKey(),
                 UUID.fromString(getMidonetDatapathId()),
-                false /* useNxm */,
-                new NullPortService(), new NullPortService(), 1450);
+                false,
+                new NullPortService(), new NullPortService(), 1450);*/
 
         // set the stub
         stub = new MockControllerStub();
@@ -52,10 +52,10 @@ public class Host {
         features.setDatapathId(getDatapathId());
         features.setPorts(Collections.<OFPhysicalPort>emptyList());
         stub.setFeatures(features);
-        controller.setControllerStub(stub);
+        //controller.setControllerStub(stub);
 
         // simulate the bridge connection
-        controller.onConnectionMade();
+        //controller.onConnectionMade();
     }
 
     public String getExternalIdKey() {
@@ -90,12 +90,8 @@ public class Host {
         return physicalPort;
     }
 
-    public VRNController getController() {
-        return controller;
-    }
-
-    public CookieMonster getCookieManager() {
-        return controller.getCookieMgr();
+    public Controller getController() {
+        return null;
     }
 
     public MockControllerStub getStub() {

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.monitoring.MidoReporter;
 import com.midokura.midolman.openflow.SuccessHandler;
 import com.midokura.midolman.openflow.TimeoutHandler;
-import com.midokura.midolman.vrn.VRNController;
+//import com.midokura.midolman.vrn.VRNController;
 
 /**
  * Class that can add/delete Counters for different virtual ports on demand.

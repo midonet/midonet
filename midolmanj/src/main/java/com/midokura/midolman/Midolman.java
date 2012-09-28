@@ -49,7 +49,7 @@ import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
 import com.midokura.cache.Cache;
-import com.midokura.midolman.vrn.VRNController;
+//import com.midokura.midolman.vrn.VRNController;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
@@ -330,13 +330,13 @@ public class Midolman implements SelectListener {
                 OpenVpnPortService.createVpnPortService(
                     ovsdb, externalIdKey, midonetDirectory, basePath);
 
-            VRNController vrnController =
+            /*VRNController vrnController =
                 new VRNController(midonetDirectory, basePath,
                                   localNwAddr, ovsdb, loop, vrnCache,
                                   externalIdKey, vrnId, useNxm,
                                   bgpPortService, vpnPortService, dhcpMtu);
 
-            controller = vrnController;
+            controller = vrnController;*/
 
             ControllerStubImpl controllerStubImpl =
                 new ControllerStubImpl(sock, loop, controller);
