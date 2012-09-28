@@ -30,7 +30,7 @@ import scala.actors.threadpool.Arrays;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.AbstractController;
 import com.midokura.midolman.CookieMonster;
-import com.midokura.midolman.DhcpHandler;
+//import com.midokura.midolman.DhcpHandler;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openflow.ControllerStub;
 import com.midokura.midolman.openflow.MidoMatch;
@@ -86,7 +86,7 @@ public class VRNController extends AbstractController
     private PortSetMap portSetMap;
     // The local OVS ports in a portset.
     private Map<UUID, Set<Short>> localPortSetSlices;
-    private DhcpHandler dhcpHandler;
+    //private DhcpHandler dhcpHandler;
     private Reactor reactor;
     private PortZkManager portMgr;
     private GreZkManager greMgr;
@@ -131,8 +131,8 @@ public class VRNController extends AbstractController
         this.bgpPortServicesById = new HashMap<UUID, List<Runnable>>();
         this.matchToRouters = new HashMap<PacketMatch, Collection<UUID>>();
         this.zkDir = zkDir;
-        this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this, portCache,
-                                           mtu);
+        //this.dhcpHandler = new DhcpHandler(zkDir, zkBasePath, this,
+        // portCache, mtu);
     }
 
     public void subscribePortSet(UUID portSetID)
@@ -313,7 +313,7 @@ public class VRNController extends AbstractController
                     DHCP dhcp = (DHCP) udp.getPayload();
                     if (dhcp.getOpCode() == DHCP.OPCODE_REQUEST) {
                         log.debug("onPacketIn: got a DHCP bootrequest");
-                        try {
+                        /*try {
                             if (dhcpHandler.handleDhcpRequest(inPortId, dhcp,
                                     ethPkt.getSourceMACAddress())) {
                                 freeBuffer(bufferId);
@@ -324,7 +324,7 @@ public class VRNController extends AbstractController
                                                  NO_IDLE_TIMEOUT,
                                                  TEMPORARY_DROP_SECONDS, 0, 0);
                             return;
-                        }
+                        }*/
                     }
                 }
             }
