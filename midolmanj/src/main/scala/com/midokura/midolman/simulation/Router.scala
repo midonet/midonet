@@ -19,7 +19,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
+import com.midokura.sdn.flows.WildcardMatch
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
@@ -492,7 +492,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 case mac =>
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
-                    val egrMatch = WildcardMatches.fromEthernetPacket(eth)
+                    val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext = new PacketContext(null, eth, 0, null)
                     egrPktContext.setOutputPort(outPort.id)
                     val postRoutingResult = Chain.apply(outFilter,
