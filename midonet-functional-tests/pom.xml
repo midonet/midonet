@@ -86,9 +86,9 @@
                         </midonet.functional.tests.current_midonet_project>
                     </systemPropertyVariables>
                     <parallel>false</parallel>
-					<additionalClasspathElements>
-						<additionalClasspathElement>${project.basedir}/midolmanj_runtime_configurations/</additionalClasspathElement>
-				  	</additionalClasspathElements>
+                    <additionalClasspathElements>
+                       <additionalClasspathElement>${project.basedir}/midolmanj_runtime_configurations/</additionalClasspathElement>
+                    </additionalClasspathElements>
                 </configuration>
             </plugin>
 
@@ -316,17 +316,17 @@
             <scope>test</scope>
         </dependency>
 
-		     <dependency>
-			                        <groupId>org.apache.zookeeper</groupId>
-			                        <artifactId>zookeeper</artifactId>
-			                        <version>3.4.2</version>
-			                </dependency>
-			 
-			                <dependency>
-			                        <groupId>org.yaml</groupId>
-			                        <artifactId>snakeyaml</artifactId>
-			                        <version>1.10</version>
-			                </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.10</version>
+        </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>

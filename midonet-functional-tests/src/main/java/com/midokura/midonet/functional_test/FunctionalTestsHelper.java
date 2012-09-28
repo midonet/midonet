@@ -313,8 +313,10 @@ public class FunctionalTestsHelper {
 
               final Integer yamlCassandraPort = (Integer) parsedConf.get("rpc_port");
               final String yamlClusterName = (String) parsedConf.get("cluster_name");
-              //assertTrue("Cassandra ports are not the same in cassandra.yaml and the test configuration.", yamlCassandraPort == cassandraPort);
-              //assertTrue("Cassandra cluster names are not the same in cassandra.yaml and the test configuration", yamlClusterName.matches(cassandraClusterName));
+              //assertTrue("Cassandra ports are not the same in cassandra.yaml and the test configuration.",
+              // yamlCassandraPort == cassandraPort);
+              //assertTrue("Cassandra cluster names are not the same in cassandra.yaml and the test configuration",
+              // yamlClusterName.matches(cassandraClusterName));
               EmbeddedCassandraServerHelper.startEmbeddedCassandra(cassandraConfiguration);
               // make sure it's clean.
                 EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();

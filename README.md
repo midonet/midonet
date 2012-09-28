@@ -51,7 +51,7 @@ midonet-functional-tests module.
 This will build all the modules but only run the tests from the
 midonet-functional-tests module.
 
-In case you the test is using the embedded version of midolman it needs to be run as root: 
+In case you the test is using the embedded version of midolman it needs to be run as root:
 
     ~/midonet$ sudo mvn -Dmaven.repo.local=/home/midokura/.m2/repository/ test -Dtest=YourTest -DfailIfNoTests=false
 
