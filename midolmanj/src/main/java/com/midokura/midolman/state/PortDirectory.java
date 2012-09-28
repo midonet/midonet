@@ -9,10 +9,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.util.Net;
 import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
+import com.midokura.packets.Net;
 
 // These representations are being deprecated in favor of classes defined in
 // cluster client.

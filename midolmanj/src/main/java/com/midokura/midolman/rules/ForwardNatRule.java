@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.layer4.NwTpPair;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.Net;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 

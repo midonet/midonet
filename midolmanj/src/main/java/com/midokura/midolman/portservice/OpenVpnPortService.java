@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.PortBuilder;
-import com.midokura.packets.MAC;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
@@ -32,8 +31,10 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnConfig;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnType;
-import com.midokura.midolman.util.Net;
 import com.midokura.midolman.util.Sudo;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Net;
+
 
 public class OpenVpnPortService implements PortService {
 

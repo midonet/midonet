@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
-import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.Net;
 import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 

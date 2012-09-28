@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import com.midokura.packets.IPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.sdn.flows.PacketMatch;
 
 

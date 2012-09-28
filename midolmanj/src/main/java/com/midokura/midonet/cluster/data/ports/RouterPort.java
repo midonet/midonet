@@ -3,12 +3,13 @@
 */
 package com.midokura.midonet.cluster.data.ports;
 
-import com.midokura.midolman.util.Net;
-import com.midokura.midonet.cluster.data.Port;
-import com.midokura.packets.MAC;
-
 import java.util.Random;
 import java.util.UUID;
+
+import com.midokura.midonet.cluster.data.Port;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Net;
+
 
 /**
  * Basic abstraction for a Router Port.

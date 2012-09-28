@@ -10,8 +10,7 @@ import java.util.{Set => JSet, UUID}
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
-import com.midokura.midolman.util.Net
-import com.midokura.packets.{Ethernet, IPv4, TCP, UDP}
+import com.midokura.packets.{Ethernet, IPv4, Net, TCP, UDP}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
 

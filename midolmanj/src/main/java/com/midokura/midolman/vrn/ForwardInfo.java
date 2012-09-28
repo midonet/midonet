@@ -9,15 +9,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.cache.Cache;
 import com.midokura.midolman.MidoMatch;
+import com.midokura.midolman.rules.ChainPacketContext;
+import com.midokura.midolman.vrn.ForwardingElement.Action;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.Net;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
-import com.midokura.midolman.rules.ChainPacketContext;
-import com.midokura.cache.Cache;
-import com.midokura.midolman.util.Net;
-import com.midokura.midolman.vrn.ForwardingElement.Action;
 import com.midokura.sdn.flows.PacketMatch;
 
 
