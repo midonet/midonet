@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 //import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.openflow.nxm.NxActionSetTunnelKey32;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.Ethernet;
@@ -192,7 +191,7 @@ public class NxmTest {
         // Any modifying actions must come before the output action.
         if (proto.equals(Protocol.NXM)) {
             tunId = 12345;
-            actions.add(new NxActionSetTunnelKey32(tunId));
+            //actions.add(new NxActionSetTunnelKey32(tunId));
         }
         actions.add(new OFActionOutput(controller1.getPortNum("nxmgre1"),
                 (short) 0));
