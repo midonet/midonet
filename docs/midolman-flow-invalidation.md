@@ -86,7 +86,7 @@ all the devices that share a chain that has been deleted/modified.
 Here is an analysis of changes that trigger flow invalidation, listed according
 to the virtual device affected by the change.
 
-==Local Ports==
+#### Local Ports
 
 DPC will tag the flows involving one port using the short port number of that port.
 
@@ -96,7 +96,7 @@ A port is deleted -> invalidate all the flows tagged with this port number
 Tagging and invalidation performed in DatapathController
 
 
-==PortSet==
+#### PortSet
 
 A new port is added in the PortSet:
         1) port is local -> invalidate all the flows related to the PortSet. We
@@ -117,7 +117,7 @@ A port is deleted -> do nothing, the DatapathController will take care of that
 Tagging in Bridge.scala
 Invalidation in VirtualToPhysicalMapper
 
-==Bridge==
+#### Bridge
 Every bridge will tag every packet it sees using its bridge id.
 
 Configuration change -> invalidate all flows tagged with this bridge id
@@ -142,7 +142,7 @@ Cases:
 
 Invalidation in BridgeManager
 
-==Port==
+#### Port
 Configuration change => invalidate all the flows tagged with that port id
 
 Port added -> do nothing
@@ -160,7 +160,7 @@ Tagging in Coordinator (it a packet goes through a port, the Coordinator will ta
                        it using the port id)
 Invalidation Bridge or Router
 
-==Router==
+#### Router
 Every Router will tag every packet it sees using as tag its router id.
 
 Configuration change -> invalidate all flows
@@ -178,7 +178,7 @@ FlowInvalidation: The RCU Router will use a callback to pass the tag added to th
                   care of flow invalidation and of keeping the ip destinations
                   trie up-to-date.
 
-==Chain==
+#### Chain
 When a packet is filtered through a Chain, the Chain will add its id to the tags.
 
 If a chain get modified all the flows tagged by its id needs to be invalidated
