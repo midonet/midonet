@@ -87,17 +87,22 @@ Here is an analysis of changes that trigger flow invalidation, listed according
 to the virtual device affected by the change.
 
 #### Port
-Configuration change => invalidate all the flows tagged with that port id
+Configuration change -> invalidate all the flows tagged with that port id
 
 Port added -> do nothing
+
 Port deleted ->
-           bridge port
-                      materialized -> BridgeBuilderImpl will take care of the flows
+
+           1) bridge port
+
+                      - materialized -> BridgeBuilderImpl will take care of the flows
                                       invalidation, watching the MacLearningTable
-                      logical -> BridgeBuilderImpl will notice that the
+
+                      - logical -> BridgeBuilderImpl will notice that the
                                  rtrMacToLogicalPortId changed and will invalidate
                                  the flows
-           router port -> the router will react to that because its routes will
+
+           2) router port -> the router will react to that because its routes will
                           change
 
 Tagging in Coordinator (it a packet goes through a port, the Coordinator will tag
@@ -116,6 +121,8 @@ Tagging and invalidation performed in DatapathController
 #### PortSet
 
 A new port is added in the PortSet:
+
+
         1) port is local -> invalidate all the flows related to the PortSet. We
                             need to re-compute all the flows to include this port
 
@@ -140,9 +147,12 @@ Every bridge will tag every packet it sees using its bridge id.
 Configuration change -> invalidate all flows tagged with this bridge id
 
 Materialized ports -> react to the changes in the MAC learning table
+
     1) A new association {port, mac} is learnt -> do nothing
+
     2) A MAC entry expires -> invalidate all the flows tagged (bridgeId, oldport,
        MAC)
+
     3) A MAC moves from port1 to port2 -> invalidate all the flows tagged
        (bridgeId, port1, MAC)
 
@@ -152,10 +162,13 @@ Removed -> remove all the flows tagged (bridge id, MAC)
 
 Tagging in Bridge.
 Cases:
-      * unicast packet for the L2 network, tag = bridgeId, MAC destination,
+
+      1) unicast packet for the L2 network, tag = bridgeId, MAC destination,
         port destination id
-      * broadcast packet, tag = portSet id
-      * a packet for a logical port, tag = bridgeId, MAC destination
+
+      2) broadcast packet, tag = portSet id
+
+      3) a packet for a logical port, tag = bridgeId, MAC destination
 
 Invalidation in BridgeManager
 
