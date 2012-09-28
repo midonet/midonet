@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.packets.MAC;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
