@@ -46,41 +46,32 @@ active flows traversing the device matters.
 
 ### Implementation
 
-`ForwardInfo` has a member dedicated to flow invalidation:
-`traversedElementIDs`, a set of UUIDs. Each UUID represents a network element
-traversed by the packet during the simulation. Ports, Bridges, Routers, and
-Chains are the network elements whose UUIDs may be inserted in this set. Note
-that the term "network elements" is not synonymous with "network devices" or
-"forwarding elements": the last two terms usually refer only to bridges and
-routers.
+We will implement flow invalidation using tags. A tag can be a String or any other
+class, we decided to be as flexible as possible, that's why a tag is of type AnyRef.
+There are two kind of flows, wildcard flows and kernel flows. Wildcard flows are
+understood only by MM and are semantically more powerful because you can use
+wildcards. A wildcard flow is translated into one or many kernel flows.
+Kernel flows are flows that the kernel can understand, no wildcard is allowed.
 
-A singleton class, `CookieMonster`, maps any set of IDs to a unique cookie
-(a 64bit value). The CookieMonster also maps any individual ID, A to the set of
-all cookies whose corresponding ID set contained A.
+Tags can be applied to a wildcard flow or to a kernel flow. The FlowController
+will be responsible for tagging a wcflow and storing the tag-flow association
+in an internal map. To invalidate a wcflow it will be necessary to pass a tag
+to the FlowController and it will take care of deleting all the corresponding
+kernel flows.
+The DatapathController will tag the kernel flows using two tags, one for the in-port
+and one for the output port. These tags will be stored internally by the
+DatapathController.
+Unless specified, from now on when we use the word flow we will mean wildcard flow.
 
-During a network simulation, Midolman adds all the traversed element UUIDs to
-`ForwardInfo.traversedElementIDs`. Before installing the resulting flow match,
-the CookieMonster is queried for the cookie corresponding to
-traversedElementIDs (a new cookie is generated if the given set of IDs has not
-been seen before). The cookie is installed with the flow match according to
-OpenFlow's normal operation.
+Every virtual object that will get a packet during the simulation can add one or
+more tag to the ExecutionContext. At the end of the simulation all the tags will
+be passed to the FlowController, that will use them to tag the flow installed.
 
-At run-time, Midolman has configuration loaded for any virtual network element
-that was needed during any simulation whose resulting flows are still active.
-Midolman receives notifications from ZK if any of those elements' configuration
-changes. Upon detecting a configuration change to element E, Midolman queries
-the `CookieMonster` to retrieve all the cookies corresponding to sets
-containing E. Midolman then proceeds to send its OpenFlow switch a flow
-invalidation message per returned cookie. Flow invalidation based on matching
-cookies uses Nicira Extended Matching.
+FlowTagger is the class that will take care of keeping the tagging semantic
+coherent. Every object that need to tag a flow, will request a tag to the
+FlowTagger.
 
 ### Implementation Details
-
-Cookies are never forgotten during the lifetime of the JVM. Since cookies are
-only stored in memory and not shared outside the JVM, they are lost at restart.
-However, Midolman flushes all the OpenFlow switch's flows when a switch first
-connects (or reconnects). Therefore, it's unnecessary to remembers cookies
-across restarts.
 
 Ports are treated as network elements so that the removal or modification
 of a port only results in the invalidation of matches for flows that traversed
@@ -92,21 +83,103 @@ traversed a device also traverses its filters). However, since rule chains can
 be shared across devices, invalidating by chain ID makes it unnecessary to track
 all the devices that share a chain that has been deleted/modified.
 
-In order to reduce the number of invalidations, a bridge's FLOOD behavior is
-treated as a separate network element that is only traversed by flows that the
-bridge floods to all ports. When a bridge learns a MAC-Port mapping for the
-first time, it invalidates all its flooded flow matches (rather than all
-its flow matches, indiscriminately) in order to replace floods with unicasts
-for flows to the learned MAC. Ideally, only flows to the MAC would need to be
-invalidated (but that can't be achieved when the flow traversed virtual routers
-before reaching the bridge).
+Here is an analysis of changes that trigger flow invalidation, listed according
+to the virtual device affected by the change.
 
-When a bridge learns that a MAC has moved from an old Port to a new Port, it
-invalidates all flows to the old port (because some of them may be flows to the
-MAC that are now being incorrectly forwarded to the old port).
+==Local Ports==
 
-Differently from mac-learning, ARP cache updates do not trigger invalidation.
-In the case of a a new IP-MAC association, any pre-existing flows to the IP
-would have been dropped (for lack of a MAC to forward to). DROP flows expire
-within seconds and allow recomputation. The case of an IP changing MAC is
-considered to be NOT supported.
+DPC will tag the flows involving one port using the short port number of that port.
+
+A port is added -> do nothing
+A port is deleted -> invalidate all the flows tagged with this port number
+
+Tagging and invalidation performed in DatapathController
+
+
+==PortSet==
+
+A new port is added in the PortSet:
+        1) port is local -> invalidate all the flows related to the PortSet. We
+                            need to re-compute all the flows to include this port
+
+        2) port is NOT local and it's on an host that has already a port
+           in the same PortSet ->
+           do nothing, the flow to send broadcast packets to the tunnel to that
+           host is already in place
+        3) port is NOT local and it's the first port belonging to the PortSet on
+           that host ->
+           invalidate all the flows related to the PortSet
+
+A port is deleted -> do nothing, the DatapathController will take care of that
+                     (a broadcast flow get expanded into several kernel flows
+                     including all the ports of the PortSet)
+
+Tagging in Bridge.scala
+Invalidation in VirtualToPhysicalMapper
+
+==Bridge==
+Every bridge will tag every packet it sees using its bridge id.
+
+Configuration change -> invalidate all flows tagged with this bridge id
+
+Materialized ports -> react to the changes in the MAC learning table
+    1) A new association {port, mac} is learnt -> do nothing
+    2) A MAC entry expires -> invalidate all the flows tagged (bridgeId, oldport,
+       MAC)
+    3) A MAC moves from port1 to port2 -> invalidate all the flows tagged
+       (bridgeId, port1, MAC)
+
+Logical ports
+Added -> do nothing
+Removed -> remove all the flows tagged (bridge id, MAC)
+
+Tagging in Bridge.
+Cases:
+      * unicast packet for the L2 network, tag = bridgeId, MAC destination,
+        port destination id
+      * broadcast packet, tag = portSet id
+      * a packet for a logical port, tag = bridgeId, MAC destination
+
+Invalidation in BridgeManager
+
+==Port==
+Configuration change => invalidate all the flows tagged with that port id
+
+Port added -> do nothing
+Port deleted ->
+           bridge port
+                      materialized -> BridgeBuilderImpl will take care of the flows
+                                      invalidation, watching the MacLearningTable
+                      logical -> BridgeBuilderImpl will notice that the
+                                 rtrMacToLogicalPortId changed and will invalidate
+                                 the flows
+           router port -> the router will react to that because its routes will
+                          change
+
+Tagging in Coordinator (it a packet goes through a port, the Coordinator will tag
+                       it using the port id)
+Invalidation Bridge or Router
+
+==Router==
+Every Router will tag every packet it sees using as tag its router id.
+
+Configuration change -> invalidate all flows
+
+Route added or deleted ->
+It will tag every packet using as tag (routerId, destinationIp).
+The router will store internally a trie of the destination ip of the packets
+it has seen. It will use the trie to be able to detect which flows to invalidate
+if there's a change in the routing table. To clean up the trie it will periodically
+query the FlowController to see which tags correspond to flows that are still active.
+
+Tagging: Router
+FlowInvalidation: The RCU Router will use a callback to pass the tag added to the
+                  ExecutionContext to the RouterManager. RouterManager will take
+                  care of flow invalidation and of keeping the ip destinations
+                  trie up-to-date.
+
+==Chain==
+When a packet is filtered through a Chain, the Chain will add its id to the tags.
+
+If a chain get modified all the flows tagged by its id needs to be invalidated
+
