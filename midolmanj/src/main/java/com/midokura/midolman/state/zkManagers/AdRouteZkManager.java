@@ -17,7 +17,6 @@ import com.midokura.midolman.state.DirectoryCallbackFactory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midonet.cluster.data.BGP;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
@@ -124,10 +123,11 @@ public class AdRouteZkManager extends ZkManager {
                         }),
                 watcher);
     }
-    public void getAdRouteListAsync(final DirectoryCallback<Set<UUID>>
+    public void getAdRouteListAsync(UUID bgpId,
+                                    final DirectoryCallback<Set<UUID>>
                                         adRouteContentsCallback,
                                 Directory.TypedWatcher watcher) {
-        String adRoutePath = paths.getAdRoutesPath();
+        String adRoutePath = paths.getBgpAdRoutesPath(bgpId);
 
         zk.asyncGetChildren(
                 adRoutePath,
