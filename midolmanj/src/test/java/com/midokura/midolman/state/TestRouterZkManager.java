@@ -18,7 +18,6 @@ import org.junit.Test;
 import com.midokura.midolman.layer3.ReplicatedRoutingTable;
 import com.midokura.midolman.layer3.Route;
 import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.layer3.Router;
 import com.midokura.midolman.state.zkManagers.ChainZkManager;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
@@ -32,7 +31,6 @@ public class TestRouterZkManager {
     private int uplinkGatewayAddr;
     private int uplinkPortAddr;
     private Route uplinkRoute;
-    private Router rtr;
     private ReplicatedRoutingTable rTable;
     private MockReactor reactor;
     private Map<Integer, PortDirectory.MaterializedRouterPortConfig> portConfigs;
@@ -77,9 +75,6 @@ public class TestRouterZkManager {
                         routerMgr.getRoutingTableDirectory(rtrId),
                         CreateMode.EPHEMERAL);
         rTable.start();
-
-        // TODO(pino): pass a MockVRNController to the Router.
-        rtr = new Router(rtrId, dir, basePath, reactor, null, null, null);
 
         // Create ports in ZK.
         // Create one port that works as an uplink for the router.
