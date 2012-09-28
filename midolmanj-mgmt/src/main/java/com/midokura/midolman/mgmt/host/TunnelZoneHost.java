@@ -8,7 +8,10 @@ import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.host.validation.IsValidHostId;
 import com.midokura.midolman.mgmt.host.validation.IsValidTunnelZoneId;
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
+import com.midokura.packets.IntIPv4;
+import com.midokura.util.StringUtil;
 
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -25,6 +28,10 @@ public abstract class TunnelZoneHost extends UriResource {
     @IsValidHostId
     private UUID hostId;
 
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+            message = "is an invalid IP format")
+    private String ipAddress;
+
     /**
      * Constructor.
      */
@@ -33,6 +40,7 @@ public abstract class TunnelZoneHost extends UriResource {
 
     public TunnelZoneHost(UUID tunnelZoneId, HostConfig data) {
         this(tunnelZoneId, UUID.fromString(data.getId().toString()));
+        this.ipAddress = data.getIp().toString();
     }
 
     /**
@@ -46,6 +54,14 @@ public abstract class TunnelZoneHost extends UriResource {
     public TunnelZoneHost(UUID tunnelZoneId, UUID hostId) {
         this.tunnelZoneId = tunnelZoneId;
         this.hostId = hostId;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 
     public abstract HostConfig toData();
@@ -90,6 +106,7 @@ public abstract class TunnelZoneHost extends UriResource {
 
     protected void setData(HostConfig data) {
         data.setId(hostId);
+        data.setIp(IntIPv4.fromString(ipAddress));
     }
 
     /**
