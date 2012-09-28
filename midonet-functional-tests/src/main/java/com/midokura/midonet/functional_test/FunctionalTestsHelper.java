@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
@@ -217,29 +216,11 @@ public class FunctionalTestsHelper {
         }
     }
 
-    public static void waitForBridgeToConnect(
-            final ServiceController controller)
-            throws Exception {
-
-        Waiters.waitFor(
-                "waiting for the bridge to connect to the controller on port: " +
-                        controller.getPortNum(),
-                new Timed.Execution<Boolean>() {
-                    @Override
-                    protected void _runOnce() throws Exception {
-                        setResult(controller.isConnected());
-                        setCompleted(getResult());
-                    }
-                });
-    }
-
     public static void removeVpn(MidolmanMgmt mgmt, MaterializedRouterPort vpn1) {
         if (mgmt != null && vpn1 != null) {
             mgmt.deleteVpn(vpn1.getVpn());
         }
     }
-
-
 
     public static void destroyVM(VMController vm) {
         try {

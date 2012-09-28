@@ -126,8 +126,8 @@ public class NxmTest {
         List<OFAction> actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller1.getPortNum(tap2.getName()),
                 (short) 0));
-        controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
-                (short)0, pktIn.bufferId, false, false, false, actions);
+        //controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
+        //        (short)0, pktIn.bufferId, false, false, false, actions);
         // If the packet was buffered in OVS, it should go directly to tap2.
         if (pktIn.bufferId != PrimaryController.UNBUFFERED_ID)
             assertArrayEquals(arp, tap2.recv());
@@ -196,8 +196,8 @@ public class NxmTest {
         }
         actions.add(new OFActionOutput(controller1.getPortNum("nxmgre1"),
                 (short) 0));
-        controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
-                (short)0, pktIn.bufferId, false, false, false, actions);
+        //controller1.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
+        //        (short)0, pktIn.bufferId, false, false, false, actions);
 
         // The packet arrives at bridge2's GRE port and then to controller2.
         pktIn = controller2.getNextPacket();
@@ -230,13 +230,14 @@ public class NxmTest {
         actions = new ArrayList<OFAction>();
         actions.add(new OFActionOutput(controller2.getPortNum(tap2.getName()),
                 (short) 0));
-        if (proto.equals(Protocol.NXM))
+        /*if (proto.equals(Protocol.NXM))
             controller2.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
                     (short)0, pktIn.bufferId, false, false, false, actions,
                     tunId);
         else
             controller2.getStub().sendFlowModAdd(match, 0, (short)0, (short)0,
                     (short)0, pktIn.bufferId, false, false, false, actions);
+        */
         // If the packet was buffered in OVS, it should go directly to tap2.
         if (pktIn.bufferId != PrimaryController.UNBUFFERED_ID)
             assertArrayEquals(ipPkt, tap2.recv());

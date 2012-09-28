@@ -28,7 +28,6 @@ import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
@@ -41,7 +40,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 
 public class DeletePortTest {
 
@@ -67,7 +65,6 @@ public class DeletePortTest {
     MidolmanMgmt api;
     MidolmanLauncher midolman;
     OvsBridge ovsBridge;
-    ServiceController svcController;
 
     static LockHelper.Lock lock;
 
@@ -95,8 +92,6 @@ public class DeletePortTest {
         ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         // Add a service controller to OVS bridge 1.
         ovsBridge.addServiceController(6640);
-        svcController = new ServiceController(6640);
-        waitForBridgeToConnect(svcController);
 
         log.debug("Building tenant");
         tenant1 = new Tenant.Builder(api).setName("tenant-port-delete").build();
@@ -178,7 +173,7 @@ public class DeletePortTest {
         // Verify that there are no ICMP flows.
         MidoMatch icmpMatch = new MidoMatch()
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
-        List<FlowStats> fstats = svcController.getFlowStats(icmpMatch);
+        List<FlowStats> fstats = null; //svcController.getFlowStats(icmpMatch);
         assertThat("There are no stats for ICMP yet",
                    fstats, hasSize(0));
 
@@ -211,44 +206,44 @@ public class DeletePortTest {
         sleepBecause("OVS needs to update it's stats", 1);
 
         // Now there should be 4 ICMP flows
-        fstats = svcController.getFlowStats(icmpMatch);
-        assertEquals(4, fstats.size());
+        //fstats = svcController.getFlowStats(icmpMatch);
+        //assertEquals(4, fstats.size());
 
         // Verify that there are flows: 1->3, 3->1, 2->3, 3->2.
-        fstats =
+        /*fstats =
             svcController.getFlowStats(
                 new MidoMatch().setNetworkSource(ip1.addressAsInt())
-                               .setNetworkDestination(ip3.addressAsInt()));
+                               .setNetworkDestination(ip3.addressAsInt()));*/
 
         assertThat("Only one FlowStats object should be visible",
                    fstats, hasSize(1));
 
-        FlowStats flow1_3 = fstats.get(0);
-        flow1_3.expectCount(1).expectOutputAction(num3);
+        FlowStats flow1_3 = null; //fstats.get(0);
+        //flow1_3.expectCount(1).expectOutputAction(num3);
 
-        fstats = svcController.getFlowStats(
+        /*fstats = svcController.getFlowStats(
             new MidoMatch().setNetworkSource(ip3.addressAsInt())
-                           .setNetworkDestination(ip1.addressAsInt()));
+                           .setNetworkDestination(ip1.addressAsInt()));*/
         assertThat("Only one FlowStats object should be visible.",
                    fstats, hasSize(1));
-        FlowStats flow3_1 = fstats.get(0);
-        flow3_1.expectCount(1).expectOutputAction(num1);
+        //FlowStats flow3_1 = fstats.get(0);
+        //flow3_1.expectCount(1).expectOutputAction(num1);
 
-        fstats = svcController.getFlowStats(
+        /*fstats = svcController.getFlowStats(
             new MidoMatch().setNetworkSource(ip2.addressAsInt())
                            .setNetworkDestination(ip3.addressAsInt()));
         assertThat("One one FlowStats object should be visible.",
                    fstats, hasSize(1));
         FlowStats flow2_3 = fstats.get(0);
-        flow2_3.expectCount(1).expectOutputAction(num3);
+        flow2_3.expectCount(1).expectOutputAction(num3);*/
 
-        fstats = svcController.getFlowStats(
+        /*fstats = svcController.getFlowStats(
             new MidoMatch().setNetworkSource(ip3.addressAsInt())
                            .setNetworkDestination(ip2.addressAsInt()));
         assertThat("Only one FlowStats object should be visible.",
                    fstats, hasSize(1));
         FlowStats flow3_2 = fstats.get(0);
-        flow3_2.expectCount(1).expectOutputAction(num2);
+        flow3_2.expectCount(1).expectOutputAction(num2);*/
 
         // Repeat the pings and verify that the packet counts increase.
         assertPacketWasSentOnTap(tap1, ping1_3);
@@ -275,7 +270,7 @@ public class DeletePortTest {
         ovsBridge.deletePort(INT_PORT_NAME);
         sleepBecause("OVS should process the internal port deletion", 2);
 
-        fstats = svcController.getFlowStats(icmpMatch);
+        //fstats = svcController.getFlowStats(icmpMatch);
         assertThat("The list of FlowStats should be empty", fstats, hasSize(0));
     }
 }

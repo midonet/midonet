@@ -31,7 +31,6 @@ import com.midokura.midonet.functional_test.openflow.AgFlowStats;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.OpenFlowStats;
 import com.midokura.midonet.functional_test.openflow.PortStats;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
@@ -81,7 +80,6 @@ public class StatsTest {
         ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         ovsBridge.addServiceController(6640);
         Thread.sleep(1000);
-        svcController = new ServiceController(6640);
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-stats").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();

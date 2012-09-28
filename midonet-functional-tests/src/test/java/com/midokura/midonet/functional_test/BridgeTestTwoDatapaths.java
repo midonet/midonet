@@ -22,7 +22,6 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.openflow.ServiceController;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
@@ -35,7 +34,6 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeB
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.waitForBridgeToConnect;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
@@ -59,7 +57,6 @@ public class BridgeTestTwoDatapaths {
     Bridge bridge1;
     TapWrapper tap1, tap2, tap3, tap4;
     OvsBridge ovsBridge1, ovsBridge2;
-    ServiceController svcController;
 
     static LockHelper.Lock lock;
 
@@ -97,8 +94,6 @@ public class BridgeTestTwoDatapaths {
 
         // Add a service controller to OVS bridge 1.
         ovsBridge1.addServiceController(6640);
-        svcController = new ServiceController(6640);
-        waitForBridgeToConnect(svcController);
 
         // Add a service controller to OVS bridge 2.
         //ovsBridge2.addServiceController(6641);
