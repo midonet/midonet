@@ -714,6 +714,11 @@ class DatapathController() extends Actor with ActorLogging {
                                 case z: GreTunnelZone =>
                                     self ! DeleteTunnelGre(p, Some(z))
                             }
+                        case p: CapWapTunnelPort =>
+                            zone match {
+                                case z: CapwapTunnelZone =>
+                                    self ! DeleteTunnelCapwap(p, Some(z))
+                            }
                     }
                 }
 
