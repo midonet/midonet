@@ -6,7 +6,7 @@ package com.midokura.sdn.dp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 

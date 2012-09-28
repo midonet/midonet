@@ -6,12 +6,12 @@ package com.midokura.sdn.dp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 
 /**
-* Neighbourhood Discovery key
+* Neighbour Discovery key
 */
 public class FlowKeyND implements FlowKey<FlowKeyND> {
     /*__u32*/ int[] nd_target = new int[4]; // always 4 int long

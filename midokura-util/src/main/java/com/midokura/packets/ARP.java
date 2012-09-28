@@ -20,7 +20,6 @@ package com.midokura.packets;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.midokura.midolman.util.Net;
 
 /**
  *

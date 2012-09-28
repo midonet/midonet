@@ -2,8 +2,6 @@
 
 package com.midokura.packets
 
-import com.midokura.midolman.util.Net   //XXX: Move outside Midolman
-
 
 trait IPAddr extends Cloneable {
     def toString(): String
@@ -39,6 +37,8 @@ class IPv4Addr extends IPAddr {
     def canEqual(o: Any) = o.isInstanceOf[IPv4Addr]
 
     override def hashCode() = address
+
+    override def clone() = new IPv4Addr().setIntAddress(address)
 }
 
 object IPv4Addr {

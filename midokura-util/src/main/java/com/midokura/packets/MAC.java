@@ -8,7 +8,6 @@ package com.midokura.packets;
 import java.util.Arrays;
 import java.util.Random;
 
-import com.midokura.midolman.util.Net;
 
 public class MAC implements Cloneable {
 

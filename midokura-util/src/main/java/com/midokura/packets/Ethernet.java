@@ -24,8 +24,6 @@ import java.util.Map;
 
 import org.openflow.util.U16;
 
-import com.midokura.midolman.util.Net;
-
 
 /**
  * @author David Erickson (daviderickson@cs.stanford.edu)
