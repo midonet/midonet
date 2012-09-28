@@ -20,9 +20,8 @@ public class TunnelZoneHost extends ResourceBase<TunnelZoneHost,
     DtoTunnelZoneHost> {
 
     public TunnelZoneHost(WebResource resource, URI uriForCreation,
-                          DtoTunnelZoneHost tZoneHost) {
-        super(resource, uriForCreation, tZoneHost,
-              VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
+                          DtoTunnelZoneHost tZoneHost, String vendorMediaType) {
+        super(resource, uriForCreation, tZoneHost, vendorMediaType);
     }
 
     @Override

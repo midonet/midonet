@@ -19,11 +19,18 @@ import com.midokura.midonet.client.dto.DtoTunnelZoneHost;
  */
 public class TunnelZone<T extends DtoTunnelZone>
     extends ResourceBase<TunnelZone, T> {
+    private String tunnelZoneHostMediaType = null;
+    private String tunnelZoneHostListMediaType = null;
+
 
     public TunnelZone(WebResource resource, URI uriForCreation,
-                      T tunnelZone) {
+                      T tunnelZone, String tunnelZoneHostMediaType,
+                                    String tunnelZoneHostListMediaType) {
         super(resource, uriForCreation, tunnelZone,
               VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
+        this.tunnelZoneHostMediaType = tunnelZoneHostMediaType;
+        this.tunnelZoneHostListMediaType = tunnelZoneHostListMediaType;
+
     }
 
     @Override
@@ -48,18 +55,15 @@ public class TunnelZone<T extends DtoTunnelZone>
         return this;
     }
 
-
     public ResourceCollection<TunnelZoneHost> getHosts() {
         return getChildResources(
             principalDto.getHosts(), null,
-            VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+            tunnelZoneHostListMediaType,
             TunnelZoneHost.class, DtoTunnelZoneHost.class);
     }
 
-
     public TunnelZoneHost addTunnelZoneHost() {
         return new TunnelZoneHost(resource, principalDto.getHosts(),
-                                  new DtoTunnelZoneHost());
+                            new DtoTunnelZoneHost(), tunnelZoneHostMediaType);
     }
-
 }

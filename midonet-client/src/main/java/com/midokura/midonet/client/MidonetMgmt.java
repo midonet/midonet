@@ -6,6 +6,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoGreTunnelZone;
+import com.midokura.midonet.client.dto.DtoCapwapTunnelZone;
 import com.midokura.midonet.client.dto.DtoTunnelZone;
 import com.midokura.midonet.client.resource.Application;
 import com.midokura.midonet.client.resource.Bridge;
@@ -94,6 +95,16 @@ public class MidonetMgmt {
     public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
         ensureApplication();
         return application.addGreTunnelZone();
+    }
+
+    /**
+     * Adds a CAPWAP tunnel zone
+     *
+     * @return capwap tunnel zone resource
+     */
+    public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
+        ensureApplication();
+        return application.addCapwapTunnelZone();
     }
 
     /**

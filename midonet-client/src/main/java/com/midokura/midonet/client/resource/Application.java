@@ -13,6 +13,7 @@ import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoBridge;
 import com.midokura.midonet.client.dto.DtoGreTunnelZone;
+import com.midokura.midonet.client.dto.DtoCapwapTunnelZone;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoPortGroup;
 import com.midokura.midonet.client.dto.DtoRouter;
@@ -184,7 +185,23 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      */
     public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
         return new TunnelZone<DtoGreTunnelZone>(resource,
-                                                principalDto.getTunnelZones(),
-                                                new DtoGreTunnelZone());
+                principalDto.getTunnelZones(),
+                new DtoGreTunnelZone(),
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
+
+    /**
+     * Adds a tunnel zone
+     *
+     * @return new capwap tunnel zone.
+     */
+    public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
+        return new TunnelZone<DtoCapwapTunnelZone>(resource,
+                principalDto.getTunnelZones(),
+                new DtoCapwapTunnelZone(),
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+    }
+
 }
