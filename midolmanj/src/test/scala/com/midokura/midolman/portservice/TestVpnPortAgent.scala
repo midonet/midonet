@@ -16,8 +16,9 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.zkManagers.{PortZkManager, VpnZkManager, RouterZkManager}
 import com.midokura.midolman.util.Net
-import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnType, VpnConfig}
-import com.midokura.midolman.state.{StateAccessException, PortDirectory, ZkPathManager, MockDirectory}
+import com.midokura.midolman.state.zkManagers.VpnZkManager.{VpnConfig, VpnType}
+import com.midokura.midolman.state.{PortDirectory, StateAccessException,
+                                    ZkPathManager, MockDirectory}
 
 
 /**
@@ -25,7 +26,7 @@ import com.midokura.midolman.state.{StateAccessException, PortDirectory, ZkPathM
  */
 object TestVpnPortAgent {
     private final val log =
-        LoggerFactory.getLogger(classOf[TestOpenVpnPortService])
+        LoggerFactory.getLogger(classOf[TestVpnPortAgent])
 
     private final val bridgeId: Long = 0x15b138e7fa339bbcL
     private final val sessionId: Long = 0x123456789abcdefL
