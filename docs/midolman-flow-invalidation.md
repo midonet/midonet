@@ -86,7 +86,25 @@ all the devices that share a chain that has been deleted/modified.
 Here is an analysis of changes that trigger flow invalidation, listed according
 to the virtual device affected by the change.
 
-#### Local Ports
+#### Port
+Configuration change => invalidate all the flows tagged with that port id
+
+Port added -> do nothing
+Port deleted ->
+           bridge port
+                      materialized -> BridgeBuilderImpl will take care of the flows
+                                      invalidation, watching the MacLearningTable
+                      logical -> BridgeBuilderImpl will notice that the
+                                 rtrMacToLogicalPortId changed and will invalidate
+                                 the flows
+           router port -> the router will react to that because its routes will
+                          change
+
+Tagging in Coordinator (it a packet goes through a port, the Coordinator will tag
+                       it using the port id)
+Invalidation Bridge or Router
+
+#### Datapath Port
 
 DPC will tag the flows involving one port using the short port number of that port.
 
@@ -94,7 +112,6 @@ A port is added -> do nothing
 A port is deleted -> invalidate all the flows tagged with this port number
 
 Tagging and invalidation performed in DatapathController
-
 
 #### PortSet
 
@@ -141,24 +158,6 @@ Cases:
       * a packet for a logical port, tag = bridgeId, MAC destination
 
 Invalidation in BridgeManager
-
-#### Port
-Configuration change => invalidate all the flows tagged with that port id
-
-Port added -> do nothing
-Port deleted ->
-           bridge port
-                      materialized -> BridgeBuilderImpl will take care of the flows
-                                      invalidation, watching the MacLearningTable
-                      logical -> BridgeBuilderImpl will notice that the
-                                 rtrMacToLogicalPortId changed and will invalidate
-                                 the flows
-           router port -> the router will react to that because its routes will
-                          change
-
-Tagging in Coordinator (it a packet goes through a port, the Coordinator will tag
-                       it using the port id)
-Invalidation Bridge or Router
 
 #### Router
 Every Router will tag every packet it sees using as tag its router id.
