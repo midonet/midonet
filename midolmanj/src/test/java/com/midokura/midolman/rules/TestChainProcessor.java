@@ -19,7 +19,7 @@ import org.openflow.protocol.OFMatch;
 
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.util.eventloop.Reactor;
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;

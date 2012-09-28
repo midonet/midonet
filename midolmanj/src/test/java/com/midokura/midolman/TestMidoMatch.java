@@ -1,10 +1,12 @@
 /* Copyright 2011 Midokura Inc. */
 
-package com.midokura.midolman.openflow;
+package com.midokura.midolman;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
+
+import com.midokura.midolman.MidoMatch;
 
 
 public class TestMidoMatch {

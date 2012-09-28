@@ -20,7 +20,7 @@ import org.junit.Test;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;

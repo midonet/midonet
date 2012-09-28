@@ -21,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;

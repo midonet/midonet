@@ -7,11 +7,7 @@ package com.midokura.midolman;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.nio.channels.ServerSocketChannel;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import com.google.common.base.Service;
 import com.google.inject.Guice;
@@ -25,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import com.midokura.cache.Cache;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
@@ -35,16 +30,10 @@ import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import com.midokura.midolman.host.guice.HostModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
-import com.midokura.midolman.openflow.Controller;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
-import com.midokura.packets.IntIPv4;
 import com.midokura.remote.RemoteHost;
-import com.midokura.util.eventloop.SelectLoop;
 
 public class Midolman {
 

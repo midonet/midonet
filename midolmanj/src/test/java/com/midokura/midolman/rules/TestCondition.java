@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.packets.IPv4;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.ForwardInfo;

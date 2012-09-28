@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;

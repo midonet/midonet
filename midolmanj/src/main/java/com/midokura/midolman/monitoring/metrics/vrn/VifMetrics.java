@@ -5,22 +5,14 @@ package com.midokura.midolman.monitoring.metrics.vrn;
 
 import java.util.*;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import com.midokura.sdn.dp.Port;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Metric;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.MetricPredicate;
-import org.openflow.protocol.statistics.OFPortStatisticsReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.MidoReporter;
-import com.midokura.midolman.openflow.SuccessHandler;
-import com.midokura.midolman.openflow.TimeoutHandler;
 //import com.midokura.midolman.vrn.VRNController;
 
 /**

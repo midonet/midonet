@@ -10,7 +10,7 @@ import javax.management.JMException;
 import org.apache.zookeeper.KeeperException;
 import org.openflow.protocol.OFMatch;
 
-import com.midokura.midolman.openflow.MidoMatch;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.packets.Ethernet;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;

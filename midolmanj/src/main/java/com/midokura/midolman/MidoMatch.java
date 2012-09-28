@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.openflow;
+package com.midokura.midolman;
 
 import org.openflow.protocol.OFMatch;
 
