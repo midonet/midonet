@@ -163,12 +163,12 @@ Removed -> remove all the flows tagged (bridge id, MAC)
 Tagging in Bridge.
 Cases:
 
-      1) unicast packet for the L2 network, tag = bridgeId, MAC destination,
+    1) unicast packet for the L2 network, tag = bridgeId, MAC destination,
         port destination id
 
-      2) broadcast packet, tag = portSet id
+    2) broadcast packet, tag = portSet id
 
-      3) a packet for a logical port, tag = bridgeId, MAC destination
+    3) a packet for a logical port, tag = bridgeId, MAC destination
 
 Invalidation in BridgeManager
 
