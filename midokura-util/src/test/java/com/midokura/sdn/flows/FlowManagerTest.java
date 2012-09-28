@@ -41,7 +41,7 @@ public class FlowManagerTest {
 
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
-        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
@@ -85,7 +85,7 @@ public class FlowManagerTest {
     public void testIdleExpiration() throws InterruptedException {
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
-        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
@@ -130,7 +130,7 @@ public class FlowManagerTest {
     public void testIdleExpirationUpdate() throws InterruptedException{
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
-        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setIdleExpirationMillis(timeOut)
@@ -216,7 +216,7 @@ public class FlowManagerTest {
             throws InterruptedException {
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
-        WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .setIdleExpirationMillis(timeOut)
@@ -279,7 +279,7 @@ public class FlowManagerTest {
             FlowMatch flowMatch =
                 new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
             WildcardMatch wildcardMatch =
-                WildcardMatches.fromFlowMatch(flowMatch);
+                WildcardMatch.fromFlowMatch(flowMatch);
             // no time out set
             WildcardFlow wildcardFlow = new WildcardFlow()
                 .setMatch(wildcardMatch)
