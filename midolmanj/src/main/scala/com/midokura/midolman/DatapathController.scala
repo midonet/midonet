@@ -596,8 +596,14 @@ class DatapathController() extends Actor with ActorLogging {
         //
     }
 
-    def newGreTunnelPortName(source: GreTunnelZoneHost, target: GreTunnelZoneHost): String = {
+    def newGreTunnelPortName(source: GreTunnelZoneHost,
+                             target: GreTunnelZoneHost): String = {
         "tngre%08X" format target.getIp.addressAsInt()
+    }
+
+    def newCapwapTunnelPortName(source: CapwapTunnelZoneHost,
+                                target: CapwapTunnelZoneHost): String = {
+        "tncpw%08X" format target.getIp.addressAsInt()
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
@@ -613,8 +619,8 @@ class DatapathController() extends Actor with ActorLogging {
                     log.info("Opening a tunnel port to {}", m.hostConfig)
                     val myConfig = host.zones(zone).asInstanceOf[GreTunnelZoneHost]
 
-                    val greTunnelName = newGreTunnelPortName(myConfig, peerConf)
-                    val tunnelPort = Ports.newGreTunnelPort(greTunnelName)
+                    val tunnelName = newGreTunnelPortName(myConfig, peerConf)
+                    val tunnelPort = Ports.newGreTunnelPort(tunnelName)
 
                     tunnelPort.setOptions(
                         tunnelPort
@@ -623,6 +629,21 @@ class DatapathController() extends Actor with ActorLogging {
                             .setDestinationIPv4(peerConf.getIp.addressAsInt()))
 
                     self ! CreateTunnelGre(tunnelPort, Some((peerConf, m.zone)))
+
+                case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
+                    log.info("Opening a tunnel port to {}", m.hostConfig)
+                    val myConfig = host.zones(zone).asInstanceOf[CapwapTunnelZoneHost]
+
+                    val tunnelName = newCapwapTunnelPortName(myConfig, peerConf)
+                    val tunnelPort = Ports.newCapwapTunnelPort(tunnelName)
+
+                    tunnelPort.setOptions(
+                        tunnelPort
+                            .newOptions()
+                            .setSourceIPv4(myConfig.getIp.addressAsInt())
+                            .setDestinationIPv4(peerConf.getIp.addressAsInt()))
+
+                    self ! CreateTunnelCapwap(tunnelPort, Some((peerConf, m.zone)))
 
                 case GreZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
                     log.info("Closing a tunnel port to {}", m.hostConfig)
@@ -646,6 +667,30 @@ class DatapathController() extends Actor with ActorLogging {
                         val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
                         self ! DeleteTunnelGre(greTunnel, Some((peerConf, zone)))
                     }
+
+                case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
+                    log.info("Closing a tunnel port to {}", m.hostConfig)
+
+                    val peerId = peerConf.getId
+
+                    val tunnel = peerPorts.get(peerId) match {
+                        case Some(mapping) =>
+                            mapping.get(zone) match {
+                                case Some(tunnelName) =>
+                                    log.debug("Need to close the tunnel with name: {}", tunnelName)
+                                    localPorts(tunnelName)
+                                case None =>
+                                    null
+                            }
+                        case None =>
+                            null
+                    }
+
+                    if (tunnel != null) {
+                        val capwapTunnel = tunnel.asInstanceOf[CapWapTunnelPort]
+                        self ! DeleteTunnelCapwap(capwapTunnel, Some((peerConf, zone)))
+                    }
+
                 case _ =>
 
             }
