@@ -6,10 +6,7 @@ package com.midokura.midonet.cluster.client;
 import java.util.UUID;
 
 import com.midokura.midonet.cluster.data.TunnelZone;
-import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
-import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
-import com.midokura.midonet.cluster.data.zones.IpsecTunnelZone;
+import com.midokura.midonet.cluster.data.zones.*;
 import com.midokura.packets.IPv4;
 
 public interface TunnelZones {
@@ -19,7 +16,7 @@ public interface TunnelZones {
 
         IpsecBuilder getIpsecZoneBuilder();
 
-        CapwapZoneBuilder getCapwapZoneBuilder();
+        CapwapBuilder getCapwapZoneBuilder();
     }
 
     /**
@@ -53,7 +50,6 @@ public interface TunnelZones {
         ConcreteBuilder removeHost(UUID hostId, HostConfigType hostConfig);
     }
 
-
     interface GreBuilder extends Builder<
         GreBuilder.ZoneConfig, GreTunnelZoneHost, GreBuilder> {
 
@@ -73,14 +69,11 @@ public interface TunnelZones {
         }
     }
 
-    interface CapwapZoneBuilder extends Builder<
-        CapwapZoneBuilder.ZoneConfig, CapwapZoneBuilder.HostConfig,
-        CapwapZoneBuilder> {
+    interface CapwapBuilder extends Builder<
+        CapwapBuilder.ZoneConfig, CapwapTunnelZoneHost, CapwapBuilder> {
 
         interface ZoneConfig extends Builder.ZoneConfig<CapwapTunnelZone> {
         }
 
-        interface HostConfig extends Builder.HostConfig {
-        }
     }
 }

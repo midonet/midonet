@@ -3,16 +3,18 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor._
-import akka.dispatch.Promise
-import akka.pattern.{ask, pipe}
-import akka.util.duration._
-import akka.util.Timeout
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
+
 import java.util
 import java.util.UUID
 import java.util.concurrent.TimeoutException
+
+import akka.actor._
+import akka.dispatch.Promise
+import akka.pattern.ask
+import akka.util.duration._
+import akka.util.Timeout
 
 import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
@@ -29,10 +31,8 @@ import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
 import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
-import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
-                GreTunnelZone, GreTunnelZoneHost, IpsecTunnelZoneHost}
+import com.midokura.midonet.cluster.data.zones._
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import scala.Some
 
 
 object HostConfigOperation extends Enumeration {
@@ -464,6 +464,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         }
     }
 
+    // XXX(guillermo) unused class :-?
     class GreTunnelZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
         def setConfiguration(configuration: GreBuilder.ZoneConfig): GreTunnelZoneBuilder = {
             this
