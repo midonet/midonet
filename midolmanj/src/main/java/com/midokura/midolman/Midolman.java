@@ -41,6 +41,8 @@ public class Midolman {
 
     private Injector injector;
 
+    private MonitoringAgent monitoringAgent;
+
     private Midolman() {
     }
 
@@ -107,7 +109,8 @@ public class Midolman {
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
-        injector.getInstance(MonitoringAgent.class).startMonitoringIfEnabled();
+        monitoringAgent = injector.getInstance(MonitoringAgent.class);
+        monitoringAgent.startMonitoringIfEnabled();
 
         log.info("{} was initialized", MidolmanActorsService.class);
 
@@ -117,6 +120,8 @@ public class Midolman {
     private void doServicesCleanup() {
         if ( injector == null )
             return;
+
+        monitoringAgent.stop();
 
         MidolmanService instance =
             injector.getInstance(MidolmanService.class);

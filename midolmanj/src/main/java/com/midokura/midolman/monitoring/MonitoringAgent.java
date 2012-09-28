@@ -68,6 +68,7 @@ public class MonitoringAgent {
         }
 
         if (store != null) {
+            store.initialize();
             reporter = new MidoReporter(store, "MidonetMonitoring");
             reporter.start(
                 configuration.getMonitoringCassandraReporterPullTime(),

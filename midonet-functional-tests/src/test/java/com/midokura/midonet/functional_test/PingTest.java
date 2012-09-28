@@ -4,14 +4,11 @@
 
 package com.midokura.midonet.functional_test;
 
-import com.midokura.midonet.functional_test.utils.EmbeddedMidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,24 +20,18 @@ import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.events.Event;
 
 
 import java.io.File;
-import java.io.FileReader;
-import java.util.Map;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class PingTest {
 
@@ -55,79 +46,48 @@ public class PingTest {
     RouterPort p3;
     TapWrapper tap1;
     PacketHelper helper1;
-    EmbeddedMidolmanLauncher midolman;
+    MidolmanLauncher midolman;
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
+
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
 
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
-
     @Before
     public void setUp() throws Exception {
 
-        // read the midolman configuration file.
-        File testConfFile = new File("midolmanj_runtime_configurations/pingtest.conf");
-
-        assertTrue("Test configuration file exists", testConfFile.exists());
-        HierarchicalConfiguration midolmanConf = new HierarchicalINIConfiguration(testConfFile);
-
-        // get the zookeeper port from the configuration.
-        String zookeperHost = midolmanConf.getString("zookeeper.zookeeper_hosts");
-        int zookeperPort = Integer.parseInt(zookeperHost.split(":")[1]);
-        log.info("ZOOKEEPER PORT: {}", zookeperPort);
-
-
-        String cassandraHost = midolmanConf.getString("cassandra.servers");
-        int cassandraPort = Integer.parseInt(cassandraHost.split(":")[1]);
-
-        // get the cassandra port from both configuration files.
-        File cassandraConf = new File("midolmanj_runtime_configurations/cassandra.yaml");
-        assertTrue("Cassandra configuration file exists", cassandraConf.exists());
-        Yaml yamlParser = new Yaml();
-        Map parsedConf = (Map) yamlParser.load(new FileReader(cassandraConf));
-
-        Integer yamlCassandraPort = (Integer) parsedConf.get("rpc_port");
-        assertTrue("Cassandra ports are not the same in cassandra.yaml and the test configuration.", yamlCassandraPort == cassandraPort);
+        String testConfigurationPath = "midolmanj_runtime_configurations/midolman-default.conf";
+        File testConfigurationFile = new File(testConfigurationPath);
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
-        startEmbeddedZookeeper(zookeperPort);
+        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
 
-        // start cassandra with the designated port.
         log.info("Starting cassandra");
-        startCassandra("cassandra.yaml");
-
+        startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeperPort, cassandraPort);
-
-
-        log.info("Starting midolman");
-        midolman = new EmbeddedMidolmanLauncher();
-        midolman.startMidolman(testConfFile.getAbsolutePath());
-
-
+        apiStarter = new MockMgmtStarter(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
-        /*log.debug("Building router");
+        log.info("Starting midolman");
+        startEmbeddedMidolman(testConfigurationFile.getAbsolutePath());
+
+        log.info("Waiting for midolman to start up correctly.");
+        // TODO change this for the agent message wait.
+        Thread.sleep(10000);
+
+        log.debug("Building router");
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME).name("rtr1").create();
         log.debug("Router done!: " + rtr.getName());
         p1 = rtr.addMaterializedRouterPort().portAddress(ip1.toString());
 
+
+        log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
         Host host = null;
-
         for (Host h : hosts) {
             if (h.getId().toString().matches(TEST_HOST_ID)) {
                 host = h;
@@ -135,29 +95,30 @@ public class PingTest {
         }
 
         // check that we've actually found the test host.
-        assertNotNull(host);
+        assertNotNull("Host is null", host);
 
-        tap1 = new TapWrapper("pingTestTap1");
+        log.debug("Creating TAP");
+        tap1 = new TapWrapper("refactorTestTap1");
 
-        HostInterfacePort interfacePort = host.addHostInterfacePort()
-                .interfaceName(tap1.getName())
-                .portId(p1.getId());
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+            .interfaceName(tap1.getName())
+            .portId(p1.getId());
 
 
         p3 = rtr.addMaterializedRouterPort().portAddress(ip3.toString());
 
         helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
 
-        log.debug("Waiting for the systems to start properly.");   */
+        log.debug("Waiting for the systems to start properly.");
     }
 
     @After
     public void tearDown() throws Exception {
-        //removeTapWrapper(tap1);
-        midolman.stopMidolman();;
+        removeTapWrapper(tap1);
+        stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
-        cleanupZooKeeperServiceData();
         stopEmbeddedZookeeper();
     }
 
@@ -166,7 +127,7 @@ public class PingTest {
             throws MalformedPacketException, InterruptedException {
         byte[] request;
 
-       /* // First arp for router's mac.
+        // First arp for router's mac.
         assertThat("The ARP request was sent properly",
                 tap1.send(helper1.makeArpRequest()));
 
@@ -194,6 +155,6 @@ public class PingTest {
         // Finally, the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
-        assertNoMorePacketsOnTap(tap1);      */
+        assertNoMorePacketsOnTap(tap1);
     }
 }

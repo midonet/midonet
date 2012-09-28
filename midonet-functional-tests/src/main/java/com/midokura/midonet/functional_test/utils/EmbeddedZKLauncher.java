@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 public class EmbeddedZKLauncher {
 
@@ -16,13 +17,14 @@ public class EmbeddedZKLauncher {
     private static final int MAX_CONNECTIONS = 2000;
 
     static NIOServerCnxnFactory standaloneServerFactory;
+    static File dir;
 
     public static int start(int port) {
         int tickTime = 2000;
 
         try {
             String dataDirectory = System.getProperty("java.io.tmpdir");
-            File dir = new File(dataDirectory, "zookeeper").getAbsoluteFile();
+            dir = new File(dataDirectory, "zookeeper"+new Random().nextInt()).getAbsoluteFile();
             ZooKeeperServer server = new ZooKeeperServer(dir, dir, tickTime);
             standaloneServerFactory = new NIOServerCnxnFactory();
             standaloneServerFactory.configure(new InetSocketAddress(port), MAX_CONNECTIONS);
@@ -39,6 +41,7 @@ public class EmbeddedZKLauncher {
         if (standaloneServerFactory != null) {
             log.info("Stopping the embedded zookeeper server");
             standaloneServerFactory.shutdown();
+            dir.delete();
         }
     }
 }

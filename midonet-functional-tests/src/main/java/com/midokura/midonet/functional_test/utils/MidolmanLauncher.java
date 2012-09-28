@@ -66,12 +66,6 @@ public class MidolmanLauncher {
         log.debug("Launching midolman from folder: {}",
                 new File(".").getAbsolutePath());
 
-        try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-        } catch (Exception e) {
-            log.error("Failed to start embedded Cassandra.", e);
-        }
-
         midolmanProcess = ProcessHelper
                 .newLocalProcess(commandLine)
                // .setDrainTarget(DrainTargets.noneTarget())

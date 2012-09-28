@@ -19,6 +19,7 @@ import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
+import com.midokura.remote.RemoteHost;
 import com.midokura.util.process.DrainTargets;
 import com.midokura.util.process.ProcessHelper;
 import org.apache.commons.lang.StringUtils;
@@ -34,17 +35,20 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-public class EmbeddedMidolmanLauncher {
+public class EmbeddedMidolman {
+
 
     private final static Logger log = LoggerFactory
-            .getLogger(EmbeddedMidolmanLauncher.class);
-
-    public static final String MIDONET_PROJECT_LOCATION =
-            "midonet.functional.tests.current_midonet_project";
+    .getLogger(EmbeddedMidolman.class);
 
     private Injector injector;
+    private MonitoringAgent monitoringAgent;
 
     public void startMidolman(String configFilePath) throws Exception {
+
+
+        RemoteHost.getSpecification();
+
         log.info("Getting configuration file from: {}", configFilePath);
         injector = Guice.createInjector(
                 new ZookeeperConnectionModule(),
@@ -63,7 +67,8 @@ public class EmbeddedMidolmanLauncher {
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
-        injector.getInstance(MonitoringAgent.class).startMonitoringIfEnabled();
+        monitoringAgent = injector.getInstance(MonitoringAgent.class);
+        monitoringAgent.startMonitoringIfEnabled();
 
         log.info("{} was initialized", MidolmanActorsService.class);
 
@@ -75,6 +80,9 @@ public class EmbeddedMidolmanLauncher {
 
         MidolmanService instance =
                 injector.getInstance(MidolmanService.class);
+
+        if (monitoringAgent != null)
+          monitoringAgent.stop();
 
         if (instance.state() == Service.State.TERMINATED)
             return;

@@ -59,17 +59,16 @@ public class MockMgmtStarter extends JerseyTest {
     /**
      * Starts the api with the mock zookeeper and the default cassandra port.
      */
-    public MockMgmtStarter() {
-        this(getAppDescriptorBuilder(true, 2181, 9171).build());
+    public MockMgmtStarter(boolean mock) {
+        this(getAppDescriptorBuilder(mock, 2181, 9171).build());
     }
 
     /**
-     * Starts the api with the given zookeper and cassandra ports.
+     * Starts the api with the given zookeper and the default cassandra port.
      * @param zkPort
-     * @param cassandraPort
      */
-    public MockMgmtStarter(int zkPort, int cassandraPort) {
-        this(getAppDescriptorBuilder(false, zkPort, cassandraPort).build());
+    public MockMgmtStarter(int zkPort) {
+        this(getAppDescriptorBuilder(false, zkPort, 9171).build());
     }
 
     public MockMgmtStarter(WebAppDescriptor webAppDescriptor) {
