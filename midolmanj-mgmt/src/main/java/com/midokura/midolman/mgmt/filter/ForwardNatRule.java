@@ -3,12 +3,13 @@
  */
 package com.midokura.midolman.mgmt.filter;
 
-import com.midokura.midolman.util.Net;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.midokura.packets.Net;
+
 
 /**
  * Forward NAT rule DTO

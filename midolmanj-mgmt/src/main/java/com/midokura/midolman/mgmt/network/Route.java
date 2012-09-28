@@ -4,15 +4,6 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.layer3.Route.NextHop;
-import com.midokura.midolman.mgmt.UriResource;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.validation.AllowedValue;
-import com.midokura.midolman.mgmt.network.Route.RouteExtended;
-import com.midokura.midolman.mgmt.network.validation.NextHopPortNotNull;
-import com.midokura.midolman.util.Net;
-import com.midokura.util.StringUtil;
-
 import javax.validation.GroupSequence;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -23,6 +14,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
 import java.util.UUID;
+
+import com.midokura.midolman.layer3.Route.NextHop;
+import com.midokura.midolman.mgmt.UriResource;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.validation.AllowedValue;
+import com.midokura.midolman.mgmt.network.Route.RouteExtended;
+import com.midokura.midolman.mgmt.network.validation.NextHopPortNotNull;
+import com.midokura.packets.Net;
+import com.midokura.util.StringUtil;
+
 
 /**
  * Class representing route.
