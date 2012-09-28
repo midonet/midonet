@@ -1,4 +1,6 @@
-package com.midokura.midolman.util;
+// Copyright 2012 Midokura Inc.
+
+package com.midokura.packets;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -24,15 +24,15 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer3.ServiceFlowController;
 import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midonet.cluster.data.BGP;
-import com.midokura.packets.MAC;
-import com.midokura.quagga.ZebraServer;
-import com.midokura.quagga.BgpVtyConnection;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midonet.cluster.data.BGP;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Net;
+import com.midokura.quagga.ZebraServer;
+import com.midokura.quagga.BgpVtyConnection;
 
-import com.midokura.midolman.util.Net;
 
 public class MockPortService implements PortService {
 

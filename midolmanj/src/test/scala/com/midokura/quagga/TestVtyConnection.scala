@@ -17,11 +17,11 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.Setup
 import com.midokura.midolman.state.zkManagers._
-import com.midokura.midolman.util.{Net, Sudo}
+import com.midokura.midolman.util.Sudo
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig
 import com.midokura.midolman.state.{ZkPathManager, MockDirectory, PortDirectory}
 import com.midokura.midonet.cluster.data.BGP
-import com.midokura.packets.IntIPv4
+import com.midokura.packets.{IntIPv4, Net}
 
 
 object TestBgpVtyConnection {
