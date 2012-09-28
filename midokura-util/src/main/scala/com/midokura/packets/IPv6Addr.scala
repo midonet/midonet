@@ -1,6 +1,12 @@
 // Copyright 2012 Midokura Inc.
 
+// TODO(jlm): Replace this with a wrapper around
+//  http://code.google.com/p/java-ipv6/ ?
+
+
 package com.midokura.packets
+
+import java.lang.Long.parseLong
 
 
 class IPv6Addr extends IPAddr {
@@ -44,4 +50,26 @@ class IPv6Addr extends IPAddr {
     }
 
     override def clone() = new IPv6Addr().setAddress(upperWord, lowerWord)
+}
+
+object IPv6Addr {
+    def fromString(s: String): IPv6Addr = {
+        val unsplit = if (s.charAt(0) == '[' && s.charAt(s.length - 1) == ']')
+                          s.substring(1, s.length - 1)
+                      else
+                          s
+        val pieces = unsplit.split(":")
+        if (pieces.size != 8)
+            return null         //XXX: Support :: notation
+        //XXX: Verify each piece is valid 1-4 digit hex.
+        new IPv6Addr().setAddress(
+                (parseLong(pieces(0), 16) << 48) |
+                (parseLong(pieces(1), 16) << 32) |
+                (parseLong(pieces(2), 16) << 16) |
+                (parseLong(pieces(3), 16) << 0),
+                (parseLong(pieces(4), 16) << 48) |
+                (parseLong(pieces(5), 16) << 32) |
+                (parseLong(pieces(6), 16) << 16) |
+                (parseLong(pieces(7), 16) << 0))
+    }
 }

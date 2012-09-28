@@ -9,7 +9,12 @@ trait IPAddr extends Cloneable {
 }
 
 object IPAddr {
-    def fromString(s: String): IPAddr = new IPv4Addr   //XXX
+    def fromString(s: String): IPAddr = {
+        if (s.contains(":"))
+            IPv6Addr.fromString(s)
+        else
+            IPv4Addr.fromString(s)
+    }
 }
 
 class IPv4Addr extends IPAddr {
