@@ -59,6 +59,7 @@ public class TunnelZone<T extends DtoTunnelZone>
         return getChildResources(
             principalDto.getHosts(), null,
             tunnelZoneHostListMediaType,
+            tunnelZoneHostMediaType,
             TunnelZoneHost.class, DtoTunnelZoneHost.class);
     }
 
