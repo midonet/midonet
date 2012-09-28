@@ -2,13 +2,16 @@
 
 package com.midokura.packets
 
+import com.midokura.midolman.util.Net   //XXX: Move outside Midolman
+
+
 trait IPAddr extends Cloneable {
     def toString(): String
     def toUrlString(): String
 }
 
 object IPAddr {
-    def fromString(s: String): IPAddr
+    def fromString(s: String): IPAddr = new IPv4Addr   //XXX
 }
 
 class IPv4Addr extends IPAddr {
@@ -24,11 +27,25 @@ class IPv4Addr extends IPAddr {
                               (address >> 0) & 0xff)
     }
 
-    override def equals(Object o): Boolean = {
-        if (this eq o) return true
-        if (o == null || getClass != o.getClass) return false
-        return address == ((IPv4Addr)o).address
+    // See "Programming in Scala" sec. 30.4
+    override def equals(o: Any): Boolean = {
+        o match {
+            case t: IPv4Addr => 
+                t.canEqual(this) && t.address == this.address
+            case _ => false
+        }
     }
 
+    def canEqual(o: Any) = o.isInstanceOf[IPv4Addr]
+
     override def hashCode() = address
+}
+
+object IPv4Addr {
+    import IPv4Addr._
+
+    def fromString(s: String): IPv4Addr = {
+        val i: Int = Net.convertStringAddressToInt(s)
+        new IPv4Addr().setIntAddress(i)
+    }
 }
