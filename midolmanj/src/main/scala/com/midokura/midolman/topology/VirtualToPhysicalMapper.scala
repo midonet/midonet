@@ -69,7 +69,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
 
-    case class LocalAvailabilityZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
+    case class LocalTunnelZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
     /**
      * Send this message to the VirtualToPhysicalMapper to let it know when
@@ -92,7 +92,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class PortSetRequest(portSetId: UUID, update: Boolean)
 
-    case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
+    case class TunnelZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
 
     case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
@@ -385,8 +385,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 actorWants.put(sender, ExpectingPorts())
                 fireHostStateUpdates(host, Some(sender))
 
-            case _LocalDataUpdatedForHost(host, datapath, ports, availabilityZones) =>
-                localHostData.put(host, (datapath, ports, availabilityZones))
+            case _LocalDataUpdatedForHost(host, datapath, ports, tunnelZones) =>
+                localHostData.put(host, (datapath, ports, tunnelZones))
                 fireHostStateUpdates(host, Some(sender))
 
             case value =>
@@ -412,7 +412,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         actor ! LocalDatapathReply(host.datapath)
                     case ExpectingPorts() =>
                         actor ! LocalPortsReply(host.ports.toMap)
-                        actor ! LocalAvailabilityZonesReply(host.zones)
+                        actor ! LocalTunnelZonesReply(host.zones)
                 }
         }
 
@@ -464,17 +464,17 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         }
     }
 
-    class GreAvailabilityZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
-        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreAvailabilityZoneBuilder = {
+    class GreTunnelZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
+        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreTunnelZoneBuilder = {
             this
         }
 
-        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
+        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Added)
             this
         }
 
-        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
+        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Deleted)
             this
         }
@@ -490,7 +490,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                         ports: mutable.Map[UUID, String],
                                         zones: mutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
-    case class _AvailabilityZoneUpdated(zone: UUID, dpName: String,
+    case class _TunnelZoneUpdated(zone: UUID, dpName: String,
                                         ports: mutable.Map[UUID, String],
                                         zones: mutable.Set[UUID])
 
