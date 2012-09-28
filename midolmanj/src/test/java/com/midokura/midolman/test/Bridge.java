@@ -74,7 +74,7 @@ public class Bridge {
     }
 
     public UUID getFloodId() {
-        return com.midokura.midolman.Bridge.bridgeIdToFloodId(bridgeID);
+        return null;
     }
 
     public void changeInboundFilter() throws StateAccessException {

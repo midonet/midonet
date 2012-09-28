@@ -30,20 +30,4 @@
         <level value="debug"/>
     </logger>
 
-    <logger name="com.midokura.midolman.layer3.Router">
-        <level value="debug"/>
-    </logger>
-
-    <logger name="com.midokura.midolman.layer3.NetworkController">
-        <level value="debug"/>
-    </logger>
-
-    <logger name="com.midokura.midolman.AbstractController">
-        <level value="debug"/>
-    </logger>
-
-    <logger name="com.midokura.midolman.BridgeController">
-        <level value="debug"/>
-    </logger>
-
 </log4j:configuration>
