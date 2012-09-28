@@ -4,40 +4,29 @@
 
 package com.midokura.midolman
 
-import org.junit.runner.RunWith
-import org.scalatest.Ignore
-import org.scalatest.junit.JUnitRunner
 import scala.collection.JavaConversions._
+import java.util.concurrent.TimeUnit
+import akka.actor.ActorSystem
+import akka.testkit.{TestKit, TestKitExtension, TestProbe}
+import akka.util.Duration
+import akka.util.duration._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.apache.log4j.{Level, Logger}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
-import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow, FlowManager}
-import com.midokura.sdn.dp._
-import akka.testkit.{TestKitExtension, TestKit, TestProbe}
 import com.midokura.packets.{IntIPv4, MAC, Packets}
-import com.midokura.midolman.DatapathController.PacketIn
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
-import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowRemoved
-import org.apache.log4j.{Logger, Level}
-import akka.util.duration._
-import scala.Predef._
-import com.midokura.midolman.FlowController.FlowUpdateCompleted
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowRemoved
-import com.midokura.midolman.FlowController.WildcardFlowAdded
+import com.midokura.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
+import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.flows.FlowKeys
-import akka.actor.ActorSystem
-;
 
 
 @RunWith(classOf[JUnitRunner])
-class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuilders {
+class FlowsExpirationTest extends MidolmanTestCase
+       with VirtualConfigurationBuilders {
 
     var eventProbe: TestProbe = null
     var datapath: Datapath = null
@@ -177,7 +166,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         val flowMatch = new FlowMatch().addKey(
                                 FlowKeys.etherType(ethPkt.getEtherType))
         val wFlow = new WildcardFlow()
-            .setMatch(WildcardMatches.fromFlowMatch(flowMatch))
+            .setMatch(WildcardMatch.fromFlowMatch(flowMatch))
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
 
         flowProbe().testActor.tell(
