@@ -50,15 +50,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             // Broadcast packet:  Handle if ARP, drop otherwise.
-            if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE &&
-                    pktContext.getMatch.getNetworkProtocol == ARP.OP_REQUEST) {
-                log.debug("Processing ARP request")
-                val arpPayload = pktContext.getFrame.getPayload
-                if (arpPayload.isInstanceOf[ARP]) {
-                    processArpRequest(arpPayload.asInstanceOf[ARP], inPort)
-                } else {
-                    log.warn("Non-ARP packet with ethertype ARP: {}",
-                             arpPayload)
+            if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
+                pktContext.getFrame.getPayload match {
+                    case arp: ARP => arp.getOpCode match {
+                        case ARP.OP_REQUEST =>
+                            processArpRequest(arp, inPort)
+                        case ARP.OP_REPLY =>
+                            processArpReply(arp, inPort.id, inPort)
+                    }
+                    case pkt =>
+                        log.warn("Non-ARP packet with ethertype ARP: {}", pkt)
                 }
                 return Promise.successful(new ConsumedAction)(ec)
             } else
@@ -262,16 +263,27 @@ class Router(val id: UUID, val cfg: RouterConfig,
                                   actorSystem: ActorSystem) {
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
-        val tpa = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
-        if (tpa != inPort.portAddr.addressAsInt)
-            return
 
+        val tpa = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
         val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val tha = pkt.getTargetHardwareAddress
+        val sha = pkt.getSenderHardwareAddress
         val spaNet = new IntIPv4(spa, inPort.portAddr.getMaskLength)
+
         if (inPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
             log.debug("Ignoring ARP request from address {} not in the " +
                 "ingress port network {}",
                 spaNet, inPort.portAddr.toNetworkAddress)
+            return
+        }
+
+        // gratuitous arp request
+        if (tpa == spa && tha == MAC.fromString("00:00:00:00:00:00")) {
+            arpTable.set(new IntIPv4(spa), sha)
+            return
+        }
+        if (tpa != inPort.portAddr.addressAsInt) {
+            log.debug("Ignoring ARP Request with a mismatching dst ip address")
             return
         }
 
@@ -303,6 +315,14 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def processArpReply(pkt: ARP, portID: UUID, rtrPort: RouterPort[_])
                                (implicit actorSystem: ActorSystem) {
+        def isGratuitous(tha: MAC, tpa: Int, sha: MAC, spa: Int): Boolean = {
+            (tpa == spa && tha == sha)
+        }
+
+        def isAddressedToThis(tha: MAC, tpa: Int): Boolean = {
+            (tpa == rtrPort.portAddr.addressAsInt && tha == rtrPort.portMac)
+        }
+
         // Verify the reply:  It's addressed to our MAC & IP, and is about
         // the MAC for an IPv4 address.
         if (pkt.getHardwareType != ARP.HW_TYPE_ETHERNET ||
@@ -311,19 +331,21 @@ class Router(val id: UUID, val cfg: RouterConfig,
                       "wasn't Ethernet or prototype wasn't IPv4.", id, portID)
             return
         }
+
         val tpa: Int = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
         val tha: MAC = pkt.getTargetHardwareAddress
-        if (tpa != rtrPort.portAddr.addressAsInt || tha != rtrPort.portMac) {
+        val spa: Int = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val sha: MAC = pkt.getSenderHardwareAddress
+        val spaNet = new IntIPv4(spa, rtrPort.portAddr.getMaskLength)
+
+        if (!isGratuitous(tha, tpa, sha, spa) && !isAddressedToThis(tha, tpa)) {
             log.debug("Router {} ignoring ARP reply on port {} because tpa or "+
                       "tha doesn't match.", id, portID)
             return
         }
+
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-
-        val sha: MAC = pkt.getSenderHardwareAddress
-        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
-        val spaNet = new IntIPv4(spa, rtrPort.portAddr.getMaskLength)
         if (rtrPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
                 "port network {}", spaNet, rtrPort.portAddr.toNetworkAddress)
