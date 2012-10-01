@@ -36,6 +36,8 @@ import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
 
+// TODO marc this class should be converted to a base class for all the functional tests:
+
 public class FunctionalTestsHelper {
 
     public static final String LOCK_NAME = "functional-tests";
