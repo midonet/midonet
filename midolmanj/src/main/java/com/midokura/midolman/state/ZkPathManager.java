@@ -51,34 +51,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get CAPWAP path.
-     *
-     * @return /capwap
-     */
-    public String getCapwapPath() {
-        return buildCapwapPath().toString();
-    }
-
-    protected StringBuilder buildCapwapPath() {
-        return basePath().append("/capwap");
-    }
-
-    /**
-     * Get CAPWAP key path.
-     *
-     * @param capwapKeyId is the CAPWAP key ID
-     * @return /capwap/capwapKey
-     */
-    public String getCapwapKeyPath(int capwapKeyId) {
-        return buildCapwapKeyPath(capwapKeyId).toString();
-    }
-
-    protected StringBuilder buildCapwapKeyPath(int capwapKeyId) {
-        return buildCapwapPath().append("/").append(
-                String.format("%010d", capwapKeyId));
-    }
-
-    /**
      * Get tunnel (GRE/CAPWAP) path.
      *
      * @return /gre

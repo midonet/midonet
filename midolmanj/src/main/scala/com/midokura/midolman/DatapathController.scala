@@ -1008,11 +1008,6 @@ class DatapathController() extends Actor with ActorLogging {
                     None, TunnelChangeEventOperation.Removed))
         }
 
-        case class TunnelCapwapOpReply(port: CapWapTunnelPort, op: PortOperation.Value,
-                                       timeout: Boolean, error: NetlinkException,
-                                       tag: Option[AnyRef])
-            extends PortOpReply[CapWapTunnelPort]
-
         opReply match {
 
             case TunnelGreOpReply(p, PortOperation.Create, false, null,
