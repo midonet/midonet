@@ -100,7 +100,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         flowActs should have size (3)
 
         val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
-        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getGreKey)
+        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
 
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)

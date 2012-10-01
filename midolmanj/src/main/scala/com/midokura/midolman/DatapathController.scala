@@ -800,7 +800,7 @@ class DatapathController() extends Actor with ActorLogging {
                                     actions, portSet,
                                     portsForLocalPorts(
                                         (set.localPorts-inPortUUID).toSeq),
-                                    Some(br.greKey),
+                                    Some(br.tunnelKey),
                                     tunnelsForHosts(set.hosts.toSeq)))
                     }
                 }

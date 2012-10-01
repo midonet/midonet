@@ -180,7 +180,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         //builder.setID(id)
         builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
-        builder.setTunnelKey(config.tunKey);
+        builder.setTunnelKey(config.tunnelKey);
         // If it's an update macPortMap will be null
         if (macPortMap != null) {
             builder.setMacLearningTable(

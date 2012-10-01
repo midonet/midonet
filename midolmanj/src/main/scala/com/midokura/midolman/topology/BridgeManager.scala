@@ -34,7 +34,7 @@ trait RemoveFlowCallbackGenerator {
 }
 
 class BridgeConfig() {
-    var greKey: Int = 0 // Only set in prepareBridgeCreate
+    var tunnelKey: Int = 0 // Only set in prepareBridgeCreate
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 
@@ -88,7 +88,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
-            new Bridge(id, getGreKey, macPortMap, flowCounts, inFilter, outFilter,
+            new Bridge(id, getTunnelKey, macPortMap, flowCounts, inFilter, outFilter,
                        flowRemovedCallback, rtrMacToLogicalPortId, rtrIpToMac))
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -97,10 +97,10 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         filterChanged = false
     }
 
-    def getGreKey: Long = {
+    def getTunnelKey: Long = {
         cfg match {
             case null => 0
-            case c => c.greKey
+            case c => c.tunnelKey
         }
     }
 

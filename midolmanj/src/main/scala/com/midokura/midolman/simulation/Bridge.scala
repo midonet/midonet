@@ -17,7 +17,7 @@ import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
 
 
-class Bridge(val id: UUID, val greKey: Long,
+class Bridge(val id: UUID, val tunnelKey: Long,
              val macPortMap: MacLearningTable,
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,

@@ -49,7 +49,7 @@ public class BridgeZkManager extends ZkManager {
         }
 
         // TODO: Make this private with a getter.
-        public int tunKey; // Only set in prepareBridgeCreate
+        public int tunnelKey; // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
         public String name;
@@ -64,7 +64,7 @@ public class BridgeZkManager extends ZkManager {
 
             BridgeConfig that = (BridgeConfig) o;
 
-            if (tunKey != that.tunKey)
+            if (tunnelKey != that.tunnelKey)
                 return false;
             if (inboundFilter != null ? !inboundFilter
                     .equals(that.inboundFilter) : that.inboundFilter != null)
@@ -80,7 +80,7 @@ public class BridgeZkManager extends ZkManager {
 
         @Override
         public int hashCode() {
-            int result = tunKey;
+            int result = tunnelKey;
             result = 31 * result
                     + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result
@@ -92,7 +92,7 @@ public class BridgeZkManager extends ZkManager {
 
         @Override
         public String toString() {
-            return "BridgeConfig{" + "tunKey=" + tunKey + ", inboundFilter="
+            return "BridgeConfig{" + "tunnelKey=" + tunnelKey + ", inboundFilter="
                     + inboundFilter + ", outboundFilter=" + outboundFilter
                     + ", name=" + name + '}';
         }
@@ -137,8 +137,8 @@ public class BridgeZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new Tunnel key. Hide this from outside.
-        int tunKey = tunnelZkManager.createTunnelKey();
-        config.tunKey = tunKey;
+        int tunnelKey = tunnelZkManager.createTunnelKey();
+        config.tunnelKey = tunnelKey;
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getBridgePath(id),
@@ -166,7 +166,7 @@ public class BridgeZkManager extends ZkManager {
 
         // Update TunnelKey to reference the bridge.
         TunnelZkManager.TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
 
         ops.addAll(filterZkManager.prepareCreate(id));
         return ops;
@@ -214,7 +214,7 @@ public class BridgeZkManager extends ZkManager {
         }
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
-            config.tunKey = oldConfig.tunKey;
+            config.tunnelKey = oldConfig.tunnelKey;
             return Op.setData(paths.getBridgePath(id),
                     serializer.serialize(config), -1);
         }
@@ -253,7 +253,7 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(paths.getBridgePortLocationsPath(id), -1));
 
         // Delete GRE
-        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunKey));
+        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
         // Delete this bridge's port-set
         ops.addAll(getRecursiveDeleteOps(paths.getPortSetPath(id)));

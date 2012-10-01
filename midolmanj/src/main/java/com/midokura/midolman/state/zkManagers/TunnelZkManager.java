@@ -53,46 +53,46 @@ public class TunnelZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    private int extractTunKeyFromPath(String path) {
+    private int extractTunnelKeyFromPath(String path) {
         int idx = path.lastIndexOf('/');
         return Integer.parseInt(path.substring(idx + 1));
     }
 
     /**
-     * Constructs a list of operations to perform in a tunKey update.
+     * Constructs a list of operations to perform in a tunnelKey update.
      *
-     * @param tunKey
+     * @param tunnelKey
      *            TunnelKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
      * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareTunnelUpdate(int key, TunnelKey tunKey)
+    public List<Op> prepareTunnelUpdate(int key, TunnelKey tunnelKey)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.setData(paths.getTunnelKeyPath(key),
-                serializer.serialize(tunKey), -1));
+                serializer.serialize(tunnelKey), -1));
         return ops;
     }
 
     public TunnelKey get(int key)
             throws StateAccessException {
-        TunnelKey tunKey = null;
+        TunnelKey tunnelKey = null;
         byte[] data = get(paths.getTunnelKeyPath(key));
         if (data != null) {
-            tunKey = serializer.deserialize(data, TunnelKey.class);
+            tunnelKey = serializer.deserialize(data, TunnelKey.class);
         }
-        return tunKey;
+        return tunnelKey;
     }
 
     /***
      * Constructs a list of operations to perform in a tunnel deletion.
      *
-     * @param tunKey
+     * @param tunnelKey
      *            ZK entry of the tunnel to delete.
      */
-    public List<Op> prepareTunnelDelete(int tunKey) {
-        String path = paths.getTunnelKeyPath(tunKey);
+    public List<Op> prepareTunnelDelete(int tunnelKey) {
+        String path = paths.getTunnelKeyPath(tunnelKey);
         log.debug("Preparing to delete: " + path);
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(path, -1));
@@ -111,12 +111,12 @@ public class TunnelZkManager extends ZkManager {
     public int createTunnelKey()
             throws StateAccessException {
         String path = addPersistentSequential(paths.getTunnelPath(), null);
-        int key = extractTunKeyFromPath(path);
+        int key = extractTunnelKeyFromPath(path);
         // We don't use Zero as a valid Tunnel key because our PacketIn method
         // uses that value to denote "The Tunnel ID wasn't set".
         if (0 == key) {
             path = addPersistentSequential(paths.getTunnelPath(), null);
-            key = extractTunKeyFromPath(path);
+            key = extractTunnelKeyFromPath(path);
         }
         return key;
     }

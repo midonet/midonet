@@ -54,12 +54,12 @@ class TestBridgeZkManager {
     // IDs) are 1, 2, 3, in order.
     bridgeId = bridgeMgr.create(new BridgeConfig())
     bridgeConfig = bridgeMgr.get(bridgeId)
-    assertEquals(1, bridgeConfig.tunKey)
+    assertEquals(1, bridgeConfig.tunnelKey)
     bridgeId = bridgeMgr.create(new BridgeConfig())
     bridgeConfig = bridgeMgr.get(bridgeId)
-    assertEquals(2, bridgeConfig.tunKey)
+    assertEquals(2, bridgeConfig.tunnelKey)
     bridgeId = bridgeMgr.create(new BridgeConfig())
     bridgeConfig = bridgeMgr.get(bridgeId)
-    assertEquals(3, bridgeConfig.tunKey)
+    assertEquals(3, bridgeConfig.tunnelKey)
   }
 }

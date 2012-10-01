@@ -78,7 +78,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         flowActs should have size(2)
 
         val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
-        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be (portOnHost2.getGreKey)
+        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be (portOnHost2.getTunnelKey)
 
         val outputActions = as[FlowActionOutput](flowActs.get(1))
         outputActions.getPortNumber should be (tunnelId)

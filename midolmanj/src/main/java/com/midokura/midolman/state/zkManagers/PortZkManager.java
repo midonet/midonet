@@ -120,8 +120,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        int tunKey = tunnelZkManager.createTunnelKey();
-        config.tunKey = tunKey;
+        int tunnelKey = tunnelZkManager.createTunnelKey();
+        config.tunnelKey = tunnelKey;
 
         // Add common router port create operations
         List<Op> ops = prepareRouterPortCreate(id, config);
@@ -134,7 +134,7 @@ public class PortZkManager extends ZkManager {
 
         // Update TunnelKey to reference the port.
         TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
 
         return ops;
     }
@@ -171,8 +171,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        int tunKey = tunnelZkManager.createTunnelKey();
-        config.tunKey = tunKey;
+        int tunnelKey = tunnelZkManager.createTunnelKey();
+        config.tunnelKey = tunnelKey;
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
@@ -183,7 +183,7 @@ public class PortZkManager extends ZkManager {
 
         // Update TunnelKey to reference the port.
         TunnelKey tunnel = new TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
 
         return ops;
     }
@@ -473,7 +473,7 @@ public class PortZkManager extends ZkManager {
         ops.addAll(prepareBridgePortDelete(id, config));
 
         // Delete the GRE key
-        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunKey));
+        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
         return ops;
     }

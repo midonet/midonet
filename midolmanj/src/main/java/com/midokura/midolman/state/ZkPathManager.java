@@ -95,16 +95,16 @@ public class ZkPathManager {
     /**
      * Get tunnel (GRE/CAPWAP) key path.
      *
-     * @param tunKeyId is the tunnel key ID
-     * @return /gre/tunKey
+     * @param tunnelKeyId is the tunnel key ID
+     * @return /gre/tunnelKey
      */
-    public String getTunnelKeyPath(int tunKeyId) {
-        return buildTunnelKeyPath(tunKeyId).toString();
+    public String getTunnelKeyPath(int tunnelKeyId) {
+        return buildTunnelKeyPath(tunnelKeyId).toString();
     }
 
-    protected StringBuilder buildTunnelKeyPath(int tunKeyId) {
+    protected StringBuilder buildTunnelKeyPath(int tunnelKeyId) {
         return buildTunnelPath().append("/").append(
-            String.format("%010d", tunKeyId));
+            String.format("%010d", tunnelKeyId));
     }
 
     /**

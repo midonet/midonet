@@ -110,13 +110,13 @@ public class OvsBridge {
 
     // XXX redundant if not used in a test
     public void addCapwapPort(String name, String localIp, String remoteIp,
-                              int tunKey) {
+                              int tunnelKey) {
         TunnelPortBuilder builder =
             ovsdb.addCapwapPort(bridgeName, name, remoteIp).localIp(localIp);
-        if (tunKey == 0)
+        if (tunnelKey == 0)
             builder.keyFlow();
         else
-            builder.key(tunKey);
+            builder.key(tunnelKey);
         builder.build();
     }
 
