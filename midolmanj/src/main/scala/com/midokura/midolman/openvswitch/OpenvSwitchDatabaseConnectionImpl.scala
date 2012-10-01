@@ -861,14 +861,15 @@ extends OpenvSwitchDatabaseConnection with Runnable {
     }
 
     /**
-     * A GrePortBuilder that uses an synchronous OVSDB connection.
+     * A TunnelPortBuilder that uses an synchronous OVSDB connection.
      */
-    private class GrePortBuilderImpl(val bridgeId: Long = 0, val portName: String,
-                                     val remoteIp: String,
-                                     val bridgeName: String="")
-            extends GrePortBuilder {
+    private class TunnelPortBuilderImpl(ifType: String,
+                val bridgeId: Long = 0, val portName: String,
+                val remoteIp: String, val bridgeName: String = "")
+            extends TunnelPortBuilder {
+
         private var ifRow: Map[String, String] =
-            Map(ColumnType -> InterfaceTypeGre, ColumnName -> portName)
+            Map(ColumnType -> ifType, ColumnName -> portName)
 
         private val portRow: Map[String, String] = Map(ColumnName -> portName)
 
@@ -1317,11 +1318,11 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addGrePort(bridgeId: Long,  portName: String,
-                   remoteIp: String): GrePortBuilder = {
+                   remoteIp: String): TunnelPortBuilder = {
         if (hasPort(portName))
             throw new DuplicatedRowsException(
                 "A port named %s already exists".format(portName))
-        new GrePortBuilderImpl(bridgeId, portName, remoteIp)
+        new TunnelPortBuilderImpl(InterfaceTypeGre, bridgeId, portName, remoteIp)
     }
 
     /**
@@ -1333,12 +1334,46 @@ extends OpenvSwitchDatabaseConnection with Runnable {
      * @return A builder to set optional parameters of the port and add it.
      */
     override def addGrePort(bridgeName: String,  portName: String,
-                   remoteIp: String): GrePortBuilder = {
+                   remoteIp: String): TunnelPortBuilder = {
         if (hasPort(portName))
             throw new DuplicatedRowsException(
                 "A port named %s already exists".format(portName))
-        new GrePortBuilderImpl(bridgeName=bridgeName, portName=portName,
-                               remoteIp=remoteIp)
+        new TunnelPortBuilderImpl(ifType = InterfaceTypeGre,
+            bridgeName = bridgeName, portName = portName, remoteIp = remoteIp)
+    }
+
+    /**
+     * Create a port and a CAPWAP interface, and add the port to a bridge.
+     *
+     * @param bridgeId The datapath identifier of the bridge to add the port to.
+     * @param portName The name of the port and of the TAP interface to create.
+     * @param remoteIp The tunnel remote endpoint's IP address.
+     * @return A builder to set optional parameters of the port and add it.
+     */
+    override def addCapwapPort(bridgeId: Long,  portName: String,
+                            remoteIp: String): TunnelPortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
+        new TunnelPortBuilderImpl(ifType = InterfaceTypeCapwap,
+            bridgeName = bridgeId, portName = portName, remoteIp = remoteIp)
+    }
+
+    /**
+     * Create a port and a CAPWAP interface, and add the port to a bridge.
+     *
+     * @param bridgeName The name of the bridge to add the port to.
+     * @param portName   The name of the port and of the TAP interface to create.
+     * @param remoteIp   The tunnel remote endpoint's IP address.
+     * @return A builder to set optional parameters of the port and add it.
+     */
+    override def addCapwapPort(bridgeName: String,  portName: String,
+                            remoteIp: String): TunnelPortBuilder = {
+        if (hasPort(portName))
+            throw new DuplicatedRowsException(
+                "A port named %s already exists".format(portName))
+        new TunnelPortBuilderImpl(ifType = InterfaceTypeCapwap,
+            bridgeName = bridgeName, portName = portName, remoteIp = remoteIp)
     }
 
     /**
@@ -2505,6 +2540,7 @@ object OpenvSwitchDatabaseConsts {
     final val InterfaceTypeInternal = "internal"
     final val InterfaceTypeTap = "tap"
     final val InterfaceTypeGre = "gre"
+    final val InterfaceTypeCapwap = "capwap"
     final val TableBridge = "Bridge"
     final val TableController = "Controller"
     final val TableInterface = "Interface"
