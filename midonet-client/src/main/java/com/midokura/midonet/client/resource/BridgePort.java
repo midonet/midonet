@@ -103,7 +103,7 @@ public class BridgePort<T extends DtoBridgePort> extends
     }
 
     /**
-     * 　Sets id to the inbound filter.
+     * Sets id to the inbound filter.
      *
      * @param id
      * @return this
