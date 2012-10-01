@@ -80,8 +80,7 @@ public class BridgeTestOneDatapath {
 
        // startCassandra();
         midolman = MidolmanLauncher.start("BridgeTestOneDatapath");
-        // TODO start the mock, change this call later
-        apiStarter = new MockMgmtStarter(false);
+        apiStarter = new MockMgmtStarter();
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
         Bridge bridge = apiClient.addBridge().tenantId(TENANT_NAME)

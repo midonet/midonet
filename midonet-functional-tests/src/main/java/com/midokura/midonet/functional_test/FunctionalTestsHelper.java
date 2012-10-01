@@ -6,20 +6,19 @@ package com.midokura.midonet.functional_test;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
 
+import com.google.inject.*;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.*;
 import com.midokura.util.Waiters;
-import me.prettyprint.cassandra.service.CassandraHostConfigurator;
-import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.factory.HFactory;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
@@ -36,14 +35,7 @@ import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
-import org.yaml.snakeyaml.Yaml;
 
-import static com.midokura.tools.timed.Timed.newTimedExecution;
-
-/**
- * @author Mihai Claudiu Toader  <mtoader@midokura.com>
- *         Date: 12/7/11
- */
 public class FunctionalTestsHelper {
 
     public static final String LOCK_NAME = "functional-tests";
@@ -267,74 +259,39 @@ public class FunctionalTestsHelper {
             log.error("Configuration file does not exist: {}", configurationFile);
             return -1;
         }
-        try {
-            HierarchicalConfiguration midolmanConf = new HierarchicalINIConfiguration(testConfFile);
-            // get the zookeeper port from the configuration.
-            String zookeperHost = midolmanConf.getString("zookeeper.zookeeper_hosts");
-            int zookeperPort = Integer.parseInt(zookeperHost.split(":")[1]);
-            log.info("Starting zookeeper at port: " + zookeperPort);
-            return EmbeddedZKLauncher.start(zookeperPort);
-        } catch (ConfigurationException e) {
-            log.error("Error in the configuration file. ");
-            return -1;
-        }
+
+        List<Module> modules = new ArrayList<Module>();
+        modules.add( new AbstractModule() {
+             @Override
+             protected void configure() {
+                 bind(MidolmanConfig.class)
+                         .toProvider(MidolmanModule.MidolmanConfigProvider.class)
+                         .asEagerSingleton();
+             }
+        });
+
+        modules.add(new ConfigProviderModule(configurationFile));
+        Injector injector = Guice.createInjector(modules);
+        MidolmanConfig mConfig = injector.getInstance(MidolmanConfig.class);
+
+        // get the zookeeper port from the configuration.
+        String hostsLine = mConfig.getZooKeeperHosts();
+        // if there are more than one zookeeper host, get the first one.
+        String zookeeperHostLine = hostsLine.split(",")[0];
+        int zookeperPort = Integer.parseInt(zookeeperHostLine.split(":")[1]);
+        String zookeeperHost = zookeeperHostLine.split(":")[0];
+        assertThat("Zookeeper host should be the local machine",
+          (zookeeperHost.matches("127.0.0.1") || zookeeperHost.matches("localhost")));
+
+        log.info("Starting zookeeper at port: " + zookeperPort);
+        return EmbeddedZKLauncher.start(zookeperPort);
     }
 
     public static void stopEmbeddedZookeeper() {
         EmbeddedZKLauncher.stop();
     }
 
-    /**
-     * This method starts the embedded cassandra with the non-default port.
-     * WARN This method does not work fine when using 'sudo'.
-     * TODO marc: clean and investigate why it's failing.
-     * @param cassandraConfiguration
-     * @param testConfiguration
-     */
-    public static void startCassandra(String cassandraConfiguration, String testConfiguration) {
-            // read the midolman configuration file.
-            File testConfFile = new File(testConfiguration);
 
-            if (!testConfFile.exists()) {
-                log.error("Configuration file does not exist: {}", testConfiguration);
-                return;
-            }
-            try {
-                HierarchicalConfiguration midolmanConf = new HierarchicalINIConfiguration(testConfFile);
-                String cassandraHost = midolmanConf.getString("cassandra.servers");
-               int cassandraPort = Integer.parseInt(cassandraHost.split(":")[1]);
-                String cassandraClusterName = midolmanConf.getString("cassandra.cluster");
-
-               // get the cassandra port from both configuration files.
-               File cassandraConf = new File("midolmanj_runtime_configurations/cassandra.yaml");
-               //assertTrue("Cassandra configuration file exists", cassandraConf.exists());
-               Yaml yamlParser = new Yaml();
-              Map parsedConf = (Map) yamlParser.load(new FileReader(cassandraConf));
-
-              final Integer yamlCassandraPort = (Integer) parsedConf.get("rpc_port");
-              final String yamlClusterName = (String) parsedConf.get("cluster_name");
-              //assertTrue("Cassandra ports are not the same in cassandra.yaml and the test configuration.",
-              // yamlCassandraPort == cassandraPort);
-              //assertTrue("Cassandra cluster names are not the same in cassandra.yaml and the test configuration",
-              // yamlClusterName.matches(cassandraClusterName));
-              EmbeddedCassandraServerHelper.startEmbeddedCassandra(cassandraConfiguration);
-              // make sure it's clean.
-                EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-               Waiters.waitFor("Cassandra must be up & running", new Timed.Execution<Boolean> () {
-                @Override
-                protected void _runOnce() throws Exception {
-                    log.info("Waiting for cassandra...");
-                    Cluster cluster = HFactory.getOrCreateCluster(yamlClusterName, new CassandraHostConfigurator("localhost:"+yamlCassandraPort));
-                    setCompleted(cluster.getConnectionManager() != null &&
-                            cluster.getConnectionManager().getActivePools() != null &&
-                            cluster.getConnectionManager().getActivePools().size() == 1);
-                }
-            } );
-        } catch (Exception e) {
-            log.error("Failed to start embedded Cassandra.", e);
-        }
-
-    }
 
     /**
      * Start an embedded cassandra with the default configuration.
@@ -350,8 +307,6 @@ public class FunctionalTestsHelper {
     public static void stopCassandra() {
         EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
     }
-
-
 
     /**
      * Stops an embedded midoalman.
@@ -370,7 +325,7 @@ public class FunctionalTestsHelper {
         try {
             midolman.startMidolman(configFile);
         } catch (Exception e) {
-            log.error("Could not stack Midolmanj", e);
+            log.error("Could not start Midolmanj", e);
         }
         // TODO wait until the agents are started.
     }
