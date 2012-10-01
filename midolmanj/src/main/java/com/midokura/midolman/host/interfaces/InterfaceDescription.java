@@ -20,8 +20,8 @@ import com.midokura.sdn.dp.PortOptions;
 public class InterfaceDescription {
 
     public enum Type { PHYS, VIRT, TUNN, UNKNOWN }
-    public enum Endpoint { DATAPATH, PHYSICAL, VM, GRE, LOCALHOST, TUNTAP,
-        UNKNOWN }
+    public enum Endpoint { DATAPATH, PHYSICAL, VM, GRE, CAPWAP, LOCALHOST,
+        TUNTAP, UNKNOWN }
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes
