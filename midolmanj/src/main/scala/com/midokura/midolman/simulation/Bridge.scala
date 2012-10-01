@@ -117,14 +117,14 @@ class Bridge(val id: UUID, val greKey: Long,
                                 dstDlAddress)
                             packetContext.addFlowTag(
                                 FlowTagger.invalidateFlowsByMac(
-                                    id, srcDlAddress))
+                                    id, dstDlAddress))
                             ToPortSetAction(id)
                         case portID: UUID =>
                             log.debug("Dst MAC {} is on port {}. Forward.",
                                 dstDlAddress, portID)
                             packetContext.addFlowTag(
                                 FlowTagger.invalidateFlowsByPort(
-                                    id, srcDlAddress, portID))
+                                    id, dstDlAddress, portID))
                             ToPortAction(portID)
                     }
             }
@@ -182,10 +182,6 @@ class Bridge(val id: UUID, val greKey: Long,
             packetContext.addFlowRemovedCallback(
                 flowRemovedCallbackGen.getCallback(srcDlAddress,
                                                    packetContext.getInPortId))
-            // TODO(pino): ask Rossella why we need to tag by src MAC+Port
-            // Pass the tag to be used to index the flow
-            //val tag = (id, srcDlAddress, packetContext.getInPortId)
-            //packetContext.addFlowTag(tag)
             // Flow invalidations caused by MACs migrating between ports
             // are done by the BridgeManager's MacTableNotifyCallBack.
         }
