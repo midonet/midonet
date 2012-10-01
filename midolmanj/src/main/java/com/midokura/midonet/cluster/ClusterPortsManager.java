@@ -104,7 +104,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             port.setPortGroups(cfg.portGroupIDs);
         } else {
         }
-        port.setTunnelKey(cfg.greKey);
+        port.setTunnelKey(cfg.tunKey);
     }
 
     void setExteriorPortFieldsBridge(ExteriorPort port, PortDirectory.MaterializedBridgePortConfig cfg){
@@ -114,7 +114,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         if (cfg.portGroupIDs != null) {
             port.setPortGroups(cfg.portGroupIDs);
         }
-        port.setTunnelKey(cfg.greKey);
+        port.setTunnelKey(cfg.tunKey);
     }
 
     void setPortFields(Port port, PortConfig cfg, UUID id){

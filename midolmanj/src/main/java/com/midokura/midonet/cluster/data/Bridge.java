@@ -132,7 +132,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
         @Override
         public String toString() {
-            return "Bridge.Data{" + "greKey=" + greKey + ", inboundFilter="
+            return "Bridge.Data{" + "tunKey=" + greKey + ", inboundFilter="
                 + inboundFilter + ", outboundFilter=" + outboundFilter
                 + ", name=" + name + '}';
         }

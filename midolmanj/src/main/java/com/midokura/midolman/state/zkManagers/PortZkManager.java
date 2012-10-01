@@ -5,7 +5,7 @@
 package com.midokura.midolman.state.zkManagers;
 
 import com.midokura.midolman.state.*;
-import com.midokura.midolman.state.zkManagers.GreZkManager.GreKey;
+import com.midokura.midolman.state.zkManagers.TunnelZkManager.TunnelKey;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -21,7 +21,7 @@ public class PortZkManager extends ZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortZkManager.class);
-    private final GreZkManager greZkManager;
+    private final TunnelZkManager tunnelZkManager;
     private FiltersZkManager filterZkManager;
     private BgpZkManager bgpManager;
     private VpnZkManager vpnManager;
@@ -38,7 +38,7 @@ public class PortZkManager extends ZkManager {
      */
     public PortZkManager(Directory zk, String basePath) {
         super(zk, basePath);
-        greZkManager = new GreZkManager(zk, basePath);
+        tunnelZkManager = new TunnelZkManager(zk, basePath);
         filterZkManager = new FiltersZkManager(zk, basePath);
         this.bgpManager = new BgpZkManager(zk, basePath);
         this.vpnManager = new VpnZkManager(zk, basePath);
@@ -120,8 +120,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        int greKey = greZkManager.createGreKey();
-        config.greKey = greKey;
+        int tunKey = tunnelZkManager.createTunnelKey();
+        config.tunKey = tunKey;
 
         // Add common router port create operations
         List<Op> ops = prepareRouterPortCreate(id, config);
@@ -132,9 +132,9 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.create(paths.getPortVpnPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        // Update GreKey to reference the port.
-        GreKey gre = new GreKey(id);
-        ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
+        // Update TunnelKey to reference the port.
+        TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
 
         return ops;
     }
@@ -171,8 +171,8 @@ public class PortZkManager extends ZkManager {
             throws StateAccessException {
 
         // Create a new GRE key. Hide this from outside.
-        int greKey = greZkManager.createGreKey();
-        config.greKey = greKey;
+        int tunKey = tunnelZkManager.createTunnelKey();
+        config.tunKey = tunKey;
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
@@ -181,9 +181,9 @@ public class PortZkManager extends ZkManager {
         ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        // Update GreKey to reference the port.
-        GreKey gre = new GreKey(id);
-        ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
+        // Update TunnelKey to reference the port.
+        TunnelKey tunnel = new TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
 
         return ops;
     }
@@ -473,7 +473,7 @@ public class PortZkManager extends ZkManager {
         ops.addAll(prepareBridgePortDelete(id, config));
 
         // Delete the GRE key
-        ops.addAll(greZkManager.prepareGreDelete(config.greKey));
+        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunKey));
 
         return ops;
     }

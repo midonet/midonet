@@ -61,7 +61,7 @@ public class Converter {
         bridgeConfig.name = bridge.getName();
         bridgeConfig.inboundFilter = bridge.getInboundFilter();
         bridgeConfig.outboundFilter = bridge.getOutboundFilter();
-        bridgeConfig.greKey = bridge.getGreKey();
+        bridgeConfig.tunKey = bridge.getGreKey();
         bridgeConfig.properties = new HashMap<String, String>(
                 bridge.getProperties());
 
@@ -74,7 +74,7 @@ public class Converter {
 
         return new Bridge()
                 .setName(bridge.name)
-                .setGreKey(bridge.greKey)
+                .setGreKey(bridge.tunKey)
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
                 .setProperties(bridge.properties);
@@ -188,7 +188,7 @@ public class Converter {
         portConfig.device_id = port.getDeviceId();
         portConfig.inboundFilter = port.getInboundFilter();
         portConfig.outboundFilter = port.getOutboundFilter();
-        portConfig.greKey = port.getGreKey();
+        portConfig.tunKey = port.getGreKey();
         portConfig.properties = port.getProperties();
         portConfig.portGroupIDs = port.getPortGroups();
 
@@ -250,7 +250,7 @@ public class Converter {
 
         return port
                 .setDeviceId(portConfig.device_id)
-                .setGreKey(portConfig.greKey)
+                .setGreKey(portConfig.tunKey)
                 .setInboundFilter(portConfig.inboundFilter)
                 .setOutboundFilter(portConfig.outboundFilter)
                 .setProperties(portConfig.properties)

@@ -62,7 +62,7 @@ public class TestRouterZkManager {
         dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getRoutesPath(), null, CreateMode.PERSISTENT);
         dir.add(pathMgr.getPortsPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getGrePath(), null, CreateMode.PERSISTENT);
+        dir.add(pathMgr.getTunnelPath(), null, CreateMode.PERSISTENT);
         PortZkManager portMgr = new PortZkManager(dir, basePath);
         RouteZkManager routeMgr = new RouteZkManager(dir, basePath);
         routerMgr = new RouterZkManager(dir, basePath);

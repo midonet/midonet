@@ -79,7 +79,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
     var clusterClient: Client = null
 
     //@Inject
-    //var greZK: GreZkManager = null
+    //var greZK: TunnelZkManager = null
     @Inject
     var config: MidolmanConfig = null
 

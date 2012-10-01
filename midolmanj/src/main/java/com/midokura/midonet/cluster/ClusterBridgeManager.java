@@ -9,14 +9,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.config.ZookeeperConfig;
-import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
 import com.midokura.midolman.state.PortConfigCache;
@@ -30,7 +28,6 @@ import com.midokura.midonet.cluster.client.BridgeBuilder;
 import com.midokura.midonet.cluster.client.MacLearningTable;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 import com.midokura.util.functors.Callback3;
 
@@ -183,7 +180,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         //builder.setID(id)
         builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
-        builder.setTunnelKey(config.greKey);
+        builder.setTunnelKey(config.tunKey);
         // If it's an update macPortMap will be null
         if (macPortMap != null) {
             builder.setMacLearningTable(

@@ -168,7 +168,7 @@ public class NxmTest {
         assertTrue(controller2.waitForPort(tap2.getName()));
 
         // Create the Gre Ports for the tunnel between the bridges.
-        // Setting the GreKey to 0 allows the key to be set flow-by-flow.
+        // Setting the TunnelKey to 0 allows the key to be set flow-by-flow.
         int tunId = proto.equals(Protocol.NXM)? 0 : 5;
         ovsBridge1.addGrePort("nxmgre1", "127.0.0.1", "127.0.0.2", tunId);
         ovsBridge2.addGrePort("nxmgre2", "127.0.0.2", "127.0.0.1", tunId);

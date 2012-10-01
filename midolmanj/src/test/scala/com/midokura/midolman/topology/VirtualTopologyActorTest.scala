@@ -95,7 +95,7 @@ class X extends VirtualTopologyActorTest {
         probe.send(actorRef, new BridgeRequest(bridgeId, true))
         val bridgeCfg = new ZkBridgeConfig()
         // set gre key sequentially
-        bridgeCfg.greKey = 1
+        bridgeCfg.tunKey = 1
         //probe.expectMsg(new Bridge(bridgeId, bridgeCfg, null, null,
         //                              null, null))
         /*val receivedBridge = probe.receiveOne(Duration.Undefined)

@@ -49,7 +49,7 @@ public class BridgeZkManager extends ZkManager {
         }
 
         // TODO: Make this private with a getter.
-        public int greKey; // Only set in prepareBridgeCreate
+        public int tunKey; // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
         public String name;
@@ -64,7 +64,7 @@ public class BridgeZkManager extends ZkManager {
 
             BridgeConfig that = (BridgeConfig) o;
 
-            if (greKey != that.greKey)
+            if (tunKey != that.tunKey)
                 return false;
             if (inboundFilter != null ? !inboundFilter
                     .equals(that.inboundFilter) : that.inboundFilter != null)
@@ -80,7 +80,7 @@ public class BridgeZkManager extends ZkManager {
 
         @Override
         public int hashCode() {
-            int result = greKey;
+            int result = tunKey;
             result = 31 * result
                     + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result
@@ -92,14 +92,14 @@ public class BridgeZkManager extends ZkManager {
 
         @Override
         public String toString() {
-            return "BridgeConfig{" + "greKey=" + greKey + ", inboundFilter="
+            return "BridgeConfig{" + "tunKey=" + tunKey + ", inboundFilter="
                     + inboundFilter + ", outboundFilter=" + outboundFilter
                     + ", name=" + name + '}';
         }
     }
 
     private FiltersZkManager filterZkManager;
-    private GreZkManager greZkManager;
+    private TunnelZkManager tunnelZkManager;
     private PortZkManager portZkManager;
 
     /**
@@ -115,7 +115,7 @@ public class BridgeZkManager extends ZkManager {
             throws StateAccessException {
         super(zk, basePath);
         this.filterZkManager = new FiltersZkManager(zk, basePath);
-        this.greZkManager = new GreZkManager(zk, basePath);
+        this.tunnelZkManager = new TunnelZkManager(zk, basePath);
         this.portZkManager = new PortZkManager(zk, basePath);
     }
 
@@ -136,9 +136,9 @@ public class BridgeZkManager extends ZkManager {
     public List<Op> prepareBridgeCreate(UUID id, BridgeConfig config)
             throws StateAccessException {
 
-        // Create a new GRE key. Hide this from outside.
-        int greKey = greZkManager.createGreKey();
-        config.greKey = greKey;
+        // Create a new Tunnel key. Hide this from outside.
+        int tunKey = tunnelZkManager.createTunnelKey();
+        config.tunKey = tunKey;
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getBridgePath(id),
@@ -164,9 +164,9 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(paths.getPortSetPath(id),
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        // Update GreKey to reference the bridge.
-        GreZkManager.GreKey gre = new GreZkManager.GreKey(id);
-        ops.addAll(greZkManager.prepareGreUpdate(greKey, gre));
+        // Update TunnelKey to reference the bridge.
+        TunnelZkManager.TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunKey, tunnel));
 
         ops.addAll(filterZkManager.prepareCreate(id));
         return ops;
@@ -214,7 +214,7 @@ public class BridgeZkManager extends ZkManager {
         }
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
-            config.greKey = oldConfig.greKey;
+            config.tunKey = oldConfig.tunKey;
             return Op.setData(paths.getBridgePath(id),
                     serializer.serialize(config), -1);
         }
@@ -253,7 +253,7 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(paths.getBridgePortLocationsPath(id), -1));
 
         // Delete GRE
-        ops.addAll(greZkManager.prepareGreDelete(config.greKey));
+        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunKey));
 
         // Delete this bridge's port-set
         ops.addAll(getRecursiveDeleteOps(paths.getPortSetPath(id)));
