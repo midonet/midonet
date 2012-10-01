@@ -35,5 +35,5 @@ public interface Client {
 
     void getPortSet(UUID uuid, PortSetBuilder builder);
 
-    void getPortBGPList(UUID portID, BGPListBuilder builder);
+    void subscribeBgp(UUID portID, BGPListBuilder builder);
 }

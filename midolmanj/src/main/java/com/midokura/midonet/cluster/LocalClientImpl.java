@@ -156,7 +156,7 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getPortBGPList(UUID portID, BGPListBuilder builder) {
+    public void subscribeBgp(UUID portID, BGPListBuilder builder) {
         bgpManager.registerNewBuilder(portID, builder);
     }
 
