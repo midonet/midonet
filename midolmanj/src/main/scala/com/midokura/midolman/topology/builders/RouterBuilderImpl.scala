@@ -14,12 +14,6 @@ import collection.immutable
 import collection.mutable
 import com.midokura.midolman.topology.{RoutingTableWrapper, RouterManager, RouterConfig}
 
-/**
- * Copyright 2012 Midokura Europe SARL
- * User: Rossella Sblendido <rossella@midokura.com>
- * Date: 8/29/12
- */
-
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     extends RouterBuilder {
 
