@@ -281,6 +281,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 stash()
 
             case LocalPortActive(vifId, true) if (!activatingLocalPorts) =>
+                log.debug("Received a LocalPortActive true for {}", vifId)
                 activatingLocalPorts = true
                 clusterDataClient.portsSetLocalAndActive(vifId, true)
 
@@ -321,6 +322,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 stash()
 
             case LocalPortActive(vifId, false) =>
+                log.debug("Received a LocalPortActive false for {}", vifId)
                 activatingLocalPorts = true
                 val portFuture =
                     ask(VirtualTopologyActor.getRef(),
@@ -357,6 +359,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
                 // TODO(pino, rossella): consider invalidating flows by PortSet
                 // TODO: ID tag here rather than in the BridgeBuilderImpl.
+                log.debug("Port {} in PortSet {} is up.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.add(vifId)
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
@@ -370,7 +373,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 // TODO: Also consider doing nothing because the DatapathCtrl's
                 // TODO: tag by ShortPortNo will invalidate all relevant flows
                 // TODO: anyway.
-                log.info("Port changed {} {}", vifId, portSetId)
+                log.debug("Port {} in PortSet {} is down.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.remove(vifId)
                     case None => localActivePortSets.remove(portSetId)
@@ -399,6 +402,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
      */
     private def completeLocalPortActivation(vifId: UUID, active: Boolean,
                                                      success: Boolean) {
+        log.debug("LocalPort status update for {} active={} completed with " +
+            "success={}", Array(vifId, active, success))
         if (success)
             context.system.eventStream.publish(LocalPortActive(vifId, active))
         activatingLocalPorts = false

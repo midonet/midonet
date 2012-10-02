@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.BridgePort;
@@ -36,8 +35,8 @@ import com.midokura.util.lock.LockHelper;
 
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.*;
 
 public class BridgeTestOneDatapath {
@@ -83,6 +82,7 @@ public class BridgeTestOneDatapath {
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
         int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
+        assertThat(zookeeperPort, greaterThan(0));
 
         log.info("Starting cassandra");
         startCassandra();
@@ -93,6 +93,9 @@ public class BridgeTestOneDatapath {
 
         log.info("Starting midolman");
         EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+            probe.ref(), LocalPortActive.class);
 
         Bridge bridge = apiClient.addBridge().tenantId(TENANT_NAME)
             .name("br1").create();
@@ -143,14 +146,11 @@ public class BridgeTestOneDatapath {
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
-        TestProbe probe = new TestProbe(mm.getActorSystem());
-        mm.getActorSystem().eventStream().subscribe(
-            probe.ref(), LocalPortActive.class);
-
         for (int i = 0; i < 3; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
                 Duration.create(10, TimeUnit.SECONDS),
                 LocalPortActive.class);
+            log.info("Received one LocalPortActive message from stream.");
             assertTrue("The port should be active.", activeMsg.active());
             activatedPorts.add(activeMsg.portID());
         }
@@ -163,10 +163,10 @@ public class BridgeTestOneDatapath {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-        stopMidolman(midolman);
+        stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
-        cleanupZooKeeperServiceData();
+        stopEmbeddedZookeeper();
     }
 
     public void sendAndExpectPacket(byte[] pkt, int iterations,
@@ -180,19 +180,16 @@ public class BridgeTestOneDatapath {
                 byte[] received = t.recv();
                 assertNotNull(
                     String.format("Needed bytes from %s on iteration %d",
-                        t.getName(),
-                    received));
+                        t.getName(), i), received);
                 assertArrayEquals(
-                    String.format("Bytes from %s differ on iteration %d",
-                        t.getName(), i),
-                    pkt, received);
+                    String.format("Bytes from %s != sent on iteration %d",
+                        t.getName(), i), pkt, received);
             }
             // Confirm it does not arrive on any tap where it's not expected.
             for (TapWrapper t : expectDoesNotArrive)
                 assertNull(
-                    String.format("Should not get byts from %s on iteration %d",
-                        t.getName(), i),
-                    t.recv());
+                    String.format("%s got bytes on iteration %d",
+                        t.getName(), i), t.recv());
         }
     }
 

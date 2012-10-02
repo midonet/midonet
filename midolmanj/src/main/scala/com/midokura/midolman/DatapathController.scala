@@ -792,7 +792,7 @@ class DatapathController() extends Actor with ActorLogging {
                             // port set.
                             log.info("inPort: {}", inPortUUID)
                             log.info("local ports: {}", set.localPorts)
-                            log.info("local ports - inPort: {}",
+                            log.info("local ports minus inPort: {}",
                                 set.localPorts - inPortUUID)
                             translated.success(
                                 translateToDpPorts(
