@@ -732,7 +732,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
                     setNetworkTTL(ipv4.getTtl());
                     break;
                 case 8: // FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
-                    // XXX(jlm)
+                    // XXX(jlm, s3wong)
                     break;
                 case 9: //FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
                     FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
@@ -753,7 +753,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
                     setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
                     break;
                 case 12: // FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);
-                    // XXX(jlm)
+                    // XXX(jlm, s3wong)
                     break;
                 case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
                     FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
@@ -763,7 +763,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
                     setNetworkProtocol((byte)(arp.getOp() & 0xff));
                     break;
                 case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
-                    // XXX(jlm): Neighbor Discovery
+                    // XXX(jlm, s3wong): Neighbor Discovery
                     break;
                 case 63: // FlowKeyAttr<FlowKeyTunnelID> TUN_ID = attr(63);
                     FlowKeyTunnelID tunnelID = as(flowKey,
