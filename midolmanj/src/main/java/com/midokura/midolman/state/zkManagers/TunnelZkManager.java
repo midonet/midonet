@@ -20,19 +20,19 @@ import com.midokura.midolman.state.ZkStateSerializationException;
 
 
 /**
- * Class to manage the GRE ZooKeeper data.
+ * Class to manage the Tunnel ZooKeeper data.
  */
-public class GreZkManager extends ZkManager {
+public class TunnelZkManager extends ZkManager {
     private final static Logger log =
-         LoggerFactory.getLogger(GreZkManager.class);
+         LoggerFactory.getLogger(TunnelZkManager.class);
 
-    public static class GreKey {
+    public static class TunnelKey {
 
-        public GreKey() {
+        public TunnelKey() {
             super();
         }
 
-        public GreKey(UUID ownerId) {
+        public TunnelKey(UUID ownerId) {
             super();
             this.ownerId = ownerId;
         }
@@ -41,7 +41,7 @@ public class GreZkManager extends ZkManager {
     }
 
     /**
-     * Initializes a GreZkManager object with a ZooKeeper client and the root
+     * Initializes a TunnelZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
      *
      * @param zk
@@ -49,50 +49,50 @@ public class GreZkManager extends ZkManager {
      * @param basePath
      *            The root path.
      */
-    public GreZkManager(Directory zk, String basePath) {
+    public TunnelZkManager(Directory zk, String basePath) {
         super(zk, basePath);
     }
 
-    private int extractGreKeyFromPath(String path) {
+    private int extractTunnelKeyFromPath(String path) {
         int idx = path.lastIndexOf('/');
         return Integer.parseInt(path.substring(idx + 1));
     }
 
     /**
-     * Constructs a list of operations to perform in a gre update.
+     * Constructs a list of operations to perform in a tunnelKey update.
      *
-     * @param gre
-     *            GreKey ZooKeeper entry to update.
+     * @param tunnelKey
+     *            TunnelKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
      * @throws com.midokura.midolman.state.ZkStateSerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareGreUpdate(int key, GreKey gre)
+    public List<Op> prepareTunnelUpdate(int key, TunnelKey tunnelKey)
             throws ZkStateSerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(paths.getGreKeyPath(key),
-                serializer.serialize(gre), -1));
+        ops.add(Op.setData(paths.getTunnelKeyPath(key),
+                serializer.serialize(tunnelKey), -1));
         return ops;
     }
 
-    public GreKey get(int key)
+    public TunnelKey get(int key)
             throws StateAccessException {
-        GreKey gre = null;
-        byte[] data = get(paths.getGreKeyPath(key));
+        TunnelKey tunnelKey = null;
+        byte[] data = get(paths.getTunnelKeyPath(key));
         if (data != null) {
-            gre = serializer.deserialize(data, GreKey.class);
+            tunnelKey = serializer.deserialize(data, TunnelKey.class);
         }
-        return gre;
+        return tunnelKey;
     }
 
     /***
-     * Constructs a list of operations to perform in a gre deletion.
+     * Constructs a list of operations to perform in a tunnel deletion.
      *
-     * @param greKey
-     *            ZK entry of the gre to delete.
+     * @param tunnelKey
+     *            ZK entry of the tunnel to delete.
      */
-    public List<Op> prepareGreDelete(int greKey) {
-        String path = paths.getGreKeyPath(greKey);
+    public List<Op> prepareTunnelDelete(int tunnelKey) {
+        String path = paths.getTunnelKeyPath(tunnelKey);
         log.debug("Preparing to delete: " + path);
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(path, -1));
@@ -100,23 +100,23 @@ public class GreZkManager extends ZkManager {
     }
 
     /**
-     * Performs an atomic update on the ZooKeeper to add a new GRE key.
+     * Performs an atomic update on the ZooKeeper to add a new Tunnel key.
      *
-     * @return The ID of the newly created GRE.
+     * @return The ID of the newly created Tunnel.
      * @throws KeeperException
      *             ZooKeeper error occurred.
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public int createGreKey()
+    public int createTunnelKey()
             throws StateAccessException {
-        String path = addPersistentSequential(paths.getGrePath(), null);
-        int key = extractGreKeyFromPath(path);
-        // We don't use Zero as a valid GRE key because our PacketIn method
+        String path = addPersistentSequential(paths.getTunnelPath(), null);
+        int key = extractTunnelKeyFromPath(path);
+        // We don't use Zero as a valid Tunnel key because our PacketIn method
         // uses that value to denote "The Tunnel ID wasn't set".
         if (0 == key) {
-            path = addPersistentSequential(paths.getGrePath(), null);
-            key = extractGreKeyFromPath(path);
+            path = addPersistentSequential(paths.getTunnelPath(), null);
+            key = extractTunnelKeyFromPath(path);
         }
         return key;
     }

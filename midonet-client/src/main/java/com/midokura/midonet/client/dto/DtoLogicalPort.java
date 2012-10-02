@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface DtoLogicalPort {
 
     /**
-     * @return　Peer port ID
+     * @return Peer port ID
      */
     UUID getPeerId();
 

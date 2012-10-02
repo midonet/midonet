@@ -77,7 +77,7 @@ public class TestPortConfigCache {
     private MaterializedBridgePortConfig getNewConfig(int greKey) {
         MaterializedBridgePortConfig config =
                 new MaterializedBridgePortConfig(bridgeID);
-        config.greKey = greKey;
+        config.tunnelKey = greKey;
         config.inboundFilter = UUID.randomUUID();
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
@@ -130,7 +130,7 @@ public class TestPortConfigCache {
         assertThat("The cache should contain the portID as key",
                 portCache.hasKey(portID));
         PortConfig cachedConfig = portCache.get(portID);
-        PortConfig config = getNewConfig(cachedConfig.greKey);
+        PortConfig config = getNewConfig(cachedConfig.tunnelKey);
         assertThat("The cached config should not equal the one we specified.",
                 cachedConfig, not(equalTo(config)));
         // Now update ZK.

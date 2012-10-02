@@ -4,10 +4,13 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import akka.testkit.TestProbe;
+import akka.util.Duration;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,29 +19,25 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.client.dto.DtoInterface;
 import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.BridgePort;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
 
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.util.Waiters.sleepBecause;
-import static com.midokura.util.Waiters.waitFor;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.*;
 
 public class BridgeTestOneDatapath {
 
@@ -59,13 +58,13 @@ public class BridgeTestOneDatapath {
     BridgePort port1, port2, port3;
     Bridge bridge1;
     TapWrapper tap1, tap2, tap3;
-    Map<UUID, Boolean> portStatus = new HashMap<UUID, Boolean>();
+    Set<UUID> activatedPorts = new HashSet<UUID>();
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
 
 
-    @BeforeClass
+    /*@BeforeClass
     public static void checkLock() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
     }
@@ -73,15 +72,30 @@ public class BridgeTestOneDatapath {
     @AfterClass
     public static void releaseLock() {
         lock.release();
-    }
+    }*/
 
     @Before
     public void setUp() throws Exception {
+        String testConfigurationPath =
+            "midolmanj_runtime_configurations/midolman-default.conf";
 
+        // start zookeeper with the designated port.
+        log.info("Starting embedded zookeeper.");
+        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
+        assertThat(zookeeperPort, greaterThan(0));
+
+        log.info("Starting cassandra");
         startCassandra();
-        midolman = MidolmanLauncher.start("BridgeTestOneDatapath");
-        apiStarter = new MockMgmtStarter(false);
+
+        log.info("Starting REST API");
+        apiStarter = new MockMgmtStarter(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
+
+        log.info("Starting midolman");
+        EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+            probe.ref(), LocalPortActive.class);
 
         Bridge bridge = apiClient.addBridge().tenantId(TENANT_NAME)
             .name("br1").create();
@@ -92,17 +106,14 @@ public class BridgeTestOneDatapath {
         ip1 = IntIPv4.fromString("198.18.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         port1 = bridge.addMaterializedPort().create();
-        portStatus.put(port1.getId(), false);
 
         ip2 = IntIPv4.fromString("198.18.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         port2 = bridge.addMaterializedPort().create();
-        portStatus.put(port2.getId(), false);
 
         ip3 = IntIPv4.fromString("198.18.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         port3 = bridge.addMaterializedPort().create();
-        portStatus.put(port3.getId(), false);
 
         ResourceCollection<Host> hosts = apiClient.getHosts();
         Host host = null;
@@ -135,31 +146,16 @@ public class BridgeTestOneDatapath {
         helper1_3 = new PacketHelper(mac1, ip1, mac3, ip3);
         helper3_1 = new PacketHelper(mac3, ip3, mac1, ip1);
 
-        /*MidolmanEvents.startObserver();
-        MidolmanEvents.setObserverCallback(new MidolmanEvents.EventCallback() {
-            @Override
-            public void portStatus(UUID portID, boolean up) {
-                log.info("Observer callback: {} {}", portID, up);
-                if (!up || !portStatus.containsKey(portID)) return;
-                portStatus.put(portID, true);
-            }
-        });
-        waitFor("The Midolman daemon should bring up the ports.",
-                new Timed.Execution<DtoInterface>() {
-                    @Override
-                    protected void _runOnce() throws Exception {
-                        for (Map.Entry<UUID, Boolean> portStat :
-                                portStatus.entrySet()) {
-                            if (!portStat.getValue()) {
-                                setCompleted(false);
-                                return;
-                            }
-                        }
-                        setCompleted(true);
-                    }
-                }
-        );*/
-        sleepBecause("we need the network to boot up", 20);
+        for (int i = 0; i < 3; i++) {
+            LocalPortActive activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+            log.info("Received one LocalPortActive message from stream.");
+            assertTrue("The port should be active.", activeMsg.active());
+            activatedPorts.add(activeMsg.portID());
+        }
+        assertThat("The 3 bridge ports should be active.", activatedPorts,
+            hasItems(port1.getId(), port2.getId(), port3.getId()));
     }
 
     @After
@@ -167,10 +163,10 @@ public class BridgeTestOneDatapath {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-        stopMidolman(midolman);
+        stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
-        cleanupZooKeeperServiceData();
+        stopEmbeddedZookeeper();
     }
 
     public void sendAndExpectPacket(byte[] pkt, int iterations,
@@ -184,19 +180,16 @@ public class BridgeTestOneDatapath {
                 byte[] received = t.recv();
                 assertNotNull(
                     String.format("Needed bytes from %s on iteration %d",
-                        t.getName(),
-                    received));
+                        t.getName(), i), received);
                 assertArrayEquals(
-                    String.format("Bytes from %s differ on iteration %d",
-                        t.getName(), i),
-                    pkt, received);
+                    String.format("Bytes from %s != sent on iteration %d",
+                        t.getName(), i), pkt, received);
             }
             // Confirm it does not arrive on any tap where it's not expected.
             for (TapWrapper t : expectDoesNotArrive)
                 assertNull(
-                    String.format("Should not get byts from %s on iteration %d",
-                        t.getName(), i),
-                    t.recv());
+                    String.format("%s got bytes on iteration %d",
+                        t.getName(), i), t.recv());
         }
     }
 

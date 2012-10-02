@@ -27,7 +27,6 @@ import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
-import com.midokura.midolman.RemoteServer;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
@@ -57,7 +56,6 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef virtualToPhysicalActor;
     ActorRef flowControllerActor;
     ActorRef simulationControllerActor;
-    ActorRef remoteServer;
     ActorRef monitoringActor;
 
     @Override
@@ -69,11 +67,6 @@ public class MidolmanActorsService extends AbstractService {
         log.debug("Creating actors system.");
         actorSystem = ActorSystem.create("MidolmanActors",
             ConfigFactory.load().getConfig("midolman"));
-
-        remoteServer =
-            startActor(
-                getGuiceAwareFactory(RemoteServer.class),
-                "remoteServer");
 
         virtualTopologyActor =
             startActor(
@@ -110,7 +103,6 @@ public class MidolmanActorsService extends AbstractService {
     @Override
     protected void doStop() {
         try {
-            stopActor(remoteServer);
             stopActor(datapathControllerActor);
             stopActor(virtualTopologyActor);
             stopActor(virtualToPhysicalActor);

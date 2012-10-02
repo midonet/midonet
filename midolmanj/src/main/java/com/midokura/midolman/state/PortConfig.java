@@ -20,7 +20,7 @@ public abstract class PortConfig {
     public UUID inboundFilter;
     public UUID outboundFilter;
     public Set<UUID> portGroupIDs;
-    public int greKey;
+    public int tunnelKey;
     public Map<String, String> properties = new HashMap<String, String>();
 
     @Override
@@ -30,7 +30,7 @@ public abstract class PortConfig {
 
         PortConfig that = (PortConfig) o;
 
-        if (greKey != that.greKey) return false;
+        if (tunnelKey != that.tunnelKey) return false;
         if (device_id != null
                 ? !device_id.equals(that.device_id) : that.device_id != null)
             return false;
@@ -58,7 +58,7 @@ public abstract class PortConfig {
                 (outboundFilter != null ? outboundFilter.hashCode() : 0);
         result = 31 * result +
                 (portGroupIDs != null ? portGroupIDs.hashCode() : 0);
-        result = 31 * result + greKey;
+        result = 31 * result + tunnelKey;
         return result;
     }
 }

@@ -3,16 +3,18 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor._
-import akka.dispatch.Promise
-import akka.pattern.{ask, pipe}
-import akka.util.duration._
-import akka.util.Timeout
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
+
 import java.util
 import java.util.UUID
 import java.util.concurrent.TimeoutException
+
+import akka.actor._
+import akka.dispatch.Promise
+import akka.pattern.ask
+import akka.util.duration._
+import akka.util.Timeout
 
 import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
@@ -29,10 +31,8 @@ import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
 import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
-import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
-                GreTunnelZone, GreTunnelZoneHost, IpsecTunnelZoneHost}
+import com.midokura.midonet.cluster.data.zones._
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
-import scala.Some
 
 
 object HostConfigOperation extends Enumeration {
@@ -44,6 +44,21 @@ sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
     val hostConfig: HostConfig
     val op: HostConfigOperation.Value
 }
+
+/**
+ * Send this message to the VirtualToPhysicalMapper to let it know when
+ * an exterior virtual network port is 'active' - meaning that it may emit
+ * packets. This signals to the VirtualToPhysicalMapper that it should
+ * e.g. update the router's forwarding table, if the port belongs to a
+ * router. It also indicates that the local host will begin to emit (from
+ * the corresponding OVS datapath port) any tunneled packet whose tunnel
+ * key encodes the port's ID.
+ *
+ * @param portID The uuid of the port that is to marked as active/inactive
+ * @param active True if the port is ready to emit/receive; false
+ *               otherwise.
+ */
+case class LocalPortActive(portID: UUID, active: Boolean)
 
 object VirtualToPhysicalMapper extends Referenceable {
     val Name = "VirtualToPhysicalMapper"
@@ -69,22 +84,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
 
-    case class LocalAvailabilityZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
-
-    /**
-     * Send this message to the VirtualToPhysicalMapper to let it know when
-     * an exterior virtual network port is 'active' - meaning that it may emit
-     * packets. This signals to the VirtualToPhysicalMapper that it should
-     * e.g. update the router's forwarding table, if the port belongs to a
-     * router. It also indicates that the local host will begin to emit (from
-     * the corresponding OVS datapath port) any tunneled packet whose tunnel
-     * key encodes the port's ID.
-     *
-     * @param portID The uuid of the port that is to marked as active/inactive
-     * @param active True if the port is ready to emit/receive; false
-     *               otherwise.
-     */
-    case class LocalPortActive(portID: UUID, active: Boolean)
+    case class LocalTunnelZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
     case class TunnelZoneRequest(zoneId: UUID)
 
@@ -92,7 +92,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class PortSetRequest(portSetId: UUID, update: Boolean)
 
-    case class AvailabilityZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
+    case class TunnelZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
 
     case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
@@ -281,6 +281,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 stash()
 
             case LocalPortActive(vifId, true) if (!activatingLocalPorts) =>
+                log.debug("Received a LocalPortActive true for {}", vifId)
                 activatingLocalPorts = true
                 clusterDataClient.portsSetLocalAndActive(vifId, true)
 
@@ -321,6 +322,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 stash()
 
             case LocalPortActive(vifId, false) =>
+                log.debug("Received a LocalPortActive false for {}", vifId)
                 activatingLocalPorts = true
                 val portFuture =
                     ask(VirtualTopologyActor.getRef(),
@@ -357,6 +359,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
                 // TODO(pino, rossella): consider invalidating flows by PortSet
                 // TODO: ID tag here rather than in the BridgeBuilderImpl.
+                log.debug("Port {} in PortSet {} is up.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.add(vifId)
                     case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
@@ -370,7 +373,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 // TODO: Also consider doing nothing because the DatapathCtrl's
                 // TODO: tag by ShortPortNo will invalidate all relevant flows
                 // TODO: anyway.
-                log.info("Port changed {} {}", vifId, portSetId)
+                log.debug("Port {} in PortSet {} is down.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) => ports.remove(vifId)
                     case None => localActivePortSets.remove(portSetId)
@@ -385,8 +388,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 actorWants.put(sender, ExpectingPorts())
                 fireHostStateUpdates(host, Some(sender))
 
-            case _LocalDataUpdatedForHost(host, datapath, ports, availabilityZones) =>
-                localHostData.put(host, (datapath, ports, availabilityZones))
+            case _LocalDataUpdatedForHost(host, datapath, ports, tunnelZones) =>
+                localHostData.put(host, (datapath, ports, tunnelZones))
                 fireHostStateUpdates(host, Some(sender))
 
             case value =>
@@ -399,6 +402,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
      */
     private def completeLocalPortActivation(vifId: UUID, active: Boolean,
                                                      success: Boolean) {
+        log.debug("LocalPort status update for {} active={} completed with " +
+            "success={}", Array(vifId, active, success))
         if (success)
             context.system.eventStream.publish(LocalPortActive(vifId, active))
         activatingLocalPorts = false
@@ -412,7 +417,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         actor ! LocalDatapathReply(host.datapath)
                     case ExpectingPorts() =>
                         actor ! LocalPortsReply(host.ports.toMap)
-                        actor ! LocalAvailabilityZonesReply(host.zones)
+                        actor ! LocalTunnelZonesReply(host.zones)
                 }
         }
 
@@ -464,17 +469,18 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         }
     }
 
-    class GreAvailabilityZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
-        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreAvailabilityZoneBuilder = {
+    // XXX(guillermo) unused class :-?
+    class GreTunnelZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
+        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreTunnelZoneBuilder = {
             this
         }
 
-        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
+        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Added)
             this
         }
 
-        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreAvailabilityZoneBuilder = {
+        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
             actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Deleted)
             this
         }
@@ -490,7 +496,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                         ports: mutable.Map[UUID, String],
                                         zones: mutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
-    case class _AvailabilityZoneUpdated(zone: UUID, dpName: String,
+    case class _TunnelZoneUpdated(zone: UUID, dpName: String,
                                         ports: mutable.Map[UUID, String],
                                         zones: mutable.Set[UUID])
 

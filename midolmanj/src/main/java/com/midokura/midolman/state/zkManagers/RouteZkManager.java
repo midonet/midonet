@@ -33,14 +33,24 @@ import com.midokura.util.functors.Functor;
  */
 public class RouteZkManager extends ZkManager {
 
-    protected final Functor<String, Route> strToRouteMapper =
-        new Functor<String, Route>() {
+
+    private final Functor<Set<byte[]>, Set<Route>> byteArrayToRoutesSetMapper =
+        new Functor<Set<byte[]>, Set<Route>>(){
             @Override
-            public Route apply(String arg0) {
+            public Set<Route> apply(Set<byte[]> arg0) {
+                return CollectionFunctors.map(arg0, byteToRouteSerializer,
+                                              new HashSet<Route>());
+            }
+        };
+
+    private final Functor<byte[], Route> byteToRouteSerializer =
+        new Functor<byte[], Route>() {
+            @Override
+            public Route apply(byte[] arg0) {
                 try {
-                    return get(UUID.fromString(arg0));
-                } catch (StateAccessException e) {
-                    log.error("Exception when trying to get route UUID {}", arg0, e);
+                    return serializer.deserialize(arg0, Route.class);
+                } catch (Exception e) {
+                    log.error("Error deserializing route {}", arg0);
                     return null;
                 }
             }
@@ -185,6 +195,22 @@ public class RouteZkManager extends ZkManager {
         return get(id, null);
     }
 
+    public void asyncGet(UUID id, final DirectoryCallback<Route> routeDirectoryCallback){
+        zk.asyncGet(paths.getRoutePath(id),
+                    DirectoryCallbackFactory.transform(
+                        routeDirectoryCallback, byteToRouteSerializer), null);
+    }
+
+    public void asyncMultiRoutesGet(Set<UUID> ids,
+                                    final DirectoryCallback<Set<Route>> routesCallback){
+        Set<String> pathIds = new HashSet<String>();
+        for(UUID id: ids){
+            pathIds.add(paths.getRoutePath(id));
+        }
+        zk.asyncMultiPathGet(pathIds, DirectoryCallbackFactory.transform(
+            routesCallback, byteArrayToRoutesSetMapper));
+    }
+
     /**
      * Gets a ZooKeeper node entry key-value pair of a route with the given ID
      * and sets a watcher on the node.
@@ -254,19 +280,19 @@ public class RouteZkManager extends ZkManager {
         return result;
     }
 
-    public void listPortRoutesAsynch(UUID portId,
-                        final DirectoryCallback<Set<Route>> listPortRoutesCallback,
-                        Directory.TypedWatcher watcher){
+    public void listPortRoutesAsync(UUID portId,
+                                    final DirectoryCallback<Set<UUID>> listPortRoutesCallback,
+                                    Directory.TypedWatcher watcher){
 
         zk.asyncGetChildren(
             paths.getPortRoutesPath(portId),
             DirectoryCallbackFactory.transform(
                 listPortRoutesCallback,
-                new Functor<Set<String>, Set<Route>>() {
+                new Functor<Set<String>,Set<UUID>>() {
                     @Override
-                    public Set<Route> apply(Set<String> arg0) {
+                    public Set<UUID> apply(Set<String> arg0) {
                         return CollectionFunctors.map(
-                            arg0, strToRouteMapper, new HashSet<Route>());
+                            arg0, strToUUIDMapper, new HashSet<UUID>());
                     }
                 }
             ), watcher);

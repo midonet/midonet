@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
-import com.midokura.midolman.RemoteServer;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.services.HostIdProviderService;
@@ -53,7 +52,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(DatapathController.class).in(Singleton.class);
         bind(FlowController.class).in(Singleton.class);
         bind(SimulationController.class).in(Singleton.class);
-        bind(RemoteServer.class).in(Singleton.class);
         bind(MonitoringActor.class).in(Singleton.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);

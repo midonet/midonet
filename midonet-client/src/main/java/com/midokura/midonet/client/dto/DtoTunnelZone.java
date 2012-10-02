@@ -27,7 +27,7 @@ public abstract class DtoTunnelZone {
     private String name;
 
     /**
-     * @return　The tunnel zone type
+     * @return The tunnel zone type
      */
     public abstract String getType();
 

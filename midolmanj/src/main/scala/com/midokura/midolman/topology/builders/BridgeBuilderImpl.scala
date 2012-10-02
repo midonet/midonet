@@ -34,7 +34,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
 
     def setTunnelKey(key: Long) {
-        cfg.greKey = key.toInt
+        cfg.tunnelKey = key.toInt
     }
 
     def setMacLearningTable(table: MacLearningTable) {

@@ -3,13 +3,11 @@
  */
 package com.midokura.midolman.mgmt.host.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.host.GreTunnelZoneHost;
+import com.midokura.midolman.mgmt.host.CapwapTunnelZoneHost;
 import com.midokura.midolman.mgmt.host.TunnelZoneHost;
 import com.midokura.midolman.mgmt.host.TunnelZoneHostFactory;
 import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
@@ -18,6 +16,9 @@ import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.TunnelZone;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -51,35 +52,42 @@ public class TunnelZoneHostResource {
         this.tunnelZoneId = tunnelZoneId;
     }
 
+    private <T extends TunnelZoneHost> Response createTunnelZoneHost(T tzHost)
+            throws StateAccessException {
+        tzHost.setTunnelZoneId(tunnelZoneId);
+        Set<ConstraintViolation<T>> violations =validator.validate(tzHost);
+        if (!violations.isEmpty())
+            throw new BadRequestHttpException(violations);
+
+        dataClient.tunnelZonesAddMembership(tunnelZoneId,
+                tzHost.toData());
+
+        return Response.created(
+                ResourceUriBuilder.getTunnelZoneHost(uriInfo.getBaseUri(),
+                        tunnelZoneId, tzHost.getHostId()))
+                .build();
+    }
+
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
     public Response create(GreTunnelZoneHost tunnelZoneHost)
             throws StateAccessException {
 
-        tunnelZoneHost.setTunnelZoneId(tunnelZoneId);
-        Set<ConstraintViolation<GreTunnelZoneHost>> violations =
-                validator.validate(tunnelZoneHost);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
-
-        dataClient.tunnelZonesAddMembership(tunnelZoneId,
-                tunnelZoneHost.toData());
-
-        return Response.created(
-                ResourceUriBuilder.getTunnelZoneHost(uriInfo.getBaseUri(),
-                        tunnelZoneId, tunnelZoneHost.getHostId()))
-                .build();
+        return createTunnelZoneHost(tunnelZoneHost);
     }
 
-    @GET
+    @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType
-            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON })
-    public List<TunnelZoneHost> listGreTunnelZoneHosts() throws
-            StateAccessException {
+    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
+    public Response create(CapwapTunnelZoneHost tunnelZoneHost)
+            throws StateAccessException {
 
+        return createTunnelZoneHost(tunnelZoneHost);
+    }
+
+    private List<TunnelZoneHost> listTunnelZoneHosts(
+            Class<? extends TunnelZoneHost> clazz) throws StateAccessException {
         Set<TunnelZone.HostConfig<?,
                 ?>> dataList =
                 dataClient.tunnelZonesGetMemberships(tunnelZoneId);
@@ -90,11 +98,51 @@ public class TunnelZoneHostResource {
             TunnelZoneHost tzh =
                     TunnelZoneHostFactory.createTunnelZoneHost(
                             tunnelZoneId, data);
-            tzh.setBaseUri(uriInfo.getBaseUri());
-            tunnelZoneHosts.add(tzh);
+            if (tzh.getClass().equals(clazz)) {
+                tzh.setBaseUri(uriInfo.getBaseUri());
+                tunnelZoneHosts.add(tzh);
+            }
         }
 
         return tunnelZoneHosts;
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType
+            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON })
+    public List<TunnelZoneHost> listGreTunnelZoneHosts() throws
+            StateAccessException {
+
+        return listTunnelZoneHosts(GreTunnelZoneHost.class);
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType
+            .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON })
+    public List<TunnelZoneHost> listCapwapTunnelZoneHosts() throws
+            StateAccessException {
+
+        return listTunnelZoneHosts(CapwapTunnelZoneHost.class);
+    }
+
+    private TunnelZoneHost getTunnelZoneHost(
+            Class<? extends TunnelZoneHost> clazz,
+            UUID hostId) throws StateAccessException {
+        TunnelZone.HostConfig data = dataClient
+                .tunnelZonesGetMembership(tunnelZoneId, hostId);
+        if (data == null) {
+            throw new NotFoundHttpException("The resource was not found");
+        }
+
+        TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
+                tunnelZoneId, data);
+        if (!tzh.getClass().equals(clazz))
+            throw new NotFoundHttpException("The resource was not found");
+
+        tzh.setBaseUri(uriInfo.getBaseUri());
+        return tzh;
     }
 
     @GET
@@ -105,17 +153,18 @@ public class TunnelZoneHostResource {
                                                UUID hostId) throws
             StateAccessException {
 
-        TunnelZone.HostConfig data = dataClient
-                .tunnelZonesGetMembership(tunnelZoneId, hostId);
-        if (data == null) {
-            throw new NotFoundHttpException("The resource was not found");
-        }
+        return getTunnelZoneHost(GreTunnelZoneHost.class, hostId);
+    }
 
-        TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
-                tunnelZoneId, data);
-        tzh.setBaseUri(uriInfo.getBaseUri());
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
+    @Path("/{hostId}")
+    public TunnelZoneHost getCapwapTunnelZoneHost(@PathParam("hostId")
+                                               UUID hostId) throws
+            StateAccessException {
 
-        return tzh;
+        return getTunnelZoneHost(CapwapTunnelZoneHost.class, hostId);
     }
 
     @DELETE

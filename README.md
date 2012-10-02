@@ -51,6 +51,13 @@ midonet-functional-tests module.
 This will build all the modules but only run the tests from the
 midonet-functional-tests module.
 
+If you run tests with the embedded version of Midolman, you need to run them as root because Midolman opens a Netlink socket:
+
+    ~/midonet$ sudo mvn -Dmaven.repo.local=/home/midokura/.m2/repository/ test -Dtest=YourTest -DfailIfNoTests=false
+
+If the test launches Midolman out of process (e.g. some functional tests), then password-less sudo for /usr/bin/java must be enabled for your user.
+The functional tests also create interfaces and modify them, so password-less sudo for /sbin/ip must also be enabled for your user.
+
 ### Build all & Run tests (but skip the functional tests)
 
     ~/midonet$ mvn -DskipFunctionalTests clean test

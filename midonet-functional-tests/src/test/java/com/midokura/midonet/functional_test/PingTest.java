@@ -4,17 +4,16 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.io.File;
+
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.resource.Host;
-import com.midokura.midonet.client.resource.HostInterfacePort;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
@@ -48,41 +47,44 @@ public class PingTest {
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
 
+
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
-
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
 
     @Before
     public void setUp() throws Exception {
 
-        //fixQuaggaFolderPermissions();
+        String testConfigurationPath = "midolmanj_runtime_configurations/midolman-default.conf";
+        File testConfigurationFile = new File(testConfigurationPath);
 
+        // start zookeeper with the designated port.
+        log.info("Starting embedded zookeeper.");
+        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
+
+        log.info("Starting cassandra");
         startCassandra();
 
-        midolman = MidolmanLauncher.start("PingTest");
-
-        apiStarter = new MockMgmtStarter(false);
-
+        log.info("Starting REST API");
+        apiStarter = new MockMgmtStarter(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
+
+        log.info("Starting midolman");
+        startEmbeddedMidolman(testConfigurationFile.getAbsolutePath());
+
+        log.info("Waiting for midolman to start up correctly.");
+        // TODO change this for the agent message wait.
+        Thread.sleep(10000);
 
         log.debug("Building router");
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME).name("rtr1").create();
         log.debug("Router done!: " + rtr.getName());
         p1 = rtr.addMaterializedRouterPort().portAddress(ip1.toString());
 
+
+        log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
         Host host = null;
-
         for (Host h : hosts) {
             if (h.getId().toString().matches(TEST_HOST_ID)) {
                 host = h;
@@ -90,13 +92,15 @@ public class PingTest {
         }
 
         // check that we've actually found the test host.
-        assertNotNull(host);
+        assertNotNull("Host is null", host);
 
-        tap1 = new TapWrapper("pingTestTap1");
+        log.debug("Creating TAP");
+        tap1 = new TapWrapper("refactorTestTap1");
 
-        HostInterfacePort interfacePort = host.addHostInterfacePort()
-                .interfaceName(tap1.getName())
-                .portId(p1.getId());
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+            .interfaceName(tap1.getName())
+            .portId(p1.getId());
 
 
         p3 = rtr.addMaterializedRouterPort().portAddress(ip3.toString());
@@ -109,11 +113,10 @@ public class PingTest {
     @After
     public void tearDown() throws Exception {
         removeTapWrapper(tap1);
-
-        stopMidolman(midolman);
+        stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
-        cleanupZooKeeperServiceData();
+        stopEmbeddedZookeeper();
     }
 
     @Test

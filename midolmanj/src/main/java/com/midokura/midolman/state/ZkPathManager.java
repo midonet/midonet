@@ -51,31 +51,32 @@ public class ZkPathManager {
     }
 
     /**
-     * Get GRE path.
+     * Get tunnel (GRE/CAPWAP) path.
      *
      * @return /gre
      */
-    public String getGrePath() {
-        return buildGrePath().toString();
+    public String getTunnelPath() {
+        return buildTunnelPath().toString();
     }
 
-    protected StringBuilder buildGrePath() {
+    protected StringBuilder buildTunnelPath() {
+        // XXX(guillermo) s/"gre"/"tunnel"/ ?
         return basePath().append("/gre");
     }
 
     /**
-     * Get GRE key path.
+     * Get tunnel (GRE/CAPWAP) key path.
      *
-     * @param greKeyId is the GRE key ID
-     * @return /gre/greKey
+     * @param tunnelKeyId is the tunnel key ID
+     * @return /gre/tunnelKey
      */
-    public String getGreKeyPath(int greKeyId) {
-        return buildGreKeyPath(greKeyId).toString();
+    public String getTunnelKeyPath(int tunnelKeyId) {
+        return buildTunnelKeyPath(tunnelKeyId).toString();
     }
 
-    protected StringBuilder buildGreKeyPath(int greKeyId) {
-        return buildGrePath().append("/").append(
-            String.format("%010d", greKeyId));
+    protected StringBuilder buildTunnelKeyPath(int tunnelKeyId) {
+        return buildTunnelPath().append("/").append(
+            String.format("%010d", tunnelKeyId));
     }
 
     /**

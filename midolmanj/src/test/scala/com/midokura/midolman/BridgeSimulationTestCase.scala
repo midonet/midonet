@@ -108,7 +108,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val flowActs = addFlowMsg.flow.getActions
         flowActs should have size(3)
         as[FlowActionSetKey](flowActs.get(0)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getGreKey))
+            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
     }

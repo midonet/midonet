@@ -7,7 +7,7 @@ package com.midokura.midolman.openvswitch;
 /**
  * A builder of Open vSwitch GRE tunnel ports.
  */
-public interface GrePortBuilder {
+public interface TunnelPortBuilder {
 
     /**
      * Add an arbitrary pair of key-value strings to associate with the port.
@@ -19,7 +19,7 @@ public interface GrePortBuilder {
      * @param value the external ID
      * @return this builder
      */
-    GrePortBuilder externalId(String key, String value);
+    TunnelPortBuilder externalId(String key, String value);
 
     /**
      * Set the MAC address of the underlying interface.
@@ -29,7 +29,7 @@ public interface GrePortBuilder {
      * @param ifMac the MAC address of the underlying interface
      * @return this builder
      */
-    GrePortBuilder ifMac(String ifMac);
+    TunnelPortBuilder ifMac(String ifMac);
 
     /**
      * Set the tunnel local endpoint's IP address.
@@ -40,7 +40,7 @@ public interface GrePortBuilder {
      * @param localIp the tunnel local endpoint's IP address
      * @return this builder
      */
-    GrePortBuilder localIp(String localIp);
+    TunnelPortBuilder localIp(String localIp);
 
     /**
      * Set the GRE key to be set on outgoing packets.
@@ -51,7 +51,7 @@ public interface GrePortBuilder {
      * @param outKey the GRE key to be set on outgoing packets
      * @return this builder
      */
-    GrePortBuilder outKey(int outKey);
+    TunnelPortBuilder outKey(int outKey);
 
     /**
      * Don't set the GRE key to be set on outgoing packets. The GRE key may be
@@ -61,7 +61,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder outKeyFlow();
+    TunnelPortBuilder outKeyFlow();
 
     /**
      * Set the GRE key that received packets must contain.
@@ -72,7 +72,7 @@ public interface GrePortBuilder {
      * @param inKey the GRE key that received packets must contain, or 0
      * @return this builder
      */
-    GrePortBuilder inKey(int inKey);
+    TunnelPortBuilder inKey(int inKey);
 
     /**
      * Don't set a GRE key that received packets must contain. Any key will
@@ -84,7 +84,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder inKeyFlow();
+    TunnelPortBuilder inKeyFlow();
 
     /**
      * Override outKey and inKey at the same time. Equivalent to calling
@@ -93,7 +93,7 @@ public interface GrePortBuilder {
      * @param key the outKey and inKey
      * @return this builder
      */
-    GrePortBuilder key(int key);
+    TunnelPortBuilder key(int key);
 
     /**
      * Override outKey and inKey at the same time. Equivalent to calling
@@ -101,7 +101,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder keyFlow();
+    TunnelPortBuilder keyFlow();
 
     /**
      * Set the value of the ToS bits to be set on the encapsulating packet.
@@ -110,7 +110,7 @@ public interface GrePortBuilder {
      * packet
      * @return this builder
      */
-    GrePortBuilder tos(byte tos);
+    TunnelPortBuilder tos(byte tos);
 
     /**
      * Set the value of the ToS bits to be copied from the inner packet if it
@@ -118,7 +118,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder tosInherit();
+    TunnelPortBuilder tosInherit();
 
     /**
      * Set the TTL to be set on the encapsulating packet.
@@ -129,7 +129,7 @@ public interface GrePortBuilder {
      * @param ttl the TTL to be set on the encapsulating packet
      * @return this builder
      */
-    GrePortBuilder ttl(byte ttl);
+    TunnelPortBuilder ttl(byte ttl);
 
     /**
      * Set the TTL to be copied from the inner packet if it is IPv4 or IPv6.
@@ -139,7 +139,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder ttlInherit();
+    TunnelPortBuilder ttlInherit();
 
     /**
      * Enable computing GRE checksums on outgoing packets.
@@ -148,7 +148,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder enableCsum();
+    TunnelPortBuilder enableCsum();
 
     /**
      * Disable tunnel path MTU discovery.
@@ -157,7 +157,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder disablePmtud();
+    TunnelPortBuilder disablePmtud();
 
     /**
      * Disable caching of tunnel headers and the output path.
@@ -167,7 +167,7 @@ public interface GrePortBuilder {
      *
      * @return this builder
      */
-    GrePortBuilder disableHeaderCache();
+    TunnelPortBuilder disableHeaderCache();
 
     /**
      * Build and add the port.

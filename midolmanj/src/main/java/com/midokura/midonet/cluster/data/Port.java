@@ -70,13 +70,13 @@ public abstract class Port<
         return getData().portGroupIDs;
     }
 
-    public Self setGreKey(int greKey) {
-        getData().greKey = greKey;
+    public Self setTunnelKey(int tunnelKey) {
+        getData().tunnelKey = tunnelKey;
         return self();
     }
 
-    public int getGreKey() {
-        return getData().greKey;
+    public int getTunnelKey() {
+        return getData().tunnelKey;
     }
 
     public Self setProperties(Map<String, String> properties) {
@@ -111,7 +111,7 @@ public abstract class Port<
         public UUID inboundFilter;
         public UUID outboundFilter;
         public Set<UUID> portGroupIDs = new HashSet<UUID>();
-        public int greKey;
+        public int tunnelKey;
         public Map<String, String> properties = new HashMap<String, String>();
 
 
@@ -122,7 +122,7 @@ public abstract class Port<
 
             Data data = (Data) o;
 
-            if (greKey != data.greKey) return false;
+            if (tunnelKey != data.tunnelKey) return false;
             if (device_id != null ? !device_id.equals(
                 data.device_id) : data.device_id != null) return false;
             if (inboundFilter != null ? !inboundFilter.equals(
@@ -144,7 +144,7 @@ public abstract class Port<
             result = 31 * result + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result + (outboundFilter != null ? outboundFilter.hashCode() : 0);
             result = 31 * result + (portGroupIDs != null ? portGroupIDs.hashCode() : 0);
-            result = 31 * result + greKey;
+            result = 31 * result + tunnelKey;
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
             return result;
         }

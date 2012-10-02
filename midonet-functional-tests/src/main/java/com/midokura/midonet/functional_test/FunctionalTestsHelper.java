@@ -4,12 +4,20 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
+import com.google.inject.*;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.*;
 import com.midokura.util.Waiters;
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -22,45 +30,22 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Port;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.midonet.functional_test.utils.RemoteTap;
-import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
-import static com.midokura.tools.timed.Timed.newTimedExecution;
 
-/**
- * @author Mihai Claudiu Toader  <mtoader@midokura.com>
- *         Date: 12/7/11
- */
+// TODO marc this class should be converted to a base class for all the functional tests:
+
 public class FunctionalTestsHelper {
 
     public static final String LOCK_NAME = "functional-tests";
 
-    private static String zkClient = getZkClient();
-
+    private static EmbeddedMidolman midolman;
 
     protected final static Logger log = LoggerFactory
             .getLogger(FunctionalTestsHelper.class);
-
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    cleanupZooKeeperData();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     protected static void cleanupZooKeeperData()
         throws IOException, InterruptedException {
@@ -129,6 +114,8 @@ public class FunctionalTestsHelper {
 
     protected static void cleanupZooKeeperServiceData(ZKLauncher.ConfigType configType)
             throws IOException, InterruptedException {
+
+        String zkClient = getZkClient();
 
         int port = 2181;
         if (configType != null) {
@@ -200,10 +187,7 @@ public class FunctionalTestsHelper {
             tenant.delete();
     }
 
-    public static void stopMidolman(MidolmanLauncher mm) {
-        if (null != mm)
-            mm.stop();
-    }
+
 
     public static void stopMidolmanMgmt(MockMgmtStarter mgmt) {
         if (null != mgmt)
@@ -262,6 +246,58 @@ public class FunctionalTestsHelper {
 
     }
 
+    /**
+     * Starts an embedded zookeeper.
+     * This method reads the configuration file to discover in which port the embedded zookeeper should run.
+     * @param configurationFile Path of the test configuration file.
+     * @return
+     */
+    public static int startEmbeddedZookeeper(String configurationFile) {
+
+        // read the midolman configuration file.
+        File testConfFile = new File(configurationFile);
+
+        if (!testConfFile.exists()) {
+            log.error("Configuration file does not exist: {}", configurationFile);
+            return -1;
+        }
+
+        List<Module> modules = new ArrayList<Module>();
+        modules.add( new AbstractModule() {
+             @Override
+             protected void configure() {
+                 bind(MidolmanConfig.class)
+                         .toProvider(MidolmanModule.MidolmanConfigProvider.class)
+                         .asEagerSingleton();
+             }
+        });
+
+        modules.add(new ConfigProviderModule(configurationFile));
+        Injector injector = Guice.createInjector(modules);
+        MidolmanConfig mConfig = injector.getInstance(MidolmanConfig.class);
+
+        // get the zookeeper port from the configuration.
+        String hostsLine = mConfig.getZooKeeperHosts();
+        // if there are more than one zookeeper host, get the first one.
+        String zookeeperHostLine = hostsLine.split(",")[0];
+        int zookeperPort = Integer.parseInt(zookeeperHostLine.split(":")[1]);
+        String zookeeperHost = zookeeperHostLine.split(":")[0];
+        assertThat("Zookeeper host should be the local machine",
+          (zookeeperHost.matches("127.0.0.1") || zookeeperHost.matches("localhost")));
+
+        log.info("Starting zookeeper at port: " + zookeperPort);
+        return EmbeddedZKLauncher.start(zookeperPort);
+    }
+
+    public static void stopEmbeddedZookeeper() {
+        EmbeddedZKLauncher.stop();
+    }
+
+
+
+    /**
+     * Start an embedded cassandra with the default configuration.
+     */
     public static void startCassandra() {
         try {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra();
@@ -272,5 +308,36 @@ public class FunctionalTestsHelper {
 
     public static void stopCassandra() {
         EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+    }
+
+    /**
+     * Stops an embedded midoalman.
+     */
+    public static void stopEmbeddedMidolman() {
+        if (midolman != null)
+            midolman.stopMidolman();
+    }
+
+    /**
+     * Starts an embedded midolman with the given configuratin file.
+     * @param configFile
+     */
+    public static EmbeddedMidolman startEmbeddedMidolman(String configFile) {
+        midolman = new EmbeddedMidolman();
+        try {
+            midolman.startMidolman(configFile);
+        } catch (Exception e) {
+            log.error("Could not start Midolmanj", e);
+        }
+        // TODO wait until the agents are started.
+        return midolman;
+    }
+
+    /**
+     * Stops midolman (as a separate process)
+     * @param ml
+     */
+    public static void stopMidolman(MidolmanLauncher ml) {
+        ml.stop();
     }
 }

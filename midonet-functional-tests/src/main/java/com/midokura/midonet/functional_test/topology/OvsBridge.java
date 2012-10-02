@@ -3,16 +3,11 @@ package com.midokura.midonet.functional_test.topology;
 
 import java.util.UUID;
 
+import com.midokura.midolman.openvswitch.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.openvswitch.BridgeBuilder;
-import com.midokura.midolman.openvswitch.BridgeFailMode;
-import com.midokura.midolman.openvswitch.ControllerBuilder;
-import com.midokura.midolman.openvswitch.ControllerConnectionMode;
-import com.midokura.midolman.openvswitch.GrePortBuilder;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.PortBuilder;
+import com.midokura.midolman.openvswitch.TunnelPortBuilder;
 import com.midokura.packets.IntIPv4;
 import static com.midokura.util.process.ProcessHelper.newProcess;
 
@@ -103,13 +98,25 @@ public class OvsBridge {
 
     public void addGrePort(String name, String localIp, String remoteIp,
                            int greKey) {
-        GrePortBuilder builder =
+        TunnelPortBuilder builder =
                 ovsdb.addGrePort(bridgeName, name, remoteIp.toString())
                         .localIp(localIp);
         if (greKey == 0)
             builder.keyFlow();
         else
             builder.key(greKey);
+        builder.build();
+    }
+
+    // XXX redundant if not used in a test
+    public void addCapwapPort(String name, String localIp, String remoteIp,
+                              int tunnelKey) {
+        TunnelPortBuilder builder =
+            ovsdb.addCapwapPort(bridgeName, name, remoteIp).localIp(localIp);
+        if (tunnelKey == 0)
+            builder.keyFlow();
+        else
+            builder.key(tunnelKey);
         builder.build();
     }
 

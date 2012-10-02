@@ -5,6 +5,7 @@
 package com.midokura.midonet.cluster;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -146,6 +147,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     public void updateRoutesBecauseLocalPortChangedStatus(UUID routerId, UUID portId,
                                                           boolean active){
+        log.debug("Port {} of router {} became active {}", new Object[]{portId,
+            routerId, active});
         if(!active){
             // do nothing the watcher should take care of removing the routes
             return;
@@ -155,8 +158,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             if(mapPortIdToRoutes.containsKey(portId)){
                 log.error("The cluster client has already requested the routes for this port");
             }
-            Directory dir = routerMgr.getRoutingTableDirectory(routerId);
-            getPortRoutes(routerId, portId, dir);
+            getPortRoutes(routerId, portId);
         } catch (Exception e) {
             log.error("Error when trying to get routes for port {} that became " +
                           "active locally", portId, e);
@@ -167,18 +169,17 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     class PortRoutesWatcher extends Directory.DefaultTypedWatcher {
         UUID routeId;
         UUID portId;
-        Directory dir;
 
-        PortRoutesWatcher(UUID routeId, UUID portId, Directory dir) {
+        PortRoutesWatcher(UUID routeId, UUID portId) {
             this.routeId = routeId;
             this.portId = portId;
-            this.dir = dir;
         }
 
         @Override
         public void run() {
             try {
-                getPortRoutes(routeId, portId, dir);
+                log.debug("Fired watcher for port {} on router {}", portId, routeId);
+                getPortRoutes(routeId, portId);
             } catch (Exception e) {
                 log.error("Got exception when running watcher for the routes of " +
                               "port {}", portId.toString(), e);
@@ -187,7 +188,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     }
 
-    private void getPortRoutes(UUID routerId, UUID portId, Directory dir)
+    private void getPortRoutes(UUID routerId, UUID portId)
         throws StateAccessException, KeeperException {
 
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
@@ -196,22 +197,49 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             mapPortIdToRoutes.put(portId, new HashSet<Route>());
         }
 
-        routeManager.listPortRoutesAsynch(portId,
-                                          new PortRoutesCallback(routerId, portId, dir),
-                                          new PortRoutesWatcher(routerId, portId, dir)) ;
+        routeManager.listPortRoutesAsync(portId,
+                                         new PortRoutesCallback(routerId,
+                                                                portId),
+                                         new PortRoutesWatcher(routerId,
+                                                               portId)) ;
 
     }
 
-    private void updateRoutingTableAfterGettingRoutes(UUID routerId, UUID portId,
-                                                      Directory dir,
-                                                      Set<Route> newRoutes) {
+    class GetRoutesCallback extends
+                           DirectoryCallback.DirectoryCallbackLogErrorAndTimeout<Set<Route>> {
+        UUID routerId;
+        UUID portId;
 
-        ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
+        GetRoutesCallback(UUID routerId, UUID portId, String itemInfo, Logger log) {
+            super(itemInfo, log);
+            this.routerId = routerId;
+            this.portId = portId;
+        }
+
+
+        @Override
+        public void onSuccess(Result<Set<Route>> data) {
+            log.debug("GetRoutesCallback success, got {} routes {}",
+                      data.getData().size(), data.getData());
+            updateRoutingTableAfterGettingRoutes(routerId, portId,
+                                                 data.getData());
+        }
+    }
+
+    private void updateRoutingTableAfterGettingRoutes(UUID routerId, UUID portId,
+                                                      Set<Route> newRoutes){
+
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
+        Directory dir = null;
+        try {
+            dir = routerMgr.getRoutingTableDirectory(routerId);
+        } catch (StateAccessException e) {
+            log.error("Error when trying to get the routing table for router {}",
+                      routerId, e);
+            return;
+        }
         RouteEncoder encoder = new RouteEncoder();
 
-        if (newRoutes.equals(oldRoutes))
-            return;
         Set<Route> removedRoutes = new HashSet<Route>(oldRoutes);
         removedRoutes.removeAll(newRoutes);
         Set<Route> addedRoutes = new HashSet<Route>(newRoutes);
@@ -220,34 +248,51 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         for(Route routeToAdd: addedRoutes){
             String path = "/" + encoder.encode(routeToAdd);
             dir.asyncAdd(path, null, CreateMode.EPHEMERAL);
+            log.trace("Added new route for port {} in router {}, route {}",
+                      new Object[]{portId, routerId, routeToAdd});
         }
 
         for(Route routeToRemove: removedRoutes){
             String path = "/" + encoder.encode(routeToRemove);
             dir.asyncDelete(path);
+            log.trace("Deleted route for port {} in router {}, route {}",
+                      new Object[]{portId, routerId, routeToRemove});
         }
 
         mapPortIdToRoutes.put(portId, newRoutes);
+
     }
 
-    class PortRoutesCallback implements DirectoryCallback<Set<Route>>{
+
+    class PortRoutesCallback implements DirectoryCallback<Set<UUID>>{
 
         UUID routerId;
         UUID portId;
-        Directory dir;
 
-        PortRoutesCallback(UUID routerId, UUID portId, Directory dir) {
+        PortRoutesCallback(UUID routerId, UUID portId) {
             this.routerId = routerId;
             this.portId = portId;
-            this.dir = dir;
         }
 
         @Override
-        public void onSuccess(Result<Set<Route>> data) {
-            log.debug("PortRoutesCallback success, received {} routes: {}",
-                      data.getData().size(), data.getData());
-            updateRoutingTableAfterGettingRoutes(routerId, portId, dir,
-                                                 data.getData());
+        public void onSuccess(Result<Set<UUID>> data) {
+            log.debug("PortRoutesCallback success, received {} routes: {} " +
+                          "for port {}",
+                      new Object[]{data.getData().size(), data.getData(), portId});
+
+            Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
+
+            if (data.getData().equals(oldRoutes)){
+                log.debug("No change in the routes, nothing to do for port {}", portId);
+                return;
+            }
+
+            routeManager.asyncMultiRoutesGet(data.getData(),
+                                             new GetRoutesCallback(routerId,
+                                                                   portId,
+                                                                   "get routes for port"
+                                                                       + portId.toString(),
+                                                                   log));
         }
 
         @Override
@@ -259,19 +304,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         @Override
         public void onError(KeeperException e) {
             if (e instanceof KeeperException.NoNodeException) {
-                ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
-                if (routingTable == null) {
-                    log.error("Null Routing Table for router {} when trying to delete" +
-                                  "all routes for NoStatePathException", routerId, e);
-                    return;
-                }
                 Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
                 // If we get a NoStatePathException it means the someone removed
                 // the port routes. Remove all routes
-                for (Route route: oldRoutes) {
-                     routingTable.remove(route);
-                }
-                mapPortIdToRoutes.remove(portId);
+                updateRoutingTableAfterGettingRoutes(routerId, portId,
+                                                     Collections.<Route>emptySet());
             }
             else {
                 log.error("Callback error when trying to get routes for port {}",
@@ -376,8 +413,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                                                ArpCacheEntry newV) {
             if (oldV == null && newV == null)
                 return;
-            if (newV != null && oldV != null && newV.macAddr.equals(oldV.macAddr))
-                return;
+            if (newV != null && oldV != null) {
+                if (newV.macAddr == null && oldV.macAddr == null)
+                    return;
+                if (newV.macAddr != null && oldV.macAddr != null &&
+                        newV.macAddr.equals(oldV.macAddr)) {
+                    return;
+                }
+            }
 
             synchronized (listeners) {
                 for (Callback2<IntIPv4, MAC> cb: listeners)
@@ -404,7 +447,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                         arpTable.put(ipAddr, entry);
                     } catch (Exception e) {
                         log.error("Failed adding ARP entry. IP: {} MAC: {}",
-                                  new Object[]{ipAddr, entry});
+                                  new Object[]{ipAddr, entry, e});
                     }
                 }});
         }
@@ -419,7 +462,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                         arpTable.removeIfOwner(ipAddr);
                     } catch (Exception e) {
                         log.error("Could not remove Arp entry for IP: {}",
-                                  ipAddr);
+                                  ipAddr, e);
                     }
                 }});
         }

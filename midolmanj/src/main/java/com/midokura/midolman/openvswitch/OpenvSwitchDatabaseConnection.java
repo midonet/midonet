@@ -95,7 +95,7 @@ public interface OpenvSwitchDatabaseConnection {
      * @param remoteIp the tunnel remote endpoint's IP address
      * @return a builder to set optional parameters of the port and add it
      */
-    GrePortBuilder addGrePort(long bridgeId, String portName, String remoteIp);
+    TunnelPortBuilder addGrePort(long bridgeId, String portName, String remoteIp);
 
     /**
      * Create a port and a GRE interface, and add the port to a bridge.
@@ -105,8 +105,30 @@ public interface OpenvSwitchDatabaseConnection {
      * @param remoteIp the tunnel remote endpoint's IP address
      * @return a builder to set optional parameters of the port and add it
      */
-    GrePortBuilder addGrePort(String bridgeName, String portName,
+    TunnelPortBuilder addGrePort(String bridgeName, String portName,
                               String remoteIp);
+
+    /**
+     * Create a port and a CAPWAP interface, and add the port to a bridge.
+     *
+     * @param bridgeId the datapath identifier of the bridge to add the port
+     * to
+     * @param portName the name of the port and of the TAP interface to create
+     * @param remoteIp the tunnel remote endpoint's IP address
+     * @return a builder to set optional parameters of the port and add it
+     */
+    TunnelPortBuilder addCapwapPort(long bridgeId, String portName, String remoteIp);
+
+    /**
+     * Create a port and a CAPWAP interface, and add the port to a bridge.
+     *
+     * @param bridgeName the name of the bridge to add the port to
+     * @param portName the name of the port and of the TAP interface to create
+     * @param remoteIp the tunnel remote endpoint's IP address
+     * @return a builder to set optional parameters of the port and add it
+     */
+    TunnelPortBuilder addCapwapPort(String bridgeName, String portName,
+                                 String remoteIp);
 
     /**
      * Delete the port with the given name.

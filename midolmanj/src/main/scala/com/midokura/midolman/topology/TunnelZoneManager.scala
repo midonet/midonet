@@ -3,18 +3,26 @@
 */
 package com.midokura.midolman.topology
 
-import akka.actor.ActorRef
-import java.util.UUID
-import com.midokura.midonet.cluster.client.TunnelZones
-import com.midokura.midonet.cluster.client.TunnelZones.{CapwapZoneBuilder, IpsecBuilder, GreBuilder}
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
-import rcu.RCUDeviceManager
 import scala.collection.mutable
-import com.midokura.packets.IPv4
-import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
+import java.util.UUID
+import akka.actor.ActorRef
 import javax.inject.Inject
-import com.midokura.midonet.cluster.Client
 
+import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.client.TunnelZones
+import com.midokura.midonet.cluster.client.TunnelZones.{CapwapBuilder,
+                                                        IpsecBuilder,
+                                                        GreBuilder}
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
+                                                CapwapTunnelZone,
+                                                GreTunnelZoneHost,
+                                                GreTunnelZone}
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.{CapwapZoneChanged,
+                                                               GreZoneChanged}
+import com.midokura.midolman.topology.rcu.RCUDeviceManager
+import com.midokura.packets.IPv4
+
+// TODO(guillermo) - this is a candidate for relocation into a util package
 trait MapperToFirstCall {
 
     val map = mutable.Map[Class[_], AnyRef]()
@@ -52,8 +60,8 @@ class TunnelZoneManager extends RCUDeviceManager {
             null
         }
 
-        def getCapwapZoneBuilder: TunnelZones.CapwapZoneBuilder = mapOnce(classOf[CapwapZoneBuilder]) {
-            null
+        def getCapwapZoneBuilder: TunnelZones.CapwapBuilder = mapOnce(classOf[CapwapBuilder]) {
+            new LocalCapwapZoneBuilder(actor, zoneId)
         }
     }
 
@@ -83,4 +91,32 @@ class TunnelZoneManager extends RCUDeviceManager {
         def build() {
         }
     }
+
+    class LocalCapwapZoneBuilder(actor: ActorRef, host: UUID) extends TunnelZones.CapwapBuilder {
+
+        var zone: CapwapTunnelZone = null
+        val hosts = mutable.Map[UUID, IPv4]()
+
+        def setConfiguration(configuration: CapwapBuilder.ZoneConfig): LocalCapwapZoneBuilder = {
+            zone = configuration.getTunnelZoneConfig
+            actor ! configuration.getTunnelZoneConfig
+            this
+        }
+
+        def addHost(hostId: UUID, hostConfig: CapwapTunnelZoneHost): LocalCapwapZoneBuilder = {
+            actor ! CapwapZoneChanged(zone.getId, hostConfig, HostConfigOperation.Added)
+            this
+        }
+
+        def removeHost(hostId: UUID, hostConfig: CapwapTunnelZoneHost): LocalCapwapZoneBuilder = {
+            actor ! CapwapZoneChanged(zone.getId, hostConfig, HostConfigOperation.Deleted)
+            this
+        }
+
+        def start() = null
+
+        def build() {
+        }
+    }
+
 }

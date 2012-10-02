@@ -37,7 +37,7 @@ public interface MonitoringConfiguration extends CassandraConfig {
     /**
      * @return the cassandra replication factor to use.
      */
-    @ConfigInt(key = "cassandra_replication_factor", defaultValue = 2)
+    @ConfigInt(key = "cassandra_replication_factor", defaultValue = 3)
     int getMonitoringCassandraReplicationFactor();
 
     /**

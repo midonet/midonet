@@ -100,7 +100,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         // Watch the BGP session information for this port.
         // In the future we may also watch for session configurations of
         // other routing protocols.
-        client.getPortBGPList(rport.id, new BGPListBuilder {
+        client.subscribeBgp(rport.id, new BGPListBuilder {
             def addBGP(bgp: BGP) {
                 self ! NewBgpSession(bgp)
             }

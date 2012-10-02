@@ -14,6 +14,7 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+import topology.LocalPortActive
 import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client.ExteriorBridgePort
 import org.junit.Test

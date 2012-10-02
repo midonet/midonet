@@ -29,7 +29,7 @@ public class MockMgmtStarter extends JerseyTest {
 
     String uri;
 
-    public static WebAppDescriptor.Builder getAppDescriptorBuilder(boolean mockZK) {
+    public static WebAppDescriptor.Builder getAppDescriptorBuilder(int zkPort, int cassandraPort) {
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
 
@@ -48,16 +48,28 @@ public class MockMgmtStarter extends JerseyTest {
                 .contextParam("auth-use_mock", "true")
                 .contextParam("zookeeper-midolman_root_key",
                         "/smoketest/midonet")
-                .contextParam("cassandra-servers", "127.0.0.1:9171")
-                .contextParam("zookeeper-zookeeper_hosts", "127.0.0.1:2181")
+                .contextParam("cassandra-servers", "127.0.0.1:" + cassandraPort)
+                .contextParam("monitoring-cassandra_replication_factor", "1")
+                .contextParam("zookeeper-zookeeper_hosts", "127.0.0.1:" + zkPort)
                 .contextParam("zookeeper-session_timeout", "10000")
-                .contextParam("zookeeper-use_mock", mockZK ? "true" : "false")
+                .contextParam("zookeeper-use_mock", "false")
                 .contextPath("/test")
                 .clientConfig(clientConfig);
     }
 
-    public MockMgmtStarter(boolean mockZK) {
-        this(getAppDescriptorBuilder(mockZK).build());
+    /**
+     * Starts the api with the mock zookeeper and the default cassandra port.
+     */
+    public MockMgmtStarter() {
+        this(getAppDescriptorBuilder(2181, 9171).build());
+    }
+
+    /**
+     * Starts the api with the given zookeper and the default cassandra port.
+     * @param zkPort
+     */
+    public MockMgmtStarter(int zkPort) {
+        this(getAppDescriptorBuilder(zkPort, 9171).build());
     }
 
     public MockMgmtStarter(WebAppDescriptor webAppDescriptor) {

@@ -60,13 +60,24 @@ public abstract class ResourceBase<T, U> {
         return principalDto;
     }
 
+    <T, U> ResourceCollection<T>
+    getChildResources(URI uri,
+                      MultivaluedMap<String, String> queryParams,
+                      String collectionMediaType,
+                      Class<T> resourceClazz,
+                      Class<U> newPrincipalDtoClazz) {
+        return getChildResources(uri, queryParams, collectionMediaType, null,
+                                 resourceClazz, newPrincipalDtoClazz);
+    }
 
     /**
      * Get resources that belong to the resource.
      *
      * @param uri                  URI for getting resource(s)
      * @param queryParams          Query parameters; null for no queries
-     * @param mediaType            media type for collection of the resource
+     * @param collectionMediaType  media type for collection of the resource
+     * @param elementMediaType     media type for the element itself, if
+     *                             resourceClazz' constructor needs it.
      * @param resourceClazz
      * @param newPrincipalDtoClazz
      * @param <T>                  Type of newly returned resources
@@ -76,7 +87,8 @@ public abstract class ResourceBase<T, U> {
     <T, U> ResourceCollection<T>
     getChildResources(URI uri,
                       MultivaluedMap<String, String> queryParams,
-                      String mediaType,
+                      String collectionMediaType,
+                      String elementMediaType,
                       Class<T> resourceClazz,
                       Class<U> newPrincipalDtoClazz) {
         ResourceCollection<T> container =
@@ -90,16 +102,28 @@ public abstract class ResourceBase<T, U> {
         T[] dtoArray = resource.get(uri,
                                     queryParams,
                                     (Class<T[]>) newPrincipalDtoArrayClazz,
-                                    mediaType);
+                                    collectionMediaType);
 
 
         try {
-            Constructor<T> ctor = resourceClazz.getConstructor(
-                WebResource.class,
-                URI.class,
-                newPrincipalDtoClazz);
-            for (T e : dtoArray) {
-                container.add(ctor.newInstance(resource, uri, e));
+            if (elementMediaType == null) {
+                Constructor<T> ctor = resourceClazz.getConstructor(
+                    WebResource.class,
+                    URI.class,
+                    newPrincipalDtoClazz);
+                for (T e : dtoArray) {
+                    container.add(ctor.newInstance(resource, uri, e));
+                }
+            } else {
+                Constructor<T> ctor = resourceClazz.getConstructor(
+                        WebResource.class,
+                        URI.class,
+                        newPrincipalDtoClazz,
+                        String.class);
+                for (T e : dtoArray) {
+                    container.add(ctor.newInstance(resource, uri, e,
+                                                   elementMediaType));
+                }
             }
         } catch (NoSuchMethodException e) {
             e.printStackTrace();

@@ -36,8 +36,11 @@ import com.midokura.midonet.cluster.client.TunnelZones;
 import com.midokura.midonet.cluster.data.TunnelZone;
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone;
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
+import com.midokura.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import com.midokura.util.eventloop.Reactor;
 import static com.midokura.midonet.cluster.client.TunnelZones.GreBuilder;
+import static com.midokura.midonet.cluster.client.TunnelZones.CapwapBuilder;
 
 /**
  * Implementation of the Cluster.Client using ZooKeeper
@@ -115,7 +118,7 @@ public class LocalClientImpl implements Client {
         reactorLoop.submit(new Runnable() {
             @Override
             public void run() {
-                TunnelZone<?, ?> zone = readAvailabilityZone(zoneID, builders);
+                TunnelZone<?, ?> zone = readTunnelZone(zoneID, builders);
 
                 readHosts(zone,
                           new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
@@ -156,7 +159,7 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getPortBGPList(UUID portID, BGPListBuilder builder) {
+    public void subscribeBgp(UUID portID, BGPListBuilder builder) {
         bgpManager.registerNewBuilder(portID, builder);
     }
 
@@ -234,12 +237,27 @@ public class LocalClientImpl implements Client {
                 break;
 
             case Capwap:
+                if (hostConfig instanceof CapwapTunnelZoneHost) {
+                    CapwapTunnelZoneHost config = (CapwapTunnelZoneHost) hostConfig;
+
+                    if (added) {
+                        buildersProvider
+                                .getCapwapZoneBuilder()
+                                .addHost(config.getId(), config);
+                    } else {
+                        buildersProvider
+                                .getCapwapZoneBuilder()
+                                .removeHost(config.getId(), config);
+                    }
+                }
+                break;
+
             case Ipsec:
         }
     }
 
-    private TunnelZone<?, ?> readAvailabilityZone(final UUID zoneID,
-                                                  final TunnelZones.BuildersProvider builders) {
+    private TunnelZone<?, ?> readTunnelZone(final UUID zoneID,
+                                            final TunnelZones.BuildersProvider builders) {
 
         try {
             TunnelZone<?, ?> zone =
@@ -248,7 +266,7 @@ public class LocalClientImpl implements Client {
                     new Directory.DefaultTypedWatcher() {
                         @Override
                         public void pathDataChanged(String path) {
-                            readAvailabilityZone(zoneID, builders);
+                            readTunnelZone(zoneID, builders);
                         }
                     });
 
@@ -262,6 +280,16 @@ public class LocalClientImpl implements Client {
                                     return greZone;
                                 }
                             });
+            } else if (zone instanceof CapwapTunnelZone) {
+                final CapwapTunnelZone capwapZone = (CapwapTunnelZone) zone;
+                builders.getCapwapZoneBuilder()
+                        .setConfiguration(
+                                new CapwapBuilder.ZoneConfig() {
+                                    @Override
+                                    public CapwapTunnelZone getTunnelZoneConfig() {
+                                        return capwapZone;
+                                    }
+                                });
             }
 
             return zone;

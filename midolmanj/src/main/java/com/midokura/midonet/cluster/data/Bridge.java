@@ -61,12 +61,12 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
         return this;
     }
 
-    public int getGreKey() {
-        return getData().greKey;
+    public int getTunnelKey() {
+        return getData().tunnelKey;
     }
 
-    public Bridge setGreKey(int greKey) {
-        getData().greKey = greKey;
+    public Bridge setTunnelKey(int tunnelKey) {
+        getData().tunnelKey = tunnelKey;
         return this;
     }
 
@@ -90,7 +90,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
     public static class Data {
         public String name;
-        public int greKey;
+        public int tunnelKey;
         public UUID inboundFilter;
         public UUID outboundFilter;
         public Map<String, String> properties = new HashMap<String, String>();
@@ -104,7 +104,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
             Data that = (Data) o;
 
-            if (greKey != that.greKey)
+            if (tunnelKey != that.tunnelKey)
                 return false;
             if (inboundFilter != null ? !inboundFilter
                 .equals(that.inboundFilter) : that.inboundFilter != null)
@@ -120,7 +120,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
         @Override
         public int hashCode() {
-            int result = greKey;
+            int result = tunnelKey;
             result = 31 * result
                 + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result
@@ -132,7 +132,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
 
         @Override
         public String toString() {
-            return "Bridge.Data{" + "greKey=" + greKey + ", inboundFilter="
+            return "Bridge.Data{" + "tunnelKey=" + tunnelKey + ", inboundFilter="
                 + inboundFilter + ", outboundFilter=" + outboundFilter
                 + ", name=" + name + '}';
         }

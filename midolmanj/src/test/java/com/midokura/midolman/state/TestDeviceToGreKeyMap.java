@@ -39,7 +39,7 @@ public class TestDeviceToGreKeyMap {
             bridgeDir.delete(bridgeIds[i]);
             try {
                 bridgeDir.getGreKey(bridgeIds[i]);
-                Assert.fail("getGreKey should throw NoNodeException.");
+                Assert.fail("getTunnelKey should throw NoNodeException.");
             } catch (NoNodeException e) {
             }
         }
