@@ -5,6 +5,7 @@
 package com.midokura.midonet.cluster;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -199,7 +200,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         routeManager.listPortRoutesAsync(portId,
                                          new PortRoutesCallback(routerId,
                                                                 portId),
-                                         new PortRoutesWatcher(routerId, portId)) ;
+                                         new PortRoutesWatcher(routerId,
+                                                               portId)) ;
 
     }
 
@@ -284,6 +286,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 log.debug("No change in the routes, nothing to do for port {}", portId);
                 return;
             }
+
             routeManager.asyncMultiRoutesGet(data.getData(),
                                              new GetRoutesCallback(routerId,
                                                                    portId,
@@ -301,19 +304,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         @Override
         public void onError(KeeperException e) {
             if (e instanceof KeeperException.NoNodeException) {
-                ReplicatedRouteSet routingTable = mapRouterIdToRoutes.get(routerId);
-                if (routingTable == null) {
-                    log.error("Null Routing Table for router {} when trying to delete" +
-                                  "all routes for NoStatePathException", routerId, e);
-                    return;
-                }
                 Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
                 // If we get a NoStatePathException it means the someone removed
                 // the port routes. Remove all routes
-                for (Route route: oldRoutes) {
-                     routingTable.remove(route);
-                }
-                mapPortIdToRoutes.remove(portId);
+                updateRoutingTableAfterGettingRoutes(routerId, portId,
+                                                     Collections.<Route>emptySet());
             }
             else {
                 log.error("Callback error when trying to get routes for port {}",

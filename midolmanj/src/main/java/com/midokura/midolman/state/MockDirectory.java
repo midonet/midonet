@@ -5,6 +5,7 @@
 package com.midokura.midolman.state;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import javax.annotation.Nonnull;
 
 import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
@@ -414,8 +417,13 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncMultiPathGet(final Set<String> relativePaths,
+    public void asyncMultiPathGet(@Nonnull final Set<String> relativePaths,
                                   final DirectoryCallback<Set<byte[]>> cb) {
+        if(relativePaths.size() == 0){
+            log.debug("Empty set of paths, is that OK?");
+            cb.onSuccess(new DirectoryCallback.Result<Set<byte[]>>(
+            Collections.<byte[]>emptySet(), null));
+        }
         // Map to keep track of the callbacks that returned
         final ConcurrentMap<String, byte[]> callbackResults =
             new ConcurrentHashMap<String, byte[]>();
