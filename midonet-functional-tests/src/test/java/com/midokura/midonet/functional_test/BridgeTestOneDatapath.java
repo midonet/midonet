@@ -64,7 +64,7 @@ public class BridgeTestOneDatapath {
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
 
 
-    @BeforeClass
+    /*@BeforeClass
     public static void checkLock() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
     }
@@ -72,7 +72,7 @@ public class BridgeTestOneDatapath {
     @AfterClass
     public static void releaseLock() {
         lock.release();
-    }
+    }*/
 
     @Before
     public void setUp() throws Exception {

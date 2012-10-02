@@ -1159,12 +1159,25 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     private def readDatapathInformation(wantedDatapath: String) {
+        def handleExistingDP(dp: Datapath) {
+            log.info("The datapath already existed. Flushing the flows.")
+            datapathConnection.flowsFlush(dp,
+                new ErrorHandlingCallback[java.lang.Boolean] {
+                    def onSuccess(data: java.lang.Boolean) {}
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error("Failed to flush the Datapath's flows!")
+                    }
+                }
+            )
+            // Query the datapath ports without waiting for the flush to exit.
+            queryDatapathPorts(dp)
+        }
         log.info("Wanted datapath: {}", wantedDatapath)
 
         datapathConnection.datapathsGet(wantedDatapath,
             new ErrorHandlingCallback[Datapath] {
-                def onSuccess(data: Datapath) {
-                    queryDatapathPorts(data)
+                def onSuccess(dp: Datapath) {
+                    handleExistingDP(dp)
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
