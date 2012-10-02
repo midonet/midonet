@@ -45,6 +45,21 @@ sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
     val op: HostConfigOperation.Value
 }
 
+/**
+ * Send this message to the VirtualToPhysicalMapper to let it know when
+ * an exterior virtual network port is 'active' - meaning that it may emit
+ * packets. This signals to the VirtualToPhysicalMapper that it should
+ * e.g. update the router's forwarding table, if the port belongs to a
+ * router. It also indicates that the local host will begin to emit (from
+ * the corresponding OVS datapath port) any tunneled packet whose tunnel
+ * key encodes the port's ID.
+ *
+ * @param portID The uuid of the port that is to marked as active/inactive
+ * @param active True if the port is ready to emit/receive; false
+ *               otherwise.
+ */
+case class LocalPortActive(portID: UUID, active: Boolean)
+
 object VirtualToPhysicalMapper extends Referenceable {
     val Name = "VirtualToPhysicalMapper"
 
@@ -70,21 +85,6 @@ object VirtualToPhysicalMapper extends Referenceable {
     case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
 
     case class LocalTunnelZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
-
-    /**
-     * Send this message to the VirtualToPhysicalMapper to let it know when
-     * an exterior virtual network port is 'active' - meaning that it may emit
-     * packets. This signals to the VirtualToPhysicalMapper that it should
-     * e.g. update the router's forwarding table, if the port belongs to a
-     * router. It also indicates that the local host will begin to emit (from
-     * the corresponding OVS datapath port) any tunneled packet whose tunnel
-     * key encodes the port's ID.
-     *
-     * @param portID The uuid of the port that is to marked as active/inactive
-     * @param active True if the port is ready to emit/receive; false
-     *               otherwise.
-     */
-    case class LocalPortActive(portID: UUID, active: Boolean)
 
     case class TunnelZoneRequest(zoneId: UUID)
 

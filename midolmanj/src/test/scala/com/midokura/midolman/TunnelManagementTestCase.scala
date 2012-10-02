@@ -12,13 +12,12 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
-import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone,
                                                 GreTunnelZoneHost}
 import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.packets.IntIPv4
 import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
+import topology.LocalPortActive
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with VirtualConfigurationBuilders {
@@ -32,7 +31,6 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         config
     }
 
-    import scala.collection.JavaConversions._
 
     def testTunnelZone() {
 

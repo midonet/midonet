@@ -25,8 +25,7 @@ import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import com.midokura.midolman.simulation.{ArpTableImpl, Router => SimRouter}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
-import com.midokura.midolman.topology.VirtualToPhysicalMapper.{HostRequest,
-                                                               LocalPortActive}
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
                                                             RouterRequest}
 import com.midokura.midonet.cluster.client.{ExteriorRouterPort, RouterPort}
@@ -37,6 +36,7 @@ import com.midokura.packets._
 import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
                                   FlowKeyEthernet, FlowKeyIPv4}
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import topology.LocalPortActive
 
 
 @RunWith(classOf[JUnitRunner])

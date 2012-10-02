@@ -12,14 +12,10 @@ import monitoring.MonitoringActor
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
-import java.util.UUID
 
 import com.google.inject.Inject
 
 import java.util.UUID
-import java.lang
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost,
                                                 GreTunnelZone,
                                                 CapwapTunnelZone,
@@ -27,15 +23,10 @@ import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost,
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.services.HostIdProviderService
-import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.simulation.{Bridge => RCUBridge}
-import com.midokura.midolman.topology.{HostConfigOperation,
-        VirtualTopologyActor, VirtualToPhysicalMapper, ZoneChanged}
-import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-                                                            PortRequest}
+import topology._
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
@@ -46,6 +37,14 @@ import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
+import rcu.Host
+import rcu.PortSet
+import topology.VirtualTopologyActor.BridgeRequest
+import topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import scala.Some
+import scala.Left
+import scala.Right
 
 
 /**
@@ -81,15 +80,15 @@ sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
     val error: NetlinkException
 }
 
+/**
+ * This will make the Datapath Controller to start the local state
+ * initialization process.
+ */
+case class Initialize()
+
 object DatapathController extends Referenceable {
 
     val Name = "DatapathController"
-
-    /**
-     * This will make the Datapath Controller to start the local state
-     * initialization process.
-     */
-    case class Initialize()
 
     // Java API
     def getInitialize: Initialize = {

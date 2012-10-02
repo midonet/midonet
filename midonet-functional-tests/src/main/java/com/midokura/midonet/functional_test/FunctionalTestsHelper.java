@@ -322,7 +322,7 @@ public class FunctionalTestsHelper {
      * Starts an embedded midolman with the given configuratin file.
      * @param configFile
      */
-    public static void startEmbeddedMidolman(String configFile) {
+    public static EmbeddedMidolman startEmbeddedMidolman(String configFile) {
         midolman = new EmbeddedMidolman();
         try {
             midolman.startMidolman(configFile);
@@ -330,6 +330,7 @@ public class FunctionalTestsHelper {
             log.error("Could not start Midolmanj", e);
         }
         // TODO wait until the agents are started.
+        return midolman;
     }
 
     /**

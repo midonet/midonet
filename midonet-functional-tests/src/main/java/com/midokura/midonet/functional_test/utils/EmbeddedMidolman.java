@@ -7,6 +7,11 @@ package com.midokura.midonet.functional_test.utils;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import akka.actor.ActorSystem;
+
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
@@ -20,20 +25,6 @@ import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.remote.RemoteHost;
-import com.midokura.util.process.DrainTargets;
-import com.midokura.util.process.ProcessHelper;
-import org.apache.commons.lang.StringUtils;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.lang.String.format;
 
 public class EmbeddedMidolman {
 
@@ -96,5 +87,8 @@ public class EmbeddedMidolman {
         }
     }
 
+    public ActorSystem getActorSystem() {
+        return injector.getInstance(MidolmanActorsService.class).system();
+    }
 
 }

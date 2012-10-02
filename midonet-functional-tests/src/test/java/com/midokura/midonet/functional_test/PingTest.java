@@ -4,9 +4,8 @@
 
 package com.midokura.midonet.functional_test;
 
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import java.io.File;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,19 +14,17 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.resource.Host;
-import com.midokura.midonet.client.resource.HostInterfacePort;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
 
-
-import java.io.File;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;

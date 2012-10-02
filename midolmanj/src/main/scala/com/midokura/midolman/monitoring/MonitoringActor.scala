@@ -6,7 +6,7 @@ package com.midokura.midolman.monitoring
 import akka.actor.{Cancellable, Actor}
 import akka.event.Logging
 import com.google.inject.Inject
-import com.midokura.midolman.topology.VirtualToPhysicalMapper
+import com.midokura.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
 import com.midokura.midolman.monitoring.config.MonitoringConfiguration
 import collection.mutable
 import java.util.UUID

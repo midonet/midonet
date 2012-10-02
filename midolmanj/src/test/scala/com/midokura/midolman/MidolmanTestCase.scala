@@ -20,28 +20,22 @@ import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.midolman.guice._
-import actors.OutgoingMessage
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
 TestableMidolmanActorsModule}
-import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
-import com.midokura.midolman.DatapathController.{InitializationComplete,
-Initialize}
 import com.midokura.midonet.cluster.{DataClient, Client}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.sdn.dp._
 import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
-import com.sun.tools.corba.se.idl.Noop
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.midolman.DatapathController.InitializationComplete
-import com.midokura.midolman.DatapathController.Initialize
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 
@@ -171,7 +165,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def initializeDatapath(): DatapathController.InitializationComplete = {
         val result = ask[InitializationComplete](
-            topActor(DatapathController.Name), DatapathController.Initialize())
+            topActor(DatapathController.Name), Initialize())
 
         dpProbe().expectMsgType[Initialize] should not be null
         dpProbe().expectMsgType[OutgoingMessage] should not be null

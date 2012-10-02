@@ -9,7 +9,7 @@ import org.scalatest.matchers.ShouldMatchers
 import com.midokura.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
-import topology.VirtualToPhysicalMapper.LocalPortActive
+import topology.LocalPortActive
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
