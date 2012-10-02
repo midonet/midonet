@@ -15,7 +15,7 @@ import com.midokura.cache.Cache;
 import com.midokura.cache.CacheException;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.cassandra.CassandraCache;
-import com.midokura.memcache.MemcacheCache;
+
 
 public class CacheFactory {
     private static final Logger log =
@@ -38,19 +38,7 @@ public class CacheFactory {
         boolean isValid = false;
 
         try {
-            if (cacheType.equals("memcache")) {
-                isValid = true;
-                // set log4j logging for spymemcached client
-                Properties props = System.getProperties();
-                props.put("net.spy.log.LoggerImpl",
-                          "net.spy.memcached.compat.log.Log4JLogger");
-                System.setProperties(props);
-
-                String memcacheHosts = config.getMemcacheHosts();
-
-                cache = new MemcacheCache(memcacheHosts,
-                                          CACHE_EXPIRATION_SECONDS);
-            } else if (cacheType.equals("cassandra")) {
+            if (cacheType.equals("cassandra")) {
                 isValid = true;
                 String servers = config.getCassandraServers();
                 String cluster = config.getCassandraCluster();

@@ -4,6 +4,8 @@
  */
 package com.midokura.cache;
 
+import com.midokura.util.functors.Callback1;
+
 
 public class CacheWithPrefix implements Cache {
 
