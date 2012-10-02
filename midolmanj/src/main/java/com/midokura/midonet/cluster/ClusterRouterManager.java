@@ -376,8 +376,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                                                ArpCacheEntry newV) {
             if (oldV == null && newV == null)
                 return;
-            if (newV != null && oldV != null && newV.macAddr.equals(oldV.macAddr))
-                return;
+            if (newV != null && oldV != null) {
+                if (newV.macAddr == null && oldV.macAddr == null)
+                    return;
+                if (newV.macAddr != null && oldV.macAddr != null &&
+                        newV.macAddr.equals(oldV.macAddr)) {
+                    return;
+                }
+            }
 
             synchronized (listeners) {
                 for (Callback2<IntIPv4, MAC> cb: listeners)
