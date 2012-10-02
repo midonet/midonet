@@ -22,9 +22,9 @@ public class CacheWithPrefix implements Cache {
     }
 
     @Override
-    public void setAsync(String key, String value) {
+    public void getAsync(String key, Callback1<String> cb) {
         String pkey = prefix+key;
-        cache.setAsync(pkey, value);
+        cache.getAsync(pkey, cb);
     }
 
     @Override

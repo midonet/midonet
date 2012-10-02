@@ -4,15 +4,13 @@
  */
 package com.midokura.cache;
 
+import com.midokura.util.functors.Callback1;
+
+
 public interface Cache {
-
-    // Synchronous set:  Returns only when value has been committed.
     void set(String key, String value);
-
-    // Asynchronous set:  Returns immediately.
-    void setAsync(String key, String value);
-
     String get(String key);
+    void getAsync(String key, Callback1<String> valueCb);
     String getAndTouch(String key);
     int getExpirationSeconds();
 }
