@@ -46,7 +46,8 @@ public abstract class ReplicatedSet<T> {
 
     private class DirectoryWatcher extends Directory.DefaultTypedWatcher
     {
-        public void run() {
+        @Override
+        public void pathChildrenUpdated(String path){
             if (!running)
                 return;
             dir.asyncGetChildren("", new GetItemsCallback(), this);
@@ -81,7 +82,7 @@ public abstract class ReplicatedSet<T> {
     public void start() {
         if (!running) {
             running = true;
-            myWatcher.run();
+            myWatcher.pathChildrenUpdated("");
         }
     }
 
@@ -127,9 +128,7 @@ public abstract class ReplicatedSet<T> {
 
         @Override
         public void onError(KeeperException e) {
-
             log.error("ReplicatedSet GetChildren {} failed", e);
-            throw new RuntimeException(e);
         }
     }
 
@@ -169,7 +168,7 @@ public abstract class ReplicatedSet<T> {
 
         public void onError(KeeperException ex) {
             if(ex instanceof NodeExistsException){
-                // If the route already exists and we need it to be ephemeral, we
+                // If the item already exists and we need it to be ephemeral, we
                 // delete it and re-create it so that it belongs to this ZK client
                 // and will only be removed when this client's session expires.
                 if (createMode.equals(CreateMode.EPHEMERAL)) {
