@@ -82,6 +82,12 @@ packets.)
  * Get some dual-stack and IPv6-only machines in a data center for testing our
 	services and our dependencies running in an IPv6 environment.
  * Run an IPv6 conformance suite.
+ * IPv6 hosts are more "aware" of path MTU issues, as IPv6 routers don't 
+        auto-fragment packets the way IPv4 routers do.  However, MidoNet
+        virtual routers don't support auto-fragmentation, so there's nothing
+        IPv6-specific we'll need to do.  Nonetheless, there are a number
+        of issues around MTU which MidoNet should address, so we should
+        write another document which goes into them.
 
 ### Enhanced support for the future
 
