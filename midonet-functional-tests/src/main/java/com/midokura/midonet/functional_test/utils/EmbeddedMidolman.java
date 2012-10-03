@@ -23,6 +23,7 @@ import com.midokura.midolman.host.guice.HostModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
+import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.remote.RemoteHost;
 
@@ -91,4 +92,7 @@ public class EmbeddedMidolman {
         return injector.getInstance(MidolmanActorsService.class).system();
     }
 
+    public DataClient getDataClient() {
+        return injector.getInstance(DataClient.class);
+    }
 }
