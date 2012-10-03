@@ -58,7 +58,7 @@ object FlowController extends Referenceable {
 
     case class WildcardFlowAdded(f: WildcardFlow)
 
-    case class  WildcardFlowRemoved(f: WildcardFlow)
+    case class WildcardFlowRemoved(f: WildcardFlow)
 
     case class FlowUpdateCompleted(flow: Flow)
 }
