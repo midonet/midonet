@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.dispatch.Await
 import akka.event.Logging
 import akka.util.duration._
-import collection.{Map, mutable}
+import collection.mutable.{Map, Queue}
 import compat.Platform
 import java.lang.{Long => JLong}
 import java.util.UUID
@@ -59,6 +59,26 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                             rtrMacToLogicalPortId, rtrIpToMac)
     }
 
+    def verifyMacLearned(learnedMac : String, expectedPort : UUID) {
+        log.info("Invoking verifyMacLearned()")
+        val verifyMac = MAC.fromString(learnedMac);
+        // dummy source MAC
+        val dummyMac = MAC.fromString("0a:fe:88:70:33:ab")
+        val verifyMatch = ((new WildcardMatch)
+                .setEthernetSource(dummyMac)
+                .setEthernetDestination(verifyMac))
+        val verifyContext = new PacketContext(null, null,
+                                              Platform.currentTime + 10000, null)
+        verifyContext.setMatch(verifyMatch)
+        val verifyFuture = bridge.process(verifyContext)(system.dispatcher, system)
+        val verifyResult = Await.result(verifyFuture, 1 second)
+        verifyResult match {
+            case Coordinator.ToPortAction(port) =>
+                assert(port === expectedPort)
+            case _ => fail("MAC not learned, instead: " + verifyResult.toString)
+        }
+    }
+
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
         val ingressMatch = ((new WildcardMatch)
@@ -67,6 +87,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null)
+        context.setInputPort(rtr1port)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -79,15 +100,17 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
             case _ => fail("Not ForwardAction, instead: " + result.toString)
         }
         // TODO(jlm): Verify it learned the srcMAC
+        verifyMacLearned("0a:54:ce:50:44:ce", rtr1port)
     }
 
     def testLearnedMac() {
         val ingressMatch = ((new WildcardMatch)
-                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:de"))
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null)
+        context.setInputPort(rtr2port)
         context.setMatch(ingressMatch)
         val future = bridge.process(context)(system.dispatcher, system)
 
@@ -100,6 +123,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC
+        verifyMacLearned("0a:54:ce:50:44:de", rtr2port);
     }
 
     def testBroadcast() {
@@ -170,8 +194,8 @@ private class MockMacFlowCount extends MacFlowCount {
 
 private class MockMacLearningTable(val table: Map[MAC, UUID])
          extends MacLearningTable {
-    val additions = mutable.Queue[(MAC, UUID)]()
-    val removals = mutable.Queue[(MAC, UUID)]()
+    val additions = Queue[(MAC, UUID)]()
+    val removals = Queue[(MAC, UUID)]()
 
     override def get(mac: MAC, cb: Callback1[UUID], exp: JLong) {
         cb.call(table.get(mac) match {
@@ -182,6 +206,7 @@ private class MockMacLearningTable(val table: Map[MAC, UUID])
 
     override def add(mac: MAC, port: UUID) {
         additions += ((mac, port))
+	table.put(mac, port)
     }
 
     override def remove(mac: MAC, port: UUID) {

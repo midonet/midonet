@@ -178,6 +178,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             log.debug("Increasing the reference count for MAC {} on port {}",
                 srcDlAddress, packetContext.getInPortId())
             flowCount.increment(srcDlAddress, packetContext.getInPortId)
+            macPortMap.add(srcDlAddress, packetContext.getInPortId)
             // Add a flow-removal callback that decrements the reference count.
             packetContext.addFlowRemovedCallback(
                 flowRemovedCallbackGen.getCallback(srcDlAddress,
