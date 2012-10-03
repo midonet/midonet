@@ -50,6 +50,7 @@ public class FlowManagerTest {
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
         flowManager.add(flowMatch, wildcardFlow);
+        // add flow
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
@@ -72,7 +73,7 @@ public class FlowManagerTest {
                    equalTo(wildcardFlow));
 
         Thread.sleep(timeOut);
-
+        // the flow should be expired since timeLived > timeOut
         flowManager.checkFlowsExpiration();
 
         assertThat("Flow was not deleted",
@@ -117,6 +118,7 @@ public class FlowManagerTest {
 
         Thread.sleep(timeOut+1);
 
+        // the flow should be expired since lastUsedTime > timeOut
         flowManager.checkFlowsExpiration();
 
         assertThat("Flow was not deleted",
@@ -146,7 +148,8 @@ public class FlowManagerTest {
 
         Thread.sleep(timeOut/2);
 
-        // add another flow that matches
+        // add another flow that matches, that will update the LastUsedTime of a
+        // value > timeOut/2
         FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10L))
                                       .addKey(FlowKeys.tcp(1000, 1002));
         Flow flow2 = flowManager.createDpFlow(flowMatch1);
@@ -184,7 +187,9 @@ public class FlowManagerTest {
                 "This machine is too slow, increase timeout!");
         }
         Thread.sleep(sleepTime);
-
+        // this call will check the flow expiration and if a flow has timeLived >
+        // idle-timeout/2, an update about the LastUsedTime will be requested
+        // from the kernel
         flowManager.checkFlowsExpiration();
 
         // wildcard flow should still be there
@@ -230,7 +235,8 @@ public class FlowManagerTest {
 
         Thread.sleep(5*timeOut/8);
 
-        // update the flow in the kernel
+        // update the flow LastUsedTime in the kernel (FlowManagerHelperImpl is
+        // mocking the kernel in this test)
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
         flowManager.checkFlowsExpiration();
 
@@ -248,7 +254,8 @@ public class FlowManagerTest {
             throw new RuntimeException(
                 "This machine is too slow, increase timeout!");
         }
-
+        // Since the timeLived > timeout/2 the FlowManager will request an update
+        // of the LastUsedTime of this flow
         flowManager.checkFlowsExpiration();
 
         // wildcard flow should still be there
@@ -274,7 +281,7 @@ public class FlowManagerTest {
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
-
+        // fill the table with a number of flow > maxAcceptedDpFlows
         for (int i=0; i<=maxAcceptedDpFlows; i++) {
             FlowMatch flowMatch =
                 new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
@@ -304,6 +311,7 @@ public class FlowManagerTest {
 
     }
 
+    // Implementation of the FlowManagerHelper for this test
     class FlowManagerHelperImpl implements FlowManagerHelper {
 
         public Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
