@@ -57,7 +57,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
 
         if (preBridgeResult.action == Action.DROP ||
                 preBridgeResult.action == Action.REJECT) {
-            learnMacOnPort(srcDlAddress, packetContext)
+            updateFlowCount(srcDlAddress, packetContext)
             // No point in tagging by dst-MAC+Port because the outPort was
             // not used in deciding to drop the flow.
             return Promise.successful(DropAction())
@@ -137,7 +137,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                               (act: Coordinator.Action): Coordinator.Action = {
         // First, learn the mac-port entry.
         // TODO(pino): what if the filters can modify the L2 addresses?
-        learnMacOnPort(packetContext.getMatch.getEthernetSource, packetContext)
+        updateFlowCount(packetContext.getMatch.getEthernetSource, packetContext)
         //XXX: Add to traversed elements list if flooding.
 
         // If the packet's not being forwarded, we're done.
@@ -171,8 +171,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         }
     }
 
-    private def learnMacOnPort(srcDlAddress: MAC,
-                               packetContext: PacketContext) {
+    private def updateFlowCount(srcDlAddress: MAC,
+                                packetContext: PacketContext) {
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             log.debug("Increasing the reference count for MAC {} on port {}",
