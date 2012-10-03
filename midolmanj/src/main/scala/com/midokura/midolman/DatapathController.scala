@@ -42,9 +42,6 @@ import rcu.PortSet
 import topology.VirtualTopologyActor.BridgeRequest
 import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import scala.Some
-import scala.Left
-import scala.Right
 
 
 /**

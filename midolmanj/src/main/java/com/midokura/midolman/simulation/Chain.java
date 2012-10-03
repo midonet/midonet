@@ -2,6 +2,7 @@
 
 package com.midokura.midolman.simulation;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,11 +15,17 @@ import scala.Some;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.cache.Cache;
+import com.midokura.cache.CacheWithPrefix;
+import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.util.eventloop.Reactor;
 
 
 public class Chain {
@@ -28,6 +35,8 @@ public class Chain {
     private List<Rule> rules;
     private Map<UUID, Chain> jumpTargets;
     private String name;
+    private static HashMap<UUID, NatMapping> natMappingMap =
+        new HashMap<UUID, NatMapping>();
 
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
                  String name_) {
@@ -155,7 +164,21 @@ public class Chain {
     }
 
     private static NatMapping getNatMapping(UUID ownerID) {
-        return null;  //XXX
+        if (natMappingMap.containsKey(ownerID)) {
+            return natMappingMap.get(ownerID);
+        } else {
+            Directory zkDirxxx = null;
+            String zkBasePathxxx = "";
+            Reactor reactorxxx = null;
+            Cache cachexxx = null;
+
+            NatMapping natMapping = new NatLeaseManager(
+                    new FiltersZkManager(zkDirxxx, zkBasePathxxx),
+                    ownerID,
+                    new CacheWithPrefix(cachexxx, ownerID.toString()), reactorxxx);
+            natMappingMap.put(ownerID, natMapping);
+            return natMapping;
+        }
     }
 
     private static class ChainPosition {

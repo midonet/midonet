@@ -28,10 +28,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.midokura.midolman.MidoMatch;
-import com.midokura.packets.IPv4;
 import com.midokura.cache.Cache;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.vrn.ForwardInfo;
+import com.midokura.packets.IPv4;
+import com.midokura.util.functors.Callback1;
 
 
 public class TestCondition {
@@ -361,6 +362,9 @@ public class TestCondition {
     static class DummyCache implements Cache {
         public void set(String key, String value) { }
         public String get(String key) { return storedValue; }
+        public void getAsync(String key, Callback1<String> cb) {
+            throw new UnsupportedOperationException();
+        }
         public String getAndTouch(String key) { return storedValue; }
         public int getExpirationSeconds() { return 0; }
         public void setStoredValue(String value) { storedValue = value; }

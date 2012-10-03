@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.cache.Cache;
+import com.midokura.util.functors.Callback1;
 
 
 public class CassandraCache implements Cache {
@@ -40,6 +41,10 @@ public class CassandraCache implements Cache {
         return client.get(key, column);
     }
 
+    @Override
+    public void getAsync(String key, Callback1<String> valueCb) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public String getAndTouch(String key) {

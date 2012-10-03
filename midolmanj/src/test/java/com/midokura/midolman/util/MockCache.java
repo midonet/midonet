@@ -9,6 +9,8 @@ import java.util.Map;
 
 import com.midokura.cache.Cache;
 import com.midokura.util.eventloop.Reactor;
+import com.midokura.util.functors.Callback1;
+
 
 public class MockCache implements Cache {
 
@@ -39,13 +41,18 @@ public class MockCache implements Cache {
             map.put(key, entry);
         }
         entry.value = value;
-        entry.timeExpiredMillis = null == reactor ? 0 : reactor
-                .currentTimeMillis() + expirationMillis;
+        entry.timeExpiredMillis = (null == reactor) ? 0 :
+                reactor.currentTimeMillis() + expirationMillis;
     }
 
     @Override
     public String get(String key) {
         return get(key, false);
+    }
+
+    @Override
+    public void getAsync(String key, Callback1<String> cb) {
+        cb.call(get(key, false));
     }
 
     @Override
