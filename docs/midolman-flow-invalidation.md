@@ -245,23 +245,23 @@ If a chain get modified all the flows tagged by its ID need to be invalidated
 
 #### Invalidation by DatapathController
 Invalidation is triggered by:
-1) port deletion
+- port deletion
 
 #### Invalidation by BridgeManager
 Invalidation is triggered by:
-1) changes in the configuration
-2) changes in the MACLearningTable
-3) removal of a logical port
+- changes in the configuration
+- changes in the MACLearningTable
+- removal of a logical port
 
 #### Invalidation by RouterManager
 Invalidation is triggered by:
-1) changes in the configuration
-2) changes in the RoutingTable
+- changes in the configuration
+- changes in the RoutingTable
 
 #### VirtualToPhysicalMapper
 Invalidation is triggered by:
-1) changes in the PortSet
+- changes in the PortSet
 
 #### PortManager
 Invalidation is triggered by:
-1) port deletion
+- port deletion
