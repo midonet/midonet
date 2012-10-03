@@ -4,30 +4,26 @@
 
 package com.midokura.midolman.monitoring;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.host.services.HostService;
-import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
-import com.midokura.midolman.monitoring.store.CassandraStore;
-import com.midokura.midolman.monitoring.store.MockStore;
-import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.services.HostIdProviderService;
-import org.apache.cassandra.config.ConfigurationException;
-import org.apache.thrift.transport.TTransportException;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.junit.*;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.host.services.HostService;
+import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
+import com.midokura.midolman.monitoring.store.MockStore;
+import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.services.HostIdProviderService;
+
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
