@@ -66,15 +66,15 @@ public class TapWrapper {
         newProcess(
             String.format(
                 "sudo -n ip neigh add %s lladdr %s dev %s",
-                ip.toString(), mac.toString(), name))
+                ip.toUnicastString(), mac.toString(), name))
             .logOutput(log, "create_tap")
             .runAndWait();
     }
 
-    public void setIpAddress(IntIPv4 address, int nwLen) {
+    public void setIpAddress(IntIPv4 address) {
         newProcess(
                 String.format("sudo -n ip addr add %s/%d dev %s",
-                        address.toString(), nwLen, name))
+                    address.toUnicastString(), address.getMaskLength(), name))
                 .logOutput(log, "remote_host_mock")
                 .runAndWait();
     }
