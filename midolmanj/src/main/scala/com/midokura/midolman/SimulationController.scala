@@ -12,9 +12,9 @@ import javax.annotation.Nullable
 import com.google.inject.Inject
 
 import com.midokura.cache.Cache
-import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.packets._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}

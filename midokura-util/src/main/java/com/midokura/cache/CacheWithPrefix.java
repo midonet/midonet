@@ -4,13 +4,11 @@
  */
 package com.midokura.cache;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.midokura.util.functors.Callback1;
+
 
 public class CacheWithPrefix implements Cache {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(CacheWithPrefix.class);
     private Cache cache;
     private String prefix;
 
@@ -22,21 +20,24 @@ public class CacheWithPrefix implements Cache {
     @Override
     public void set(String key, String value) {
         String pkey = prefix+key;
-        log.debug("set - key {} value {}", pkey, value);
         cache.set(pkey, value);
+    }
+
+    @Override
+    public void getAsync(String key, Callback1<String> cb) {
+        String pkey = prefix+key;
+        cache.getAsync(pkey, cb);
     }
 
     @Override
     public String get(String key) {
         String pkey = prefix+key;
-        log.debug("get - key {}", pkey);
         return cache.get(pkey);
     }
 
     @Override
     public String getAndTouch(String key) {
         String pkey = prefix+key;
-        log.debug("getAndTouch - key {}", pkey);
         return cache.getAndTouch(pkey);
     }
 
