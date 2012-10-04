@@ -1,4 +1,4 @@
-package com.midokura.mmdpctl.results;
+package com.midokura.mmdpctl.commands.results;
 
 public interface Result {
 

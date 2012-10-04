@@ -1,6 +1,7 @@
 package com.midokura.mmdpctl.commands;
 
-import com.midokura.mmdpctl.results.DumpDatapathResult;
+import com.midokura.mmdpctl.commands.callables.DumpDatapathCallable;
+import com.midokura.mmdpctl.commands.results.DumpDatapathResult;
 
 import java.util.concurrent.Future;
 

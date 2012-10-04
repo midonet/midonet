@@ -1,10 +1,7 @@
 package com.midokura.mmdpctl;
 
-import com.midokura.mmdpctl.commands.Command;
-import com.midokura.mmdpctl.commands.DumpDatapathCommand;
-import com.midokura.mmdpctl.commands.GetDatapathCommand;
-import com.midokura.mmdpctl.commands.ListDatapathsCommand;
-import com.midokura.mmdpctl.results.Result;
+import com.midokura.mmdpctl.commands.*;
+import com.midokura.mmdpctl.commands.results.Result;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,19 +15,11 @@ public class Mmdpctl {
     private static final Logger log = LoggerFactory
             .getLogger(Mmdpctl.class);
 
-    private boolean showStats = false;
     private int timeout = 0;
-
-    public void showStats() {
-        this.showStats = true;
-    }
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
-
-
-    private Mmdpctl() {}
 
     public int execute(Command<? extends Result> command) {
 
@@ -54,7 +43,7 @@ public class Mmdpctl {
             return -1;
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error while retrieving the datapaths: " + e.getMessage());
+            System.out.println("Error while retrieving the datapath: " + e.getMessage());
             return -1;
         }
 
@@ -64,33 +53,50 @@ public class Mmdpctl {
 
     public static void main(String ...args) {
         Options options = new Options();
-        options.addOption("list", false, "List datapaths");
-        options.addOption("show", true, " Show all the information related to a given datapath,\n" +
-                "identified by its name");
-        options.addOption("dump", true, "Show all the flows installed for a given datapath,\n" +
-                "identified by its name.");
-        options.addOption("s", "stats", false, "Show statistics about the given datapath.");
-        options.addOption("t", "timeout", true, " Specifies a timeout in seconds. If the program is\n" +
-                "not able to get the results in less than this amount of time it will\n" +
-                "stop and return with an error code");
 
+        OptionGroup mutuallyExclusiveOptions = new OptionGroup();
 
-        CommandLineParser parser = new GnuParser();
+        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("List all the installed datapaths")
+                .isRequired()
+                .withLongOpt("list-dps")
+                .create());
+        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Show all the information related to a given datapath.")
+                .hasArg()
+                .isRequired()
+                .withLongOpt("show-dp")
+                .create());
+        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Show all the flows installed for a given datapath.")
+                .hasArg()
+                .isRequired()
+                .withLongOpt("dump-dp")
+                .create());
+        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Add a new datapath.")
+                .hasArg()
+                .withLongOpt("add-dp")
+                .create());
+        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Delete a datapath.")
+                .hasArg()
+                .withLongOpt("delete-dp")
+                .create());
+
+        mutuallyExclusiveOptions.setRequired(true);
+        options.addOptionGroup(mutuallyExclusiveOptions);
+
+        options.addOption(OptionBuilder.withLongOpt("timeout")
+                .hasArg()
+                .withDescription("Specifies a timeout in seconds. If the program is " +
+                        "not able to get the results in less than this amount of time it will " +
+                        "stop and return with an error code")
+                .create());
+
+        // TODO burn after using.
+        //options.addOption(OptionBuilder.withLongOpt("insert").create());
+
+        CommandLineParser parser = new PosixParser();
         try {
             CommandLine cl = parser.parse(options, args);
 
             Mmdpctl mmdpctl = new Mmdpctl();
-
-            if (!cl.hasOption("list") &&
-                    !cl.hasOption("show") &&
-                    !cl.hasOption("dump")) {
-                showHelpAndExit(options, "Missing one of the required options ('list', 'show', 'dump')");
-            }
-
-            // check if the user requests the stats.
-            if (cl.hasOption("stats")) {
-                mmdpctl.showStats();
-            }
 
             // check if the user sets a (correct) timeout.
             if (cl.hasOption("timeout")) {
@@ -105,22 +111,32 @@ public class Mmdpctl {
                 }
             }
 
-            if (cl.hasOption("list")) {
+            // WARN ugly dirty horrible hack to populate the flow table.
+            // TODO REMOVE THIS.
+            if (cl.hasOption("insert")) {
+                try {
+                new InsertFlows().run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (cl.hasOption("list-dps")) {
                 System.exit(mmdpctl.execute(new ListDatapathsCommand()));
-            } else if (cl.hasOption("show")) {
-                System.exit(mmdpctl.execute(new GetDatapathCommand(cl.getOptionValue("show"))));
-            } else if (cl.hasOption("dump")) {
-                System.exit(mmdpctl.execute(new DumpDatapathCommand(cl.getOptionValue("dump"))));
+            } else if (cl.hasOption("show-dp")) {
+                System.exit(mmdpctl.execute(new GetDatapathCommand(cl.getOptionValue("show-dp"))));
+            } else if (cl.hasOption("dump-dp")) {
+                System.exit(mmdpctl.execute(new DumpDatapathCommand(cl.getOptionValue("dump-dp"))));
+            } else if (cl.hasOption("add-dp")) {
+                System.exit(mmdpctl.execute(new AddDatapathCommand(cl.getOptionValue("add-dp"))));
+            } else if (cl.hasOption("delete-dp")) {
+                System.exit(mmdpctl.execute(new DeleteDatapathCommand(cl.getOptionValue("delete-dp"))));
             }
 
             // get one of the commands.
         } catch (ParseException e) {
             showHelpAndExit(options, e.getMessage());
         }
-
-
-
-
     }
 
     private static void showHelpAndExit(Options options, String message) {
@@ -129,4 +145,6 @@ public class Mmdpctl {
         formatter.printHelp( "mm-dpctl", options );
         System.exit(-1);
     }
+
+
 }
