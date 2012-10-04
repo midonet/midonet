@@ -13,7 +13,7 @@ import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
 
 public class BridgePort<T extends DtoBridgePort> extends
-        Port<BridgePort, T> {
+        Port<BridgePort<T>, T> {
 
     public BridgePort(WebResource resource, URI uriForCreation, T port) {
         super(resource, uriForCreation, port, VendorMediaType

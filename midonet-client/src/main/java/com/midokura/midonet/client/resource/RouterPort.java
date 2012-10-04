@@ -18,7 +18,7 @@ import com.midokura.midonet.client.dto.DtoRouterPort;
 import com.midokura.midonet.client.dto.PortType;
 
 public class RouterPort<T extends DtoRouterPort> extends
-                                                 Port<T, DtoRouterPort> {
+                                                 Port<RouterPort<T>, T> {
 
 
     public RouterPort(WebResource resource, URI uriForCreation, T p) {
@@ -171,7 +171,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param networkLength length of network address mask
      * @return this
      */
-    public RouterPort networkLength(int networkLength) {
+    public RouterPort<T> networkLength(int networkLength) {
         ((DtoRouterPort) principalDto).setNetworkLength(networkLength);
         return this;
     }
@@ -182,7 +182,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param portGroupIDs
      * @return this
      */
-    public RouterPort portGroupIDs(UUID[] portGroupIDs) {
+    public RouterPort<T> portGroupIDs(UUID[] portGroupIDs) {
         principalDto.setPortGroupIDs(portGroupIDs);
         return this;
     }
@@ -193,7 +193,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param outboundFilterId
      * @return this
      */
-    public RouterPort outboundFilterId(UUID outboundFilterId) {
+    public RouterPort<T> outboundFilterId(UUID outboundFilterId) {
         principalDto.setOutboundFilterId(outboundFilterId);
         return this;
     }
@@ -204,7 +204,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param portAddress
      * @return this
      */
-    public RouterPort portAddress(String portAddress) {
+    public RouterPort<T> portAddress(String portAddress) {
         ((DtoRouterPort) principalDto).setPortAddress(portAddress);
         return this;
     }
@@ -215,7 +215,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param vifId
      * @return this
      */
-    public RouterPort vifId(UUID vifId) {
+    public RouterPort<T> vifId(UUID vifId) {
         principalDto.setVifId(vifId);
         return this;
     }
@@ -226,7 +226,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param portMac
      * @return this
      */
-    public RouterPort portMac(String portMac) {
+    public RouterPort<T> portMac(String portMac) {
         principalDto.setPortMac(portMac);
         return this;
     }
@@ -237,7 +237,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param inboundFilterId
      * @return this
      */
-    public RouterPort inboundFilterId(UUID inboundFilterId) {
+    public RouterPort<T> inboundFilterId(UUID inboundFilterId) {
         principalDto.setInboundFilterId(inboundFilterId);
         return this;
     }
@@ -248,7 +248,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param networkAddress
      * @return
      */
-    public RouterPort networkAddress(String networkAddress) {
+    public RouterPort<T> networkAddress(String networkAddress) {
         principalDto.setNetworkAddress(networkAddress);
         return this;
     }
@@ -259,7 +259,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param networkAddress
      * @return this
      */
-    public RouterPort localNetworkAddress(String networkAddress) {
+    public RouterPort<T> localNetworkAddress(String networkAddress) {
         ((DtoMaterializedRouterPort) principalDto)
             .setLocalNetworkAddress(networkAddress);
         return this;
@@ -271,7 +271,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param length
      * @return this
      */
-    public RouterPort localNetworkLength(int length) {
+    public RouterPort<T> localNetworkLength(int length) {
         ((DtoMaterializedRouterPort) principalDto)
             .setLocalNetworkLength(length);
         return this;
@@ -283,7 +283,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param id
      * @return this
      */
-    public RouterPort peerId(UUID id) {
+    public RouterPort<T> peerId(UUID id) {
         ((DtoLogicalRouterPort) principalDto).setPeerId(id);
         return this;
     }
@@ -326,6 +326,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param id the logical port id to connect
      * @return this
      */
+    // TODO(pino): this should be defined in a logical port subtype.
     public RouterPort link(UUID id) {
         peerId(id);
         resource.post(((DtoLogicalRouterPort) principalDto).getLink(),
