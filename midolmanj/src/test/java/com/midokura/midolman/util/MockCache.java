@@ -51,11 +51,6 @@ public class MockCache implements Cache {
     }
 
     @Override
-    public void getAsync(String key, Callback1<String> cb) {
-        cb.call(get(key, false));
-    }
-
-    @Override
     public String getAndTouch(String key) {
         return get(key, true);
     }
