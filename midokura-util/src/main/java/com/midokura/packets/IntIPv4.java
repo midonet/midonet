@@ -19,6 +19,21 @@ public class IntIPv4 implements Cloneable {
         return maskLength;
     }
 
+    public boolean unicastEquals(IntIPv4 other) {
+        return address == other.address;
+    }
+
+    public boolean subnetContains(int otherAddr) {
+        // Zero out any address bits beyond the mask.
+        int mask;
+        // In Java, a shift by 32 is a no-op, so special case /0
+        if (maskLength == 0)
+            mask = 0;
+        else
+            mask = -1 << (32 - maskLength);
+        return (address & mask) == (otherAddr & mask);
+    }
+
     /* Default constructor for deserialization. */
     public IntIPv4() {
     }
@@ -90,13 +105,25 @@ public class IntIPv4 implements Cloneable {
         return new IntIPv4(Net.convertStringAddressToInt(dottedQuad), length);
     }
 
-    /**
-     * Convert this object to its String representation.
-     *
-     *  @return
-     *      A String like "192.168.0.0_24" for prefixes or "192.168.0.5" for a
-     *      unicast address (i.e. if the mask length is 32).
-     */
+    public static IntIPv4 fromBytes(byte[] ipAddress) {
+        return fromBytes(ipAddress, 32);
+    }
+
+    public static IntIPv4 fromBytes(byte[] fourBytes, int length) {
+        int ipAddr = 0;
+        for (int i = 0; i < 4; i++) {
+            ipAddr |= (fourBytes[i] & 0xff) << ((3-i)*8);
+        }
+        return new IntIPv4(ipAddr, length);
+    }
+
+     /**
+        * Convert this object to its String representation.
+        *
+        *  @return
+        *      A String like "192.168.0.0_24" for prefixes or "192.168.0.5" for a
+        *      unicast address (i.e. if the mask length is 32).
+        */
     @Override
     public String toString() {
         String dottedQuad = Net.convertIntAddressToString(address);

@@ -182,7 +182,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return materialized port resource
      */
-    public RouterPort addMaterializedRouterPort() {
+    public RouterPort<DtoMaterializedRouterPort> addMaterializedRouterPort() {
         return new RouterPort<DtoMaterializedRouterPort>(
             resource,
             principalDto.getPorts(),
@@ -195,7 +195,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      * @return logical port resource
      */
 
-    public RouterPort addLogicalRouterPort() {
+    public RouterPort<DtoLogicalRouterPort> addLogicalRouterPort() {
         return new RouterPort<DtoLogicalRouterPort>(
             resource,
             principalDto.getPorts(),

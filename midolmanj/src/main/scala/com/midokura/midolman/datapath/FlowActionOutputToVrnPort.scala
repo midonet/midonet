@@ -3,11 +3,13 @@
 */
 package com.midokura.midolman.datapath
 
-import com.midokura.sdn.dp.flows.FlowAction
+import java.util.UUID
+
 import com.midokura.netlink.NetlinkMessage
 import com.midokura.netlink.messages.BaseBuilder
-import java.util.UUID
+import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.sdn.dp.flows.FlowAction.FlowActionAttr
+
 
 object FlowActionOutputToVrnPort {
     val key = new FlowActionAttr[FlowActionOutputToVrnPort](250, false)

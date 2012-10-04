@@ -46,6 +46,8 @@ public class WildcardFlow {
 
     }
 
+    // CAREFUL: this class is used as a key in various maps. DO NOT use
+    // mutable fields when constructing the hashCode or evaluating equality.
     public boolean equals(Object o){
         if(o == this)
             return true;
@@ -65,6 +67,8 @@ public class WildcardFlow {
         return true;
     }
 
+    // CAREFUL: this class is used as a key in various maps. DO NOT use
+    // mutable fields when constructing the hashCode or evaluating equality.
     public int hashCode(){
         return new HashCodeBuilder(17, 37).
             append(hardExpirationMillis).

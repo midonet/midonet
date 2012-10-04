@@ -4,6 +4,7 @@ package com.midokura.midolman
 
 import compat.Platform
 import akka.actor.{Actor, ActorLogging}
+import akka.dispatch.{Future, Promise}
 import akka.util.duration._
 import java.util.UUID
 import javax.annotation.Nullable
@@ -11,16 +12,12 @@ import javax.annotation.Nullable
 import com.google.inject.Inject
 
 import com.midokura.cache.Cache
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
+import com.midokura.midonet.cluster.DataClient
 import com.midokura.packets._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
-import akka.dispatch.{Future, Promise}
-import com.midokura.midonet.cluster.DataClient
-import scala.Left
-import com.midokura.midolman.DatapathController.PacketIn
-import scala.Right
-import scala.Some
-import com.midokura.midolman.FlowController.AddWildcardFlow
 
 
 object SimulationController extends Referenceable {

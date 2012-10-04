@@ -46,10 +46,6 @@ object FlowController extends Referenceable {
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
-    case class RemoveFlow(flow: Flow, cb: Callback[Flow])
-
-    case class SendPacket(data: Array[Byte], actions: List[FlowAction[_]])
-
     case class DiscardPacket(cookie: Option[Int])
 
     case class InvalidateFlowsByTag(tag: Any)
@@ -58,7 +54,7 @@ object FlowController extends Referenceable {
 
     case class WildcardFlowAdded(f: WildcardFlow)
 
-    case class  WildcardFlowRemoved(f: WildcardFlow)
+    case class WildcardFlowRemoved(f: WildcardFlow)
 
     case class FlowUpdateCompleted(flow: Flow)
 }
@@ -149,30 +145,11 @@ class FlowController extends Actor with ActorLogging {
                         removeWildcardFlow(wildFlow)
             }
 
-        case RemoveFlow(flow: Flow, cb: Callback[Flow]) =>
-            removeFlow(flow, cb)
-
         case RemoveWildcardFlow(flow) =>
             log.debug("Removing wcflow {}", flow)
             removeWildcardFlow(flow)
             context.system.eventStream.publish(new WildcardFlowRemoved(flow))
 
-        case SendPacket(data, actions) =>
-            if (actions.size > 0) {
-                val packet = new Packet().
-                    setMatch(new FlowMatch).
-                    setData(data).setActions(actions)
-                datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[java.lang.Boolean] {
-                        def onSuccess(data: java.lang.Boolean) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to send a packet {} due to {}", packet,
-                                if (timeout) "timeout" else "error")
-                        }
-                    })
-            }
         case CheckFlowExpiration() =>
             flowManager.checkFlowsExpiration()
 
@@ -225,10 +202,6 @@ class FlowController extends Actor with ActorLogging {
                     cb.call()
         }
 
-    }
-
-    private def removeFlow(flow: Flow, cb: Callback[Flow]){
-        datapathConnection.flowsDelete(datapath, flow, cb)
     }
 
     private def handlePacketIn(packet: Packet) {
@@ -360,6 +333,8 @@ class FlowController extends Actor with ActorLogging {
                 if (wildcardFlow.getActions.size() > 0) {
                     for (unpendedPacket <- pendedPackets.get) {
                         unpendedPacket.setActions(wildcardFlow.getActions)
+                        log.debug("Sending pended packet {} for cookie {}",
+                            unpendedPacket, cookie)
 
                         datapathConnection.packetsExecute(datapath, unpendedPacket,
                             new ErrorHandlingCallback[java.lang.Boolean] {
