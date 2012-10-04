@@ -12,7 +12,7 @@ public class ArpTable extends ReplicatedMap<IntIPv4, ArpCacheEntry> {
 
     @Override
     protected String encodeKey(IntIPv4 key) {
-        return key.toString();
+        return key.toUnicastString();
     }
 
     @Override
