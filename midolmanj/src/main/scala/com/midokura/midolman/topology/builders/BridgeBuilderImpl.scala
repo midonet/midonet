@@ -99,33 +99,22 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
-            // else: newPort != null && oldPort == null
-            //3. MAC was added -> do nothing
+            //3. MAC was added -> invalidate flooded flows
+            if (newPort != null && oldPort == null){
+                flowController ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateFloodedFlowsByMac(id, mac)
+                )
+            }
 
-            // in any case we need to re-compute the broadcast flows. If a port
-            // was added, we have to include it in the broadcast, if a port was
-            // deleted we have to remove it. If a port moved to a new host that
-            // had no port of this bridge, we need a flow to the port that has
-            // the tunnel to it
-            // TODO(pino): I'm only invalidating flooded flows to that MAC.
-            // TODO: so we need to invalidate all the flooded flows when the
-            // TODO: hosts in the port set change or the local ports in the
             // TODO: PortSet change. This should be done in VTPM.
-            flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByMac(id, mac))
         }
     }
 
-    def setLocalExteriorPortActive(port: UUID, mac: MAC, active: Boolean) {
-        // invalidate the flood flows in both cases (active/not active)
+    def setLogicalPortInactive(portId: UUID) {
+        // invalidate the flows to this logical port
         flowController ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateBroadcastFlows(id))
-
-        if (!active) {
-            flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByMac(id, mac)
-            )
-        }
+            FlowTagger.invalidateFlowsByLogicalPort(id, portId))
     }
+
 }
 

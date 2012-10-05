@@ -39,6 +39,11 @@ import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import flows.{FlowActionUserspace, FlowAction, FlowActions, FlowKeys}
+import com.midokura.sdn.dp.flows.{FlowAction, FlowActions, FlowKeys}
+import com.midokura.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
+import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
+                            Port, Ports, PortOptions}
+import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 
@@ -580,7 +585,7 @@ class DatapathController() extends Actor with ActorLogging {
               case Some(portName) =>
                 datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
                 def onSuccess(data: Port[_, _]) {
-                  MonitoringActor.getRef() ! PortStats(portID, data.getStats);
+                  MonitoringActor.getRef() ! PortStats(portID, data.getStats)
                 }
 
                 def onTimeout() {
@@ -590,7 +595,7 @@ class DatapathController() extends Actor with ActorLogging {
                 def onError(e: NetlinkException) {
                   log.error("Error retrieving port stats: {}", e )
                 }
-              });
+              })
 
               case None =>
                 log.debug("Port was not found {}", portID)
@@ -738,8 +743,12 @@ class DatapathController() extends Actor with ActorLogging {
 
         vifToLocalPortNumber(inPortUUID) match {
             case Some(portNo: Short) =>
-                flowMatch.setInputPortNumber(portNo)
-                         .unsetInputPortUUID()
+                flowMatch
+                    .setInputPortNumber(portNo)
+                    .unsetInputPortUUID()
+                // tag flow with short inPort to be able to perform
+                // invalidation
+                tags add FlowTagger.invalidateDPPort(portNo)
             case None =>
         }
 
@@ -747,7 +756,7 @@ class DatapathController() extends Actor with ActorLogging {
         if (flowActions == null)
             flowActions = List().toList
 
-        translateActions(flowActions, inPortUUID) onComplete {
+        translateActions(flowActions, inPortUUID, tags) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
@@ -760,7 +769,7 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: UUID): Future[Seq[FlowAction[_]]] = {
+                         inPortUUID: UUID, tags: ROSet[Any]): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
         // check for VRN port or portSet
@@ -804,7 +813,7 @@ class DatapathController() extends Actor with ActorLogging {
                                     portsForLocalPorts(
                                         (set.localPorts-inPortUUID).toSeq),
                                     Some(br.tunnelKey),
-                                    tunnelsForHosts(set.hosts.toSeq)))
+                                    tunnelsForHosts(set.hosts.toSeq), tags))
                     }
                 }
 
@@ -813,15 +822,18 @@ class DatapathController() extends Actor with ActorLogging {
                 vifToLocalPortNumber(port) match {
                     case Some(localPort) =>
                         translated.success(
-                            translateToDpPorts(actions, port, List(localPort), None, List()))
+                            translateToDpPorts(actions, port, List(localPort),
+                                None, List(), tags))
                     case None =>
-                        ask(VirtualTopologyActor.getRef(), PortRequest(port, update = false)).mapTo[client.Port[_]] map {
+                        ask(VirtualTopologyActor.getRef(), PortRequest(port,
+                            update = false)).mapTo[client.Port[_]] map {
                             _ match {
                                 case p: ExteriorPort[_] =>
                                     translated.success(
                                         translateToDpPorts(
                                             actions, port, List(),
-                                            Some(p.tunnelKey), tunnelsForHosts(List(p.hostID))))
+                                            Some(p.tunnelKey),
+                                            tunnelsForHosts(List(p.hostID)), tags))
                             }
                         }
                 }
@@ -832,7 +844,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
-                           tunnelKey: Option[Long], tunnelIds: Seq[Short]): Seq[FlowAction[_]] = {
+                           tunnelKey: Option[Long], tunnelPorts: Seq[Short],
+                           tags: ROSet[Any]): Seq[FlowAction[_]] = {
         val newActs = ListBuffer[FlowAction[_]]()
 
         var translatablePort = port
@@ -840,14 +853,17 @@ class DatapathController() extends Actor with ActorLogging {
         var translatedActions = localPorts.map { id =>
             FlowActions.output(id).asInstanceOf[FlowAction[_]]
         }
+        // add tag for flow invalidation
+        tags addAll localPorts.map{id => FlowTagger.invalidateDPPort(id)}
 
-        if (null != tunnelIds && tunnelIds.length > 0) {
+        if (null != tunnelPorts && tunnelPorts.length > 0) {
             translatedActions = translatedActions ++ tunnelKey.map { key =>
                 FlowActions.setKey(FlowKeys.tunnelID(key))
                     .asInstanceOf[FlowAction[_]]
-            } ++ tunnelIds.map { id =>
+            } ++ tunnelPorts.map { id =>
                 FlowActions.output(id).asInstanceOf[FlowAction[_]]
             }
+            tags addAll tunnelPorts.map{id => FlowTagger.invalidateDPPort(id)}
         }
 
         for (act <- acts) {
@@ -970,10 +986,12 @@ class DatapathController() extends Actor with ActorLogging {
                         if (active) {
                             addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
                                     List(FlowActions.output(port.getPortNo.shortValue)),
-                                    tags = Set(vifId),
+                                    tags = FlowTagger.invalidateDPPort(p.getPortNo.shortValue()),
                                     expiration = 0)
                         } else {
-                            FlowController.getRef() ! InvalidateFlowsByTag(vifId)
+                            // trigger invalidation
+                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                                FlowTagger.invalidateDPPort(p.getPortNo.shortValue()))
                         }
                         tellVtpm()
                     case _ =>
@@ -1164,6 +1182,10 @@ class DatapathController() extends Actor with ActorLogging {
                     if (zoneTunnelMap.size == 0) {
                         peerPorts.remove(hConf.getId)
                     }
+                    // trigger invalidation
+                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateDPPort(port.getPortNo.shortValue())
+                    )
 
                 case None =>
             }

@@ -320,6 +320,8 @@ class Coordinator(val origMatch: WildcardMatch,
 
                     applyPortFilter(port, port.inFilterID,
                                     packetIngressesDevice _)
+                    // add tag for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(true)
@@ -337,6 +339,11 @@ class Coordinator(val origMatch: WildcardMatch,
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
                     pktContext.setInputPort(null).setOutputPort(null)
+                    // add ChainID for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
+                    pktContext.addFlowTag(
+                        FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
+
                     val result = Chain.apply(chain, pktContext,
                                              pktContext.getMatch, port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
@@ -367,6 +374,8 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
+                    // add tag for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
                             emit(portID, false, port)

@@ -137,8 +137,6 @@ public class Chain {
                     }
                     // Keep track of the traversed chains to detect loops.
                     traversedChains.add(nextID);
-                    // The flow may be invalidated if any traversed id changes.
-                    fwdInfo.addTraversedElementID(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(

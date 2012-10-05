@@ -528,18 +528,11 @@ public class LocalDataClientImpl implements DataClient {
                 for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
                     cb.call(portID, active);
                 }
-                // If it's a MaterializedBridgePort, invalidate the flows for flooded
-                // packet because when those were update this port was probably
-                // inactive and wasn't taken into consideration when installing
-                // the flow for the flood.
-                if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
-                    bridgeManager.setLocalExteriorPortActive(
-                                     config.device_id,
-                                     portID,
-                                     ((PortDirectory.MaterializedRouterPortConfig)
-                                         config)
-                                         .getHwAddr(),
-                                     active);
+                // If it's a bridge logical port and becomes inactive we need
+                // to invalidate flows
+                if (config instanceof PortDirectory.LogicalBridgePortConfig
+                    && !active) {
+                    bridgeManager.setLogicalPortInactive(config.device_id, portID);
                     //TODO(ross) add to port set
                 } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
                     UUID deviceId = config.device_id;

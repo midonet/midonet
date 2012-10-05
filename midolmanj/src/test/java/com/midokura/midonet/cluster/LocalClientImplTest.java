@@ -229,6 +229,11 @@ public class LocalClientImplTest {
             mlTable.add(mac, portId);
         }
 
+        @Override
+        public void setLogicalPortInactive(UUID portId) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
         public void removePort(MAC mac, UUID portId) {
             mlTable.remove(mac, portId);
         }
@@ -274,12 +279,6 @@ public class LocalClientImplTest {
         @Override
         public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                                        Map<IntIPv4, MAC> rtrIpToMac) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public void setLocalExteriorPortActive(UUID port, MAC mac,
-                                               boolean active) {
             //To change body of implemented methods use File | Settings | File Templates.
         }
 

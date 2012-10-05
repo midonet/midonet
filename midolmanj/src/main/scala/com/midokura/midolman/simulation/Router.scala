@@ -13,8 +13,7 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper,
-                                       VirtualTopologyActor}
+import com.midokura.midolman.topology.{FlowTagger, RouterConfig, RoutingTableWrapper, VirtualTopologyActor}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
@@ -47,6 +46,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
     private def preRouting(pktContext: PacketContext, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem): Future[Action] = {
+
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter))
+
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             log.debug("Received an L2 broadcast packet.")
@@ -183,6 +187,10 @@ class Router(val id: UUID, val cfg: RouterConfig,
                             rt: Route, pktContext: PacketContext)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
+
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter))
+
         // Apply post-routing (egress) chain.
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,

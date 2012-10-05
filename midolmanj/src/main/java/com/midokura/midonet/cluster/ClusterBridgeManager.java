@@ -110,13 +110,13 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         };
     }
 
-    void setLocalExteriorPortActive(UUID bridgeId, UUID portId, MAC mac, boolean active){
+    void setLogicalPortInactive(UUID bridgeId, UUID portId){
         BridgeBuilder builder = getBuilder(bridgeId);
         if(builder == null){
             log.debug("BridgeBuilder for bridge {} was null. No builder to notify ");
         }
         else{
-            builder.setLocalExteriorPortActive(portId, mac, active);
+            builder.setLogicalPortInactive(portId);
         }
     }
 
