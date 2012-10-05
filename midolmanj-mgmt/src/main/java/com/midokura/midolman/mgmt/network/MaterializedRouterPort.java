@@ -25,14 +25,6 @@ public class MaterializedRouterPort extends RouterPort implements
      */
     private UUID vifId;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN, message =
-            "is an invalid IP format")
-    private String localNetworkAddress;
-
-    @Min(0)
-    @Max(32)
-    private int localNetworkLength;
-
     /**
      * Constructor
      */
@@ -77,42 +69,10 @@ public class MaterializedRouterPort extends RouterPort implements
             com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
                     portData) {
         super(portData);
-        this.localNetworkAddress = portData.getLocalNwAddr();
-        this.localNetworkLength = portData.getLocalNwLength();
         if (portData.getProperty(Port.Property.vif_id) != null) {
             this.vifId = UUID.fromString(
                     portData.getProperty(Port.Property.vif_id));
         }
-    }
-
-    /**
-     * @return the localNetworkAddress
-     */
-    public String getLocalNetworkAddress() {
-        return localNetworkAddress;
-    }
-
-    /**
-     * @param localNetworkAddress
-     *            the localNetworkAddress to set
-     */
-    public void setLocalNetworkAddress(String localNetworkAddress) {
-        this.localNetworkAddress = localNetworkAddress;
-    }
-
-    /**
-     * @return the localNetworkLength
-     */
-    public int getLocalNetworkLength() {
-        return localNetworkLength;
-    }
-
-    /**
-     * @param localNetworkLength
-     *            the localNetworkLength to set
-     */
-    public void setLocalNetworkLength(int localNetworkLength) {
-        this.localNetworkLength = localNetworkLength;
     }
 
     /**
@@ -158,9 +118,7 @@ public class MaterializedRouterPort extends RouterPort implements
     public com.midokura.midonet.cluster.data.Port toData() {
         com.midokura.midonet.cluster.data.ports.MaterializedRouterPort data =
                 new com.midokura.midonet.cluster.data.ports
-                        .MaterializedRouterPort()
-                .setLocalNwAddr(this.localNetworkAddress)
-                .setLocalNwLength(this.localNetworkLength);
+                        .MaterializedRouterPort();
         if (this.vifId != null) {
             data.setProperty(Port.Property.vif_id, this.vifId.toString());
         }
@@ -216,9 +174,7 @@ public class MaterializedRouterPort extends RouterPort implements
      */
     @Override
     public String toString() {
-        return super.toString() + ", localNetworkAddress="
-                + localNetworkAddress + ", localNetworkLength="
-                + localNetworkLength + ", vifId=" + vifId;
+        return super.toString() + ", vifId=" + vifId;
     }
 
 }

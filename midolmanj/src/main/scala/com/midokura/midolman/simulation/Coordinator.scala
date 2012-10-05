@@ -476,8 +476,8 @@ class Coordinator(val origMatch: WildcardMatch,
                               modif.getNetworkTTL)) {
             actions.append(FlowActions.setKey(
                 FlowKeys.ipv4(
-                    modif.getNetworkDestination,
                     modif.getNetworkSource,
+                    modif.getNetworkDestination,
                     modif.getNetworkProtocol)
                 //.setFrag(?)
                 .setProto(modif.getNetworkProtocol)

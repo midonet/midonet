@@ -189,18 +189,13 @@ public class ClientTest extends JerseyTest {
                                          .portAddress("1.1.1.1")
                                          .networkAddress("1.1.1.0")
                                          .networkLength(24)
-                                         .localNetworkAddress("169.254.1.1")
-                                         .localNetworkLength(30)
                                          .create();
 
         RouterPort mrp2 = (RouterPort) r1.addMaterializedRouterPort()
                                          .portAddress("1.1.1.2")
                                          .networkAddress("1.1.1.0")
                                          .networkLength(24)
-                                         .localNetworkAddress("169.254.1.2")
-                                         .localNetworkLength(30)
                                          .create();
-
 
         RouterPort lrp1 = (RouterPort) r1.addLogicalRouterPort()
                                          .portAddress("2.2.2.1")

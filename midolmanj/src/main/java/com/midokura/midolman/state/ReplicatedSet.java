@@ -25,6 +25,8 @@ public abstract class ReplicatedSet<T> {
 
     private void updateItems(Set<String> newStrings){
         Set<String> oldStrings = strings;
+        log.debug("Got set update. Old strings {} New strings {}",
+            strings, newStrings);
         // Compute the newly added strings
         Set<String> addedStrings = new HashSet<String>(newStrings);
         addedStrings.removeAll(oldStrings);

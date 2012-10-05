@@ -115,6 +115,8 @@ public class ZkDirectory implements Directory {
     }
 
     private Watcher wrapCallback(Runnable runnable) {
+        if (null == runnable)
+            return null;
         if (runnable instanceof TypedWatcher)
             return new MyTypedWatcher((TypedWatcher) runnable);
 
@@ -198,8 +200,7 @@ public class ZkDirectory implements Directory {
     @Override
     public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
         zk.getZooKeeper().getData(
-            getAbsolutePath(relativePath),
-            (null == watcher)? null : wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.DataCallback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
@@ -235,8 +236,7 @@ public class ZkDirectory implements Directory {
                                  final DirectoryCallback<Set<String>> cb,
                                  TypedWatcher watcher) {
         zk.getZooKeeper().getChildren(
-            getAbsolutePath(relativePath),
-            wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.Children2Callback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,

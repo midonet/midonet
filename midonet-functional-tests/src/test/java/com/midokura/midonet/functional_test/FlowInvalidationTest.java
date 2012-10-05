@@ -24,6 +24,7 @@ import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@Ignore
 public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
     @After

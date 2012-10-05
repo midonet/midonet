@@ -136,27 +136,6 @@ public class RouterPort<T extends DtoRouterPort> extends
     }
 
     /**
-     * Gets local network address for this router port.
-     *
-     * @return local network address
-     */
-    public String getLocalNetworkAddress() {
-        return ((DtoMaterializedRouterPort) principalDto)
-            .getLocalNetworkAddress();
-    }
-
-    /**
-     * Gets local network length for this router port.
-     *
-     * @return local network length
-     */
-    public int getLocalNetworkLength() {
-        return ((DtoMaterializedRouterPort) principalDto)
-            .getLocalNetworkLength();
-    }
-
-
-    /**
      * Gets ID of the port that is connected to this router port.
      *
      * @return port UUID
@@ -250,30 +229,6 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public RouterPort<T> networkAddress(String networkAddress) {
         principalDto.setNetworkAddress(networkAddress);
-        return this;
-    }
-
-    /**
-     * Sets local network address to the local DTO.
-     *
-     * @param networkAddress
-     * @return this
-     */
-    public RouterPort<T> localNetworkAddress(String networkAddress) {
-        ((DtoMaterializedRouterPort) principalDto)
-            .setLocalNetworkAddress(networkAddress);
-        return this;
-    }
-
-    /**
-     * Sets local network length to the local DTO
-     *
-     * @param length
-     * @return this
-     */
-    public RouterPort<T> localNetworkLength(int length) {
-        ((DtoMaterializedRouterPort) principalDto)
-            .setLocalNetworkLength(length);
         return this;
     }
 

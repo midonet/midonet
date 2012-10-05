@@ -37,6 +37,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 
+@Ignore
 public class BridgeTestTwoDatapaths {
 
     private final static Logger log =

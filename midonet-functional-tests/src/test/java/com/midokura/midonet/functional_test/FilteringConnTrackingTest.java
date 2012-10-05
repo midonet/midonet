@@ -10,6 +10,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midonet.client.dto.DtoRule;
@@ -32,7 +33,7 @@ import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-
+@Ignore
 public class FilteringConnTrackingTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;

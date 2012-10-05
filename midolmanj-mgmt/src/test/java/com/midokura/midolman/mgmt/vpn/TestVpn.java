@@ -68,8 +68,6 @@ public class TestVpn extends JerseyTest {
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(30);
         port.setPortAddress(portAddress);
-        port.setLocalNetworkAddress("180.214.47.64");
-        port.setLocalNetworkLength(30);
         resource = resource().uri(router.getPorts());
         log.debug("port JSON {}", port.toString());
 
@@ -84,8 +82,6 @@ public class TestVpn extends JerseyTest {
         port.setNetworkAddress("192.168.10.0");
         port.setNetworkLength(30);
         port.setPortAddress(portAddress);
-        port.setLocalNetworkAddress("192.168.10.2");
-        port.setLocalNetworkLength(30);
         resource = resource().uri(router.getPorts());
         response = resource.type(APPLICATION_PORT_JSON).post(
                 ClientResponse.class, port);
