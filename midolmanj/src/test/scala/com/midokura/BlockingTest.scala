@@ -28,7 +28,7 @@ import concurrent.ops.spawn
 import scala.util.continuations.cps
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.scalatest.Suite
+import org.scalatest.{Ignore, Suite}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
@@ -76,7 +76,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         }
     }
 
-    def testThreadSleep() {
+    @Ignore def testThreadSleep() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, (actor) => {
             Thread.sleep(sleepTime)
@@ -84,14 +84,14 @@ class BlockingTest extends Suite with ShouldMatchers {
         }, true)
     }
 
-    def testAwaitResult() {
+    @Ignore def testAwaitResult() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, (actor) => {
             actor ! Await.result(promise, 7 seconds)
         }, true)
     }
 
-    def testFlowBlock() {
+    @Ignore def testFlowBlock() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise,
                          (actor) => flow {
@@ -100,7 +100,7 @@ class BlockingTest extends Suite with ShouldMatchers {
                          false)
     }
 
-    def testPipeTo() {
+    @Ignore def testPipeTo() {
         val promise = Promise[Int]()(system.dispatcher)
         checkForBlocking(promise, (actor) => (promise pipeTo actor), false)
     }
@@ -159,7 +159,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         elapsed should be <= initialDelay + sleepTime + margin
     }
 
-    def testFutureApplyDirect() {
+    @Ignore def testFutureApplyDirect() {
         val timer = new Timer
         val promise = Promise[Int]()(system.dispatcher)
         spawnPromiseThread(promise)
@@ -173,7 +173,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         timer.elapsed should be <= initialDelay + sleepTime + margin
     }
 
-    def testFutureApplyIndirect() {
+    @Ignore def testFutureApplyIndirect() {
         val timer = new Timer
         val promise = Promise[Int]()(system.dispatcher)
         val inner = () => { promise(); timer.stop }
@@ -187,7 +187,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         timer.elapsed should be <= initialDelay + sleepTime + margin
     }
 
-    def testFutureApplyBare() = {
+    @Ignore def testFutureApplyBare() = {
         val timer = new Timer
         val promise = Promise[Int]()(system.dispatcher)
         val inner = () => { promise(); timer.stop }
@@ -197,7 +197,7 @@ class BlockingTest extends Suite with ShouldMatchers {
         timer.elapsed should be <= initialDelay + sleepTime + margin
     }
 
-    def testFutureApplyExternalMethod() {
+    @Ignore def testFutureApplyExternalMethod() {
         val timer = new Timer
         val promise = Promise[Int]()(system.dispatcher)
         spawnPromiseThread(promise)
@@ -238,20 +238,20 @@ class BlockingTest extends Suite with ShouldMatchers {
             future()
     }
 
-    def testNonimmediateReturn() {
+    @Ignore def testNonimmediateReturn() {
         checkCps(eitherIntOrContinuation1, false, 8000, -1-margin)
     }
 
-    def testImmediateReturn() {
+    @Ignore def testImmediateReturn() {
         checkCps(eitherIntOrContinuation1, true, 150, -1-margin)
     }
 
-    def testNonimmediateBlockValue() {
+    @Ignore def testNonimmediateBlockValue() {
         checkCps(eitherIntOrContinuation2, false, 6500,
                  initialDelay + sleepTime)
     }
 
-    def testImmediateBlockValue() {
+    @Ignore def testImmediateBlockValue() {
         checkCps(eitherIntOrContinuation2, true, 150, 0)
     }
 
