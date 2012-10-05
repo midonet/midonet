@@ -1,5 +1,9 @@
 package com.midokura.mmdpctl.commands.results;
 
+/**
+ * As this is the result for a Command Line tool, all the command results need to be displayed correctly on the screen.
+ * This interface provides the method that the tool will use to display the results.
+ */
 public interface Result {
 
     /**

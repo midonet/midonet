@@ -10,6 +10,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * This class is in charge to parse the command line parameters received and invoke the respective Command.
+ */
 public class Mmdpctl {
 
     private static final Logger log = LoggerFactory
@@ -23,13 +26,12 @@ public class Mmdpctl {
 
     public int execute(Command<? extends Result> command) {
 
-        // if timeout start counter.
         Future<? extends Result> resultFuture = command.execute();
 
         try {
             Result result = null;
+            // if the user supplied a timeout make add it to the Future.get()
             if (timeout > 0) {
-                log.info("getting the result with a timeout of {} seconds", timeout);
                 result = resultFuture.get(timeout, TimeUnit.SECONDS);
             } else {
                 result = resultFuture.get();
@@ -42,7 +44,6 @@ public class Mmdpctl {
             resultFuture.cancel(true);
             return -1;
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("Error while retrieving the datapath: " + e.getMessage());
             return -1;
         }
@@ -54,6 +55,7 @@ public class Mmdpctl {
     public static void main(String ...args) {
         Options options = new Options();
 
+        // The command line tool can only accept one of these options:
         OptionGroup mutuallyExclusiveOptions = new OptionGroup();
 
         mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("List all the installed datapaths")
@@ -79,9 +81,11 @@ public class Mmdpctl {
                 .withLongOpt("delete-dp")
                 .create());
 
+        // make sure that there is at least one.
         mutuallyExclusiveOptions.setRequired(true);
         options.addOptionGroup(mutuallyExclusiveOptions);
 
+        // add an optional timeout to the command.
         options.addOption(OptionBuilder.withLongOpt("timeout")
                 .hasArg()
                 .withDescription("Specifies a timeout in seconds. If the program is " +
@@ -120,6 +124,7 @@ public class Mmdpctl {
                     e.printStackTrace();
                 }
             }
+            ////////////////////////////////
 
             if (cl.hasOption("list-dps")) {
                 System.exit(mmdpctl.execute(new ListDatapathsCommand()));
@@ -133,7 +138,6 @@ public class Mmdpctl {
                 System.exit(mmdpctl.execute(new DeleteDatapathCommand(cl.getOptionValue("delete-dp"))));
             }
 
-            // get one of the commands.
         } catch (ParseException e) {
             showHelpAndExit(options, e.getMessage());
         }
