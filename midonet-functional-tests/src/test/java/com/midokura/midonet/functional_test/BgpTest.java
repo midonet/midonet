@@ -4,13 +4,19 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import com.midokura.util.Waiters;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.resource.Bgp;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.ResourceCollection;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.TapProxy;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -19,61 +25,43 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.packets.IntIPv4;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bgp;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.topology.Route;
-import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.midonet.functional_test.vm.HypervisorType;
-import com.midokura.midonet.functional_test.vm.VMController;
-import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midkura.com>
- *         Date: 11/28/11
- */
-@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
-    Tenant tenant;
-    Router router;
-    TapWrapper bgpPort;
-    MidolmanMgmt mgmt;
+    final String tenantName = "tenant";
+
+    MockMgmtStarter apiStarter;
+    MidonetMgmt apiClient;
     MidolmanLauncher midolman;
-    OvsBridge ovsBridge;
 
-    VMController bgpPeerVm;
+    TapWrapper tap1_vm;
+    TapWrapper tap1_bgp;
+    TapWrapper tap2_vm;
+    TapWrapper tap2_bgp;
+    TapProxy tapProxy;
 
-    OpenvSwitchDatabaseConnection ovsdb;
+    PacketHelper packetHelper1;
+    PacketHelper packetHelper2;
 
-    String bgpPortPortName = "bgpPeerPort";
-
-    String peerAdvertisedNetworkAddr = "10.173.0.0";
-    int peerAdvertisedNetworkLength = 24;
+    Bgp bgp1;
+    Bgp bgp2;
 
     static LockHelper.Lock lock;
+    private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
+
 
     @BeforeClass
     public static void checkLock() {
@@ -88,125 +76,180 @@ public class BgpTest {
     @Before
     public void setUp() throws InterruptedException, IOException {
 
-        fixQuaggaFolderPermissions();
+        String testConfigurationPath = "midolmanj_runtime_configurations/midolman-with_bgp.conf";
+        File testConfigurationFile = new File(testConfigurationPath);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
+        // start zookeeper with the designated port.
+        log.info("Starting embedded zookeeper.");
+        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
+        assertThat(zookeeperPort, greaterThan(0));
 
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
+        log.info("Starting cassandra");
+        startCassandra();
 
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
+        log.info("Starting REST API");
+        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiClient = new MidonetMgmt(apiStarter.getURI());
 
-        mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start(MidolmanLauncher.ConfigType.With_Bgp,
-                                          "BgpTest");
+        log.info("Starting midolman");
+        startEmbeddedMidolman(testConfigurationFile.getAbsolutePath());
+        sleepBecause("we need midolman to boot up", 5);
 
-        tenant = new Tenant.Builder(mgmt).setName("tenant-bgp").build();
+        Router router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
+        log.debug("Created router " + router1.getName());
 
-        router = tenant.addRouter().setName("rtr1").build();
+        RouterPort materializedRouterPort1_vm = (RouterPort) router1.addMaterializedRouterPort()
+                .portAddress("1.0.0.1")
+                .networkAddress("1.0.0.0")
+                .networkLength(24)
+                .portMac("00:00:00:00:01:01")
+                .create();
+        log.debug("Created logical router port: " + materializedRouterPort1_vm.toString());
 
-        IntIPv4 ip1 = IntIPv4.fromString("10.10.173.1");
-        IntIPv4 ip2 = IntIPv4.fromString("10.10.173.2");
-        MaterializedRouterPort p1 = router.addGwPort().setLocalLink(ip1, ip2).build();
-        bgpPort = new TapWrapper(bgpPortPortName);
-        ovsBridge.addSystemPort(p1.port.getId(), bgpPort.getName());
+        RouterPort materializedRouterPort1_bgp = (RouterPort) router1.addMaterializedRouterPort()
+                .portAddress("100.0.0.1")
+                .networkAddress("100.0.0.0")
+                .networkLength(30)
+                .portMac("00:00:00:00:aa:01")
+                .create();
+        log.debug("Created materialized router port: " + materializedRouterPort1_bgp.toString());
 
-        bgpPort.closeFd();
+        bgp1 = materializedRouterPort1_bgp.addBgp()
+                .localAS(1)
+                .peerAddr("100.0.0.2")
+                .peerAS(2)
+                .create();
+        log.debug("Created BGP in materialized router port: " + bgp1.toString());
 
-        Bgp bgp = p1.addBgp()
-                    .setLocalAs(543)
-                    .setPeer(345, ip2.toString())
-                    .build();
+        Router router2 = apiClient.addRouter().tenantId(tenantName).name("router2").create();
+        log.debug("Created router " + router2.getName());
 
-        bgp.addAdvertisedRoute("14.128.23.0", 27);
+        RouterPort materializedRouterPort2_vm = (RouterPort) router2.addMaterializedRouterPort()
+                .portAddress("2.0.0.1")
+                .networkAddress("2.0.0.0")
+                .networkLength(24)
+                .portMac("00:00:00:00:02:01")
+                .create();
+        log.debug("Created logical router port: " + materializedRouterPort2_vm.toString());
 
-        LibvirtHandler libvirtHandler = LibvirtHandler.forHypervisor
-            (HypervisorType.Qemu);
+        RouterPort materializedRouterPort2_bgp = (RouterPort) router2.addMaterializedRouterPort()
+                .portAddress("100.0.0.2")
+                .networkAddress("100.0.0.0")
+                .networkLength(30)
+                .portMac("00:00:00:00:aa:02")
+                .create();
+        log.debug("Created materialized router port: " + materializedRouterPort2_bgp.toString());
 
-        libvirtHandler.setTemplate("basic_template_x86_64");
+        bgp2 = materializedRouterPort2_bgp.addBgp()
+                .localAS(2)
+                .peerAddr("100.0.0.1")
+                .peerAS(1)
+                .create();
+        log.debug("Created BGP in materialized router port: " + bgp2.toString());
 
-        // the bgp machine builder will create a vm bound to a local tap and
-        // assign the following address 10.10.173.2/24
-        // it will also configure the Quagga daemons using the information
-        // provided here
-        // it will also set the advertised route to 10.173.0.0/24
-        log.debug("=== Creating bpgPeerVm ===");
-        bgpPeerVm = libvirtHandler
-            .newBgpDomain()
-            .setDomainName("bgpPeer")
-            .setHostName("bgppeer")
-            .setNetworkDevice(bgpPort.getName())
-            .setLocalAS(345)
-            .setPeerAS(543)
-            .build();
-        log.debug("=== bpgPeerVm: {} ===", bgpPeerVm);
+        log.debug("Getting host from REST API");
+        ResourceCollection<Host> hosts = apiClient.getHosts();
 
-        // TODO: What are we waiting for here ?
-        Thread.sleep(1000);
+        Host host = null;
+        for (Host h : hosts) {
+            log.debug("Host: " + h.getId());
+            if (h.getId().toString().matches(TEST_HOST_ID)) {
+                host = h;
+                log.debug("Host match.");
+            }
+        }
+        assertThat(host, notNullValue());
+
+        log.debug("Creating TAP1 vm");
+        tap1_vm = new TapWrapper("tap1_vm");
+
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+                .interfaceName(tap1_vm.getName())
+                .portId(materializedRouterPort1_vm.getId())
+                .create();
+
+        log.debug("Creating TAP1 bgp");
+        tap1_bgp = new TapWrapper("tap1_bgp");
+
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+                .interfaceName(tap1_bgp.getName())
+                .portId(materializedRouterPort1_bgp.getId())
+                .create();
+
+        log.debug("Creating TAP2 vm");
+        tap2_vm = new TapWrapper("tap2_vm");
+
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+                .interfaceName(tap2_vm.getName())
+                .portId(materializedRouterPort2_vm.getId())
+                .create();
+
+        log.debug("Creating TAP2 bgp");
+        tap2_bgp = new TapWrapper("tap2_bgp");
+
+        log.debug("Adding interface to host.");
+        host.addHostInterfacePort()
+                .interfaceName(tap2_bgp.getName())
+                .portId(materializedRouterPort2_bgp.getId())
+                .create();
+
+        tapProxy = new TapProxy(tap1_bgp, tap2_bgp);
+        tapProxy.start();
+
+        packetHelper1 = new PacketHelper(
+                MAC.fromString("00:00:00:00:01:02"),
+                IntIPv4.fromString("1.0.0.2"),
+                MAC.fromString("00:00:00:00:01:01"),
+                IntIPv4.fromString("1.0.0.1"));
+
+        packetHelper2 = new PacketHelper(
+                MAC.fromString("00:00:00:00:02:02"),
+                IntIPv4.fromString("2.0.0.2"),
+                MAC.fromString("00:00:00:00:02:01"),
+                IntIPv4.fromString("2.0.0.1"));
+
+        sleepBecause("we need midolman to boot up", 20);
+
     }
 
     @After
     public void tearDown() {
-
-        destroyVM(bgpPeerVm);
-
-        removeTapWrapper(bgpPort);
-        removeBridge(ovsBridge);
-        stopMidolman(midolman);
-        removeTenant(tenant);
-      //  stopMidolmanMgmt(mgmt);
+        tapProxy.stop();
+        removeTapWrapper(tap1_vm);
+        removeTapWrapper(tap1_bgp);
+        removeTapWrapper(tap2_vm);
+        removeTapWrapper(tap2_bgp);
+        stopEmbeddedMidolman();
+        stopMidolmanMgmt(apiStarter);
+        stopCassandra();
+        stopEmbeddedZookeeper();
     }
 
     @Test
-    public void testBgpConfiguration() throws Exception {
+    public void testNoRouteConnectivity() throws Exception {
+        log.debug("testNoRouteConnectivity - start");
 
-        assertNoPeerAdvertisedRouteIsRegistered(router.getRoutes());
+        tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
+        byte[] packet = tap2_vm.recv();
+        assertThat(packet, nullValue());
 
-        bgpPeerVm.startup();
-
-        Waiters.waitFor("The new route is advertised to the router",
-                TimeUnit.SECONDS.toMillis(100),
-                TimeUnit.SECONDS.toMillis(1),
-                new Timed.Execution<Boolean>() {
-                    @Override
-                    public void _runOnce() throws Exception {
-                        setResult(
-                                checkPeerAdRouteIsRegistered(router.getRoutes()));
-                        setCompleted(getResult());
-                    }
-                });
+        log.debug("testNoRouteConnectivity - stop");
     }
 
-    private boolean checkPeerAdRouteIsRegistered(Route[] routes) {
+    @Ignore
+    @Test
+    public void testRouteConnectivity() throws Exception {
+        log.debug("testRouteConnectivity - start");
 
-        int matchingRoutes = 0;
-        for (Route route : routes) {
+        bgp2.addAdRoute().nwPrefix("2.0.0.0").prefixLength(24);
 
-            if (route.getDstNetworkAddr().equals(peerAdvertisedNetworkAddr) &&
-                route.getDstNetworkLength() ==
-                    peerAdvertisedNetworkLength) {
-                matchingRoutes++;
-            }
-        }
+        tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
+        byte[] packet = tap2_vm.recv();
+        assertThat(packet, notNullValue());
 
-        return matchingRoutes == 1;
-    }
-
-    private Map<UUID, Route> assertNoPeerAdvertisedRouteIsRegistered(Route[]
-                                                                         routes) {
-
-        Map<UUID, Route> routesMap = new HashMap<UUID, Route>();
-
-        for (Route route : routes) {
-            routesMap.put(route.getId(), route);
-
-            assertThat(route.getDstNetworkAddr(),
-                       not(equalTo(peerAdvertisedNetworkAddr)));
-            assertThat(route.getDstNetworkLength(),
-                       not(equalTo(peerAdvertisedNetworkLength)));
-        }
-
-        return routesMap;
+        log.debug("testRouteConnectivity - stop");
     }
 }

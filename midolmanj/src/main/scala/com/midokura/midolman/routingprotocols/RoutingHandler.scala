@@ -47,20 +47,16 @@ import com.midokura.midolman.DatapathController.PortInternalOpReply
  * MidoNet's central cluster to aggregate routes. In the general case two
  * exterior virtual routers may be bound to physical interfaces on different
  * physical hosts, therefore MidoNet must anyway be able to use different
- * RoutingHandlers for different virtual ports of the same router.
- *
- * @param rport
- * @param bgpIdx
+ * RoutingHandlers for different virtual ports of the same router. *
  */
-class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
+class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client: Client)
     extends UntypedActorWithStash with ActorLogging {
 
-    import context._
 
     @Inject
-    var dataClient: DataClient = null
-    @Inject
-    var client: Client = null
+    val dataClient: DataClient = null
+
+    //val client: Client = null
 
     private final val BGP_INTERNAL_PORT_NAME: String =
         "midobgp%d".format(bgpIdx)
@@ -81,22 +77,43 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     private var bgpdProcess: BgpdProcess = null
 
     private case class NewBgpSession(bgp: BGP)
+
     private case class ModifyBgpSession(bgp: BGP)
+
     private case class RemoveBgpSession(bgpID: UUID)
+
     private case class AdvertiseRoute(route: AdRoute)
+
     private case class StopAdvertisingRoute(route: AdRoute)
 
     private case class AddPeerRoute(ribType: RIBType.Value,
                                     destination: IntIPv4, gateway: IntIPv4)
+
     private case class RemovePeerRoute(ribType: RIBType.Value,
                                        destination: IntIPv4, gateway: IntIPv4)
 
     // BgpdProcess will notify via these messages
     case class BGPD_READY()
+
     case class BGPD_DEAD()
 
     override def preStart() {
+        log.debug("Starting routingHandler.")
+
         super.preStart()
+
+        if (rport == null) {
+            log.debug("port is null")
+        } else {
+            log.debug("port is not null")
+        }
+
+        if (client == null) {
+            log.debug("client is null")
+        } else {
+            log.debug("client is not null")
+        }
+
         // Watch the BGP session information for this port.
         // In the future we may also watch for session configurations of
         // other routing protocols.
@@ -124,6 +141,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         // Subscribe to the VTA for updates to the Port configuration.
         VirtualTopologyActor.getRef() ! PortRequest(rport.id, update = true)
+
+        log.debug("RoutingHandler started.")
     }
 
     override def postStop() {
@@ -142,6 +161,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
             self ! RemovePeerRoute(ribType, destination, gateway)
         }
     }
+
     /**
      * This actor can be in these phases:
      * NotStarted: bgp has not been started (no known bgp configs on the port)
@@ -162,7 +182,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         val Started = Value("Started")
         val Stopping = Value("Stopping")
     }
+
     import Phase._
+
     var phase = NotStarted
 
     @scala.throws(classOf[Exception])
@@ -186,12 +208,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                     "virtual router port. We got {}", port)
 
             case NewBgpSession(bgp) =>
+                log.debug("NewBgpSession called.")
                 phase match {
                     case NotStarted =>
                         // This must be the first bgp we learn about.
                         if (bgps.size != 0) {
                             log.error("This should be the first bgp connection" +
-                            " but there was already other connections configured")
+                                " but there was already other connections configured")
                             return
                         }
                         bgps.put(bgp.getId, bgp)
@@ -207,7 +230,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         // in common.
                         if (bgps.size == 0) {
                             log.error("This shouldn't be the first bgp connection" +
-                            " but other connections were already configured")
+                                " but other connections were already configured")
                         }
 
                         val bgpPair = bgps.toList.head
@@ -258,7 +281,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                 }
 
             case PortInternalOpReply(iport, PortOperation.Create,
-                                     false, null, null) =>
+            false, null, null) =>
+                log.debug("PortInternalOpReply - create")
                 phase match {
                     case Starting =>
                         internalPortReady(iport)
@@ -268,6 +292,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                 }
 
             case PortInternalOpReply(_, _, _, _, _) => // Do nothing
+                log.debug("PortInternalOpReply - unknown")
 
             case BGPD_READY =>
                 phase match {
@@ -307,7 +332,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         val bgp = bgps.get(rt.getBgpId)
                         bgp match {
                             case b: BGP => val as = b.getLocalAS
-                                bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                            bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
                             case _ =>
                         }
                     case Stopping =>
@@ -326,7 +351,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
                         val bgp = bgps.get(rt.getBgpId)
                         bgp match {
                             case b: BGP => val as = b.getLocalAS
-                                bgpVty.deleteNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                            bgpVty.deleteNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
                             case _ =>
                         }
                     case Stopping =>
@@ -391,6 +416,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
     }
 
     private def startBGP() {
+        log.debug("startBGP - begin")
+
         val socketFile = new File(ZSERVE_API_SOCKET)
         val socketDir = socketFile.getParentFile
         if (!socketDir.exists()) {
@@ -419,15 +446,23 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
             CreatePortInternal(
                 Ports.newInternalPort(BGP_INTERNAL_PORT_NAME)
                     .setAddress(rport.portMac.getAddress), null)
+
+        log.debug("startBGP - end")
     }
 
     private def stopBGP() {
+        log.debug("stopBGP - begin")
+
         if (bgpdProcess != null) {
             bgpdProcess.stop()
         }
+
+        log.debug("stopBGP - end")
     }
 
     private def internalPortReady(newPort: InternalPort) {
+        log.debug("internalPortReady - begin")
+
         internalPort = newPort
         // The internal port is ready. Set up the flows
         if (bgps.size <= 0) {
@@ -442,6 +477,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
         setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
         bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
         bgpdProcess.start()
+
+        log.debug("internalPortReady - end")
     }
 
     def create(localAddr: IntIPv4, bgp: BGP) {
@@ -460,6 +497,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
     def setBGPFlows(localPortNum: Short, bgp: BGP,
                     bgpPort: ExteriorRouterPort) {
+
+        log.debug("setBGPFlows - begin")
 
         // Set the BGP ID in a set to use as a tag for the datapath flows
         // For some reason AddWilcardFlow needs a mutable set so this
@@ -585,6 +624,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int)
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet))
+
+        log.debug("setBGPFlows - end")
     }
 
 }

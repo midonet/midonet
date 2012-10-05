@@ -22,7 +22,6 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkDirectory;
-import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midolman.state.zkManagers.PortSetZkManager;
 import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midonet.cluster.client.BGPListBuilder;
@@ -39,6 +38,7 @@ import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import com.midokura.util.eventloop.Reactor;
+
 import static com.midokura.midonet.cluster.client.TunnelZones.GreBuilder;
 import static com.midokura.midonet.cluster.client.TunnelZones.CapwapBuilder;
 
@@ -52,7 +52,7 @@ import static com.midokura.midonet.cluster.client.TunnelZones.CapwapBuilder;
 public class LocalClientImpl implements Client {
 
     private static final Logger log = LoggerFactory
-        .getLogger(LocalClientImpl.class);
+            .getLogger(LocalClientImpl.class);
 
     @Inject
     HostZkManager hostManager;
@@ -121,8 +121,8 @@ public class LocalClientImpl implements Client {
                 TunnelZone<?, ?> zone = readTunnelZone(zoneID, builders);
 
                 readHosts(zone,
-                          new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
-                          builders);
+                        new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
+                        builders);
             }
         });
     }
@@ -130,37 +130,39 @@ public class LocalClientImpl implements Client {
     @Override
     public void getPortSet(final UUID uuid, final PortSetBuilder builder) {
         portSetZkManager.getPortSetAsync(
-            uuid,
-            new DirectoryCallback<Set<UUID>>() {
-                @Override
-                public void onSuccess(Result<Set<UUID>> result) {
-                    builder
-                        .setHosts(result.getData())
-                        .build();
-                }
+                uuid,
+                new DirectoryCallback<Set<UUID>>() {
+                    @Override
+                    public void onSuccess(Result<Set<UUID>> result) {
+                        builder
+                                .setHosts(result.getData())
+                                .build();
+                    }
 
-                @Override
-                public void onTimeout() {
+                    @Override
+                    public void onTimeout() {
 
-                }
+                    }
 
-                @Override
-                public void onError(KeeperException e) {
+                    @Override
+                    public void onError(KeeperException e) {
 
+                    }
+                },
+                new Directory.DefaultTypedWatcher() {
+                    @Override
+                    public void pathChildrenUpdated(String path) {
+                        getPortSet(uuid, builder);
+                    }
                 }
-            },
-            new Directory.DefaultTypedWatcher() {
-                @Override
-                public void pathChildrenUpdated(String path) {
-                    getPortSet(uuid, builder);
-                }
-            }
         );
     }
 
     @Override
     public void subscribeBgp(UUID portID, BGPListBuilder builder) {
+        log.debug("subscribeBgp - begin");
         bgpManager.registerNewBuilder(portID, builder);
+        log.debug("subscribeBgp - end");
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,
@@ -169,25 +171,25 @@ public class LocalClientImpl implements Client {
 
         try {
             Set<UUID> currentList =
-                tunnelZoneZkManager.getZoneMemberships(zone.getId(),
-                                                       new Directory.DefaultTypedWatcher() {
-                                                           @Override
-                                                           public void pathChildrenUpdated(String path) {
-                                                               readHosts(
-                                                                   zone,
-                                                                   zoneHosts,
-                                                                   builders);
-                                                           }
-                                                       });
+                    tunnelZoneZkManager.getZoneMemberships(zone.getId(),
+                            new Directory.DefaultTypedWatcher() {
+                                @Override
+                                public void pathChildrenUpdated(String path) {
+                                    readHosts(
+                                            zone,
+                                            zoneHosts,
+                                            builders);
+                                }
+                            });
 
             Set<TunnelZone.HostConfig<?, ?>> newMemberships =
-                new HashSet<TunnelZone.HostConfig<?, ?>>();
+                    new HashSet<TunnelZone.HostConfig<?, ?>>();
 
             for (UUID uuid : currentList) {
                 if (!zoneHosts.containsKey(uuid)) {
                     newMemberships.add(
-                        tunnelZoneZkManager.getZoneMembership(
-                            zone.getId(), uuid, null)
+                            tunnelZoneZkManager.getZoneMembership(
+                                    zone.getId(), uuid, null)
                     );
                 }
             }
@@ -206,7 +208,7 @@ public class LocalClientImpl implements Client {
 
             for (UUID removedHost : removedMemberships) {
                 triggerZoneMembershipChange(zone, zoneHosts.get(removedHost),
-                                            builders, false);
+                        builders, false);
                 zoneHosts.remove(removedHost);
             }
 
@@ -226,12 +228,12 @@ public class LocalClientImpl implements Client {
 
                     if (added) {
                         buildersProvider
-                            .getGreZoneBuilder()
-                            .addHost(greConfig.getId(), greConfig);
+                                .getGreZoneBuilder()
+                                .addHost(greConfig.getId(), greConfig);
                     } else {
                         buildersProvider
-                            .getGreZoneBuilder()
-                            .removeHost(greConfig.getId(), greConfig);
+                                .getGreZoneBuilder()
+                                .removeHost(greConfig.getId(), greConfig);
                     }
                 }
                 break;
@@ -261,25 +263,25 @@ public class LocalClientImpl implements Client {
 
         try {
             TunnelZone<?, ?> zone =
-                tunnelZoneZkManager.getZone(
-                    zoneID,
-                    new Directory.DefaultTypedWatcher() {
-                        @Override
-                        public void pathDataChanged(String path) {
-                            readTunnelZone(zoneID, builders);
-                        }
-                    });
+                    tunnelZoneZkManager.getZone(
+                            zoneID,
+                            new Directory.DefaultTypedWatcher() {
+                                @Override
+                                public void pathDataChanged(String path) {
+                                    readTunnelZone(zoneID, builders);
+                                }
+                            });
 
             if (zone instanceof GreTunnelZone) {
                 final GreTunnelZone greZone = (GreTunnelZone) zone;
                 builders.getGreZoneBuilder()
                         .setConfiguration(
-                            new GreBuilder.ZoneConfig() {
-                                @Override
-                                public GreTunnelZone getTunnelZoneConfig() {
-                                    return greZone;
-                                }
-                            });
+                                new GreBuilder.ZoneConfig() {
+                                    @Override
+                                    public GreTunnelZone getTunnelZoneConfig() {
+                                        return greZone;
+                                    }
+                                });
             } else if (zone instanceof CapwapTunnelZone) {
                 final CapwapTunnelZone capwapZone = (CapwapTunnelZone) zone;
                 builders.getCapwapZoneBuilder()
@@ -295,7 +297,7 @@ public class LocalClientImpl implements Client {
             return zone;
         } catch (StateAccessException e) {
             log.error("Exception retrieving availability zone with id: {}",
-                      zoneID, e);
+                    zoneID, e);
             return null;
         }
     }
@@ -305,18 +307,18 @@ public class LocalClientImpl implements Client {
                                                         final boolean isUpdate) {
         try {
             HostDirectory.Metadata metadata =
-                hostManager.getHostMetadata(
-                    hostId, new Directory.DefaultTypedWatcher() {
-                    @Override
-                    public void pathDataChanged(String path) {
-                        retrieveHostMetadata(hostId, builder, true);
-                    }
+                    hostManager.getHostMetadata(
+                            hostId, new Directory.DefaultTypedWatcher() {
+                        @Override
+                        public void pathDataChanged(String path) {
+                            retrieveHostMetadata(hostId, builder, true);
+                        }
 
-                    @Override
-                    public void pathDeleted(String path) {
+                        @Override
+                        public void pathDeleted(String path) {
 //                        builder.deleted();
-                    }
-                });
+                        }
+                    });
 
             if (isUpdate)
                 builder.build();
@@ -334,13 +336,13 @@ public class LocalClientImpl implements Client {
                                             final boolean isUpdate) {
         try {
             String datapath =
-                hostManager.getVirtualDatapathMapping(
-                    hostId, new Directory.DefaultTypedWatcher() {
-                    @Override
-                    public void pathDataChanged(String path) {
-                        retrieveHostDatapathName(hostId, builder, true);
-                    }
-                });
+                    hostManager.getVirtualDatapathMapping(
+                            hostId, new Directory.DefaultTypedWatcher() {
+                        @Override
+                        public void pathDataChanged(String path) {
+                            retrieveHostDatapathName(hostId, builder, true);
+                        }
+                    });
 
             builder.setDatapathName(datapath);
 
@@ -382,28 +384,28 @@ public class LocalClientImpl implements Client {
             //     successfully from the getVirtualPortMappings we have sent the
             //     updates to the callers
             final Set<HostDirectory.VirtualPortMapping> newMappings =
-                hostManager
-                    .getVirtualPortMappings(
-                        hostId, new Directory.DefaultTypedWatcher() {
-                        @Override
-                        public void pathChildrenUpdated(String path) {
-                            retrieveHostVirtualPortMappings(hostId, builder,
-                                                            oldMappings, true);
-                        }
-                    });
+                    hostManager
+                            .getVirtualPortMappings(
+                                    hostId, new Directory.DefaultTypedWatcher() {
+                                @Override
+                                public void pathChildrenUpdated(String path) {
+                                    retrieveHostVirtualPortMappings(hostId, builder,
+                                            oldMappings, true);
+                                }
+                            });
 
             for (HostDirectory.VirtualPortMapping mapping : oldMappings) {
                 if (!newMappings.contains(mapping)) {
                     builder.delMaterializedPortMapping(
-                        mapping.getVirtualPortId(),
-                        mapping.getLocalDeviceName());
+                            mapping.getVirtualPortId(),
+                            mapping.getLocalDeviceName());
                 }
             }
             for (HostDirectory.VirtualPortMapping mapping : newMappings) {
                 if (!oldMappings.contains(mapping)) {
                     builder.addMaterializedPortMapping(
-                        mapping.getVirtualPortId(),
-                        mapping.getLocalDeviceName()
+                            mapping.getVirtualPortId(),
+                            mapping.getLocalDeviceName()
                     );
                 }
             }
@@ -428,18 +430,18 @@ public class LocalClientImpl implements Client {
         log.info("Updating host information for host {}", hostId);
 
         HostDirectory.Metadata metadata =
-            retrieveHostMetadata(hostId, builder, isUpdate);
+                retrieveHostMetadata(hostId, builder, isUpdate);
 
         if (metadata != null) {
             retrieveAvailabilityZoneConfigs(hostId, new HashSet<UUID>(),
-                                            builder);
+                    builder);
 
             retrieveHostDatapathName(hostId, builder, isUpdate);
 
             retrieveHostVirtualPortMappings(
-                hostId, builder,
-                new HashSet<HostDirectory.VirtualPortMapping>(),
-                isUpdate);
+                    hostId, builder,
+                    new HashSet<HostDirectory.VirtualPortMapping>(),
+                    isUpdate);
 
             builder.build();
         }
@@ -451,23 +453,23 @@ public class LocalClientImpl implements Client {
                                     final HostBuilder builder) {
         try {
             Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
-                new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
+                    new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
 
             Set<UUID> newZones =
-                hostManager.getTunnelZoneIds(
-                    hostId,
-                    new Directory.DefaultTypedWatcher() {
-                        @Override
-                        public void pathDataChanged(String path) {
-                            retrieveAvailabilityZoneConfigs(hostId, oldZones,
-                                                            builder);
-                        }
-                    });
+                    hostManager.getTunnelZoneIds(
+                            hostId,
+                            new Directory.DefaultTypedWatcher() {
+                                @Override
+                                public void pathDataChanged(String path) {
+                                    retrieveAvailabilityZoneConfigs(hostId, oldZones,
+                                            builder);
+                                }
+                            });
 
             for (UUID uuid : newZones) {
                 hostTunnelZones.put(
-                    uuid,
-                    tunnelZoneZkManager.getZoneMembership(uuid, hostId, null));
+                        uuid,
+                        tunnelZoneZkManager.getZoneMembership(uuid, hostId, null));
             }
 
             builder.setTunnelZones(hostTunnelZones);
