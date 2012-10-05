@@ -3,6 +3,7 @@
 */
 package com.midokura.sdn.dp.ports;
 
+import java.nio.ByteOrder;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -180,9 +181,14 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     @Override
     public void serialize(BaseBuilder builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
-        builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4);
+        /* XXX(guillermo):
+         *   - Clarification: reverseBytes() does not break platform
+         *     independence because the JVM is big endian everywhere, we can
+         *     expect the same from netlink.
+         */
+        builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4, ByteOrder.BIG_ENDIAN);
         if (this.srcIPv4 != null) {
-            builder.addAttr(Attr.OVS_TUNNEL_ATTR_SRC_IPV4, srcIPv4);
+            builder.addAttr(Attr.OVS_TUNNEL_ATTR_SRC_IPV4, srcIPv4, ByteOrder.BIG_ENDIAN);
         }
         if (this.outKey != null) {
             builder.addAttr(Attr.OVS_TUNNEL_ATTR_OUT_KEY, outKey);

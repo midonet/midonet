@@ -31,17 +31,47 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
     public abstract Result build();
 
     public Builder addAttr(NetlinkMessage.AttrKey<Byte> attr, byte value) {
-        NetlinkMessage.addAttribute(buffer, attr.getId(), value);
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value);
+        return self();
+    }
+
+    public Builder addAttr(NetlinkMessage.AttrKey<Short> attr, short value) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value);
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Integer> attr, int value) {
-        NetlinkMessage.addAttribute(buffer, attr.getId(), value);
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value);
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Long> attr, long value) {
-        NetlinkMessage.addAttribute(buffer, attr.getId(), value);
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 12);
+        addValue(value);
+        return self();
+    }
+
+    public Builder addAttr(NetlinkMessage.AttrKey<Short> attr, short value,
+                           ByteOrder order) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value, order);
+        return self();
+    }
+
+    public Builder addAttr(NetlinkMessage.AttrKey<Integer> attr, int value,
+                           ByteOrder order) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value, order);
+        return self();
+    }
+
+    public Builder addAttr(NetlinkMessage.AttrKey<Long> attr, long value,
+                           ByteOrder order) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 12);
+        addValue(value, order);
         return self();
     }
 
@@ -130,9 +160,12 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<?> attr) {
-        NetlinkMessage.addAttribute(buffer, attr.getId());
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 4);
         return self();
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+
 
     public BuilderNested<Builder> addAttrNested(NetlinkMessage.AttrKey<?> attr) {
 
