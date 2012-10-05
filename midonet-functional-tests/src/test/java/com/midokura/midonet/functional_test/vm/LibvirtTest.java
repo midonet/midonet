@@ -3,6 +3,7 @@
  */
 package com.midokura.midonet.functional_test.vm;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.midokura.util.process.ProcessHelper;
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 
+@Ignore
 public class LibvirtTest extends AbstractLibvirtTest {
 
     private final static Logger log = LoggerFactory.getLogger(LibvirtTest.class);

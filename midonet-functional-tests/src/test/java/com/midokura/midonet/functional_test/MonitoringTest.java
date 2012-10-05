@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -49,9 +50,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.*;
 import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Jmx_Enabled;
 
-/**
- * Date: 5/31/12
- */
+@Ignore
 public class MonitoringTest {
 
     static int replicationFactor = 1;

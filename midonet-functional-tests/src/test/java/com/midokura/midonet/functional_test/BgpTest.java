@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
  * @author Mihai Claudiu Toader <mtoader@midkura.com>
  *         Date: 11/28/11
  */
+@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);

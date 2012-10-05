@@ -6,6 +6,7 @@ package com.midokura.midonet.functional_test.metrics;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -48,6 +49,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 5/4/12
  */
+@Ignore
 public class MetricsAndMonitoringTest {
 
     private static final Logger log = LoggerFactory
