@@ -462,6 +462,7 @@ public class LocalClientImpl implements Client {
                         public void pathChildrenUpdated(String path) {
                             retrieveTunnelZoneConfigs(hostId, oldZones,
                                                       builder);
+                            builder.build();
                         }
                     });
 
