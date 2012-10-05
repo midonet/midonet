@@ -76,6 +76,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         if(builder == null){
             log.error("Null builder for router {}", id.toString());
+            return;
         }
 
         RouterZkManager.RouterConfig config = null;
@@ -84,39 +85,37 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         } catch (StateAccessException e) {
             log.error("Cannot retrieve the configuration for bridge {}",
                       id, e);
+            return;
         }
 
         ArpTable arpTable = null;
-        if (config != null) {
-            if (!isUpdate) {
-                try {
-                    arpTable = new ArpTable(
-                        routerMgr.getArpTableDirectory(id));
-                    arpTable.start();
-                } catch (StateAccessException e) {
-                    log.error(
-                        "Error retrieving ArpTable for bridge {}",
-                        id, e);
-                }
-                try {
-                    startRoutingTable(id, builder);
-                } catch (StateAccessException e) {
-                    log.error("Couldn't retrieve the RoutingTableDirectory", e);
-                }
+        if (!isUpdate) {
+            try {
+                arpTable = new ArpTable(
+                    routerMgr.getArpTableDirectory(id));
+                arpTable.start();
+            } catch (StateAccessException e) {
+                log.error(
+                    "Error retrieving ArpTable for bridge {}",
+                    id, e);
+            }
+            try {
+                ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
+                    routerMgr.getRoutingTableDirectory(id),
+                    CreateMode.EPHEMERAL, builder);
+                mapRouterIdToRoutes.put(id, routeSet);
+                routeSet.start();
+                log.debug("Started Routing Table for router {}", id);
+            } catch (StateAccessException e) {
+                log.error("Couldn't retrieve the RoutingTableDirectory", e);
             }
         }
-        buildRouterFromConfig(id, config, builder, arpTable);
+        builder.setInFilter(config.inboundFilter)
+            .setOutFilter(config.outboundFilter);
+        if(arpTable != null)
+            builder.setArpCache(new ArpCacheImpl(arpTable));
+        builder.build();
         log.info("Update configuration for router {}", id);
-    }
-
-    private void startRoutingTable(UUID routerId, RouterBuilder builder)
-        throws StateAccessException {
-        ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
-            routerMgr.getRoutingTableDirectory(routerId),
-            CreateMode.EPHEMERAL, builder);
-        mapRouterIdToRoutes.put(routerId, routeSet);
-        routeSet.start();
-        log.debug("Started Routing Table for router {}", routerId);
     }
 
     Runnable watchRouter(final UUID id) {
@@ -130,16 +129,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         };
     }
 
-    void buildRouterFromConfig(UUID id, RouterZkManager.RouterConfig config,
-                               RouterBuilder builder, ArpTable arpTable) {
-
-        builder.setInFilter(config.inboundFilter)
-               .setOutFilter(config.outboundFilter);
-        if(arpTable != null)
-            builder.setArpCache(new ArpCacheImpl(arpTable));
-        builder.build();
-    }
-
     @Override
     protected void getConfig(UUID id) {
         getRouterConf(id, false);
@@ -147,8 +136,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     public void updateRoutesBecauseLocalPortChangedStatus(UUID routerId, UUID portId,
                                                           boolean active){
-        log.debug("Port {} of router {} became active {}", new Object[]{portId,
-            routerId, active});
+        log.debug("Port {} of router {} became active {}",
+            new Object[] {portId, routerId, active} );
         if(!active){
             // do nothing the watcher should take care of removing the routes
             return;
@@ -192,6 +181,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         throws StateAccessException, KeeperException {
 
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
+        log.debug("Old routes: {}", oldRoutes);
 
         if(oldRoutes == null){
             mapPortIdToRoutes.put(portId, new HashSet<Route>());
@@ -238,6 +228,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                       routerId, e);
             return;
         }
+        log.debug("Updating routes for port {} of router {}. Old routes {} " +
+            "New routes {}",
+            new Object[] {portId, routerId, oldRoutes, newRoutes});
         RouteEncoder encoder = new RouteEncoder();
 
         Set<Route> removedRoutes = new HashSet<Route>(oldRoutes);
@@ -248,14 +241,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         for(Route routeToAdd: addedRoutes){
             String path = "/" + encoder.encode(routeToAdd);
             dir.asyncAdd(path, null, CreateMode.EPHEMERAL);
-            log.trace("Added new route for port {} in router {}, route {}",
+            log.debug("Added new route for port {} in router {}, route {}",
                       new Object[]{portId, routerId, routeToAdd});
         }
 
         for(Route routeToRemove: removedRoutes){
             String path = "/" + encoder.encode(routeToRemove);
             dir.asyncDelete(path);
-            log.trace("Deleted route for port {} in router {}, route {}",
+            log.debug("Deleted route for port {} in router {}, route {}",
                       new Object[]{portId, routerId, routeToRemove});
         }
 
@@ -345,10 +338,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public ReplicatedRouteSet(Directory d, CreateMode mode,
                                   RouterBuilder builder) {
             super(d, mode);
-            addWatcher(builder);
-        }
-
-        public void addWatcher(RouterBuilder builder){
             if(builder != null)
                 this.addWatcher(new RouteWatcher(builder));
         }
@@ -367,7 +356,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     private class RouteWatcher implements ReplicatedSet.Watcher<Route> {
 
         RouterBuilder builder;
-        boolean isUpdate = false;
 
         private RouteWatcher(RouterBuilder routerBuilder) {
             builder = routerBuilder;
@@ -385,13 +373,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             //if (added.size() > 0 || removed.size() > 0)
             //notifyWatchers(); //TODO(ross) shall we notify for flow removal?
 
-            // If it's not the first time we execute this code, it means that
-            // the ReplicatedSe fired an update, so we have to notify the builder
-            if(isUpdate)
-                builder.build();
-
-            //TODO(ross) is there a better way?
-            isUpdate = true;
+            builder.build();
         }
     }
 

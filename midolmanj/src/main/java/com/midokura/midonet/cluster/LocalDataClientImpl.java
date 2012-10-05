@@ -23,7 +23,6 @@ import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.layer3.L3DevicePort;
 import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
@@ -579,31 +578,6 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
     }
-
-    private class RouterPortListener implements L3DevicePort.Listener {
-
-        RoutesManager routes;
-
-        private RouterPortListener(RoutesManager routes) {
-            this.routes = routes;
-        }
-
-        @Override
-        public void routesChanged(UUID portId,
-                                  Collection<com.midokura.midolman.layer3.Route> added,
-                                  Collection<com.midokura.midolman.layer3.Route> removed) {
-            for (com.midokura.midolman.layer3.Route rt : added) {
-                routes.addRoute(rt);
-                log.debug("{} routesChanged adding {} to table", rt);
-
-            }
-            for (com.midokura.midolman.layer3.Route rt : removed) {
-                routes.remove(rt);
-                log.debug("{} routesChanged removing {} from table",
-                          rt);
-                }
-            }
-        }
 
     public Chain chainsGetByName(@Nonnull String tenantId, String name)
             throws StateAccessException {

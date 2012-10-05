@@ -192,7 +192,8 @@ public class ZkDirectory implements Directory {
     public byte[] get(String relativePath, Runnable watcher)
         throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
+        return zk.getZooKeeper().getData(absPath,
+            (null == watcher)? null : wrapCallback(watcher), null);
     }
 
     @Override
@@ -227,7 +228,8 @@ public class ZkDirectory implements Directory {
 
         return
             new HashSet<String>(
-                zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
+                zk.getZooKeeper().getChildren(absPath,
+                    (null == watcher)? null : wrapCallback(watcher)));
     }
 
     @Override
@@ -236,7 +238,7 @@ public class ZkDirectory implements Directory {
                                  TypedWatcher watcher) {
         zk.getZooKeeper().getChildren(
             getAbsolutePath(relativePath),
-            wrapCallback(watcher),
+            (null == watcher)? null : wrapCallback(watcher),
             new AsyncCallback.Children2Callback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,
