@@ -6,26 +6,26 @@ package com.midokura.midolman.simulation
 
 import collection.JavaConversions._
 import collection.mutable
-import akka.dispatch.{Promise, ExecutionContext, Future}
-import akka.actor.ActorSystem
-import akka.util.duration._
-import com.midokura.midonet.cluster.DataClient
-import com.midokura.packets._
-import java.util.UUID
-import com.midokura.midolman.SimulationController
-import com.midokura.midolman.topology.VirtualTopologyActor
-import com.midokura.midonet.cluster.client._
 import compat.Platform
-import com.midokura.midolman.util.Net
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import akka.actor.ActorSystem
+import akka.dispatch.{ExecutionContext, Future, Promise}
+import akka.util.duration._
+import java.util.UUID
+
+import com.midokura.midolman.SimulationController
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.topology.VirtualTopologyActor
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midonet.cluster.DataClient
+import com.midokura.midonet.cluster.client._
+import com.midokura.packets._
 
 
 class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
-                  val request: DHCP, val sourceMac: MAC,
-                  val cookie: Option[Int], val mtu: Int)
-                 (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem) {
+               val request: DHCP, val sourceMac: MAC,
+               val cookie: Option[Int], val mtu: Int)
+              (implicit val ec: ExecutionContext,
+               val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
     private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
 
