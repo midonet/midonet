@@ -456,15 +456,15 @@ public class LocalClientImpl implements Client {
                     new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
 
             Set<UUID> newZones =
-                    hostManager.getTunnelZoneIds(
-                            hostId,
-                            new Directory.DefaultTypedWatcher() {
-                                @Override
-                                public void pathDataChanged(String path) {
-                                    retrieveAvailabilityZoneConfigs(hostId, oldZones,
-                                            builder);
-                                }
-                            });
+                hostManager.getTunnelZoneIds(
+                    hostId,
+                    new Directory.DefaultTypedWatcher() {
+                        @Override
+                        public void pathChildrenUpdated(String path) {
+                            retrieveAvailabilityZoneConfigs(hostId, oldZones,
+                                                            builder);
+                        }
+                    });
 
             for (UUID uuid : newZones) {
                 hostTunnelZones.put(
