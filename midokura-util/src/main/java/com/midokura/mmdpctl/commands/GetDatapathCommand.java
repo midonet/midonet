@@ -2,6 +2,7 @@ package com.midokura.mmdpctl.commands;
 
 import com.midokura.mmdpctl.commands.callables.GetDatapathCallable;
 import com.midokura.mmdpctl.commands.results.GetDatapathResult;
+import com.midokura.netlink.protos.OvsDatapathConnection;
 
 import java.util.concurrent.Future;
 
@@ -13,8 +14,8 @@ public class GetDatapathCommand extends Command<GetDatapathResult> {
         this.datapathName = datapathName;
     }
 
-    public Future<GetDatapathResult> execute() {
-        return run(new GetDatapathCallable(datapathName));
+    public Future<GetDatapathResult> execute(OvsDatapathConnection connection) {
+        return run(new GetDatapathCallable(connection, datapathName));
     }
 
 }

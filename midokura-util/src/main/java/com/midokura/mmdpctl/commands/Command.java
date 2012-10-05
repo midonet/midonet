@@ -1,6 +1,8 @@
 package com.midokura.mmdpctl.commands;
 
 
+import com.midokura.netlink.protos.OvsDatapathConnection;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,6 +32,6 @@ public abstract class Command<T> {
      * class.
      * @return
      */
-    public abstract Future<T> execute();
+    public abstract Future<T> execute(OvsDatapathConnection connection);
 
 }

@@ -1,6 +1,5 @@
 package com.midokura.mmdpctl.commands.callables;
 
-import com.midokura.mmdpctl.netlink.NetlinkClient;
 import com.midokura.mmdpctl.commands.results.DumpDatapathResult;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 import com.midokura.sdn.dp.Datapath;
@@ -12,20 +11,15 @@ import java.util.concurrent.Callable;
 
 public class DumpDatapathCallable implements Callable<DumpDatapathResult> {
     private String datapathName;
+    OvsDatapathConnection connection;
 
-    public DumpDatapathCallable(String datapathName) {
+    public DumpDatapathCallable(OvsDatapathConnection connection, String datapathName) {
         this.datapathName = datapathName;
+        this.connection = connection;
     }
 
     @Override
     public DumpDatapathResult call() throws Exception {
-        OvsDatapathConnection connection = null;
-        try {
-            connection = NetlinkClient.createDatapathConnection();
-        } catch (Exception e) {
-            throw new Exception("Could not connect to Netlink.");
-        }
-
         try {
             Datapath datapath = connection.datapathsGet(datapathName).get();
             Set<Flow> flows = null;

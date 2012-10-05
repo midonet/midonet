@@ -1,6 +1,5 @@
 package com.midokura.mmdpctl.commands.callables;
 
-import com.midokura.mmdpctl.netlink.NetlinkClient;
 import com.midokura.mmdpctl.commands.results.DeleteDatapathResult;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 
@@ -9,21 +8,15 @@ import java.util.concurrent.Callable;
 public class DeleteDatapathCallable implements Callable<DeleteDatapathResult> {
 
     String datapathName;
+    OvsDatapathConnection connection;
 
-    public DeleteDatapathCallable(String datapathName) {
+    public DeleteDatapathCallable(OvsDatapathConnection connection, String datapathName) {
         this.datapathName = datapathName;
+        this.connection = connection;
     }
-
 
     @Override
     public DeleteDatapathResult call() throws Exception {
-        OvsDatapathConnection connection = null;
-        try {
-            connection = NetlinkClient.createDatapathConnection();
-        } catch (Exception e) {
-            throw new Exception("Could not connect to Netlink.");
-        }
-
         try {
             connection.datapathsDelete(datapathName).get();
             return new DeleteDatapathResult();

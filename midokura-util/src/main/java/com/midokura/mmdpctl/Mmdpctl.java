@@ -2,6 +2,8 @@ package com.midokura.mmdpctl;
 
 import com.midokura.mmdpctl.commands.*;
 import com.midokura.mmdpctl.commands.results.Result;
+import com.midokura.mmdpctl.netlink.NetlinkClient;
+import com.midokura.netlink.protos.OvsDatapathConnection;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +27,15 @@ public class Mmdpctl {
     }
 
     public int execute(Command<? extends Result> command) {
+        OvsDatapathConnection connection;
+        try {
+            connection = NetlinkClient.createDatapathConnection();
+        } catch (Exception e) {
+            System.out.println("Could not connect to netlink: "+ e.getMessage());
+            return -1;
+        }
 
-        Future<? extends Result> resultFuture = command.execute();
+        Future<? extends Result> resultFuture = command.execute(connection);
 
         try {
             Result result = null;
@@ -125,6 +134,7 @@ public class Mmdpctl {
                 }
             }
             ////////////////////////////////
+
 
             if (cl.hasOption("list-dps")) {
                 System.exit(mmdpctl.execute(new ListDatapathsCommand()));
