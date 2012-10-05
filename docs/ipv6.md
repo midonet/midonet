@@ -71,7 +71,7 @@ packets.)
         family.
  * Create an `ICMPv6` packet type in `com.midokura.packets`.
  * Implement neighbor discovery (RFC 5942).  (TODO: This needs to be
-        exapanded upon.)
+        expanded upon.)
  * Use ICMPv6 for pings and non-delivery messages of IPv6 packets.
  * Implement router advertisement.
  * Support the IPv6 node requirements (RFC 6434), though the IPSec and
