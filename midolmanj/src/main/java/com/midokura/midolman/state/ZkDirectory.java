@@ -115,6 +115,8 @@ public class ZkDirectory implements Directory {
     }
 
     private Watcher wrapCallback(Runnable runnable) {
+        if (null == runnable)
+            return null;
         if (runnable instanceof TypedWatcher)
             return new MyTypedWatcher((TypedWatcher) runnable);
 
@@ -192,15 +194,13 @@ public class ZkDirectory implements Directory {
     public byte[] get(String relativePath, Runnable watcher)
         throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        return zk.getZooKeeper().getData(absPath,
-            (null == watcher)? null : wrapCallback(watcher), null);
+        return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
     }
 
     @Override
     public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
         zk.getZooKeeper().getData(
-            getAbsolutePath(relativePath),
-            (null == watcher)? null : wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.DataCallback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
@@ -228,8 +228,7 @@ public class ZkDirectory implements Directory {
 
         return
             new HashSet<String>(
-                zk.getZooKeeper().getChildren(absPath,
-                    (null == watcher)? null : wrapCallback(watcher)));
+                zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
     }
 
     @Override
@@ -237,8 +236,7 @@ public class ZkDirectory implements Directory {
                                  final DirectoryCallback<Set<String>> cb,
                                  TypedWatcher watcher) {
         zk.getZooKeeper().getChildren(
-            getAbsolutePath(relativePath),
-            (null == watcher)? null : wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.Children2Callback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,
