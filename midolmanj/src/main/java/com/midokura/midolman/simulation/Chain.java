@@ -12,6 +12,7 @@ import scala.collection.Map;
 import scala.Option;
 import scala.Some;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,7 @@ import com.midokura.cache.Cache;
 import com.midokura.cache.CacheWithPrefix;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
+import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
@@ -37,6 +39,9 @@ public class Chain {
     private String name;
     private static HashMap<UUID, NatMapping> natMappingMap =
         new HashMap<UUID, NatMapping>();
+
+    @Inject
+    private static NatMappingFactory natMappingFactory;
 
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
                  String name_) {
@@ -167,15 +172,7 @@ public class Chain {
         if (natMappingMap.containsKey(ownerID)) {
             return natMappingMap.get(ownerID);
         } else {
-            Directory zkDirxxx = null;
-            String zkBasePathxxx = "";
-            Reactor reactorxxx = null;
-            Cache cachexxx = null;
-
-            NatMapping natMapping = new NatLeaseManager(
-                    new FiltersZkManager(zkDirxxx, zkBasePathxxx),
-                    ownerID,
-                    new CacheWithPrefix(cachexxx, ownerID.toString()), reactorxxx);
+            NatMapping natMapping = natMappingFactory.newNatMapping(ownerID);
             natMappingMap.put(ownerID, natMapping);
             return natMapping;
         }
