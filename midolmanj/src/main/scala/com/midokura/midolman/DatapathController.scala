@@ -478,8 +478,14 @@ class DatapathController() extends Actor with ActorLogging {
 
         case _SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
-            for (port <- ports) {
-                localPorts.put(port.getName, port)
+            ports.foreach { _ match {
+                    case p: GreTunnelPort =>
+                        selfPostPortCommand(DeleteTunnelGre(p, None))
+                    case p: CapWapTunnelPort =>
+                        selfPostPortCommand(DeleteTunnelCapwap(p, None))
+                    case p =>
+                        localPorts.put(p.getName, p)
+                }
             }
             doDatapathPortsUpdate
 
