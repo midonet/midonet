@@ -574,7 +574,7 @@ public class Converter {
         metadata.setName(host.getName());
         metadata.setAddresses(host.getAddresses());
         metadata.setTunnelZones(new HashSet<UUID>(
-                host.getAvailabilityZones()));
+                host.getTunnelZones()));
 
         return metadata;
     }

@@ -433,8 +433,7 @@ public class LocalClientImpl implements Client {
                 retrieveHostMetadata(hostId, builder, isUpdate);
 
         if (metadata != null) {
-            retrieveAvailabilityZoneConfigs(hostId, new HashSet<UUID>(),
-                    builder);
+            retrieveTunnelZoneConfigs(hostId, new HashSet<UUID>(), builder);
 
             retrieveHostDatapathName(hostId, builder, isUpdate);
 
@@ -448,9 +447,9 @@ public class LocalClientImpl implements Client {
     }
 
     private Map<UUID, TunnelZone.HostConfig<?, ?>>
-    retrieveAvailabilityZoneConfigs(final UUID hostId,
-                                    final Set<UUID> oldZones,
-                                    final HostBuilder builder) {
+    retrieveTunnelZoneConfigs(final UUID hostId,
+                              final Set<UUID> oldZones,
+                              final HostBuilder builder) {
         try {
             Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
                     new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
@@ -461,8 +460,8 @@ public class LocalClientImpl implements Client {
                     new Directory.DefaultTypedWatcher() {
                         @Override
                         public void pathChildrenUpdated(String path) {
-                            retrieveAvailabilityZoneConfigs(hostId, oldZones,
-                                                            builder);
+                            retrieveTunnelZoneConfigs(hostId, oldZones,
+                                                      builder);
                         }
                     });
 
