@@ -7,6 +7,7 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
 import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
+import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,7 @@ import com.midokura.netlink.protos.OvsDatapathConnection;
  */
 public class MidolmanActorsModule extends PrivateModule {
     private static final Logger log = LoggerFactory
-        .getLogger(MidolmanActorsModule.class);
+            .getLogger(MidolmanActorsModule.class);
 
     @Override
     protected void configure() {
@@ -56,6 +57,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
         bind(PortSetManager.class);
+        bind(RoutingManagerActor.class);
     }
 
     protected void bindMidolmanActorsService() {

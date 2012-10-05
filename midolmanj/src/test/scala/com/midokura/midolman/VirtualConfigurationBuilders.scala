@@ -68,8 +68,6 @@ trait VirtualConfigurationBuilders {
                         nwAddr: String, nwLen: Int): MaterializedRouterPort = {
         newPortOnRouter(router, Ports.materializedRouterPort(router)
             .setPortAddr(portAddr)
-            .setLocalNwAddr(nwAddr)
-            .setLocalNwLength(nwLen)
             .setNwAddr(nwAddr)
             .setNwLength(nwLen)
             .setHwAddr(mac))

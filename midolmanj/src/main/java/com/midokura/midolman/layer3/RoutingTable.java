@@ -18,20 +18,23 @@ import org.slf4j.LoggerFactory;
 import com.midokura.packets.Net;
 
 public class RoutingTable {
-    
+
     private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
 
     private TrieNode dstPrefixTrie;
+    private int numRoutes = 0;
 
     public void clear() {
         dstPrefixTrie = null;
     }
 
     public Iterable<Route> lookup(int src, int dst) {
-        log.debug("lookup: src {} dst {}", 
-                Net.convertIntAddressToString(src),
-                Net.convertIntAddressToString(dst));
-        
+        log.debug("lookup: src {} dst {} in table with {} routes",
+                new Object[] {
+                    Net.convertIntAddressToString(src),
+                    Net.convertIntAddressToString(dst),
+                    numRoutes} );
+
         List<Route> ret = new Vector<Route>();
         Iterator<Collection<Route>> rtIter = findBestMatch(dst);
         while (rtIter.hasNext()) {
@@ -53,13 +56,13 @@ public class RoutingTable {
             if (ret.size() > 0)
                 break;
         }
-        
-        log.debug("lookup: return {} for src {} dst {}", 
+
+        log.debug("lookup: return {} for src {} dst {}",
                 new Object[] {
                 ret,
                 Net.convertIntAddressToString(src),
                 Net.convertIntAddressToString(dst)});
-        
+
         return ret;
     }
 
@@ -111,7 +114,7 @@ public class RoutingTable {
     /**
      * Returns the index of the most significant set bit (left to right).
      * Equivalently, the number of leading zeros in the 2's complement.
-     * 
+     *
      * @param v
      * @return
      */
@@ -139,7 +142,8 @@ public class RoutingTable {
 
     public void addRoute(Route rt) {
         log.debug("addRoute: {}", rt);
-        
+        numRoutes++;
+
         TrieNode parent = null;
         boolean inLeftChild = false;
         TrieNode node = dstPrefixTrie;
@@ -202,7 +206,8 @@ public class RoutingTable {
 
     public void deleteRoute(Route rt) {
         log.debug("deleteRoute: {}", rt);
-        
+        numRoutes--;
+
         TrieNode parent = null;
         boolean inLeftChild = false;
         TrieNode node = dstPrefixTrie;

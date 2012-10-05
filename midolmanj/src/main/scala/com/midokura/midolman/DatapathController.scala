@@ -31,15 +31,16 @@ import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
-                            Port, Ports, PortOptions}
+import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 import rcu.Host
 import rcu.PortSet
+import topology.LocalPortActive
 import topology.VirtualTopologyActor.BridgeRequest
+import com.midokura.packets.Ethernet
 import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 
@@ -331,16 +332,10 @@ object DatapathController extends Referenceable {
      * packet to the kernel (who in turn executes the actions on the packet's
      * data).
      *
-     * @param packet The packet object that should be sent to the kernel. Here
-     *               is an example:
-     *               {{{
-     *                               val outPortUUID = ...
-     *                               val pkt = new Packet()
-     *                               pkt.setData(data).addAction(new FlowActionOutputToVrnPort())
-     *                               controller ! SendPacket(pkt)
-     *               }}}
+     * @param ethPkt The Ethernet packet that should be sent to the kernel.
+     * @param actions The list of actions the kernel should apply to the data
      */
-    case class SendPacket(packet: Packet)
+    case class SendPacket(ethPkt: Ethernet, actions: List[FlowAction[_]])
 
     case class PacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
                         dpMatch: FlowMatch, reason: Packet.Reason,
@@ -427,11 +422,11 @@ class DatapathController() extends Actor with ActorLogging {
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
+    // Map of vport ID to local interface name - according to ZK.
     val vifPorts: mutable.Map[UUID, String] = mutable.Map()
 
     // the list of local ports
     val localPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
-    val knownPortsByName: mutable.Set[String] = mutable.Set()
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
@@ -486,7 +481,7 @@ class DatapathController() extends Actor with ActorLogging {
             for (port <- ports) {
                 localPorts.put(port.getName, port)
             }
-            doDatapathPortsUpdate(host.ports)
+            doDatapathPortsUpdate
 
         /**
          * Handle personal create port requests
@@ -525,7 +520,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         case host: Host =>
             this.host = host
-            doDatapathPortsUpdate(host.ports)
+            doDatapathPortsUpdate
             doDatapathZonesReply(host.zones)
 
         case zone: TunnelZone[_, _] =>
@@ -558,6 +553,9 @@ class DatapathController() extends Actor with ActorLogging {
 
         case AddWildcardFlow(flow, cookie, pktBytes, callbacks, tags) =>
             handleAddWildcardFlow(flow, cookie, pktBytes, callbacks, tags)
+
+        case SendPacket(ethPkt, actions) =>
+            handleSendPacket(ethPkt, actions)
 
         case PacketIn(wMatch, pktBytes, dpMatch, reason, cookie) =>
             handleFlowPacketIn(wMatch, pktBytes, dpMatch, reason, cookie)
@@ -940,32 +938,60 @@ class DatapathController() extends Actor with ActorLogging {
                            cookie: Option[Int]) {
         wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
-                wMatch.setInputPortUUID(dpPortToVifId(port))
-                // TODO(pino): handle the error case of no mapped UUID.
-            case null =>
+                if (localToVifPorts.contains(port)) {
+                    wMatch.setInputPortUUID(localToVifPorts(port))
+                    SimulationController.getRef().tell(
+                        PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
+                    return
+                }
+                // TODO(pino): implement the case of a tunneled packet
+                // TODO: addressed to a PortSet. That would be sent up to us
+                // TODO: so that we can do egress port filter simulation.
 
+
+                // Otherwise, drop the flow. There's a port on the DP that
+                // doesn't belong to us and is receiving packets.
+                FlowController.getRef().tell(
+                    AddWildcardFlow(
+                        new WildcardFlow()
+                            .setMatch(new WildcardMatch()
+                                .setInputPortNumber(port))
+                            .setIdleExpirationMillis(3000),
+                        cookie, null, null, null))
+
+            case null =>
+                // Missing InputPortNumber. This should never happen.
+                log.error("SCREAM: got a PacketIn that has no inPort number.",
+                    wMatch)
         }
 
-        SimulationController.getRef().tell(
-            PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
     }
 
-    private def dpPortToVifId(port: Short): UUID = {
-        localToVifPorts(port)
-    }
+    def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
+        log.debug("Sending packet {} with action list {}", ethPkt, origActions)
+        if (null == origActions || origActions.size == 0) {
+            // Empty action list drops the packet. No need to send to DP.
+            return
+        }
+        translateActions(origActions, null) onComplete {
+            case Right(actions) =>
+                val packet = new Packet().
+                    setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
+                    setData(ethPkt.serialize).setActions(actions)
+                datapathConnection.packetsExecute(datapath, packet,
+                    new ErrorHandlingCallback[java.lang.Boolean] {
+                        def onSuccess(data: java.lang.Boolean) {}
 
-    def handleSendPacket(packet: Packet) {
-
-
-//        packet
-//            .setMatch(translate(packet.getMatch))
-//            .setActions(translateToDpPorts(packet.getActions))
-//
-//        datapathConnection.packetsExecute(datapath, packet, new ErrorHandlingCallback[lang.Boolean] {
-//            def onSuccess(data: lang.Boolean) {}
-//
-//            def handleError(ex: NetlinkException, timeout: Boolean) {}
-//        })
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error(ex,
+                                "Failed to send a packet {} due to {}", packet,
+                                if (timeout) "timeout" else "error")
+                        }
+                    }
+                )
+            case _ =>
+                log.error("Failed to translate actions {}", origActions)
+        }
     }
 
     def handlePortOperationReply(opReply: PortOpReply[_]) {
@@ -1060,7 +1086,8 @@ class DatapathController() extends Actor with ActorLogging {
             self ! InitializationComplete()
     }
 
-    def doDatapathPortsUpdate(ports: Map[UUID, String]) {
+    def doDatapathPortsUpdate() {
+        val ports: Map[UUID, String] = host.ports
         if (pendingUpdateCount != 0) {
             system.scheduler.scheduleOnce(100 millis, self, LocalPortsReply(ports))
             return
@@ -1078,13 +1105,25 @@ class DatapathController() extends Actor with ActorLogging {
             if (!localPorts.contains(tapName)) {
                 selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
             }
+            else {
+                val p = localPorts(tapName)
+                val shortPortNum = p.getPortNo.shortValue()
+                if(!localToVifPorts.contains(shortPortNum)) {
+                    // The dpPort already existed but hadn't been mapped to a
+                    // virtual port UUID. Map it now and notify that the
+                    // vport is now active.
+                    localToVifPorts.put(shortPortNum, vifId)
+                    VirtualToPhysicalMapper.getRef() !
+                        LocalPortActive(vifId, active = true)
+                }
+            }
         }
 
         // find ports that need to be removed and post myself messages to
         // remove them
         for ((portName, portData) <- localPorts) {
             log.info("Looking at {} -> {}", portName, portData)
-            if (!knownPortsByName.contains(portName) && !newTaps.contains(portName)) {
+            if (!newTaps.contains(portName) && portName != datapath.getName) {
                 portData match {
                     case p: NetDevPort =>
                         selfPostPortCommand(DeletePortNetdev(p, None))

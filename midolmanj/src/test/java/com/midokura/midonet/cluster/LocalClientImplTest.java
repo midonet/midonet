@@ -48,7 +48,7 @@ import com.midokura.util.functors.Callback1;
 import com.midokura.util.functors.Callback3;
 
 public class LocalClientImplTest {
-    
+
     @Inject
     Client client;
     Injector injector = null;
@@ -66,7 +66,7 @@ public class LocalClientImplTest {
     BridgeZkManager getBridgeZkManager() {
         return injector.getInstance(BridgeZkManager.class);
     }
-    
+
     RouterZkManager getRouterZkManager() {
         return injector.getInstance(RouterZkManager.class);
     }
@@ -121,7 +121,7 @@ public class LocalClientImplTest {
 
         initializeZKStructure();
         Setup.createZkDirectoryStructure(zkDir(), zkRoot);
-        UUID routerId = getRouterZkManager().create(); 
+        UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
         Thread.sleep(2000);
@@ -137,31 +137,31 @@ public class LocalClientImplTest {
                    routerBuilder.getBuildCallsCount(), equalTo(2));
 
     }
-   
+
     @Test
     public void ArpCacheTest() throws InterruptedException, KeeperException, StateAccessException {
         initializeZKStructure();
         Setup.createZkDirectoryStructure(zkDir(), zkRoot);
-        UUID routerId = getRouterZkManager().create(); 
+        UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
         Thread.sleep(2000);
         assertThat("Build is called", routerBuilder.getBuildCallsCount(),
                    equalTo(1));
-        
+
         IntIPv4 ipAddr = IntIPv4.fromString("192.168.0.0_24");
-        ArpCacheEntry arpEntry = new ArpCacheEntry(MAC.random(), 0, 0, 0); 
-        // add an entry in the arp cache. 
-        routerBuilder.addNewArpEntry(ipAddr, arpEntry); 
-        
+        ArpCacheEntry arpEntry = new ArpCacheEntry(MAC.random(), 0, 0, 0);
+        // add an entry in the arp cache.
+        routerBuilder.addNewArpEntry(ipAddr, arpEntry);
+
         Thread.sleep(2000);
-        
-        assertEquals(arpEntry, routerBuilder.getArpEntryForIp(ipAddr)); 
+
+        assertEquals(arpEntry, routerBuilder.getArpEntryForIp(ipAddr));
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(1));
 
     }
-    
+
     @Test
     public void MacPortMapTest() throws InterruptedException, KeeperException, ZkStateSerializationException, StateAccessException {
         initializeZKStructure();
@@ -172,36 +172,36 @@ public class LocalClientImplTest {
         client.getBridge(bridgeId, bridgeBuilder);
         Thread.sleep(2000);
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(), equalTo(1));
-        
-        // and a new packet. 
-        MAC mac = MAC.random(); 
-        UUID portUUID = UUID.randomUUID(); 
-        
+
+        // and a new packet.
+        MAC mac = MAC.random();
+        UUID portUUID = UUID.randomUUID();
+
         ///////////
-        // This sends two notifications. 
-        bridgeBuilder.simulateNewPacket(mac,portUUID); 
+        // This sends two notifications.
+        bridgeBuilder.simulateNewPacket(mac,portUUID);
         ///////////
-        
+
         Thread.sleep(2000);
         // make sure the  notifications sent what we expected.
-        assertEquals(bridgeBuilder.getNotifiedMAC(), mac); 
-        assertNull(bridgeBuilder.getNotifiedUUID()[0]); 
+        assertEquals(bridgeBuilder.getNotifiedMAC(), mac);
+        assertNull(bridgeBuilder.getNotifiedUUID()[0]);
         assertEquals(portUUID, bridgeBuilder.getNotifiedUUID()[1]);
-        
-        // make sure the packet is there. 
-        assertEquals(portUUID, bridgeBuilder.getPort(mac)); 
-        
-        // remove the port. 
-        bridgeBuilder.removePort(mac, portUUID); 
+
+        // make sure the packet is there.
+        assertEquals(portUUID, bridgeBuilder.getPort(mac));
+
+        // remove the port.
+        bridgeBuilder.removePort(mac, portUUID);
         // make sure the  notifications sent what we expected.
         Thread.sleep(2000);
-        assertEquals(bridgeBuilder.getNotifiedMAC(), mac); 
-        assertEquals(portUUID, bridgeBuilder.getNotifiedUUID()[0]); 
+        assertEquals(bridgeBuilder.getNotifiedMAC(), mac);
+        assertEquals(portUUID, bridgeBuilder.getNotifiedUUID()[0]);
         assertNull(bridgeBuilder.getNotifiedUUID()[1]);
-        
-        // make sure that the mac <-> port association has been removed. 
-        assertNull(bridgeBuilder.getPort(mac)); 
-        
+
+        // make sure that the mac <-> port association has been removed.
+        assertNull(bridgeBuilder.getPort(mac));
+
         assertThat("Bridge update was notified", bridgeBuilder.getBuildCallsCount(), equalTo(1));
     }
 
@@ -218,46 +218,46 @@ public class LocalClientImplTest {
         }
     }
 
-    // hint could modify this class so we can get the map from it. 
+    // hint could modify this class so we can get the map from it.
     class TestBridgeBuilder implements BridgeBuilder {
         int buildCallsCount = 0;
-        MacLearningTable mlTable; 
-        MAC[] notifiedMAC = new MAC[1]; 
-        UUID[] notifiedUUID = new UUID[2]; 
-        
+        MacLearningTable mlTable;
+        MAC[] notifiedMAC = new MAC[1];
+        UUID[] notifiedUUID = new UUID[2];
+
         public void simulateNewPacket(MAC mac, UUID portId) {
-            mlTable.add(mac, portId); 
+            mlTable.add(mac, portId);
         }
 
         public void removePort(MAC mac, UUID portId) {
-            mlTable.remove(mac, portId); 
+            mlTable.remove(mac, portId);
         }
-        
+
         public UUID getPort(MAC mac) {
-            final UUID result[] = new UUID[1]; 
-            
+            final UUID result[] = new UUID[1];
+
             mlTable.get(mac, new Callback1<UUID>() {
                 @Override
                 public void call(UUID v) {
-                    result[0] = v; 
+                    result[0] = v;
                 }
             }, System.currentTimeMillis()+2000);
-            
+
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
-            } 
-            return result[0]; 
+            }
+            return result[0];
         }
 
         public MAC getNotifiedMAC() {
-            return notifiedMAC[0]; 
+            return notifiedMAC[0];
         }
-        
+
         public UUID[] getNotifiedUUID() {
-            return notifiedUUID; 
+            return notifiedUUID;
         }
-       
+
         public int getBuildCallsCount() {
             return buildCallsCount;
         }
@@ -268,7 +268,7 @@ public class LocalClientImplTest {
 
         @Override
         public void setMacLearningTable(MacLearningTable table) {
-            mlTable = table; 
+            mlTable = table;
         }
 
         @Override
@@ -305,42 +305,42 @@ public class LocalClientImplTest {
         @Override
         public void build() {
             buildCallsCount++;
-            // add the callback 
+            // add the callback
             mlTable.notify(new Callback3<MAC,UUID,UUID>() {
                 @Override
                 public void call(MAC mac, UUID oldPortID, UUID newPortID) {
-                    notifiedMAC[0] = mac; 
-                    notifiedUUID[0] = oldPortID; 
-                    notifiedUUID[1] = newPortID; 
+                    notifiedMAC[0] = mac;
+                    notifiedUUID[0] = oldPortID;
+                    notifiedUUID[1] = newPortID;
                 }
-            }); 
+            });
         }
 
     }
-    
+
     class TestRouterBuilder implements RouterBuilder {
         int buildCallsCount = 0;
-        ArpCache arpCache; 
-        
+        ArpCache arpCache;
+
         public void addNewArpEntry(IntIPv4 ipAddr, ArpCacheEntry entry) {
-            arpCache.add(ipAddr, entry); 
+            arpCache.add(ipAddr, entry);
         }
-        
+
         public ArpCacheEntry getArpEntryForIp(IntIPv4 ipAddr) {
-            final ArpCacheEntry[] result = new ArpCacheEntry[1]; 
+            final ArpCacheEntry[] result = new ArpCacheEntry[1];
             arpCache.get(ipAddr, new Callback1<ArpCacheEntry>() {
                 @Override
                 public void call(ArpCacheEntry v) {
-                    result[0] = v; 
+                    result[0] = v;
                 }
-            }, System.currentTimeMillis()+2000); 
+            }, System.currentTimeMillis()+2000);
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
-            } 
-            return result[0]; 
+            }
+            return result[0];
         }
-        
+
         public int getBuildCallsCount() {
             return buildCallsCount;
         }
@@ -348,43 +348,43 @@ public class LocalClientImplTest {
         @Override
         public void setSourceNatResource(SourceNatResource resource) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public ForwardingElementBuilder setID(UUID id) {
-            return this; 
+            return this;
         }
 
         @Override
         public ForwardingElementBuilder setInFilter(UUID filterID) {
-            return this; 
+            return this;
         }
 
         @Override
         public ForwardingElementBuilder setOutFilter(UUID filterID) {
-            return this; 
+            return this;
         }
 
         @Override
         public void build() {
-            buildCallsCount++; 
+            buildCallsCount++;
         }
 
         @Override
         public void setArpCache(ArpCache table) {
-           arpCache = table;  
+           arpCache = table;
         }
 
         @Override
         public void addRoute(Route rt) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public void removeRoute(Route rt) {
             // TODO Auto-generated method stub
-            
+
         }}
 }

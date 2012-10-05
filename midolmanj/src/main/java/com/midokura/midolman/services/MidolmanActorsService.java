@@ -20,9 +20,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.monitoring.MonitoringActor;
+import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
@@ -41,7 +43,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor;
 public class MidolmanActorsService extends AbstractService {
 
     private static final Logger log =
-        LoggerFactory.getLogger(MidolmanActorsService.class);
+            LoggerFactory.getLogger(MidolmanActorsService.class);
 
     @Inject
     Injector injector;
@@ -57,6 +59,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef flowControllerActor;
     ActorRef simulationControllerActor;
     ActorRef monitoringActor;
+    ActorRef routingManagerActor;
 
     @Override
     protected void doStart() {
@@ -66,34 +69,38 @@ public class MidolmanActorsService extends AbstractService {
 
         log.debug("Creating actors system.");
         actorSystem = ActorSystem.create("MidolmanActors",
-            ConfigFactory.load().getConfig("midolman"));
+                ConfigFactory.load().getConfig("midolman"));
 
         virtualTopologyActor =
-            startActor(
-                getGuiceAwareFactory(VirtualTopologyActor.class),
-                VirtualTopologyActor.Name());
+                startActor(
+                        getGuiceAwareFactory(VirtualTopologyActor.class),
+                        VirtualTopologyActor.Name());
 
         virtualToPhysicalActor =
-            startActor(
-                getGuiceAwareFactory(VirtualToPhysicalMapper.class).withDispatcher("actors.stash-dispatcher"),
-                VirtualToPhysicalMapper.Name());
+                startActor(
+                        getGuiceAwareFactory(VirtualToPhysicalMapper.class).withDispatcher("actors.stash-dispatcher"),
+                        VirtualToPhysicalMapper.Name());
 
         datapathControllerActor =
-            startActor(
-                getGuiceAwareFactory(DatapathController.class),
-                DatapathController.Name());
+                startActor(
+                        getGuiceAwareFactory(DatapathController.class),
+                        DatapathController.Name());
 
         flowControllerActor =
-            startActor(getGuiceAwareFactory(FlowController.class),
-                       FlowController.Name());
+                startActor(getGuiceAwareFactory(FlowController.class),
+                        FlowController.Name());
 
         simulationControllerActor =
-            startActor(getGuiceAwareFactory(SimulationController.class),
-                       SimulationController.Name());
+                startActor(getGuiceAwareFactory(SimulationController.class),
+                        SimulationController.Name());
+
+        routingManagerActor =
+                startActor(getGuiceAwareFactory(RoutingManagerActor.class),
+                        RoutingManagerActor.Name());
 
         if (config.getMidolmanEnableMonitoring()) {
             monitoringActor = startActor(getGuiceAwareFactory(MonitoringActor.class),
-                        MonitoringActor.Name());
+                    MonitoringActor.Name());
         }
 
         notifyStarted();
@@ -108,6 +115,7 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(virtualToPhysicalActor);
             stopActor(flowControllerActor);
             stopActor(simulationControllerActor);
+            stopActor(routingManagerActor);
 
             if (config.getMidolmanEnableMonitoring()) {
                 stopActor(monitoringActor);
@@ -130,11 +138,11 @@ public class MidolmanActorsService extends AbstractService {
         log.debug("Stopping actor: {}", actorRef.toString());
         try {
             Future<Boolean> stopFuture =
-                gracefulStop(virtualTopologyActor,
-                             Duration.create(100, TimeUnit.MILLISECONDS),
-                             actorSystem);
+                    gracefulStop(virtualTopologyActor,
+                            Duration.create(100, TimeUnit.MILLISECONDS),
+                            actorSystem);
             Await.result(stopFuture,
-                         Duration.create(150, TimeUnit.MILLISECONDS));
+                    Duration.create(150, TimeUnit.MILLISECONDS));
         } catch (Exception e) {
             log.debug("Actor {} didn't stop on time. ");
         }
@@ -165,9 +173,9 @@ public class MidolmanActorsService extends AbstractService {
         Timeout timeout = new Timeout(Duration.parse("1 second"));
 
         Await.result(
-            Patterns.ask(datapathControllerActor,
-                         DatapathController.getInitialize(), timeout),
-            timeout.duration());
+                Patterns.ask(datapathControllerActor,
+                        DatapathController.getInitialize(), timeout),
+                timeout.duration());
     }
 
     public ActorSystem system() {

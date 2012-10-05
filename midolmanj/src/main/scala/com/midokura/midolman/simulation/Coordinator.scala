@@ -15,8 +15,7 @@ import akka.util.duration._
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.{DatapathController, FlowController}
-import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket,
-    SendPacket}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
@@ -27,6 +26,7 @@ import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{Ethernet, TCP, UDP}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.DatapathController.SendPacket
 
 
 object Coordinator {
@@ -160,7 +160,7 @@ class Coordinator(val origMatch: WildcardMatch,
      * Controller to install a flow or send a packet.
      */
     def simulate() {
-        log.info("Simulate a packet.")
+        log.debug("Simulate a packet {}", origEthernetPkt)
 
         generatedPacketEgressPort match {
             case None => // This is a packet from the datapath
@@ -258,6 +258,8 @@ class Coordinator(val origMatch: WildcardMatch,
                         }
 
                     case _: DropAction =>
+                        log.debug("Device returned DropAction for {}",
+                            origMatch)
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
@@ -266,6 +268,8 @@ class Coordinator(val origMatch: WildcardMatch,
                         }
 
                     case _: NotIPv4Action =>
+                        log.debug("Device returned NotIPv4Action for {}",
+                            origMatch)
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
@@ -394,16 +398,21 @@ class Coordinator(val origMatch: WildcardMatch,
         val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
         isPortSet match {
             case false =>
+                log.debug("Emitting packet from vport {}", outputID)
                 actions.append(new FlowActionOutputToVrnPort(outputID))
             case true =>
+                log.debug("Emitting packet from port set {}", outputID)
                 actions.append(new FlowActionOutputToVrnPortSet(outputID))
         }
 
         cookie match {
             case None =>
+                log.debug("No cookie. SendPacket with actions {}", actions)
                 datapathController.tell(
-                    SendPacket(origEthernetPkt.serialize(), actions.toList))
+                    SendPacket(origEthernetPkt, actions.toList))
             case Some(_) =>
+                log.debug("Cookie {}; Add a flow with actions {}",
+                    cookie.get, actions)
                 pktContext.freeze()
                 if (!isPortSet && pktContext.isConnTracked &&
                         !pktContext.isForwardFlow) {
@@ -467,8 +476,8 @@ class Coordinator(val origMatch: WildcardMatch,
                               modif.getNetworkTTL)) {
             actions.append(FlowActions.setKey(
                 FlowKeys.ipv4(
-                    modif.getNetworkDestination,
                     modif.getNetworkSource,
+                    modif.getNetworkDestination,
                     modif.getNetworkProtocol)
                 //.setFrag(?)
                 .setProto(modif.getNetworkProtocol)

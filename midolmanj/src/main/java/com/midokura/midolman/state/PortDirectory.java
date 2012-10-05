@@ -270,18 +270,14 @@ public class PortDirectory {
 
     public static class MaterializedRouterPortConfig extends RouterPortConfig
         implements MaterializedPortConfig {
-        public int localNwAddr;
-        public int localNwLength;
         public UUID hostId;
         public String interfaceName;
         public transient Set<BGP> bgps;
 
         public MaterializedRouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, MAC mac, Set<Route> routes,
-                int localNetworkAddr, int localNetworkLength, Set<BGP> bgps) {
+                Set<BGP> bgps) {
             super(device_id, networkAddr, networkLength, portAddr, routes, mac);
-            this.localNwAddr = localNetworkAddr;
-            this.localNwLength = localNetworkLength;
             setBgps(bgps);
         }
 
@@ -289,15 +285,6 @@ public class PortDirectory {
         public MaterializedRouterPortConfig() { super(); }
 
         // Custom accessors for Jackson serialization
-
-        public String getLocalNwAddr() {
-            return Net.convertIntAddressToString(this.localNwAddr);
-        }
-
-        public void setLocalNwAddr(String addr) {
-            this.localNwAddr = Net.convertStringAddressToInt(addr);
-        }
-
         public UUID getHostId() { return hostId; }
         public void setHostId(UUID hostId) {
             this.hostId = hostId;
@@ -335,17 +322,13 @@ public class PortDirectory {
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength && portAddr == port.portAddr
                     && getRoutes().equals(port.getRoutes())
-                    && getBgps().equals(port.getBgps())
-                    && localNwAddr == port.localNwAddr
-                    && localNwLength == port.localNwLength;
+                    && getBgps().equals(port.getBgps());
         }
 
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("MaterializedRouterPort [");
             sb.append(super.toString());
-            sb.append(", localNwAddr=").append(IPv4.fromIPv4Address(localNwAddr));
-            sb.append(", localNwLength=").append(localNwLength);
             sb.append(", hostId=").append(hostId);
             sb.append(", interfaceName=").append(interfaceName);
             sb.append(", bgps={");

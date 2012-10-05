@@ -10,6 +10,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.midokura.util.Waiters.sleepBecause;
@@ -48,6 +49,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeT
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 
+@Ignore
 public class L2FilteringTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;

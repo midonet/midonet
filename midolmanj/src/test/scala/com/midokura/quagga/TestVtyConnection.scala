@@ -74,7 +74,7 @@ object TestBgpVtyConnection {
         portConfig = new PortDirectory.MaterializedRouterPortConfig(
             routerId, Net.convertStringAddressToInt(portNwAddr),
             portNwLength, Net.convertStringAddressToInt(portAddr), null, null,
-            Net.convertStringAddressToInt(portNwAddr), portNwLength, null)
+            null)
         portId = portMgr.create(portConfig)
 
         // Create a BGP config.

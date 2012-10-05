@@ -23,6 +23,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
     var flowEventsProbe: TestProbe = null
     var tunnelEventsProbe: TestProbe = null
     var portOnHost1: MaterializedBridgePort = null
+    var portOnHost1_2: MaterializedBridgePort = null
     var bridge: ClusterBridge = null
     var tunnelId1: Short = 0
     var tunnelId2: Short = 0
@@ -42,12 +43,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         bridge = newBridge("bridge")
 
         portOnHost1 = newPortOnBridge(bridge)
+        portOnHost1_2 = newPortOnBridge(bridge)
         val portOnHost2 = newPortOnBridge(bridge)
         val portOnHost3 = newPortOnBridge(bridge)
 
         materializePort(portOnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
+        materializePort(portOnHost1_2, host1, "port4")
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
@@ -106,10 +109,78 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
         addFlowMsg.flow should not be null
         val flowActs = addFlowMsg.flow.getActions
-        flowActs should have size(3)
-        as[FlowActionSetKey](flowActs.get(0)).getFlowKey should equal (
+        flowActs should have size(4)
+        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
             new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        verifyMacLearned("02:11:22:33:44:10", "port1")
+    }
+
+    def getUnrelatedInputPort (inputPortName : String) : String = {
+        if (inputPortName == "port1") "port4"
+        else "port1"
+    }
+
+    /*
+     * 
+     */
+    def injectOnePacket (srcMac : String, 
+                         dstMac : String,
+                         srcIP  : String,
+                         dstIP  : String,
+                         srcPort : Short,
+                         dstPort : Short,
+                         ingressPortName : String) : AddWildcardFlow = {
+        val ethPkt = Packets.udp(MAC.fromString(srcMac), 
+                                 MAC.fromString(dstMac),
+                                 IntIPv4.fromString(srcIP),
+                                 IntIPv4.fromString(dstIP),
+                                 srcPort, 
+                                 dstPort, "Test UDP Packet".getBytes)
+
+        triggerPacketIn(ingressPortName, ethPkt)
+
+        val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
+        val ingressPort = getMaterializedPort(ingressPortName)
+
+        pktInMsg should not be null
+        pktInMsg.pktBytes should not be null
+        pktInMsg.wMatch should not be null
+        pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
+
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+
+        dpProbe().expectMsgClass(classOf[PacketIn])
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        //flowProbe().expectMsgClass(classOf[AddWildcardFlow])
+        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg.pktBytes should not be null
+        Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
+        addFlowMsg
+    }
+
+    def getMaterializedPort (portName : String) : MaterializedBridgePort = {
+        portName match {
+            case "port1" => portOnHost1
+            case "port4" => portOnHost1_2
+        }
+    }
+
+    def verifyMacLearned(learnedMac : String, 
+                         expectedPortName : String) = {
+        val inputPort = getUnrelatedInputPort(expectedPortName)
+        val addFlowMsg = injectOnePacket("0a:fe:88:70:33:ab", learnedMac,
+                                         "10.0.10.10", "10.0.10.11",
+                                         10, 12, inputPort)
+        val expectedPort = getMaterializedPort(expectedPortName)
+        val flowActs = addFlowMsg.flow.getActions
+        flowActs should have size(1)
+        dpController().underlyingActor.vifToLocalPortNumber(expectedPort.getId) match {
+            case Some(portNo : Short) =>
+                as[FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
+            case None => fail("Not able to find data port number for materialize Port " +
+                              expectedPort.getId)
+        }
     }
 }

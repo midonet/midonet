@@ -49,6 +49,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            actorSystem: ActorSystem): Future[Action] = {
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
+            log.debug("Received an L2 broadcast packet.")
             // Broadcast packet:  Handle if ARP, drop otherwise.
             if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
                 pktContext.getFrame.getPayload match {
@@ -264,30 +265,33 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
 
-        val tpa = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
-        val spa = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val tpa = IntIPv4.fromBytes(pkt.getTargetProtocolAddress)
+        val spa = IntIPv4.fromBytes(pkt.getSenderProtocolAddress)
         val tha = pkt.getTargetHardwareAddress
         val sha = pkt.getSenderHardwareAddress
-        val spaNet = new IntIPv4(spa, inPort.portAddr.getMaskLength)
 
-        if (inPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
+        if (!inPort.portAddr.subnetContains(spa.addressAsInt)) {
             log.debug("Ignoring ARP request from address {} not in the " +
-                "ingress port network {}",
-                spaNet, inPort.portAddr.toNetworkAddress)
+                "ingress port network {}", spa, inPort.portAddr)
             return
         }
 
         // gratuitous arp request
         if (tpa == spa && tha == MAC.fromString("00:00:00:00:00:00")) {
-            arpTable.set(new IntIPv4(spa), sha)
+            log.debug("Received a gratuitous ARP request from {}", spa)
+            // TODO(pino, gontanon): check whether the refresh is needed?
+            arpTable.set(spa, sha)
             return
         }
-        if (tpa != inPort.portAddr.addressAsInt) {
-            log.debug("Ignoring ARP Request with a mismatching dst ip address")
+        if (!inPort.portAddr.unicastEquals(tpa)) {
+            log.debug("Ignoring ARP Request to dst ip {} instead of " +
+                "inPort's {}", tpa, inPort.portAddr)
             return
         }
 
-        arpTable.set(new IntIPv4(spa), pkt.getSenderHardwareAddress)
+        log.debug("Received an ARP request from {}", spa)
+        // TODO(pino): ask Guillermo - this doesn't make sense to me.
+        arpTable.set(spa, pkt.getSenderHardwareAddress)
 
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
@@ -301,8 +305,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         arp.setTargetProtocolAddress(pkt.getSenderProtocolAddress)
 
         log.debug("replying to ARP request from {} for {} with own mac {}",
-            Array[Object] (IPv4.fromIPv4Address(spa),
-                IPv4.fromIPv4Address(tpa), inPort.portMac))
+            Array[Object](spa, tpa, inPort.portMac))
 
         val eth = new Ethernet()
         eth.setPayload(arp)
@@ -315,12 +318,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def processArpReply(pkt: ARP, portID: UUID, rtrPort: RouterPort[_])
                                (implicit actorSystem: ActorSystem) {
-        def isGratuitous(tha: MAC, tpa: Int, sha: MAC, spa: Int): Boolean = {
+        def isGratuitous(tha: MAC, tpa: IntIPv4,
+                         sha: MAC, spa: IntIPv4): Boolean = {
             (tpa == spa && tha == sha)
         }
 
-        def isAddressedToThis(tha: MAC, tpa: Int): Boolean = {
-            (tpa == rtrPort.portAddr.addressAsInt && tha == rtrPort.portMac)
+        def isAddressedToThis(tha: MAC, tpa: IntIPv4): Boolean = {
+            (rtrPort.portAddr.unicastEquals(tpa) && tha == rtrPort.portMac)
         }
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -332,27 +336,31 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return
         }
 
-        val tpa: Int = IPv4.toIPv4Address(pkt.getTargetProtocolAddress)
+        val tpa = IntIPv4.fromBytes(pkt.getTargetProtocolAddress)
         val tha: MAC = pkt.getTargetHardwareAddress
-        val spa: Int = IPv4.toIPv4Address(pkt.getSenderProtocolAddress)
+        val spa = IntIPv4.fromBytes(pkt.getSenderProtocolAddress)
         val sha: MAC = pkt.getSenderHardwareAddress
-        val spaNet = new IntIPv4(spa, rtrPort.portAddr.getMaskLength)
 
-        if (!isGratuitous(tha, tpa, sha, spa) && !isAddressedToThis(tha, tpa)) {
+        if (isGratuitous(tha, tpa, sha, spa)) {
+            log.debug("Router {} got a gratuitous ARP reply from {}", id, spa)
+        } else if (!isAddressedToThis(tha, tpa)) {
+            // The ARP is not gratuitous, so it should be intended for us.
             log.debug("Router {} ignoring ARP reply on port {} because tpa or "+
                       "tha doesn't match.", id, portID)
             return
+        } else {
+            log.debug("Router {} received an ARP reply from {}", id, spa)
         }
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-        if (rtrPort.portAddr.toNetworkAddress != spaNet.toNetworkAddress) {
+        if (!rtrPort.portAddr.subnetContains(spa.addressAsInt)) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
-                "port network {}", spaNet, rtrPort.portAddr.toNetworkAddress)
+                "port network {}", spa, rtrPort.portAddr)
             return
         }
 
-        arpTable.set(new IntIPv4(spa), sha)
+        arpTable.set(spa, sha)
     }
 
     private def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {

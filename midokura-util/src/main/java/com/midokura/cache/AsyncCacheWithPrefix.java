@@ -1,16 +1,18 @@
 /*
  * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura Europe SARL
+ * Copyright 2012 Midokura Europe SARL, Midokura Inc.
  */
 package com.midokura.cache;
 
+import com.midokura.util.functors.Callback1;
 
-public class CacheWithPrefix implements Cache {
 
-    private Cache cache;
+public class AsyncCacheWithPrefix implements AsyncCache {
+
+    private AsyncCache cache;
     private String prefix;
 
-    public CacheWithPrefix(Cache cache, String prefix) {
+    public AsyncCacheWithPrefix(AsyncCache cache, String prefix) {
         this.cache = cache;
         this.prefix = prefix;
     }
@@ -22,15 +24,15 @@ public class CacheWithPrefix implements Cache {
     }
 
     @Override
-    public String get(String key) {
+    public void get(String key, Callback1<String> cb) {
         String pkey = prefix+key;
-        return cache.get(pkey);
+        cache.get(pkey, cb);
     }
 
     @Override
-    public String getAndTouch(String key) {
+    public void getAndTouch(String key, Callback1<String> cb) {
         String pkey = prefix+key;
-        return cache.getAndTouch(pkey);
+        cache.getAndTouch(pkey, cb);
     }
 
     @Override

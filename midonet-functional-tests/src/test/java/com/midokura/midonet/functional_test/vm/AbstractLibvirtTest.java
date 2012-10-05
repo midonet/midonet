@@ -5,18 +5,19 @@ package com.midokura.midonet.functional_test.vm;
 
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 
 import static junit.framework.Assert.fail;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 11/17/11
  */
+@Ignore
 public abstract class AbstractLibvirtTest {
 
     private final static Logger log = LoggerFactory.getLogger(AbstractLibvirtTest.class);

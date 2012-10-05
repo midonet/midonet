@@ -66,36 +66,45 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public void asyncAdd(String relativePath, final byte[] data, CreateMode mode, final DirectoryCallback.Add cb) {
+    public void asyncAdd(String relativePath, final byte[] data,
+                         CreateMode mode, final DirectoryCallback.Add cb) {
 
         final String absPath = getAbsolutePath(relativePath);
 
-        zk.getZooKeeper().create(absPath, data, acl, mode, new AsyncCallback.StringCallback() {
-            @Override
-            public void processResult(int rc, String path, Object ctx, String name) {
-                KeeperException.Code code = KeeperException.Code.get(rc);
-                switch (code) {
-                    case OK:
-                        cb.onSuccess(
-                            new DirectoryCallback.Result<String>(name, null));
-                        break;
-                    default:
-                        cb.onError(KeeperException.create(code, path));
+        zk.getZooKeeper().create(
+            absPath, data, acl, mode,
+            new AsyncCallback.StringCallback() {
+
+                @Override
+                public void processResult(int rc, String path,
+                                          Object ctx, String name) {
+                    KeeperException.Code code = KeeperException.Code.get(rc);
+                    switch (code) {
+                        case OK:
+                            cb.onSuccess(
+                                new DirectoryCallback.Result<String>(
+                                    name.substring(basePath.length()), null));
+                            break;
+                        default:
+                            cb.onError(KeeperException.create(code, path));
+                    }
                 }
-            }
-        }, null);
+            },
+            null);
     }
 
     @Override
-    public void asyncAdd(String relativePath, final byte[] data, CreateMode mode) {
+    public void asyncAdd(String relativePath, final byte[] data,
+                         CreateMode mode) {
 
         final String absPath = getAbsolutePath(relativePath);
 
-        zk.getZooKeeper().create(absPath, data, acl, mode, new AsyncCallback.StringCallback() {
-            @Override
-            public void processResult(int rc, String path, Object ctx, String name) {
-            }
-        }, null);
+        zk.getZooKeeper().create(absPath, data, acl, mode,
+            new AsyncCallback.StringCallback() {
+                @Override
+                public void processResult(int rc, String path, Object ctx,
+                                          String name) {}
+            }, null);
     }
 
     @Override
@@ -106,6 +115,8 @@ public class ZkDirectory implements Directory {
     }
 
     private Watcher wrapCallback(Runnable runnable) {
+        if (null == runnable)
+            return null;
         if (runnable instanceof TypedWatcher)
             return new MyTypedWatcher((TypedWatcher) runnable);
 
@@ -189,8 +200,7 @@ public class ZkDirectory implements Directory {
     @Override
     public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
         zk.getZooKeeper().getData(
-            getAbsolutePath(relativePath),
-            (null == watcher)? null : wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.DataCallback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
@@ -226,8 +236,7 @@ public class ZkDirectory implements Directory {
                                  final DirectoryCallback<Set<String>> cb,
                                  TypedWatcher watcher) {
         zk.getZooKeeper().getChildren(
-            getAbsolutePath(relativePath),
-            wrapCallback(watcher),
+            getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.Children2Callback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,

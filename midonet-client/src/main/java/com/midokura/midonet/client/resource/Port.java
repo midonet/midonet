@@ -15,7 +15,8 @@ import com.midokura.midonet.client.dto.DtoPort;
  * @param <T> type of the resource
  * @param <U> type of the dto for the resource
  */
-public abstract class Port<T, U extends DtoPort> extends ResourceBase<T, U> {
+public abstract class Port<T extends Port<T, U>, U extends DtoPort>
+    extends ResourceBase<T, U> {
 
     public Port(WebResource resource, URI uriForCreation,
                 U principalDto, String mediaType) {

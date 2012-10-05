@@ -69,8 +69,6 @@ public class TestAdRoute extends JerseyTest {
         port.setNetworkAddress("10.0.0.0");
         port.setNetworkLength(24);
         port.setPortAddress("10.0.0.1");
-        port.setLocalNetworkAddress("10.0.0.2");
-        port.setLocalNetworkLength(32);
         port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
         response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);

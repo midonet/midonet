@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
@@ -40,6 +41,7 @@ import com.midokura.util.lock.LockHelper;
 // TODO(pino): should we convert this to test OVSDatapathConnection and see
 // TODO: see if we can do all the same things? i.e. set up ports and flows
 // TODO: and correctly forward traffic between taps?
+@Ignore
 public class NxmTest {
     static LockHelper.Lock lock;
     static OpenvSwitchDatabaseConnection ovsdb;

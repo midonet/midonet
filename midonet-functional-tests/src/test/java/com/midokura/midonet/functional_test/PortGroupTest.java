@@ -11,6 +11,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.midokura.util.Waiters.sleepBecause;
@@ -48,6 +49,7 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
  * This class emulates a MidoNet client implementing SecurityGroups using
  * MidoNet PortGroups to track/match SecurityGroup membership.
  */
+@Ignore
 public class PortGroupTest {
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
