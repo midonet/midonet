@@ -33,16 +33,14 @@ public class TestPort {
 
     public static DtoMaterializedRouterPort createMaterializedRouterPort(
             UUID id, UUID deviceId, String networkAddr, int networkLen,
-            String portAddr, String localNetworkAddr, int localNetworkLen,
-            UUID vifId, UUID inboundFilterId, UUID outboundFilterId) {
+            String portAddr, UUID vifId, UUID inboundFilterId,
+            UUID outboundFilterId) {
         DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
         port.setId(id);
         port.setDeviceId(deviceId);
         port.setNetworkAddress(networkAddr);
         port.setNetworkLength(networkLen);
         port.setPortAddress(portAddr);
-        port.setLocalNetworkAddress(localNetworkAddr);
-        port.setLocalNetworkLength(localNetworkLen);
         port.setVifId(vifId);
         port.setInboundFilterId(inboundFilterId);
         port.setOutboundFilterId(outboundFilterId);
@@ -360,8 +358,8 @@ public class TestPort {
             // Create a materialized router port
             UUID vifId = UUID.randomUUID();
             DtoMaterializedRouterPort r1Mp1 = createMaterializedRouterPort(
-                    null, r.getId(), "10.0.0.0", 24, "10.0.0.1", "10.0.0.2",
-                    32, vifId, c1.getId(), c2.getId());
+                    null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
+                    vifId, c1.getId(), c2.getId());
             r1Mp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
                     APPLICATION_PORT_JSON, r1Mp1,
                     DtoMaterializedRouterPort.class);

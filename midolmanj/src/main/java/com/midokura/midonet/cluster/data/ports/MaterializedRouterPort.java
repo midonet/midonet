@@ -60,27 +60,7 @@ public class MaterializedRouterPort
         return getData().bgps;
     }
 
-    public String getLocalNwAddr() {
-        return Net.convertIntAddressToString(getData().localNwAddr);
-    }
-
-    public MaterializedRouterPort setLocalNwAddr(String localNwAddr) {
-        getData().localNwAddr = Net.convertStringAddressToInt(localNwAddr);
-        return this;
-    }
-
-    public int getLocalNwLength() {
-        return getData().localNwLength;
-    }
-
-    public MaterializedRouterPort setLocalNwLength(int localNwLength) {
-        getData().localNwLength = localNwLength;
-        return this;
-    }
-
     public static class Data extends RouterPort.Data {
-        public int localNwAddr;
-        public int localNwLength;
         public transient Set<BGP> bgps;
         public UUID hostId;
         public String interfaceName;
@@ -93,8 +73,6 @@ public class MaterializedRouterPort
 
             Data data = (Data) o;
 
-            if (localNwAddr != data.localNwAddr) return false;
-            if (localNwLength != data.localNwLength) return false;
             if (bgps != null ? !bgps.equals(data.bgps) : data.bgps != null)
                 return false;
             if (hostId != null ? !hostId.equals(
@@ -109,8 +87,6 @@ public class MaterializedRouterPort
         @Override
         public int hashCode() {
             int result = super.hashCode();
-            result = 31 * result + localNwAddr;
-            result = 31 * result + localNwLength;
             result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
             result = 31 * result + (interfaceName != null ? interfaceName.hashCode() : 0);
             result = 31 * result + (bgps != null ? bgps.hashCode() : 0);

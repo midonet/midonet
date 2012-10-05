@@ -9,26 +9,8 @@ import java.net.URI;
 
 @XmlRootElement
 public class DtoMaterializedRouterPort extends DtoRouterPort {
-    private String localNetworkAddress = null;
-    private int localNetworkLength;
     private URI bgps;
     private URI vpns;
-
-    public String getLocalNetworkAddress() {
-        return localNetworkAddress;
-    }
-
-    public void setLocalNetworkAddress(String localNetworkAddress) {
-        this.localNetworkAddress = localNetworkAddress;
-    }
-
-    public int getLocalNetworkLength() {
-        return localNetworkLength;
-    }
-
-    public void setLocalNetworkLength(int localNetworkLength) {
-        this.localNetworkLength = localNetworkLength;
-    }
 
     public URI getBgps() {
         return bgps;

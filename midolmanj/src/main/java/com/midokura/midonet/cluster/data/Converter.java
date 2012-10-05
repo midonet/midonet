@@ -157,9 +157,6 @@ public class Converter {
             typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
             typedPortConfig.setBgps(typedPort.getBgps());
 
-            typedPortConfig.setLocalNwAddr(typedPort.getLocalNwAddr());
-            typedPortConfig.localNwLength = typedPort.getLocalNwLength();
-
             typedPortConfig.setHwAddr(typedPort.getHwAddr());
             typedPortConfig.setPortAddr(typedPort.getPortAddr());
             typedPortConfig.setNwAddr(typedPort.getNwAddr());
@@ -235,8 +232,6 @@ public class Converter {
                     (MaterializedRouterPortConfig) portConfig;
 
             port = new MaterializedRouterPort()
-                    .setLocalNwAddr(routerPortConfig.getLocalNwAddr())
-                    .setLocalNwLength(routerPortConfig.localNwLength)
                     .setHostId(routerPortConfig.getHostId())
                     .setInterfaceName(routerPortConfig.getInterfaceName())
                     .setNwAddr(routerPortConfig.getNwAddr())

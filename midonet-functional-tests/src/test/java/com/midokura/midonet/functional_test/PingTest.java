@@ -100,8 +100,6 @@ public class PingTest {
             .portAddress(rtrIp1.toUnicastString())
             .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp1.getMaskLength())
-            .localNetworkAddress(rtrIp1.toNetworkAddress().toUnicastString())
-            .localNetworkLength(rtrIp1.getMaskLength())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrIp1.toNetworkAddress().toUnicastString())
@@ -111,8 +109,6 @@ public class PingTest {
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp2.getMaskLength())
-            .localNetworkAddress(rtrIp2.toNetworkAddress().toUnicastString())
-            .localNetworkLength(rtrIp2.getMaskLength())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrIp2.toNetworkAddress().toUnicastString())

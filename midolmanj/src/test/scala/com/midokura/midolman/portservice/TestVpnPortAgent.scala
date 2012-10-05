@@ -77,14 +77,14 @@ object TestVpnPortAgent {
         val pubPortConfig = new PortDirectory.MaterializedRouterPortConfig(
             pRouterId, Net.convertStringAddressToInt(pubPortNw),
             pubPortNwLength, Net.convertStringAddressToInt(pubPortAddr), null,
-            null, Net.convertStringAddressToInt(pubPortNw), pubPortNwLength, null)
+            null, null)
         pubPortId = portMgr.create(pubPortConfig)
 
         // Create a private port config.
         val priPortConfig = new PortDirectory.MaterializedRouterPortConfig(
             pRouterId, Net.convertStringAddressToInt(priPortNw),
             priPortNwLength, Net.convertStringAddressToInt(priPortAddr), null,
-            null, Net.convertStringAddressToInt(priPortNw), priPortNwLength, null)
+            null, null)
         priPortId = portMgr.create(priPortConfig)
 
         portService = new MockPortService(portMgr, vpnMgr)

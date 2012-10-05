@@ -83,8 +83,6 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             setPortFields(exteriorRouterPort, cfg, id);
             setExteriorPortFieldsRouter(exteriorRouterPort,cfg);
             setRouterPortFields(exteriorRouterPort, cfg);
-            exteriorRouterPort.setLocalNwAddr(
-                new IntIPv4(cfg.localNwAddr, cfg.nwLength));
 
             port = exteriorRouterPort;
         }

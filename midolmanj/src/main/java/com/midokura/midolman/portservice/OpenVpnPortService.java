@@ -247,9 +247,10 @@ public class OpenVpnPortService implements PortService {
         VpnConfig vpn = vpnMgr.get(vpnId);
         if (vpn.publicPortId.equals(portId)) {
             // Set IP address of the port.
+            // TODO(pino): should be using an address from VPN configuration.
             Sudo.sudoExec(String.format(
                     "ip addr add %s/%d dev %s",
-                    Net.convertIntAddressToString(portConfig.localNwAddr),
+                    Net.convertIntAddressToString(portConfig.portAddr),
                     portConfig.nwLength, portName));
             log.debug("configurePort: ran ip addr");
 
@@ -270,7 +271,7 @@ public class OpenVpnPortService implements PortService {
             try {
                 Sudo.sudoExec(String.format(
                     "ip rule add from %s table %d",
-                    Net.convertIntAddressToString(portConfig.localNwAddr),
+                    Net.convertIntAddressToString(portConfig.portAddr),
                     tableNr));
             } catch (InterruptedException e) {
                 log.warn("configurePort", e);
@@ -340,8 +341,9 @@ public class OpenVpnPortService implements PortService {
                 vpn.publicPortId,
                 PortDirectory.MaterializedRouterPortConfig.class);
 
+        // Used to be publicPort.localNwAddr -
         String publicPortAddr = Net.convertIntAddressToString(
-                publicPort.localNwAddr);
+                publicPort.portAddr);
         Set<String> portNames = ovsdb.getPortNamesByExternalId(
                 externalIdKey, vpn.publicPortId.toString());
         if (portNames.size() != 1) {

@@ -23,12 +23,12 @@ public class MaterializedRouterPort {
         private MidolmanMgmt mgmt;
         private DtoRouter router;
         private DtoMaterializedRouterPort port;
+        IntIPv4 vmAddr;
 
         public VMPortBuilder(MidolmanMgmt mgmt, DtoRouter router) {
             this.mgmt = mgmt;
             this.router = router;
             port = new DtoMaterializedRouterPort();
-            port.setLocalNetworkLength(32);
             port.setNetworkLength(24);
         }
 
@@ -36,7 +36,7 @@ public class MaterializedRouterPort {
             int mask = ~0 << 8;
             IntIPv4 netAddr = new IntIPv4(addr.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
-            port.setLocalNetworkAddress(addr.toString());
+            vmAddr = addr;
             // The router port's address is 1 + the network address.
             IntIPv4 portAddr = new IntIPv4(1 + netAddr.addressAsInt());
             port.setPortAddress(portAddr.toString());
@@ -47,8 +47,8 @@ public class MaterializedRouterPort {
             DtoMaterializedRouterPort p = mgmt.addMaterializedRouterPort(
                     router, port);
             DtoRoute rt = new DtoRoute();
-            rt.setDstNetworkAddr(p.getLocalNetworkAddress());
-            rt.setDstNetworkLength(p.getLocalNetworkLength());
+            rt.setDstNetworkAddr(vmAddr.toUnicastString());
+            rt.setDstNetworkLength(vmAddr.getMaskLength());
             rt.setSrcNetworkAddr("0.0.0.0");
             rt.setSrcNetworkLength(0);
             rt.setType(DtoRoute.Normal);
@@ -74,7 +74,6 @@ public class MaterializedRouterPort {
             this.mgmt = mgmt;
             this.router = router;
             port = new DtoMaterializedRouterPort();
-            port.setLocalNetworkLength(30);
             port.setNetworkLength(30);
             routes = new ArrayList<IntIPv4>();
         }
@@ -90,7 +89,6 @@ public class MaterializedRouterPort {
             int mask = ~0 << 8;
             IntIPv4 netAddr = new IntIPv4(localIp.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
-            port.setLocalNetworkAddress(netAddr.toString());
             return this;
         }
 
@@ -141,8 +139,6 @@ public class MaterializedRouterPort {
             IntIPv4 netAddr = new IntIPv4(addr.addressAsInt() & mask);
             port.setNetworkAddress(netAddr.toString());
             port.setNetworkLength(24);
-            port.setLocalNetworkAddress(addr.toString());
-            port.setLocalNetworkLength(24);
             // The router port's address is 1 + the network address.
             IntIPv4 portAddr = new IntIPv4(1 + netAddr.addressAsInt());
             port.setPortAddress(portAddr.toString());
@@ -169,7 +165,7 @@ public class MaterializedRouterPort {
                     router, port);
             vpn = mgmt.addVpn(p, vpn);
             DtoRoute rt = new DtoRoute();
-            rt.setDstNetworkAddr(port.getLocalNetworkAddress());
+            rt.setDstNetworkAddr(port.getNetworkAddress());
             rt.setDstNetworkLength(port.getNetworkLength());
             rt.setSrcNetworkAddr("0.0.0.0");
             rt.setSrcNetworkLength(0);

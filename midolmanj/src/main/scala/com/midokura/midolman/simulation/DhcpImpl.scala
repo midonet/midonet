@@ -49,7 +49,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                 case p: ExteriorBridgePort =>
                     dhcpFromBridgePort(p)
                 case p: ExteriorRouterPort =>
-                    dhcpFromRouterPort(p)
+                    // We still don't handle DHCP on router ports.
+                    Promise.successful(false)
                 case _ =>
                     // We don't handle this, but don't throw an error.
                     Promise.successful(false)
@@ -79,16 +80,6 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         }
         // Couldn't find a static DHCP host assignment for this mac.
         Promise.successful(false)
-    }
-
-    private def dhcpFromRouterPort(port: ExteriorRouterPort): Future[Boolean] =
-    {
-        serverAddr = port.portAddr.clone
-        serverMac = port.portMac
-        // TODO(pino): the router address should be consistent across ports
-        routerAddr = serverAddr
-        yiaddr = port.localNwAddr
-        makeDhcpReply
     }
 
     private def makeDhcpReply: Future[Boolean] = {
