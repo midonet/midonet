@@ -48,8 +48,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            actorSystem: ActorSystem): Future[Action] = {
 
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter.id))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter.id))
 
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
@@ -188,8 +188,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
 
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter.id))
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter.id))
 
         // Apply post-routing (egress) chain.
         pktContext.setOutputPort(outPort.id)

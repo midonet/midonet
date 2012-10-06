@@ -528,13 +528,7 @@ public class LocalDataClientImpl implements DataClient {
                 for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
                     cb.call(portID, active);
                 }
-                // If it's a bridge logical port and becomes inactive we need
-                // to invalidate flows
-                if (config instanceof PortDirectory.LogicalBridgePortConfig
-                    && !active) {
-                    bridgeManager.setLogicalPortInactive(config.device_id, portID);
-                    //TODO(ross) add to port set
-                } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+                if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
                     UUID deviceId = config.device_id;
                     routerManager.updateRoutesBecauseLocalPortChangedStatus(deviceId,
                                                                  portID, active);

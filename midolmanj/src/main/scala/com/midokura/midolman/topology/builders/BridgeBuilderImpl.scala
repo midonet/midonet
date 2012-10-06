@@ -14,6 +14,7 @@ import com.midokura.midonet.cluster.client.{BridgeBuilder, MacLearningTable, Sou
 import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.util.functors.Callback3
 import org.slf4j.LoggerFactory
+import collection.mutable
 
 
 /**
@@ -64,10 +65,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     def setLogicalPortsMap(newRtrMacToLogicalPortId: java.util.Map[MAC, UUID],
                            newRtrIpToMac: java.util.Map[IntIPv4, MAC]) {
         import collection.JavaConversions._
-        // invalidate all the flows if there's some change in the logical ports
-        if(newRtrIpToMac != rtrIpToMac){
-            flowController ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByDevice(id))
+        // calculate diff between the 2 maps
+        val deletedPortMap = rtrMacToLogicalPortId -- (newRtrMacToLogicalPortId.keys)
+        // invalidate the flows of the deleted logical port
+        for ((key, value) <- deletedPortMap){
+            flowController !
+                FlowController.InvalidateFlowsByTag(FlowTagger.invalidateFlowsByLogicalPort(id, value))
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
         rtrIpToMac = newRtrIpToMac
@@ -108,12 +111,6 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
             // TODO: PortSet change. This should be done in VTPM.
         }
-    }
-
-    def setLogicalPortInactive(portId: UUID) {
-        // invalidate the flows to this logical port
-        flowController ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByLogicalPort(id, portId))
     }
 
 }
