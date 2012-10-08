@@ -1,8 +1,8 @@
 package com.midokura.mmdpctl;
 
-import com.midokura.midolman.util.Net;
 import com.midokura.mmdpctl.netlink.NetlinkClient;
 import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.packets.Net;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.flows.*;
@@ -10,8 +10,7 @@ import com.midokura.sdn.dp.flows.*;
 
 import static com.midokura.sdn.dp.flows.FlowActions.output;
 import static com.midokura.sdn.dp.flows.FlowKeys.*;
-import static com.midokura.sdn.dp.flows.FlowKeys.etherType;
-import static com.midokura.sdn.dp.flows.FlowKeys.icmpv6;
+
 
 /**
  * Copy & paste class to insert one single flow into the system.
