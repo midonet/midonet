@@ -440,6 +440,7 @@ class DatapathController() extends Actor with ActorLogging {
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
+    var initialized = false
     var host: Host = null
 
     override def preStart() {
@@ -465,6 +466,7 @@ class DatapathController() extends Actor with ActorLogging {
          */
         case m: InitializationComplete if (sender == self) =>
             log.info("Initialization complete. Starting to act as a controller.")
+            initialized = true
             become(DatapathControllerActor)
             FlowController.getRef() ! DatapathController.DatapathReady(datapath)
             for ((zoneId, zone) <- host.zones) {
@@ -521,6 +523,7 @@ class DatapathController() extends Actor with ActorLogging {
         // When initialization is completed we will revert back to this Actor
         // loop for general message response
         case m: Initialize =>
+            initialized = false
             become(DatapathInitializationActor)
             self ! m
 
@@ -1090,7 +1093,7 @@ class DatapathController() extends Actor with ActorLogging {
                 log.error("No match {}", value)
         }
 
-        if (pendingUpdateCount == 0)
+        if (pendingUpdateCount == 0 && !initialized)
             self ! InitializationComplete()
     }
 
@@ -1148,7 +1151,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
 
         log.info("Pending updates {}", pendingUpdateCount)
-        if (pendingUpdateCount == 0)
+        if (pendingUpdateCount == 0 && !initialized)
             self ! InitializationComplete()
     }
 
