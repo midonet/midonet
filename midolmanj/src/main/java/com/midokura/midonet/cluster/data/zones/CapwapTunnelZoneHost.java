@@ -12,22 +12,34 @@ import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
  * Holder for a Capwap Tunnel per host config.
  */
 public class CapwapTunnelZoneHost
-        extends HostConfig<CapwapTunnelZoneHost, HostConfig.Data> {
+        extends HostConfig<CapwapTunnelZoneHost, CapwapTunnelZoneHost.Data> {
 
     public CapwapTunnelZoneHost() {
-        this(null, new HostConfig.Data());
+        this(null, new Data());
     }
 
     public CapwapTunnelZoneHost(UUID uuid) {
-        this(uuid, new HostConfig.Data());
+        this(uuid, new Data());
     }
 
-    public CapwapTunnelZoneHost(UUID uuid, @Nonnull HostConfig.Data data) {
+    public CapwapTunnelZoneHost(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }
 
     @Override
     protected CapwapTunnelZoneHost self() {
         return this;
+    }
+
+    public static class Data extends HostConfig.Data {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+
+            return true;
+        }
     }
 }
