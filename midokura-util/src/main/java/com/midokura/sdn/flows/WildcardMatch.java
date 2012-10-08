@@ -14,7 +14,9 @@ import javax.annotation.Nullable;
 import com.midokura.packets.ARP;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.ICMP;
+import com.midokura.packets.IPAddr;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.IPv4Addr;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
@@ -241,6 +243,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return networkSource.addressAsInt();
     }
 
+    public IPAddr getSourceIPAddress() {
+        return new IPv4Addr().setIntAddress(networkSource.addressAsInt());
+    }
+
     @Nonnull
     public WildcardMatch setNetworkDestination(@Nonnull IntIPv4 addr) {
         usedFields.add(Field.NetworkDestination);
@@ -268,6 +274,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     @Override
     public int getNetworkDestination() {
         return networkDestination.addressAsInt();
+    }
+
+    public IPAddr getDestinationIPAddress() {
+        return new IPv4Addr().setIntAddress(networkDestination.addressAsInt());
     }
 
     @Nonnull
