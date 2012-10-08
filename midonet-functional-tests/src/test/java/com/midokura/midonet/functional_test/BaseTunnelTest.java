@@ -31,6 +31,7 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.UDP;
+import com.midokura.packets.IPacket;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
 
@@ -219,11 +220,17 @@ public abstract class BaseTunnelTest {
             (short) 9876, udpPkt.getDestinationPort());
     }
 
-    /*
-    protected abstract IPacket encapsulatePacket(IPacket payload);
+    protected abstract byte[] buildEncapsulatedPacket();
 
     @Test
     public void testDecapsulation() throws MalformedPacketException {
+        assertPacketWasSentOnTap(physTap, buildEncapsulatedPacket());
+
+        byte[] received = vmTap.recv();
+        assertNotNull(String.format("Expected packet on %s", vmTap.getName()),
+                      received);
+
+        Ethernet eth = Ethernet.deserialize(received);
+        log.info("got packet on physical network: " + eth.toString());
     }
-    */
 }
