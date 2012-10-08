@@ -584,13 +584,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         // ARP link->bgpd, link->midolman
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
         wildcardMatch = new WildcardMatch()
-            .setInputPortNumber(localPortNum)
+            .setInputPortUUID(bgpPort.id)
             .setEtherType(ARP.ETHERTYPE)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            .addAction(new FlowActionUserspace)
+            //.addAction(new FlowActionUserspace)
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet))
