@@ -33,7 +33,6 @@ import com.midokura.packets.IPv4;
 import com.midokura.packets.UDP;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
