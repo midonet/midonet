@@ -38,7 +38,7 @@ import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
-import com.midokura.sdn.dp.flows.{FlowAction, FlowActions, FlowKeys}
+import flows.{FlowActionUserspace, FlowAction, FlowActions, FlowKeys}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 
@@ -771,6 +771,8 @@ class DatapathController() extends Actor with ActorLogging {
                     vrnPort = Some(Right(s.portSetId))
                 case p: FlowActionOutputToVrnPort if (vrnPort == None) =>
                     vrnPort = Some(Left(p.portId))
+                case u: FlowActionUserspace =>
+                    u.setUplinkPid(datapathConnection.getChannel.getLocalAddress.getPid)
                 case _ =>
             }
         }

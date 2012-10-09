@@ -92,6 +92,8 @@ class ZebraConnection(val dispatcher: Actor,
         new DataOutputStream(out)
 
     private def interfaceAdd(out: DataOutputStream) {
+        log.debug("begin")
+
         //val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
         var ifIndex = 0
 
@@ -185,6 +187,7 @@ class ZebraConnection(val dispatcher: Actor,
         //    log.warn("Only one service port for each protocol")
         //}
         //}
+        log.debug("end")
     }
 
     def routerIdUpdate(out: DataOutputStream) {
@@ -200,6 +203,7 @@ class ZebraConnection(val dispatcher: Actor,
     }
 
     def ipv4RouteAdd(in: DataInputStream, out: DataOutputStream) {
+        log.debug("begin")
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
@@ -242,9 +246,12 @@ class ZebraConnection(val dispatcher: Actor,
             // droping for now.
             val metric = in.readInt
         }
+        log.debug("end")
     }
 
     def ipv4RouteDelete(in: DataInputStream, out: DataOutputStream) {
+        log.debug("begin")
+
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
@@ -289,6 +296,8 @@ class ZebraConnection(val dispatcher: Actor,
             // droping for now.
             val metric = in.readInt
         }
+
+        log.debug("end")
     }
 
     def handleRequest(in: DataInputStream, out: DataOutputStream, id: Int) {
