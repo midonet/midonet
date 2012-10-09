@@ -20,6 +20,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,7 @@ public abstract class BaseTunnelTest {
     final IntIPv4 physTapLocalIp = IntIPv4.fromString("10.245.215.1", 24);
     final IntIPv4 physTapRemoteIp = IntIPv4.fromString("10.245.215.2");
     final MAC physTapRemoteMac = MAC.fromString("aa:aa:aa:cc:cc:cc");
+    MAC physTapLocalMac = null;
 
     TapWrapper vmTap, physTap;
     BridgePort localPort, remotePort;
@@ -87,8 +89,6 @@ public abstract class BaseTunnelTest {
     public static void releaseLock() {
         lock.release();
     }
-
-    protected abstract void setUpTunnelZone() throws Exception;
 
     @Before
     public void setUp() throws Exception {
@@ -140,6 +140,8 @@ public abstract class BaseTunnelTest {
         physTap = new TapWrapper("physTap");
         physTap.setIpAddress(physTapLocalIp);
         physTap.addNeighbour(physTapRemoteIp, physTapRemoteMac);
+        physTapLocalMac = physTap.getHwAddr();
+        assertNotNull("the physical tap's hw address", physTapLocalMac);
 
         // through the data client:
         log.info("Creating remote host");
@@ -178,7 +180,7 @@ public abstract class BaseTunnelTest {
     }
 
     @Test
-    public void testEncapsulation() throws MalformedPacketException {
+    public void testTunnel() throws MalformedPacketException {
         // inject a packet sent from the local vm, expect it encapsulated on the
         // physicalTap.
 
@@ -218,19 +220,28 @@ public abstract class BaseTunnelTest {
             (short) 2345, udpPkt.getSourcePort());
         assertEquals("udp destination port",
             (short) 9876, udpPkt.getDestinationPort());
-    }
 
-    protected abstract byte[] buildEncapsulatedPacket();
 
-    @Test
-    public void testDecapsulation() throws MalformedPacketException {
+        // Test decapsulation
+        log.info("Injecting packet on physical tap");
         assertPacketWasSentOnTap(physTap, buildEncapsulatedPacket());
 
-        byte[] received = vmTap.recv();
+        log.info("Waiting for packet on vm tap");
+        received = vmTap.recv();
         assertNotNull(String.format("Expected packet on %s", vmTap.getName()),
                       received);
 
-        Ethernet eth = Ethernet.deserialize(received);
-        log.info("got packet on physical network: " + eth.toString());
+        log.info("Got a packet on the vm tap, deserializing");
+        eth = Ethernet.deserialize(received);
+        log.info("Got packet on vm tap: " + eth.toString());
+    }
+
+    protected abstract void setUpTunnelZone() throws Exception;
+
+    protected abstract byte[] buildEncapsulatedPacket();
+
+    protected void writeOnPacket(byte[] pkt, byte[] data, int offset) {
+        for (int i = 0; i < data.length; i++)
+            pkt[offset+i] = data[i];
     }
 }

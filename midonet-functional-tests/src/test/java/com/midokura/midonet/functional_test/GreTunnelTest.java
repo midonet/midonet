@@ -44,13 +44,9 @@ public class GreTunnelTest extends BaseTunnelTest {
                 setIp(physTapRemoteIp));
     }
 
-    /*
-    protected abstract IPacket encapsulatePacket(IPacket payload);
-    */
-
     @Override
     protected byte[] buildEncapsulatedPacket() {
-        byte[] greFrame = {
+        byte[] greFrame = new byte[]{
             (byte)0xbb, (byte)0xbb, (byte)0xbb, (byte)0xdd,
             (byte)0xdd, (byte)0xdd, (byte)0xaa, (byte)0xaa,
             (byte)0xaa, (byte)0xcc, (byte)0xcc, (byte)0xcc,
@@ -75,7 +71,7 @@ public class GreTunnelTest extends BaseTunnelTest {
             (byte)0x54, (byte)0x68, (byte)0x65, (byte)0x20,
             (byte)0x50, (byte)0x61, (byte)0x79, (byte)0x6c,
             (byte)0x6f, (byte)0x61, (byte)0x64};
-
+        writeOnPacket(greFrame, physTapLocalMac.getAddress(), 0);
         return greFrame;
     }
 }

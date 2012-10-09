@@ -58,8 +58,8 @@ public class CapwapTunnelTest extends BaseTunnelTest {
             (byte)0x00, (byte)0x00, (byte)0x40, (byte)0x11,
             (byte)0x9e, (byte)0x75, (byte)0x0a, (byte)0xf5,
             (byte)0xd7, (byte)0x02, (byte)0x0a, (byte)0xf5,
-            (byte)0xd7, (byte)0x01, (byte)0xe6, (byte)0x01,
-            (byte)0xe6, (byte)0x02, (byte)0x00, (byte)0x51,
+            (byte)0xd7, (byte)0x01, (byte)0xe6, (byte)0x02,
+            (byte)0xe6, (byte)0x01, (byte)0x00, (byte)0x51,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x28,
             (byte)0x3c, (byte)0x20, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x0b, (byte)0x80,
@@ -79,7 +79,7 @@ public class CapwapTunnelTest extends BaseTunnelTest {
             (byte)0x54, (byte)0x68, (byte)0x65, (byte)0x20,
             (byte)0x50, (byte)0x61, (byte)0x79, (byte)0x6c,
             (byte)0x6f, (byte)0x61, (byte)0x64};
-
+        writeOnPacket(greFrame, physTapLocalMac.getAddress(), 0);
         return capwapFrame;
     }
 }
