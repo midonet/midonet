@@ -207,14 +207,19 @@ Every Router will tag every packet it sees using as tag its router id.
 
 Configuration change -> invalidate all flows
 
-Route added or deleted ->
-It will tag every packet using as tag (routerId, destinationIp) and pass to the
-FlowController a tagRemovedCallback.
+It will tag every packet using two tags:(router id, destination IP) and
+(router id, route hash). It will pass to the FlowController a tagRemovedCallback.
 The router will store internally a trie of the destination ip of the packets
 it has seen. It will use the trie to be able to detect which flows to invalidate
-if there's a change in the routing table. The FlowController will fire the
+if a route is added to the routing table. The FlowController will fire the
 tagRemovedCallback when a tag is removed because the corresponding flows get
-deleted
+deleted, so that the RouterManager will be able to clean up the trie of destination
+IP.
+
+Route added -> invalidate all the flows whose tags correspond to the ip destination
+               affected by this new route (the sub tree that has this route as root)
+
+Route deleted -> invalidate all the flows whose tag is this route
 
 Tagging: Router
 FlowInvalidation: The RCU Router will use a callback to pass the tag added to the
@@ -229,7 +234,7 @@ If a chain get modified all the flows tagged by its ID need to be invalidated
 
 #### Summary
 
-##### Tagging in DatapathController
+##### Tagging by DatapathController
 - ingress port's short-port-number on every flow
 - egress port's short-port-number of any flow that is emitted from a virtual port.
   More than one of these tags if the flow is emitted from a PortSet
@@ -258,6 +263,8 @@ If a chain get modified all the flows tagged by its ID need to be invalidated
 #### Tagging by Router:
 - gives every flow a tag consisting of its own ID
 - gives every flow a tag consisting of its own ID and the IP destination
+- gives every flow a tag consisting of its own ID + the hash of the  route the IP destination
+  matched
 - gives every flow a tag consisting of the inFilter
 - gives every flow a tag consisting of the (its id + inFilter)
 - gives every flow a tag consisting of the outFilter

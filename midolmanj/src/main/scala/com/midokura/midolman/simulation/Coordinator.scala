@@ -128,7 +128,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         new WildcardFlow()
                             .setHardExpirationMillis(hardExp)
                             .setMatch(origMatch),
-                        cookie, null, null, null))
+                        cookie, null, null, null, null))
             case None => // Internally-generated packet. Do nothing.
         }
     }
@@ -287,7 +287,8 @@ class Coordinator(val origMatch: WildcardMatch,
                                             .setMatch(notIPv4Match),
                                         cookie, origEthernetPkt.serialize(),
                                         pktContext.getFlowRemovedCallbacks(),
-                                        pktContext.getFlowTags()))
+                                        pktContext.getFlowTags(),
+                                        pktContext.getTagRemovedCallbacks()))
                                 // TODO(pino): Connection-tracking blob?
                         }
 
@@ -418,7 +419,7 @@ class Coordinator(val origMatch: WildcardMatch,
             case None =>
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 datapathController.tell(
-                    SendPacket(origEthernetPkt, actions.toList))
+                    SendPacket(origEthernetPkt, actions.toList, pktContext.getFlowTags()))
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
@@ -437,7 +438,8 @@ class Coordinator(val origMatch: WildcardMatch,
                     AddWildcardFlow(
                         wFlow, cookie, origEthernetPkt.serialize(),
                         pktContext.getFlowRemovedCallbacks(),
-                        pktContext.getFlowTags()))
+                        pktContext.getFlowTags(),
+                        pktContext.getTagRemovedCallbacks()))
         }
     }
 

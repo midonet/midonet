@@ -13,8 +13,11 @@ import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.ArpCache
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.FlowController
-import com.midokura.midolman.topology.RouterManager.TriggerUpdate
+import com.midokura.midolman.topology.RouterManager.{RemoveTag, AddTag, InvalidateFlows, TriggerUpdate}
 import com.midokura.midolman.config.MidolmanConfig
+import com.midokura.midolman.layer3.RoutingTable.TrieNode
+import scala.collection.JavaConversions._
+import com.midokura.util.functors.Callback0
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
@@ -28,6 +31,13 @@ object RouterManager {
 
     case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
                              rTable: RoutingTableWrapper)
+    case class InvalidateFlows(addedRoutes:scala.collection.mutable.Set[Route],
+                               deletedRoutes: scala.collection.mutable.Set[Route])
+
+    case class AddTag(dstIp: Int)
+
+    case class RemoveTag(dstIp: Int)
+
 }
 
 class RouterConfig {
@@ -55,6 +65,12 @@ class RouterConfig {
     def canEqual(other: Any) = other.isInstanceOf[RouterConfig]
 }
 
+trait TagManager {
+    def addTag(dstIp: Int)
+
+    def getTagRemovalCallback(dstIp: Int): Callback0
+}
+
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
@@ -62,6 +78,9 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
     private var filterChanged = false
+    // This trie is to store the tag that represent the ip destination to be able
+    // to do flow invalidation properly when a route is added or deleted
+    private val dstIpTagTrie: RoutingTable = new RoutingTable()
 
     override def chainsUpdated = makeNewRouter
 
@@ -69,10 +88,11 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         if (chainsReady && null != rTable && null != arpTable) {
             log.debug("Send an RCU router to the VTA")
             context.actorFor("..").tell(
-                new Router(id, cfg, rTable, arpTable, inFilter, outFilter))
-        } else {
-            log.debug("The chains aren't ready yet. ")
-        }
+                new Router(id, cfg, rTable, arpTable, inFilter, outFilter,
+                    new TagManagerImpl))
+    } else {
+        log.debug("The chains aren't ready yet. ")
+    }
 
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -117,7 +137,52 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             }
             rTable = newRoutingTable
             configUpdated()
+
+        case InvalidateFlows(addedRoutes, deletedRoutes) =>
+            for (route <- deletedRoutes){
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateByRoute(id, route.hashCode())
+                )
+            }
+            for (route <- addedRoutes){
+                val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
+                val routesToInvalidate = RoutingTable.getAllDescendants(subTree)
+                for (node <- routesToInvalidate) {
+                    for (route <- node.getRoutes){
+                        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                            FlowTagger.invalidateByIp(id, route.dstNetworkAddr)
+                        )
+                    }
+                }
+            }
+
+        case AddTag(dstIp) =>
+            dstIpTagTrie.addRoute(createSingleHostRoute(dstIp))
+
+        case RemoveTag(dstIp: Int) =>
+            dstIpTagTrie.deleteRoute(createSingleHostRoute(dstIp))
     }
 
+    def createSingleHostRoute(dstIp: Int): Route = {
+        val route: Route = new Route()
+        route.setDstNetworkAddr(dstIp.toString)
+        route.dstNetworkLength = 32
+        route
+    }
 
+    private class TagManagerImpl extends TagManager {
+
+        def addTag(dstIp: Int) {
+            self ! AddTag(dstIp)
+        }
+
+        def getTagRemovalCallback(dstIp: Int) = {
+            new Callback0 {
+                def call() {
+                    self ! RemoveTag(dstIp)
+                }
+            }
+
+        }
+    }
 }

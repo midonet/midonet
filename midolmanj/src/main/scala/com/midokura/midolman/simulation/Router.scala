@@ -13,17 +13,25 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{FlowTagger, RouterConfig, RoutingTableWrapper, VirtualTopologyActor}
+import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.simulation.Coordinator.ConsumedAction
+import com.midokura.midolman.simulation.Coordinator.DropAction
+import com.midokura.midolman.simulation.Coordinator.ToPortAction
+import com.midokura.midolman.simulation.Coordinator.ErrorDropAction
+import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
-             val inFilter: Chain, val outFilter: Chain) extends Device {
+             val inFilter: Chain, val outFilter: Chain,
+             val routerMgrTagger: TagManager) extends Device {
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
@@ -152,6 +160,17 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
+        // tag using this route
+        pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))
+        // tag using the destination IP
+        val dstIp = pktContext.getMatch().getNetworkDestination
+        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
+        // pass the tag to the RouterManager so that it will be able to invalidate
+        // the flow
+        routerMgrTagger.addTag(dstIp)
+        // register the tag removal callback
+        pktContext.addTagRemovedCallback(routerMgrTagger.getTagRemovalCallback(dstIp))
+
         if (rt.nextHop == Route.NextHop.BLACKHOLE) {
             log.debug("Dropping packet, BLACKHOLE route (dst:{})",
                 pktContext.getMatch.getNetworkDestinationIPv4)

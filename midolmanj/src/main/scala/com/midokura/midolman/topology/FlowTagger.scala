@@ -33,4 +33,10 @@ FlowTagger {
     def invalidateDPPort(port: Short): AnyRef = (port.toString)
 
     def invalidatePort(port: UUID): AnyRef = port.toString
+
+    def invalidateByRoute(routerId: UUID, routeHashCode: Int): Any =
+        (routerId.toString + routeHashCode.toString)
+
+    def invalidateByIp(routerId: UUID, ipDestination: Int): Any =
+        (routerId.toString + ipDestination.toString)
 }

@@ -7,6 +7,7 @@ package com.midokura.midolman.layer3;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -66,7 +67,7 @@ public class RoutingTable {
         return ret;
     }
 
-    private static class TrieNode {
+    public static class TrieNode {
         int bitlen;
         int addr;
         TrieNode parent;
@@ -85,6 +86,10 @@ public class RoutingTable {
         public String toString() {
             return "TrieNode [bitlen=" + bitlen + ", addr=" + addr + ", left=" + left
                     + ", right=" + right + ", routes=" + routes + "]";
+        }
+
+        public Set<Route> getRoutes() {
+            return routes;
         }
     }
 
@@ -138,6 +143,50 @@ public class RoutingTable {
         }
         return 24 + MSB[v & 0xff];
         //*/
+    }
+
+    public TrieNode projectRouteAndGetSubTree(Route rt){
+
+        boolean inLeftChild;
+        TrieNode node = dstPrefixTrie;
+        int rt_dst = rt.dstNetworkAddr;
+
+        while (null != node && rt.dstNetworkLength >= node.bitlen
+            && addrsMatch(rt_dst, node.addr, node.bitlen)) {
+            // The addresses match, descend to the children.
+            if (rt.dstNetworkLength == node.bitlen) {
+                // TODO(rossella) be more precise in future. If the route added
+                // is more specific for some flow than the one in the set,
+                // invalidate those flows. Eg. src routing
+                return node;
+            }
+            // Use bit at position bitlen to decide on left or right branch.
+            inLeftChild = 0 == (rt_dst & (0x80000000 >>> node.bitlen));
+            node = (inLeftChild) ? node.left : node.right;
+        }
+
+        if (null != node) {
+
+            /* Only 2 cases to consider (see addTag for a longer analysis)
+            1. the node that would hold this route is a sibling of node and we'd
+               need to create a node to be the parent of both
+            2. the node that would hold this route should be the parent of node
+
+            For case 1 the subtree empty. For case 2 the subtree is the tree
+            whose root is node.  */
+            int diffBit = findMSB(node.addr ^ rt_dst);
+            // Case 1
+            /*if (diffBit < node.bitlen && diffBit < rt.dstNetworkLength) { // Case 1
+                return null;
+            }*/
+            // Case 2
+            if (rt.dstNetworkLength < diffBit && rt.dstNetworkLength < node.bitlen) {
+                return node;
+            }
+
+        }
+        // the trie is emptu or subtree is empty
+        return null;
     }
 
     public void addRoute(Route rt) {
@@ -249,6 +298,20 @@ public class RoutingTable {
             parent = node;
             node = (inLeftChild) ? node.left : node.right;
         }
+    }
+
+    public static List<TrieNode> getAllDescendants(TrieNode node){
+        List<TrieNode> descendants = new LinkedList<TrieNode>();
+        descendants.add(node);
+
+        for(Iterator<TrieNode> it = descendants.iterator(); it.hasNext();){
+            TrieNode n = it.next();
+            if(n.left != null)
+                descendants.add(n.left);
+            if(n.right != null)
+                descendants.add(n.right);
+        }
+       return descendants;
     }
 
     private class MyRoutesIterator implements Iterator<Collection<Route>> {
