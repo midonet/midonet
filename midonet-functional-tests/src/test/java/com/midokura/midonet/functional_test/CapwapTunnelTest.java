@@ -79,7 +79,7 @@ public class CapwapTunnelTest extends BaseTunnelTest {
             (byte)0x54, (byte)0x68, (byte)0x65, (byte)0x20,
             (byte)0x50, (byte)0x61, (byte)0x79, (byte)0x6c,
             (byte)0x6f, (byte)0x61, (byte)0x64};
-        writeOnPacket(greFrame, physTapLocalMac.getAddress(), 0);
+        writeOnPacket(capwapFrame, physTapLocalMac.getAddress(), 0);
         return capwapFrame;
     }
 }
