@@ -38,6 +38,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         // These fields are decided based on the port configuration.
         // DHCP is handled differently for bridge and router ports.
 
+        log.debug("Got a DHCP request");
         // Get the RCU port object and start simulation.
         Coordinator.expiringAsk(
             virtualTopologyManager,
@@ -47,12 +48,16 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         .flatMap {
             port: Port[_] => port match {
                 case p: ExteriorBridgePort =>
+                    log.debug("Handle DHCP request arriving on bridge port.")
                     dhcpFromBridgePort(p)
                 case p: ExteriorRouterPort =>
                     // We still don't handle DHCP on router ports.
+                    log.debug("Don't handle DHCP arriving on a router port.")
                     Promise.successful(false)
                 case _ =>
                     // We don't handle this, but don't throw an error.
+                    log.error("Don't expect to be invoked for DHCP packets " +
+                        "arriving anywhere but bridge/router exterior ports")
                     Promise.successful(false)
             }
         }
@@ -66,8 +71,12 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         for (sub <- subnets) {
             val hosts = dataClient.dhcpHostsGetBySubnet(
                 port.deviceID, sub.getSubnetAddr)
+            log.debug("Look for mac {} in {} static assignments for " +
+                "DhcpSubnet {}", Array(sourceMac, hosts.size, sub))
             for (host <- hosts) {
-                if (sourceMac eq host.getMAC) {
+                if (sourceMac == host.getMAC) {
+                    log.debug("Found DHCP static assignment for mac {} => {}",
+                        sourceMac, host)
                     serverAddr = sub.getServerAddr
                     // TODO(pino): the server MAC should be in configuration.
                     serverMac = MAC.fromString("02:a8:9c:de:39:27")
@@ -114,9 +123,9 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         return Promise.failed(
                             new Exception("DHCP request with bad dhcp type."))
                     }
+                    val msgType = opt.getData()(0)
                     log.debug("handleDhcpRequest dhcp msg type {}:{}",
-                        opt.getData()(0),
-                        DHCPOption.msgTypeToName.get(opt.getData()(0)))
+                        msgType, DHCPOption.msgTypeToName.get(msgType))
                 case v if (v == DHCPOption.Code.PRM_REQ_LIST.value) =>
                     if (opt.getLength <= 0) {
                         log.warning("handleDhcpRequest dropping bootrequest - "
@@ -129,8 +138,10 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         log.debug("handleDhcpRequest client requested option "
                             + "{}:{}", c, DHCPOption.codeToName.get(c))
                     }
+                case _ => // Do nothing
             }
         }
+        log.debug("What Type is this DHCP packet?")
         var options = mutable.ListBuffer[DHCPOption]()
         reqOptions.get(DHCPOption.Code.DHCP_TYPE.value) match {
             case None =>
@@ -141,12 +152,14 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             case Some(typeOpt) =>
                 typeOpt.getData()(0) match {
                     case v if (v == DHCPOption.MsgType.DISCOVER.value) =>
+                        log.debug("Received a Discover message.")
                         // Reply with a dchp OFFER.
                         options.add(new DHCPOption(
                             DHCPOption.Code.DHCP_TYPE.value,
                             DHCPOption.Code.DHCP_TYPE.length,
                             Array[Byte](DHCPOption.MsgType.OFFER.value)))
                     case v if (v == DHCPOption.MsgType.REQUEST.value) =>
+                        log.debug("Received a Request message.")
                         // Reply with a dchp ACK.
                         options.add(new DHCPOption(
                             DHCPOption.Code.DHCP_TYPE.value,
@@ -208,7 +221,6 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         reply.setHardwareType(ARP.HW_TYPE_ETHERNET.toByte)
         reply.setClientHardwareAddress(sourceMac)
         reply.setServerIPAddress(serverAddr.getAddress)
-        // TODO(pino): use explicitly assigned address not localNwAddr!!
         reply.setYourIPAddress(yiaddr.getAddress)
         // TODO(pino): do we need to include the DNS option?
         options.add(new DHCPOption(DHCPOption.Code.MASK.value,

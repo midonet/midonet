@@ -543,7 +543,6 @@ public class Converter {
         interfaceConfig.setMtu(intf.getMtu());
         interfaceConfig.setPortType(intf.getPortType());
         interfaceConfig.setName(intf.getName());
-        interfaceConfig.setProperties(intf.getProperties());
         interfaceConfig.setStatus(intf.getStatus());
         interfaceConfig.setType(intf.getType());
         return interfaceConfig;
@@ -558,7 +557,6 @@ public class Converter {
                 .setMtu(interfaceConfig.getMtu())
                 .setName(interfaceConfig.getName())
                 .setPortType(interfaceConfig.getPortType())
-                .setProperties(interfaceConfig.getProperties())
                 .setStatus(interfaceConfig.getStatus())
                 .setType(interfaceConfig.getType());
     }

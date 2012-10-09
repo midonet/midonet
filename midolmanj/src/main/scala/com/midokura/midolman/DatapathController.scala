@@ -975,6 +975,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
         translateActions(origActions, null) onComplete {
             case Right(actions) =>
+                log.debug("Translated actions to action list {}", actions)
                 val packet = new Packet().
                     setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
                     setData(ethPkt.serialize).setActions(actions)
@@ -1049,7 +1050,8 @@ class DatapathController() extends Actor with ActorLogging {
                 _handleTunnelDelete(p, hConf, zone)
 
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
-                log.info("Mapping created: {} -> {}", vifId, p.getPortNo)
+                log.info("DP port created. Mapping created: {} -> {}", vifId,
+                    p.getPortNo)
                 localToVifPorts.put(p.getPortNo.shortValue(), vifId)
 
                 VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
@@ -1112,6 +1114,8 @@ class DatapathController() extends Actor with ActorLogging {
                     // The dpPort already existed but hadn't been mapped to a
                     // virtual port UUID. Map it now and notify that the
                     // vport is now active.
+                    log.info("DP port exists. Mapping created: {} -> {}",
+                        vifId, shortPortNum)
                     localToVifPorts.put(shortPortNum, vifId)
                     VirtualToPhysicalMapper.getRef() !
                         LocalPortActive(vifId, active = true)

@@ -30,7 +30,6 @@ public class Interface extends UriResource {
     String endpoint;
     String portType;
     InetAddress[] addresses;
-    Map<String, String> properties = new HashMap<String, String>();
 
     public enum Type {
         Physical, Virtual, Tunnel, Unknown
@@ -55,7 +54,6 @@ public class Interface extends UriResource {
         }
         this.setAddresses(interfaceData.getAddresses());
         this.setEndpoint(interfaceData.getEndpoint());
-        this.setProperties(interfaceData.getProperties());
     }
 
     public int getStatus() {
@@ -130,14 +128,6 @@ public class Interface extends UriResource {
         this.portType = portType;
     }
 
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
     public com.midokura.midonet.cluster.data.host.Interface toData() {
 
         byte[] mac = null;
@@ -158,8 +148,7 @@ public class Interface extends UriResource {
                 .setMtu(this.getMtu())
                 .setType(type)
                 .setAddresses(this.getAddresses())
-                .setEndpoint(this.getEndpoint())
-                .setProperties(this.getProperties());
+                .setEndpoint(this.getEndpoint());
     }
 
     @Override

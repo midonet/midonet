@@ -63,14 +63,6 @@ public class HostInterface extends ResourceBase<HostInterface, DtoInterface> {
         return principalDto.getPortType();
     }
 
-    public Map<String, String> getProperties() {
-        return principalDto.getProperties();
-    }
-
-    public String getProperty(DtoInterface.PropertyKeys property) {
-        return principalDto.getProperty(property);
-    }
-
     public int getStatus() {
         return principalDto.getStatus();
     }
