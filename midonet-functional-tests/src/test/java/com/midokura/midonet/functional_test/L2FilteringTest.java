@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midonet.client.dto.DtoRule;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
@@ -35,7 +34,6 @@ import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Rule;
 import com.midokura.midonet.functional_test.topology.RuleChain;
@@ -43,7 +41,6 @@ import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -67,7 +64,6 @@ public class L2FilteringTest {
     TapWrapper tap3;
     TapWrapper tap4;
     TapWrapper tap5;
-    OvsBridge ovsBridge1;
 
     static LockHelper.Lock lock;
 
@@ -83,14 +79,8 @@ public class L2FilteringTest {
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        OpenvSwitchDatabaseConnectionImpl ovsdb =
-                new OpenvSwitchDatabaseConnectionImpl(
-                        "Open_vSwitch", "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "L2FilteringTest");
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-l2filtering").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
@@ -111,15 +101,15 @@ public class L2FilteringTest {
         bPort5 = bridge1.addPort().build();
 
         tap1 = new TapWrapper("l2filterTap1");
-        ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
+        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
         tap2 = new TapWrapper("l2filterTap2");
-        ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
+        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
         tap3 = new TapWrapper("l2filterTap3");
-        ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
+        //ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
         tap4 = new TapWrapper("l2filterTap4");
-        ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
+        //ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
         tap5 = new TapWrapper("l2filterTap5");
-        ovsBridge1.addSystemPort(bPort5.getId(), tap5.getName());
+        //ovsBridge1.addSystemPort(bPort5.getId(), tap5.getName());
 
         sleepBecause("we need the network to boot up", 10);
     }
@@ -132,7 +122,6 @@ public class L2FilteringTest {
         removeTapWrapper(tap4);
         removeTapWrapper(tap5);
 
-        removeBridge(ovsBridge1);
         stopMidolman(midolman1);
 
         if (null != rPort1) {

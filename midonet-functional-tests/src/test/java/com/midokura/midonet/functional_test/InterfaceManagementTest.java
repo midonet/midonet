@@ -7,12 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import static com.midokura.util.Waiters.waitFor;
-import static java.lang.String.format;
 
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.hamcrest.Matcher;
@@ -25,39 +20,28 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItemInArray;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 
+import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoInterface;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
-import com.midokura.util.process.ProcessHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanupZooKeeperServiceData;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Default;
+import static com.midokura.util.Waiters.waitFor;
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Test Suite that will exercise the interface management subsystem.
@@ -628,164 +612,6 @@ public class InterfaceManagementTest {
         } finally {
             launcher.stop();
             removeTapWrapper(tapWrapper);
-        }
-    }
-
-    @Test
-    public void testBindInterfaceToMidonetPort()
-        throws Exception {
-        final String tapName = newTapName();
-
-        assertThat("We were expecting no hosts to be registered",
-                   api.getHosts(), arrayWithSize(0));
-
-        final String PORT_ID_KEY =
-            DtoInterface.PropertyKeys.midonet_port_id.name();
-
-        TapWrapper tap = null;
-        OvsBridge ovsBridge = null;
-        MidolmanLauncher launcher = null;
-        try {
-            tap = new TapWrapper(tapName, true);
-
-            ProcessHelper
-                .newProcess(
-                    format("ip addr add 10.43.56.34/12 dev %s", tapName))
-                .withSudo()
-                .runAndWait();
-
-            launcher = MidolmanLauncher.start(With_Node_Agent,
-                                              "InterfaceManagementTest.test" +
-                                                  "BindInterfaceToMidonetPort");
-
-            OpenvSwitchDatabaseConnectionImpl ovsdb =
-                new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
-            if (ovsdb.hasBridge("smoke-br"))
-                ovsdb.delBridge("smoke-br");
-
-            ovsBridge = new OvsBridge(ovsdb, "smoke-br");
-
-            final DtoHost dtoHost = waitForHostRegistration();
-
-            final DtoInterface dtoInterface = waitForNamedInterface(dtoHost,
-                                                                    tapName);
-            assertThat(
-                "the new interface is not yet associated with a midonet port",
-                dtoInterface.getProperties(), not(hasKey(PORT_ID_KEY)));
-
-            UUID targetPortId = UUID.randomUUID();
-            dtoInterface.getProperties().put(PORT_ID_KEY,
-                                             targetPortId.toString());
-
-            api.updateInterface(dtoInterface);
-
-            DtoInterface updatedDtoInterface =
-                waitFor("the interface properties should be updated",
-                        TimeUnit.SECONDS.toMillis(20),
-                        TimeUnit.MILLISECONDS.toMillis(50),
-                        new Timed.Execution<DtoInterface>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHostInterface(dtoInterface));
-                                log.debug("Interface: " + getResult());
-                                Map<String, String> properties =
-                                    getResult().getProperties();
-
-                                setCompleted(
-                                    properties.containsKey(PORT_ID_KEY));
-                            }
-                        });
-
-            assertThat("the interface object is showing the proper port id",
-                       updatedDtoInterface.getProperties(),
-                       hasEntry(is(PORT_ID_KEY), is(targetPortId.toString())));
-        } finally {
-            stopMidolman(launcher);
-            removeTapWrapper(tap);
-            removeBridge(ovsBridge);
-        }
-    }
-
-    @Test
-    public void testUnbindInterfaceToMidonetPort() throws Exception {
-        final String tapName = newTapName();
-
-        assertThat("We were expecting no hosts to be registered",
-                   api.getHosts(), arrayWithSize(0));
-
-        final String PORT_ID_KEY =
-            DtoInterface.PropertyKeys.midonet_port_id.name();
-
-        TapWrapper tap = null;
-        OvsBridge ovsBridge = null;
-        MidolmanLauncher launcher = null;
-
-        try {
-            tap = new TapWrapper(tapName, true);
-
-            ProcessHelper
-                .newProcess(
-                    format("ip addr add 10.43.56.34/12 dev %s", tapName))
-                .withSudo()
-                .runAndWait();
-
-            launcher = MidolmanLauncher.start(With_Node_Agent,
-                                              "InterfaceManagementTest.test" +
-                                                  "UnbindInterfaceToMidonetPort");
-
-            OpenvSwitchDatabaseConnectionImpl ovsdb =
-                new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
-            if (ovsdb.hasBridge("smoke-br"))
-                ovsdb.delBridge("smoke-br");
-
-            ovsBridge = new OvsBridge(ovsdb, "smoke-br");
-
-            UUID externalPortId = UUID.randomUUID();
-            ovsdb.addSystemPort("smoke-br", tapName)
-                 .externalId("midolman-vnet", externalPortId.toString())
-                 .build();
-
-            final DtoHost dtoHost = waitForHostRegistration();
-
-            final DtoInterface dtoInterface = waitForNamedInterface(dtoHost,
-                                                                    tapName);
-            assertThat(
-                "the new interface is not yet associated with a midonet port",
-                dtoInterface.getProperties(),
-                hasEntry(is(PORT_ID_KEY), is(externalPortId.toString())));
-
-            UUID targetPortId = UUID.randomUUID();
-            dtoInterface.getProperties().put(PORT_ID_KEY, "");
-
-            api.updateInterface(dtoInterface);
-
-            DtoInterface updatedDtoInterface =
-                waitFor("the interface properties should be updated",
-                        new Timed.Execution<DtoInterface>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHostInterface(dtoInterface));
-                                log.debug("Interface: " + getResult());
-
-                                Map<String, String> props =
-                                    getResult().getProperties();
-
-                                setCompleted(!props.containsKey(PORT_ID_KEY));
-                            }
-                        });
-
-            assertThat("the interface object is showing the proper port id",
-                       updatedDtoInterface.getProperties(),
-                       not(
-                           hasEntry(
-                               is(PORT_ID_KEY),
-                               is(targetPortId.toString()))));
-        } finally {
-            stopMidolman(launcher);
-            removeTapWrapper(tap);
-            removeBridge(ovsBridge);
         }
     }
 

@@ -34,10 +34,6 @@ public class DtoInterface {
         }
     }
 
-    public enum PropertyKeys {
-        midonet_port_id,
-    }
-
     private UUID id;
     private UUID hostId;
     private String name;
@@ -48,7 +44,6 @@ public class DtoInterface {
     private String endpoint;
     private String portType;
     private InetAddress[] addresses;
-    private Map<String, String> properties = new HashMap<String, String>();
 
     @XmlTransient
     private URI uri;
@@ -153,22 +148,6 @@ public class DtoInterface {
         this.portType = portType;
     }
 
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
-    public void setProperty(PropertyKeys property, String value) {
-        getProperties().put(property.name(), value);
-    }
-
-    public String getProperty(PropertyKeys property) {
-        return getProperties().get(property.name());
-    }
-
     @Override
     public String toString() {
         return "DtoInterface{" +
@@ -182,7 +161,6 @@ public class DtoInterface {
                 ", porttype='" + portType + '\'' +
                 ", addresses=" + (addresses == null ? null : Arrays.asList(
                 addresses)) +
-                ", properties=" + properties +
                 ", uri=" + uri +
                 '}';
     }

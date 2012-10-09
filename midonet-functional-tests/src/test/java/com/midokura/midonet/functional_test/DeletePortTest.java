@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 
 import com.midokura.midolman.MidoMatch;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -30,14 +29,12 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -61,12 +58,10 @@ public class DeletePortTest {
     MaterializedRouterPort p3;
     TapWrapper tap1;
     TapWrapper tap2;
-    OpenvSwitchDatabaseConnectionImpl ovsdb;
     PacketHelper helper1;
     PacketHelper helper2;
     MidolmanMgmt api;
     MidolmanLauncher midolman;
-    OvsBridge ovsBridge;
 
     static LockHelper.Lock lock;
 
@@ -82,18 +77,8 @@ public class DeletePortTest {
 
     @Before
     public void setUp() throws Exception {
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch", "127.0.0.1", 12344);
-
         api = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("DeletePortTest");
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
-        // Add a service controller to OVS bridge 1.
-        ovsBridge.addServiceController(6640);
 
         log.debug("Building tenant");
         tenant1 = new Tenant.Builder(api).setName("tenant-port-delete").build();
@@ -102,14 +87,14 @@ public class DeletePortTest {
 
         p1 = rtr.addVmPort().setVMAddress(ip1).build();
         tap1 = new TapWrapper("tapDelPort1");
-        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
+        //ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
 
         p2 = rtr.addVmPort().setVMAddress(ip2).build();
         tap2 = new TapWrapper("tapDelPort2");
-        ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
+        //ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
 
         p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        ovsBridge.addInternalPort(p3.port.getId(), INT_PORT_NAME, ip3, 24);
+        //ovsBridge.addInternalPort(p3.port.getId(), INT_PORT_NAME, ip3, 24);
 
         helper1 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
@@ -139,7 +124,6 @@ public class DeletePortTest {
     public void tearDown() throws Exception {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
       //  stopMidolmanMgmt(api);
@@ -148,27 +132,28 @@ public class DeletePortTest {
     @Test
     public void testPortDelete()
         throws InterruptedException, MalformedPacketException {
-        short num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        short num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
+        short num1 = 0;
+            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        short num2 = 0;//ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        short num3 = 0;//ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
         log.debug(
             "The OF ports have numbers: {}, {}, and {}",
             new Object[]{num1, num2, num3});
 
         // Remove/re-add the two tap ports to remove all flows.
-        ovsBridge.deletePort(tap1.getName());
-        ovsBridge.deletePort(tap2.getName());
+        //ovsBridge.deletePort(tap1.getName());
+        //ovsBridge.deletePort(tap2.getName());
         // Sleep to let OVS complete the port requests.
         sleepBecause("wait OVS to complete the port deletions", 1);
 
-        ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
-        ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
+        //ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
+        //ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
         // Sleep to let OVS complete the port requests.
         sleepBecause("wait OVS to complete the port creations", 1);
 
-        num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
+        //num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        //num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        //num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
         log.debug("The OF ports have numbers: {}, {}, and {}",
                   new Object[]{num1, num2, num3});
 
@@ -269,7 +254,7 @@ public class DeletePortTest {
 
         // Now remove p3 and verify that all flows are removed since they
         // are ingress or egress at p3.
-        ovsBridge.deletePort(INT_PORT_NAME);
+        //ovsBridge.deletePort(INT_PORT_NAME);
         sleepBecause("OVS should process the internal port deletion", 2);
 
         //fstats = svcController.getFlowStats(icmpMatch);

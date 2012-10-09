@@ -25,8 +25,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 //import com.midokura.midolman.AbstractController;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -34,7 +32,6 @@ import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.openflow.PrimaryController;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.PacketIn;
 import com.midokura.midonet.functional_test.openflow.PrimaryController.Protocol;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.util.lock.LockHelper;
 
@@ -44,7 +41,6 @@ import com.midokura.util.lock.LockHelper;
 @Ignore
 public class NxmTest {
     static LockHelper.Lock lock;
-    static OpenvSwitchDatabaseConnection ovsdb;
     static Protocol proto = Protocol.NXM;
     static UUID dummyID = new UUID(0, 0);
     static PacketHelper helper =
@@ -53,8 +49,6 @@ public class NxmTest {
                     MAC.fromString("02:00:00:aa:aa:02"),
                     IntIPv4.fromString("192.168.231.2"));
 
-    OvsBridge ovsBridge1;
-    OvsBridge ovsBridge2;
     TapWrapper tap1;
     TapWrapper tap2;
     PrimaryController controller1;
@@ -64,15 +58,10 @@ public class NxmTest {
     public static void setUp() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                "127.0.0.1", 12344);
     }
 
     @AfterClass
     public static void finalTearDown() {
-        if (null != ovsdb)
-            ovsdb.close();
-
         lock.release();
     }
 
@@ -82,10 +71,6 @@ public class NxmTest {
             controller1.stop();
         if (controller2 != null)
             controller2.stop();
-        if (ovsBridge1 != null)
-            ovsBridge1.remove();
-        if (ovsBridge2 != null)
-            ovsBridge2.remove();
         if (tap1 != null) {
             tap1.remove();
         }
@@ -96,19 +81,14 @@ public class NxmTest {
 
     @Test
     public void testArpNoTunnel() throws InterruptedException, IOException, MalformedPacketException {
-        if (ovsdb.hasBridge("nxm-br"))
-            ovsdb.delBridge("nxm-br");
-        // Create a single Controller.
-        controller1 = new PrimaryController(8888, proto);
-        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br", "tcp:127.0.0.1:8888");
         // Create two ports on bridge1.
         tap1 = new TapWrapper("nxmtap1");
-        ovsBridge1.addSystemPort(dummyID, tap1.getName());
+        //ovsBridge1.addSystemPort(dummyID, tap1.getName());
         tap2 = new TapWrapper("nxmtap2");
-        ovsBridge1.addSystemPort(dummyID, tap2.getName());
+        //ovsBridge1.addSystemPort(dummyID, tap2.getName());
 
         Thread.sleep(5000);
-        assertTrue(controller1.waitForBridge(ovsBridge1.getName()));
+        //assertTrue(controller1.waitForBridge(ovsBridge1.getName()));
         assertTrue(controller1.waitForPort(tap1.getName()));
         assertTrue(controller1.waitForPort(tap2.getName()));
 
@@ -145,35 +125,30 @@ public class NxmTest {
 
     @Test
     public void testIpWithTunnel() throws IOException, InterruptedException, MalformedPacketException {
-        if (ovsdb.hasBridge("nxm-br1"))
-            ovsdb.delBridge("nxm-br1");
-        if (ovsdb.hasBridge("nxm-br2"))
-            ovsdb.delBridge("nxm-br2");
-
         // Create two Controllers.
         controller1 = new PrimaryController(8888, proto);
         controller2 = new PrimaryController(8889, proto);
         // Create two OVS bridges
-        ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", "tcp:127.0.0.1:8888");
-        ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", "tcp:127.0.0.1:8889");
+        //ovsBridge1 = new OvsBridge(ovsdb, "nxm-br1", "tcp:127.0.0.1:8888");
+        //ovsBridge2 = new OvsBridge(ovsdb, "nxm-br2", "tcp:127.0.0.1:8889");
 
         // Create one port on each bridge.
         tap1 = new TapWrapper("nxmtap1");
-        ovsBridge1.addSystemPort(dummyID, tap1.getName());
+        //ovsBridge1.addSystemPort(dummyID, tap1.getName());
         tap2 = new TapWrapper("nxmtap2");
-        ovsBridge2.addSystemPort(dummyID, tap2.getName());
+        //ovsBridge2.addSystemPort(dummyID, tap2.getName());
 
         Thread.sleep(5000);
-        assertTrue(controller1.waitForBridge(ovsBridge1.getName()));
+        //assertTrue(controller1.waitForBridge(ovsBridge1.getName()));
         assertTrue(controller1.waitForPort(tap1.getName()));
-        assertTrue(controller2.waitForBridge(ovsBridge2.getName()));
+        //assertTrue(controller2.waitForBridge(ovsBridge2.getName()));
         assertTrue(controller2.waitForPort(tap2.getName()));
 
         // Create the Gre Ports for the tunnel between the bridges.
         // Setting the TunnelKey to 0 allows the key to be set flow-by-flow.
         int tunId = proto.equals(Protocol.NXM)? 0 : 5;
-        ovsBridge1.addGrePort("nxmgre1", "127.0.0.1", "127.0.0.2", tunId);
-        ovsBridge2.addGrePort("nxmgre2", "127.0.0.2", "127.0.0.1", tunId);
+        //ovsBridge1.addGrePort("nxmgre1", "127.0.0.1", "127.0.0.2", tunId);
+        //ovsBridge2.addGrePort("nxmgre2", "127.0.0.2", "127.0.0.1", tunId);
         assertTrue(controller1.waitForPort("nxmgre1"));
         assertTrue(controller2.waitForPort("nxmgre2"));
 

@@ -14,7 +14,7 @@ object PortManager{
     case class TriggerUpdate(port: Port[_])
 }
 
-class PortManager(id: UUID, val hostIp: IntIPv4, val clusterClient: Client)
+class PortManager(id: UUID, val clusterClient: Client)
     extends DeviceManager(id) {
     var port: Port[_] = null
 

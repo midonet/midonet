@@ -6,6 +6,9 @@ package com.midokura.sdn.dp.flows;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 
+
+import static com.midokura.packets.Unsigned.unsign;
+
 public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
     /*__u8*/ byte icmpv6_type;
     /*__u8*/ byte icmpv6_code;
@@ -78,8 +81,8 @@ public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
     @Override
     public String toString() {
         return "FlowKeyICMPv6{" +
-            "icmpv6_type=" + icmpv6_type +
-            ", icmpv6_code=" + icmpv6_code +
+            "icmpv6_type=" + unsign(icmpv6_type) +
+            ", icmpv6_code=" + unsign(icmpv6_code) +
             '}';
     }
 }

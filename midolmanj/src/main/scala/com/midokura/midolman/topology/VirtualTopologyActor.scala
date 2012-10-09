@@ -14,8 +14,6 @@ import com.midokura.midolman.guice.ComponentInjectorHolder
 import com.midokura.midolman.simulation.{Bridge, Chain, Router}
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.Port
-import com.midokura.packets.IntIPv4
-
 
 object VirtualTopologyActor extends Referenceable {
     val Name: String = "VirtualTopologyActor"
@@ -140,10 +138,6 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
         remove(idToSubscribers.get(id))
     }
 
-    private def portMgrCtor =
-        (portId: UUID) => new PortManager(portId,
-            IntIPv4.fromString(config.getOpenFlowPublicIpAddress), clusterClient)
-
     def receive = {
         case BridgeRequest(id, update) =>
             log.info("Bridge requested for {} with update={}", id, update)
@@ -155,7 +149,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
             deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
             log.info("Port requested for {} with update={}", id, update)
-            manageDevice(id, portMgrCtor)
+            manageDevice(id, (x: UUID) => new PortManager(x, clusterClient))
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
             log.info("Router requested for {} with update={}", id, update)

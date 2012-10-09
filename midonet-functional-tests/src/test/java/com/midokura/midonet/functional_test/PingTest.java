@@ -4,7 +4,9 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -20,15 +22,21 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.dto.DtoBridgePort;
+import com.midokura.midonet.client.dto.DtoDhcpOption121;
+import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
 import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.DhcpSubnet;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -50,20 +58,18 @@ public class PingTest {
 
     IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.111.1", 24);
     IntIPv4 rtrIp2 = IntIPv4.fromString("192.168.222.1", 24);
-    IntIPv4 ip1 = IntIPv4.fromString("192.168.111.2", 24);
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.222.2", 24);
+    IntIPv4 vm1IP = IntIPv4.fromString("192.168.111.2", 24);
+    IntIPv4 vm2IP = IntIPv4.fromString("192.168.222.2", 24);
+    MAC vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03");
     final String TENANT_NAME = "tenant-ping";
 
-    RouterPort<DtoMaterializedRouterPort> p1;
-    RouterPort<DtoMaterializedRouterPort> p2;
+    RouterPort<DtoMaterializedRouterPort> rtrPort1;
+    RouterPort<DtoLogicalRouterPort> rtrPort2;
+    BridgePort<DtoLogicalBridgePort> brPort1;
+    BridgePort<DtoBridgePort> brPort2;
     TapWrapper tap1;
-    TapWrapper tap2;
     Set<UUID> activatedPorts = new HashSet<UUID>();
-    PacketHelper helper1;
-    MidolmanLauncher midolman;
     MockMgmtStarter apiStarter;
-    MidonetMgmt apiClient;
-
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
@@ -84,37 +90,74 @@ public class PingTest {
 
         log.info("Starting REST API");
         apiStarter = new MockMgmtStarter(zookeeperPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
 
+        // TODO(pino): delete the datapath before starting MM
         log.info("Starting midolman");
         EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
             probe.ref(), LocalPortActive.class);
 
-        log.debug("Building router");
+        // Build a router
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME)
             .name("rtr1").create();
-        log.debug("Router done!: " + rtr.getName());
-        p1 = rtr.addMaterializedRouterPort()
+        // Add a materialized port.
+        rtrPort1 = rtr.addMaterializedRouterPort()
             .portAddress(rtrIp1.toUnicastString())
             .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp1.getMaskLength())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-            .dstNetworkAddr(rtrIp1.toNetworkAddress().toUnicastString())
-            .dstNetworkLength(rtrIp1.getMaskLength())
-            .nextHopPort(p1.getId()).type(DtoRoute.Normal).weight(10).create();
-        p2 = rtr.addMaterializedRouterPort()
+            .dstNetworkAddr(rtrPort1.getNetworkAddress())
+            .dstNetworkLength(rtrPort1.getNetworkLength())
+            .nextHopPort(rtrPort1.getId())
+            .type(DtoRoute.Normal).weight(10)
+            .create();
+
+        // Add a logical port to the router.
+        rtrPort2 = rtr.addLogicalRouterPort()
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp2.getMaskLength())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-            .dstNetworkAddr(rtrIp2.toNetworkAddress().toUnicastString())
-            .dstNetworkLength(rtrIp2.getMaskLength())
-            .nextHopPort(p2.getId()).type(DtoRoute.Normal).weight(10).create();
+            .dstNetworkAddr(rtrPort2.getNetworkAddress())
+            .dstNetworkLength(rtrPort2.getNetworkLength())
+            .nextHopPort(rtrPort2.getId())
+            .type(DtoRoute.Normal).weight(10)
+            .create();
 
+        // Build a bridge and link it to the router's logical port
+        Bridge br = apiClient.addBridge().tenantId(TENANT_NAME)
+            .name("br").create();
+        brPort1 = br.addLogicalPort().create();
+        // Link the bridge to the router
+        rtrPort2.link(brPort1.getId());
+
+        // Add a materialized port on the bridge.
+        brPort2 = br.addMaterializedPort().create();
+
+        // Add a DHCP static assignment for the VM on the bridge (vm2).
+        // We need a DHCP option 121 fr a static route to the other VM (vm1).
+        List<DtoDhcpOption121> opt121Routes =
+            new ArrayList<DtoDhcpOption121>();
+        opt121Routes.add(new DtoDhcpOption121(
+            rtrPort1.getNetworkAddress(), rtrPort1.getNetworkLength(),
+            rtrPort2.getPortAddress()));
+        DhcpSubnet dhcpSubnet = br.addDhcpSubnet()
+            .defaultGateway(rtrPort2.getPortAddress())
+            .subnetPrefix(rtrPort2.getNetworkAddress())
+            .subnetLength(rtrPort2.getNetworkLength())
+            .opt121Routes(opt121Routes)
+            .create();
+        dhcpSubnet.addDhcpHost()
+            .ipAddr(vm2IP.toUnicastString())
+            .macAddr(vm2Mac.toString())
+            .create();
+
+
+        // Now bind the materialized ports to interfaces on the local host.
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -124,23 +167,23 @@ public class PingTest {
                 host = h;
             }
         }
-
         // check that we've actually found the test host.
         assertNotNull("Host is null", host);
 
         log.debug("Creating TAP");
         tap1 = new TapWrapper("tapPing1");
 
-        log.debug("Adding interface to host.");
+        log.debug("Bind tap to router's materialized port.");
         host.addHostInterfacePort()
             .interfaceName(tap1.getName())
-            .portId(p1.getId()).create();
+            .portId(rtrPort1.getId()).create();
 
-        // Bind the internal 'local' port to the second vport.
+        // Bind the internal 'local' port to the second materialized port.
         String localName = "midonet";
+        log.debug("Bind datapath's local port to bridge's materialized port.");
         host.addHostInterfacePort()
             .interfaceName(localName)
-            .portId(p2.getId()).create();
+            .portId(brPort2.getId()).create();
 
         for (int i = 0; i < 2; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
@@ -151,29 +194,45 @@ public class PingTest {
             activatedPorts.add(activeMsg.portID());
         }
         assertThat("The 2 router ports should be active.", activatedPorts,
-            hasItems(p1.getId(), p2.getId()));
+            hasItems(rtrPort1.getId(), brPort2.getId()));
 
+        // Set the datapath's local port to up and set its MAC address.
         newProcess(
-            String.format("sudo -n ip link set dev %s arp on " +
-                "mtu 1400 multicast off up", localName))
+            String.format("sudo -n ip link set dev %s address %s arp on " +
+                "mtu 1400 multicast off", localName, vm2Mac.toString()))
             .logOutput(log, "int_port")
             .runAndWait();
 
+        // Now ifup the local port to run the DHCP client.
         newProcess(
+            String.format("sudo ifdown %s --interfaces " +
+                "./midolmanj_runtime_configurations/pingtest.network",
+                localName))
+            .logOutput(log, "int_port")
+            .runAndWait();
+        newProcess(
+            String.format("sudo ifup %s --interfaces " +
+                "./midolmanj_runtime_configurations/pingtest.network",
+                localName))
+            .logOutput(log, "int_port")
+            .runAndWait();
+
+        // No need to set the IP address (and static route to VM1) for the
+        // datapath's local port. They're set via DHCP. Otherwise,
+        // here's what we'd do.
+        /* newProcess(
             String.format("sudo -n ip addr add %s/%d dev %s",
-                ip2.toUnicastString(), ip2.getMaskLength(), localName))
+                vm2IP.toUnicastString(), vm2IP.getMaskLength(), localName))
             .logOutput(log, "int_port")
             .runAndWait();
 
         newProcess(
             String.format("sudo -n ip route add %s/%d via %s",
-                ip1.toNetworkAddress().toUnicastString(),
-                ip1.getMaskLength(), rtrIp2.toUnicastString()))
+                vm1IP.toNetworkAddress().toUnicastString(),
+                vm1IP.getMaskLength(), rtrIp2.toUnicastString()))
             .logOutput(log, "int_port")
             .runAndWait();
-
-        helper1 = new PacketHelper(MAC.fromString("02:00:00:aa:aa:01"), ip1,
-            rtrIp1);
+        */
     }
 
     @After
@@ -188,6 +247,8 @@ public class PingTest {
     @Test
     public void testArpResolutionAndPortPing()
             throws MalformedPacketException, InterruptedException {
+        PacketHelper helper1 = new PacketHelper(
+            MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
         byte[] request;
 
         // First arp for router's mac.
@@ -216,7 +277,7 @@ public class PingTest {
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
         // Ping internal port p3.
-        request = helper1.makeIcmpEchoRequest(ip2);
+        request = helper1.makeIcmpEchoRequest(vm2IP);
         assertThat("The tap should have sent the packet again",
                 tap1.send(request));
         // Finally, the icmp echo reply from the peer.

@@ -33,12 +33,6 @@ public enum CommandProperty {
         typedAs(HostDirectory.Interface.Type.class,
                 new TypeValidator.InterfaceTypeValidator(),
                 InterfaceCommandExecutor.class);
-    }},
-
-    midonet_port_id("midonet_port_id") {{
-        typedAs(UUID.class,
-                new TypeValidator.UUIDValidator(),
-                MidonetPortIdExecutor.class);
     }};
 
     private String key;

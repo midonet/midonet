@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import com.midokura.midolman.MidoMatch;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
@@ -33,13 +32,11 @@ import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.openflow.OpenFlowStats;
 import com.midokura.midonet.functional_test.openflow.PortStats;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -58,11 +55,9 @@ public class StatsTest {
     static IntIPv4 peerIp;
     static PacketHelper helper1;
     static PacketHelper helper2;
-    static OpenvSwitchDatabaseConnectionImpl ovsdb;
     static MidolmanMgmt mgmt;
     static MidolmanLauncher midolman;
     static OpenFlowStats svcController;
-    static OvsBridge ovsBridge;
 
     static LockHelper.Lock lock;
 
@@ -71,17 +66,9 @@ public class StatsTest {
                          MalformedPacketException {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("StatsTest");
 
-        // First clean up left-overs from previous incomplete tests.
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge.addServiceController(6640);
-        Thread.sleep(1000);
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-stats").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
@@ -93,18 +80,19 @@ public class StatsTest {
 
         MaterializedRouterPort p1 = router1.addVmPort().setVMAddress(tapIp1).build();
         tapPort1 = new TapWrapper("statsTestTap1");
-        ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
+        //ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
         helper1 = new PacketHelper(
                 MAC.fromString("02:00:bb:bb:00:01"), tapIp1, rtrIp);
 
         MaterializedRouterPort p2 = router1.addVmPort().setVMAddress(tapIp2).build();
         tapPort2 = new TapWrapper("statsTestTap2");
-        ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
+        //ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
         helper2 = new PacketHelper(
                 MAC.fromString("02:00:bb:bb:00:02"), tapIp2, rtrIp);
 
         MaterializedRouterPort p3 = router1.addVmPort().setVMAddress(peerIp).build();
-        ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp, 24);
+        //ovsBridge.addInternalPort(p3.port.getId(), "statsTestInt", peerIp,
+        //    24);
 
         sleepBecause("we want to wait for the network config to settle", 5);
     }
@@ -115,8 +103,6 @@ public class StatsTest {
         removeTapWrapper(tapPort2);
         stopMidolman(midolman);
         removeTenant(tenant1);
-      //  stopMidolmanMgmt(mgmt);
-        removeBridge(ovsBridge);
         lock.release();
     }
 
@@ -124,12 +110,12 @@ public class StatsTest {
     public void testStatsAggregation()
             throws InterruptedException, MalformedPacketException {
         byte[] request;
-        short portNum1 =
-            ovsdb.getPortNumByUUID(
-                ovsdb.getPortUUID(tapPort1.getName()));
-        short portNum2 =
-            ovsdb.getPortNumByUUID(
-                ovsdb.getPortUUID(tapPort2.getName()));
+        short portNum1 = 0;
+            //ovsdb.getPortNumByUUID(
+            //    ovsdb.getPortUUID(tapPort1.getName()));
+        short portNum2 = 0;
+            //ovsdb.getPortNumByUUID(
+            //    ovsdb.getPortUUID(tapPort2.getName()));
 
         // Port stats for tapPort1
         PortStats statsForPort1 = svcController.getPortStats(portNum1);

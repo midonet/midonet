@@ -420,6 +420,11 @@ public class FlowManager {
     public void addFlowCompleted(Flow flow){
         dpFlowTable.put(flow.getMatch(), flow.getActions());
         WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
+        if (wcFlow == null) {
+            log.error("Could not find WildcardFlow for DP flow with match {} " +
+                "in map {}", flow.getMatch(), dpFlowToWildFlow);
+            return;
+        }
         if(wcFlow.getIdleExpirationMillis() > 0){
             // TODO(pino): check with Rossella. Newly created flows will
             // TODO: always have a null lastUsedTime.

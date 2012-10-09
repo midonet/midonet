@@ -22,7 +22,6 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.openflow.PrimaryController;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.process.ProcessHelper;
@@ -43,9 +42,7 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
             LoggerFactory.getLogger(HalfTunnelTest.class);
 
     PrimaryController controller;
-    OvsBridge greBridge;
     MidolmanLauncher midolman2;
-    OvsBridge ovsBridge2;
     EndPoint mm2endpoint;
     BridgePort mm2bport;
     String internalPortName = "tunTestInt";
@@ -59,9 +56,6 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
         // materialized port. The first and second MM will open GRE tunnels
         // to each other when they discover each other in the PortLocMap.
         midolman2 = MidolmanLauncher.start(Without_Bgp, "RouterBridgeBaseTest");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
 
         mm2endpoint = new EndPoint(
                 IntIPv4.fromString("10.0.0.55"),
@@ -70,23 +64,22 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
                 routerDownlink.getMacAddr(),
                 new TapWrapper("tuntestTap"));
         mm2bport = bridge1.addPort().build();
-        ovsBridge2.addSystemPort(mm2bport.getId(), mm2endpoint.tap.getName());
+        //ovsBridge2.addSystemPort(mm2bport.getId(), mm2endpoint.tap.getName
+        // ());
 
         // Create an OVS bridge and internal port that we can use to capture
         // the second MM's GRE packets.
-        if (ovsdb.hasBridge("halftun-br"))
-            ovsdb.delBridge("halftun-br");
         // Create a bridge with an internal port with address equal to MM2.
         // Create a PrimaryController that allows us to snoop the packets.
         controller =
                 new PrimaryController(8888, PrimaryController.Protocol.NXM);
-        greBridge = new OvsBridge(ovsdb, "halftun-br", "tcp:127.0.0.1:8888");
+        //greBridge = new OvsBridge(ovsdb, "halftun-br", "tcp:127.0.0.1:8888");
         // Create one internal port on the bridge. Since it has the same
         // address as the second MM's public address in the .conf, GRE packets
         // from that MM will be emitted from this interface and arrive on the
         // 'greBridge' where we can examine them.
-        greBridge.addInternalPort(
-                UUID.randomUUID(), internalPortName, mm2Addr, 24);
+        //greBridge.addInternalPort(
+        //        UUID.randomUUID(), internalPortName, mm2Addr, 24);
         // Need to seed the ARP cache (neighbor table) for the first MM's IP
         // address (172.29.10.4) so that the second MM's GRE packets don't
         // trigger an ARP.
@@ -98,7 +91,7 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
                         internalPortName));
 
         Thread.sleep(5000);
-        assertTrue(controller.waitForBridge(greBridge.getName()));
+        //assertTrue(controller.waitForBridge(greBridge.getName()));
         assertTrue(controller.waitForPort(internalPortName));
     }
 
@@ -106,11 +99,9 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
     public void tearDown() throws InterruptedException {
         if (controller != null)
             controller.stop();
-        removeBridge(greBridge);
 
         stopMidolman(midolman2);
         removeTapWrapper(mm2endpoint.tap);
-        removeBridge(ovsBridge2);
         mm2bport.delete();
         sleepBecause("The other Midolman should notice this one exited.", 2);
     }

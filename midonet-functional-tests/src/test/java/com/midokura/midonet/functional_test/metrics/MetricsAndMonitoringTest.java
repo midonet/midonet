@@ -19,8 +19,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.FunctionalTestsHelper;
@@ -29,7 +27,6 @@ import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -38,7 +35,6 @@ import com.midokura.util.jmx.JMXHelper;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -55,8 +51,6 @@ public class MetricsAndMonitoringTest {
     private static final Logger log = LoggerFactory
         .getLogger(MetricsAndMonitoringTest.class);
 
-    OpenvSwitchDatabaseConnection ovsdb;
-    OvsBridge ovsBridge;
     MidolmanLauncher midolman;
     MidolmanMgmt api;
 
@@ -77,18 +71,10 @@ public class MetricsAndMonitoringTest {
 
         fixQuaggaFolderPermissions();
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch", "127.0.0.1", 12344);
-
         midolman = MidolmanLauncher.start("MetricsAndMonitoringTest");
         api = new MockMidolmanMgmt(false);
 
         sleepBecause("Give ten seconds to midolman to startup", 10);
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
 
         tenant = new Tenant.Builder(api).setName("tenant-metrics").build();
 
@@ -99,14 +85,14 @@ public class MetricsAndMonitoringTest {
         ipInt = IntIPv4.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
         intBridgePort = bridge.addPort().build();
-        ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
-                                  ipInt, 24);
+        //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
+                                  //ipInt, 24);
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
         tapBridgePort = bridge.addPort().build();
         metricsTap = new TapWrapper("metricsTap");
-        ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
+        //ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
     }
@@ -114,7 +100,6 @@ public class MetricsAndMonitoringTest {
     @AfterClass
     public void tearDown() throws Exception {
         removeTapWrapper(metricsTap);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
        // stopMidolmanMgmt(api);

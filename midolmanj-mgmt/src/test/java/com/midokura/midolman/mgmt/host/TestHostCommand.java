@@ -15,12 +15,8 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
-import com.midokura.midolman.host.commands.executors.CommandProperty;
 import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostDirectory.Command.AtomicCommand.OperationType;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.VendorMediaType;
@@ -32,10 +28,13 @@ import com.midokura.midonet.client.dto.DtoApplication;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoHostCommand;
 import com.midokura.midonet.client.dto.DtoInterface;
-import com.midokura.midonet.client.dto.DtoInterface.PropertyKeys;
 import com.midokura.packets.MAC;
+
+
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_HOST_JSON;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Test cases to validate the update/create interface functionality of the
@@ -332,132 +331,6 @@ public class TestHostCommand extends JerseyTest {
         assertThat("We should have two host commands returned",
                    hostCommands,
                    allOf(notNullValue(), arrayWithSize(2)));
-    }
-
-    @Test
-    public void testSetProperty() throws Exception {
-        UUID hostId = UUID.randomUUID();
-        UUID portId = UUID.randomUUID();
-
-        HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
-        hostMetadata.setName("host1");
-
-        hostManager.createHost(hostId, hostMetadata);
-        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
-        hostInterface.setName("test");
-
-        hostManager.createInterface(hostId, hostInterface);
-
-        DtoHost host = resource()
-            .path("hosts/" + hostId.toString())
-            .type(VendorMediaType.APPLICATION_HOST_JSON)
-            .get(DtoHost.class);
-
-        DtoInterface[] interfaces = resource()
-            .uri(host.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(DtoInterface[].class);
-
-        assertThat("There should be one interface description for the host",
-                   interfaces, arrayWithSize(1));
-
-        DtoInterface dtoHostInterface = interfaces[0];
-
-        //  set the port id (and verify the result)
-        dtoHostInterface.setProperty(PropertyKeys.midonet_port_id,
-                                     portId.toString());
-
-        response = resource()
-            .uri(dtoHostInterface.getUri())
-            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
-            .put(ClientResponse.class, dtoHostInterface);
-
-        assertThat("The client response should be a 200 response",
-                   response.getClientResponseStatus(), is(Status.OK));
-
-        DtoHostCommand hostCommand = response.getEntity(DtoHostCommand.class);
-
-        HostDirectory.Command commandData =
-            hostManager.getCommandData(host.getId(), hostCommand.getId());
-
-        assertThat("The command has the proper size",
-                   commandData.getCommandList(), hasSize(1));
-
-        assertThat("The command contains the proper atomic command",
-                   commandData.getCommandList(),
-                   contains(
-                       allOf(
-                           hasProperty("property",
-                                       is(CommandProperty.midonet_port_id)),
-                           hasProperty("value", is(portId.toString())),
-                           hasProperty("opType", is(OperationType.SET))
-                       )));
-    }
-
-    @Test
-    public void testClearProperty() throws Exception {
-        UUID hostId = UUID.randomUUID();
-        UUID portId = UUID.randomUUID();
-
-        HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
-        hostMetadata.setName("host1");
-
-        hostManager.createHost(hostId, hostMetadata);
-        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
-        hostInterface.setName("test");
-        hostInterface.getProperties().put(PropertyKeys.midonet_port_id.name(),
-                                          portId.toString());
-
-        hostManager.createInterface(hostId, hostInterface);
-
-        DtoHost host = resource()
-            .path("hosts/" + hostId.toString())
-            .type(VendorMediaType.APPLICATION_HOST_JSON)
-            .get(DtoHost.class);
-
-        DtoInterface[] interfaces = resource()
-            .uri(host.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(DtoInterface[].class);
-
-        assertThat("There should be one interface description for the host",
-                   interfaces, arrayWithSize(1));
-
-        DtoInterface dtoHostInterface = interfaces[0];
-
-        assertThat(dtoHostInterface.getProperties(),
-                   hasEntry(
-                       is(PropertyKeys.midonet_port_id.toString()),
-                       is(portId.toString())
-                   ));
-
-        // clear the port id
-        dtoHostInterface.setProperty(PropertyKeys.midonet_port_id, "");
-        response = resource()
-            .uri(dtoHostInterface.getUri())
-            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
-            .put(ClientResponse.class, dtoHostInterface);
-
-        assertThat("The client response should be a 200 response",
-                   response.getClientResponseStatus(), is(Status.OK));
-
-        DtoHostCommand hostCommand = response.getEntity(DtoHostCommand.class);
-
-        HostDirectory.Command commandData =
-            hostManager.getCommandData(host.getId(), hostCommand.getId());
-
-        assertThat("The generated command has the proper size",
-                   commandData.getCommandList(), hasSize(1));
-
-        assertThat("The command contains the proper atomic command",
-                   commandData.getCommandList(),
-                   contains(
-                       allOf(
-                           hasProperty("property",
-                                       is(CommandProperty.midonet_port_id)),
-                           hasProperty("value", is("")),
-                           hasProperty("opType", is(OperationType.CLEAR))
-                       )));
     }
 
     private DtoInterface saveInterface(HostDirectory.Interface anInterface)

@@ -270,7 +270,7 @@ class FlowController extends Actor with ActorLogging {
 
             case Some(cookie) =>
                 log.debug("A matching packet with cookie {} is already in " +
-                    "the simulation layer.")
+                    "the simulation layer.", cookie)
                 // Simulation in progress. Just pend the packet.
                 cookieToPendedPackets.addBinding(cookie, packet)
         }

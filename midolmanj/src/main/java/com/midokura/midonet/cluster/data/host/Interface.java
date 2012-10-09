@@ -106,24 +106,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
         return self();
     }
 
-    public Interface setProperty(Property property, String value) {
-        getData().properties.put(property.name(), value);
-        return this;
-    }
-
-    public Interface setProperties(Map<String, String> properties) {
-        getData().properties = properties;
-        return this;
-    }
-
-    public String getProperty(Property property) {
-        return getData().properties.get(property.name());
-    }
-
-    public Map<String, String> getProperties() {
-        return getData().properties;
-    }
-
     public static class Data {
 
         String name;
@@ -134,7 +116,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
         int mtu;
         Port.Type portType;
         InetAddress[] addresses;
-        Map<String, String> properties = new HashMap<String, String>();
 
         @Override
         public boolean equals(Object o) {
@@ -150,7 +131,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
                     that.endpoint) : that.endpoint != null) return false;
             if (!Arrays.equals(mac, that.mac)) return false;
             if (!name.equals(that.name)) return false;
-            if (!properties.equals(that.properties)) return false;
             if (type != that.type) return false;
 
             return true;
@@ -166,7 +146,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
             result = 31 * result + mtu;
             result = 31 * result + (addresses != null ? Arrays.hashCode(
                     addresses) : 0);
-            result = 31 * result + properties.hashCode();
             return result;
         }
 
@@ -181,7 +160,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
                     ", mtu=" + mtu +
                     ", addresses=" + (addresses == null ? null : Arrays.asList(
                     addresses)) +
-                    ", properties=" + properties +
                     '}';
         }
 
@@ -199,7 +177,6 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
             this.name = new String(original.name);
             this.type = original.type;
             this.portType = original.portType;
-            this.properties = new HashMap<String, String>(original.properties);
         }
     }
 }
