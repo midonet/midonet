@@ -186,8 +186,9 @@ public class Ethernet extends BasePacket {
         if (vlanID != 0) {
             bb.putShort((short) 0x8100);
             bb.putShort((short) ((priorityCode << 13) | (vlanID & 0x0fff)));
+        } else {
+            bb.putShort(etherType);
         }
-        bb.putShort(etherType);
         if (payloadData != null)
             bb.put(payloadData);
         if (pad) {
