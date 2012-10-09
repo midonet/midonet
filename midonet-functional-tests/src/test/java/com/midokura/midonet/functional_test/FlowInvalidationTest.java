@@ -251,9 +251,9 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
                 .addRoute(pubNewIp).build();
         EndPoint epNew = new EndPoint(gwIp, MAC.random(),
                 rtrNewPort.getIpAddr(), rtrNewPort.getMacAddr(), tapNew);
-        ovsBridge1.addSystemPort(
-                rtrNewPort.port.getId(),
-                tapNew.getName());
+        //ovsBridge1.addSystemPort(
+        //        rtrNewPort.port.getId(),
+        //        tapNew.getName());
         sleepBecause("we need the new port to come up", 2);
         exchangeArpWithGw(epNew);
 

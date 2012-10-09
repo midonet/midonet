@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.midokura.midolman.MidoMatch;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
@@ -31,12 +30,10 @@ import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.openflow.FlowStats;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -53,7 +50,6 @@ public class BridgePortDeleteTest {
     IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
-    OpenvSwitchDatabaseConnectionImpl ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     BridgePort bPort1;
@@ -63,7 +59,6 @@ public class BridgePortDeleteTest {
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
-    OvsBridge ovsBridge1;
 
     static LockHelper.Lock lock;
 
@@ -81,37 +76,24 @@ public class BridgePortDeleteTest {
     @Before
     public void setUp() throws Exception {
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "BridgePortDeleteTest-smoke_br");
-
-        if (ovsdb.hasBridge("portdel-br"))
-            ovsdb.delBridge("portdel-br");
-        if (ovsdb.hasBridge("portdel-br2"))
-            ovsdb.delBridge("portdel-br2");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
-        ovsBridge1 = new OvsBridge(ovsdb, "portdel-br");
-
-        // Add a service controller to OVS bridge 1.
-        ovsBridge1.addServiceController(6640);
-        //svcController = new ServiceController(6640);
-        //waitForBridgeToConnect(svcController);
 
         bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridgeDel1");
-        ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
+        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
         bPort2 = bridge1.addPort().build();
         tap2 = new TapWrapper("tapBridgeDel2");
-        ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
+        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridgeDel3");
-        ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
+        //ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
 
         sleepBecause("we want the network config to boot up properly", 5);
     }
@@ -121,8 +103,6 @@ public class BridgePortDeleteTest {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-
-        removeBridge(ovsBridge1);
 
         stopMidolman(midolman1);
 
@@ -157,12 +137,12 @@ public class BridgePortDeleteTest {
         assertThat("We should have only one FlowStats object.",
                    fstats, hasSize(1));
 
-        short portNum1 =
-            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        short portNum2 =
-            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short portNum3 =
-            ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
+        short portNum1 = 0;
+            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
+        short portNum2 = 0;
+            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
+        short portNum3 = 0;
+            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
         FlowStats flow1 = null; //fstats.get(0);
         Set<Short> expectOutputActions = new HashSet<Short>();
         // port 1 is the ingress port, so not output to.
@@ -204,7 +184,7 @@ public class BridgePortDeleteTest {
 
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
-        ovsBridge1.deletePort(tap1.getName());
+        //ovsBridge1.deletePort(tap1.getName());
         sleepBecause("we want midolman to sense the port deletion", 1);
 
         /*assertThat(

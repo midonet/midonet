@@ -7,12 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import static com.midokura.util.Waiters.waitFor;
-import static java.lang.String.format;
 
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.hamcrest.Matcher;
@@ -25,39 +20,28 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItemInArray;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 
+import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoInterface;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
-import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
 import com.midokura.util.lock.LockHelper;
-import com.midokura.util.process.ProcessHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.cleanupZooKeeperServiceData;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopZookeeperService;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.With_Node_Agent;
 import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Default;
+import static com.midokura.util.Waiters.waitFor;
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Test Suite that will exercise the interface management subsystem.

@@ -14,22 +14,18 @@ import org.slf4j.LoggerFactory;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -49,12 +45,9 @@ public class TunnelingTest {
     IntIPv4 ip2;
     PacketHelper helper1;
     PacketHelper helper2;
-    OpenvSwitchDatabaseConnection ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     MidolmanLauncher midolman2;
-    OvsBridge ovsBridge1;
-    OvsBridge ovsBridge2;
 
     static LockHelper.Lock lock;
 
@@ -70,20 +63,9 @@ public class TunnelingTest {
 
     @Before
     public void setUp() throws Exception, IOException {
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "TunnelingTest-smoke_br");
         midolman2 = MidolmanLauncher.start(Without_Bgp, "TunnelingTest-smoke_br2");
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
-
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
-        ovsBridge1.addServiceController(6640);
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-tunneling").build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
@@ -91,7 +73,7 @@ public class TunnelingTest {
         ip1 = IntIPv4.fromString("192.168.231.2");
         MaterializedRouterPort p1 = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("tnlTestTap1");
-        ovsBridge1.addSystemPort(p1.port.getId(), tapPort1.getName());
+        //ovsBridge1.addSystemPort(p1.port.getId(), tapPort1.getName());
 
         helper1 = new PacketHelper(MAC.fromString("02:00:aa:33:00:01"), ip1,
                 IntIPv4.fromString("192.168.231.1"));
@@ -99,7 +81,7 @@ public class TunnelingTest {
         ip2 = IntIPv4.fromString("192.168.231.3");
         MaterializedRouterPort p2 = router1.addVmPort().setVMAddress(ip2).build();
         tapPort2 = new TapWrapper("tnlTestTap2");
-        ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
+        //ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
 
         helper2 = new PacketHelper(MAC.fromString("02:00:aa:33:00:02"), ip2,
                 IntIPv4.fromString("192.168.231.1"));
@@ -110,8 +92,6 @@ public class TunnelingTest {
     public void tearDown() throws InterruptedException {
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        removeBridge(ovsBridge1);
-        removeBridge(ovsBridge2);
         stopMidolman(midolman1);
         stopMidolman(midolman2);
         removeTenant(tenant1);

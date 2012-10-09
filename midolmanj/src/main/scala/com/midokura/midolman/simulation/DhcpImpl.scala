@@ -29,7 +29,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
     private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
-    private val flowController = FlowController.getRef()
+    private val flowController = FlowController.getRef(actorSystem)
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null

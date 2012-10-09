@@ -17,20 +17,17 @@ import static com.midokura.util.Waiters.sleepBecause;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNull;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -50,14 +47,12 @@ public class BridgeTestTwoDatapaths {
     PacketHelper helper2_1;
     PacketHelper helper1_3;
     PacketHelper helper3_1;
-    OpenvSwitchDatabaseConnectionImpl ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman1;
     MidolmanLauncher midolman2;
     BridgePort bPort1, bPort2, bPort3, bPort4;
     Bridge bridge1;
     TapWrapper tap1, tap2, tap3, tap4;
-    OvsBridge ovsBridge1, ovsBridge2;
 
     static LockHelper.Lock lock;
 
@@ -74,57 +69,40 @@ public class BridgeTestTwoDatapaths {
     @Before
     public void setUp() throws Exception {
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default,
                                            "BridgeTestTwoDatapaths-smoke_br1");
         midolman2 = MidolmanLauncher.start(Without_Bgp,
                                            "BridgeTestTwoDatapaths-smoke_br2");
 
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        if (ovsdb.hasBridge("smoke-br2"))
-            ovsdb.delBridge("smoke-br2");
-
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
         bridge1 = tenant1.addBridge().setName("br1").build();
 
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
-        ovsBridge2 = new OvsBridge(ovsdb, "smoke-br2", "tcp:127.0.0.1:6657");
-
-        // Add a service controller to OVS bridge 1.
-        ovsBridge1.addServiceController(6640);
-
-        // Add a service controller to OVS bridge 2.
-        //ovsBridge2.addServiceController(6641);
-        //svcController = new ServiceController(6641);
-        //waitForBridgeToConnect(svcController);
 
         // Use IP addresses from the testing range 198.18.0.0/15.
         ip1 = IntIPv4.fromString("198.18.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridge1");
-        ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
+        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
 
         ip2 = IntIPv4.fromString("198.18.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         bPort2 = bridge1.addPort().build();
         tap2 = new TapWrapper("tapBridge2");
-        ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
+        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
 
         ip3 = IntIPv4.fromString("198.18.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         bPort3 = bridge1.addPort().build();
         tap3 = new TapWrapper("tapBridge3");
-        ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
+        //ovsBridge2.addSystemPort(bPort3.getId(), tap3.getName());
 
         ip4 = IntIPv4.fromString("198.18.231.5");
         mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
         bPort4 = bridge1.addPort().build();
         tap4 = new TapWrapper("tapBridge4");
-        ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
+        //ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
 
         helper1_2 = new PacketHelper(mac1, ip1, mac2, ip2);
         helper2_1 = new PacketHelper(mac2, ip2, mac1, ip1);
@@ -139,9 +117,6 @@ public class BridgeTestTwoDatapaths {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-
-        removeBridge(ovsBridge1);
-        removeBridge(ovsBridge2);
 
         stopMidolman(midolman1);
         stopMidolman(midolman2);

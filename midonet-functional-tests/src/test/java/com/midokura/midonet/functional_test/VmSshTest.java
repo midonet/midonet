@@ -17,13 +17,10 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -35,7 +32,6 @@ import com.midokura.util.lock.LockHelper;
 import com.midokura.util.ssh.SshHelper;
 import com.midokura.util.ssh.commands.SshSession;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -50,9 +46,6 @@ public class VmSshTest {
 
     static MidolmanMgmt mgmt;
     static MidolmanLauncher midolman;
-    static OvsBridge ovsBridge;
-
-    static OpenvSwitchDatabaseConnection ovsdb;
 
     static String tapPortName = "vmSshTestTap1";
     static VMController vm;
@@ -64,12 +57,6 @@ public class VmSshTest {
     public static void setUp() throws InterruptedException, IOException {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1",
-                                                      12344);
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("VmSshTest");
 
@@ -80,11 +67,11 @@ public class VmSshTest {
         IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
         MaterializedRouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
         tapPort = new TapWrapper(tapPortName);
-        ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
+        //ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
         MaterializedRouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
-        ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
+        //ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
 
         tapPort.closeFd();
         Thread.sleep(1000);
@@ -105,7 +92,6 @@ public class VmSshTest {
     @AfterClass
     public static void tearDown() {
         removeTapWrapper(tapPort);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
       //  stopMidolmanMgmt(mgmt);

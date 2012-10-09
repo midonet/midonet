@@ -20,8 +20,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -29,14 +27,12 @@ import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -54,12 +50,10 @@ public class FloatingIpTest {
     IntIPv4 rtrIp;
     IntIPv4 pubAddr;
     IntIPv4 privAddr;
-    OpenvSwitchDatabaseConnection ovsdb;
     PacketHelper helper1;
     PacketHelper helper2;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
-    OvsBridge ovsBridge;
 
     static LockHelper.Lock lock;
 
@@ -75,14 +69,8 @@ public class FloatingIpTest {
 
     @Before
     public void setUp() throws InterruptedException, IOException {
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("FloatingIpTest");
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-floating-ip")
                                           .build();
@@ -91,7 +79,6 @@ public class FloatingIpTest {
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
         MaterializedRouterPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
         tapPort1 = new TapWrapper("flIpTestTap1");
-        ovsBridge.addSystemPort(p1.port.getId(), tapPort1.getName());
         rtrIp = IntIPv4.fromString("192.168.66.1");
         helper1 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:01"), tapAddr1, rtrIp);
@@ -99,7 +86,6 @@ public class FloatingIpTest {
         IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
         MaterializedRouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
         tapPort2 = new TapWrapper("flIpTestTap2");
-        ovsBridge.addSystemPort(p2.port.getId(), tapPort2.getName());
         helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:02"), tapAddr2, rtrIp);
 
@@ -109,7 +95,6 @@ public class FloatingIpTest {
         privAddr = IntIPv4.fromString("192.168.55.5");
         pubAddr = IntIPv4.fromString("10.0.173.5");
         MaterializedRouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
-        ovsBridge.addInternalPort(p3.port.getId(), "flIpTestInt", privAddr, 24);
         router1.addFilters();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
@@ -126,7 +111,6 @@ public class FloatingIpTest {
     public void tearDown() {
         removeTapWrapper(tapPort1);
         removeTapWrapper(tapPort2);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant1);
        // stopMidolmanMgmt(mgmt);

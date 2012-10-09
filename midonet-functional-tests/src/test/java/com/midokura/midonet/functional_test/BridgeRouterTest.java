@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
@@ -32,7 +31,6 @@ import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -40,7 +38,6 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -66,10 +63,8 @@ public class BridgeRouterTest {
     MaterializedRouterPort p1;
     TapWrapper tap1;
     TapWrapper tap2;
-    OpenvSwitchDatabaseConnectionImpl ovsdb;
     MidolmanMgmt api;
     MidolmanLauncher midolman;
-    OvsBridge ovsBridge;
 
     static LockHelper.Lock lock;
 
@@ -87,18 +82,8 @@ public class BridgeRouterTest {
     public void setUp() throws Exception {
         fixQuaggaFolderPermissions();
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-            "Open_vSwitch", "127.0.0.1", 12344);
-
         api = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start(this.getClass().getSimpleName());
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
-        // Add a service controller to OVS bridge 1.
-        ovsBridge.addServiceController(6640);
 
         log.debug("Building tenant");
         tenant1 = new Tenant.Builder(api).setName("tenant-ping").build();
@@ -108,7 +93,7 @@ public class BridgeRouterTest {
         Bridge bridge1 = tenant1.addBridge().setName("br1").build();
         BridgePort bPort1 = bridge1.addPort().build();
         tap1 = new TapWrapper("tapBridge1");
-        ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
+        //ovsBridge.addSystemPort(bPort1.getId(), tap1.getName());
 
         // Link the Bridge and Router
         routerPort1 = rtr.addLinkPort()
@@ -124,7 +109,7 @@ public class BridgeRouterTest {
         Bridge bridge2 = tenant1.addBridge().setName("br2").build();
         BridgePort bPort2 = bridge2.addPort().build();
         tap2 = new TapWrapper("tapBridge2");
-        ovsBridge.addSystemPort(bPort2.getId(), tap2.getName());
+        //ovsBridge.addSystemPort(bPort2.getId(), tap2.getName());
 
         // Link the Bridge and Router
         routerPort2 = rtr.addLinkPort()
@@ -143,7 +128,6 @@ public class BridgeRouterTest {
     public void tearDown() throws Exception {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         if (null != routerPort1)
             routerPort1.unlink();

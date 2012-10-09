@@ -21,14 +21,11 @@ import static com.midokura.util.Waiters.waitFor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.Bridge;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Subnet;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -41,7 +38,6 @@ import com.midokura.util.lock.LockHelper;
 import com.midokura.util.ssh.SshHelper;
 import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
@@ -63,10 +59,7 @@ public class BridgeDHCPTest {
 
     static MidolmanMgmt mgmt;
     static MidolmanLauncher midolman;
-    static OvsBridge ovsBridge;
     static Bridge bridge;
-
-    static OpenvSwitchDatabaseConnection ovsdb;
 
     static String tapPortName = "brDhcpTestTap";
     static String vmHostName = "br-dhcp-test-host";
@@ -79,13 +72,6 @@ public class BridgeDHCPTest {
     public static void setUp() throws InterruptedException, IOException {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                                                      "127.0.0.1",
-                                                      12344);
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("BridgeDHCPTest");
 
@@ -95,13 +81,13 @@ public class BridgeDHCPTest {
 
         BridgePort vmPort = bridge.addPort().build();
         tapPort = new TapWrapper(tapPortName);
-        ovsBridge.addSystemPort(vmPort.getId(), tapPortName);
+        //ovsBridge.addSystemPort(vmPort.getId(), tapPortName);
 
         BridgePort internalPort = bridge.addPort().build();
 
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        ovsBridge.addInternalPort(internalPort.getId(),
-                                  "brDhcpPortInt", ip2, 24);
+        //ovsBridge.addInternalPort(internalPort.getId(),
+                                  //"brDhcpPortInt", ip2, 24);
 
         tapPort.closeFd();
         Thread.sleep(1000);
@@ -132,7 +118,6 @@ public class BridgeDHCPTest {
         destroyVM(vm);
 
         removeTapWrapper(tapPort);
-        removeBridge(ovsBridge);
         stopMidolman(midolman);
         removeTenant(tenant);
         //stopMidolmanMgmt(mgmt);

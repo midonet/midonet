@@ -21,15 +21,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import com.midokura.midonet.client.dto.DtoVpn.VpnType;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -37,7 +34,6 @@ import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeBridge;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeVpn;
@@ -51,10 +47,8 @@ public class VpnTest {
     Tenant tenant1;
     TapWrapper tapPort1;
     TapWrapper tapPort2;
-    OpenvSwitchDatabaseConnection ovsdb;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
-    OvsBridge ovsBridge;
     MaterializedRouterPort vpn1;
     MaterializedRouterPort vpn2;
     LogicalRouterPort uplinkPort;
@@ -73,14 +67,8 @@ public class VpnTest {
 
     @Before
     public void setUp() throws InterruptedException, IOException {
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl("Open_vSwitch",
-                "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman = MidolmanLauncher.start("VpnTest");
-
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge = new OvsBridge(ovsdb, "smoke-br");
 
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-vpn").build();
 
@@ -90,7 +78,7 @@ public class VpnTest {
         IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
         MaterializedRouterPort p = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("vpnTestTap1");
-        ovsBridge.addSystemPort(p.port.getId(), tapPort1.getName());
+        //ovsBridge.addSystemPort(p.port.getId(), tapPort1.getName());
 
         // Router 2 has VMs on 10.0.232.0/24.
         Router router2 = tenant1.addRouter().setName("rtr2").build();
@@ -98,7 +86,7 @@ public class VpnTest {
         IntIPv4 ip2 = IntIPv4.fromString("10.0.232.4");
         p = router1.addVmPort().setVMAddress(ip2).build();
         tapPort2 = new TapWrapper("vpnTestTap2");
-        ovsBridge.addSystemPort(p.port.getId(), tapPort2.getName());
+        //ovsBridge.addSystemPort(p.port.getId(), tapPort2.getName());
 
         // Link the two routers. Only "public" addresses should traverse the
         // link between the routers. Router 1 owns public addresses in
@@ -156,7 +144,6 @@ public class VpnTest {
         removeTapWrapper(tapPort2);
         removeVpn(mgmt, vpn1);
         removeVpn(mgmt, vpn2);
-        removeBridge(ovsBridge);
         // TODO: Convert the following to a condition.
         // Give some second to the controller to clean up vpns stuff
         sleepBecause("wait for midolman to clean vpn configuration up", 10);

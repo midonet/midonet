@@ -11,8 +11,6 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnection;
-import com.midokura.midolman.openvswitch.OpenvSwitchDatabaseConnectionImpl;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
@@ -22,7 +20,6 @@ import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
 import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.OvsBridge;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -35,10 +32,8 @@ import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.Config
 import static com.midokura.util.Waiters.sleepBecause;
 
 public abstract class RouterBridgeBaseTest {
-    static OpenvSwitchDatabaseConnection ovsdb;
     static MidolmanMgmt mgmt;
     static MidolmanLauncher midolman1;
-    static OvsBridge ovsBridge1;
     static Tenant tenant1;
     static Router router1;
     static MaterializedRouterPort routerUplink;
@@ -58,13 +53,8 @@ public abstract class RouterBridgeBaseTest {
     public static void classSetup() throws IOException, InterruptedException {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        ovsdb = new OpenvSwitchDatabaseConnectionImpl(
-                        "Open_vSwitch", "127.0.0.1", 12344);
         mgmt = new MockMidolmanMgmt(false);
         midolman1 = MidolmanLauncher.start(Default, "RouterBridgeBaseTest");
-        if (ovsdb.hasBridge("smoke-br"))
-            ovsdb.delBridge("smoke-br");
-        ovsBridge1 = new OvsBridge(ovsdb, "smoke-br");
 
         // Create a tenant with a single router and bridge.
         tenant1 = new Tenant.Builder(mgmt).setName("tenant-rbtest").build();
@@ -80,9 +70,9 @@ public abstract class RouterBridgeBaseTest {
         rtrUplinkEndpoint = new EndPoint(gwIP, MAC.random(),
                 routerUplink.getIpAddr(), routerUplink.getMacAddr(),
                 rtrUplinkTap);
-        ovsBridge1.addSystemPort(
-                routerUplink.port.getId(),
-                rtrUplinkTap.getName());
+        //ovsBridge1.addSystemPort(
+        //        routerUplink.port.getId(),
+        //        rtrUplinkTap.getName());
 
         // Create the bridge and link it to the router.
         bridge1 = tenant1.addBridge().setName("br1").build();
@@ -102,9 +92,9 @@ public abstract class RouterBridgeBaseTest {
                     routerDownlink.getIpAddr(),
                     routerDownlink.getMacAddr(),
                     new TapWrapper("invalTap" + i)));
-            ovsBridge1.addSystemPort(
-                    bports.get(i).getId(),
-                    vmEndpoints.get(i).tap.getName());
+            //ovsBridge1.addSystemPort(
+            //        bports.get(i).getId(),
+            //        vmEndpoints.get(i).tap.getName());
         }
 
         sleepBecause("we need the network to boot up", 10);
@@ -116,7 +106,6 @@ public abstract class RouterBridgeBaseTest {
         for (EndPoint ep : vmEndpoints)
             removeTapWrapper(ep.tap);
 
-        removeBridge(ovsBridge1);
         stopMidolman(midolman1);
 
         if (null != routerDownlink)
