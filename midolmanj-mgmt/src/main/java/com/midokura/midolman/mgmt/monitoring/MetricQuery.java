@@ -29,11 +29,11 @@ public class MetricQuery {
     /**
      * the starting point of the time interval we are querying
      */
-    long startEpochTime;
+    long timeStampStart;
     /**
      * the end point of the time interval we are querying
      */
-    long endEpochTime;
+    long timeStampEnd;
 
     public MetricQuery() {
     }
@@ -42,12 +42,12 @@ public class MetricQuery {
         return metricName;
     }
 
-    public long getStartEpochTime() {
-        return startEpochTime;
+    public long getTimeStampStart() {
+        return timeStampStart;
     }
 
-    public long getEndEpochTime() {
-        return endEpochTime;
+    public long getTimeStampEnd() {
+        return timeStampEnd;
     }
 
     public UUID getTargetIdentifier() {
@@ -62,12 +62,12 @@ public class MetricQuery {
         this.metricName = metricName;
     }
 
-    public void setStartEpochTime(long startEpochTime) {
-        this.startEpochTime = startEpochTime;
+    public void setTimeStampStart(long timeStampStart) {
+        this.timeStampStart = timeStampStart;
     }
 
-    public void setEndEpochTime(long endEpochTime) {
-        this.endEpochTime = endEpochTime;
+    public void setTimeStampEnd(long timeStampEnd) {
+        this.timeStampEnd = timeStampEnd;
     }
 
     public void setTargetIdentifier(UUID targetIdentifier) {

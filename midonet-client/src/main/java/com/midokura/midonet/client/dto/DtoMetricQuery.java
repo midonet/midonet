@@ -4,8 +4,8 @@
 
 package com.midokura.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * This class represents a query to the monitoring system.
@@ -29,26 +29,26 @@ public class DtoMetricQuery {
     /**
      * the starting point of the time interval we are querying
      */
-    long startEpochTime;
+    long timeStampStart;
     /**
      * the end point of the time interval we are querying
      */
-    long endEpochTime;
+    long timeStampEnd;
 
     public void setMetricName(String metricName) {
         this.metricName = metricName;
     }
 
-    public void setStartEpochTime(long startEpochTime) {
-        this.startEpochTime = startEpochTime;
+    public void setTimeStampStart(long timeStampStart) {
+        this.timeStampStart = timeStampStart;
     }
 
-    public long getEndEpochTime() {
-        return endEpochTime;
+    public long getTimeStampEnd() {
+        return timeStampEnd;
     }
 
-    public void setEndEpochTime(long endEpochTime) {
-        this.endEpochTime = endEpochTime;
+    public void setTimeStampEnd(long timeStampEnd) {
+        this.timeStampEnd = timeStampEnd;
     }
 
     public void setTargetIdentifier(UUID targetIdentifier) {
@@ -63,8 +63,8 @@ public class DtoMetricQuery {
         return metricName;
     }
 
-    public long getStartEpochTime() {
-        return startEpochTime;
+    public long getTimeStampStart() {
+        return timeStampStart;
     }
 
     public UUID getTargetIdentifier() {
@@ -81,8 +81,8 @@ public class DtoMetricQuery {
                 "type=" + type +
                 "targetIdentifier=" + targetIdentifier +
                 "metricName=" + metricName +
-                "start=" + startEpochTime +
-                "end=" + endEpochTime +
+                "start=" + timeStampStart +
+                "end=" + timeStampEnd +
                 "}";
     }
 }
