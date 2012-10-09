@@ -50,6 +50,8 @@ class IPv6Addr extends IPAddr {
     }
 
     override def clone() = new IPv6Addr().setAddress(upperWord, lowerWord)
+
+    override def toIntIPv4() = throw new IllegalArgumentException
 }
 
 object IPv6Addr {

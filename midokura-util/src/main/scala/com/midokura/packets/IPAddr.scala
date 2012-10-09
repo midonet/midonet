@@ -6,6 +6,7 @@ package com.midokura.packets
 trait IPAddr extends Cloneable {
     def toString(): String
     def toUrlString(): String
+    def toIntIPv4(): IntIPv4
 }
 
 object IPAddr {
@@ -44,6 +45,8 @@ class IPv4Addr extends IPAddr {
     override def hashCode() = address
 
     override def clone() = new IPv4Addr().setIntAddress(address)
+
+    override def toIntIPv4() = new IntIPv4(address)
 }
 
 object IPv4Addr {

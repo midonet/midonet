@@ -4,7 +4,6 @@
 package com.midokura.packets;
 
 
-// TODO(pino): this class should be renamed IPv4Addr.
 public class IntIPv4 implements Cloneable {
     private int address;
     private int maskLength;
