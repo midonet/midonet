@@ -87,19 +87,19 @@ public class MidolmanLauncher {
 
     private String createCommandLine(String configType, String logPostfix) {
 
-        return
-                format(
-
-                        "sudo java -Xbootclasspath/p:../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar -Djava.library.path=%s -cp %s -Dmidolman.log.file=%s " +
-                                                "com.midokura.midolman.Midolman " +
-                                "com.midokura.midolman.Midolman " +
-                                "-c %s",
-                        getLibraryPath(),
-                        getClassPath(),
-                        getLogFilePath(configType, logPostfix),
-                        format(
-                                "midolmanj_runtime_configurations/midolman-%s.conf",
-                                configType));
+        return format(
+            "sudo java " +
+            "-Xbootclasspath/p:../midokura-jdk-bootstrap/target/" +
+                "midokura-jdk-bootstrap-12.12-SNAPSHOT.jar " +
+            " -Djava.library.path=%s " +
+            "-cp %s -Dmidolman.log.file=%s com.midokura.midolman.Midolman " +
+            "-c %s",
+            getLibraryPath(),
+            getClassPath(),
+            getLogFilePath(configType, logPostfix),
+            format(
+                "midolmanj_runtime_configurations/midolman-%s.conf",
+                configType));
     }
 
     private String getLibraryPath() {

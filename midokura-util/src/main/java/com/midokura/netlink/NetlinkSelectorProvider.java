@@ -5,6 +5,7 @@ package com.midokura.netlink;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.ProtocolFamily;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.Pipe;
 import java.nio.channels.ServerSocketChannel;
@@ -70,11 +71,11 @@ public class NetlinkSelectorProvider extends SelectorProvider {
     /**
      * WARN: implementation for jdk7 SelectorProvider methods
      */
-//    @Override
-//    public DatagramChannel openDatagramChannel(ProtocolFamily family)
-//        throws IOException {
-//        return underlyingSelector.openDatagramChannel(family);
-//    }
+    @Override
+    public DatagramChannel openDatagramChannel(ProtocolFamily family)
+        throws IOException {
+        return underlyingSelector.openDatagramChannel(family);
+    }
 
     public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol protocol) {
         final String NAME = "com.midokura.netlink.NetlinkChannelImpl";

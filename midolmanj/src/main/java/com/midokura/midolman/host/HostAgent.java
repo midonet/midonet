@@ -18,8 +18,6 @@ import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -51,6 +49,7 @@ public class HostAgent {
         log.info("build.user: {}", properties.get("git.build.user.name"));
         log.info("-------------------------------------");
 
+/*
         log.info("Added SIGTERM handling for cleanup");
         Signal.handle(new Signal("TERM"), new SignalHandler() {
             @Override
@@ -58,6 +57,7 @@ public class HostAgent {
                 doServiceCleanup();
             }
         });
+*/
 
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
