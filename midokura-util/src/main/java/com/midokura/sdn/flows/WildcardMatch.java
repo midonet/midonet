@@ -32,6 +32,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         NetworkDestination,
         NetworkProtocol,
         NetworkTTL,
+        NetworkTOS,
         IsIPv4Fragment,
         TransportSource,
         TransportDestination
@@ -55,6 +56,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     private IntIPv4 networkDestination;
     private Byte networkProtocol;
     private Byte networkTTL;
+    private Byte networkTOS;
     private Boolean isIPv4Fragment;
     private Short transportSource;
     private Short transportDestination;
@@ -318,13 +320,12 @@ public class WildcardMatch implements Cloneable, PacketMatch {
 
     @Override
     public byte getNetworkTypeOfService() {
-        // TODO(pino): WCMatch has no NetworkTOS, but rules.Condition
-        // checks the TOS of the match.  Reconcile.
-        return 0;
+        return (null == networkTOS)? 0 : networkTOS;
     }
 
     public WildcardMatch setNetworkTypeOfService(byte tos) {
-        // TODO(pino): implement this.
+        usedFields.add(Field.NetworkTOS);
+        this.networkTOS = tos;
         return this;
     }
 
