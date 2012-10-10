@@ -686,6 +686,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
                         newClone.networkProtocol = networkProtocol;
                         break;
 
+                    case NetworkTOS:
+                        newClone.networkTOS = networkTOS;
+                        break;
+
                     case NetworkTTL:
                         newClone.networkTTL = networkTTL;
                         break;
