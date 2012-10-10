@@ -29,15 +29,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.midokura.cache.Cache;
-import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.packets.IPv4;
+import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.functors.Callback1;
 
 
 public class TestCondition {
 
-    static MidoMatch pktMatch;
+    static WildcardMatch pktMatch;
     static Random rand;
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -53,7 +53,7 @@ public class TestCondition {
 
     @BeforeClass
     public static void classSetup() {
-        pktMatch = new MidoMatch();
+        pktMatch = new WildcardMatch();
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");

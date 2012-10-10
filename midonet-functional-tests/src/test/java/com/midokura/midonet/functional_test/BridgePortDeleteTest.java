@@ -4,9 +4,8 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.List;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,27 +16,24 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
+import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.functional_test.topology.Bridge;
+import com.midokura.midonet.functional_test.topology.BridgePort;
+import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.util.lock.LockHelper;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-
-import com.midokura.midolman.MidoMatch;
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.openflow.FlowStats;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 
 @Ignore
 public class BridgePortDeleteTest {
@@ -131,11 +127,11 @@ public class BridgePortDeleteTest {
 
         // There should now be one flow that outputs to ALL.
         Thread.sleep(1000);
-        MidoMatch match1 = new MidoMatch().setDataLayerSource(mac1);
+        WildcardMatch match1 = new WildcardMatch().setDataLayerSource(mac1);
 
-        List<FlowStats> fstats = null; //svcController.getFlowStats(match1);
-        assertThat("We should have only one FlowStats object.",
-                   fstats, hasSize(1));
+        //List<FlowStats> fstats = null; //svcController.getFlowStats(match1);
+        //assertThat("We should have only one FlowStats object.",
+        //           fstats, hasSize(1));
 
         short portNum1 = 0;
             //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
@@ -143,7 +139,7 @@ public class BridgePortDeleteTest {
             //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
         short portNum3 = 0;
             //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
-        FlowStats flow1 = null; //fstats.get(0);
+        //FlowStats flow1 = null; //fstats.get(0);
         Set<Short> expectOutputActions = new HashSet<Short>();
         // port 1 is the ingress port, so not output to.
         expectOutputActions.add(portNum2);
@@ -163,12 +159,12 @@ public class BridgePortDeleteTest {
 
         // There should now be one flow that outputs to port 1.
         Thread.sleep(1000);
-        MidoMatch match2 = new MidoMatch().setDataLayerSource(mac2);
+        WildcardMatch match2 = new WildcardMatch().setDataLayerSource(mac2);
         //fstats = svcController.getFlowStats(match2);
-        assertThat("Only one FlowStats object should be returned.",
-                   fstats, hasSize(1));
+        //assertThat("Only one FlowStats object should be returned.",
+        //           fstats, hasSize(1));
 
-        FlowStats flow2 = null; //fstats.get(0);
+        //FlowStats flow2 = null; //fstats.get(0);
         //flow2.expectCount(1).expectOutputAction(portNum1);
 
         // The last packet caused the bridge to learn the mapping Mac2->port2.

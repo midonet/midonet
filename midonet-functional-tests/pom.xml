@@ -226,12 +226,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openflow</groupId>
-            <artifactId>openflowj</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.libvirt</groupId>
             <artifactId>libvirt</artifactId>
             <version>0.4.7</version>

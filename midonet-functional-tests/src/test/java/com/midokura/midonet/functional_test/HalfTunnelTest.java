@@ -4,9 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.nio.ByteBuffer;
-import java.util.UUID;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,34 +11,32 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midonet.functional_test.topology.BridgePort;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.GRE;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.openflow.PrimaryController;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.process.ProcessHelper;
 
 
 import static com.midokura.midonet.functional_test.EndPoint.exchangeArpWithGw;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Without_Bgp;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @Ignore
 public class HalfTunnelTest  extends RouterBridgeBaseTest {
     private final static Logger log =
             LoggerFactory.getLogger(HalfTunnelTest.class);
 
-    PrimaryController controller;
+    //PrimaryController controller;
     MidolmanLauncher midolman2;
     EndPoint mm2endpoint;
     BridgePort mm2bport;
@@ -71,8 +66,8 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
         // the second MM's GRE packets.
         // Create a bridge with an internal port with address equal to MM2.
         // Create a PrimaryController that allows us to snoop the packets.
-        controller =
-                new PrimaryController(8888, PrimaryController.Protocol.NXM);
+        //controller =
+        //        new PrimaryController(8888, PrimaryController.Protocol.NXM);
         //greBridge = new OvsBridge(ovsdb, "halftun-br", "tcp:127.0.0.1:8888");
         // Create one internal port on the bridge. Since it has the same
         // address as the second MM's public address in the .conf, GRE packets
@@ -92,14 +87,11 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
 
         Thread.sleep(5000);
         //assertTrue(controller.waitForBridge(greBridge.getName()));
-        assertTrue(controller.waitForPort(internalPortName));
+        //assertTrue(controller.waitForPort(internalPortName));
     }
 
     @After
     public void tearDown() throws InterruptedException {
-        if (controller != null)
-            controller.stop();
-
         stopMidolman(midolman2);
         removeTapWrapper(mm2endpoint.tap);
         mm2bport.delete();
@@ -154,15 +146,15 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
         // The packet should be forwarded unmodified over the virtual bridge.
         // It should therefore be tunneled to MM1's public address, and
         // so it arrives at our 'snooping' controller.
-        PrimaryController.PacketIn pktIn;
+        //PrimaryController.PacketIn pktIn;
         Ethernet ethPkt;
         while (true) {
-            pktIn = controller.getNextPacket();
-            assertNotNull(pktIn);
-            assertThat("The internal port received a packet.", pktIn.inPort,
-                    equalTo(controller.getPortNum(internalPortName)));
+            //pktIn = controller.getNextPacket();
+            //assertNotNull(pktIn);
+            //assertThat("The internal port received a packet.", pktIn.inPort,
+            //        equalTo(controller.getPortNum(internalPortName)));
             ethPkt = new Ethernet();
-            ethPkt.deserialize(ByteBuffer.wrap(pktIn.packet));
+            //ethPkt.deserialize(ByteBuffer.wrap(pktIn.packet));
             log.debug("Received packet {}", ethPkt);
             // Break out of this loop when we find a packet addressed to the
             // MAC address of MM1 - that's the tunneled packet.
@@ -170,8 +162,8 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
                 && ethPkt.getEtherType() == IPv4.ETHERTYPE)
                 break;
         }
-        assertThat("The controller got the whole tunneled packet.",
-                pktIn.packet.length, equalTo(pktIn.totalLen));
+        //assertThat("The controller got the whole tunneled packet.",
+        //        pktIn.packet.length, equalTo(pktIn.totalLen));
         assertThat("IPv4 packet", ethPkt.getEtherType(), equalTo(IPv4.ETHERTYPE));
         IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
         assertThat("Source IP", ipPkt.getSourceAddress(),

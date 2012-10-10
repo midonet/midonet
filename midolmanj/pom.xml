@@ -543,12 +543,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openflow</groupId>
-            <artifactId>openflowj</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <!--<classifier>mido</classifier>-->

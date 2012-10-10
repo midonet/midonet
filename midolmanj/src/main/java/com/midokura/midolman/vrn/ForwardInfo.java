@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.MidoMatch;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
@@ -17,8 +16,8 @@ import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
-import com.midokura.midolman.vrn.ForwardingElement.Action;
 import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.sdn.flows.WildcardMatch;
 
 
 /* VRNController creates and partially populate an instance of
@@ -32,10 +31,18 @@ public class ForwardInfo implements ChainPacketContext {
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
     public Ethernet pktIn;
-    public MidoMatch flowMatch; // (original) match of any eventual flows
-    public MidoMatch matchIn; // the match as it enters the ForwardingElement
+    public WildcardMatch flowMatch; // (original) match of any eventual flows
+    public WildcardMatch matchIn; // the match as it enters the ForwardingElement
     public Set<UUID> portGroups = new HashSet<UUID>();
     public boolean internallyGenerated = false;
+
+    public enum Action {
+        DROP,
+        NOT_IPV4,
+        FORWARD,
+        CONSUMED,
+        PAUSED,
+    }
 
     // These fields are filled by ForwardingElement.process():
     public Action action;
@@ -197,11 +204,11 @@ public class ForwardInfo implements ChainPacketContext {
         this.inPortId = inPortId;
     }
 
-    public MidoMatch getMatchIn() {
+    public WildcardMatch getMatchIn() {
         return matchIn;
     }
 
-    public void setMatchIn(MidoMatch matchIn) {
+    public void setMatchIn(WildcardMatch matchIn) {
         this.matchIn = matchIn;
     }
 

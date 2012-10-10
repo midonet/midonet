@@ -67,6 +67,16 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     }
 
     @Nonnull
+    public WildcardMatch setInputPort(short inputPortNumber) {
+        return setInputPortNumber(inputPortNumber);
+    }
+
+    @Nullable
+    public Short getInputPort() {
+        return getInputPortNumber();
+    }
+
+    @Nonnull
     public WildcardMatch unsetInputPortNumber() {
         usedFields.remove(Field.InputPortNumber);
         this.inputPortNumber = null;
@@ -124,6 +134,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
+    public WildcardMatch setDataLayerSource(String macaddr) {
+        return setDataLayerSource(MAC.fromString(macaddr));
+    }
+
     @Override
     public WildcardMatch setDataLayerSource(MAC addr) {
         if (addr != null)
@@ -153,6 +167,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         usedFields.add(Field.EthernetDestination);
         this.ethernetDestination = addr;
         return this;
+    }
+
+    public WildcardMatch setDataLayerDestination(String macAddr) {
+        return setDataLayerDestination(MAC.fromString(macAddr));
     }
 
     @Override
@@ -198,6 +216,11 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return etherType;
     }
 
+    @Nonnull
+    public WildcardMatch setDataLayerType(short dlType) {
+        return setEtherType(dlType);
+    }
+
     @Override
     public short getDataLayerType() {
         return etherType.shortValue();
@@ -213,6 +236,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     @Override
     public WildcardMatch setNetworkSource(int addr) {
         return setNetworkSource(new IntIPv4(addr));
+    }
+
+    public WildcardMatch setNetworkSource(int addr, int maskLen) {
+        return setNetworkSource(new IntIPv4(addr, maskLen));
     }
 
     @Nonnull
@@ -242,6 +269,10 @@ public class WildcardMatch implements Cloneable, PacketMatch {
     @Override
     public WildcardMatch setNetworkDestination(int addr) {
         return setNetworkDestination(new IntIPv4(addr));
+    }
+
+    public WildcardMatch setNetworkDestination(int addr, int maskLen) {
+        return setNetworkDestination(new IntIPv4(addr, maskLen));
     }
 
     @Nonnull
@@ -290,6 +321,11 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         // TODO(pino): WCMatch has no NetworkTOS, but rules.Condition
         // checks the TOS of the match.  Reconcile.
         return 0;
+    }
+
+    public WildcardMatch setNetworkTypeOfService(byte tos) {
+        // TODO(pino): implement this.
+        return this;
     }
 
     @Nonnull

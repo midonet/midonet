@@ -6,7 +6,8 @@ package com.midokura.packets;
 
 import java.nio.ByteBuffer;
 
-import org.openflow.util.U16;
+
+import static com.midokura.packets.Unsigned.unsign;
 
 public class GRE extends BasePacket {
     public static final byte PROTOCOL_NUMBER = 47;
@@ -102,7 +103,8 @@ public class GRE extends BasePacket {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("GRE [version=").append(version & 0x7);
-        sb.append(", protocol=0x").append(Integer.toHexString(U16.f(protocol)));
+        sb.append(", protocol=0x").append(
+            Integer.toHexString(unsign(protocol)));
         sb.append(", hasCksum=").append(hasCksum);
         if (hasCksum)
             sb.append(", cksum=").append(cksum);

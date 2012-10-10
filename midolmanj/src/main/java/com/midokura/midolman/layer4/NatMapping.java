@@ -6,10 +6,7 @@ package com.midokura.midolman.layer4;
 
 import java.util.Set;
 
-import org.openflow.protocol.OFMatch;
-
 import com.midokura.midolman.rules.NatTarget;
-import com.midokura.sdn.flows.PacketMatch;
 
 
 public interface NatMapping {

@@ -16,9 +16,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.util.eventloop.Reactor;
-import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
@@ -75,7 +75,7 @@ public class TestNatLeaseManager {
                 Assert.assertNull(natManager.lookupSnatFwd(oldNwSrc, oldTpSrc,
                         nwDst, tpDst, null));
                 NwTpPair pair = natManager.allocateSnat(oldNwSrc, oldTpSrc,
-                        nwDst, tpDst, natSet, new MidoMatch());
+                        nwDst, tpDst, natSet, new WildcardMatch());
                 Assert.assertEquals(nat.nwStart, pair.nwAddr);
                 Assert.assertEquals(nat.tpStart + j, pair.tpPort);
                 Assert.assertEquals(pair, natManager.lookupSnatFwd(
@@ -85,7 +85,7 @@ public class TestNatLeaseManager {
                         nat.nwStart, (short)(nat.tpStart + j), nwDst, tpDst));
             }
             Assert.assertNull(natManager.allocateSnat(0x0a000001, (short) 43,
-                    0xc0a80102, (short) 2182, natSet, new MidoMatch()));
+                    0xc0a80102, (short) 2182, natSet, new WildcardMatch()));
         }
     }
 
@@ -120,7 +120,7 @@ public class TestNatLeaseManager {
                 Assert.assertNull(natManager.lookupDnatFwd(nwSrc, tpSrc,
                         nwDst, tpDst, null));
                 NwTpPair pairF = natManager.allocateDnat(nwSrc, tpSrc,
-                        nwDst, tpDst, natSet, new MidoMatch());
+                        nwDst, tpDst, natSet, new WildcardMatch());
                 Assert.assertTrue(nat.nwStart <= pairF.nwAddr);
                 Assert.assertTrue(pairF.nwAddr <= nat.nwEnd);
                 Assert.assertEquals(nat.tpStart, pairF.tpPort);
@@ -150,7 +150,7 @@ public class TestNatLeaseManager {
             Assert.assertNull(natManager.lookupDnatFwd(nwSrc, tpSrc,
                     nwDst, tpDst, null));
             NwTpPair pairF = natManager.allocateDnat(nwSrc, tpSrc,
-                    nwDst, tpDst, natSet, new MidoMatch());
+                    nwDst, tpDst, natSet, new WildcardMatch());
             Assert.assertTrue(nat1.nwStart == pairF.nwAddr ||
                     nat2.nwStart == pairF.nwAddr);
             Assert.assertTrue(nat1.tpStart == pairF.tpPort ||

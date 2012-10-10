@@ -17,10 +17,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
-import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
@@ -32,8 +32,8 @@ import com.midokura.midolman.vrn.ForwardInfo;
 
 public class TestRules {
 
-    static MidoMatch pktMatch;
-    static MidoMatch pktResponseMatch;
+    static WildcardMatch pktMatch;
+    static WildcardMatch pktResponseMatch;
     static Random rand;
     static UUID inPort;
     static UUID ownerId;
@@ -48,7 +48,7 @@ public class TestRules {
     @BeforeClass
     public static void setupOnce() throws InterruptedException, KeeperException,
             StateAccessException {
-        pktMatch = new MidoMatch();
+        pktMatch = new WildcardMatch();
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
@@ -58,7 +58,7 @@ public class TestRules {
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource((short) 4321);
         pktMatch.setTransportDestination((short) 1234);
-        pktResponseMatch = new MidoMatch();
+        pktResponseMatch = new WildcardMatch();
         pktResponseMatch.setInputPort((short) 5);
         pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
         pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
@@ -105,7 +105,7 @@ public class TestRules {
         expRes = new RuleResult(null, null, pktMatch.clone(), false);
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
         fwdInfo = new ForwardInfo(false, null, null);
-        fwdInfo.flowMatch = new MidoMatch();
+        fwdInfo.flowMatch = new WildcardMatch();
     }
 
     @Test

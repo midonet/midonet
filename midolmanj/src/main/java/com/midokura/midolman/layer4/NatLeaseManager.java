@@ -16,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,6 @@ import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
-import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 
 
@@ -117,11 +115,12 @@ public class NatLeaseManager implements NatMapping {
                 + "nats {}", new Object[] { IPv4.fromIPv4Address(nwSrc),
                 tpSrc, IPv4.fromIPv4Address(oldNwDst), oldTpDst, nats });
 
-        // This throws IllegalArgumentException if nats.size() is zero.
+        if (nats.size() == 0)
+            throw new IllegalArgumentException("Nat list was emtpy.");
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();
         NatTarget nat = null;
-        for (int i = 0; i <= natPos; i++)
+        for (int i = 0; i <= natPos && iter.hasNext(); i++)
             nat = iter.next();
         int tpStart = nat.tpStart & USHORT;
         int tpEnd = nat.tpEnd & USHORT;
