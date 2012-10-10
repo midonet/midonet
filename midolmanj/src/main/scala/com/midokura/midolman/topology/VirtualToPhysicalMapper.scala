@@ -107,6 +107,7 @@ object VirtualToPhysicalMapper extends Referenceable {
                               op: HostConfigOperation.Value)
         extends ZoneChanged[CapwapTunnelZoneHost]
 
+    case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 }
 
 /**
@@ -252,6 +253,15 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         message match {
             case PortSetRequest(portSetId, updates) =>
                 portSets.addSubscriber(portSetId, sender, updates)
+
+            case PortSetForTunnelKeyRequest(key) =>
+                tunnelKeyToPortSet.get(key) match {
+                    case Some(portSetId) =>
+                        portSets.addSubscriber(portSetId, sender, updates = false)
+                    case None =>
+                        sender ! null
+                }
+                sender ! tunnelKeyToPortSet.get(key)
 
             case portSet: rcu.PortSet =>
                 val updatedPortSet = localActivePortSets.get(portSet.id) match

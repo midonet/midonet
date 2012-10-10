@@ -422,6 +422,7 @@ class DatapathController() extends Actor with ActorLogging {
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
+    val localTunnelPorts: mutable.Set[Short] = mutable.Set()
     // Map of vport ID to local interface name - according to ZK.
     val vifPorts: mutable.Map[UUID, String] = mutable.Map()
 
@@ -942,9 +943,28 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
+
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
                            dpMatch: FlowMatch, reason: Packet.Reason,
                            cookie: Option[Int]) {
+        def addFlow(port: Short, wMatch: WildcardMatch,
+                                 actions: Seq[FlowAction[_]]) {
+            log.debug("adding flow for PacketIn match {} with actions {}",
+                wMatch, actions)
+
+            FlowController.getRef().tell(
+                AddWildcardFlow(
+                    new WildcardFlow()
+                        .setMatch(wMatch)
+                        .setIdleExpirationMillis(3000)
+                         setActions(actions),
+                    cookie,
+                    if (actions == Nil) null else pktBytes,
+                    null,
+                    null))
+            // XXX(guillermo): make sure passing null for callbacks and tags is Ok
+        }
+
         wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
                 if (localToVifPorts.contains(port)) {
@@ -952,21 +972,40 @@ class DatapathController() extends Actor with ActorLogging {
                     SimulationController.getRef().tell(
                         PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
                     return
+                } else if (localTunnelPorts.contains(port)) {
+                    log.debug("PacketIn came from a tunnel port")
+                    val portSetFuture = VirtualToPhysicalMapper.getRef() ?
+                        PortSetForTunnelKeyRequest(wMatch.getTunnelID)
+
+                    // TODO(pino, guillermo): egress port filter simulation
+                    portSetFuture.mapTo[PortSet] onComplete {
+                        case Right(portSet) if (portSet != null) =>
+                            val action = new FlowActionOutputToVrnPortSet(portSet.id)
+                            log.debug("tun => portSet, action: {}, portSet: {}",
+                                action, portSet)
+                            addFlow(port,
+                                new WildcardMatch().
+                                    setTunnelID(wMatch.getTunnelID),
+                                translateToDpPorts(
+                                    List[FlowAction[_]](action),
+                                    portSet.id,
+                                    portsForLocalPorts((portSet.localPorts).toSeq),
+                                    None,
+                                    Nil))
+
+                        case _ =>
+                            log.debug("PacketIn came from a tunnel port but " +
+                                "the key does not map to any PortSet")
+                            addFlow(port,
+                                new WildcardMatch().setInputPortNumber(port),
+                                Nil)
+                    }
+
+                } else {
+                    // Otherwise, drop the flow. There's a port on the DP that
+                    // doesn't belong to us and is receiving packets.
+                    addFlow(port, new WildcardMatch().setInputPortNumber(port), Nil)
                 }
-                // TODO(pino): implement the case of a tunneled packet
-                // TODO: addressed to a PortSet. That would be sent up to us
-                // TODO: so that we can do egress port filter simulation.
-
-
-                // Otherwise, drop the flow. There's a port on the DP that
-                // doesn't belong to us and is receiving packets.
-                FlowController.getRef().tell(
-                    AddWildcardFlow(
-                        new WildcardFlow()
-                            .setMatch(new WildcardMatch()
-                                .setInputPortNumber(port))
-                            .setIdleExpirationMillis(3000),
-                        cookie, null, null, null))
 
             case null =>
                 // Missing InputPortNumber. This should never happen.
@@ -1017,6 +1056,7 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
                     peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
             }
+            localTunnelPorts.add(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,
                     Some(port.getPortNo.shortValue()),
@@ -1034,6 +1074,7 @@ class DatapathController() extends Actor with ActorLogging {
 
                 case None =>
             }
+            localTunnelPorts.remove(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
                     host.zones(zone), hConf,
