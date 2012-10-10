@@ -33,6 +33,7 @@ import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.UDP;
 import com.midokura.packets.IPacket;
+import com.midokura.packets.GRE;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
 
@@ -179,61 +180,79 @@ public abstract class BaseTunnelTest {
         stopEmbeddedZookeeper();
     }
 
-    @Test
-    public void testTunnel() throws MalformedPacketException {
-        // inject a packet sent from the local vm, expect it encapsulated on the
-        // physicalTap.
-
-        /* XXX(guillermo) it seems that ovswitch decapsulates the packet before
-         * it shows up on physTap, however tcpdump does see the encapsulated
-         * packet on the 'wire'. We need  a way to prevent ovswitch from
-         * decapsulating the packet or to get a hold of it before it does.
-         */
-        byte[] pkt = PacketHelper.makeUDPPacket(localVmMac, localVmIp,
-                                                remoteVmMac, remoteVmIp,
-                                                (short) 2345, (short) 9876,
-                                                "The Payload".getBytes());
-        assertPacketWasSentOnTap(vmTap, pkt);
-        byte[] received = physTap.recv();
-        assertNotNull(String.format("Expected packet on %s", physTap.getName()),
+    private void matchUdpPacket(TapWrapper device,
+                                    MAC fromMac, IntIPv4 fromIp,
+                                    MAC toMac, IntIPv4 toIp,
+                                    short udpSrc, short udpDst)
+                                throws MalformedPacketException {
+        byte[] received = device.recv();
+        assertNotNull(String.format("Expected packet on %s", device.getName()),
                       received);
+        Ethernet eth = Ethernet.deserialize(received);
+        log.info("got packet on " + device.getName() + ": " + eth.toString());
+        matchUdpPacket(eth, fromMac, fromIp, toMac, toIp, udpSrc, udpDst);
+    }
 
-        Ethernet eth = Ethernet.deserialize(pkt);
-        log.info("got packet on physical network: " + eth.toString());
+    private void matchUdpPacket(IPacket pkt,
+                                    MAC fromMac, IntIPv4 fromIp,
+                                    MAC toMac, IntIPv4 toIp,
+                                    short udpSrc, short udpDst)
+                                throws MalformedPacketException {
+        assertTrue("packet is ethernet", pkt instanceof Ethernet);
+        Ethernet eth = (Ethernet) pkt;
 
         assertEquals("source ethernet address",
-            localVmMac, eth.getSourceMACAddress());
+            fromMac, eth.getSourceMACAddress());
         assertEquals("destination ethernet address",
-            remoteVmMac, eth.getDestinationMACAddress());
+            toMac, eth.getDestinationMACAddress());
         assertEquals("ethertype", IPv4.ETHERTYPE, eth.getEtherType());
 
         assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
         IPv4 ipPkt = (IPv4) eth.getPayload();
         assertEquals("source ipv4 address",
-            localVmIp.addressAsInt(), ipPkt.getSourceAddress());
+            fromIp.addressAsInt(), ipPkt.getSourceAddress());
         assertEquals("destination ipv4 address",
-            remoteVmIp.addressAsInt(), ipPkt.getDestinationAddress());
+            toIp.addressAsInt(), ipPkt.getDestinationAddress());
 
         assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
         UDP udpPkt = (UDP) ipPkt.getPayload();
         assertEquals("udp source port",
-            (short) 2345, udpPkt.getSourcePort());
+            udpSrc, udpPkt.getSourcePort());
         assertEquals("udp destination port",
-            (short) 9876, udpPkt.getDestinationPort());
+            udpDst, udpPkt.getDestinationPort());
+    }
 
+    protected abstract IPacket matchTunnelPacket(TapWrapper device,
+                                                 MAC fromMac, IntIPv4 fromIp,
+                                                 MAC toMac, IntIPv4 toIp)
+                                            throws MalformedPacketException;
+
+    @Test
+    public void testTunnel() throws MalformedPacketException {
+        // inject a packet sent from the local vm, expect it encapsulated on the
+        // physicalTap.
+        byte[] pkt = PacketHelper.makeUDPPacket(localVmMac, localVmIp,
+                                                remoteVmMac, remoteVmIp,
+                                                (short) 2345, (short) 9876,
+                                                "The Payload".getBytes());
+        assertPacketWasSentOnTap(vmTap, pkt);
+
+        log.info("Waiting for packet on physical tap");
+        IPacket encap = matchTunnelPacket(physTap,
+                                          physTapLocalMac, physTapLocalIp,
+                                          physTapRemoteMac, physTapRemoteIp);
+        matchUdpPacket(encap, localVmMac, localVmIp,
+                              remoteVmMac, remoteVmIp,
+                              (short) 2345, (short) 9876);
 
         // Test decapsulation
         log.info("Injecting packet on physical tap");
         assertPacketWasSentOnTap(physTap, buildEncapsulatedPacket());
 
         log.info("Waiting for packet on vm tap");
-        received = vmTap.recv();
-        assertNotNull(String.format("Expected packet on %s", vmTap.getName()),
-                      received);
-
-        log.info("Got a packet on the vm tap, deserializing");
-        eth = Ethernet.deserialize(received);
-        log.info("Got packet on vm tap: " + eth.toString());
+        matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
+                              localVmMac, localVmIp,
+                              (short) 9876, (short) 2345);
     }
 
     protected abstract void setUpTunnelZone() throws Exception;

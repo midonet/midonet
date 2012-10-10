@@ -4,15 +4,32 @@
 
 package com.midokura.midonet.functional_test;
 
-import com.midokura.packets.IPacket;
+import java.util.UUID;
+import java.nio.ByteBuffer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.UUID;
 
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import com.midokura.midonet.cluster.data.zones.CapwapTunnelZone;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.UDP;
+import com.midokura.packets.IPacket;
+import com.midokura.packets.GRE;
+import com.midokura.packets.Data;
+import com.midokura.packets.CAPWAP;
+import com.midokura.packets.MalformedPacketException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class CapwapTunnelTest extends BaseTunnelTest {
     private final static Logger log = LoggerFactory.getLogger(CapwapTunnelTest.class);
@@ -48,6 +65,42 @@ public class CapwapTunnelTest extends BaseTunnelTest {
     }
 
     @Override
+    protected IPacket matchTunnelPacket(TapWrapper device,
+                                      MAC fromMac, IntIPv4 fromIp,
+                                      MAC toMac, IntIPv4 toIp)
+                                throws MalformedPacketException {
+        byte[] received = device.recv();
+        assertNotNull(String.format("Expected packet on %s", device.getName()),
+                      received);
+
+        Ethernet eth = Ethernet.deserialize(received);
+        log.info("got packet on " + device.getName() + ": " + eth.toString());
+
+        assertEquals("source ethernet address",
+            fromMac, eth.getSourceMACAddress());
+        assertEquals("destination ethernet address",
+            toMac, eth.getDestinationMACAddress());
+        assertEquals("ethertype", IPv4.ETHERTYPE, eth.getEtherType());
+
+        assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
+        IPv4 ipPkt = (IPv4) eth.getPayload();
+        assertEquals("source ipv4 address",
+            fromIp.addressAsInt(), ipPkt.getSourceAddress());
+        assertEquals("destination ipv4 address",
+            toIp.addressAsInt(), ipPkt.getDestinationAddress());
+
+        assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
+        UDP udpPkt = (UDP) ipPkt.getPayload();
+        assertTrue("payload is Data", udpPkt.getPayload() instanceof Data);
+        Data data = (Data) udpPkt.getPayload();
+
+        CAPWAP capwap = new CAPWAP();
+        capwap.deserialize(ByteBuffer.wrap(data.serialize()));
+
+        return capwap.getPayload();
+    }
+
+    @Override
     protected byte[] buildEncapsulatedPacket() {
         byte[] capwapFrame = {
             (byte)0xbb, (byte)0xbb, (byte)0xbb, (byte)0xdd,
@@ -58,8 +111,8 @@ public class CapwapTunnelTest extends BaseTunnelTest {
             (byte)0x00, (byte)0x00, (byte)0x40, (byte)0x11,
             (byte)0x9e, (byte)0x75, (byte)0x0a, (byte)0xf5,
             (byte)0xd7, (byte)0x02, (byte)0x0a, (byte)0xf5,
-            (byte)0xd7, (byte)0x01, (byte)0xe6, (byte)0x02,
-            (byte)0xe6, (byte)0x01, (byte)0x00, (byte)0x51,
+            (byte)0xd7, (byte)0x01, (byte)0xe6, (byte)0x01,
+            (byte)0xe6, (byte)0x02, (byte)0x00, (byte)0x51,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x28,
             (byte)0x3c, (byte)0x20, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x0b, (byte)0x80,

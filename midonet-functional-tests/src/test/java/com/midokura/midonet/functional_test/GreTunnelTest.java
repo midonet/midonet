@@ -6,14 +6,29 @@ package com.midokura.midonet.functional_test;
 
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.cluster.DataClient;
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Ethernet;
+import com.midokura.packets.IPv4;
+import com.midokura.packets.UDP;
+import com.midokura.packets.IPacket;
+import com.midokura.packets.GRE;
+import com.midokura.packets.MalformedPacketException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class GreTunnelTest extends BaseTunnelTest {
     private final static Logger log = LoggerFactory.getLogger(GreTunnelTest.class);
 
+    @Override
     protected void setUpTunnelZone() throws Exception {
         // Create a gre tunnel zone
         log.info("Creating tunnel zone.");
@@ -43,6 +58,37 @@ public class GreTunnelTest extends BaseTunnelTest {
             new GreTunnelZoneHost(remoteHostId).
                 setIp(physTapRemoteIp));
     }
+
+    @Override
+    protected IPacket matchTunnelPacket(TapWrapper device,
+                                      MAC fromMac, IntIPv4 fromIp,
+                                      MAC toMac, IntIPv4 toIp)
+                                throws MalformedPacketException {
+        byte[] received = device.recv();
+        assertNotNull(String.format("Expected packet on %s", device.getName()),
+                      received);
+
+        Ethernet eth = Ethernet.deserialize(received);
+        log.info("got packet on " + device.getName() + ": " + eth.toString());
+
+        assertEquals("source ethernet address",
+            fromMac, eth.getSourceMACAddress());
+        assertEquals("destination ethernet address",
+            toMac, eth.getDestinationMACAddress());
+        assertEquals("ethertype", IPv4.ETHERTYPE, eth.getEtherType());
+
+        assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
+        IPv4 ipPkt = (IPv4) eth.getPayload();
+        assertEquals("source ipv4 address",
+            fromIp.addressAsInt(), ipPkt.getSourceAddress());
+        assertEquals("destination ipv4 address",
+            toIp.addressAsInt(), ipPkt.getDestinationAddress());
+
+        assertTrue("payload is GRE", ipPkt.getPayload() instanceof GRE);
+        GRE grePkt = (GRE) ipPkt.getPayload();
+        return grePkt.getPayload();
+    }
+
 
     @Override
     protected byte[] buildEncapsulatedPacket() {
