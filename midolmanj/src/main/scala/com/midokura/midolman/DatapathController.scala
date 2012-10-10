@@ -19,10 +19,10 @@ import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.services.HostIdProviderService
-import com.midokura.midolman.simulation.{Bridge => RCUBridge}
+import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-        PortRequest}
+        ChainRequest, PortRequest}
 import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
@@ -953,7 +953,7 @@ class DatapathController() extends Actor with ActorLogging {
                                 if (actions == Nil) null else pktBytes,
                                 null,
                                 null))
-            // XXX(guillermo): make sure passing null for callbacks and tags 
+            // XXX(guillermo): make sure passing null for callbacks and tags
             //                 is OK
     }
 
@@ -1021,13 +1021,19 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
-                    localPorts: Seq[client.Port[_]], tunnelKey: Long, 
+                    localPorts: Seq[client.Port[_]], tunnelKey: Long,
                     action: T, portSetID: UUID,
                     cookie: Option[Int]) {
-        //XXX: Fetch all of the chains.  Apply them.
+        // Fetch all of the chains.
+        val chainFutures = localPorts map { port =>
+                ask(VirtualTopologyActor.getRef,
+                    ChainRequest(port.outFilterID, false)).mapTo[Chain]
+            }
+
+        // XXX: Apply the chains.
         addFlow(tunnelPort, new WildcardMatch().setTunnelID(tunnelKey),
                 translateToDpPorts(List(action), portSetID,
-                                   portsForLocalPorts(localPorts map 
+                                   portsForLocalPorts(localPorts map
                                                       {port => port.id}),
                                    None, Nil), cookie, Array())
     }
