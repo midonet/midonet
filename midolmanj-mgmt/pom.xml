@@ -465,7 +465,7 @@
                     <plugin>
                         <groupId>org.codehaus.enunciate</groupId>
                         <artifactId>maven-enunciate-slim-plugin</artifactId>
-                        <version>1.25</version>
+                        <version>1.26</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -485,7 +485,7 @@
                             <dependency>
                                 <groupId>org.codehaus.enunciate</groupId>
                                 <artifactId>enunciate-docs</artifactId>
-                                <version>1.25</version>
+                                <version>1.26</version>
                             </dependency>
                         </dependencies>
                     </plugin>
