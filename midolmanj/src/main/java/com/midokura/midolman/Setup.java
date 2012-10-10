@@ -121,9 +121,9 @@ public class Setup {
             setupTrafficPriorityRule(hostport[0], hostport[1]);
         }
 
-        // Add rules to mark memcached packets.
-        String mcHosts = config.configurationAt("memcache")
-                               .getString("memcache_hosts", "127.0.0.1:11211");
+        // Add rules to mark Cassandra packets.
+        String mcHosts = config.configurationAt("cassandra")
+                               .getString("servers", "127.0.0.1:9170");
         for (String mcServer : mcHosts.split(",")) {
             String[] hostport = mcServer.split(":");
             setupTrafficPriorityRule(hostport[0], hostport[1]);

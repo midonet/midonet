@@ -275,7 +275,7 @@ public class NatLeaseManager implements NatMapping {
                         break;
                     // We've found a free port.
                     freePorts.remove(port);
-                    // Check memcached to make sure the port's really free.
+                    // Check cache to make sure the port's really free.
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
                             nwDst, tpDst, origMatch))
                         return new NwTpPair(ip, port.shortValue());
@@ -366,9 +366,9 @@ public class NatLeaseManager implements NatMapping {
                 for (int i = 0; i < block_size; i++)
                     freePorts.add(block + i);
                 // Now, starting with the smaller of 'block' and tpStart
-                // see if the mapping really is free in Memcached by making sure
+                // see if the mapping really is free in cache by making sure
                 // that the reverse mapping isn't already taken. Note that the
-                // common case for snat requires 4 calls to Memcached (one to
+                // common case for snat requires 4 calls to cache (one to
                 // check whether we've already seen the forward flow, one to
                 // make sure the newIp, newPort haven't already been used with
                 // the nwDst and tpDst, and 2 to actually store the forward
