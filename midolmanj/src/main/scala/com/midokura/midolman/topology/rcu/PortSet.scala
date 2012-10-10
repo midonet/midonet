@@ -3,7 +3,9 @@
 */
 package com.midokura.midolman.topology.rcu
 
-import java.util.UUID
 import collection.immutable
+import java.util.UUID
 
-case class PortSet(id: UUID, hosts: immutable.Set[UUID], localPorts: immutable.Set[UUID])
+
+case class PortSet(id: UUID, hosts: immutable.Set[UUID],
+                   localPorts: immutable.Set[UUID])

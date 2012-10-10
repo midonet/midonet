@@ -21,17 +21,14 @@ import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge}
 import com.midokura.midolman.topology._
-import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-         PortRequest}
+        PortRequest}
 import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost,
-                                                GreTunnelZone,
-                                                CapwapTunnelZone,
-                                                CapwapTunnelZoneHost}
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
+        CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
@@ -540,7 +537,8 @@ class DatapathController() extends Actor with ActorLogging {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
             } else {
                 zones.put(zone.getId, zone)
-                zonesToHosts.put(zone.getId, mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
+                zonesToHosts.put(zone.getId,
+                        mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
             }
 
         case m: ZoneChanged[_] =>
@@ -739,9 +737,8 @@ class DatapathController() extends Actor with ActorLogging {
 
         vifToLocalPortNumber(inPortUUID) match {
             case Some(portNo: Short) =>
-                flowMatch
-                    .setInputPortNumber(portNo)
-                    .unsetInputPortUUID()
+                flowMatch.setInputPortNumber(portNo)
+                         .unsetInputPortUUID()
             case None =>
         }
 
@@ -850,7 +847,7 @@ class DatapathController() extends Actor with ActorLogging {
             }
         }
 
-        for ( act <- acts ) {
+        for (act <- acts) {
             act match {
                 case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
                     newActs ++= translatedActions
@@ -976,21 +973,35 @@ class DatapathController() extends Actor with ActorLogging {
                     val portSetFuture = VirtualToPhysicalMapper.getRef() ?
                         PortSetForTunnelKeyRequest(wMatch.getTunnelID)
 
-                    // TODO(pino, guillermo): egress port filter simulation
                     portSetFuture.mapTo[PortSet] onComplete {
                         case Right(portSet) if (portSet != null) =>
                             val action = new FlowActionOutputToVrnPortSet(portSet.id)
                             log.debug("tun => portSet, action: {}, portSet: {}",
                                 action, portSet)
-                            addFlow(port,
-                                new WildcardMatch().
-                                    setTunnelID(wMatch.getTunnelID),
-                                translateToDpPorts(
-                                    List[FlowAction[_]](action),
-                                    portSet.id,
-                                    portsForLocalPorts((portSet.localPorts).toSeq),
-                                    None,
-                                    Nil))
+                            // egress port filter simulation
+                            val localPortFutures =
+                                portSet.localPorts.toSeq map {
+                                    portID => ask(VirtualTopologyActor.getRef(),
+                                                  PortRequest(portID, false))
+                                              .mapTo[client.Port[_]]
+                                }
+                            Future.sequence(localPortFutures) onComplete {
+                                // XXX: Take the outgoing filter for each port
+                                // and apply it, checking for Action.ACCEPT.
+                                case Right(localPorts) =>
+                                    addFlow(port,
+                                            new WildcardMatch().
+                                                setTunnelID(wMatch.getTunnelID),
+                                            translateToDpPorts(
+                                                List[FlowAction[_]](action),
+                                                portSet.id,
+                                                portsForLocalPorts(localPorts map {port => port.id}),
+                                                None,
+                                                Nil))
+                                case _ => log.error("Error getting " +
+                                    "configurations of local ports of " +
+                                    "PortSet {}", portSet)
+                            }
 
                         case _ =>
                             log.debug("PacketIn came from a tunnel port but " +
