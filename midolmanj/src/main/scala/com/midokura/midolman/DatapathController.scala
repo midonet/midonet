@@ -3,7 +3,7 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef}
 import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -375,6 +375,8 @@ object DatapathController extends Referenceable {
         def getFlowCookie() = null
         def addFlowTag(tag: Any) {}
     }
+
+    case class CheckForPortUpdates(datapathName: String)
 }
 
 
@@ -456,6 +458,8 @@ class DatapathController() extends Actor with ActorLogging {
     var initialized = false
     var host: Host = null
 
+    var portWatcher: Cancellable = null
+
     override def preStart() {
         super.preStart()
         context.become(DatapathInitializationActor)
@@ -485,6 +489,8 @@ class DatapathController() extends Actor with ActorLogging {
             for ((zoneId, zone) <- host.zones) {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
+            // schedule port requests.
+            portWatcher = system.scheduler.schedule(1 second, 500 milliseconds, self, CheckForPortUpdates(datapath.getName))
             initializer forward m
 
         case host: Host =>
@@ -507,7 +513,7 @@ class DatapathController() extends Actor with ActorLogging {
         /**
          * Handle personal create port requests
          */
-        case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
+          case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         /**
@@ -538,6 +544,10 @@ class DatapathController() extends Actor with ActorLogging {
         case m: Initialize =>
             initialized = false
             become(DatapathInitializationActor)
+            // In case there were some scheduled port update checks, cancel them.
+            if (portWatcher != null) {
+              portWatcher.cancel()
+            }
             self ! m
 
         case host: Host =>
@@ -605,6 +615,61 @@ class DatapathController() extends Actor with ActorLogging {
                 log.debug("Port was not found {}", portID)
             }
 
+        // WORKING MARC
+        case CheckForPortUpdates(datapathName: String) =>
+          log.info("Checking any update in the datapath (synch)")
+          // TODO check, the datapath might be already there.
+          val datapath: Datapath = datapathConnection.datapathsGet(datapathName).get()
+          // get the datapath ports via netlink.
+          val portsSet = datapathConnection.portsEnumerate(datapath).get();
+
+          val portIdPortMap = new mutable.HashMap[Int, Port[_,_]]
+          for (port <- portsSet) {
+            portIdPortMap.put(port.getPortNo, port)
+          }
+
+
+          for ((tapName, port) <- localPorts) {
+            if (portIdPortMap.contains(port.getPortNo)) {
+              // port still exists
+              log.info("PORT FINE: {}", port.getPortNo)
+            } else {
+              // port has been removed. Delete this port from the datapath.
+              log.info("NEED TO DELETE PORT FROM DP {}", port.getPortNo)
+            }
+            portIdPortMap.remove(port.getPortNo)
+          }
+
+          // the ones left in portIdPortMap are new.
+          for ((portId, port) <- portIdPortMap) {
+            log.info("NEED TO CREATE {}", portId)
+          }
+
+
+          /*vifPorts.get(portID) match {
+            case Some(portName) =>
+              datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
+                def onSuccess(data: Port[_, _]) {
+                  MonitoringActor.getRef() ! PortStats(portID, data.getStats);
+                }
+
+                def onTimeout() {
+                  log.error("Timeout when retrieving port stats")
+                }
+
+                def onError(e: NetlinkException) {
+                  log.error("Error retrieving port stats: {}", e )
+                }
+              });
+
+            case None =>
+              log.debug("Port was not found {}", portID)
+          } */
+
+
+   }
+
+    def completePendingPortSetTranslations() {
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
@@ -1382,9 +1447,11 @@ class DatapathController() extends Actor with ActorLogging {
         for ((vifId, tapName) <- ports) {
             vifPorts.put(vifId, tapName)
             newTaps.add(tapName)
+            // new port
             if (!localPorts.contains(tapName)) {
                 selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
             }
+              // port is already tracked.
             else {
                 val p = localPorts(tapName)
                 val shortPortNum = p.getPortNo.shortValue()

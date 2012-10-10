@@ -15,12 +15,6 @@ import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Default implementation for the interface scanning component.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
- */
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
 
