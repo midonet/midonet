@@ -939,27 +939,27 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
+    private def addFlow(port: Short, wMatch: WildcardMatch,
+                        actions: Seq[FlowAction[_]], cookie: Option[Int],
+                        pktBytes: Array[Byte]) {
+        log.debug("adding flow for PacketIn match {} with actions {}",
+                  wMatch, actions)
+
+        FlowController.getRef().tell(
+                AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
+                                        .setIdleExpirationMillis(3000)
+                                        .setActions(actions),
+                                cookie,
+                                if (actions == Nil) null else pktBytes,
+                                null,
+                                null))
+            // XXX(guillermo): make sure passing null for callbacks and tags 
+            //                 is OK
+    }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
                            dpMatch: FlowMatch, reason: Packet.Reason,
                            cookie: Option[Int]) {
-        def addFlow(port: Short, wMatch: WildcardMatch,
-                                 actions: Seq[FlowAction[_]]) {
-            log.debug("adding flow for PacketIn match {} with actions {}",
-                wMatch, actions)
-
-            FlowController.getRef().tell(
-                AddWildcardFlow(
-                    new WildcardFlow()
-                        .setMatch(wMatch)
-                        .setIdleExpirationMillis(3000)
-                         setActions(actions),
-                    cookie,
-                    if (actions == Nil) null else pktBytes,
-                    null,
-                    null))
-            // XXX(guillermo): make sure passing null for callbacks and tags is Ok
-        }
 
         wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
@@ -986,18 +986,12 @@ class DatapathController() extends Actor with ActorLogging {
                                               .mapTo[client.Port[_]]
                                 }
                             Future.sequence(localPortFutures) onComplete {
-                                // XXX: Take the outgoing filter for each port
+                                // Take the outgoing filter for each port
                                 // and apply it, checking for Action.ACCEPT.
                                 case Right(localPorts) =>
-                                    addFlow(port,
-                                            new WildcardMatch().
-                                                setTunnelID(wMatch.getTunnelID),
-                                            translateToDpPorts(
-                                                List[FlowAction[_]](action),
-                                                portSet.id,
-                                                portsForLocalPorts(localPorts map {port => port.id}),
-                                                None,
-                                                Nil))
+                                    applyOutboundFilters(port, localPorts,
+                                        wMatch.getTunnelID, action, portSet.id,
+                                        cookie)
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
@@ -1008,13 +1002,14 @@ class DatapathController() extends Actor with ActorLogging {
                                 "the key does not map to any PortSet")
                             addFlow(port,
                                 new WildcardMatch().setInputPortNumber(port),
-                                Nil)
+                                Nil, cookie, pktBytes)
                     }
 
                 } else {
                     // Otherwise, drop the flow. There's a port on the DP that
                     // doesn't belong to us and is receiving packets.
-                    addFlow(port, new WildcardMatch().setInputPortNumber(port), Nil)
+                    addFlow(port, new WildcardMatch().setInputPortNumber(port),
+                            Nil, cookie, pktBytes)
                 }
 
             case null =>
@@ -1023,6 +1018,18 @@ class DatapathController() extends Actor with ActorLogging {
                     wMatch)
         }
 
+    }
+
+    private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
+                    localPorts: Seq[client.Port[_]], tunnelKey: Long, 
+                    action: T, portSetID: UUID,
+                    cookie: Option[Int]) {
+        //XXX: Fetch all of the chains.  Apply them.
+        addFlow(tunnelPort, new WildcardMatch().setTunnelID(tunnelKey),
+                translateToDpPorts(List(action), portSetID,
+                                   portsForLocalPorts(localPorts map 
+                                                      {port => port.id}),
+                                   None, Nil), cookie, Array())
     }
 
     def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
