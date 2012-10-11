@@ -1,10 +1,9 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman
+package com.midokura.midolman.util
 
 import java.util.concurrent.TimeUnit
-import util.Sudo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue

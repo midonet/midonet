@@ -221,7 +221,8 @@ class Coordinator(val origMatch: WildcardMatch,
                               .setIngressFE(port.deviceID)
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
-
+                    log.debug("Simulating packet with match {}, device {}",
+                        pktContext.getMatch(), port.deviceID)
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         pktContext))
                 }

@@ -5,6 +5,7 @@
 package com.midokura.midolman.layer3;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -301,10 +302,12 @@ public class RoutingTable {
     }
 
     public static List<TrieNode> getAllDescendants(TrieNode node){
+        if (node == null)
+            return Collections.emptyList();
         List<TrieNode> descendants = new LinkedList<TrieNode>();
         descendants.add(node);
-
-        for(Iterator<TrieNode> it = descendants.iterator(); it.hasNext();){
+        Iterator<TrieNode> it = descendants.iterator();
+        while(it.hasNext()){
             TrieNode n = it.next();
             if(n.left != null)
                 descendants.add(n.left);

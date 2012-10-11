@@ -18,6 +18,8 @@ import com.midokura.midolman.config.MidolmanConfig
 import com.midokura.midolman.layer3.RoutingTable.TrieNode
 import scala.collection.JavaConversions._
 import com.midokura.util.functors.Callback0
+import collection.{Set => ROSet}
+import com.midokura.packets.IPv4
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
@@ -31,8 +33,8 @@ object RouterManager {
 
     case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
                              rTable: RoutingTableWrapper)
-    case class InvalidateFlows(addedRoutes:scala.collection.mutable.Set[Route],
-                               deletedRoutes: scala.collection.mutable.Set[Route])
+    case class InvalidateFlows(addedRoutes: ROSet[Route],
+                               deletedRoutes: ROSet[Route])
 
     case class AddTag(dstIp: Int)
 
@@ -139,12 +141,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             configUpdated()
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
-            for (route <- deletedRoutes){
+            for (route <- deletedRoutes) {
                 FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateByRoute(id, route.hashCode())
                 )
             }
-            for (route <- addedRoutes){
+            for (route <- addedRoutes) {
                 val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
                 val routesToInvalidate = RoutingTable.getAllDescendants(subTree)
                 for (node <- routesToInvalidate) {
@@ -165,7 +167,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     def createSingleHostRoute(dstIp: Int): Route = {
         val route: Route = new Route()
-        route.setDstNetworkAddr(dstIp.toString)
+        route.setDstNetworkAddr(IPv4.fromIPv4Address(dstIp).toString)
         route.dstNetworkLength = 32
         route
     }

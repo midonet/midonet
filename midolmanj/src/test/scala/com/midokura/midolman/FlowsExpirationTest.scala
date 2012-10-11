@@ -33,7 +33,6 @@ import com.midokura.midolman.FlowController.WildcardFlowRemoved
 import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.sdn.dp.flows.FlowKeys
 import akka.actor.ActorSystem
-;
 
 
 @RunWith(classOf[JUnitRunner])

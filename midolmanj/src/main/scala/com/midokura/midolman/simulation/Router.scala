@@ -43,7 +43,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new NotIPv4Action)(ec)
 
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
-            case null => Promise.successful(new DropAction)(ec)
+            case null => log.debug("Router - in port {} was null",
+                             pktContext.getInPortId())
+                          Promise.successful(new DropAction)(ec)
             case inPort => preRouting(pktContext, inPort)
         }
     }
@@ -56,8 +58,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            actorSystem: ActorSystem): Future[Action] = {
 
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter.id))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter.id))
+
 
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
@@ -120,6 +121,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         pktContext.setOutputPort(null)
         val preRoutingResult = Chain.apply(inFilter, pktContext,
                                            pktContext.getMatch, id, false)
+        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter.id))
+        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter.id))
         if (preRoutingResult.action == RuleAction.DROP)
             return Promise.successful(new DropAction)(ec)
         else if (preRoutingResult.action == RuleAction.REJECT) {
@@ -207,8 +210,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
 
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter.id))
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter.id))
+        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter.id))
+        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter.id))
 
         // Apply post-routing (egress) chain.
         pktContext.setOutputPort(outPort.id)

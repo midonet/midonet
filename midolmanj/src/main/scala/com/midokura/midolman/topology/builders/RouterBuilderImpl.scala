@@ -21,7 +21,8 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     private val cfg: RouterConfig = new RouterConfig
     private var arpCache: ArpCache = null
     private val routes = new scala.collection.mutable.HashSet[Route]()
-    private var oldRoutes = new scala.collection.mutable.HashSet[Route]()
+    private val routesToAdd = new scala.collection.mutable.HashSet[Route]()
+    private val routesToRemove = new scala.collection.mutable.HashSet[Route]()
 
     def setArpCache(table: ArpCache) {
         if (arpCache != null)
@@ -32,10 +33,12 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
 
     def addRoute(rt: Route) {
         routes.add(rt)
+        routesToAdd.add(rt)
     }
 
     def removeRoute(rt: Route) {
         routes.remove(rt)
+        routesToRemove.add(rt)
     }
 
     def setSourceNatResource(resource: SourceNatResource) {}
@@ -58,11 +61,13 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         val table = new RoutingTable()
         for (rt <- routes)
             table.addRoute(rt)
-        val deletedRoutes = oldRoutes -- routes
-        val addedRoutes = routes -- oldRoutes
-        oldRoutes = routes
-        routes.clear()
-        routerManager ! InvalidateFlows(addedRoutes, deletedRoutes)
+        if(routesToAdd.size > 0 || routesToRemove.size > 0){
+            val added = routesToAdd.clone()
+            val deleted = routesToRemove.clone()
+            routerManager ! InvalidateFlows(added, deleted)
+        }
+        routesToAdd.clear()
+        routesToRemove.clear()
         routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
     }
 
