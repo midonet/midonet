@@ -43,7 +43,6 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
 
-
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.util.process.ProcessHelper.newProcess;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -61,18 +60,13 @@ public class PingTest {
     IntIPv4 vm1IP = IntIPv4.fromString("192.168.111.2", 24);
     IntIPv4 vm2IP = IntIPv4.fromString("192.168.222.2", 24);
     MAC vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03");
-    final String TENANT_NAME = "tenant-ping";
 
-    RouterPort<DtoMaterializedRouterPort> rtrPort1;
-    RouterPort<DtoLogicalRouterPort> rtrPort2;
-    BridgePort<DtoLogicalBridgePort> brPort1;
-    BridgePort<DtoBridgePort> brPort2;
     TapWrapper tap1;
-    Set<UUID> activatedPorts = new HashSet<UUID>();
     MockMgmtStarter apiStarter;
 
     static LockHelper.Lock lock;
-    private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
+    private static final String TEST_HOST_ID =
+        "910de343-c39b-4933-86c7-540225fb02f9";
 
     @Before
     public void setUp() throws Exception {
@@ -100,10 +94,12 @@ public class PingTest {
             probe.ref(), LocalPortActive.class);
 
         // Build a router
+        String TENANT_NAME = "tenant-ping";
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME)
             .name("rtr1").create();
         // Add a materialized port.
-        rtrPort1 = rtr.addMaterializedRouterPort()
+        RouterPort<DtoMaterializedRouterPort> rtrPort1 = rtr
+            .addMaterializedRouterPort()
             .portAddress(rtrIp1.toUnicastString())
             .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp1.getMaskLength())
@@ -116,7 +112,7 @@ public class PingTest {
             .create();
 
         // Add a logical port to the router.
-        rtrPort2 = rtr.addLogicalRouterPort()
+        RouterPort<DtoLogicalRouterPort> rtrPort2 = rtr.addLogicalRouterPort()
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp2.getMaskLength())
@@ -131,12 +127,13 @@ public class PingTest {
         // Build a bridge and link it to the router's logical port
         Bridge br = apiClient.addBridge().tenantId(TENANT_NAME)
             .name("br").create();
-        brPort1 = br.addLogicalPort().create();
+        BridgePort<DtoLogicalBridgePort> brPort1 =
+            br.addLogicalPort().create();
         // Link the bridge to the router
         rtrPort2.link(brPort1.getId());
 
         // Add a materialized port on the bridge.
-        brPort2 = br.addMaterializedPort().create();
+        BridgePort<DtoBridgePort> brPort2 = br.addMaterializedPort().create();
 
         // Add a DHCP static assignment for the VM on the bridge (vm2).
         // We need a DHCP option 121 fr a static route to the other VM (vm1).
@@ -155,7 +152,6 @@ public class PingTest {
             .ipAddr(vm2IP.toUnicastString())
             .macAddr(vm2Mac.toString())
             .create();
-
 
         // Now bind the materialized ports to interfaces on the local host.
         log.debug("Getting host from REST API");
@@ -185,6 +181,7 @@ public class PingTest {
             .interfaceName(localName)
             .portId(brPort2.getId()).create();
 
+        Set<UUID> activatedPorts = new HashSet<UUID>();
         for (int i = 0; i < 2; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
                 Duration.create(10, TimeUnit.SECONDS),
@@ -218,21 +215,7 @@ public class PingTest {
             .runAndWait();
 
         // No need to set the IP address (and static route to VM1) for the
-        // datapath's local port. They're set via DHCP. Otherwise,
-        // here's what we'd do.
-        /* newProcess(
-            String.format("sudo -n ip addr add %s/%d dev %s",
-                vm2IP.toUnicastString(), vm2IP.getMaskLength(), localName))
-            .logOutput(log, "int_port")
-            .runAndWait();
-
-        newProcess(
-            String.format("sudo -n ip route add %s/%d via %s",
-                vm1IP.toNetworkAddress().toUnicastString(),
-                vm1IP.getMaskLength(), rtrIp2.toUnicastString()))
-            .logOutput(log, "int_port")
-            .runAndWait();
-        */
+        // datapath's local port. They're set via DHCP.
     }
 
     @After
