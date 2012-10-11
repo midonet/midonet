@@ -3,7 +3,8 @@
 */
 package com.midokura.midolman
 
-
+import java.util.concurrent.TimeUnit
+import akka.util.Duration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -65,7 +66,8 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None,
             "my packet".getBytes(), null, null))
 
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](
+            flowProbe(), Duration(3, TimeUnit.SECONDS))
 
         addFlowMsg should not be null
         addFlowMsg.pktBytes should not be null

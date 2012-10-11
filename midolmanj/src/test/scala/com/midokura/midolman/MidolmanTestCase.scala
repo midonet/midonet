@@ -11,17 +11,18 @@ import java.util.UUID
 import akka.testkit._
 import akka.actor._
 import akka.dispatch.{Future, Await}
-import akka.util.Timeout
+import akka.util.{Duration, Timeout}
 import akka.util.duration._
 
 import com.google.inject.{AbstractModule, Module, Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 import com.midokura.midolman.guice._
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
-TestableMidolmanActorsModule}
+                                           TestableMidolmanActorsModule}
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
@@ -36,7 +37,6 @@ import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.midolman.DatapathController.InitializationComplete
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfterAll
@@ -224,6 +224,20 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def simProbe(): TestKit = {
         probeByName(SimulationController.Name)
+    }
+
+    protected def fishForRequestOfType[T](testKit: TestKit, timeout: Duration)
+                                  (implicit m: scala.reflect.Manifest[T]):T = {
+        def messageMatcher(clazz: Class[_]): PartialFunction[Any, Boolean] = {
+            {
+                case o if (o.getClass == clazz) => true
+                case _ => false
+            }
+        }
+        val clazz = m.erasure.asInstanceOf[Class[T]]
+        val msg = testKit.fishForMessage(timeout)(messageMatcher(clazz))
+        assert(clazz.isInstance(msg), "Message should have been of type %s but was %s" format (clazz, m.getClass))
+        clazz.cast(msg)
     }
 
     protected def requestOfType[T](testKit: TestKit)
