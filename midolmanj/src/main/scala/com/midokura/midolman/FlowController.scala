@@ -208,7 +208,7 @@ class FlowController extends Actor with ActorLogging {
         log.debug("Received packet {}", packet)
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
-        val actions = flowManager.getActionsForDpFlow(packet.getMatch)
+        var actions = flowManager.getActionsForDpFlow(packet.getMatch)
         if (actions != null) {
             // This should only happen as a race condition.
             // TODO(pino): detect if this is happening a lot, it implies a
@@ -219,18 +219,6 @@ class FlowController extends Actor with ActorLogging {
                 // Empty action list means DROP. Do nothing.
                 return
             }
-            packet.setActions(actions)
-            datapathConnection.packetsExecute(datapath, packet,
-                new ErrorHandlingCallback[java.lang.Boolean] {
-                    def onSuccess(data: java.lang.Boolean) {}
-
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error(ex,
-                            "Failed to send a packet {} due to {}", packet,
-                            if (timeout) "timeout" else "error")
-                    }
-                })
-            return
         }
         // Otherwise, try to create a datapath flow based on an existing
         // wildcard flow.
@@ -249,8 +237,28 @@ class FlowController extends Actor with ActorLogging {
                             "with flow match {}", ex, timeout, dpFlow.getMatch)
                 }
             })
+            actions = dpFlow.getActions
+            // Empty action list means DROP. Do nothing.
+            if (actions.size == 0)
+                return
+        }
+
+        // If there was a match, execute its actions
+        if (actions != null) {
+            packet.setActions(actions)
+            datapathConnection.packetsExecute(datapath, packet,
+                new ErrorHandlingCallback[java.lang.Boolean] {
+                    def onSuccess(data: java.lang.Boolean) {}
+
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error(ex,
+                            "Failed to send a packet {} due to {}", packet,
+                            if (timeout) "timeout" else "error")
+                    }
+                })
             return
         }
+
         // Otherwise, pass the packetIn up to the next layer for handling.
         // Keep track of these packets so that for every FlowMatch, only
         // one such call goes to the next layer.
