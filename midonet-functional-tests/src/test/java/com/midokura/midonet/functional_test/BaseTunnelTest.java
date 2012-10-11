@@ -244,10 +244,10 @@ public abstract class BaseTunnelTest {
                               (short) 2345, (short) 9876);
     }
 
-    private void sendFromTunnelAndVerifyDecapsulation()
+    private void sendFromTunnelAndVerifyDecapsulation(byte[] pkt)
             throws MalformedPacketException {
         log.info("Injecting packet on physical tap");
-        assertPacketWasSentOnTap(physTap, buildEncapsulatedPacket());
+        assertPacketWasSentOnTap(physTap, pkt);
 
         log.info("Waiting for packet on vm tap");
         matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
@@ -261,14 +261,20 @@ public abstract class BaseTunnelTest {
         sendToTunnelAndVerifyEncapsulation();
         sendToTunnelAndVerifyEncapsulation();
 
-        // send two packets from the other side of the tunnel
-        sendFromTunnelAndVerifyDecapsulation();
-        sendFromTunnelAndVerifyDecapsulation();
+        // send two packets from the other side of the tunnel, to the port set
+        sendFromTunnelAndVerifyDecapsulation(buildEncapsulatedPacketForPortSet());
+        sendFromTunnelAndVerifyDecapsulation(buildEncapsulatedPacketForPortSet());
+
+        // send two packets from the other side of the tunnel, to the port
+        sendFromTunnelAndVerifyDecapsulation(buildEncapsulatedPacketForPort());
+        //sendFromTunnelAndVerifyDecapsulation(buildEncapsulatedPacketForPort());
     }
 
     protected abstract void setUpTunnelZone() throws Exception;
 
-    protected abstract byte[] buildEncapsulatedPacket();
+    protected abstract byte[] buildEncapsulatedPacketForPortSet();
+
+    protected abstract byte[] buildEncapsulatedPacketForPort();
 
     protected void writeOnPacket(byte[] pkt, byte[] data, int offset) {
         for (int i = 0; i < data.length; i++)
