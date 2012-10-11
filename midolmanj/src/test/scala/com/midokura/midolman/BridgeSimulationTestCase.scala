@@ -84,6 +84,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
 
         tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
         tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         drainProbes()
     }
 
