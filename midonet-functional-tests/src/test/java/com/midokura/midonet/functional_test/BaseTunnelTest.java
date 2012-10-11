@@ -227,10 +227,8 @@ public abstract class BaseTunnelTest {
                                                  MAC toMac, IntIPv4 toIp)
                                             throws MalformedPacketException;
 
-    @Test
-    public void testTunnel() throws MalformedPacketException {
-        // inject a packet sent from the local vm, expect it encapsulated on the
-        // physicalTap.
+    private void sendToTunnelAndVerifyEncapsulation()
+            throws MalformedPacketException {
         byte[] pkt = PacketHelper.makeUDPPacket(localVmMac, localVmIp,
                                                 remoteVmMac, remoteVmIp,
                                                 (short) 2345, (short) 9876,
@@ -244,8 +242,10 @@ public abstract class BaseTunnelTest {
         matchUdpPacket(encap, localVmMac, localVmIp,
                               remoteVmMac, remoteVmIp,
                               (short) 2345, (short) 9876);
+    }
 
-        // Test decapsulation
+    private void sendFromTunnelAndVerifyDecapsulation()
+            throws MalformedPacketException {
         log.info("Injecting packet on physical tap");
         assertPacketWasSentOnTap(physTap, buildEncapsulatedPacket());
 
@@ -253,6 +253,17 @@ public abstract class BaseTunnelTest {
         matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
                               localVmMac, localVmIp,
                               (short) 9876, (short) 2345);
+    }
+
+    @Test
+    public void testTunnel() throws MalformedPacketException {
+        // sent two packets through the tunnel
+        sendToTunnelAndVerifyEncapsulation();
+        sendToTunnelAndVerifyEncapsulation();
+
+        // send two packets from the other side of the tunnel
+        sendFromTunnelAndVerifyDecapsulation();
+        sendFromTunnelAndVerifyDecapsulation();
     }
 
     protected abstract void setUpTunnelZone() throws Exception;
