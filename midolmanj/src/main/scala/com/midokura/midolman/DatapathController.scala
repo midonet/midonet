@@ -15,7 +15,8 @@ import java.util.UUID
 
 import com.google.inject.Inject
 
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+                                             InvalidateFlowsByTag}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.services.HostIdProviderService
@@ -431,9 +432,6 @@ class DatapathController() extends Actor with ActorLogging {
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
 
-    // portSetID -> { Set[hostID] }
-    val portSetsToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
-
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
@@ -545,10 +543,6 @@ class DatapathController() extends Actor with ActorLogging {
             log.debug("ZoneChanged: {}", m)
             handleZoneChange(m)
 
-        case PortSet(uuid, portSetContents, _) =>
-            portSetsToHosts.add(uuid -> portSetContents)
-            completePendingPortSetTranslations()
-
         case newPortOp: CreatePortOp[Port[_, _]] =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
@@ -591,10 +585,6 @@ class DatapathController() extends Actor with ActorLogging {
                 log.debug("Port was not found {}", portID)
             }
 
-   }
-
-    def completePendingPortSetTranslations() {
-        //
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
