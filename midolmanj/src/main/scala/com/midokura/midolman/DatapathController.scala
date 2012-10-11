@@ -15,7 +15,7 @@ import java.util.UUID
 
 import com.google.inject.Inject
 
-import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.services.HostIdProviderService
@@ -940,16 +940,21 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     /**
-     * Once a port has been created in the datapath, this method adds the port
-     * to the DatapathController map of ports, tells the VirtualToPhysicalMapper
-     * and creates a flow to match the port's tunnelKey.
+     * Once a port has been created/removed from the datapath, this method
+     * adds/removes the port to the DatapathController's map of ports,
+     * tells the VirtualToPhysicalMapper and installs/invalidates a flow to
+     * match the port's tunnelKey.
      */
-    private def finalizePortActivation(port: Port[_,_], vifId: UUID) {
-        def tellVTPM() {
-            VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
+    private def finalizePortActivation(port: Port[_,_], vifId: UUID,
+                                       active: Boolean) {
+        def tellVtpm() {
+            VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active)
         }
 
-        localToVifPorts.put(port.getPortNo.shortValue, vifId)
+        if (active)
+            localToVifPorts.put(port.getPortNo.shortValue, vifId)
+        else
+            localToVifPorts.remove(port.getPortNo.shortValue)
 
         port match {
             case netdev: NetDevPort =>
@@ -959,16 +964,20 @@ class DatapathController() extends Actor with ActorLogging {
                 clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
                     case Right(exterior) =>
                         // add flow
-                        addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
-                                List(FlowActions.output(port.getPortNo.shortValue)),
-                                tags = Set(vifId),
-                                expiration = 0)
-                        tellVTPM()
+                        if (active) {
+                            addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
+                                    List(FlowActions.output(port.getPortNo.shortValue)),
+                                    tags = Set(vifId),
+                                    expiration = 0)
+                        } else {
+                            FlowController.getRef() ! InvalidateFlowsByTag(vifId)
+                        }
+                        tellVtpm()
                     case _ =>
                         // TODO(guillermo) what to do here?
-                        tellVTPM()
+                        tellVtpm()
                 }
-            case _ => tellVTPM()
+            case _ => tellVtpm()
         }
     }
 
@@ -1162,15 +1171,14 @@ class DatapathController() extends Actor with ActorLogging {
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
                 log.info("DP port created. Mapping created: {} -> {}", vifId,
                     p.getPortNo)
-                finalizePortActivation(p, vifId)
+                finalizePortActivation(p, vifId, active = true)
 
             case PortNetdevOpReply(p, PortOperation.Delete, false, null, None) =>
                 localToVifPorts.get(p.getPortNo.shortValue()) match {
                     case None =>
                     case Some(vif) =>
                         log.info("Mapping removed: {} -> {}", vif, p.getPortNo)
-                        localToVifPorts.remove(p.getPortNo.shortValue())
-                        VirtualToPhysicalMapper.getRef() ! LocalPortActive(vif, active = false)
+                        finalizePortActivation(p, vif, active = false)
                 }
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
@@ -1224,7 +1232,7 @@ class DatapathController() extends Actor with ActorLogging {
                     // vport is now active.
                     log.info("DP port exists. Mapping created: {} -> {}",
                         vifId, shortPortNum)
-                    finalizePortActivation(p, vifId)
+                    finalizePortActivation(p, vifId, active = true)
                 }
             }
         }
