@@ -939,20 +939,56 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    private def addFlow(port: Short, wMatch: WildcardMatch,
-                        actions: Seq[FlowAction[_]], cookie: Option[Int],
-                        pktBytes: Array[Byte]) {
+    /**
+     * Once a port has been created in the datapath, this method adds the port
+     * to the DatapathController map of ports, tells the VirtualToPhysicalMapper
+     * and creates a flow to match the port's tunnelKey.
+     */
+    private def finalizePortActivation(port: Port[_,_], vifId: UUID) {
+        def tellVTPM() {
+            VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
+        }
+
+        localToVifPorts.put(port.getPortNo.shortValue, vifId)
+
+        port match {
+            case netdev: NetDevPort =>
+                val clientPortFuture = VirtualTopologyActor.getRef() ?
+                    PortRequest(vifId, update = false)
+
+                clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
+                    case Right(exterior) =>
+                        // add flow
+                        addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
+                                List(FlowActions.output(port.getPortNo.shortValue)),
+                                tags = Set(vifId),
+                                expiration = 0)
+                        tellVTPM()
+                    case _ =>
+                        // TODO(guillermo) what to do here?
+                        tellVTPM()
+                }
+            case _ => tellVTPM()
+        }
+    }
+
+    private def addFlow(wMatch: WildcardMatch,
+                        actions: Seq[FlowAction[_]],
+                        cookie: Option[Int] = None,
+                        pktBytes: Array[Byte] = null,
+                        tags: Set[Any] = Set(),
+                        expiration: Long = 3000) {
         log.debug("adding flow for PacketIn match {} with actions {}",
                   wMatch, actions)
 
         FlowController.getRef().tell(
                 AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
-                                        .setIdleExpirationMillis(3000)
+                                        .setIdleExpirationMillis(expiration)
                                         .setActions(actions),
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
                                 null,
-                                null))
+                                tags))
             // XXX(guillermo): make sure passing null for callbacks and tags
             //                 is OK
     }
@@ -1000,16 +1036,17 @@ class DatapathController() extends Actor with ActorLogging {
                         case _ =>
                             log.debug("PacketIn came from a tunnel port but " +
                                 "the key does not map to any PortSet")
-                            addFlow(port,
-                                new WildcardMatch().setInputPortNumber(port),
-                                Nil, cookie, pktBytes)
+                            addFlow(new WildcardMatch().
+                                    setTunnelID(wMatch.getTunnelID).
+                                    setInputPort(port),
+                                Nil, cookie)
                     }
 
                 } else {
                     // Otherwise, drop the flow. There's a port on the DP that
                     // doesn't belong to us and is receiving packets.
-                    addFlow(port, new WildcardMatch().setInputPortNumber(port),
-                            Nil, cookie, pktBytes)
+                    addFlow(new WildcardMatch().setInputPortNumber(port),
+                            Nil, cookie)
                 }
 
             case null =>
@@ -1031,11 +1068,11 @@ class DatapathController() extends Actor with ActorLogging {
             }
 
         // XXX: Apply the chains.
-        addFlow(tunnelPort, new WildcardMatch().setTunnelID(tunnelKey),
+        addFlow(new WildcardMatch().setTunnelID(tunnelKey).setInputPort(tunnelPort),
                 translateToDpPorts(List(action), portSetID,
                                    portsForLocalPorts(localPorts map
                                                       {port => port.id}),
-                                   None, Nil), cookie, Array())
+                                   None, Nil), cookie)
     }
 
     def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
@@ -1125,9 +1162,7 @@ class DatapathController() extends Actor with ActorLogging {
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
                 log.info("DP port created. Mapping created: {} -> {}", vifId,
                     p.getPortNo)
-                localToVifPorts.put(p.getPortNo.shortValue(), vifId)
-
-                VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
+                finalizePortActivation(p, vifId)
 
             case PortNetdevOpReply(p, PortOperation.Delete, false, null, None) =>
                 localToVifPorts.get(p.getPortNo.shortValue()) match {
@@ -1189,9 +1224,7 @@ class DatapathController() extends Actor with ActorLogging {
                     // vport is now active.
                     log.info("DP port exists. Mapping created: {} -> {}",
                         vifId, shortPortNum)
-                    localToVifPorts.put(shortPortNum, vifId)
-                    VirtualToPhysicalMapper.getRef() !
-                        LocalPortActive(vifId, active = true)
+                    finalizePortActivation(p, vifId)
                 }
             }
         }
