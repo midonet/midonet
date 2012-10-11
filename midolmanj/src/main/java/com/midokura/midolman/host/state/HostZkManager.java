@@ -172,8 +172,8 @@ public class HostZkManager extends ZkManager {
                     paths.getHostVrnMappingsPath(id)));
         }
 
-        Set<UUID> availabilityZones = getTunnelZoneIds(id, null);
-        for (UUID zoneId : availabilityZones) {
+        Set<UUID> tunnelZones = getTunnelZoneIds(id, null);
+        for (UUID zoneId : tunnelZones) {
             delMulti.add(
                 getDeleteOp(
                     paths.getHostTunnelZonePath(id, zoneId)));
