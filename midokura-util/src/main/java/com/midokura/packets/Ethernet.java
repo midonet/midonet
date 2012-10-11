@@ -22,7 +22,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openflow.util.U16;
+import com.midokura.midolman.util.Net;
+
+
+import static com.midokura.packets.Unsigned.unsign;
 
 
 /**
@@ -68,7 +71,7 @@ public class Ethernet extends BasePacket {
                 null == destinationMACAddress ? "null" :
                         Net.convertByteMacToString(destinationMACAddress));
         sb.append(", etherType=0x");
-        sb.append(Integer.toHexString(U16.f(etherType))).append(", payload=");
+        sb.append(Integer.toHexString(unsign(etherType))).append(", payload=");
         sb.append(null == payload ? "null" : payload.toString());
         sb.append("]");
         return sb.toString();
@@ -183,8 +186,9 @@ public class Ethernet extends BasePacket {
         if (vlanID != 0) {
             bb.putShort((short) 0x8100);
             bb.putShort((short) ((priorityCode << 13) | (vlanID & 0x0fff)));
+        } else {
+            bb.putShort(etherType);
         }
-        bb.putShort(etherType);
         if (payloadData != null)
             bb.put(payloadData);
         if (pad) {

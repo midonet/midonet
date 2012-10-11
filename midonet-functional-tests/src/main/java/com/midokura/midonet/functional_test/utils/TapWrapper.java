@@ -10,6 +10,7 @@ import com.midokura.packets.ARP;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.LLDP;
 import com.midokura.packets.MAC;
+import com.midokura.packets.IntIPv4;
 import static com.midokura.util.process.ProcessHelper.newProcess;
 
 
@@ -61,12 +62,30 @@ public class TapWrapper {
         return MAC.fromString(Tap.getHwAddress(this.name, fd));
     }
 
+    public void addNeighbour(IntIPv4 ip, MAC mac) {
+        newProcess(
+            String.format(
+                "sudo -n ip neigh add %s lladdr %s dev %s",
+                ip.toUnicastString(), mac.toString(), name))
+            .logOutput(log, "create_tap")
+            .runAndWait();
+    }
+
+    public void setIpAddress(IntIPv4 address) {
+        newProcess(
+                String.format("sudo -n ip addr add %s/%d dev %s",
+                    address.toUnicastString(), address.getMaskLength(), name))
+                .logOutput(log, "remote_host_mock")
+                .runAndWait();
+    }
+
     public void setHwAddr(MAC hwAddr) {
         Tap.setHwAddress(fd, this.name, hwAddr.toString());
     }
 
     /*
-     * A hack to allow the programatic close of the fd since while it is opened by the JVM you it can't be open by the KVM and the VM are failing.
+     * A hack to allow the programmatic close of the fd since while it is opened
+     * by the JVM you it can't be open by the KVM and the VM are failing.
      * @author mtoader@midokura.com
      */
     public void closeFd() {

@@ -48,7 +48,8 @@ public class DHCPOption {
         DHCP_TYPE((byte) 53, (byte) 1, "DHCP MESSAGE TYPE"),
         SERVER_ID((byte) 54, (byte) 4, "SERVER ID"),
         PRM_REQ_LIST((byte) 55, (byte) 1, "PARAMETER REQUEST LIST"),
-        ERROR_MESSAGE((byte) 56, (byte) 1, "ERROR MESSAGE");
+        ERROR_MESSAGE((byte) 56, (byte) 1, "ERROR MESSAGE"),
+        CLASSLESS_ROUTES((byte) 121, (byte) 5, "CLASSLESS STATIC ROUTES");
 
         private final byte code;
         private final byte length;

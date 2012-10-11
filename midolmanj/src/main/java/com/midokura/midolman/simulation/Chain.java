@@ -8,26 +8,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
-import scala.collection.Map;
-import scala.Option;
-import scala.Some;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
+import scala.Some;
+import scala.collection.Map;
 
-import com.midokura.cache.Cache;
-import com.midokura.cache.CacheWithPrefix;
-import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.sdn.flows.PacketMatch;
-import com.midokura.util.eventloop.Reactor;
 
 
 public class Chain {

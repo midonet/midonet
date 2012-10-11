@@ -32,7 +32,8 @@ import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
 import com.midokura.midonet.cluster.data.zones._
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
+import com.midokura.midolman.simulation.Bridge
 
 
 object HostConfigOperation extends Enumeration {
@@ -106,6 +107,7 @@ object VirtualToPhysicalMapper extends Referenceable {
                               op: HostConfigOperation.Value)
         extends ZoneChanged[CapwapTunnelZoneHost]
 
+    case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 }
 
 /**
@@ -241,6 +243,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
     private var activatingLocalPorts = false
 
+    private lazy val tunnelKeyToPortSet = mutable.Map[Long, UUID]()
+
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
 
@@ -249,6 +253,15 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         message match {
             case PortSetRequest(portSetId, updates) =>
                 portSets.addSubscriber(portSetId, sender, updates)
+
+            case PortSetForTunnelKeyRequest(key) =>
+                tunnelKeyToPortSet.get(key) match {
+                    case Some(portSetId) =>
+                        portSets.addSubscriber(portSetId, sender, updates = false)
+                    case None =>
+                        sender ! null
+                }
+                sender ! tunnelKeyToPortSet.get(key)
 
             case portSet: rcu.PortSet =>
                 val updatedPortSet = localActivePortSets.get(portSet.id) match
@@ -356,16 +369,41 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         }
                 }
 
+            case _ActivatedLocalPortSet(portSetId, tunKey, true) =>
+                tunnelKeyToPortSet.put(tunKey, portSetId)
+
+            case _ActivatedLocalPortSet(portSetId, tunKey, false) =>
+                tunnelKeyToPortSet.remove(tunKey)
+
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
                 // TODO(pino, rossella): consider invalidating flows by PortSet
                 // TODO: ID tag here rather than in the BridgeBuilderImpl.
                 log.debug("Port {} in PortSet {} is up.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
-                    case Some(ports) => ports.add(vifId)
-                    case None => localActivePortSets.put(portSetId, mutable.Set(vifId))
+                    case Some(ports) =>
+                        ports.add(vifId)
+                        completeLocalPortActivation(vifId, active = true,
+                                                           success = true)
+                    case None =>
+                        localActivePortSets.put(portSetId, mutable.Set(vifId))
+
+                        val bridgeFuture =
+                            ask(VirtualTopologyActor.getRef(),
+                                BridgeRequest(portSetId, update = false)).mapTo[Bridge]
+                        bridgeFuture onComplete {
+                            case Left(ex) =>
+                                // device is not a bridge
+                                self ! _ActivatedLocalPort(vifId, active = true,
+                                                                  success = true)
+                            case Right(bridge) =>
+                                self ! _ActivatedLocalPortSet(portSetId,
+                                                              bridge.tunnelKey,
+                                                              active = true)
+                                self ! _ActivatedLocalPort(vifId, active = true,
+                                                                  success = true)
+                        }
                 }
 
-                completeLocalPortActivation(vifId, active = true, success = true)
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
                 // TODO(pino, rossella): consider invalidating flows by PortSet
@@ -375,11 +413,36 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 // TODO: anyway.
                 log.debug("Port {} in PortSet {} is down.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
-                    case Some(ports) => ports.remove(vifId)
-                    case None => localActivePortSets.remove(portSetId)
+                    case Some(ports) =>
+                        ports.remove(vifId)
+
+                        if (ports.size == 0) {
+                            val bridgeFuture =
+                                ask(VirtualTopologyActor.getRef(),
+                                    BridgeRequest(portSetId, update = false)).mapTo[Bridge]
+                            bridgeFuture onComplete {
+                                case Left(ex) =>
+                                    // device is not a bridge
+                                    self ! _ActivatedLocalPort(vifId, active = false,
+                                                                      success = true)
+                                case Right(bridge) =>
+                                    self ! _ActivatedLocalPortSet(portSetId,
+                                                                  bridge.tunnelKey,
+                                                                  active = false)
+                                    self ! _ActivatedLocalPort(vifId,
+                                                               active = true,
+                                                               success = true)
+                            }
+                        } else {
+                            completeLocalPortActivation(vifId, active = false,
+                                                               success = true)
+                        }
+                    case None =>
+                        // should never happen
+                        completeLocalPortActivation(vifId, active = false,
+                                                           success = true)
                 }
 
-                completeLocalPortActivation(vifId, active = false, success = true)
 
             case _ActivatedLocalPort(vifId, active, success) =>
                 completeLocalPortActivation(vifId, active, success)
@@ -516,6 +579,13 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private case class _PortSetMembershipUpdated(vif: UUID, setId: UUID, state: Boolean)
 
     private case class _ActivatedLocalPort(vif: UUID, active: Boolean, success: Boolean)
+
+    /**
+     * Message sent by the Mapper to itself to track port sets with locally
+     * active port and their reverse mapping from tunnel keys.
+     */
+    private case class _ActivatedLocalPortSet(portSetId: UUID, tunKey: Long, active: Boolean)
+
 }
 
 object PromisingDirectoryCallback {

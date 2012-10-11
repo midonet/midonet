@@ -19,12 +19,10 @@ import com.midokura.midolman.config.MidolmanConfig;
 public class TestCacheFactory {
 
     @Test(expected = CacheException.class, timeout = 5000)
-    public void testCacheMemcache() throws Exception {
+    public void testUnknownCacheType() throws Exception {
 
         final HierarchicalConfiguration configStore = new HierarchicalConfiguration();
-        configStore.setProperty("midolman.cache_type", "memcache");
-        configStore.setProperty("memcache.memcache_hosts",
-                                "192.0.2.4:1211,192.0.2.5:1211");
+        configStore.setProperty("midolman.cache_type", "bozo_cache");
 
         MidolmanConfig config =
             ConfigProvider
@@ -35,11 +33,6 @@ public class TestCacheFactory {
 
         // shouldn't really reach here
         assertTrue(false);
-
-        /*
-         * memcache client is expected to raise a timeout exception when it
-         * tries to connect to memcached and fails.
-         */
     }
 
     @Test(expected = CacheException.class, timeout = 5000)

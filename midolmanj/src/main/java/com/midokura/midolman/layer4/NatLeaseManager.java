@@ -16,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.openflow.protocol.OFMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,6 @@ import com.midokura.midolman.rules.NatTarget;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.Net;
-import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.util.eventloop.Reactor;
 
 
@@ -117,11 +115,12 @@ public class NatLeaseManager implements NatMapping {
                 + "nats {}", new Object[] { IPv4.fromIPv4Address(nwSrc),
                 tpSrc, IPv4.fromIPv4Address(oldNwDst), oldTpDst, nats });
 
-        // This throws IllegalArgumentException if nats.size() is zero.
+        if (nats.size() == 0)
+            throw new IllegalArgumentException("Nat list was emtpy.");
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();
         NatTarget nat = null;
-        for (int i = 0; i <= natPos; i++)
+        for (int i = 0; i <= natPos && iter.hasNext(); i++)
             nat = iter.next();
         int tpStart = nat.tpStart & USHORT;
         int tpEnd = nat.tpEnd & USHORT;
@@ -276,7 +275,7 @@ public class NatLeaseManager implements NatMapping {
                         break;
                     // We've found a free port.
                     freePorts.remove(port);
-                    // Check memcached to make sure the port's really free.
+                    // Check cache to make sure the port's really free.
                     if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
                             nwDst, tpDst, origMatch))
                         return new NwTpPair(ip, port.shortValue());
@@ -367,9 +366,9 @@ public class NatLeaseManager implements NatMapping {
                 for (int i = 0; i < block_size; i++)
                     freePorts.add(block + i);
                 // Now, starting with the smaller of 'block' and tpStart
-                // see if the mapping really is free in Memcached by making sure
+                // see if the mapping really is free in cache by making sure
                 // that the reverse mapping isn't already taken. Note that the
-                // common case for snat requires 4 calls to Memcached (one to
+                // common case for snat requires 4 calls to cache (one to
                 // check whether we've already seen the forward flow, one to
                 // make sure the newIp, newPort haven't already been used with
                 // the nwDst and tpDst, and 2 to actually store the forward

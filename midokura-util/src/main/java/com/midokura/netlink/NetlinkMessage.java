@@ -329,36 +329,6 @@ public class NetlinkMessage {
         return buf.position() - startPos;
     }
 
-    public static int addAttribute(ByteBuffer buffer, short id) {
-        setAttrHeader(buffer, id, 4);
-        return 4;
-    }
-
-    public static int addAttribute(ByteBuffer buffer, short id, byte value) {
-        setAttrHeader(buffer, id, 8);
-        buffer.put(value);
-        return 8;
-    }
-
-    protected static int addAttribute(ByteBuffer buffer, short id, short value) {
-        setAttrHeader(buffer, id, 8);
-        buffer.putShort(value);
-        return 8;
-    }
-
-    public static int addAttribute(ByteBuffer buffer, short id, int value) {
-        setAttrHeader(buffer, id, 8);
-        buffer.putInt(value);
-        return 8;
-    }
-
-    public static int addAttribute(ByteBuffer buffer, short id, long value) {
-
-        setAttrHeader(buffer, id, 12);
-        buffer.putLong(value);
-        return 12;
-    }
-
     public static int addAttribute(ByteBuffer buf, short id, byte[] value) {
         // save position
         int start = buf.position();

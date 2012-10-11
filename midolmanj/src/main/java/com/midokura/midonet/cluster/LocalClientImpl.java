@@ -433,8 +433,7 @@ public class LocalClientImpl implements Client {
                 retrieveHostMetadata(hostId, builder, isUpdate);
 
         if (metadata != null) {
-            retrieveAvailabilityZoneConfigs(hostId, new HashSet<UUID>(),
-                    builder);
+            retrieveTunnelZoneConfigs(hostId, new HashSet<UUID>(), builder);
 
             retrieveHostDatapathName(hostId, builder, isUpdate);
 
@@ -448,23 +447,24 @@ public class LocalClientImpl implements Client {
     }
 
     private Map<UUID, TunnelZone.HostConfig<?, ?>>
-    retrieveAvailabilityZoneConfigs(final UUID hostId,
-                                    final Set<UUID> oldZones,
-                                    final HostBuilder builder) {
+    retrieveTunnelZoneConfigs(final UUID hostId,
+                              final Set<UUID> oldZones,
+                              final HostBuilder builder) {
         try {
             Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
                     new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
 
             Set<UUID> newZones =
-                    hostManager.getTunnelZoneIds(
-                            hostId,
-                            new Directory.DefaultTypedWatcher() {
-                                @Override
-                                public void pathDataChanged(String path) {
-                                    retrieveAvailabilityZoneConfigs(hostId, oldZones,
-                                            builder);
-                                }
-                            });
+                hostManager.getTunnelZoneIds(
+                    hostId,
+                    new Directory.DefaultTypedWatcher() {
+                        @Override
+                        public void pathChildrenUpdated(String path) {
+                            retrieveTunnelZoneConfigs(hostId, oldZones,
+                                                      builder);
+                            builder.build();
+                        }
+                    });
 
             for (UUID uuid : newZones) {
                 hostTunnelZones.put(

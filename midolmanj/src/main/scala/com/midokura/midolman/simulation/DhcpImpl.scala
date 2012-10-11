@@ -19,6 +19,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.client._
+import com.midokura.midonet.cluster.data.dhcp.Opt121
 import com.midokura.packets._
 
 
@@ -36,6 +37,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private var serverMac: MAC = null
     private var routerAddr: IntIPv4 = null
     private var yiaddr: IntIPv4 = null
+    private var opt121Routes: mutable.Seq[Opt121] = null;
 
     def handleDHCP : Future[Boolean] = {
         // These fields are decided based on the port configuration.
@@ -86,6 +88,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     routerAddr = sub.getDefaultGateway
                     yiaddr = host.getIp.clone.setMaskLength(
                         sub.getSubnetAddr.getMaskLength)
+                    opt121Routes = sub.getOpt121Routes
                     return makeDhcpReply
                 }
             }
@@ -182,7 +185,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                             case Some(opt) =>
                                 // The server id should correspond to this port's address.
                                 val theirServId = IPv4.toIPv4Address(opt.getData)
-                                if (!serverAddr.equals(theirServId)) {
+                                if (serverAddr.addressAsInt != theirServId) {
                                     log.warning("handleDhcpRequest dropping dhcp REQUEST - client "
                                         + "chose server {} not us {}",
                                         IPv4.fromIPv4Address(theirServId), serverAddr)
@@ -200,7 +203,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                                 val reqIp = IPv4.toIPv4Address(opt.getData)
                                 // TODO(pino): must keep state and remember the offered ip based
                                 // on the chaddr or the client id option.
-                                if (!yiaddr.equals(reqIp)) {
+                                if (yiaddr.addressAsInt != reqIp) {
                                     log.warning("handleDhcpRequest dropping dhcp REQUEST " +
                                         "- the requested ip {} is not the offered " +
                                         "yiaddr {}", reqIp, yiaddr)
@@ -258,6 +261,38 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             DHCPOption.Code.SERVER_ID.value,
             DHCPOption.Code.SERVER_ID.length,
             IPv4.toIPv4AddressBytes(serverAddr.getAddress)))
+        // If there are classless static routes, add the option.
+        if (null != opt121Routes && opt121Routes.length > 0) {
+            val bytes = mutable.ListBuffer[Byte]()
+            for (rt <- opt121Routes) {
+                log.debug("Found classless route {}", rt)
+                // First append the destination subnet's maskLength
+                val maskLen = rt.getRtDstSubnet.getMaskLength.toByte
+                bytes.append(maskLen)
+                // Now append the significant octets of the subnet.
+                val dstBytes = IPv4.toIPv4AddressBytes(
+                    rt.getRtDstSubnet.addressAsInt)
+                if (maskLen > 0)
+                    bytes.append(dstBytes(0))
+                if (maskLen > 8)
+                    bytes.append(dstBytes(1))
+                if (maskLen > 16)
+                    bytes.append(dstBytes(2))
+                if (maskLen > 24)
+                    bytes.append(dstBytes(3))
+                // Now append the 4 octets of the gateway.
+                val gwBytes = IPv4.toIPv4AddressBytes(
+                    rt.getGateway.addressAsInt)
+                bytes.appendAll(gwBytes.toList)
+            }
+            log.debug("Adding Option 121 (classless static routes) with " +
+                "{} routes", opt121Routes.length)
+            // Finally, construct the classless static routes option
+            options.add(new DHCPOption(
+                DHCPOption.Code.CLASSLESS_ROUTES.value(),
+                bytes.length.toByte,
+                bytes.toArray))
+        }
         // And finally add the END option.
         options.add(new DHCPOption(DHCPOption.Code.END.value,
             DHCPOption.Code.END.length, null))

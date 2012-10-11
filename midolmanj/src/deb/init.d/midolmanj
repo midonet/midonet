@@ -39,7 +39,7 @@ JAVA_OPTS="$JAVA_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Midolman: OpenFlow-based network controller"
+DESC="Midolman: OVS kmod-based network controller"
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Read configuration variable file if it is present

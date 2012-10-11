@@ -20,7 +20,7 @@ public interface TunnelZones {
     }
 
     /**
-     * This is what an Availability zone Builder should look like:
+     * This is what an tunnel zone Builder should look like:
      * - it needs to have a Zone Configuration
      * - it needs to have a per host Configuration type
      *

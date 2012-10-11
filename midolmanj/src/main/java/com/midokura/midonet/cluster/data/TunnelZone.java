@@ -73,9 +73,9 @@ public abstract class TunnelZone<
             super(uuid, hostConfigData);
         }
 
-        public HostConfig setIp(IntIPv4 ip) {
+        public ActualHostConfig setIp(IntIPv4 ip) {
             getData().ip = ip;
-            return this;
+            return self();
         }
 
         public IntIPv4 getIp() {

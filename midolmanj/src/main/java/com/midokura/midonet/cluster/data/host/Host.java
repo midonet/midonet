@@ -67,7 +67,7 @@ public class Host extends Entity.Base<UUID, Host.Data, Host> {
         return self();
     }
 
-    public Set<UUID> getAvailabilityZones() {
+    public Set<UUID> getTunnelZones() {
         return getData().tunnelZones;
     }
 

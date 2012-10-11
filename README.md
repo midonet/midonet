@@ -78,7 +78,6 @@ This file has the following syntax:
 
     [forwarded_local_ports]
     12344 = 12344   # OpenvSwitch database connection port
-    11211 = 11211   # Memcached connection
     9090 = 9090     # Midonet Sudo Helper connection
     6640 = 6640     #
 

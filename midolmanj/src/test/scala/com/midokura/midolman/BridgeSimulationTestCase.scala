@@ -7,12 +7,14 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.junit.JUnitRunner
+import java.util.concurrent.TimeUnit
 
 import com.midokura.midolman.DatapathController.{TunnelChangeEvent, PacketIn}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded, InvalidateFlowsByTag}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import com.midokura.packets.{Ethernet, IntIPv4, MAC, Packets}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
+import akka.util.Duration
 import akka.testkit.TestProbe
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
@@ -82,12 +84,22 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
 
         tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
         tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         drainProbes()
     }
 
     override def beforeEach() {
         // TODO: reset Bridge (flush MAC learning table at least)
     }
+
+    def getAddWildcardFlowPartialFunction: PartialFunction[Any, Boolean] = {
+        {
+            case msg: AddWildcardFlow => true
+            case _ => false
+        }
+    }
+
 
     def testPacketInBridgeSimulation() {
         val ethPkt = Packets.udp(
@@ -107,12 +119,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         pktInMsg.wMatch should not be null
         pktInMsg.wMatch.getInputPortUUID should be(port1OnHost1.getId)
 
-        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+        //flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
 
         dpProbe().expectMsgClass(classOf[AddWildcardFlow])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        //flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+        //val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = (flowProbe.fishForMessage(Duration(1, TimeUnit.SECONDS),
+                                   "AddWildcardFlow")(getAddWildcardFlowPartialFunction)).asInstanceOf[AddWildcardFlow]
         addFlowMsg.pktBytes should not be null
         Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
         addFlowMsg.flow should not be null
@@ -177,6 +191,30 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         //verifyMacLearned("0a:fe:88:90:22:33", inputPort)
     }
 
+    def testMcastDstBridgeSim () {
+        val inputPort = "port1"
+        val ethPkt = Packets.udp(
+                MAC.fromString("0a:fe:88:90:22:33"),
+                MAC.fromString("01:00:cc:cc:dd:dd"),
+                IntIPv4.fromString("10.10.10.11"),
+                IntIPv4.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
+        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false, false)
+        val flowActs = addFlowMsg.flow.getActions
+        flowActs should have size(4)
+        //First Action: flood to local port [port4]
+        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
+            case Some(portNo : Short) =>
+                as [FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
+            case None => fail("Not able to find data port number for materialize Port 4")
+        }
+        //Second Action: set tunnel ID
+        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
+            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
+        //Next two actions: flooding out to tunnel with ID 1 and 2
+        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
+        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+    }
+
     def testMcastSrcBridgeSim () {
         val inputPort = "port1"
         val ethPkt = Packets.udp(
@@ -204,11 +242,10 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         pktInMsg.wMatch should not be null
         pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
 
-        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
-
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        if (isMacLearned == false) flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = (flowProbe.fishForMessage(Duration(1, TimeUnit.SECONDS),
+                          "AddWildcardFlow")(getAddWildcardFlowPartialFunction)).
+                          asInstanceOf[AddWildcardFlow]
         if (isDropExpected == false) {
             addFlowMsg.pktBytes should not be null
             Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)

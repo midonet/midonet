@@ -75,6 +75,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val localPortNumber = dpController().underlyingActor.localPorts("port1").getPortNo
 
+        // for the local exterior port
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))

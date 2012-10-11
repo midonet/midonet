@@ -90,7 +90,7 @@ public abstract class Rule
         public RuleResult.Action action;
         public UUID chainId;
         public int position;
-        private Map<String, String> properties = new HashMap<String, String>();
+        public Map<String, String> properties = new HashMap<String, String>();
 
         @Override
         public boolean equals(Object other) {

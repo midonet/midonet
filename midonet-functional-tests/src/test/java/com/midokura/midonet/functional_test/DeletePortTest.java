@@ -4,8 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.List;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -15,29 +13,25 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.midokura.util.Waiters.sleepBecause;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-
-import com.midokura.midolman.MidoMatch;
+import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
+import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
+import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.Router;
+import com.midokura.midonet.functional_test.topology.Tenant;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.openflow.FlowStats;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.util.Waiters.sleepBecause;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 
 @Ignore
 public class DeletePortTest {
@@ -158,11 +152,12 @@ public class DeletePortTest {
                   new Object[]{num1, num2, num3});
 
         // Verify that there are no ICMP flows.
-        MidoMatch icmpMatch = new MidoMatch()
+        WildcardMatch icmpMatch = new WildcardMatch()
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
-        List<FlowStats> fstats = null; //svcController.getFlowStats(icmpMatch);
-        assertThat("There are no stats for ICMP yet",
-                   fstats, hasSize(0));
+        //List<FlowStats> fstats = null; //svcController.getFlowStats
+        // (icmpMatch);
+        //assertThat("There are no stats for ICMP yet",
+        //           fstats, hasSize(0));
 
         // Send ICMPs from p1 to internal port p3.
         byte[] ping1_3 = helper1.makeIcmpEchoRequest(ip3);
@@ -202,17 +197,17 @@ public class DeletePortTest {
                 new MidoMatch().setNetworkSource(ip1.addressAsInt())
                                .setNetworkDestination(ip3.addressAsInt()));*/
 
-        assertThat("Only one FlowStats object should be visible",
-                   fstats, hasSize(1));
+        //assertThat("Only one FlowStats object should be visible",
+        //           fstats, hasSize(1));
 
-        FlowStats flow1_3 = null; //fstats.get(0);
+        //FlowStats flow1_3 = null; //fstats.get(0);
         //flow1_3.expectCount(1).expectOutputAction(num3);
 
         /*fstats = svcController.getFlowStats(
             new MidoMatch().setNetworkSource(ip3.addressAsInt())
                            .setNetworkDestination(ip1.addressAsInt()));*/
-        assertThat("Only one FlowStats object should be visible.",
-                   fstats, hasSize(1));
+        //assertThat("Only one FlowStats object should be visible.",
+        //           fstats, hasSize(1));
         //FlowStats flow3_1 = fstats.get(0);
         //flow3_1.expectCount(1).expectOutputAction(num1);
 
@@ -258,6 +253,7 @@ public class DeletePortTest {
         sleepBecause("OVS should process the internal port deletion", 2);
 
         //fstats = svcController.getFlowStats(icmpMatch);
-        assertThat("The list of FlowStats should be empty", fstats, hasSize(0));
+        //assertThat("The list of FlowStats should be empty", fstats,
+        //    hasSize(0));
     }
 }

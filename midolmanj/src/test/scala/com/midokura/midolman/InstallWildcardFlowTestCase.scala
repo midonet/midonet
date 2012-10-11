@@ -53,6 +53,9 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
             .addAction(vrnPortOutput)
             .setMatch(wildcardMatch)
 
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+
         dpProbe().testActor.tell(AddWildcardFlow(
             wildcardFlow, None, "My packet".getBytes, null, null))
 

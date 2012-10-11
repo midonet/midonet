@@ -18,7 +18,7 @@ packets according to the old configuration.
 Midolman's goal is to invalidate any stale flow match within a few seconds of
 the configuration change that made it stale. If the flow is still active, one
 of its packets will then be injected into the network simulation and a new flow
-match will be installed on the OpenFlow switch.
+match will be installed on the Kernel datapath.
 
 Identifying the set of all, and only, the stale flow matches due to a
 configuration change is a hard problem. When this cannot be done precisely,

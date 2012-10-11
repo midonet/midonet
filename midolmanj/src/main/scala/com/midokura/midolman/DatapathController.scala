@@ -5,44 +5,40 @@ package com.midokura.midolman
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.dispatch.{Future, Promise}
-import akka.util.duration._
-import akka.util.Timeout
 import akka.pattern.ask
-import monitoring.MonitoringActor
+import akka.util.Timeout
+import akka.util.duration._
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
+import java.util.UUID
 
 import com.google.inject.Inject
 
-import java.util.UUID
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZoneHost,
-                                                GreTunnelZone,
-                                                CapwapTunnelZone,
-                                                CapwapTunnelZoneHost}
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
+import com.midokura.midolman.datapath._
+import com.midokura.midolman.monitoring.MonitoringActor
+import com.midokura.midolman.services.HostIdProviderService
+import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
+import com.midokura.midolman.topology._
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+        ChainRequest, PortRequest}
+import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midolman.services.HostIdProviderService
-import com.midokura.midolman.datapath._
-import com.midokura.midolman.simulation.{Bridge => RCUBridge}
-import topology._
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
+        CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
-import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
+import com.midokura.sdn.dp.flows.{FlowAction, FlowActions, FlowKeys}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
-import com.midokura.netlink.Callback
-import rcu.Host
-import rcu.PortSet
-import topology.LocalPortActive
-import topology.VirtualTopologyActor.BridgeRequest
-import com.midokura.packets.Ethernet
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.FlowController.AddWildcardFlow
 
 
 /**
@@ -422,6 +418,7 @@ class DatapathController() extends Actor with ActorLogging {
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
+    val localTunnelPorts: mutable.Set[Short] = mutable.Set()
     // Map of vport ID to local interface name - according to ZK.
     val vifPorts: mutable.Map[UUID, String] = mutable.Map()
 
@@ -440,6 +437,7 @@ class DatapathController() extends Actor with ActorLogging {
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
+    var initialized = false
     var host: Host = null
 
     override def preStart() {
@@ -465,6 +463,7 @@ class DatapathController() extends Actor with ActorLogging {
          */
         case m: InitializationComplete if (sender == self) =>
             log.info("Initialization complete. Starting to act as a controller.")
+            initialized = true
             become(DatapathControllerActor)
             FlowController.getRef() ! DatapathController.DatapathReady(datapath)
             for ((zoneId, zone) <- host.zones) {
@@ -478,8 +477,14 @@ class DatapathController() extends Actor with ActorLogging {
 
         case _SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
-            for (port <- ports) {
-                localPorts.put(port.getName, port)
+            ports.foreach { _ match {
+                    case p: GreTunnelPort =>
+                        selfPostPortCommand(DeleteTunnelGre(p, None))
+                    case p: CapWapTunnelPort =>
+                        selfPostPortCommand(DeleteTunnelCapwap(p, None))
+                    case p =>
+                        localPorts.put(p.getName, p)
+                }
             }
             doDatapathPortsUpdate
 
@@ -515,6 +520,7 @@ class DatapathController() extends Actor with ActorLogging {
         // When initialization is completed we will revert back to this Actor
         // loop for general message response
         case m: Initialize =>
+            initialized = false
             become(DatapathInitializationActor)
             self ! m
 
@@ -531,7 +537,8 @@ class DatapathController() extends Actor with ActorLogging {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
             } else {
                 zones.put(zone.getId, zone)
-                zonesToHosts.put(zone.getId, mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
+                zonesToHosts.put(zone.getId,
+                        mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
             }
 
         case m: ZoneChanged[_] =>
@@ -730,9 +737,8 @@ class DatapathController() extends Actor with ActorLogging {
 
         vifToLocalPortNumber(inPortUUID) match {
             case Some(portNo: Short) =>
-                flowMatch
-                    .setInputPortNumber(portNo)
-                    .unsetInputPortUUID()
+                flowMatch.setInputPortNumber(portNo)
+                         .unsetInputPortUUID()
             case None =>
         }
 
@@ -841,7 +847,7 @@ class DatapathController() extends Actor with ActorLogging {
             }
         }
 
-        for ( act <- acts ) {
+        for (act <- acts) {
             act match {
                 case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
                     newActs ++= translatedActions
@@ -933,9 +939,73 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
+    /**
+     * Once a port has been created/removed from the datapath, this method
+     * adds/removes the port to the DatapathController's map of ports,
+     * tells the VirtualToPhysicalMapper and installs/invalidates a flow to
+     * match the port's tunnelKey.
+     */
+    private def finalizePortActivation(port: Port[_,_], vifId: UUID,
+                                       active: Boolean) {
+        def tellVtpm() {
+            VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active)
+        }
+
+        if (active)
+            localToVifPorts.put(port.getPortNo.shortValue, vifId)
+        else
+            localToVifPorts.remove(port.getPortNo.shortValue)
+
+        port match {
+            case netdev: NetDevPort =>
+                val clientPortFuture = VirtualTopologyActor.getRef() ?
+                    PortRequest(vifId, update = false)
+
+                clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
+                    case Right(exterior) =>
+                        // add flow
+                        if (active) {
+                            addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
+                                    List(FlowActions.output(port.getPortNo.shortValue)),
+                                    tags = Set(vifId),
+                                    expiration = 0)
+                        } else {
+                            FlowController.getRef() ! InvalidateFlowsByTag(vifId)
+                        }
+                        tellVtpm()
+                    case _ =>
+                        // TODO(guillermo) what to do here?
+                        tellVtpm()
+                }
+            case _ => tellVtpm()
+        }
+    }
+
+    private def addFlow(wMatch: WildcardMatch,
+                        actions: Seq[FlowAction[_]],
+                        cookie: Option[Int] = None,
+                        pktBytes: Array[Byte] = null,
+                        tags: Set[Any] = Set(),
+                        expiration: Long = 3000) {
+        log.debug("adding flow for PacketIn match {} with actions {}",
+                  wMatch, actions)
+
+        FlowController.getRef().tell(
+                AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
+                                        .setIdleExpirationMillis(expiration)
+                                        .setActions(actions),
+                                cookie,
+                                if (actions == Nil) null else pktBytes,
+                                null,
+                                tags))
+            // XXX(guillermo): make sure passing null for callbacks and tags
+            //                 is OK
+    }
+
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
                            dpMatch: FlowMatch, reason: Packet.Reason,
                            cookie: Option[Int]) {
+
         wMatch.getInputPortNumber match {
             case port: java.lang.Short =>
                 if (localToVifPorts.contains(port)) {
@@ -943,21 +1013,50 @@ class DatapathController() extends Actor with ActorLogging {
                     SimulationController.getRef().tell(
                         PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
                     return
+                } else if (localTunnelPorts.contains(port)) {
+                    log.debug("PacketIn came from a tunnel port")
+                    val portSetFuture = VirtualToPhysicalMapper.getRef() ?
+                        PortSetForTunnelKeyRequest(wMatch.getTunnelID)
+
+                    portSetFuture.mapTo[PortSet] onComplete {
+                        case Right(portSet) if (portSet != null) =>
+                            val action = new FlowActionOutputToVrnPortSet(portSet.id)
+                            log.debug("tun => portSet, action: {}, portSet: {}",
+                                action, portSet)
+                            // egress port filter simulation
+                            val localPortFutures =
+                                portSet.localPorts.toSeq map {
+                                    portID => ask(VirtualTopologyActor.getRef(),
+                                                  PortRequest(portID, false))
+                                              .mapTo[client.Port[_]]
+                                }
+                            Future.sequence(localPortFutures) onComplete {
+                                // Take the outgoing filter for each port
+                                // and apply it, checking for Action.ACCEPT.
+                                case Right(localPorts) =>
+                                    applyOutboundFilters(port, localPorts,
+                                        wMatch.getTunnelID, action, portSet.id,
+                                        cookie)
+                                case _ => log.error("Error getting " +
+                                    "configurations of local ports of " +
+                                    "PortSet {}", portSet)
+                            }
+
+                        case _ =>
+                            log.debug("PacketIn came from a tunnel port but " +
+                                "the key does not map to any PortSet")
+                            addFlow(new WildcardMatch().
+                                    setTunnelID(wMatch.getTunnelID).
+                                    setInputPort(port),
+                                Nil, cookie)
+                    }
+
+                } else {
+                    // Otherwise, drop the flow. There's a port on the DP that
+                    // doesn't belong to us and is receiving packets.
+                    addFlow(new WildcardMatch().setInputPortNumber(port),
+                            Nil, cookie)
                 }
-                // TODO(pino): implement the case of a tunneled packet
-                // TODO: addressed to a PortSet. That would be sent up to us
-                // TODO: so that we can do egress port filter simulation.
-
-
-                // Otherwise, drop the flow. There's a port on the DP that
-                // doesn't belong to us and is receiving packets.
-                FlowController.getRef().tell(
-                    AddWildcardFlow(
-                        new WildcardFlow()
-                            .setMatch(new WildcardMatch()
-                                .setInputPortNumber(port))
-                            .setIdleExpirationMillis(3000),
-                        cookie, null, null, null))
 
             case null =>
                 // Missing InputPortNumber. This should never happen.
@@ -965,6 +1064,24 @@ class DatapathController() extends Actor with ActorLogging {
                     wMatch)
         }
 
+    }
+
+    private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
+                    localPorts: Seq[client.Port[_]], tunnelKey: Long,
+                    action: T, portSetID: UUID,
+                    cookie: Option[Int]) {
+        // Fetch all of the chains.
+        val chainFutures = localPorts map { port =>
+                ask(VirtualTopologyActor.getRef,
+                    ChainRequest(port.outFilterID, false)).mapTo[Chain]
+            }
+
+        // XXX: Apply the chains.
+        addFlow(new WildcardMatch().setTunnelID(tunnelKey).setInputPort(tunnelPort),
+                translateToDpPorts(List(action), portSetID,
+                                   portsForLocalPorts(localPorts map
+                                                      {port => port.id}),
+                                   None, Nil), cookie)
     }
 
     def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
@@ -1008,6 +1125,7 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
                     peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
             }
+            localTunnelPorts.add(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,
                     Some(port.getPortNo.shortValue()),
@@ -1025,6 +1143,7 @@ class DatapathController() extends Actor with ActorLogging {
 
                 case None =>
             }
+            localTunnelPorts.remove(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
                     host.zones(zone), hConf,
@@ -1052,17 +1171,14 @@ class DatapathController() extends Actor with ActorLogging {
             case PortNetdevOpReply(p, PortOperation.Create, false, null, Some(vifId: UUID)) =>
                 log.info("DP port created. Mapping created: {} -> {}", vifId,
                     p.getPortNo)
-                localToVifPorts.put(p.getPortNo.shortValue(), vifId)
-
-                VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active = true)
+                finalizePortActivation(p, vifId, active = true)
 
             case PortNetdevOpReply(p, PortOperation.Delete, false, null, None) =>
                 localToVifPorts.get(p.getPortNo.shortValue()) match {
                     case None =>
                     case Some(vif) =>
                         log.info("Mapping removed: {} -> {}", vif, p.getPortNo)
-                        localToVifPorts.remove(p.getPortNo.shortValue())
-                        VirtualToPhysicalMapper.getRef() ! LocalPortActive(vif, active = false)
+                        finalizePortActivation(p, vif, active = false)
                 }
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
@@ -1084,7 +1200,7 @@ class DatapathController() extends Actor with ActorLogging {
                 log.error("No match {}", value)
         }
 
-        if (pendingUpdateCount == 0)
+        if (pendingUpdateCount == 0 && !initialized)
             self ! InitializationComplete()
     }
 
@@ -1116,9 +1232,7 @@ class DatapathController() extends Actor with ActorLogging {
                     // vport is now active.
                     log.info("DP port exists. Mapping created: {} -> {}",
                         vifId, shortPortNum)
-                    localToVifPorts.put(shortPortNum, vifId)
-                    VirtualToPhysicalMapper.getRef() !
-                        LocalPortActive(vifId, active = true)
+                    finalizePortActivation(p, vifId, active = true)
                 }
             }
         }
@@ -1142,7 +1256,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
 
         log.info("Pending updates {}", pendingUpdateCount)
-        if (pendingUpdateCount == 0)
+        if (pendingUpdateCount == 0 && !initialized)
             self ! InitializationComplete()
     }
 
