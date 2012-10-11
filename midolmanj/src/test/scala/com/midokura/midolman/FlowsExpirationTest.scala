@@ -95,6 +95,11 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
         // Now disable sending messages to the DatapathController
         dpProbe().testActor.tell("stop")
         dpProbe().expectMsg("stop")
+
+        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        drainProbe(eventProbe)
+        drainProbes()
     }
 
     def getMatchFlowRemovedPacketPartialFunction: PartialFunction[Any, Boolean] = {
@@ -249,7 +254,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
                 null, null))
 
-        flowProbe().expectMsgClass(classOf[AddWildcardFlow])
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded = System.currentTimeMillis()
 

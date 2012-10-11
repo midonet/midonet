@@ -7,6 +7,7 @@ import monitoring.{MonitoringActor, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import akka.testkit._
 import akka.actor._
@@ -226,8 +227,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         probeByName(SimulationController.Name)
     }
 
-    protected def fishForRequestOfType[T](testKit: TestKit, timeout: Duration)
-                                  (implicit m: scala.reflect.Manifest[T]):T = {
+    protected def fishForRequestOfType[T](testKit: TestKit,
+            timeout: Duration = Duration(3, TimeUnit.SECONDS))
+            (implicit m: scala.reflect.Manifest[T]):T = {
+
         def messageMatcher(clazz: Class[_]): PartialFunction[Any, Boolean] = {
             {
                 case o if (o.getClass == clazz) => true
