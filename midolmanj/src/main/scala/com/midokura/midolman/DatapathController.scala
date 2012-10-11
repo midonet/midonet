@@ -490,7 +490,8 @@ class DatapathController() extends Actor with ActorLogging {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
             // schedule port requests.
-            portWatcher = system.scheduler.schedule(1 second, 500 milliseconds, self, CheckForPortUpdates(datapath.getName))
+            log.info("Starting to scheduler the port stats updates.")
+            portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
             initializer forward m
 
         case host: Host =>
@@ -617,33 +618,9 @@ class DatapathController() extends Actor with ActorLogging {
 
         // WORKING MARC
         case CheckForPortUpdates(datapathName: String) =>
-          log.info("Checking any update in the datapath (synch)")
-          // TODO check, the datapath might be already there.
-          val datapath: Datapath = datapathConnection.datapathsGet(datapathName).get()
-          // get the datapath ports via netlink.
-          val portsSet = datapathConnection.portsEnumerate(datapath).get();
+          log.info("Checking any update in the datapath")
+          CheckPortUpdates
 
-          val portIdPortMap = new mutable.HashMap[Int, Port[_,_]]
-          for (port <- portsSet) {
-            portIdPortMap.put(port.getPortNo, port)
-          }
-
-
-          for ((tapName, port) <- localPorts) {
-            if (portIdPortMap.contains(port.getPortNo)) {
-              // port still exists
-              log.info("PORT FINE: {}", port.getPortNo)
-            } else {
-              // port has been removed. Delete this port from the datapath.
-              log.info("NEED TO DELETE PORT FROM DP {}", port.getPortNo)
-            }
-            portIdPortMap.remove(port.getPortNo)
-          }
-
-          // the ones left in portIdPortMap are new.
-          for ((portId, port) <- portIdPortMap) {
-            log.info("NEED TO CREATE {}", portId)
-          }
 
 
           /*vifPorts.get(portID) match {
@@ -670,6 +647,46 @@ class DatapathController() extends Actor with ActorLogging {
    }
 
     def completePendingPortSetTranslations() {
+    }
+
+    def CheckPortUpdates() {
+      //val datapath: Datapath = datapathConnection.datapathsGet(datapathName).get()
+
+      // get the datapath ports via netlink.
+      datapathConnection.portsEnumerate(datapath, new ErrorHandlingCallback[java.util.Set[Port[_, _]]] {
+        def onSuccess(portsSet: java.util.Set[Port[_, _]]) {
+          val portIdPortMap = new mutable.HashMap[Int, Port[_,_]]
+          for (port <- portsSet) {
+            portIdPortMap.put(port.getPortNo, port)
+          }
+
+          for ((tapName, port) <- localPorts) {
+            if (!portIdPortMap.contains(port.getPortNo)) {
+              // port has been removed. Delete this port from the datapath.
+              log.info("NEED TO DELETE PORT FROM DP {} ({})", Array(port.getPortNo, port.getName))
+              port match {
+                case p: NetDevPort =>
+                  VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
+                  // TODO better a full host update ?
+                  localPorts.remove(p.getName)
+                case default =>
+                  log.error("port type not matched {}", default)
+              }
+            }
+            portIdPortMap.remove(port.getPortNo)
+          }
+        }
+
+        def handleError(ex: NetlinkException, timeout: Boolean) {
+          context.system.scheduler.scheduleOnce(100 millis, new Runnable {
+            def run() {
+              queryDatapathPorts(datapath)
+            }
+          })
+        }
+      });
+
+
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
