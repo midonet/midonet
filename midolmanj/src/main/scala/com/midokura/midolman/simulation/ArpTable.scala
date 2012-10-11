@@ -177,18 +177,36 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable
     }
 
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
-        log.debug("Got address for {}: {}", ip, mac)
         arpWaiters.remove(ip) match {
                 case Some(waiters) => waiters map { _ success mac}
                 case None =>
         }
         val now = Platform.currentTime
-        val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
-                                      now + ARP_STALE_MILLIS, 0)
-        arpCache.add(ip, entry)
-        val when = Duration.create(ARP_EXPIRATION_MILLIS,
-            TimeUnit.MILLISECONDS)
-        actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+        fetchArpCacheEntry(ip, now + 1000) onComplete {
+            case Right(entry) if (entry != null &&
+                                  entry.macAddr != null &&
+                                  entry.stale > now &&
+                                  entry.macAddr == null) =>
+                log.debug("Skipping write to ArpCache because a non-stale " +
+                    "entry for {} with the same value ({}) exists.", ip, mac)
+
+            case Right(entry) =>
+                log.debug("Got address for {}: {}", ip, mac)
+                val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
+                    now + ARP_STALE_MILLIS, 0)
+                arpCache.add(ip, entry)
+                val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                    TimeUnit.MILLISECONDS)
+                actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+            case _ =>
+                log.debug("Got address for {}: {}", ip, mac)
+                val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
+                    now + ARP_STALE_MILLIS, 0)
+                arpCache.add(ip, entry)
+                val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                    TimeUnit.MILLISECONDS)
+                actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+        }
     }
 
     private def makeArpRequest(srcMac: MAC, srcIP: IntIPv4, dstIP: IntIPv4):
