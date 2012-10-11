@@ -236,7 +236,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         }
         val clazz = m.erasure.asInstanceOf[Class[T]]
         val msg = testKit.fishForMessage(timeout)(messageMatcher(clazz))
-        assert(clazz.isInstance(msg), "Message should have been of type %s but was %s" format (clazz, m.getClass))
+        assert(clazz.isInstance(msg), "Message should have been of type %s but was %s" format (clazz, msg.getClass))
         clazz.cast(msg)
     }
 
