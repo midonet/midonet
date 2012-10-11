@@ -63,6 +63,8 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPort(portOnHost2.getId))
 
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None,
             "my packet".getBytes(), null, null))
 
