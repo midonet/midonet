@@ -97,7 +97,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 filterChanged = true
             }
             cfg = newCfg
-            if (arpCache == null) {
+            if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config)
                 arpTable.start()
