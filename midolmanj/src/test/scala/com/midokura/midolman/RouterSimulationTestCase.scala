@@ -701,6 +701,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         dilatedSleep((ARP_EXPIRATION_SECS - ARP_STALE_SECS/2 + 1) * 1000)
 
+        drainProbes()
         expiry = Platform.currentTime + 1000
         arpPromise = router.arpTable.get(hisIp, port, expiry)(
             actors().dispatcher, actors())
