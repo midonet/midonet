@@ -61,6 +61,9 @@ public class LocalClientImpl implements Client {
     ClusterBgpManager bgpManager;
 
     @Inject
+    ClusterChainManager chainManager;
+
+    @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
 
     @Inject
@@ -96,6 +99,8 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getChain(UUID chainID, ChainBuilder builder) {
+        chainManager.registerNewBuilder(chainID, builder);
+        log.debug("getChain {}", chainID);
     }
 
     @Override

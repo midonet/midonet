@@ -105,7 +105,6 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     }
 
     override def preStart() {
-        log.info("refresh config")
         clusterClient.getBridge(id, new BridgeBuilderImpl(id,
             FlowController.getRef(), self))
     }

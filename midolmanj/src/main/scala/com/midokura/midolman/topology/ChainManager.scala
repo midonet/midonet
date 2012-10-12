@@ -3,31 +3,30 @@
  */
 package com.midokura.midolman.topology
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
 
 import com.midokura.midolman.simulation.Chain
-import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig
 import com.midokura.midolman.rules.{JumpRule, Rule}
 import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest,
                                                             ChainUnsubscribe}
+import com.midokura.midonet.cluster.Client
+import com.midokura.midonet.cluster.client.ChainBuilder
+import java.util
+import com.midokura.midolman.topology.ChainManager.TriggerUpdate
 
+object ChainManager {
+    case class TriggerUpdate(rules: util.Collection[Rule])
+}
 
-class ChainManager(val id: UUID) extends Actor {
-    // Kick off the first attempt to construct the device.
-    val cfg: ChainConfig = null //chainMgr.get(id)
-    // TODO(pino): what if the cfg is null?
-    updateRules()
+class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
+        with ActorLogging {
+    import ChainManager._
 
-    case object Refresh
-
-    val cb: Runnable = new Runnable() {
-        def run() {
-            // CAREFUL: this is not run on this Actor's thread.
-            self.tell(Refresh)
-        }
+    override def preStart() {
+        clusterClient.getChain(id, new ChainBuilderImpl(self))
     }
 
     // Store the chains that these rules jump to.
@@ -65,41 +64,28 @@ class ChainManager(val id: UUID) extends Actor {
         // Else we have some serious bug...
     }
 
-    var idToRule = mutable.Map[UUID, Rule]()
-    var rules: mutable.MutableList[Rule] = null
+    var rules: util.Collection[Rule] = null
+    var sortedRules: util.List[Rule] = null
 
-    private def updateRules(): Unit = {
-        val ruleIds: List[UUID] = null; // ruleMgr.getRuleIds(id, cb);
-        rules = mutable.MutableList[Rule]()
-        for (ruleIds <- ruleIds) {
-            rules += (idToRule.get(ruleIds) match {
-                case None =>
-                    val r: Rule = null //ruleMgr.get(ruleIds)
-                    idToRule.put(ruleIds, r)
-                    if (r.isInstanceOf[JumpRule])
-                        incrChainRefCount(
-                            r.asInstanceOf[JumpRule].jumpToChainID)
-                    r // return the rule
-                case Some(rule) => rule
-            })
+    private def updateRules(curRules: util.Collection[Rule]): Unit = {
+        for (r <- curRules) {
+            if ((null == rules || !rules.contains(r))
+                    && r.isInstanceOf[JumpRule])
+                incrChainRefCount(r.asInstanceOf[JumpRule].jumpToChainID)
         }
-        // Sort the rule array
-        rules.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
-
-        // Throw away Rules we no longer need.
-        val filter = (kv: (UUID, Rule)) => ruleIds.contains(kv._1)
-        val removedRules = idToRule.filterNot(filter)
-        idToRule = idToRule.filter(filter)
-        // Unsubscribe from any chains we used to jump to.
-        for (kv <- removedRules) {
-            if (kv._2.isInstanceOf[JumpRule]) {
-                decrChainRefCount(kv._2.asInstanceOf[JumpRule].jumpToChainID)
+        if (null != rules)
+            for (r <- rules) {
+                if (!curRules.contains(r) && r.isInstanceOf[JumpRule])
+                    decrChainRefCount(r.asInstanceOf[JumpRule].jumpToChainID)
             }
-        }
-        // Finally, send the VirtualTopologyActor an updated chain.
+        rules = curRules
+        sortedRules =
+            rules.toList.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
+        // Send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains)
             context.actorFor("..").tell(
-                new Chain(id, rules.toList, idToChain.toMap, cfg.name))
+                new Chain(id, sortedRules, idToChain.toMap,
+                    "TODO: need name"))
     }
 
     private def chainUpdate(chain: Chain): Unit = {
@@ -112,14 +98,20 @@ class ChainManager(val id: UUID) extends Actor {
                         if (0 == waitingForChains)
                             context.actorFor("..").tell(
                                 new Chain(id, rules.toList, idToChain.toMap,
-                                          cfg.name))
+                                          "TODO: need name"))
                     case _ =>  // Nothing else to do.
                 }
         }
     }
 
-    def receive = {
-        case Refresh => updateRules()
+    override def receive = {
+        case TriggerUpdate(rules) => updateRules(rules)
         case chain: Chain => chainUpdate(chain)
+    }
+}
+
+class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
+    def setRules(rules: util.Collection[Rule]) {
+        chainMgr.tell(TriggerUpdate(rules))
     }
 }

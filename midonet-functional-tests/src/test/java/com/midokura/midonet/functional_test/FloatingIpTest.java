@@ -253,7 +253,7 @@ public class FloatingIpTest {
             new Object[] {rtrPort1.getId(), rtrPort2.getId(), brPort2.getId()});
 
         Set<UUID> activatedPorts = new HashSet<UUID>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
                 Duration.create(10, TimeUnit.SECONDS),
                 LocalPortActive.class);
