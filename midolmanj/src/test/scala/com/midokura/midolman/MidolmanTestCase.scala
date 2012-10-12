@@ -6,6 +6,8 @@ package com.midokura.midolman
 import monitoring.{MonitoringActor, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.compat.Platform
+import scala.annotation.tailrec
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -241,6 +243,26 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         val msg = testKit.fishForMessage(timeout)(messageMatcher(clazz))
         assert(clazz.isInstance(msg), "Message should have been of type %s but was %s" format (clazz, msg.getClass))
         clazz.cast(msg)
+    }
+
+    protected def fishForReplyOfType[T](testKit: TestKit,
+                                          timeout: Duration = Duration(3, TimeUnit.SECONDS))
+                                         (implicit m: scala.reflect.Manifest[T]):T = {
+        val deadline = Platform.currentTime + timeout.toMillis
+        val clazz = manifest.erasure.asInstanceOf[Class[T]]
+        @tailrec
+        def fish: T = {
+            val timeLeft = deadline - Platform.currentTime
+            assert(timeLeft > 0, "timeout waiting for reply of type %s" format (clazz))
+            val outMsg = fishForRequestOfType[OutgoingMessage](
+                testKit, Duration(timeLeft, TimeUnit.MILLISECONDS))
+            assert(outMsg != null, "timeout waiting for reply of type %s" format (clazz))
+            if (! clazz.isInstance(outMsg.m))
+                fish
+            else
+                clazz.cast(outMsg.m)
+        }
+        fish
     }
 
     protected def requestOfType[T](testKit: TestKit)
