@@ -34,7 +34,14 @@ class RouterConfig {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 
-    override def hashCode = (inboundFilter.toString + outboundFilter.toString).hashCode()
+    override def hashCode: Int = {
+        var hCode = 0;
+        if (null != inboundFilter)
+            hCode += inboundFilter.hashCode
+        if (null != outboundFilter)
+            hCode = hCode * 17 + outboundFilter.hashCode
+        hCode
+    }
 
     override def equals(other: Any) = other match {
         case that: RouterConfig =>
