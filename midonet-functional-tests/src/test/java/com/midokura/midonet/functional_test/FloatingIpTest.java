@@ -316,7 +316,7 @@ public class FloatingIpTest {
         // Now set the GW MAC so that other packets can be generated.
         helper1.setGwMac(rtrMac);
 
-        // VM1 arps the far router port - to VM3
+        // VM1 pings the far router port - to VM3
         request = helper1.makeIcmpEchoRequest(rtrIp3);
         assertThat(String.format("The tap %s should have sent the packet",
             tap1.getName()), tap1.send(request));
@@ -349,14 +349,15 @@ public class FloatingIpTest {
         // The icmp echo reply is from the private address.
         PacketHelper.checkIcmpEchoReply(request, tap2.recv());
 
-        // ICMP echo request to the floating IP from tapPort2.
+        // VM2 sends ICMP echo request to the floating IP.
         request = helper2.makeIcmpEchoRequest(floatingIP);
         assertTrue(tap2.send(request));
         // The floatingIP is not translated for packets ingressing router
-        // ports other than rtrPort1. Since there's no route to the floatingIP
-        // the router should return an ICMP !N.
+        // ports other than rtrPort1. This one ingresses rtrPort2, isn't
+        // translated, and since there's no route to the floatingIP
+        // the router returns an ICMP !N.
         helper2.checkIcmpError(tap2.recv(), ICMP.UNREACH_CODE.UNREACH_NET,
-                               rtrIp1, request);
+                               rtrIp2, request);
 
         // No other packets arrive at the tap ports.
         assertNoMorePacketsOnTap(tap1);

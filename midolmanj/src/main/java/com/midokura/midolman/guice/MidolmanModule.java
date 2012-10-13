@@ -29,6 +29,7 @@ import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
+import com.midokura.midolman.simulation.Chain;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZookeeperConnectionWatcher;
 import com.midokura.midolman.state.zkManagers.FiltersZkManager;
@@ -66,6 +67,8 @@ public class MidolmanModule extends PrivateModule {
             .toProvider(NatMappingFactoryProvider.class)
             .asEagerSingleton();
         expose(NatMappingFactory.class);
+
+        requestStaticInjection(Chain.class);
 
         Named watcherAnnotation = Names.named(
                 ZKConnectionProvider.WATCHER_NAME_TAG);
