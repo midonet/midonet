@@ -19,6 +19,7 @@ import com.midokura.midolman.FlowController.{AddWildcardFlow,
                                              InvalidateFlowsByTag}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
+import com.midokura.midolman.rules.RuleResult
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
@@ -1074,8 +1075,9 @@ class DatapathController() extends Actor with ActorLogging {
                     val port = portchain._1
                     val chain = portchain._2
                     //XXX: set localPort as the output port for the chain
-                    //XXX: apply chain and check result is ACCEPT.
-                    true
+                    // apply chain and check result is ACCEPT.
+                    Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
+                        .action == RuleResult.Action.ACCEPT
                 }
                 addFlow(new WildcardMatch().setTunnelID(tunnelKey)
                                            .setInputPort(tunnelPort),
