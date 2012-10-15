@@ -45,6 +45,7 @@ import com.midokura.midolman.state.zkManagers.VpnZkManager;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.ClusterBgpManager;
 import com.midokura.midonet.cluster.ClusterBridgeManager;
+import com.midokura.midonet.cluster.ClusterChainManager;
 import com.midokura.midonet.cluster.ClusterPortsManager;
 import com.midokura.midonet.cluster.ClusterRouterManager;
 import com.midokura.midonet.cluster.DataClient;
@@ -85,7 +86,10 @@ public class DataClusterClientModule extends PrivateModule {
                 .in(Singleton.class);
 
         bind(ClusterBgpManager.class)
-                .in(Singleton.class);
+            .in(Singleton.class);
+
+        bind(ClusterChainManager.class)
+            .in(Singleton.class);
 
         bind(ClusterPortsManager.class)
                     .in(Singleton.class);

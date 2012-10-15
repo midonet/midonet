@@ -47,13 +47,19 @@ public class ForwardNatRule extends NatRule {
                 floatingIpAddr = tg.nwStart;
             }
         }
+        if (floatingIp)
+            log.debug("Created a FloatingIP forward nat rule");
+        else
+            log.debug("Created a normal forward nat rule");
     }
 
     @Override
     public void apply(Object flowCookie, RuleResult res,
                       NatMapping natMapping) {
-        if (null == natMapping)
+        if (null == natMapping) {
+            log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
             return;
+        }
         if (dnat)
             applyDnat(flowCookie, res, natMapping);
         else
@@ -80,6 +86,7 @@ public class ForwardNatRule extends NatRule {
             res.action = action;
             return;
         }
+        log.debug("applying a dnat to {}", res);
         // Don't attempt to do port translation on anything but udp/tcp
         byte nwProto = res.pmatch.getNetworkProtocol();
         if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)

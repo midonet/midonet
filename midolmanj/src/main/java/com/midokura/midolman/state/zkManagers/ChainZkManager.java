@@ -152,7 +152,8 @@ public class ChainZkManager extends ZkManager {
     /**
      * Updates the ChainConfig values with the given ChainConfig object.
      *
-     * @param entry
+     * @param id
+     * @param config
      *            ChainConfig object to save.
      * @throws StateAccessException
      */

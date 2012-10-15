@@ -459,9 +459,6 @@ public class WildcardMatch implements Cloneable, PacketMatch {
          * implementation of apply() should cover all matchable protocols
          * for each network layer
          */
-        if (ipv4 == null || transport == null)
-             return null;
-
         for (Field field : getUsedFields()) {
             switch (field) {
                 case EtherType:
@@ -475,24 +472,31 @@ public class WildcardMatch implements Cloneable, PacketMatch {
                     break;
 
                 case TransportDestination:
-                    transport.setDestinationPort(transportDestination);
+                    if (null != transport)
+                        transport.setDestinationPort(transportDestination);
                     break;
                 case TransportSource:
-                    transport.setSourcePort(transportSource);
+                    if (null != transport)
+                        transport.setSourcePort(transportSource);
                     break;
 
                 case NetworkDestination:
-                    ipv4.setDestinationAddress(networkDestination.addressAsInt());
+                    if (null != ipv4)
+                        ipv4.setDestinationAddress(
+                            networkDestination.addressAsInt());
                     break;
                 case NetworkSource:
-                    ipv4.setSourceAddress(networkSource.addressAsInt());
+                    if (null != ipv4)
+                        ipv4.setSourceAddress(networkSource.addressAsInt());
                     break;
                 case NetworkProtocol:
-                    ipv4.setProtocol(networkProtocol);
+                    if (null != ipv4)
+                        ipv4.setProtocol(networkProtocol);
                     break;
 
                 case NetworkTTL:
-                    ipv4.setTtl(networkTTL);
+                    if (null != ipv4)
+                        ipv4.setTtl(networkTTL);
                     break;
 
                 case IsIPv4Fragment:

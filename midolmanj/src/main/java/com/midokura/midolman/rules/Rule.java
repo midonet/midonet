@@ -8,12 +8,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.RuleResult.Action;
 import com.midokura.sdn.flows.PacketMatch;
 
 
 public abstract class Rule implements Comparable<Rule> {
+    private final static Logger log = LoggerFactory.getLogger(Rule.class);
+
     private Condition condition;
     public Action action;
     public UUID chainId;
@@ -56,8 +61,10 @@ public abstract class Rule implements Comparable<Rule> {
      */
     public void process(ChainPacketContext fwdInfo, RuleResult res,
                         NatMapping natMapping, boolean isPortFilter) {
-        if (condition.matches(fwdInfo, res.pmatch, isPortFilter))
+        if (condition.matches(fwdInfo, res.pmatch, isPortFilter)) {
+            log.debug("Condition matched");
             apply(fwdInfo.getFlowCookie(), res, natMapping);
+        }
     }
 
     public Condition getCondition() {

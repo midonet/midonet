@@ -59,6 +59,9 @@ public interface Directory {
 
     long getSessionId();
 
+    // HACK: TypedWatcher is a runnable so that it can be passed to Directory
+    // methods that take Runnable 'watchers'. However, the run method should
+    // Never be called.
     public interface TypedWatcher extends Runnable {
         void pathDeleted(String path);
         void pathCreated(String path);

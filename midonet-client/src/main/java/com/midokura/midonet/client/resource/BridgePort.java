@@ -109,7 +109,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return this
      */
 
-    public BridgePort inboundFilterId(UUID id) {
+    public BridgePort<T> inboundFilterId(UUID id) {
         principalDto.setInboundFilterId(id);
         return this;
     }
@@ -120,7 +120,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return this
      */
-    public BridgePort outboundFilterId(UUID id) {
+    public BridgePort<T> outboundFilterId(UUID id) {
         principalDto.setOutboundFilterId(id);
         return this;
     }
@@ -131,7 +131,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return
      */
-    public BridgePort vifId(UUID id) {
+    public BridgePort<T> vifId(UUID id) {
         principalDto.setVifId(id);
         return this;
     }
@@ -142,7 +142,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param ids
      * @return this
      */
-    public BridgePort portGorupIDs(UUID[] ids) {
+    public BridgePort<T> portGroupIDs(UUID[] ids) {
         principalDto.setPortGroupIDs(ids);
         return this;
     }
@@ -153,7 +153,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id id of the peer port
      * @return this
      */
-    public BridgePort link(UUID id) {
+    public BridgePort<T> link(UUID id) {
         peerId(id);
         resource.post(((DtoLogicalBridgePort) principalDto).getLink(),
                 principalDto, VendorMediaType.APPLICATION_PORT_JSON);
@@ -165,7 +165,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      *
      * @return this
      */
-    public BridgePort unlink() {
+    public BridgePort<T> unlink() {
         peerId(null);
         resource.post(((DtoLogicalBridgePort) principalDto).getLink(),
                 principalDto, VendorMediaType.APPLICATION_PORT_JSON);
@@ -186,7 +186,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return
      */
-    private BridgePort peerId(UUID id) {
+    private BridgePort<T> peerId(UUID id) {
         ((DtoLogicalBridgePort) principalDto).setPeerId(id);
         return this;
     }

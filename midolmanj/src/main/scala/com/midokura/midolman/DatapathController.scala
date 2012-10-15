@@ -11,13 +11,15 @@ import akka.util.duration._
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
-import java.util.UUID
+import java.util.{HashSet, UUID}
 
 import com.google.inject.Inject
 
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow}
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+                                             InvalidateFlowsByTag}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
+import com.midokura.midolman.rules.{ChainPacketContext, RuleResult}
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
@@ -350,12 +352,22 @@ object DatapathController extends Referenceable {
                             val portOption: Option[Short],
                             val op: TunnelChangeEventOperation.Value)
 
-  /**
-   * This message requests stats for a given port.
-   * @param portID
-   */
+    /**
+     * This message requests stats for a given port.
+     * @param portID
+     */
     case class PortStatsRequest(portID: UUID)
 
+    class DummyChainPacketContext(outportID: UUID)
+            extends ChainPacketContext {
+        def getInPortId() = null
+        def getOutPortId() = outportID
+        def getPortGroups() = new HashSet[UUID]()
+        def addTraversedElementID(id: UUID) { }
+        def isConnTracked() = false
+        def isForwardFlow() = true
+        def getFlowCookie() = null
+    }
 }
 
 
@@ -430,9 +442,6 @@ class DatapathController() extends Actor with ActorLogging {
 
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
-
-    // portSetID -> { Set[hostID] }
-    val portSetsToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
 
     var pendingUpdateCount = 0
 
@@ -545,10 +554,6 @@ class DatapathController() extends Actor with ActorLogging {
             log.debug("ZoneChanged: {}", m)
             handleZoneChange(m)
 
-        case PortSet(uuid, portSetContents, _) =>
-            portSetsToHosts.add(uuid -> portSetContents)
-            completePendingPortSetTranslations()
-
         case newPortOp: CreatePortOp[Port[_, _]] =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
@@ -591,10 +596,6 @@ class DatapathController() extends Actor with ActorLogging {
                 log.debug("Port was not found {}", portID)
             }
 
-   }
-
-    def completePendingPortSetTranslations() {
-        //
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
@@ -1036,7 +1037,7 @@ class DatapathController() extends Actor with ActorLogging {
                                 case Right(localPorts) =>
                                     applyOutboundFilters(port, localPorts,
                                         wMatch.getTunnelID, action, portSet.id,
-                                        cookie)
+                                        cookie, wMatch)
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
@@ -1069,19 +1070,40 @@ class DatapathController() extends Actor with ActorLogging {
     private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
                     localPorts: Seq[client.Port[_]], tunnelKey: Long,
                     action: T, portSetID: UUID,
-                    cookie: Option[Int]) {
+                    cookie: Option[Int], pktMatch: WildcardMatch) {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
                 ask(VirtualTopologyActor.getRef,
                     ChainRequest(port.outFilterID, false)).mapTo[Chain]
             }
+        // Apply the chains.
+        Future.sequence(chainFutures) onComplete {
+            case Right(chains) =>
+                val egressPorts = (localPorts zip chains) filter { portchain =>
+                    val port = portchain._1
+                    val chain = portchain._2
+                    val fwdInfo = new DummyChainPacketContext(port.id)
 
-        // XXX: Apply the chains.
-        addFlow(new WildcardMatch().setTunnelID(tunnelKey).setInputPort(tunnelPort),
-                translateToDpPorts(List(action), portSetID,
-                                   portsForLocalPorts(localPorts map
-                                                      {port => port.id}),
+                    // apply chain and check result is ACCEPT.
+                    val result =
+                        Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
+                            .action
+                    if (result != RuleResult.Action.ACCEPT &&
+                            result != RuleResult.Action.DROP &&
+                            result != RuleResult.Action.REJECT)
+                        log.error("Applying chain {} produced {}, not " +
+                                  "ACCEPT, DROP, or REJECT", chain.id, result)
+                    result == RuleResult.Action.ACCEPT
+                }
+                addFlow(new WildcardMatch().setTunnelID(tunnelKey)
+                                           .setInputPort(tunnelPort),
+                        translateToDpPorts(List(action), portSetID,
+                                   portsForLocalPorts(egressPorts map
+                                                      {portchain => portchain._1.id}),
                                    None, Nil), cookie)
+
+            case _ => log.error("Error getting chains for PortSet {}", portSetID)
+        }
     }
 
     def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {

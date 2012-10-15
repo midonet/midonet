@@ -60,6 +60,8 @@ public class NatLeaseManager implements NatMapping {
 
     public NatLeaseManager(FiltersZkManager filterMgr, UUID routerId,
             Cache cache, Reactor reactor) {
+        log.debug("constructor with {}, {}, {}, and {}",
+            new Object[] {filterMgr, routerId, cache, reactor});
         this.filterMgr = filterMgr;
         this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;

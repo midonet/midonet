@@ -29,7 +29,10 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
     private var tunnelEventsProbe: TestProbe = null
     private var port1OnHost1: MaterializedBridgePort = null
     private var port2OnHost1: MaterializedBridgePort = null
+    private var port3OnHost1: MaterializedBridgePort = null
     private var bridge: ClusterBridge = null
+    private var portId4 : Short = 0
+    private var portId5 : Short = 0
     private var tunnelId1: Short = 0
     private var tunnelId2: Short = 0
 
@@ -49,6 +52,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
 
         port1OnHost1 = newPortOnBridge(bridge)
         port2OnHost1 = newPortOnBridge(bridge)
+        port3OnHost1 = newPortOnBridge(bridge)
         val portOnHost2 = newPortOnBridge(bridge)
         val portOnHost3 = newPortOnBridge(bridge)
 
@@ -56,6 +60,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
         materializePort(port2OnHost1, host1, "port4")
+        materializePort(port3OnHost1, host1, "port5")
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
@@ -72,6 +77,15 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
 
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
+
+        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
+            case Some(portNo : Short) => portId4 = portNo
+            case None => fail("Not able to find data port number for materialize Port 4")
+        }
+        dpController().underlyingActor.vifToLocalPortNumber(port3OnHost1.getId) match {
+            case Some(portNo : Short) => portId5 = portNo
+            case None => fail("Not able to find data port number for materialize Port 5")
+        }
 
         flowEventsProbe = newProbe()
         tunnelEventsProbe = newProbe()
@@ -93,14 +107,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         // TODO: reset Bridge (flush MAC learning table at least)
     }
 
-    def getAddWildcardFlowPartialFunction: PartialFunction[Any, Boolean] = {
-        {
-            case msg: AddWildcardFlow => true
-            case _ => false
-        }
-    }
-
-
     def testPacketInBridgeSimulation() {
         val ethPkt = Packets.udp(
                 MAC.fromString("02:11:22:33:44:10"),
@@ -108,32 +114,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 IntIPv4.fromString("10.0.1.10"),
                 IntIPv4.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
-        triggerPacketIn("port1", ethPkt)
-
-        dpProbe().expectMsgClass(classOf[PacketIn])
-
-        val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
-
-        pktInMsg should not be null
-        pktInMsg.pktBytes should not be null
-        pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be(port1OnHost1.getId)
-
-        //flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
-
-        dpProbe().expectMsgClass(classOf[AddWildcardFlow])
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        //flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
-        //val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        val addFlowMsg = (flowProbe.fishForMessage(Duration(1, TimeUnit.SECONDS),
-                                   "AddWildcardFlow")(getAddWildcardFlowPartialFunction)).asInstanceOf[AddWildcardFlow]
-        addFlowMsg.pktBytes should not be null
-        Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
+        val addFlowMsg = injectOnePacket(ethPkt, "port1", false)
         addFlowMsg.flow should not be null
         val flowActs = addFlowMsg.flow.getActions
-        flowActs should have size(4)
-        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
+        flowActs should have size(5)
+        as[FlowActionSetKey](flowActs.get(2)).getFlowKey should equal (
             new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
+        flowActs.contains(FlowActions.output(portId4)) should be (true)
+        flowActs.contains(FlowActions.output(portId5)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
         verifyMacLearned("02:11:22:33:44:10", "port1")
@@ -147,19 +135,13 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 IntIPv4.fromString("10.10.10.10"),
                 IntIPv4.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false, false)
+        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.flow.getActions
-        flowActs should have size(4)
-        //First Action: flood to local port [port4]
-        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
-            case Some(portNo : Short) =>
-                as [FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
-            case None => fail("Not able to find data port number for materialize Port 4")
-        }
-        //Second Action: set tunnel ID
-        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
+        flowActs should have size(5)
+        as[FlowActionSetKey](flowActs.get(2)).getFlowKey should equal (
             new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        //Next two actions: flooding out to tunnel with ID 1 and 2
+        flowActs.contains(FlowActions.output(portId4)) should be (true)
+        flowActs.contains(FlowActions.output(portId5)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
         //Our source MAC should also be learned
@@ -172,20 +154,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 MAC.fromString("0a:fe:88:90:22:33"),
                 IntIPv4.fromString("10.10.10.11"),
                 IntIPv4.fromString("10.11.11.10"))
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false, false)
+        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.flow.getActions
-        flowActs should have size(4)
-        //First Action: flood to local port [port4]
-        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
-            case Some(portNo : Short) =>
-                as [FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
-            case None => fail("Not able to find data port number for materialize Port 4")
-        }
-        //Second Action: set tunnel ID
-        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
+        flowActs should have size(5)
+        as[FlowActionSetKey](flowActs.get(2)).getFlowKey should equal (
             new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        //Next two actions: flooding out to tunnel with ID 1 and 2
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
+        flowActs.contains(FlowActions.output(portId4)) should be (true)
+        flowActs.contains(FlowActions.output(portId5)) should be (true)
+        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
         //Our source MAC should also be learned
         //verifyMacLearned("0a:fe:88:90:22:33", inputPort)
@@ -198,19 +174,13 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 MAC.fromString("01:00:cc:cc:dd:dd"),
                 IntIPv4.fromString("10.10.10.11"),
                 IntIPv4.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false, false)
+        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.flow.getActions
-        flowActs should have size(4)
-        //First Action: flood to local port [port4]
-        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
-            case Some(portNo : Short) =>
-                as [FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
-            case None => fail("Not able to find data port number for materialize Port 4")
-        }
-        //Second Action: set tunnel ID
-        as[FlowActionSetKey](flowActs.get(1)).getFlowKey should equal (
+        flowActs should have size(5)
+        as[FlowActionSetKey](flowActs.get(2)).getFlowKey should equal (
             new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        //Next two actions: flooding out to tunnel with ID 1 and 2
+        flowActs.contains(FlowActions.output(portId4)) should be (true)
+        flowActs.contains(FlowActions.output(portId5)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
     }
@@ -223,13 +193,51 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 IntIPv4.fromString("10.10.10.12"),
                 IntIPv4.fromString("10.11.11.12"),
                 10, 12, "Test UDP packet".getBytes)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, true, true)
+        val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
         val flowActs = addFlowMsg.flow.getActions
         flowActs should have size(0)
     }
 
+    def testMacMigrationBridgeSim () {
+        var inputPort = "port1"
+        var ethPkt = Packets.udp(
+                MAC.fromString("02:13:66:77:88:99"),
+                MAC.fromString("02:11:22:33:44:55"),
+                IntIPv4.fromString("10.0.1.10"),
+                IntIPv4.fromString("10.0.1.11"),
+                10, 11, "My UDP packet".getBytes)
+        var addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
+        addFlowMsg.flow should not be null
+        var flowActs = addFlowMsg.flow.getActions
+        flowActs should have size(5)
+        as[FlowActionSetKey](flowActs.get(2)).getFlowKey should equal (
+            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
+        flowActs.contains(FlowActions.output(portId4)) should be (true)
+        flowActs.contains(FlowActions.output(portId5)) should be (true)
+        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
+        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        verifyMacLearned("02:13:66:77:88:99", "port1")
+        /*
+         * MAC moved from port1 to port5
+         * frame is going toward port4 (the learned MAC from verifyMacLearned)
+         */
+        inputPort = "port5"
+        ethPkt = Packets.udp(
+                     MAC.fromString("02:13:66:77:88:99"),
+                     MAC.fromString("0a:fe:88:70:33:ab"),
+                     IntIPv4.fromString("10.0.1.10"),
+                     IntIPv4.fromString("10.0.1.11"),
+                     10, 11, "My UDP packet".getBytes)
+        addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
+        addFlowMsg.flow should not be null
+        var expectedPort = getMaterializedPort("port4")
+        flowActs = addFlowMsg.flow.getActions
+        flowActs should have size(1)
+        as[FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portId4)
+        verifyMacLearned("02:13:66:77:88:99", "port5")
+    }
+
     private def injectOnePacket (ethPkt : Ethernet, ingressPortName : String, 
-                                 isMacLearned : Boolean,
                                  isDropExpected: Boolean) : AddWildcardFlow = {
 
         triggerPacketIn(ingressPortName, ethPkt)
@@ -243,9 +251,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
 
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = (flowProbe.fishForMessage(Duration(1, TimeUnit.SECONDS),
-                          "AddWildcardFlow")(getAddWildcardFlowPartialFunction)).
-                          asInstanceOf[AddWildcardFlow]
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe)
         if (isDropExpected == false) {
             addFlowMsg.pktBytes should not be null
             Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
@@ -271,7 +277,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
                 IntIPv4.fromString("10.10.10.10"),
                 IntIPv4.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
-        val addFlowMsg = injectOnePacket(ethPkt, "port4", true, false)
+        val addFlowMsg = injectOnePacket(ethPkt, "port4", false)
         val expectedPort = getMaterializedPort(expectedPortName)
         val flowActs = addFlowMsg.flow.getActions
         flowActs should have size(1)

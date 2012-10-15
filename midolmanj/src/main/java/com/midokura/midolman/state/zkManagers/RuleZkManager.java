@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.DirectoryCallback;
+import com.midokura.midolman.state.DirectoryCallbackFactory;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkManager;
@@ -22,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.rules.Rule;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
@@ -209,6 +213,50 @@ public class RuleZkManager extends ZkManager {
 
     public boolean exists(UUID id) throws StateAccessException {
         return exists(paths.getRulePath(id));
+    }
+
+    public void getRuleAsync(
+            UUID ruleId,
+            DirectoryCallback<Rule> ruleCallback) {
+
+        String path = paths.getRulePath(ruleId);
+
+        zk.asyncGet(
+            path,
+            DirectoryCallbackFactory.transform(
+                ruleCallback,
+                new Functor<byte[], Rule>() {
+                    @Override
+                    public Rule apply(byte[] arg0) {
+                        try {
+                            return serializer.deserialize(arg0, Rule.class);
+                        } catch (ZkStateSerializationException e) {
+                            log.warn("Could not deserialize Rule data");
+                        }
+                        return null;
+                    }
+                }),
+            null);
+    }
+
+    public void getRuleIdListAsync(
+            UUID chainId,
+            DirectoryCallback<Set<UUID>> ruleIdsCallback,
+            Directory.TypedWatcher watcher) {
+        String path = paths.getChainRulesPath(chainId);
+
+        zk.asyncGetChildren(
+            path,
+            DirectoryCallbackFactory.transform(
+                ruleIdsCallback,
+                new Functor<Set<String>, Set<UUID>>() {
+                    @Override
+                    public Set<UUID> apply(Set<String> arg0) {
+                        return CollectionFunctors.map(
+                            arg0, strToUUIDMapper, new HashSet<UUID>());
+                    }
+                }),
+            watcher);
     }
 
     /**

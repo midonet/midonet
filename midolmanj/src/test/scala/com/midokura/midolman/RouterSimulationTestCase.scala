@@ -672,6 +672,42 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         simProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
     }
 
+    def testArpEntryExpiration() {
+        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
+        val myIp = IntIPv4.fromString(uplinkPortAddr)
+        val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
+
+        var expiry = Platform.currentTime + 1000
+        var arpPromise = router.arpTable.get(hisIp, port, expiry)(
+            actors().dispatcher, actors())
+
+        feedArpCache("uplinkPort",
+            hisIp.addressAsInt, mac,
+            myIp.addressAsInt, uplinkMacAddr)
+        var arpResult = Await.result(arpPromise, Timeout(1 second).duration)
+        arpResult should be === mac
+
+        dilatedSleep((ARP_STALE_SECS/2) * 1000)
+
+        feedArpCache("uplinkPort",
+            hisIp.addressAsInt, mac,
+            myIp.addressAsInt, uplinkMacAddr)
+        expiry = Platform.currentTime + 1000
+        arpPromise = router.arpTable.get(hisIp, port, expiry)(
+            actors().dispatcher, actors())
+        arpResult = Await.result(arpPromise, Timeout(1 second).duration)
+        arpResult should be === mac
+
+        dilatedSleep((ARP_EXPIRATION_SECS - ARP_STALE_SECS/2 + 1) * 1000)
+
+        drainProbes()
+        expiry = Platform.currentTime + 1000
+        arpPromise = router.arpTable.get(hisIp, port, expiry)(
+            actors().dispatcher, actors())
+        expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
+    }
+
 /*
     @Ignore def testFilterBadSrcForPort() {
     }
