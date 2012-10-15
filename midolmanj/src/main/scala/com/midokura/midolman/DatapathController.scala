@@ -11,7 +11,7 @@ import akka.util.duration._
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, mutable, immutable}
 import scala.collection.mutable.ListBuffer
-import java.util.UUID
+import java.util.{HashSet, UUID}
 
 import com.google.inject.Inject
 
@@ -19,7 +19,7 @@ import com.midokura.midolman.FlowController.{AddWildcardFlow,
                                              InvalidateFlowsByTag}
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
-import com.midokura.midolman.rules.RuleResult
+import com.midokura.midolman.rules.{ChainPacketContext, RuleResult}
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
@@ -352,12 +352,22 @@ object DatapathController extends Referenceable {
                             val portOption: Option[Short],
                             val op: TunnelChangeEventOperation.Value)
 
-  /**
-   * This message requests stats for a given port.
-   * @param portID
-   */
+    /**
+     * This message requests stats for a given port.
+     * @param portID
+     */
     case class PortStatsRequest(portID: UUID)
 
+    class DummyChainPacketContext(outportID: UUID)
+            extends ChainPacketContext {
+        def getInPortId() = null
+        def getOutPortId() = outportID
+        def getPortGroups() = new HashSet[UUID]()
+        def addTraversedElementID(id: UUID) { }
+        def isConnTracked() = false
+        def isForwardFlow() = true
+        def getFlowCookie() = null
+    }
 }
 
 
@@ -1069,15 +1079,22 @@ class DatapathController() extends Actor with ActorLogging {
         // Apply the chains.
         Future.sequence(chainFutures) onComplete {
             case Right(chains) =>
-                val fwdInfo = null  //XXX
                 val pktMatch = null //XXX
                 val egressPorts = (localPorts zip chains) filter { portchain =>
                     val port = portchain._1
                     val chain = portchain._2
-                    //XXX: set localPort as the output port for the chain
+                    val fwdInfo = new DummyChainPacketContext(port.id)
+
                     // apply chain and check result is ACCEPT.
-                    Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
-                        .action == RuleResult.Action.ACCEPT
+                    val result = 
+                        Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
+                            .action
+                    if (result != RuleResult.Action.ACCEPT &&
+                            result != RuleResult.Action.DROP &&
+                            result != RuleResult.Action.REJECT)
+                        log.error("Applying chain {} produced {}, not " +
+                                  "ACCEPT, DROP, or REJECT", chain.id, result)
+                    result == RuleResult.Action.ACCEPT
                 }
                 addFlow(new WildcardMatch().setTunnelID(tunnelKey)
                                            .setInputPort(tunnelPort),
