@@ -41,9 +41,7 @@ import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
 
 @Ignore
@@ -138,26 +136,6 @@ public class L2FilteringTest {
                 tap.send(PacketHelper.makeArpRequest(dlSrc, ipSrc, ipDst)));
         return PacketHelper.checkArpReply(
                 tap.recv(), ipDst, dlSrc, ipSrc);
-    }
-
-    public void icmpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
-        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
-                dlSrc, ipSrc, dlDst, ipDst);
-        assertThat("The packet should have been sent from the source tap.",
-                tapSrc.send(pkt));
-        assertThat("The packet should have arrived at the destination tap.",
-                tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
-    }
-
-    public void icmpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
-        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
-                dlSrc, ipSrc, dlDst, ipDst);
-        assertThat("The packet should have been sent from the source tap.",
-                tapSrc.send(pkt));
-        assertThat("The packet should not have arrived at the destination tap.",
-                tapDst.recv(), nullValue());
     }
 
     public byte[] makeLLDP(MAC dlSrc, MAC dlDst) {

@@ -4,11 +4,10 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 
 import static java.lang.String.format;
 
@@ -18,20 +17,22 @@ import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.*;
-import com.midokura.util.Waiters;
+
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
+
 
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.vm.VMController;
-import com.midokura.tools.timed.Timed;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
 
@@ -333,4 +334,27 @@ public class FunctionalTestsHelper {
     public static void stopMidolman(MidolmanLauncher ml) {
         ml.stop();
     }
+
+    public static void icmpFromTapArrivesAtTap(
+        TapWrapper tapSrc, TapWrapper tapDst,
+        MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
+        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
+            dlSrc, ipSrc, dlDst, ipDst);
+        assertThat("The packet should have been sent from the source tap.",
+            tapSrc.send(pkt));
+        assertThat("The packet should have arrived at the destination tap.",
+            tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+    }
+
+    public static void icmpFromTapDoesntArriveAtTap(
+        TapWrapper tapSrc, TapWrapper tapDst,
+        MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
+        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
+            dlSrc, ipSrc, dlDst, ipDst);
+        assertThat("The packet should have been sent from the source tap.",
+            tapSrc.send(pkt));
+        assertThat("The packet should not have arrived at the destination tap.",
+            tapDst.recv(), nullValue());
+    }
+
 }
