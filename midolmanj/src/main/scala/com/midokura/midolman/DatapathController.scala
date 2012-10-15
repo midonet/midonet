@@ -1070,7 +1070,9 @@ class DatapathController() extends Actor with ActorLogging {
             case Right(chains) =>
                 val fwdInfo = null  //XXX
                 val pktMatch = null //XXX
-                val egressPorts = localPorts filter { localPort =>
+                val egressPorts = (localPorts zip chains) filter { portchain =>
+                    val port = portchain._1
+                    val chain = portchain._2
                     //XXX: set localPort as the output port for the chain
                     //XXX: apply chain and check result is ACCEPT.
                     true
@@ -1079,7 +1081,7 @@ class DatapathController() extends Actor with ActorLogging {
                                            .setInputPort(tunnelPort),
                         translateToDpPorts(List(action), portSetID,
                                    portsForLocalPorts(egressPorts map
-                                                      {port => port.id}),
+                                                      {portchain => portchain._1.id}),
                                    None, Nil), cookie)
 
             case _ => log.error("Error getting chains for PortSet {}", portSetID)
