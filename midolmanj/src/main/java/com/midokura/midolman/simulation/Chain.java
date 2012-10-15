@@ -21,6 +21,7 @@ import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
+import com.midokura.midolman.topology.FlowTagger;
 import com.midokura.sdn.flows.PacketMatch;
 
 
@@ -89,6 +90,9 @@ public class Chain {
         }
         Chain currentChain = origChain;
         fwdInfo.addTraversedElementID(origChain.id);
+        fwdInfo.addFlowTag(FlowTagger.invalidateFlowsByDevice(currentChain.id));
+        fwdInfo.addFlowTag(
+            FlowTagger.invalidateFlowsByDeviceFilter(ownerId, currentChain.id));
         log.debug("Processing chain with name {} and ID {}",
                   currentChain.name, currentChain.id);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();

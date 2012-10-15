@@ -26,7 +26,7 @@ import com.midokura.sdn.flows.WildcardMatch;
  * decisions:  the next action for the packet, the egress port,
  * the packet at egress (i.e. after possible modifications).
  */
-public class ForwardInfo implements ChainPacketContext {
+public class MockPacketContext implements ChainPacketContext {
 
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
@@ -64,8 +64,10 @@ public class ForwardInfo implements ChainPacketContext {
     private boolean forwardFlow;
     private Cache connectionCache;
     private UUID ingressFE;
+    private Set<Object> tags = new HashSet<Object>();
 
-    public ForwardInfo(boolean internallyGenerated, Cache c, UUID ingressFE) {
+    public MockPacketContext(boolean internallyGenerated, Cache c,
+                             UUID ingressFE) {
         connectionCache = c;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;
@@ -231,5 +233,10 @@ public class ForwardInfo implements ChainPacketContext {
 
     public Ethernet getPktIn() {
         return pktIn;
+    }
+
+    @Override
+    public void addFlowTag(Object tag) {
+        tags.add(tag);
     }
 }

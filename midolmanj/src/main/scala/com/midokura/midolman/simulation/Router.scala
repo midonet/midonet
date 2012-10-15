@@ -121,8 +121,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
         pktContext.setOutputPort(null)
         val preRoutingResult = Chain.apply(inFilter, pktContext,
                                            pktContext.getMatch, id, false)
-        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter.id))
-        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter.id))
         if (preRoutingResult.action == RuleAction.DROP)
             return Promise.successful(new DropAction)(ec)
         else if (preRoutingResult.action == RuleAction.REJECT) {
@@ -210,10 +208,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
 
-        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter.id))
-        //pktContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter.id))
-
-        // Apply post-routing (egress) chain.
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
                                             pktContext.getMatch, id, false)

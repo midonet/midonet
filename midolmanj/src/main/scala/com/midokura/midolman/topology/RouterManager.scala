@@ -6,7 +6,7 @@ package com.midokura.midolman.topology
 import collection.Iterable
 import java.util.UUID
 
-import com.midokura.midolman.layer3.{Route, RoutingTable}
+import com.midokura.midolman.layer3.{InvalidationTrie, Route, RoutingTable}
 import com.midokura.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import com.midokura.midolman.topology.builders.RouterBuilderImpl
 import com.midokura.midonet.cluster.Client
@@ -15,7 +15,6 @@ import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.topology.RouterManager.{RemoveTag, AddTag, InvalidateFlows, TriggerUpdate}
 import com.midokura.midolman.config.MidolmanConfig
-import com.midokura.midolman.layer3.RoutingTable.TrieNode
 import scala.collection.JavaConversions._
 import com.midokura.util.functors.Callback0
 import collection.{Set => ROSet}
@@ -82,7 +81,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var filterChanged = false
     // This trie is to store the tag that represent the ip destination to be able
     // to do flow invalidation properly when a route is added or deleted
-    private val dstIpTagTrie: RoutingTable = new RoutingTable()
+    private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
 
     override def chainsUpdated = makeNewRouter
 
@@ -147,8 +146,9 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 )
             }
             for (route <- addedRoutes) {
+                log.debug("Projecting added route {}", route)
                 val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
-                val routesToInvalidate = RoutingTable.getAllDescendants(subTree)
+                val routesToInvalidate = InvalidationTrie.getAllDescendants(subTree)
                 for (node <- routesToInvalidate) {
                     for (route <- node.getRoutes){
                         FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -160,9 +160,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
         case AddTag(dstIp) =>
             dstIpTagTrie.addRoute(createSingleHostRoute(dstIp))
+            log.debug("Added ip {} to invalidation trie", dstIp)
 
         case RemoveTag(dstIp: Int) =>
             dstIpTagTrie.deleteRoute(createSingleHostRoute(dstIp))
+            log.debug("Removed ip {} to invalidation trie", dstIp)
+
     }
 
     def createSingleHostRoute(dstIp: Int): Route = {

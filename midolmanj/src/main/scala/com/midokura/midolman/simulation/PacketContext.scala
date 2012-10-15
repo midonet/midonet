@@ -121,7 +121,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     private val flowTags = mutable.Set[Any]()
-    def addFlowTag(tag: Any): Unit = this.synchronized {
+    override def addFlowTag(tag: Any): Unit = this.synchronized {
         if (frozen)
             throw new IllegalArgumentException(
                             "Adding tag to frozen PacketContext")

@@ -9,7 +9,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -19,6 +18,7 @@ import org.junit.Test;
 
 import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.eventloop.MockReactor;
+import com.midokura.midolman.MidoMatch;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.RuleResult.Action;
@@ -26,8 +26,10 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.util.MockCache;
-import com.midokura.midolman.vrn.ForwardInfo;
+import com.midokura.midolman.vrn.MockPacketContext;
+import com.midokura.util.eventloop.MockReactor;
 
 
 public class TestRules {
@@ -43,7 +45,7 @@ public class TestRules {
     static Set<NatTarget> nats;
     static NatMapping natMapping;
     RuleResult expRes, argRes;
-    ForwardInfo fwdInfo;
+    MockPacketContext fwdInfo;
 
     @BeforeClass
     public static void setupOnce() throws InterruptedException, KeeperException,
@@ -104,8 +106,8 @@ public class TestRules {
     public void setup() {
         expRes = new RuleResult(null, null, pktMatch.clone(), false);
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
-        fwdInfo = new ForwardInfo(false, null, null);
-        fwdInfo.flowMatch = new WildcardMatch();
+        fwdInfo = new MockPacketContext(false, null, null);
+        fwdInfo.flowMatch = new MidoMatch();
     }
 
     @Test

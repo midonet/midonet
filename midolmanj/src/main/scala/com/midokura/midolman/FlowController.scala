@@ -152,7 +152,6 @@ class FlowController extends Actor with ActorLogging {
         case RemoveWildcardFlow(flow) =>
             log.debug("Removing wcflow {}", flow)
             removeWildcardFlow(flow)
-            context.system.eventStream.publish(new WildcardFlowRemoved(flow))
 
         case CheckFlowExpiration() =>
             flowManager.checkFlowsExpiration()
@@ -193,6 +192,8 @@ class FlowController extends Actor with ActorLogging {
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
+        context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
+
         flowManager.remove(wildFlow)
         flowToTags.remove(wildFlow) map {
             set: mutable.Set[Any] =>

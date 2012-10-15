@@ -745,7 +745,7 @@ class DatapathController() extends Actor with ActorLogging {
         // tags can be null
         val dpTags = new mutable.HashSet[Any]
         if (tags != null)
-            dpTags ++ tags
+            dpTags ++= tags
 
 
         vifToLocalPortNumber(inPortUUID) match {
@@ -755,7 +755,7 @@ class DatapathController() extends Actor with ActorLogging {
                     .unsetInputPortUUID()
                 // tag flow with short inPort to be able to perform
                 // invalidation
-                dpTags + FlowTagger.invalidateDPPort(portNo)
+                dpTags += FlowTagger.invalidateDPPort(portNo)
             case None =>
         }
 
@@ -776,7 +776,7 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: UUID, dpTags: ROSet[Any]): Future[Seq[FlowAction[_]]] = {
+                         inPortUUID: UUID, dpTags: mutable.Set[Any]): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
         // check for VRN port or portSet
@@ -852,7 +852,7 @@ class DatapathController() extends Actor with ActorLogging {
 
     def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
                            tunnelKey: Option[Long], tunnelPorts: Seq[Short],
-                           dpTags: ROSet[Any]): Seq[FlowAction[_]] = {
+                           dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
         val newActs = ListBuffer[FlowAction[_]]()
 
         var translatablePort = port
@@ -861,7 +861,9 @@ class DatapathController() extends Actor with ActorLogging {
             FlowActions.output(id).asInstanceOf[FlowAction[_]]
         }
         // add tag for flow invalidation
-        dpTags addAll localPorts.map{id => FlowTagger.invalidateDPPort(id)}
+        if (dpTags != null) {
+            localPorts.foreach{id => dpTags += FlowTagger.invalidateDPPort(id)}
+        }
 
         if (null != tunnelPorts && tunnelPorts.length > 0) {
             translatedActions = translatedActions ++ tunnelKey.map { key =>
@@ -870,7 +872,9 @@ class DatapathController() extends Actor with ActorLogging {
             } ++ tunnelPorts.map { id =>
                 FlowActions.output(id).asInstanceOf[FlowAction[_]]
             }
-            dpTags addAll tunnelPorts.map{id => FlowTagger.invalidateDPPort(id)}
+            if (dpTags != null) {
+                tunnelPorts.foreach{id => dpTags += FlowTagger.invalidateDPPort(id)}
+            }
         }
 
         for (act <- acts) {
@@ -1139,7 +1143,7 @@ class DatapathController() extends Actor with ActorLogging {
             // Empty action list drops the packet. No need to send to DP.
             return
         }
-        translateActions(origActions, null) onComplete {
+        translateActions(origActions, null, null) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
                 val packet = new Packet().

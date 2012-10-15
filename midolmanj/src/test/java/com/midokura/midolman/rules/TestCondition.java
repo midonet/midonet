@@ -30,6 +30,8 @@ import org.junit.Test;
 
 import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.ForwardInfo;
+import com.midokura.midolman.MidoMatch;
+import com.midokura.midolman.vrn.MockPacketContext;
 import com.midokura.packets.IPv4;
 import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.functors.Callback1;
@@ -41,7 +43,7 @@ public class TestCondition {
     static Random rand;
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
-    private ForwardInfo fwdInfo;
+    private MockPacketContext fwdInfo;
     private DummyCache connCache;
 
     static {
@@ -70,7 +72,7 @@ public class TestCondition {
     @Before
     public void setUp() {
         connCache = new DummyCache();
-        fwdInfo = new ForwardInfo(false, connCache, UUID.randomUUID());
+        fwdInfo = new MockPacketContext(false, connCache, UUID.randomUUID());
         fwdInfo.flowMatch = pktMatch;
     }
 

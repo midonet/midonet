@@ -56,8 +56,6 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         packetContext.setOutputPort(null)
         val preBridgeResult = Chain.apply(inFilter, packetContext,
                                           packetContext.getMatch, id, false)
-        packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(inFilter.id))
-        packetContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, inFilter.id))
         log.info("The ingress chain returned {}", preBridgeResult)
 
         if (preBridgeResult.action == Action.DROP ||
@@ -162,8 +160,6 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
                                            packetContext.getMatch, id, false)
-        packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(outFilter.id))
-        packetContext.addFlowTag(FlowTagger.invalidateFlowsByDeviceFilter(id, outFilter.id))
 
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
