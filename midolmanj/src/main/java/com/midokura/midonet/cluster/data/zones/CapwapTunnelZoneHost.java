@@ -6,6 +6,7 @@ package com.midokura.midonet.cluster.data.zones;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
+import com.midokura.packets.IntIPv4;
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
 
 /**
@@ -29,6 +30,11 @@ public class CapwapTunnelZoneHost
     @Override
     protected CapwapTunnelZoneHost self() {
         return this;
+    }
+
+    @Override
+    public CapwapTunnelZoneHost setIp(IntIPv4 ip) {
+        return super.setIp(ip);
     }
 
     public static class Data extends HostConfig.Data {
