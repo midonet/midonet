@@ -1065,13 +1065,25 @@ class DatapathController() extends Actor with ActorLogging {
                 ask(VirtualTopologyActor.getRef,
                     ChainRequest(port.outFilterID, false)).mapTo[Chain]
             }
-
-        // XXX: Apply the chains.
-        addFlow(new WildcardMatch().setTunnelID(tunnelKey).setInputPort(tunnelPort),
-                translateToDpPorts(List(action), portSetID,
-                                   portsForLocalPorts(localPorts map
+        // Apply the chains.
+        Future.sequence(chainFutures) onComplete {
+            case Right(chains) =>
+                val fwdInfo = null  //XXX
+                val pktMatch = null //XXX
+                val egressPorts = localPorts filter { localPort =>
+                    //XXX: set localPort as the output port for the chain
+                    //XXX: apply chain and check result is ACCEPT.
+                    true
+                }
+                addFlow(new WildcardMatch().setTunnelID(tunnelKey)
+                                           .setInputPort(tunnelPort),
+                        translateToDpPorts(List(action), portSetID,
+                                   portsForLocalPorts(egressPorts map
                                                       {port => port.id}),
                                    None, Nil), cookie)
+
+            case _ => log.error("Error getting chains for PortSet {}", portSetID)
+        }
     }
 
     def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
