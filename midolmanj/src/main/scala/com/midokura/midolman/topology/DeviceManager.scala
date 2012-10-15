@@ -5,9 +5,7 @@ package com.midokura.midolman.topology
 
 import java.util.UUID
 import akka.actor.{ActorLogging, Actor}
-import akka.event.Logging
 import com.midokura.midolman.simulation.Chain
-import com.midokura.midonet.cluster.client.{ForwardingElementBuilder, Builder, DeviceBuilder}
 import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest, ChainUnsubscribe}
 
 abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
@@ -15,8 +13,6 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
     var outFilter: Chain = null;
 
     def configUpdated(): Unit = {
-        // TODO(pino): deal with null newCfg
-
         // Unsubscribe from old inFilter if changed.
         if (null != inFilter && !inFilter.id.equals(getInFilterID)) {
             context.actorFor("..").tell(ChainUnsubscribe(inFilter.id))
@@ -30,12 +26,18 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
 
         var waitingForChains = false
         // Do we need to subscribe to new filters?
-        if (null != getInFilterID && inFilter == null) {
-            context.actorFor("..").tell(ChainRequest(getInFilterID, true))
+        if (waitingForInFilter) {
+            log.debug("subscribing to ingress chain {}", getInFilterID)
+            // TODO(pino): figure out why we have to pass 'self' here.
+            // TODO: Without it, we don't receive the Chain response message.
+            context.actorFor("..").tell(
+                ChainRequest(getInFilterID, true), self)
             waitingForChains = true
         }
-        if (null != getOutFilterID && outFilter == null) {
-            context.actorFor("..").tell(ChainRequest(getOutFilterID, true))
+        if (waitingForOutFilter) {
+            log.debug("subscribing to egress chain {}", getOutFilterID)
+            context.actorFor("..").tell(
+                ChainRequest(getOutFilterID, true), self)
             waitingForChains = true
         }
 
@@ -45,25 +47,29 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
 
     protected def updateChain(chain: Chain): Unit = {
         if (chain.id.equals(getInFilterID)) {
+            log.debug("Received ingress filter {}", chain.id)
             inFilter = chain
             // Send a Port update if we're not waiting for the outFilter
-            if (getOutFilterID != null && outFilter != null)
+            if (!waitingForOutFilter)
                 chainsUpdated()
         } else if (chain.id.equals(getOutFilterID)) {
+            log.debug("Received egress filter {}", chain.id)
             outFilter = chain
             // Send a Port update if we're not waiting for the inFilter
-            if (getInFilterID != null && inFilter != null)
+            if (!waitingForInFilter)
                 chainsUpdated()
+        } else {
+            // Else it's a Chain we no longer care about.
+            log.debug("Received an unused filter {}", chain.id)
         }
-        // Else it's a Chain we no longer care about.
     }
 
-    def chainsReady(): Boolean = {
-        // Each chain must correspond to its respective filter IDs,
-        // or be null if the filters ID is null.
-        (getOutFilterID == null || outFilter != null) &&
-            (getInFilterID == null || inFilter != null)
-    }
+    private def waitingForInFilter =
+        null != getInFilterID && inFilter == null
+    private def waitingForOutFilter =
+        null != getOutFilterID && outFilter == null
+
+    def chainsReady = !waitingForInFilter && !waitingForOutFilter
 
     def chainsUpdated()
 

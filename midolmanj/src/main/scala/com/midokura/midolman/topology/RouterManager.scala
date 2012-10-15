@@ -3,7 +3,6 @@
  */
 package com.midokura.midolman.topology
 
-import akka.dispatch.{ExecutionContext, Future, Promise}
 import collection.Iterable
 import java.util.UUID
 
@@ -16,7 +15,6 @@ import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.topology.RouterManager.TriggerUpdate
 import com.midokura.midolman.config.MidolmanConfig
-
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
@@ -36,7 +34,14 @@ class RouterConfig {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 
-    override def hashCode = (inboundFilter.toString + outboundFilter.toString).hashCode()
+    override def hashCode: Int = {
+        var hCode = 0;
+        if (null != inboundFilter)
+            hCode += inboundFilter.hashCode
+        if (null != outboundFilter)
+            hCode = hCode * 17 + outboundFilter.hashCode
+        hCode
+    }
 
     override def equals(other: Any) = other match {
         case that: RouterConfig =>
@@ -61,9 +66,13 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     override def chainsUpdated = makeNewRouter
 
     private def makeNewRouter() = {
-        if (chainsReady() && null != rTable && null != arpTable)
+        if (chainsReady && null != rTable && null != arpTable) {
+            log.debug("Send an RCU router to the VTA")
             context.actorFor("..").tell(
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter))
+        } else {
+            log.debug("The chains aren't ready yet. ")
+        }
 
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -92,12 +101,14 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     override def receive = super.receive orElse {
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
+            log.debug("TriggerUpdate with {} {} {}",
+                Array(newCfg, newArpCache, newRoutingTable))
             if (newCfg != cfg && cfg != null) {
                 // the cfg of this router changed, invalidate all the flows
                 filterChanged = true
             }
             cfg = newCfg
-            if (arpCache == null) {
+            if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config)
                 arpTable.start()

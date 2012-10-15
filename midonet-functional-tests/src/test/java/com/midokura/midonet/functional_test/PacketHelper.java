@@ -256,11 +256,11 @@ public class PacketHelper {
                                        IntIPv4 nwSrc, IntIPv4 nwDst)
         throws MalformedPacketException {
 
-        assertThat("the package ether type is ARP",
+        assertThat("the packet ether type is ARP",
                    frame.getEtherType(), equalTo(ARP.ETHERTYPE));
-        assertThat("the package MAC address matches the source MAC",
+        assertThat("the packet MAC address matches the source MAC",
                    frame.getSourceMACAddress(), equalTo(dlSrc));
-        assertThat("the package destination MAC address is the broadcast mac",
+        assertThat("the packet destination MAC address is the broadcast mac",
                    frame.getDestinationMACAddress(),
                    equalTo(MAC.fromString("ff:ff:ff:ff:ff:ff")));
         assertThat("the eth payload is an ARP payload",

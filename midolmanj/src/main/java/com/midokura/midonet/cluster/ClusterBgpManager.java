@@ -158,7 +158,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathDataChanged(String path) {
-            run();
+            // The BGP node has changed, fetch it again asynchronously.
+            bgpMgr.getBGPAsync(bgpID, this, this);
         }
 
         @Override
@@ -168,10 +169,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            // The BGP node has changed, fetch it again asynchronously.
-            bgpMgr.getBGPAsync(bgpID, this, this);
+            log.error("Should NEVER be called.");
         }
-
     }
 
     private class BgpsCallback implements DirectoryCallback<Set<UUID>>,
@@ -224,7 +223,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathChildrenUpdated(String path) {
-            run();
+            // The list of bgp's for this port has changed. Fetch it again
+            // asynchronously.
+            bgpMgr.getBgpListAsync(bgpPortID, this, this);
         }
 
         @Override
@@ -243,9 +244,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            // The list of bgp's for this port has changed. Fetch it again
-            // asynchronously.
-            bgpMgr.getBgpListAsync(bgpPortID, this, this);
+            log.error("Should NEVER be called.");
         }
 
         /*
@@ -330,7 +329,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathDataChanged(String path) {
-            run();
+            // The AdRoute node has changed, fetch it again asynchronously.
+            adRouteMgr.getAdRouteAsync(adRouteId, this, this);
         }
 
         @Override
@@ -340,8 +340,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            // The AdRoute node has changed, fetch it again asynchronously.
-            adRouteMgr.getAdRouteAsync(adRouteId, this, this);
+            log.error("Should NEVER be called.");
         }
 
     }
@@ -396,7 +395,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathChildrenUpdated(String path) {
-            run();
+            // The list of AdRoutes for this BGP has changed. Fetch it again
+            // asynchronously.
+            adRouteMgr.getAdRouteListAsync(bgpID, this, this);
         }
 
         @Override
@@ -415,9 +416,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            // The list of AdRoutes for this BGP has changed. Fetch it again
-            // asynchronously.
-            adRouteMgr.getAdRouteListAsync(bgpID, this, this);
+            log.error("Should NEVER be called.");
         }
 
         /*

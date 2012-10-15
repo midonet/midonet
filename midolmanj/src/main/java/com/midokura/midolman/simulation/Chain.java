@@ -67,7 +67,8 @@ public class Chain {
     }
 
     /**
-     * @param chainID
+     * @param origChain
+     *            The chain where processing starts.
      * @param fwdInfo
      *            The packet's PacketContext.
      * @param pktMatch
@@ -107,10 +108,10 @@ public class Chain {
                 // transformed match and trackConnection.
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
-                cp.rules.get(cp.position).process(fwdInfo, res,
-                                                  getNatMapping(ownerId),
-                                                  isPortFilter);
+                Rule r = cp.rules.get(cp.position);
                 cp.position++;
+                log.debug("Process rule {}", r);
+                r.process(fwdInfo, res, getNatMapping(ownerId), isPortFilter);
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)
                         || res.action.equals(RuleResult.Action.REJECT)) {
@@ -166,6 +167,7 @@ public class Chain {
         if (natMappingMap.containsKey(ownerID)) {
             return natMappingMap.get(ownerID);
         } else {
+            log.debug("Creating a new NatMapping for {}", ownerID);
             NatMapping natMapping = natMappingFactory.newNatMapping(ownerID);
             natMappingMap.put(ownerID, natMapping);
             return natMapping;

@@ -397,10 +397,12 @@ public class MockDirectory implements Directory {
     }
 
     private Watcher wrapCallback(Runnable runnable) {
+        if (runnable == null)
+            return null;
         if (runnable instanceof TypedWatcher)
-            return new MyTypedWatcher((TypedWatcher) runnable);
-
-        return runnable != null ? new MyWatcher(runnable) : null;
+            return new MyTypedWatcher(TypedWatcher.class.cast(runnable));
+        else
+            return new MyWatcher(runnable);
     }
 
     private static class MyWatcher implements Watcher {

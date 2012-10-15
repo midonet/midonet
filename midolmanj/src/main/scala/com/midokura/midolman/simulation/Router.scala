@@ -633,7 +633,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def buildIcmpError(icmpType: Char, icmpCode: Any,
                    forMatch: WildcardMatch, forPacket: Ethernet) : ICMP = {
-        val pktHere = forMatch.apply(forPacket)
+        // TODO(pino, guillermo, jlm): original or modified trigger pkt?
+        val pktHere = forPacket //forMatch.apply(forPacket)
         var ipPkt: IPv4 = null
         pktHere.getPayload match {
             case ip: IPv4 => ipPkt = ip
@@ -666,11 +667,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
                        packet: Ethernet, icmpType: Char, icmpCode: Any)
                       (implicit ec: ExecutionContext,
                        actorSystem: ActorSystem) {
+        log.debug("Prepare an ICMP in response to {}", packet)
         // Check whether the original packet is allowed to trigger ICMP.
-        if (inPort == null)
+        if (inPort == null) {
+            log.debug("Don't send ICMP since inPort is null.")
             return
-        if (!canSendIcmp(packet, inPort))
+        }
+        if (!canSendIcmp(packet, inPort)) {
+            log.debug("ICMP not allowed for this packet.")
             return
+        }
         // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
         val icmp = buildIcmpError(icmpType, icmpCode, ingressMatch, packet)
         if (icmp == null)
@@ -694,6 +700,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 IPv4.fromIPv4Address(ip.getSourceAddress()),
                 IPv4.fromIPv4Address(ip.getDestinationAddress()) }) */
         SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
-            ingressMatch.getInputPortUUID, eth)
+        // TODO(pino): check with Guillermo about match's vs. device's inPort.
+            //ingressMatch.getInputPortUUID, eth)
+            inPort.id, eth)
     }
 }

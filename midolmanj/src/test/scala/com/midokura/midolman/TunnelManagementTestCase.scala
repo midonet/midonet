@@ -68,7 +68,9 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
         val eventProbe = newProbe()
+        val localPortProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
+        actors().eventStream.subscribe(localPortProbe.ref, classOf[LocalPortActive])
 
         // start initialization
         initializeDatapath() should not be (null)
@@ -87,10 +89,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         tzRequest.zoneId should be === greZone.getId
 
-        requestOfType[LocalPortActive](vtpProbe())
+        localPortProbe.expectMsgClass(classOf[LocalPortActive])
 
-        replyOfType[GreTunnelZone](vtpProbe())
-        replyOfType[GreZoneChanged](vtpProbe())
+        fishForReplyOfType[GreTunnelZone](vtpProbe())
+        fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.
         portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)

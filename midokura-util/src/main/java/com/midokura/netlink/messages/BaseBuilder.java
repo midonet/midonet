@@ -164,9 +164,6 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         return self();
     }
 
-    /////////////////////////////////////////////////////////////////////////////
-
-
     public BuilderNested<Builder> addAttrNested(NetlinkMessage.AttrKey<?> attr) {
 
         BuilderNested<Builder> builderNested =

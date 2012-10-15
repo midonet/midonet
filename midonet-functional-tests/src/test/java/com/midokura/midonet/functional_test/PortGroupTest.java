@@ -5,60 +5,68 @@
 package com.midokura.midonet.functional_test;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import akka.testkit.TestProbe;
+import akka.util.Duration;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.midokura.util.Waiters.sleepBecause;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.dto.DtoBridgePort;
+import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.PortGroup;
+import com.midokura.midonet.client.resource.ResourceCollection;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.client.resource.RuleChain;
+import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.LogicalBridgePort;
-import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
-import com.midokura.midonet.functional_test.topology.PortGroup;
-import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.RuleChain;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
+
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class emulates a MidoNet client implementing SecurityGroups using
  * MidoNet PortGroups to track/match SecurityGroup membership.
  */
-@Ignore
 public class PortGroupTest {
-    MidolmanMgmt mgmt;
-    MidolmanLauncher midolman1;
-    Tenant tenant1;
-    LogicalBridgePort bLogPort1;
-    LogicalRouterPort rPort1;
+    IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
+    RouterPort<DtoLogicalRouterPort> rtrPort;
+    MockMgmtStarter apiStarter;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
     TapWrapper tap4;
 
     static LockHelper.Lock lock;
+    private static final String TEST_HOST_ID =
+        "910de343-c39b-4933-86c7-540225fb02f9";
 
     @BeforeClass
     public static void checkLock() {
@@ -72,99 +80,182 @@ public class PortGroupTest {
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "PortGroupTest");
+        String testConfigurationPath =
+            "midolmanj_runtime_configurations/midolman-default.conf";
 
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant-portgroup").build();
-        Bridge bridge1 = tenant1.addBridge().setName("br1").build();
-        Router rtr = tenant1.addRouter().setName("rtr1").build();
-        // Link the Bridge and Router
-        rPort1 = rtr.addLinkPort()
-                .setNetworkAddress("10.0.0.0")
-                .setNetworkLength(24)
-                .setPortAddress("10.0.0.1").build();
-        bLogPort1 = bridge1.addLinkPort().build();
-        rPort1.link(bLogPort1);
-        // All sec groups should allow packets from the router (10.0.0.1/32)
+        // start zookeeper with the designated port.
+        log.info("Starting embedded zookeeper.");
+        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
+        Assert.assertThat(zookeeperPort, greaterThan(0));
 
-        // Sec Group 1 allows receiving packets from nwAddr in 10.1.1.0/24.
+        log.info("Starting cassandra");
+        startCassandra();
+
+        log.info("Starting REST API");
+        apiStarter = new MockMgmtStarter(zookeeperPort);
+        MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
+
+        // TODO(pino): delete the datapath before starting MM
+        log.info("Starting midolman");
+        EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+            probe.ref(), LocalPortActive.class);
+
+        // Build a router
+        Router rtr =
+            apiClient.addRouter().tenantId("pgroup_tnt").name("rtr1").create();
+        // Add a logical port to the router.
+        rtrPort = rtr
+            .addLogicalRouterPort()
+            .portAddress(rtrIp.toUnicastString())
+            .networkAddress(rtrIp.toNetworkAddress().toUnicastString())
+            .networkLength(rtrIp.getMaskLength())
+            .create();
+        rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
+            .dstNetworkAddr(rtrPort.getNetworkAddress())
+            .dstNetworkLength(rtrPort.getNetworkLength())
+            .nextHopPort(rtrPort.getId())
+            .type(DtoRoute.Normal).weight(10)
+            .create();
+
+        // Build a bridge
+        Bridge br =
+            apiClient.addBridge().tenantId("pgroup_tnt").name("br").create();
+        // Link the bridge to the router.
+        BridgePort<DtoLogicalBridgePort> logBrPort =
+            br.addLogicalPort().create();
+        rtrPort.link(logBrPort.getId());
+
+        // A port group is basically a tag that can be attached to a vport.
+        // Although a port group implies a set of vport UUIDs, it's not
+        // possible list a group's members (nor is it needed).
+
+        // A security group is a chain of Accept rules that ends with a
+        // Drop rule.
+
+        // All sec groups in this test should allow packets from the router's
+        // port (address 10.0.0.1) as well as ARP.
+        RuleChain commonChain = apiClient.addChain()
+            .name("common").tenantId("pgroup_tnt").create();
+        commonChain.addRule().type(DtoRule.Accept)
+            .nwSrcAddress(rtrIp.toUnicastString()).nwSrcLength(32).create();
+        commonChain.addRule().type(DtoRule.Accept)
+            .dlType((short) 0x0806).create();
+
+        // SecGroup 1 allows receiving packets from 10.1.1.0/24.
+        // Port Group 1 tracks vports assigned filter SecGroup1
         // Create a port group for SecGroup1's membership.
-        PortGroup sg1Members =
-                tenant1.addPortGroup().setName("Members1").build();
-        RuleChain sg1 = tenant1.addChain().setName("SecGroup1").build();
-        sg1.addRule().matchNwSrc(IntIPv4.fromString("10.1.1.0"), 24)
-                .setSimpleType(DtoRule.Accept).build();
-        sg1.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
-                .setSimpleType(DtoRule.Accept).build();
-        sg1.addRule().matchDlType((short) 0x0806)
-                .setSimpleType(DtoRule.Accept).build();
+        PortGroup portG1 = apiClient.addPortGroup()
+            .name("PG1").tenantId("pgroup_tnt").create();
+        RuleChain secG1 = apiClient.addChain()
+            .name("SG1").tenantId("pgroup_tnt").create();
+        secG1.addRule().type(DtoRule.Accept)
+            .nwSrcAddress("10.1.1.0").nwSrcLength(24).create();
 
-        // Sec Group 2 allows receiving packets from nwAddr in 10.2.2.0/24,
-        // from its own members, and from members of SecGroup1.
-        // Use a separate chain to track SG1's membership.
-        PortGroup sg2Members =
-                tenant1.addPortGroup().setName("Members2").build();
-        RuleChain sg2 = tenant1.addChain().setName("SecGroup2").build();
-        sg2.addRule().matchPortGroup(sg1Members.getId())
-                .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().matchPortGroup(sg2Members.getId())
-                .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().matchNwSrc(IntIPv4.fromString("10.2.2.0"), 24)
-                .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().matchNwSrc(IntIPv4.fromString("10.0.0.1"), 32)
-                .setSimpleType(DtoRule.Accept).build();
-        sg2.addRule().matchDlType((short) 0x0806)
-                .setSimpleType(DtoRule.Accept).build();
+        // SecGroup2 allows receiving packets from 10.2.2.0/24, and from
+        // members of portGroup1 and portGroup2.
+        PortGroup portG2 = apiClient.addPortGroup()
+            .name("PG2").tenantId("pgroup_tnt").create();
+        RuleChain secG2 = apiClient.addChain()
+            .name("SG2").tenantId("pgroup_tnt").create();
+        secG2.addRule().type(DtoRule.Accept).portGroup(portG1.getId()).create();
+        secG2.addRule().type(DtoRule.Accept).portGroup(portG2.getId()).create();
+        secG2.addRule().type(DtoRule.Accept)
+            .nwSrcAddress("10.2.2.0").nwSrcLength(24).create();
 
-        // port1 will be in security group 1.
-        RuleChain portOutChain1 =
-                tenant1.addChain().setName("port1_out").build();
-        portOutChain1.addRule().setPosition(1).setJump("SecGroup1").build();
-        // Add the final drop rule as the default if no Accept rule matches.
-        portOutChain1.addRule().setPosition(2)
-                .setSimpleType(DtoRule.Drop).build();
-        BridgePort bPort1 = bridge1.addPort()
-                .setOutboundFilter(portOutChain1.chain.getId())
-                .setPortGroups(new UUID[] {sg1Members.getId()}).build();
+        // Create the bridge's 1st materialized port. It's in Group1.
+        RuleChain portOutChain1 = apiClient.addChain()
+            .name("port1_out").tenantId("pgroup_tnt").create();
+        portOutChain1.addRule().type(DtoRule.Jump).position(1)
+            .jumpChainName("common").create();
+        portOutChain1.addRule().type(DtoRule.Jump).position(2)
+            .jumpChainName("SG1").create();
+        portOutChain1.addRule().type(DtoRule.Drop).position(3).create();
+        BridgePort<DtoBridgePort> brPort1 = br.addMaterializedPort()
+            .outboundFilterId(portOutChain1.getId())
+            .portGroupIDs(new UUID[] {portG1.getId()}).create();
 
-        // port2 will be in security group 2.
-        RuleChain portOutChain2 =
-                tenant1.addChain().setName("port2_out").build();
-        portOutChain2.addRule().setPosition(1).setJump("SecGroup2").build();
-        // Add the final drop rule as the default if no Accept rule matches.
-        portOutChain2.addRule().setPosition(2)
-                .setSimpleType(DtoRule.Drop).build();
-        BridgePort bPort2 = bridge1.addPort()
-                .setOutboundFilter(portOutChain2.chain.getId())
-                .setPortGroups(new UUID[] {sg2Members.getId()}).build();
+        // The bridge's 2nd materialized port is in Group2.
+        RuleChain portOutChain2 = apiClient.addChain()
+            .name("port2_out").tenantId("pgroup_tnt").create();
+        portOutChain2.addRule().type(DtoRule.Jump).position(1)
+            .jumpChainName("common").create();
+        portOutChain2.addRule().type(DtoRule.Jump).position(2)
+            .jumpChainName("SG2").create();
+        portOutChain2.addRule().type(DtoRule.Drop).position(3).create();
+        BridgePort<DtoBridgePort> brPort2 = br.addMaterializedPort()
+            .outboundFilterId(portOutChain2.getId())
+            .portGroupIDs(new UUID[] {portG2.getId()}).create();
 
-        // port3 will be in both security groups 1 and 2.
-        RuleChain portOutChain3 =
-                tenant1.addChain().setName("port3_out").build();
-        portOutChain3.addRule().setPosition(1).setJump("SecGroup1").build();
-        portOutChain3.addRule().setPosition(2).setJump("SecGroup2").build();
-        // Add the final drop rule as the default if no Accept rule matches.
-        portOutChain3.addRule().setPosition(3)
-                .setSimpleType(DtoRule.Drop).build();
-        BridgePort bPort3 = bridge1.addPort()
-                .setOutboundFilter(portOutChain3.chain.getId())
-                .setPortGroups(
-                        new UUID[] {sg1Members.getId(), sg2Members.getId()})
-                .build();
+        // The bridge's 3rd materialized port is in Group1 and Group2.
+        RuleChain portOutChain3 = apiClient.addChain()
+            .name("port3_out").tenantId("pgroup_tnt").create();
+        portOutChain3.addRule().type(DtoRule.Jump).position(1)
+            .jumpChainName("common").create();
+        portOutChain3.addRule().type(DtoRule.Jump).position(2)
+            .jumpChainName("SG1").create();
+        portOutChain3.addRule().type(DtoRule.Jump).position(3)
+            .jumpChainName("SG2").create();
+        portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
+        BridgePort<DtoBridgePort> brPort3 = br.addMaterializedPort()
+            .outboundFilterId(portOutChain3.getId())
+            .portGroupIDs(new UUID[] {portG2.getId(), portG2.getId()})
+            .create();
 
-        // port4 will not be in any security group.
-        BridgePort bPort4 = bridge1.addPort().build();
+        // The bridge's 4th materialized port is not in any security groups.
+        BridgePort<DtoBridgePort> brPort4 = br.addMaterializedPort().create();
 
-        tap1 = new TapWrapper("SecGroupTap1");
-        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
-        tap2 = new TapWrapper("SecGroupTap2");
-        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
-        tap3 = new TapWrapper("SecGroupTap3");
-        //ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
-        tap4 = new TapWrapper("SecGroupTap4");
-        //ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
+        tap1 = new TapWrapper("sgTap1");
+        tap2 = new TapWrapper("sgTap2");
+        tap3 = new TapWrapper("sgTap3");
+        tap4 = new TapWrapper("sgTap4");
 
-        sleepBecause("we need the network to boot up", 10);
+        // Now bind the materialized ports to the taps.
+        log.debug("Getting host from REST API");
+        ResourceCollection<Host> hosts = apiClient.getHosts();
+
+        Host host = null;
+        for (Host h : hosts) {
+            if (h.getId().toString().matches(TEST_HOST_ID)) {
+                host = h;
+            }
+        }
+        // check that we've actually found the test host.
+        assertNotNull("Host is null", host);
+
+        host.addHostInterfacePort()
+            .interfaceName(tap1.getName())
+            .portId(brPort1.getId()).create();
+        host.addHostInterfacePort()
+            .interfaceName(tap2.getName())
+            .portId(brPort2.getId()).create();
+        host.addHostInterfacePort()
+            .interfaceName(tap3.getName())
+            .portId(brPort3.getId()).create();
+        host.addHostInterfacePort()
+            .interfaceName(tap4.getName())
+            .portId(brPort4.getId()).create();
+
+        log.info("Waiting for LocalPortActive notifications for ports " +
+            "{}, {}, {}, and {}",
+            new Object[] {brPort1.getId(), brPort2.getId(),
+                brPort3.getId(), brPort4.getId()});
+
+        Set<UUID> activatedPorts = new HashSet<UUID>();
+        for (int i = 0; i < 4; i++) {
+            LocalPortActive activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+            log.info("Received a LocalPortActive message about {}.",
+                activeMsg.portID());
+            assertTrue("The port should be active.", activeMsg.active());
+            activatedPorts.add(activeMsg.portID());
+        }
+        assertThat("The 4 materialized ports should be active.",
+            activatedPorts,
+            hasItems(brPort1.getId(), brPort2.getId(),
+                brPort3.getId(), brPort4.getId()));
     }
 
     @After
@@ -173,186 +264,108 @@ public class PortGroupTest {
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
         removeTapWrapper(tap4);
-
-        stopMidolman(midolman1);
-
-        if (null != rPort1)
-            rPort1.unlink();
-        removeTenant(tenant1);
-    //    stopMidolmanMgmt(mgmt);
+        stopEmbeddedMidolman();
+        stopMidolmanMgmt(apiStarter);
+        stopCassandra();
+        stopEmbeddedZookeeper();
     }
 
     @Test
-    public void test() {
+    public void test() throws MalformedPacketException {
         MAC mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         MAC mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         MAC mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         MAC mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
-        IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.1");
-        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.2");
-        IntIPv4 ip2 = IntIPv4.fromString("10.0.0.3");
-        IntIPv4 ip3 = IntIPv4.fromString("10.0.0.4");
-        IntIPv4 ip4 = IntIPv4.fromString("10.0.0.5");
+        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.1");
+        IntIPv4 ip2 = IntIPv4.fromString("10.0.0.2");
+        IntIPv4 ip3 = IntIPv4.fromString("10.0.0.3");
+        IntIPv4 ip4 = IntIPv4.fromString("10.0.0.4");
 
         // Send ARPs from each edge port so that the bridge can learn MACs.
-        assertThat("We failed to send the ARP request.",
-                tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
-        assertThat("We didn't receive the router's ARP reply.",
-                tap1.recv(), notNullValue());
-        assertThat("We failed to send the ARP request.",
-                tap2.send(PacketHelper.makeArpRequest(mac2, ip2, rtrIp)));
-        assertThat("We didn't receive the router's ARP reply.",
-                tap2.recv(), notNullValue());
-        assertThat("We failed to send the ARP request.",
-                tap3.send(PacketHelper.makeArpRequest(mac3, ip3, rtrIp)));
-        assertThat("We didn't receive the router's ARP reply.",
-                tap3.recv(), notNullValue());
-        assertThat("We failed to send the ARP request.",
-                tap4.send(PacketHelper.makeArpRequest(mac4, ip4, rtrIp)));
-        assertThat("We didn't receive the router's ARP reply.",
-                tap4.recv(), notNullValue());
+        MAC rtrMac = MAC.fromString(rtrPort.getPortMac());
+        arpAndCheckReply(tap1, mac1, ip1, rtrIp, rtrMac);
+        arpAndCheckReply(tap2, mac2, ip2, rtrIp, rtrMac);
+        arpAndCheckReply(tap3, mac3, ip3, rtrIp, rtrMac);
+        arpAndCheckReply(tap4, mac4, ip4, rtrIp, rtrMac);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port1
         // because SecGroup1 only accepts packets from 10.1.1.0/24.
-        byte[] pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.3.3.4"), mac1, ip1);
-        assertThat("We failed to send the packet from port 4 to 1.",
-                tap4.send(pkt));
-        assertThat("The packet should not have arrived at port 1.",
-                tap1.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1,
+            IntIPv4.fromString("10.3.3.4"), ip1);
 
         // A packet from 10.2.2.4 and port 4 should fail to arrive at port1
         // because SecGroup1 only accepts packets from 10.1.1.0/24.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.2.2.4"), mac1, ip1);
-        assertThat("We failed to send the packet from port 4 to 1.",
-                tap4.send(pkt));
-        assertThat("The packet should not have arrived at port 1.",
-                tap1.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1,
+            IntIPv4.fromString("10.2.2.4"), ip1);
 
         // A packet from 10.1.1.4 and port 4 should arrive at port1 because its
         // nwSrc is inside an acceptable prefix.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.1.1.4"), mac1, ip1);
-        assertThat("We failed to send the packet from port 4 to 1.",
-                tap4.send(pkt));
-        assertThat("The packet should have arrived at port 1.",
-                tap1.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap4, tap1, mac4, mac1,
+            IntIPv4.fromString("10.1.1.4"), ip1);
 
         // A packet from 10.1.1.4 and port 4 should fail to arrive at port2
         // because port 4 isn't in the SecGroups accepted by SecGroup2 nor is
         // the packet's source IP in 10.2.2.0/24.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.1.1.4"), mac2, ip2);
-        assertThat("We failed to send the packet from port 4 to 2.",
-                tap4.send(pkt));
-        assertThat("The packet should not have arrived at port 2.",
-                tap2.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2,
+            IntIPv4.fromString("10.1.1.4"), ip2);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port2
         // because port 4 isn't in the SecGroups accepted by SecGroup2 nor is
         // the packet's source IP in 10.2.2.0/24.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.3.3.4"), mac2, ip2);
-        assertThat("We failed to send the packet from port 4 to 2.",
-                tap4.send(pkt));
-        assertThat("The packet should not have arrived at port 2.",
-                tap2.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2,
+            IntIPv4.fromString("10.3.3.4"), ip2);
 
         // A packet from 10.2.2.4 and port 4 should arrive at port2 because its
         // nwSrc is inside an acceptable prefix.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.2.2.4"), mac2, ip2);
-        assertThat("We failed to send the packet from port 4 to 2.",
-                tap4.send(pkt));
-        assertThat("The packet should have arrived at port 2.",
-                tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap4, tap2, mac4, mac2,
+            IntIPv4.fromString("10.2.2.4"), ip2);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port3
         // because it's not from an accepted SecGroup or IP src prefix.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.3.3.4"), mac3, ip3);
-        assertThat("We failed to send the packet from port 4 to 3.",
-                tap4.send(pkt));
-        assertThat("The packet should not have arrived at port 3.",
-                tap3.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap4, tap3, mac4, mac3,
+            IntIPv4.fromString("10.3.3.4"), ip3);
 
         // A packet from 10.1.1.4 and port 4 should arrive at port3 because its
         // nwSrc is inside an acceptable prefix.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.1.1.4"), mac3, ip3);
-        assertThat("We failed to send the packet from port 4 to 3.",
-                tap4.send(pkt));
-        assertThat("The packet should have arrived at port 3.",
-                tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3,
+            IntIPv4.fromString("10.1.1.4"), ip3);
 
         // A packet from 10.2.2.4 and port 4 should arrive at port3 because its
         // nwSrc is inside an acceptable prefix.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac4, IntIPv4.fromString("10.2.2.4"), mac3, ip3);
-        assertThat("We failed to send the packet from port 4 to 3.",
-                tap4.send(pkt));
-        assertThat("The packet should have arrived at port 3.",
-                tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3,
+            IntIPv4.fromString("10.2.2.4"), ip3);
 
         // A packet from 10.3.3.3 and port 3 should fail to arrive at port1
         // even though they are in the same security group. SecGroup1 does not
         // necessarily accept packets from members of its own group.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac3, IntIPv4.fromString("10.3.3.3"), mac1, ip1);
-        assertThat("We failed to send the packet from port 3 to 1.",
-                tap3.send(pkt));
-        assertThat("The packet should not have arrived at port 1.",
-                tap1.recv(), nullValue());
+        icmpFromTapDoesntArriveAtTap(tap3, tap1, mac3, mac1,
+            IntIPv4.fromString("10.3.3.3"), ip1);
 
         // A packet from 10.3.3.3 and port 3 should arrive at port2 because
         // they're both in SecGroup2, which accepts packets from its own
         // members.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac3, IntIPv4.fromString("10.3.3.3"), mac2, ip2);
-        assertThat("We failed to send the packet from port 3 to 2.",
-                tap3.send(pkt));
-        assertThat("The packet should have arrived at port 2.",
-                tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap3, tap2, mac3, mac2,
+            IntIPv4.fromString("10.3.3.3"), ip2);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port2 because
         // port2 is in SecGroup2 which accepts packets from SecGroup1.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac1, IntIPv4.fromString("10.3.3.1"), mac2, ip2);
-        assertThat("We failed to send the packet from port 1 to 2.",
-                tap1.send(pkt));
-        assertThat("The packet should have arrived at port 2.",
-                tap2.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap1, tap2, mac1, mac2,
+            IntIPv4.fromString("10.3.3.1"), ip2);
 
         // A packet from 10.3.3.2 and port 2 should arrive at port3 because
         // they're both in SecGroup2, which accepts packets from its own
         // members.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac2, IntIPv4.fromString("10.3.3.2"), mac3, ip3);
-        assertThat("We failed to send the packet from port 2 to 3.",
-                tap2.send(pkt));
-        assertThat("The packet should have arrived at port 3.",
-                tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap2, tap3, mac2, mac3,
+            IntIPv4.fromString("10.3.3.2"), ip3);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port3 because
         // port3 is in SecGroup2 which accepts packets from SecGroup1.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac1, IntIPv4.fromString("10.3.3.1"), mac3, ip3);
-        assertThat("We failed to send the packet from port 1 to 3.",
-                tap1.send(pkt));
-        assertThat("The packet should have arrived at port 3.",
-                tap3.recv(), allOf(notNullValue(), equalTo(pkt)));
+        icmpFromTapArrivesAtTap(tap1, tap3, mac1, mac3,
+            IntIPv4.fromString("10.3.3.1"), ip3);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port4 because
         // port4 isn't in any Security Group.
-        pkt = PacketHelper.makeIcmpEchoRequest(
-                mac1, IntIPv4.fromString("10.3.3.1"), mac4, ip4);
-        assertThat("We failed to send the packet from port 1 to 4.",
-                tap1.send(pkt));
-        assertThat("The packet should have arrived at port 4.",
-                tap4.recv(), allOf(notNullValue(), equalTo(pkt)));
-
+        icmpFromTapArrivesAtTap(tap1, tap4, mac1, mac4,
+            IntIPv4.fromString("10.3.3.1"), ip4);
     }
-
-    public void testFoo() {}
 }

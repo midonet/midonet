@@ -6,8 +6,6 @@ package com.midokura.midonet.functional_test;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import akka.testkit.TestProbe;
@@ -20,7 +18,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +30,6 @@ import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.UDP;
 import com.midokura.packets.IPacket;
-import com.midokura.packets.GRE;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
 
