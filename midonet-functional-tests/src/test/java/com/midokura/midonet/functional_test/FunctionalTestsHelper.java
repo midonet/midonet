@@ -31,8 +31,12 @@ import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
 import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.vm.VMController;
+import com.midokura.packets.Ethernet;
 import com.midokura.packets.IntIPv4;
+import com.midokura.packets.LLDP;
+import com.midokura.packets.LLDPTLV;
 import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.SystemHelper;
 import com.midokura.util.process.ProcessHelper;
 
@@ -351,6 +355,61 @@ public class FunctionalTestsHelper {
         MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
         byte[] pkt = PacketHelper.makeIcmpEchoRequest(
             dlSrc, ipSrc, dlDst, ipDst);
+        assertThat("The packet should have been sent from the source tap.",
+            tapSrc.send(pkt));
+        assertThat("The packet should not have arrived at the destination tap.",
+            tapDst.recv(), nullValue());
+    }
+
+    public static void arpAndCheckReply(
+            TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
+            IntIPv4 dstIp, MAC expectedMac)
+        throws MalformedPacketException {
+        assertThat("The ARP request was sent properly",
+            tap.send(PacketHelper.makeArpRequest(srcMac, srcIp, dstIp)));
+        MAC m = PacketHelper.checkArpReply(tap.recv(), dstIp, srcMac, srcIp);
+        assertThat("The resolved MAC is what we expected.",
+            m, equalTo(expectedMac));
+    }
+
+    public static byte[] makeLLDP(MAC dlSrc, MAC dlDst) {
+        LLDP packet = new LLDP();
+        LLDPTLV chassis = new LLDPTLV();
+        chassis.setType((byte)0xca);
+        chassis.setLength((short)7);
+        chassis.setValue("chassis".getBytes());
+        LLDPTLV port = new LLDPTLV();
+        port.setType((byte) 0);
+        port.setLength((short)4);
+        port.setValue("port".getBytes());
+        LLDPTLV ttl = new LLDPTLV();
+        ttl.setType((byte) 40);
+        ttl.setLength((short) 3);
+        ttl.setValue("ttl".getBytes());
+        packet.setChassisId(chassis);
+        packet.setPortId(port);
+        packet.setTtl(ttl);
+
+        Ethernet frame = new Ethernet();
+        frame.setPayload(packet);
+        frame.setEtherType(LLDP.ETHERTYPE);
+        frame.setDestinationMACAddress(dlDst);
+        frame.setSourceMACAddress(dlSrc);
+        return frame.serialize();
+    }
+
+    public static void lldpFromTapArrivesAtTap(
+        TapWrapper tapSrc, TapWrapper tapDst, MAC dlSrc, MAC dlDst) {
+        byte[] pkt = makeLLDP(dlSrc, dlDst);
+        assertThat("The packet should have been sent from the source tap.",
+            tapSrc.send(pkt));
+        assertThat("The packet should have arrived at the destination tap.",
+            tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+    }
+
+    public static void lldpFromTapDoesntArriveAtTap(
+        TapWrapper tapSrc, TapWrapper tapDst, MAC dlSrc, MAC dlDst) {
+        byte[] pkt = makeLLDP(dlSrc, dlDst);
         assertThat("The packet should have been sent from the source tap.",
             tapSrc.send(pkt));
         assertThat("The packet should not have arrived at the destination tap.",

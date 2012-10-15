@@ -125,7 +125,6 @@ public class PortGroupTest {
         // Link the bridge to the router.
         BridgePort<DtoLogicalBridgePort> logBrPort =
             br.addLogicalPort().create();
-        // Link the bridge to the router's third (logical) port.
         rtrPort.link(logBrPort.getId());
 
         // A port group is basically a tag that can be attached to a vport.
@@ -230,13 +229,13 @@ public class PortGroupTest {
             .portId(brPort1.getId()).create();
         host.addHostInterfacePort()
             .interfaceName(tap2.getName())
-            .portId(brPort1.getId()).create();
+            .portId(brPort2.getId()).create();
         host.addHostInterfacePort()
             .interfaceName(tap3.getName())
-            .portId(brPort1.getId()).create();
+            .portId(brPort3.getId()).create();
         host.addHostInterfacePort()
             .interfaceName(tap4.getName())
-            .portId(brPort1.getId()).create();
+            .portId(brPort4.getId()).create();
 
         log.info("Waiting for LocalPortActive notifications for ports " +
             "{}, {}, {}, and {}",
@@ -269,16 +268,6 @@ public class PortGroupTest {
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
         stopEmbeddedZookeeper();
-    }
-
-    private void arpAndCheckReply(TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
-                                  IntIPv4 dstIp, MAC expectedMac)
-            throws MalformedPacketException {
-        assertThat("The ARP request was sent properly",
-            tap.send(PacketHelper.makeArpRequest(srcMac, srcIp, dstIp)));
-        MAC m = PacketHelper.checkArpReply(tap.recv(), dstIp, srcMac, srcIp);
-        assertThat("The resolved MAC is what we expected.",
-            m, equalTo(expectedMac));
     }
 
     @Test
