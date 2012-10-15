@@ -1037,7 +1037,7 @@ class DatapathController() extends Actor with ActorLogging {
                                 case Right(localPorts) =>
                                     applyOutboundFilters(port, localPorts,
                                         wMatch.getTunnelID, action, portSet.id,
-                                        cookie)
+                                        cookie, wMatch)
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
@@ -1070,7 +1070,7 @@ class DatapathController() extends Actor with ActorLogging {
     private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
                     localPorts: Seq[client.Port[_]], tunnelKey: Long,
                     action: T, portSetID: UUID,
-                    cookie: Option[Int]) {
+                    cookie: Option[Int], pktMatch: WildcardMatch) {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
                 ask(VirtualTopologyActor.getRef,
@@ -1079,14 +1079,13 @@ class DatapathController() extends Actor with ActorLogging {
         // Apply the chains.
         Future.sequence(chainFutures) onComplete {
             case Right(chains) =>
-                val pktMatch = null //XXX
                 val egressPorts = (localPorts zip chains) filter { portchain =>
                     val port = portchain._1
                     val chain = portchain._2
                     val fwdInfo = new DummyChainPacketContext(port.id)
 
                     // apply chain and check result is ACCEPT.
-                    val result = 
+                    val result =
                         Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
                             .action
                     if (result != RuleResult.Action.ACCEPT &&
