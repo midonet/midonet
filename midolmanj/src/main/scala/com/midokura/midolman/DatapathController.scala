@@ -1038,7 +1038,7 @@ class DatapathController() extends Actor with ActorLogging {
         FlowController.getRef().tell(
             AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
                 .setIdleExpirationMillis(expiration),
-                null, null, null, null, null))
+                None, null, null, null, null))
     }
 
     private def addTaggedFlow(wMatch: WildcardMatch,
