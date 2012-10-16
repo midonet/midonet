@@ -20,7 +20,7 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(nd_target);
+        builder.addValue(nd_target, ByteOrder.BIG_ENDIAN);
         builder.addValue(nd_sll);
         builder.addValue(nd_tll);
     }
