@@ -16,7 +16,6 @@ import com.midokura.packets.IPv4;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.sdn.flows.PacketMatch;
 
 
 public class ReverseNatRule extends NatRule {

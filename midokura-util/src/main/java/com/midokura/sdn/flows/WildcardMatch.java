@@ -17,7 +17,7 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.packets.Transport;
 
-public class WildcardMatch implements Cloneable, PacketMatch {
+public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 
@@ -136,15 +136,16 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
-    public WildcardMatch setDataLayerSource(String macaddr) {
+    @Deprecated
+    @Nonnull
+    public WildcardMatch setDataLayerSource(@Nonnull String macaddr) {
         return setDataLayerSource(MAC.fromString(macaddr));
     }
 
-    @Override
-    public WildcardMatch setDataLayerSource(MAC addr) {
-        if (addr != null)
-            setEthernetSource(addr);
-        return this;
+    @Deprecated
+    @Nonnull
+    public WildcardMatch setDataLayerSource(@Nonnull MAC addr) {
+        return setEthernetSource(addr);
     }
 
     @Nonnull
@@ -159,7 +160,8 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return ethernetSource;
     }
 
-    @Override
+    @Deprecated
+    @Nullable
     public byte[] getDataLayerSource() {
         return ethernetSource.getAddress();
     }
@@ -171,15 +173,16 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
-    public WildcardMatch setDataLayerDestination(String macAddr) {
+    @Deprecated
+    @Nonnull
+    public WildcardMatch setDataLayerDestination(@Nonnull String macAddr) {
         return setDataLayerDestination(MAC.fromString(macAddr));
     }
 
-    @Override
-    public WildcardMatch setDataLayerDestination(MAC addr) {
-        if (addr != null)
-            setEthernetDestination(addr);
-        return this;
+    @Deprecated
+    @Nonnull
+    public WildcardMatch setDataLayerDestination(@Nonnull MAC addr) {
+        return setEthernetDestination(addr);
     }
 
     @Nonnull
@@ -194,7 +197,8 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return ethernetDestination;
     }
 
-    @Override
+    @Deprecated
+    @Nullable
     public byte[] getDataLayerDestination() {
         return ethernetDestination.getAddress();
     }
@@ -218,12 +222,13 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return etherType;
     }
 
+    @Deprecated
     @Nonnull
     public WildcardMatch setDataLayerType(short dlType) {
         return setEtherType(dlType);
     }
 
-    @Override
+    @Deprecated
     public short getDataLayerType() {
         return etherType.shortValue();
     }
@@ -235,11 +240,14 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
-    @Override
+    @Deprecated
+    @Nonnull
     public WildcardMatch setNetworkSource(int addr) {
         return setNetworkSource(new IntIPv4(addr));
     }
 
+    @Deprecated
+    @Nonnull
     public WildcardMatch setNetworkSource(int addr, int maskLen) {
         return setNetworkSource(new IntIPv4(addr, maskLen));
     }
@@ -256,7 +264,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return networkSource;
     }
 
-    @Override
+    @Deprecated
     public int getNetworkSource() {
         return networkSource.addressAsInt();
     }
@@ -268,11 +276,14 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return this;
     }
 
-    @Override
+    @Deprecated
+    @Nonnull
     public WildcardMatch setNetworkDestination(int addr) {
         return setNetworkDestination(new IntIPv4(addr));
     }
 
+    @Deprecated
+    @Nonnull
     public WildcardMatch setNetworkDestination(int addr, int maskLen) {
         return setNetworkDestination(new IntIPv4(addr, maskLen));
     }
@@ -289,7 +300,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return networkDestination;
     }
 
-    @Override
+    @Deprecated
     public int getNetworkDestination() {
         return networkDestination.addressAsInt();
     }
@@ -313,20 +324,32 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return networkProtocol;
     }
 
-    @Override
+    @Deprecated
     public byte getNetworkProtocol() {
         return networkProtocol.byteValue();
     }
 
-    @Override
+    @Nullable
+    public Byte getNetworkTOS() {
+        return networkTOS;
+    }
+
+    @Deprecated
     public byte getNetworkTypeOfService() {
         return (null == networkTOS)? 0 : networkTOS;
     }
 
-    public WildcardMatch setNetworkTypeOfService(byte tos) {
+    @Nonnull
+    public WildcardMatch setNetworkTOS(byte tos) {
         usedFields.add(Field.NetworkTOS);
         this.networkTOS = tos;
         return this;
+    }
+
+    @Deprecated
+    @Nonnull
+    public WildcardMatch setNetworkTypeOfService(byte tos) {
+        return setNetworkTOS(tos);
     }
 
     @Nonnull
@@ -367,7 +390,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return isIPv4Fragment;
     }
 
-    @Nonnull @Override
+    @Nonnull
     public WildcardMatch setTransportSource(short transportSource) {
         usedFields.add(Field.TransportSource);
         this.transportSource = transportSource;
@@ -386,12 +409,12 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return transportSource;
     }
 
-    @Override
+    @Deprecated
     public short getTransportSource() {
         return transportSource.shortValue();
     }
 
-    @Nonnull @Override
+    @Nonnull
     public WildcardMatch setTransportDestination(short transportDestination) {
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;
@@ -410,7 +433,7 @@ public class WildcardMatch implements Cloneable, PacketMatch {
         return transportDestination;
     }
 
-    @Override
+    @Deprecated
     public short getTransportDestination() {
         return transportDestination.shortValue();
     }

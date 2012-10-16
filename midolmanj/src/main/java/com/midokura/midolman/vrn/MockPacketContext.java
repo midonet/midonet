@@ -16,7 +16,6 @@ import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
-import com.midokura.sdn.flows.PacketMatch;
 import com.midokura.sdn.flows.WildcardMatch;
 
 
@@ -47,7 +46,7 @@ public class MockPacketContext implements ChainPacketContext {
     // These fields are filled by ForwardingElement.process():
     public Action action;
     public UUID outPortId;
-    public PacketMatch matchOut; // the match as it exits the ForwardingElement
+    public WildcardMatch matchOut; // the match as it exits the ForwardingElement
 
     // Used by FEs that want notification when the flow is removed.
     private Collection<UUID> notifyFEs = new HashSet<UUID>();
@@ -214,11 +213,11 @@ public class MockPacketContext implements ChainPacketContext {
         this.matchIn = matchIn;
     }
 
-    public PacketMatch getMatchOut() {
+    public WildcardMatch getMatchOut() {
         return matchOut;
     }
 
-    public void setMatchOut(PacketMatch matchOut) {
+    public void setMatchOut(WildcardMatch matchOut) {
         this.matchOut = matchOut;
     }
 

@@ -6,7 +6,7 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
-import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.sdn.flows.WildcardMatch;
 
 
 public class RuleResult {
@@ -17,10 +17,10 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
-    public PacketMatch pmatch;
+    public WildcardMatch pmatch;
     public boolean trackConnection;
 
-    public RuleResult(Action action, UUID jumpToChain, PacketMatch match,
+    public RuleResult(Action action, UUID jumpToChain, WildcardMatch match,
             boolean trackConnection) {
         this.action = action;
         this.jumpToChain = jumpToChain;

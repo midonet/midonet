@@ -22,8 +22,7 @@ import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.topology.FlowTagger;
-import com.midokura.sdn.flows.PacketMatch;
-
+import com.midokura.sdn.flows.WildcardMatch;
 
 public class Chain {
     private final static Logger log = LoggerFactory.getLogger(Chain.class);
@@ -83,7 +82,7 @@ public class Chain {
      */
     public static RuleResult apply(
             Chain origChain, ChainPacketContext fwdInfo,
-            PacketMatch pktMatch, UUID ownerId, boolean isPortFilter) {
+            WildcardMatch pktMatch, UUID ownerId, boolean isPortFilter) {
         if (null == origChain) {
              return new RuleResult(
                 RuleResult.Action.ACCEPT, null, pktMatch, false);
