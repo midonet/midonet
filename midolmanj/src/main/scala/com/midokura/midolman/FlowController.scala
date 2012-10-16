@@ -305,8 +305,8 @@ class FlowController extends Actor with ActorLogging {
             // TODO(pino, ross): should we send Packet commands for pended?
             // For now, just free the pended packets.
             freePendedPackets(cookieOpt)
-            if (null != callbacks)
-                for (cb <- callbacks)
+            if (null != flowRemovalCallbacks)
+                for (cb <- flowRemovalCallbacks)
                     cb.call()
             return
         }

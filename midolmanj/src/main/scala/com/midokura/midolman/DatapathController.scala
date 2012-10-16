@@ -31,21 +31,31 @@ import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.sdn.dp.{Datapath, Flow => KernelFlow, FlowMatch, Packet,
-                            Port, Ports, PortOptions}
-import com.midokura.sdn.dp.flows.{FlowAction, FlowKeys, FlowActions}
+import com.midokura.sdn.dp.{Flow => KernelFlow, _}
+import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 import rcu.Host
+import rcu.Host
+import rcu.PortSet
 import rcu.PortSet
 import topology.LocalPortActive
 import com.midokura.packets.Ethernet
+import topology.LocalPortActive
 import topology.VirtualTopologyActor.BridgeRequest
+import topology.VirtualTopologyActor.BridgeRequest
+import topology.VirtualTopologyActor.ChainRequest
 import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import scala.Some
 import scala.Left
+import scala.Right
+import topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import scala.Some
+import scala.Left
+import com.midokura.midolman.Initialize
 import scala.Right
 
 
@@ -570,8 +580,10 @@ class DatapathController() extends Actor with ActorLogging {
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
 
-        case AddWildcardFlow(flow, cookie, pktBytes, callbacks, tags) =>
-            handleAddWildcardFlow(flow, cookie, pktBytes, callbacks, tags)
+        case AddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks, tags,
+                              tagRemovalCallback) =>
+            handleAddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks,
+                                    tags, tagRemovalCallback)
 
         case SendPacket(ethPkt, actions) =>
             handleSendPacket(ethPkt, actions)
@@ -738,8 +750,9 @@ class DatapathController() extends Actor with ActorLogging {
     def handleAddWildcardFlow(flow: WildcardFlow,
                               cookie: Option[Int],
                               pktBytes: Array[Byte],
-                              callbacks: ROSet[Callback0],
-                              tags: ROSet[Any]) {
+                              flowRemovalCallbacks: ROSet[Callback0],
+                              tags: ROSet[Any],
+                              tagRemovalCallbacks: ROSet[Callback0]) {
         val flowMatch = flow.getMatch
         val inPortUUID = flowMatch.getInputPortUUID
 
@@ -768,7 +781,7 @@ class DatapathController() extends Actor with ActorLogging {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
-                    pktBytes, flowRemovalCallbacks, dpTags, tagRemovalCallbacks)
+                    pktBytes,flowRemovalCallbacks, dpTags, tagRemovalCallbacks)
             case _ =>
                 // TODO(pino): should we push a temporary drop flow instead?
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
