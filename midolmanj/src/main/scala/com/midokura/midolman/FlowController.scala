@@ -192,7 +192,6 @@ class FlowController extends Actor with ActorLogging {
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
-        context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
 
         flowManager.remove(wildFlow)
         flowToTags.remove(wildFlow) map {
@@ -211,7 +210,7 @@ class FlowController extends Actor with ActorLogging {
                 for (cb <- set)
                     cb.call()
         }
-
+        context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
     }
 
     private def handlePacketIn(packet: Packet) {
