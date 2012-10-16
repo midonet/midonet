@@ -6,7 +6,8 @@ package com.midokura.midolman.topology
 import java.util.UUID
 import akka.actor.{ActorLogging, Actor}
 import com.midokura.midolman.simulation.Chain
-import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest, ChainUnsubscribe}
+import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest,
+                                                            ChainUnsubscribe}
 
 abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
     var inFilter: Chain = null;
@@ -15,12 +16,12 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
     def configUpdated(): Unit = {
         // Unsubscribe from old inFilter if changed.
         if (null != inFilter && !inFilter.id.equals(getInFilterID)) {
-            context.actorFor("..").tell(ChainUnsubscribe(inFilter.id))
+            context.actorFor("..").tell(ChainUnsubscribe(inFilter.id), self)
             inFilter = null
         }
         // Unsubscribe from old outFilter if changed.
         if (null != outFilter && !outFilter.id.equals(getOutFilterID)) {
-            context.actorFor("..").tell(ChainUnsubscribe(outFilter.id))
+            context.actorFor("..").tell(ChainUnsubscribe(outFilter.id), self)
             outFilter = null
         }
 
@@ -28,8 +29,6 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
         // Do we need to subscribe to new filters?
         if (waitingForInFilter) {
             log.debug("subscribing to ingress chain {}", getInFilterID)
-            // TODO(pino): figure out why we have to pass 'self' here.
-            // TODO: Without it, we don't receive the Chain response message.
             context.actorFor("..").tell(
                 ChainRequest(getInFilterID, true), self)
             waitingForChains = true

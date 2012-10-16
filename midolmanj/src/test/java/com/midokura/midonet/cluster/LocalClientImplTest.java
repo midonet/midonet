@@ -278,12 +278,6 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setLocalExteriorPortActive(UUID port, MAC mac,
-                                               boolean active) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
         public void setSourceNatResource(SourceNatResource resource) {
         }
 

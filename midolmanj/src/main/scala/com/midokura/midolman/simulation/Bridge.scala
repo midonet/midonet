@@ -48,6 +48,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         val srcDlAddress = packetContext.getMatch.getEthernetSource
         val dstDlAddress = packetContext.getMatch.getEthernetDestination
 
+        // Tag the flow with this Bridge ID
+        packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
+
         // Call ingress (pre-bridging) chain
         // InputPort is already set.
         packetContext.setOutputPort(null)
@@ -92,6 +95,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 // Flood to materialized ports only.
                 log.info("flooding to port set {}", id)
                 action = Promise.successful(ToPortSetAction(id))
+                // add tag
+                packetContext.addFlowTag(FlowTagger.invalidateBroadcastFlows(id, id))
             }
           case false =>
             // L2 unicast
@@ -102,6 +107,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     log.info("The packet is intended for an interior router " +
                         "port.")
                     action = Promise.successful(ToPortAction(logicalPort))
+                    packetContext.addFlowTag(FlowTagger.invalidateFlowsByLogicalPort(
+                    id, logicalPort))
                 case None =>
                     // Not a logical port's MAC.  Is dst MAC in
                     // macPortMap? (ie, learned)
@@ -116,7 +123,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                             log.debug("Dst MAC {} is not learned. Flood",
                                 dstDlAddress)
                             packetContext.addFlowTag(
-                                FlowTagger.invalidateFlowsByMac(
+                                FlowTagger.invalidateFloodedFlowsByMac(
                                     id, dstDlAddress))
                             ToPortSetAction(id)
                         case portID: UUID =>
@@ -153,6 +160,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
                                            packetContext.getMatch, id, false)
+
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
             log.debug("Dropping the packet due to egress filter.")

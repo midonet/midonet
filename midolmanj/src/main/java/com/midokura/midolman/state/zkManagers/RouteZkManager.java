@@ -135,6 +135,14 @@ public class RouteZkManager extends ZkManager {
         return ops;
     }
 
+    public List<Op> prepareLocalRoutesCreate(UUID portId,
+            PortDirectory.RouterPortConfig config) throws StateAccessException {
+        UUID routeId = UUID.randomUUID();
+        Route route = new Route(0, 0, config.portAddr, 32, Route.NextHop.LOCAL,
+                                portId, 0, 0, null, config.device_id);
+        return prepareRouteCreate(routeId, route, true);
+    }
+
     public List<Op> prepareRouteCreate(UUID id, Route config)
             throws StateAccessException {
         return prepareRouteCreate(id, config, true);

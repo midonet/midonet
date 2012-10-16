@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.midokura.packets.IntIPv4;
 import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.eventloop.MockReactor;
 import com.midokura.midolman.layer4.NatLeaseManager;
@@ -77,8 +78,7 @@ public class TestRules {
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(inPort);
-        cond.nwSrcIp = 0x0a001400;
-        cond.nwSrcLength = 24;
+        cond.nwSrcIp = new IntIPv4(0x0a001400, 24);
         cond.nwProto = 15;
         cond.nwProtoInv = true;
         cond.tpSrcStart = 2000;

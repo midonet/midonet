@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.RuleResult.Action;
-import com.midokura.sdn.flows.PacketMatch;
 
 
 public abstract class Rule implements Comparable<Rule> {

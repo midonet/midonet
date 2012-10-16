@@ -7,20 +7,20 @@ package com.midokura.midonet.functional_test;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import akka.testkit.TestProbe;
-import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.resource.*;
-import com.midokura.midonet.cluster.DataClient;
-import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
+import akka.util.Duration;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midonet.client.resource.*;
+import com.midokura.midonet.cluster.DataClient;
+import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -31,7 +31,6 @@ import com.midokura.packets.IPv4;
 import com.midokura.packets.UDP;
 import com.midokura.packets.IPacket;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.util.lock.LockHelper;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
@@ -74,18 +73,7 @@ public abstract class BaseTunnelTest {
 
     DataClient dataClient;
 
-    static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
-
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -104,8 +92,6 @@ public abstract class BaseTunnelTest {
         TestProbe probe = new TestProbe(midolman.getActorSystem());
         midolman.getActorSystem().eventStream().subscribe(
                 probe.ref(), LocalPortActive.class);
-        // FIXME
-        Thread.sleep(10000);
 
         // Create a bridge with two ports
         log.info("Creating bridge and two ports.");
@@ -130,6 +116,9 @@ public abstract class BaseTunnelTest {
         thisHost.addHostInterfacePort()
                 .interfaceName(vmTap.getName())
                 .portId(localPort.getId()).create();
+
+        probe.expectMsgClass(Duration.create(10, TimeUnit.SECONDS),
+                             LocalPortActive.class);
 
         // create a tap for the physical network and populate the neighbour
         // table with the remote host's ip address, to avoid ARPing
@@ -163,7 +152,7 @@ public abstract class BaseTunnelTest {
         setUpTunnelZone();
 
         // TODO
-        sleepBecause("we need the network to boot up", 10);
+        //sleepBecause("we need the network to boot up", 10);
     }
 
     @After

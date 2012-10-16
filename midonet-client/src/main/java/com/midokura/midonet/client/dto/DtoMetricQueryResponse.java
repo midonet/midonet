@@ -4,9 +4,9 @@
 
 package com.midokura.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Map;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * This class represents the query results.
@@ -30,11 +30,11 @@ public class DtoMetricQueryResponse {
     /**
      * the starting point of the time interval we are querying
      */
-    long startEpochTime;
+    long timeStampStart;
     /**
      * the end point of the time interval we are querying
      */
-    long endEpochTime;
+    long timeStampEnd;
     /**
      * results of the query
      */
@@ -48,12 +48,12 @@ public class DtoMetricQueryResponse {
         this.metricName = metricName;
     }
 
-    public void setStartEpochTime(long startEpochTime) {
-        this.startEpochTime = startEpochTime;
+    public void setTimeStampStart(long timeStampStart) {
+        this.timeStampStart = timeStampStart;
     }
 
-    public void setEndEpochTime(long endEpochTime) {
-        this.endEpochTime = endEpochTime;
+    public void setTimeStampEnd(long timeStampEnd) {
+        this.timeStampEnd = timeStampEnd;
     }
 
     public void setResults(Map<String, Long> results) {
@@ -72,12 +72,12 @@ public class DtoMetricQueryResponse {
         return metricName;
     }
 
-    public long getStartEpochTime() {
-        return startEpochTime;
+    public long getTimeStampStart() {
+        return timeStampStart;
     }
 
-    public long getEndEpochTime() {
-        return endEpochTime;
+    public long getTimeStampEnd() {
+        return timeStampEnd;
     }
 
     public Map<String, Long> getResults() {
@@ -93,8 +93,8 @@ public class DtoMetricQueryResponse {
         String res = "DtoMetricQueryResponse{" +
             "targetIdentifier=" + targetIdentifier +
             "metricName=" + metricName +
-            "start=" + startEpochTime +
-            "end=" + endEpochTime +
+            "start=" + timeStampStart +
+            "end=" + timeStampEnd +
             "type=" + type;
 
         for (Map.Entry<String, Long> entry : results.entrySet()) {

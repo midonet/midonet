@@ -15,12 +15,16 @@ import java.util.*;
 import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.rules.Condition;
+import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.Net;
 import com.midokura.util.StringUtil;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
+
+
+import static com.midokura.packets.Unsigned.unsign;
 
 /**
  * Class representing rule.
@@ -697,16 +701,16 @@ public abstract class Rule extends UriResource {
         c.invDlDst = this.invDlDst;
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
-            c.nwDstIp = Net.convertStringAddressToInt(this.getNwDstAddress());
+            c.nwDstIp = IntIPv4.fromString(this.getNwDstAddress(),
+                this.getNwDstLength());
         }
-        c.nwDstLength = (byte) this.getNwDstLength();
         c.nwProto = (byte) this.getNwProto();
         c.nwProtoInv = this.isInvNwProto();
         c.nwSrcInv = this.isInvNwSrc();
         if (this.getNwSrcAddress() != null) {
-            c.nwSrcIp = Net.convertStringAddressToInt(this.getNwSrcAddress());
+            c.nwSrcIp = IntIPv4.fromString(this.getNwSrcAddress(),
+                                           this.getNwSrcLength());
         }
-        c.nwSrcLength = (byte) this.getNwSrcLength();
         c.nwTos = (byte) this.getNwTos();
         c.nwTosInv = this.isInvNwTos();
         if (this.getOutPorts() != null) {
@@ -755,18 +759,26 @@ public abstract class Rule extends UriResource {
             this.setDlSrc(c.dlSrc.toString());
         if (null != c.dlDst)
             this.setDlDst(c.dlDst.toString());
-        if (c.nwDstIp != 0)
-            this.setNwDstAddress(Net.convertIntAddressToString(c.nwDstIp));
-        if (c.nwSrcIp != 0)
-            this.setNwSrcAddress(Net.convertIntAddressToString(c.nwSrcIp));
-        this.setNwDstLength(c.nwDstLength);
-        this.setNwSrcLength(c.nwSrcLength);
-        this.setNwProto(c.nwProto);
-        this.setNwTos(c.nwTos);
-        this.setTpDstEnd(c.tpDstEnd);
-        this.setTpDstStart(c.tpDstStart);
-        this.setTpSrcEnd(c.tpSrcEnd);
-        this.setTpSrcStart(c.tpSrcStart);
+        if (null != c.nwDstIp) {
+            this.setNwDstAddress(c.nwDstIp.toUnicastString());
+            this.setNwDstLength(c.nwDstIp.getMaskLength());
+        }
+        if (null != c.nwSrcIp) {
+            this.setNwSrcAddress(c.nwSrcIp.toUnicastString());
+            this.setNwSrcLength(c.nwSrcIp.getMaskLength());
+        }
+        if (null != c.nwProto)
+            this.setNwProto(unsign(c.nwProto));
+        if (null != c.nwTos)
+            this.setNwTos(unsign(c.nwTos));
+        if (null != c.tpDstEnd)
+            this.setTpDstEnd(c.tpDstEnd);
+        if (null != c.tpDstStart)
+            this.setTpDstStart(c.tpDstStart);
+        if (null != c.tpSrcEnd)
+            this.setTpSrcEnd(c.tpSrcEnd);
+        if (null != c.tpSrcStart)
+            this.setTpSrcStart(c.tpSrcStart);
     }
 
 }

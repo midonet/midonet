@@ -99,10 +99,28 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         flowRemovedCallbacks
     }
 
+    // This set stores the callback to call when this tag is removed because the
+    // flow is removed.
+    private val tagRemovedCallbacks = mutable.Set[Callback0]()
+    def addTagRemovedCallback(cb: Callback0): Unit = this.synchronized {
+        if (frozen)
+            throw new IllegalArgumentException(
+                "Adding callback to frozen PacketContext")
+        else
+            tagRemovedCallbacks.add(cb)
+    }
+    def getTagRemovedCallbacks(): ROSet[Callback0] = {
+        if (!frozen)
+            throw new IllegalArgumentException(
+                "Reading callbacks from unfrozen PacketContext")
+
+        tagRemovedCallbacks
+    }
+
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     private val flowTags = mutable.Set[Any]()
-    def addFlowTag(tag: Any): Unit = this.synchronized {
+    override def addFlowTag(tag: Any): Unit = this.synchronized {
         if (frozen)
             throw new IllegalArgumentException(
                             "Adding tag to frozen PacketContext")

@@ -71,7 +71,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var cfg: BridgeConfig = null
 
     private var macPortMap: MacLearningTable = null
-    private val mac_port_timeout_millis = 30*1000;
+    private val mac_port_timeout_millis = 30*1000
     private val flowCounts = new MacFlowCountImpl
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
@@ -83,7 +83,6 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private var rtrIpToMac: ROMap[IntIPv4, MAC] = null
 
     private var filterChanged = false
-
 
     override def chainsUpdated() {
         log.info("chains updated")

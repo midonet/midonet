@@ -9,6 +9,7 @@ import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.rest_api.DtoWebResource;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoCapwapTunnelZone;
 import com.midokura.midonet.client.dto.DtoGreTunnelZone;
 import com.midokura.midonet.client.dto.DtoHost;
 
@@ -57,6 +58,7 @@ public class HostTopology {
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
         private final Map<String, DtoGreTunnelZone> greTunnelZones;
+        private final Map<String, DtoCapwapTunnelZone> capwapTunnelZones;
 
         private final Map<String, String> tagToHosts;
 
@@ -65,6 +67,7 @@ public class HostTopology {
             this.hostZkManager = hostZkManager;
             this.hosts = new HashMap<UUID, DtoHost>();
             this.greTunnelZones = new HashMap<String, DtoGreTunnelZone>();
+            this.capwapTunnelZones = new HashMap<String, DtoCapwapTunnelZone>();
 
             this.tagToHosts = new HashMap<String, String>();
         }
@@ -80,6 +83,11 @@ public class HostTopology {
 
         public Builder create(String tag, DtoGreTunnelZone obj) {
             this.greTunnelZones.put(tag, obj);
+            return this;
+        }
+
+        public Builder create(String tag, DtoCapwapTunnelZone obj) {
+            this.capwapTunnelZones.put(tag, obj);
             return this;
         }
 
@@ -124,6 +132,17 @@ public class HostTopology {
                 entry.setValue(obj);
             }
 
+            for (Map.Entry<String, DtoCapwapTunnelZone> entry
+                    : capwapTunnelZones.entrySet()) {
+
+                DtoCapwapTunnelZone obj = entry.getValue();
+
+                obj = resource.postAndVerifyCreated(app.getTunnelZones(),
+                        APPLICATION_TUNNEL_ZONE_JSON, obj,
+                        DtoCapwapTunnelZone.class);
+                entry.setValue(obj);
+            }
+
             return new HostTopology(this);
         }
     }
@@ -142,5 +161,9 @@ public class HostTopology {
 
     public DtoGreTunnelZone getGreTunnelZone(String tag) {
         return this.builder.greTunnelZones.get(tag);
+    }
+
+    public DtoCapwapTunnelZone getCapwapTunnelZone(String tag) {
+        return this.builder.capwapTunnelZones.get(tag);
     }
 }

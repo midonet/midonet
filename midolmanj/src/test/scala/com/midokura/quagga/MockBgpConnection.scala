@@ -51,4 +51,12 @@ class MockBgpConnection extends BgpConnection {
     override def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
         log.info("deleteNetwork")
     }
+
+    override def setDebug(isEnabled: Boolean) {
+        log.info("setDebug")
+    }
+
+    override def setLogFile(file: String) {
+        log.info("setLogFile")
+    }
 }

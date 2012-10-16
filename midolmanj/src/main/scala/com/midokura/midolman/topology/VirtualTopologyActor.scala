@@ -90,7 +90,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
 
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {
-            log.info("Build a manager for this device.")
+            log.info("Build a manager for device {}", id)
             context.actorOf(Props(ctr(id)), name = id.toString())
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
@@ -103,11 +103,11 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
         if (idToDevice.contains(id))
             sender.tell(idToDevice(id))
         else {
-            log.info("Adding requester to unanswered clients")
+            log.debug("Adding requester to unanswered clients")
             idToUnansweredClients(id).add(sender)
         }
         if (update) {
-            log.info("Adding requester to subscribed clients")
+            log.debug("Adding requester to subscribed clients")
             idToSubscribers(id).add(sender)
         }
     }
@@ -116,13 +116,13 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
                            idToDevice: mutable.Map[UUID, T]): Unit = {
         idToDevice.put(id, device)
         for (client <- idToSubscribers(id)) {
-            log.info("Send subscriber the device update for {}", device)
+            log.debug("Send subscriber the device update for {}", device)
             client ! device
         }
         for (client <- idToUnansweredClients(id)) {
         // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
-                log.info("Send unanswered client the device update for {}",
+                log.debug("Send unanswered client the device update for {}",
                     device)
                 client ! device
             }
@@ -141,19 +141,19 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
 
     def receive = {
         case BridgeRequest(id, update) =>
-            log.info("Bridge {} requested with update={}", id, update)
+            log.debug("Bridge {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient))
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
-            log.info("Chain {} requested with update={}", id, update)
+            log.debug("Chain {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) => new ChainManager(x, clusterClient))
             deviceRequested(id, idToChain, update)
         case PortRequest(id, update) =>
-            log.info("Port {} requested with update={}", id, update)
+            log.debug("Port {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) => new PortManager(x, clusterClient))
             deviceRequested(id, idToPort, update)
         case RouterRequest(id, update) =>
-            log.info("Router {} requested with update={}", id, update)
+            log.debug("Router {} requested with update={}", id, update)
             manageDevice(id,
                 (x: UUID) => new RouterManager(x, clusterClient, config))
             deviceRequested(id, idToRouter, update)
@@ -162,7 +162,7 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
         case PortUnsubscribe(id) => unsubscribe(id, sender)
         case RouterUnsubscribe(id) => unsubscribe(id, sender)
         case bridge: Bridge =>
-            log.info("Received a Bridge for {}", bridge.id)
+            log.debug("Received a Bridge for {}", bridge.id)
             updated(bridge.id, bridge, idToBridge)
         case chain: Chain =>
             log.debug("Received a Chain for {}", chain.id)

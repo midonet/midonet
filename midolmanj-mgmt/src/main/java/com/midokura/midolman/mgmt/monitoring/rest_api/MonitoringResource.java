@@ -53,8 +53,8 @@ public class MonitoringResource {
         results = dataClient.metricsGetTSPoints(query.getType(),
                 query.getTargetIdentifier().toString(),
                 query.getMetricName(),
-                query.getStartEpochTime(),
-                query.getEndEpochTime()
+                query.getTimeStampStart(),
+                query.getTimeStampEnd()
 
         );
         MetricQueryResponse response = new MetricQueryResponse();
@@ -62,8 +62,8 @@ public class MonitoringResource {
         response.setTargetIdentifier(query.getTargetIdentifier());
         response.setType(query.getType());
         response.setResults(results);
-        response.setTimeStampStart(query.getStartEpochTime());
-        response.setTimeStampEnd(query.getEndEpochTime());
+        response.setTimeStampStart(query.getTimeStampStart());
+        response.setTimeStampEnd(query.getTimeStampEnd());
         return response;
     }
 

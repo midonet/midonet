@@ -20,7 +20,7 @@ public class Route implements Serializable {
     public static final int NO_GATEWAY = 0xffffffff;
 
     public enum NextHop {
-        BLACKHOLE, REJECT, PORT;
+        BLACKHOLE, REJECT, PORT, LOCAL
     }
 
     public int srcNetworkAddr;

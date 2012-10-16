@@ -42,7 +42,8 @@ object FlowController extends Referenceable {
                                cookie: Option[Int],
                                pktBytes: Array[Byte],
                                flowRemovalCallbacks: ROSet[Callback0],
-                               tags: ROSet[Any])
+                               tags: ROSet[Any],
+                               tagRemovalCallbacks: ROSet[Callback0])
 
     case class RemoveWildcardFlow(flow: WildcardFlow)
 
@@ -88,8 +89,11 @@ class FlowController extends Actor with ActorLogging {
     val flowToTags: MultiMap[WildcardFlow, Any] =
         new HashMap[WildcardFlow, mutable.Set[Any]]
             with MultiMap[WildcardFlow, Any]
-    val flowRemovalCallbacks =
+    val flowRemovalCallbacksMap =
         new mutable.HashMap[WildcardFlow, ROSet[Callback0]]
+
+    val tagRemovalCallbacksMap =
+        new mutable.HashMap[WildcardFlow, ROSet[Callback0]]()
 
     var flowExpirationCheckInterval: Duration = null
 
@@ -124,9 +128,9 @@ class FlowController extends Actor with ActorLogging {
             handlePacketIn(packet)
 
         case AddWildcardFlow(wildcardFlow, cookie, pktBytes,
-                             flowRemovalCallbacks, tags) =>
+                             flowRemovalCallbacks, tags, tagRemovalCallbacks) =>
             handleNewWildcardFlow(wildcardFlow, cookie,
-                                  flowRemovalCallbacks, tags)
+                                  flowRemovalCallbacks, tags, tagRemovalCallbacks)
             context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
 
         case DiscardPacket(cookieOpt) =>
@@ -148,7 +152,6 @@ class FlowController extends Actor with ActorLogging {
         case RemoveWildcardFlow(flow) =>
             log.debug("Removing wcflow {}", flow)
             removeWildcardFlow(flow)
-            context.system.eventStream.publish(new WildcardFlowRemoved(flow))
 
         case CheckFlowExpiration() =>
             flowManager.checkFlowsExpiration()
@@ -189,6 +192,7 @@ class FlowController extends Actor with ActorLogging {
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
+
         flowManager.remove(wildFlow)
         flowToTags.remove(wildFlow) map {
             set: mutable.Set[Any] =>
@@ -196,12 +200,17 @@ class FlowController extends Actor with ActorLogging {
                     tagToFlows.remove(tag)
                 }
         }
-        flowRemovalCallbacks.remove(wildFlow) map {
+        flowRemovalCallbacksMap.remove(wildFlow) map {
             set: ROSet[Callback0] =>
                 for( cb <- set)
                     cb.call()
         }
-
+        tagRemovalCallbacksMap.remove(wildFlow) map {
+            set: ROSet[Callback0] =>
+                for (cb <- set)
+                    cb.call()
+        }
+        context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
     }
 
     private def handlePacketIn(packet: Packet) {
@@ -286,21 +295,25 @@ class FlowController extends Actor with ActorLogging {
 
     private def handleNewWildcardFlow(wildcardFlow: WildcardFlow,
                                       cookieOpt: Option[Cookie],
-                                      callbacks: ROSet[Callback0],
-                                      tags: ROSet[Any]) {
+                                      flowRemovalCallbacks: ROSet[Callback0],
+                                      tags: ROSet[Any],
+                                      tagRemovalCallbacks: ROSet[Callback0]) {
         if (!flowManager.add(wildcardFlow)){
             log.error("FlowManager failed to install wildcard flow {}",
                 wildcardFlow)
             // TODO(pino, ross): should we send Packet commands for pended?
             // For now, just free the pended packets.
             freePendedPackets(cookieOpt)
-            for (cb <- callbacks)
-                cb.call()
+            if (null != flowRemovalCallbacks)
+                for (cb <- flowRemovalCallbacks)
+                    cb.call()
             return
         }
 
-        if (null != callbacks)
-            flowRemovalCallbacks.put(wildcardFlow, callbacks)
+        if (null != flowRemovalCallbacks)
+            flowRemovalCallbacksMap.put(wildcardFlow, flowRemovalCallbacks)
+        if (null != tagRemovalCallbacks)
+            tagRemovalCallbacksMap.put(wildcardFlow, tagRemovalCallbacks)
         if (null != tags) {
             for (tag <- tags) {
                 flowToTags.addBinding(wildcardFlow, tag)

@@ -7,10 +7,11 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.Net;
-import com.midokura.sdn.flows.PacketMatch;
+import com.midokura.sdn.flows.WildcardMatch;
+import static com.midokura.packets.Unsigned.unsign;
 
 
 public class Condition {
@@ -29,45 +30,25 @@ public class Condition {
     public boolean invDlSrc = false;
     public MAC dlDst = null;
     public boolean invDlDst = false;
-    public byte nwTos;
+    public Byte nwTos;
     public boolean nwTosInv;
-    public byte nwProto;
+    public Byte nwProto;
     public boolean nwProtoInv;
-    public int nwSrcIp;
-    public byte nwSrcLength;
+    public IntIPv4 nwSrcIp;
     public boolean nwSrcInv;
-    public int nwDstIp;
-    public byte nwDstLength;
+    public IntIPv4 nwDstIp;
     public boolean nwDstInv;
-    public short tpSrcStart;
-    public short tpSrcEnd;
+    public Short tpSrcStart;
+    public Short tpSrcEnd;
     public boolean tpSrcInv;
-    public short tpDstStart;
-    public short tpDstEnd;
+    public Short tpDstStart;
+    public Short tpDstEnd;
     public boolean tpDstInv;
-
-    /* Custom accessors for Jackson serialization with more readable IP addresses. */
-
-    public String getNwSrcIp() {
-        return Net.convertIntAddressToString(this.nwSrcIp);
-    }
-
-    public void setNwSrcIp(String addr) {
-        this.nwSrcIp = Net.convertStringAddressToInt(addr);
-    }
-
-    public String getNwDstIp() {
-        return Net.convertIntAddressToString(this.nwDstIp);
-    }
-
-    public void setNwDstIp(String addr) {
-        this.nwDstIp = Net.convertStringAddressToInt(addr);
-    }
 
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
-    public boolean matches(ChainPacketContext fwdInfo, PacketMatch pktMatch,
+    public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
                            boolean isPortFilter) {
         UUID inPortId = isPortFilter ? null : fwdInfo.getInPortId();
         UUID outPortId = isPortFilter ? null : fwdInfo.getOutPortId();
@@ -89,152 +70,83 @@ public class Condition {
             if (!fwdInfo.isForwardFlow())
                 return conjunctionInv;
         }
-        if (matchReturnFlow) {
+        else if (matchReturnFlow) {
             if (fwdInfo.isForwardFlow())
                 return conjunctionInv;
         }
-        if (null != inPortIds && inPortIds.size() > 0
+        else if (null != inPortIds && inPortIds.size() > 0
                 && inPortIds.contains(inPortId) == inPortInv)
             return conjunctionInv;
-        if (null != outPortIds && outPortIds.size() > 0
+        else if (null != outPortIds && outPortIds.size() > 0
                 && outPortIds.contains(outPortId) == outPortInv)
             return conjunctionInv;
-        if (null != portGroup) {
+        else if (null != portGroup) {
             if (senderGroups == null
                     ? !invPortGroup
                     : senderGroups.contains(portGroup) == invPortGroup)
                 return conjunctionInv;
         }
-        if (dlType != null && (dlType.shortValue()
-                == pktMatch.getDataLayerType()) == invDlType)
-            return conjunctionInv;
-        if (dlSrc != null && (dlSrc.equals(
-                new MAC(pktMatch.getDataLayerSource()))) == invDlSrc)
-            return conjunctionInv;
-        if (dlDst != null && (dlDst.equals(
-                new MAC(pktMatch.getDataLayerDestination()))) == invDlDst)
-            return conjunctionInv;
-        if (nwTos != 0
-                && (nwTos == pktMatch.getNetworkTypeOfService()) == nwTosInv)
-            return conjunctionInv;
-        if (nwProto != 0
-                && (nwProto == pktMatch.getNetworkProtocol()) == nwProtoInv)
-            return conjunctionInv;
-        // TODO(jlm,pino): A shift by 32 is silly, but it should always match.
-        int shift = 32 - nwSrcLength;
-        if (nwSrcIp != 0
-                && nwSrcLength > 0
-                && (nwSrcIp >>> shift
-                == pktMatch.getNetworkSource() >>> shift) == nwSrcInv)
-            return conjunctionInv;
-        shift = 32 - nwDstLength;
-        if (nwDstIp != 0
-                && nwDstLength > 0
-                && (nwDstIp >>> shift
-                == pktMatch.getNetworkDestination() >>> shift) == nwDstInv)
-            return conjunctionInv;
-        short tpSrc = pktMatch.getTransportSource();
-        if (tpSrcEnd != 0
-                && (tpSrcStart <= tpSrc && tpSrc <= tpSrcEnd) == tpSrcInv)
-            return conjunctionInv;
-        short tpDst = pktMatch.getTransportDestination();
-        if (tpDstEnd != 0
-                && (tpDstStart <= tpDst && tpDst <= tpDstEnd) == tpDstInv)
-            return conjunctionInv;
-        return !conjunctionInv;
+
+        boolean cond = true;
+        if (!match(dlType, pktMatch.getEtherType(), invDlType)
+            || !match(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
+            || !match(dlDst, pktMatch.getEthernetDestination(), invDlDst)
+            || !match(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
+            || !match(nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv)
+            || !match(nwSrcIp, pktMatch.getNetworkSourceIPv4(), nwSrcInv)
+            || !match(nwDstIp, pktMatch.getNetworkDestinationIPv4(), nwDstInv)
+            || !matchRange(tpSrcStart, tpSrcEnd,
+                    pktMatch.getTransportSourceObject(), tpSrcInv)
+            || !matchRange(tpDstStart, tpDstEnd,
+                    pktMatch.getTransportDestinationObject(), tpDstInv)
+            )
+            cond = false;
+        return conjunctionInv? !cond : cond;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Condition condition = (Condition) o;
-
-        if (conjunctionInv != condition.conjunctionInv) return false;
-        if (matchForwardFlow != condition.matchForwardFlow) return false;
-        if (matchReturnFlow != condition.matchReturnFlow) return false;
-        if (inPortInv != condition.inPortInv) return false;
-        if (invPortGroup != condition.invPortGroup) return false;
-        if (invDlDst != condition.invDlDst) return false;
-        if (invDlSrc != condition.invDlSrc) return false;
-        if (invDlType != condition.invDlType) return false;
-        if (nwDstInv != condition.nwDstInv) return false;
-        if (nwDstIp != condition.nwDstIp) return false;
-        if (nwDstLength != condition.nwDstLength) return false;
-        if (nwProto != condition.nwProto) return false;
-        if (nwProtoInv != condition.nwProtoInv) return false;
-        if (nwSrcInv != condition.nwSrcInv) return false;
-        if (nwSrcIp != condition.nwSrcIp) return false;
-        if (nwSrcLength != condition.nwSrcLength) return false;
-        if (nwTos != condition.nwTos) return false;
-        if (nwTosInv != condition.nwTosInv) return false;
-        if (outPortInv != condition.outPortInv) return false;
-        if (tpDstEnd != condition.tpDstEnd) return false;
-        if (tpDstInv != condition.tpDstInv) return false;
-        if (tpDstStart != condition.tpDstStart) return false;
-        if (tpSrcEnd != condition.tpSrcEnd) return false;
-        if (tpSrcInv != condition.tpSrcInv) return false;
-        if (tpSrcStart != condition.tpSrcStart) return false;
-        if (dlDst != null ?
-                !dlDst.equals(condition.dlDst) : condition.dlDst != null)
-            return false;
-        if (dlSrc != null ?
-                !dlSrc.equals(condition.dlSrc) : condition.dlSrc != null)
-            return false;
-        if (dlType != null ?
-                !dlType.equals(condition.dlType) : condition.dlType != null)
-            return false;
-        if (inPortIds != null
-                ? !inPortIds.equals(condition.inPortIds)
-                : condition.inPortIds != null)
-            return false;
-        if (outPortIds != null
-                ? !outPortIds.equals(condition.outPortIds)
-                : condition.outPortIds != null)
-            return false;
-        if (portGroup != null
-                ? !portGroup.equals(condition.portGroup)
-                : condition.portGroup != null)
-            return false;
-
-        return true;
+    /**
+     *
+     * @param condField
+     * @param pktField
+     * @param negate This is only considered if the condField is NOT null
+     * @return
+     */
+    private <T> boolean match(T condField, T pktField, boolean negate) {
+        // Packet is considered to match if the condField is not specified.
+        if (condField == null)
+            return true;
+        boolean cond = condField.equals(pktField);
+        return negate? !cond : cond;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (conjunctionInv ? 1 : 0);
-        result = 31 * result + (matchForwardFlow ? 1 : 0);
-        result = 31 * result + (matchReturnFlow ? 1 : 0);
-        result = 31 * result + (inPortIds != null ? inPortIds.hashCode() : 0);
-        result = 31 * result + (inPortInv ? 1 : 0);
-        result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
-        result = 31 * result + (outPortInv ? 1 : 0);
-        result = 31 * result + (portGroup != null ? portGroup.hashCode() : 0);
-        result = 31 * result + (invPortGroup ? 1 : 0);
-        result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
-        result = 31 * result + (invDlType ? 1 : 0);
-        result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);
-        result = 31 * result + (invDlSrc ? 1 : 0);
-        result = 31 * result + (dlDst != null ? dlDst.hashCode() : 0);
-        result = 31 * result + (invDlDst ? 1 : 0);
-        result = 31 * result + (int) nwTos;
-        result = 31 * result + (nwTosInv ? 1 : 0);
-        result = 31 * result + (int) nwProto;
-        result = 31 * result + (nwProtoInv ? 1 : 0);
-        result = 31 * result + nwSrcIp;
-        result = 31 * result + (int) nwSrcLength;
-        result = 31 * result + (nwSrcInv ? 1 : 0);
-        result = 31 * result + nwDstIp;
-        result = 31 * result + (int) nwDstLength;
-        result = 31 * result + (nwDstInv ? 1 : 0);
-        result = 31 * result + (int) tpSrcStart;
-        result = 31 * result + (int) tpSrcEnd;
-        result = 31 * result + (tpSrcInv ? 1 : 0);
-        result = 31 * result + (int) tpDstStart;
-        result = 31 * result + (int) tpDstEnd;
-        result = 31 * result + (tpDstInv ? 1 : 0);
-        return result;
+    private boolean match(IntIPv4 condSubnet, IntIPv4 pktIp, boolean negate) {
+        // Packet is considered to match if the condField is not specified.
+        if (condSubnet == null)
+            return true;
+        boolean cond = false;
+        if (pktIp != null && condSubnet.subnetContains(pktIp.addressAsInt()))
+            cond = true;
+        return negate? !cond : cond;
+    }
+
+    private boolean matchRange(Short start, Short end, Short pktField,
+                               boolean negate) {
+        // Packet is considered to match if the condField is not specified.
+        if (null == start && null == end)
+            return true;
+        boolean cond = false;
+        if (null != pktField) {
+            cond = true;
+            // If the lower bound of the range is specified and the pkt field
+            // is below it, the condition is false.
+            if (null != start && unsign(pktField) < unsign(start))
+                cond = false;
+            // If the upper bound of the range is specified and the pkt field
+            // is above it, the condition is false.
+            if (null != end && unsign(end) < unsign(pktField))
+                cond = false;
+        }
+        return negate? !cond : cond;
     }
 
     @Override
@@ -284,35 +196,33 @@ public class Condition {
             if(invDlDst)
                 sb.append("invDlDst").append(invDlDst).append(",");
         }
-        if (0 != nwTos) {
+        if (null != nwTos) {
             sb.append("nwTos=").append(nwTos).append(",");
             if(nwTosInv)
                 sb.append("nwTosInv").append(nwTosInv).append(",");
         }
-        if (0 != nwProto) {
+        if (null != nwProto) {
             sb.append("nwProto=").append(nwProto).append(",");
             if(nwProtoInv)
                 sb.append("nwProtoInv").append(nwProtoInv).append(",");
         }
-        if (0 != nwSrcIp) {
-            sb.append("nwSrcIp=").append(IPv4.fromIPv4Address(nwSrcIp));
-            sb.append(",nwSrcLength=").append(nwSrcLength).append(",");
+        if (null != nwSrcIp) {
+            sb.append("nwSrcIp=").append(nwSrcIp).append(",");
             if(nwSrcInv)
                 sb.append("nwSrcInv").append(nwSrcInv).append(",");
         }
-        if (0 != nwDstIp) {
-            sb.append("nwDstIp=").append(IPv4.fromIPv4Address(nwDstIp));
-            sb.append(",nwDstLength=").append(nwDstLength).append(",");
+        if (null != nwDstIp) {
+            sb.append("nwDstIp=").append(nwDstIp).append(",");
             if(nwDstInv)
                 sb.append("nwDstInv").append(nwDstInv).append(",");
         }
-        if (0 != tpSrcEnd) {
+        if (null != tpSrcStart || null != tpSrcEnd) {
             sb.append("tpSrcStart=").append(tpSrcStart).append(",");
             sb.append("tpSrcEnd=").append(tpSrcEnd).append(",");
             if(tpSrcInv)
                 sb.append("tpSrcInv").append(tpSrcInv).append(",");
         }
-        if (0 != tpDstEnd) {
+        if (null != tpDstStart || null != tpDstEnd) {
             sb.append("tpDstStart=").append(tpDstStart).append(",");
             sb.append("tpDstEnd=").append(tpDstEnd).append(",");
             if(tpDstInv)
@@ -320,5 +230,93 @@ public class Condition {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Condition condition = (Condition) o;
+
+        if (conjunctionInv != condition.conjunctionInv) return false;
+        if (inPortInv != condition.inPortInv) return false;
+        if (invDlDst != condition.invDlDst) return false;
+        if (invDlSrc != condition.invDlSrc) return false;
+        if (invDlType != condition.invDlType) return false;
+        if (invPortGroup != condition.invPortGroup) return false;
+        if (matchForwardFlow != condition.matchForwardFlow) return false;
+        if (matchReturnFlow != condition.matchReturnFlow) return false;
+        if (nwDstInv != condition.nwDstInv) return false;
+        if (nwProtoInv != condition.nwProtoInv) return false;
+        if (nwSrcInv != condition.nwSrcInv) return false;
+        if (nwTosInv != condition.nwTosInv) return false;
+        if (outPortInv != condition.outPortInv) return false;
+        if (tpDstInv != condition.tpDstInv) return false;
+        if (tpSrcInv != condition.tpSrcInv) return false;
+        if (dlDst != null ? !dlDst.equals(condition.dlDst) : condition.dlDst != null)
+            return false;
+        if (dlSrc != null ? !dlSrc.equals(condition.dlSrc) : condition.dlSrc != null)
+            return false;
+        if (dlType != null ? !dlType.equals(condition.dlType) : condition.dlType != null)
+            return false;
+        if (inPortIds != null ? !inPortIds.equals(condition.inPortIds) : condition.inPortIds != null)
+            return false;
+        if (nwDstIp != null ? !nwDstIp.equals(condition.nwDstIp) : condition.nwDstIp != null)
+            return false;
+        if (nwProto != null ? !nwProto.equals(condition.nwProto) : condition.nwProto != null)
+            return false;
+        if (nwSrcIp != null ? !nwSrcIp.equals(condition.nwSrcIp) : condition.nwSrcIp != null)
+            return false;
+        if (nwTos != null ? !nwTos.equals(condition.nwTos) : condition.nwTos != null)
+            return false;
+        if (outPortIds != null ? !outPortIds.equals(condition.outPortIds) : condition.outPortIds != null)
+            return false;
+        if (portGroup != null ? !portGroup.equals(condition.portGroup) : condition.portGroup != null)
+            return false;
+        if (tpDstEnd != null ? !tpDstEnd.equals(condition.tpDstEnd) : condition.tpDstEnd != null)
+            return false;
+        if (tpDstStart != null ? !tpDstStart.equals(condition.tpDstStart) : condition.tpDstStart != null)
+            return false;
+        if (tpSrcEnd != null ? !tpSrcEnd.equals(condition.tpSrcEnd) : condition.tpSrcEnd != null)
+            return false;
+        if (tpSrcStart != null ? !tpSrcStart.equals(condition.tpSrcStart) : condition.tpSrcStart != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (conjunctionInv ? 1 : 0);
+        result = 31 * result + (matchForwardFlow ? 1 : 0);
+        result = 31 * result + (matchReturnFlow ? 1 : 0);
+        result = 31 * result + (inPortIds != null ? inPortIds.hashCode() : 0);
+        result = 31 * result + (inPortInv ? 1 : 0);
+        result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
+        result = 31 * result + (outPortInv ? 1 : 0);
+        result = 31 * result + (portGroup != null ? portGroup.hashCode() : 0);
+        result = 31 * result + (invPortGroup ? 1 : 0);
+        result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
+        result = 31 * result + (invDlType ? 1 : 0);
+        result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);
+        result = 31 * result + (invDlSrc ? 1 : 0);
+        result = 31 * result + (dlDst != null ? dlDst.hashCode() : 0);
+        result = 31 * result + (invDlDst ? 1 : 0);
+        result = 31 * result + (nwTos != null ? nwTos.hashCode() : 0);
+        result = 31 * result + (nwTosInv ? 1 : 0);
+        result = 31 * result + (nwProto != null ? nwProto.hashCode() : 0);
+        result = 31 * result + (nwProtoInv ? 1 : 0);
+        result = 31 * result + (nwSrcIp != null ? nwSrcIp.hashCode() : 0);
+        result = 31 * result + (nwSrcInv ? 1 : 0);
+        result = 31 * result + (nwDstIp != null ? nwDstIp.hashCode() : 0);
+        result = 31 * result + (nwDstInv ? 1 : 0);
+        result = 31 * result + (tpSrcStart != null ? tpSrcStart.hashCode() : 0);
+        result = 31 * result + (tpSrcEnd != null ? tpSrcEnd.hashCode() : 0);
+        result = 31 * result + (tpSrcInv ? 1 : 0);
+        result = 31 * result + (tpDstStart != null ? tpDstStart.hashCode() : 0);
+        result = 31 * result + (tpDstEnd != null ? tpDstEnd.hashCode() : 0);
+        result = 31 * result + (tpDstInv ? 1 : 0);
+        return result;
     }
 }

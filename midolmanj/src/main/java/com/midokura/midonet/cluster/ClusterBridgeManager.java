@@ -110,16 +110,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         };
     }
 
-    void setLocalExteriorPortActive(UUID bridgeId, UUID portId, MAC mac, boolean active){
-        BridgeBuilder builder = getBuilder(bridgeId);
-        if(builder == null){
-            log.debug("BridgeBuilder for bridge {} was null. No builder to notify ");
-        }
-        else{
-            builder.setLocalExteriorPortActive(portId, mac, active);
-        }
-    }
-
     void updateLogicalPorts(BridgeBuilder builder, UUID bridgeId, boolean isUpdate){
 
         // This implementation won't keep the old tables and compute a diff

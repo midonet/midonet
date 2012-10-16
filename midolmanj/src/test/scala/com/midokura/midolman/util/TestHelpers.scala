@@ -1,13 +1,13 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package com.midokura.midolman
+package com.midokura.midolman.util
 
 import java.util.concurrent.TimeUnit
-import util.Sudo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue
+import com.midokura.midolman.FlowController.WildcardFlowRemoved
 
 /**
  * Simple Scala object that should contain helpers methods to be used by a test
@@ -60,5 +60,12 @@ object TestHelpers {
 
         assertThat("Command \"%s\" should have succeeded".format(command),
             commandExitCode, is(equalTo(0)))
+    }
+
+    def getMatchFlowRemovedPacketPartialFunction: PartialFunction[Any, Boolean] = {
+        {
+            case msg: WildcardFlowRemoved => true
+            case _ => false
+        }
     }
 }

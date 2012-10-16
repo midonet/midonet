@@ -48,16 +48,10 @@ public class BgpTest {
     MidolmanLauncher midolman;
 
     TapWrapper tap1_vm;
-    TapWrapper tap1_bgp;
-    TapWrapper tap2_vm;
-    TapWrapper tap2_bgp;
-    TapProxy tapProxy;
 
     PacketHelper packetHelper1;
-    PacketHelper packetHelper2;
 
     Bgp bgp1;
-    Bgp bgp2;
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
@@ -121,32 +115,6 @@ public class BgpTest {
                 .create();
         log.debug("Created BGP in materialized router port: " + bgp1.toString());
 
-        Router router2 = apiClient.addRouter().tenantId(tenantName).name("router2").create();
-        log.debug("Created router " + router2.getName());
-
-        RouterPort materializedRouterPort2_vm = (RouterPort) router2.addMaterializedRouterPort()
-                .portAddress("2.0.0.1")
-                .networkAddress("2.0.0.0")
-                .networkLength(24)
-                .portMac("00:00:00:00:02:01")
-                .create();
-        log.debug("Created logical router port: " + materializedRouterPort2_vm.toString());
-
-        RouterPort materializedRouterPort2_bgp = (RouterPort) router2.addMaterializedRouterPort()
-                .portAddress("100.0.0.2")
-                .networkAddress("100.0.0.0")
-                .networkLength(30)
-                .portMac("00:00:00:00:aa:02")
-                .create();
-        log.debug("Created materialized router port: " + materializedRouterPort2_bgp.toString());
-
-        bgp2 = materializedRouterPort2_bgp.addBgp()
-                .localAS(2)
-                .peerAddr("100.0.0.1")
-                .peerAS(1)
-                .create();
-        log.debug("Created BGP in materialized router port: " + bgp2.toString());
-
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -169,35 +137,11 @@ public class BgpTest {
                 .portId(materializedRouterPort1_vm.getId())
                 .create();
 
-        log.debug("Creating TAP1 bgp");
-        tap1_bgp = new TapWrapper("tap1_bgp");
-
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
-                .interfaceName(tap1_bgp.getName())
+                .interfaceName("veth0")
                 .portId(materializedRouterPort1_bgp.getId())
                 .create();
-
-        log.debug("Creating TAP2 vm");
-        tap2_vm = new TapWrapper("tap2_vm");
-
-        log.debug("Adding interface to host.");
-        host.addHostInterfacePort()
-                .interfaceName(tap2_vm.getName())
-                .portId(materializedRouterPort2_vm.getId())
-                .create();
-
-        log.debug("Creating TAP2 bgp");
-        tap2_bgp = new TapWrapper("tap2_bgp");
-
-        log.debug("Adding interface to host.");
-        host.addHostInterfacePort()
-                .interfaceName(tap2_bgp.getName())
-                .portId(materializedRouterPort2_bgp.getId())
-                .create();
-
-        tapProxy = new TapProxy(tap1_bgp, tap2_bgp);
-        tapProxy.start();
 
         packetHelper1 = new PacketHelper(
                 MAC.fromString("00:00:00:00:01:02"),
@@ -205,11 +149,6 @@ public class BgpTest {
                 MAC.fromString("00:00:00:00:01:01"),
                 IntIPv4.fromString("1.0.0.1"));
 
-        packetHelper2 = new PacketHelper(
-                MAC.fromString("00:00:00:00:02:02"),
-                IntIPv4.fromString("2.0.0.2"),
-                MAC.fromString("00:00:00:00:02:01"),
-                IntIPv4.fromString("2.0.0.1"));
 
         sleepBecause("we need midolman to boot up", 20);
 
@@ -217,38 +156,32 @@ public class BgpTest {
 
     @After
     public void tearDown() {
-        tapProxy.stop();
         removeTapWrapper(tap1_vm);
-        removeTapWrapper(tap1_bgp);
-        removeTapWrapper(tap2_vm);
-        removeTapWrapper(tap2_bgp);
         stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
         stopEmbeddedZookeeper();
     }
 
+    @Ignore
     @Test
     public void testNoRouteConnectivity() throws Exception {
         log.debug("testNoRouteConnectivity - start");
 
         tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
-        byte[] packet = tap2_vm.recv();
-        assertThat(packet, nullValue());
 
         log.debug("testNoRouteConnectivity - stop");
     }
 
-    @Ignore
     @Test
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
 
-        bgp2.addAdRoute().nwPrefix("2.0.0.0").prefixLength(24);
+        sleepBecause("wait few seconds to see if bgpd catches the route", 20);
 
         tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
-        byte[] packet = tap2_vm.recv();
-        assertThat(packet, notNullValue());
+
+        sleepBecause("wait for ICMP to travel", 60);
 
         log.debug("testRouteConnectivity - stop");
     }

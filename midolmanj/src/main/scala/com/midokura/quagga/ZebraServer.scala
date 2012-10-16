@@ -50,15 +50,18 @@ class ZebraServer(val address: SocketAddress,
     val dispatcher = actor {
 
         def addZebraConn(dispatcher: Actor) {
+            log.debug("begin")
             val zebraConn =
                 new ZebraConnection(dispatcher, handler, ifAddr, ifName)
             zebraConnPool += zebraConn
             zebraConn.start()
+            log.debug("end")
         }
 
         loop {
             react {
                 case Request(conn: Socket, requestId: Int) => {
+                    log.debug("request id {}", requestId)
                     if (zebraConnPool.isEmpty) {
                         addZebraConn(self)
                     }
@@ -85,6 +88,7 @@ class ZebraServer(val address: SocketAddress,
         log.info("start")
 
         actor {
+            log.debug("zebra actor initialized")
             var requestId = 0
             loopWhile(run) {
                 try {

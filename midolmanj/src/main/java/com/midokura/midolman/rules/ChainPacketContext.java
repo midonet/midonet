@@ -11,6 +11,7 @@ public interface ChainPacketContext {
     UUID getOutPortId();
     Set<UUID> getPortGroups();
     void addTraversedElementID(UUID id);
+    void addFlowTag(Object tag);
     boolean isConnTracked();
     boolean isForwardFlow();
     Object getFlowCookie();

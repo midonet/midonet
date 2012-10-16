@@ -13,8 +13,7 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{RouterConfig, RoutingTableWrapper,
-                                       VirtualTopologyActor}
+import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
@@ -24,7 +23,8 @@ import com.midokura.sdn.flows.WildcardMatch
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
-             val inFilter: Chain, val outFilter: Chain) extends Device {
+             val inFilter: Chain, val outFilter: Chain,
+             val routerMgrTagger: TagManager) extends Device {
     private val log = LoggerFactory.getLogger(classOf[Router])
     private val loadBalancer = new LoadBalancer(rTable)
 
@@ -36,17 +36,22 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new NotIPv4Action)(ec)
 
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
-            case null => Promise.successful(new DropAction)(ec)
+            case null => log.debug("Router - in port {} was null",
+                             pktContext.getInPortId())
+                          Promise.successful(new DropAction)(ec)
             case inPort => preRouting(pktContext, inPort)
         }
     }
 
-    /* Does pre-routing and routing phases. Delegates post-routing and out
-     * phases to postRouting()
+    /* Does pre-routing phase. Delegates routing post-routing and out
+     * phases to routing() and postRouting()
      */
     private def preRouting(pktContext: PacketContext, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem): Future[Action] = {
+
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
+
         val hwDst = pktContext.getMatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             log.debug("Received an L2 broadcast packet.")
@@ -91,18 +96,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 return Promise.successful(new DropAction)(ec)
         }
 
-        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
-        if (nwDst.getAddress == inPort.portAddr.getAddress) {
-            // We're the L3 destination.  Reply to ICMP echos, drop the rest.
-            if (isIcmpEchoRequest(pktContext.getMatch)) {
-                log.debug("got ICMP echo")
-                sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
-                                  pktContext.getExpiry)
-                return Promise.successful(new ConsumedAction)(ec)
-            } else
-                return Promise.successful(new DropAction)(ec)
-        }
-
         // Apply the pre-routing (ingress) chain
         // InputPort already set.
         pktContext.setOutputPort(null)
@@ -126,6 +119,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new ErrorDropAction)(ec)
         }
 
+        routing(pktContext, inPort)
+    }
+
+    private def routing(pktContext: PacketContext, inPort: RouterPort[_])
+                          (implicit ec: ExecutionContext,
+                           actorSystem: ActorSystem): Future[Action] = {
+
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
          * so that there need only be one sim. run for different TTLs.  */
         if (pktContext.getMatch.getNetworkTTL != null) {
@@ -139,6 +139,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             }
         }
 
+        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
         val rt: Route = loadBalancer.lookup(pktContext.getMatch)
         if (rt == null) {
             // No route to network
@@ -148,34 +149,61 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
         }
-        if (rt.nextHop == Route.NextHop.BLACKHOLE) {
-            log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                pktContext.getMatch.getNetworkDestinationIPv4)
-            return Promise.successful(new DropAction)(ec)
-        }
-        if (rt.nextHop == Route.NextHop.REJECT) {
-            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
-                ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
-            log.debug("Dropping packet, REJECT route (dst:{})",
-                pktContext.getMatch.getNetworkDestinationIPv4)
-            return Promise.successful(new DropAction)(ec)
-        }
-        if (rt.nextHop != Route.NextHop.PORT) {
-            log.error("Routing table lookup for {} returned invalid nextHop " +
-                "of {}", nwDst, rt.nextHop)
-            // TODO(jlm, pino): Should this be an exception?
-            return Promise.successful(new DropAction)(ec)
-        }
-        if (rt.nextHopPort == null) {
-            log.error("Routing table lookup for {} forwarded to port null.",
-                nwDst)
-            // TODO(pino): should we remove this route?
-            return Promise.successful(new DropAction)(ec)
-        }
 
-        getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
-            case null => Promise.successful(new DropAction)(ec)
-            case outPort => postRouting(inPort, outPort, rt, pktContext)
+        // tag using this route
+        pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))
+        // tag using the destination IP
+        val dstIp = pktContext.getMatch().getNetworkDestination
+        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
+        // pass the tag to the RouterManager so that it will be able to invalidate
+        // the flow
+        routerMgrTagger.addTag(dstIp)
+        // register the tag removal callback
+        pktContext.addTagRemovedCallback(routerMgrTagger.getTagRemovalCallback(dstIp))
+
+        rt.nextHop match {
+            case Route.NextHop.LOCAL =>
+                if (isIcmpEchoRequest(pktContext.getMatch)) {
+                    log.debug("got ICMP echo")
+                    sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
+                        pktContext.getExpiry)
+                    Promise.successful(new ConsumedAction)(ec)
+                } else {
+                    Promise.successful(new DropAction)(ec)
+                }
+
+            case Route.NextHop.BLACKHOLE =>
+                log.debug("Dropping packet, BLACKHOLE route (dst:{})",
+                    pktContext.getMatch.getNetworkDestinationIPv4)
+                Promise.successful(new DropAction)(ec)
+
+            case Route.NextHop.REJECT =>
+                sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
+                    ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+                log.debug("Dropping packet, REJECT route (dst:{})",
+                    pktContext.getMatch.getNetworkDestinationIPv4)
+                Promise.successful(new DropAction)(ec)
+
+            case Route.NextHop.PORT =>
+                if (rt.nextHopPort == null) {
+                    log.error("Routing table lookup for {} forwarded to port " +
+                        "null.", nwDst)
+                    // TODO(pino): should we remove this route?
+                    Promise.successful(new DropAction)(ec)
+                } else {
+                    getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
+                        case null =>
+                            Promise.successful(new DropAction)(ec)
+                        case outPort =>
+                            postRouting(inPort, outPort, rt, pktContext)
+                    }
+                }
+
+            case _ =>
+                log.error("Routing table lookup for {} returned invalid " +
+                    "nextHop of {}", nwDst, rt.nextHop)
+                // TODO(jlm, pino): Should this be an exception?
+                Promise.successful(new DropAction)(ec)
         }
     }
 
@@ -183,7 +211,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                             rt: Route, pktContext: PacketContext)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
-        // Apply post-routing (egress) chain.
+
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
                                             pktContext.getMatch, id, false)
@@ -209,15 +237,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         if (pktContext.getMatch.getNetworkDestinationIPv4.getAddress ==
                                          outPort.portAddr.getAddress) {
-            if (isIcmpEchoRequest(pktContext.getMatch)) {
-                log.debug("got icmp echo request")
-                sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
-                                  pktContext.getExpiry)
-                return Promise.successful(new ConsumedAction)(ec)
-            } else {
-                log.debug("dropping IPv4 packet addressed to me")
-                return Promise.successful(new DropAction)(ec)
-            }
+            log.error("Got a packet addressed to a port without a LOCAL route")
+            return Promise.successful(new ErrorDropAction)(ec)
         }
 
         // Set HWSrc

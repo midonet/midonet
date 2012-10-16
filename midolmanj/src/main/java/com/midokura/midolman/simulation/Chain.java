@@ -21,8 +21,8 @@ import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
-import com.midokura.sdn.flows.PacketMatch;
-
+import com.midokura.midolman.topology.FlowTagger;
+import com.midokura.sdn.flows.WildcardMatch;
 
 public class Chain {
     private final static Logger log = LoggerFactory.getLogger(Chain.class);
@@ -82,13 +82,16 @@ public class Chain {
      */
     public static RuleResult apply(
             Chain origChain, ChainPacketContext fwdInfo,
-            PacketMatch pktMatch, UUID ownerId, boolean isPortFilter) {
+            WildcardMatch pktMatch, UUID ownerId, boolean isPortFilter) {
         if (null == origChain) {
              return new RuleResult(
                 RuleResult.Action.ACCEPT, null, pktMatch, false);
         }
         Chain currentChain = origChain;
         fwdInfo.addTraversedElementID(origChain.id);
+        fwdInfo.addFlowTag(FlowTagger.invalidateFlowsByDevice(currentChain.id));
+        fwdInfo.addFlowTag(
+            FlowTagger.invalidateFlowsByDeviceFilter(ownerId, currentChain.id));
         log.debug("Processing chain with name {} and ID {}",
                   currentChain.name, currentChain.id);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
@@ -137,8 +140,6 @@ public class Chain {
                     }
                     // Keep track of the traversed chains to detect loops.
                     traversedChains.add(nextID);
-                    // The flow may be invalidated if any traversed id changes.
-                    fwdInfo.addTraversedElementID(nextID);
                     // Remember the calling chain.
                     chainStack.push(cp);
                     chainStack.push(

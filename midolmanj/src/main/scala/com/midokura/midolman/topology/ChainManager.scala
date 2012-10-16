@@ -36,26 +36,26 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     // Keep track of how many chains are missing from the map.
     private var waitingForChains: Int = 0
 
-    private def incrChainRefCount(ruleId: UUID): Unit = {
-        if (idToRefCount.contains(ruleId)) {
-            idToRefCount.put(ruleId, idToRefCount(ruleId) + 1)
+    private def incrChainRefCount(chainId: UUID): Unit = {
+        if (idToRefCount.contains(chainId)) {
+            idToRefCount.put(chainId, idToRefCount(chainId) + 1)
         } else {
             // Subscribe to this new chain
-            context.actorFor("..").tell(ChainRequest(ruleId, true))
-            idToRefCount.put(ruleId, 1)
+            context.actorFor("..").tell(ChainRequest(chainId, true), self)
+            idToRefCount.put(chainId, 1)
             waitingForChains += 1
         }
     }
 
-    private def decrChainRefCount(ruleId: UUID): Unit = {
-        if (idToRefCount.contains(ruleId)) {
-            val refCount = idToRefCount(ruleId)
+    private def decrChainRefCount(chainId: UUID): Unit = {
+        if (idToRefCount.contains(chainId)) {
+            val refCount = idToRefCount(chainId)
             if (refCount > 1)
-                idToRefCount.put(ruleId, refCount - 1)
+                idToRefCount.put(chainId, refCount - 1)
             else {
-                context.actorFor("..").tell(ChainUnsubscribe(ruleId))
-                idToRefCount.remove(ruleId)
-                idToChain.remove(ruleId) match {
+                context.actorFor("..").tell(ChainUnsubscribe(chainId), self)
+                idToRefCount.remove(chainId)
+                idToChain.remove(chainId) match {
                     case None => waitingForChains -= 1
                     case Some(chain) =>  // do nothing
                 }
@@ -70,13 +70,27 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     private def updateRules(curRules: util.Collection[Rule]): Unit = {
         for (r <- curRules) {
             if ((null == rules || !rules.contains(r))
-                    && r.isInstanceOf[JumpRule])
-                incrChainRefCount(r.asInstanceOf[JumpRule].jumpToChainID)
+                    && r.isInstanceOf[JumpRule]) {
+                val targetId = r.asInstanceOf[JumpRule].jumpToChainID
+                targetId match {
+                    case null =>
+                        log.warning("New jump rule with null target {}", r)
+                    case _ =>
+                        incrChainRefCount(targetId)
+                }
+            }
         }
         if (null != rules)
             for (r <- rules) {
-                if (!curRules.contains(r) && r.isInstanceOf[JumpRule])
-                    decrChainRefCount(r.asInstanceOf[JumpRule].jumpToChainID)
+                if (!curRules.contains(r) && r.isInstanceOf[JumpRule]) {
+                    val targetId = r.asInstanceOf[JumpRule].jumpToChainID
+                    targetId match {
+                        case null =>
+                            log.warning("Old jump rule with null target {}", r)
+                        case _ =>
+                            decrChainRefCount(targetId)
+                    }
+                }
             }
         rules = curRules
         sortedRules =

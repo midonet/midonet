@@ -168,9 +168,9 @@ public class PortGroupTest {
         RuleChain portOutChain1 = apiClient.addChain()
             .name("port1_out").tenantId("pgroup_tnt").create();
         portOutChain1.addRule().type(DtoRule.Jump).position(1)
-            .jumpChainName("common").create();
+            .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain1.addRule().type(DtoRule.Jump).position(2)
-            .jumpChainName("SG1").create();
+            .jumpChainName("SG1").jumpChainId(secG1.getId()).create();
         portOutChain1.addRule().type(DtoRule.Drop).position(3).create();
         BridgePort<DtoBridgePort> brPort1 = br.addMaterializedPort()
             .outboundFilterId(portOutChain1.getId())
@@ -180,9 +180,9 @@ public class PortGroupTest {
         RuleChain portOutChain2 = apiClient.addChain()
             .name("port2_out").tenantId("pgroup_tnt").create();
         portOutChain2.addRule().type(DtoRule.Jump).position(1)
-            .jumpChainName("common").create();
+            .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain2.addRule().type(DtoRule.Jump).position(2)
-            .jumpChainName("SG2").create();
+            .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain2.addRule().type(DtoRule.Drop).position(3).create();
         BridgePort<DtoBridgePort> brPort2 = br.addMaterializedPort()
             .outboundFilterId(portOutChain2.getId())
@@ -192,11 +192,11 @@ public class PortGroupTest {
         RuleChain portOutChain3 = apiClient.addChain()
             .name("port3_out").tenantId("pgroup_tnt").create();
         portOutChain3.addRule().type(DtoRule.Jump).position(1)
-            .jumpChainName("common").create();
+            .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain3.addRule().type(DtoRule.Jump).position(2)
-            .jumpChainName("SG1").create();
+            .jumpChainName("SG1").jumpChainId(secG1.getId()).create();
         portOutChain3.addRule().type(DtoRule.Jump).position(3)
-            .jumpChainName("SG2").create();
+            .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
         BridgePort<DtoBridgePort> brPort3 = br.addMaterializedPort()
             .outboundFilterId(portOutChain3.getId())
