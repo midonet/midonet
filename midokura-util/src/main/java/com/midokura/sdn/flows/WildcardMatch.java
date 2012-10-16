@@ -655,6 +655,16 @@ public class WildcardMatch implements Cloneable {
         return result;
     }
 
+    @Override
+    public String toString() {
+        String output = "";
+        for (Field f: getUsedFields()){
+           output += " ";
+           output += f.toString();
+        }
+        return output;
+    }
+
     /**
      * Implement cloneable interface
      */

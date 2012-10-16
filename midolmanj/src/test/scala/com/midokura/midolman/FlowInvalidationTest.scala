@@ -75,12 +75,17 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
     }
 
     override def beforeTest() {
+        eventProbe = newProbe()
+        addRemoveFlowsProbe = newProbe()
+
+        drainProbes()
+        drainProbe(eventProbe)
+        drainProbe(addRemoveFlowsProbe)
+
         host = newHost("myself", hostId())
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        eventProbe = newProbe()
-        addRemoveFlowsProbe = newProbe()
         actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowAdded])
         actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowRemoved])
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
@@ -113,19 +118,16 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
             10, 11, "My UDP packet".getBytes)
     }
 
-    def getMatchFlowRemovedPacketPartialFunction: PartialFunction[Any, Boolean] = {
-        {
-            case msg: WildcardFlowRemoved => true
-            case _ => false
-        }
-    }
+
     // Characters of this test
     // inPort: it's the port that receives the inject packets
     // outPort: the port assigned as next hop in the routes
     // ipSource, macSource: the source of the packets we inject, we imagine packets arrive
     // from a remote source
     // ipToReach, macToReach: it's the Ip that is the destination of the injected packets
-    def IGNOREtestRouteRemovedInvalidation() {
+    def testRouteRemovedInvalidation() {
+        drainProbes()
+
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
@@ -145,9 +147,16 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
         dpProbe().expectMsgClass(classOf[PacketIn])
         dpProbe().expectMsgClass(classOf[PacketIn])
 
-        //requestOfType[DiscardPacket](flowProbe())
+        requestOfType[DiscardPacket](flowProbe())
+
+        // two flows are for the ports that became active and a flow is created
+        // to handle tunnelled packets for those ports
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+
         // when we delete the routes we expect the flow to be invalidated
         clusterDataClient().routesDelete(routeId)
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
