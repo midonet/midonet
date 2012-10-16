@@ -59,6 +59,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
     }
 
     private void requestBgp(UUID bgpID) {
+        log.debug("requesting bgp");
         if (mapBgpIdtoBgp.containsKey(bgpID)) {
             log.error("requestBgp it's only for creations not for updates.");
             return;
@@ -72,6 +73,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
     }
 
     public void requestBgps(UUID bgpPortID) {
+        log.debug("requesting list of bgp's");
         // this method should be called only once per bgp port ID
         if (portIds.contains(bgpPortID)) {
             log.error("trying to request BGPs more than once for this port ID: " + bgpPortID);
@@ -84,6 +86,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
     }
 
     private void requestAdRoute(UUID adRouteId) {
+        log.debug("requesting adRoute");
         if (mmapBgpIdtoAdRouteId.containsValue(adRouteId)) {
             log.error("requestAdRoute it's only for creations not for updates.");
             return;
@@ -109,14 +112,17 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         */
         @Override
         public void onSuccess(Result<BGP> data) {
+            log.debug("BgpCallback - begin");
             // We shall receive only updates for this BGP object
             assert (data.getData().getId() == bgpID);
 
             BGP bgp = data.getData();
             BGPListBuilder bgpListBuilder = getBuilder(bgp.getPortId());
             if (mapBgpIdtoBgp.containsKey(bgp.getId())) {
+                log.debug("bgp object updated");
                 bgpListBuilder.updateBGP(bgp);
             } else {
+                log.debug("bgp object added");
                 bgpListBuilder.addBGP(bgp);
             }
 
@@ -169,7 +175,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            log.error("Should NEVER be called.");
+            // The BGP node has changed, fetch it again asynchronously.
+            log.debug("BgpCallback - get bgp info");
+            bgpMgr.getBGPAsync(bgpID, this, this);
         }
     }
 
@@ -189,6 +197,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          */
         @Override
         public void onSuccess(Result<Set<UUID>> data) {
+            log.debug("BgpsCallback - begin");
             update(data.getData());
         }
 
@@ -244,15 +253,20 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            log.error("Should NEVER be called.");
+            // The list of bgp's for this port has changed. Fetch it again
+            // asynchronously.
+            log.debug("BgpsCallback - get list of bgp's");
+            bgpMgr.getBgpListAsync(bgpPortID, this, this);
         }
 
         /*
          * other methods
          */
         private void update(Set<UUID> bgpIds) {
+            log.debug("BgpsCallback - begin");
             for (UUID bgpId : mapBgpIdtoPortId.keySet()) {
                 if (!bgpIds.contains(bgpId)) {
+                    log.debug("removing unused bgp: {}", bgpId);
                     UUID portId = mapBgpIdtoPortId.remove(bgpId);
                     portIds.remove(portId);
                     getBuilder(bgpPortID).removeBGP(bgpId);
@@ -261,6 +275,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
             for (UUID bgpId : bgpIds) {
                 if (!mapBgpIdtoPortId.containsKey(bgpId)) {
+                    log.debug("adding new bgp: {}", bgpId);
                     mapBgpIdtoPortId.put(bgpId, bgpPortID);
                     portIds.add(bgpPortID);
                     requestBgp(bgpId);
@@ -285,6 +300,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         */
         @Override
         public void onSuccess(Result<AdRouteZkManager.AdRouteConfig> data) {
+            log.debug("AdRouteCallback - begin");
             AdRouteZkManager.AdRouteConfig adRouteConfig = data.getData();
             BGPListBuilder bgpListBuilder = getBuilder(mapBgpIdtoPortId.get(adRouteConfig.bgpId));
 
@@ -340,7 +356,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            log.error("Should NEVER be called.");
+            // The AdRoute node has changed, fetch it again asynchronously.
+            log.debug("AdRouteCallback - begin");
+            adRouteMgr.getAdRouteAsync(adRouteId, this, this);
         }
 
     }
@@ -361,6 +379,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          */
         @Override
         public void onSuccess(Result<Set<UUID>> data) {
+            log.debug("AdRoutesCallback - begin");
             update(data.getData());
         }
 
@@ -395,9 +414,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathChildrenUpdated(String path) {
-            // The list of AdRoutes for this BGP has changed. Fetch it again
-            // asynchronously.
-            adRouteMgr.getAdRouteListAsync(bgpID, this, this);
+            log.debug("AdRoutesCallback - begin");
+            run();
         }
 
         @Override
@@ -416,15 +434,21 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void run() {
-            log.error("Should NEVER be called.");
+            // The list of AdRoutes for this BGP has changed. Fetch it again
+            // asynchronously.
+            log.debug("AdRoutesCallback - begin");
+            adRouteMgr.getAdRouteListAsync(bgpID, this, this);
         }
 
         /*
          * other methods
          */
         private void update(Set<UUID> adRouteIds) {
+            log.debug("AdRoutesCallback - begin");
+            log.debug("AdRoutesCallback - Received {} routes", adRouteIds.size());
             for (UUID adRouteId : mmapBgpIdtoAdRouteId.get(bgpID)) {
                 if (!adRouteIds.contains(adRouteId)) {
+                    log.debug("deleting unused route: {}", adRouteId);
                     mmapBgpIdtoAdRouteId.remove(bgpID, adRouteId);
 
                     UUID portId = mapBgpIdtoPortId.get(bgpID);
@@ -437,7 +461,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
             for (UUID adRouteId : adRouteIds) {
                 if (!mmapBgpIdtoAdRouteId.containsValue(adRouteId)) {
-                    mmapBgpIdtoAdRouteId.put(bgpID, adRouteId);
+                    log.debug("adding new route: {}", adRouteId);
                     requestAdRoute(adRouteId);
                }
             }

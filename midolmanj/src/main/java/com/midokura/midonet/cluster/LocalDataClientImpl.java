@@ -50,7 +50,7 @@ import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
-public class LocalDataClientImpl implements DataClient {
+public class   LocalDataClientImpl implements DataClient {
 
     @Inject
     private TenantZkManager tenantZkManager;
@@ -528,20 +528,7 @@ public class LocalDataClientImpl implements DataClient {
                 for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
                     cb.call(portID, active);
                 }
-                // If it's a MaterializedBridgePort, invalidate the flows for flooded
-                // packet because when those were update this port was probably
-                // inactive and wasn't taken into consideration when installing
-                // the flow for the flood.
-                if (config instanceof PortDirectory.MaterializedBridgePortConfig) {
-                    bridgeManager.setLocalExteriorPortActive(
-                                     config.device_id,
-                                     portID,
-                                     ((PortDirectory.MaterializedRouterPortConfig)
-                                         config)
-                                         .getHwAddr(),
-                                     active);
-                    //TODO(ross) add to port set
-                } else if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+                if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
                     UUID deviceId = config.device_id;
                     routerManager.updateRoutesBecauseLocalPortChangedStatus(deviceId,
                                                                  portID, active);

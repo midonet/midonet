@@ -31,6 +31,7 @@ import org.junit.Test;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.IntIPv4;
 import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.functors.Callback1;
 
@@ -185,31 +186,30 @@ public class TestCondition {
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcInv = false;
         // Set the nwSrcIp to something different than the packet's 0x0a001406.
-        cond.nwSrcIp = 0x0a001403;
+        cond.nwSrcIp = new IntIPv4(0x0a001403, 0);
         // Since nwSrcLength is still 0, the condition still matches the packet.
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcLength = 32;
+        cond.nwSrcIp.setMaskLength(32);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         // Now try shorter prefixes:
-        cond.nwSrcLength = 24;
+        cond.nwSrcIp.setMaskLength(24);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcLength = 16;
+        cond.nwSrcIp.setMaskLength(16);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Now try length 0 with an ip that differs in the left-most bit.
-        cond.nwSrcIp = 0xfa010104;
-        cond.nwSrcLength = 1;
+        cond.nwSrcIp = new IntIPv4(0xfa010104, 1);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcLength = 0;
+        cond.nwSrcIp.setMaskLength(0);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // nwSrcLength = 0 is like wild-carding. So inverting is ignored.
         cond.nwSrcInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcLength = 32;
+        cond.nwSrcIp.setMaskLength(32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Remove the invert, set the nwSrcIp to the packet's
         cond.nwSrcInv = false;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcIp = 0x0a001406;
+        cond.nwSrcIp = new IntIPv4(0x0a001406, 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -221,30 +221,30 @@ public class TestCondition {
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Set the nwDstIp to something different than the packet's 0x0a000b22.
-        cond.nwDstIp = 0x0a000b23;
+        cond.nwDstIp = new IntIPv4(0x0a000b23, 0);
         // Since nwDstLength is still 0, the condition still matches the packet.
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Similarly, invert is ignored while nwDstLength is zero.
         cond.nwDstInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = false;
-        cond.nwDstLength = 32;
+        cond.nwDstIp.setMaskLength(32);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         // Now try shorter prefixes:
-        cond.nwDstLength = 31;
+        cond.nwDstIp.setMaskLength(31);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstLength = 24;
+        cond.nwDstIp.setMaskLength(24);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstLength = 16;
+        cond.nwDstIp.setMaskLength(16);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Now try inverting
         cond.nwDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstLength = 32;
+        cond.nwDstIp.setMaskLength(32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Remove the invert, set the nwDstIp to the packet's
         cond.nwDstInv = false;
-        cond.nwDstIp = 0x0a000b22;
+        cond.nwDstIp = new IntIPv4(0x0a000b22, 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));

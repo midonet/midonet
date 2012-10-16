@@ -1,6 +1,4 @@
-/*
- * Copyright 2012 Midokura Pte. Ltd.
- */
+// Copyright 2012 Midokura Inc.
 
 package com.midokura.midolman.vrn;
 
@@ -27,7 +25,7 @@ import com.midokura.sdn.flows.WildcardMatch;
  * decisions:  the next action for the packet, the egress port,
  * the packet at egress (i.e. after possible modifications).
  */
-public class ForwardInfo implements ChainPacketContext {
+public class MockPacketContext implements ChainPacketContext {
 
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
@@ -57,7 +55,7 @@ public class ForwardInfo implements ChainPacketContext {
     // Used for coarse invalidation. If any element in this set changes
     // there's a chance the flow is no longer correct. Elements can be
     // Routers, Bridges, Ports and Chains.
-    private Set<Object> flowTags = new HashSet<Object>();
+    private Set<UUID> traversedElementIDs = new HashSet<UUID>();
     public int depth = 0;  // depth in the VRN simulation
 
     // Used for connection tracking.
@@ -65,8 +63,10 @@ public class ForwardInfo implements ChainPacketContext {
     private boolean forwardFlow;
     private Cache connectionCache;
     private UUID ingressFE;
+    private Set<Object> tags = new HashSet<Object>();
 
-    public ForwardInfo(boolean internallyGenerated, Cache c, UUID ingressFE) {
+    public MockPacketContext(boolean internallyGenerated, Cache c,
+                             UUID ingressFE) {
         connectionCache = c;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;
@@ -186,7 +186,11 @@ public class ForwardInfo implements ChainPacketContext {
     }
 
     public void addTraversedElementID(UUID id) {
-        flowTags.add(id);
+        traversedElementIDs.add(id);
+    }
+
+    public Set<UUID> getTraversedElementIDs() {
+        return traversedElementIDs;
     }
 
     public boolean isGeneratedPacket() {
@@ -232,6 +236,6 @@ public class ForwardInfo implements ChainPacketContext {
 
     @Override
     public void addFlowTag(Object tag) {
-        flowTags.add(tag);
+        tags.add(tag);
     }
 }

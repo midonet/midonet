@@ -184,8 +184,8 @@ public class TestMonitoring extends JerseyTest {
         query.setType(type);
         query.setTargetIdentifier(targetIdentifier);
         query.setMetricName(metricName);
-        query.setStartEpochTime(epochNow);
-        query.setEndEpochTime(epochNow + numEntries);
+        query.setTimeStampStart(epochNow);
+        query.setTimeStampEnd(epochNow + numEntries);
 
         queries.add(query);
         query.setMetricName(secondMetricName);
@@ -222,8 +222,8 @@ public class TestMonitoring extends JerseyTest {
         query.setType(type);
         query.setTargetIdentifier(targetIdentifier);
         query.setMetricName(metricName);
-        query.setStartEpochTime(epochNow);
-        query.setEndEpochTime(epochNow + numEntries);
+        query.setTimeStampStart(epochNow);
+        query.setTimeStampEnd(epochNow + numEntries);
 
         List<DtoMetricQuery> queries = new ArrayList<DtoMetricQuery>();
         queries.add(query);
@@ -263,8 +263,8 @@ public class TestMonitoring extends JerseyTest {
         query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
-        query.setStartEpochTime(epochNow);
-        query.setEndEpochTime(epochNow + numberOfSamples);
+        query.setTimeStampStart(epochNow);
+        query.setTimeStampEnd(epochNow + numberOfSamples);
         List<DtoMetricQuery> queries = new ArrayList<DtoMetricQuery>();
         queries.add(query);
 
@@ -287,8 +287,8 @@ public class TestMonitoring extends JerseyTest {
         }
 
         // let's query the end side
-        query.setStartEpochTime(epochNow + numEntries - numberOfSamples - 1);
-        query.setEndEpochTime(epochNow + numEntries);
+        query.setTimeStampStart(epochNow + numEntries - numberOfSamples - 1);
+        query.setTimeStampEnd(epochNow + numEntries);
         queries = new ArrayList<DtoMetricQuery>();
         queries.add(query);
 
@@ -326,8 +326,8 @@ public class TestMonitoring extends JerseyTest {
         query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
-        query.setStartEpochTime(epochNow + numEntries);
-        query.setEndEpochTime(epochNow + numEntries + numEntries);
+        query.setTimeStampStart(epochNow + numEntries);
+        query.setTimeStampEnd(epochNow + numEntries + numEntries);
 
         List<DtoMetricQuery> queries = new ArrayList<DtoMetricQuery>();
         queries.add(query);
@@ -361,8 +361,8 @@ public class TestMonitoring extends JerseyTest {
         query.setTargetIdentifier(targetIdentifier);
         query.setType(type);
         query.setMetricName(metricName);
-        query.setStartEpochTime(epochNow);
-        query.setEndEpochTime(epochTomorrow);
+        query.setTimeStampStart(epochNow);
+        query.setTimeStampEnd(epochTomorrow);
 
         List<DtoMetricQuery> queries = new ArrayList<DtoMetricQuery>();
         queries.add(query);

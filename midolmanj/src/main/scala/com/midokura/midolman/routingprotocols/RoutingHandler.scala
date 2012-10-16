@@ -27,6 +27,8 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.DatapathController.CreatePortInternal
 import com.midokura.midolman.DatapathController.PortInternalOpReply
+import java.net.SocketAddress
+import com.midokura.util.process.ProcessHelper
 
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
@@ -72,6 +74,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
     private val adRoutes = mutable.Set[AdRoute]()
     private val peerRoutes = mutable.Map[Route, UUID]()
     private var internalPort: InternalPort = null
+    private var socketAddress: AFUNIXSocketAddress = null
 
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
@@ -295,13 +298,24 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                 log.debug("PortInternalOpReply - unknown")
 
             case BGPD_READY =>
+                log.debug("BGPD_READY")
                 phase match {
                     case Starting =>
                         phase = Started
                         unstashAll()
+
+                        bgpVty = new BgpVtyConnection(
+                            addr = "localhost",
+                            port = BGP_VTY_PORT,
+                            password = "zebra_password")
+
+                        bgpVty.setLogFile("/var/log/quagga/bgpd." + BGP_VTY_PORT + ".log")
+                        if (log.isDebugEnabled)
+                            bgpVty.setDebug(isEnabled = true)
+
                         for (bgp <- bgps.values) {
                             // Use the bgpVty to set up sessions with all these peers
-                            create(rport.nwAddr(), bgp)
+                            create(rport.portAddr, bgp)
                         }
                         for (route <- adRoutes) {
                             // Use the bgpVty to add all these routes/networks
@@ -312,6 +326,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                 }
 
             case BGPD_DEAD =>
+                log.debug("BGPD_DEAD")
                 phase match {
                     case Stopping =>
                         phase = NotStarted
@@ -322,25 +337,34 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                 }
 
             case AdvertiseRoute(rt) =>
+                log.debug("AdvertiseRoute: {}, phase: {}", rt, phase)
                 phase match {
                     case NotStarted =>
                         log.error("AddRoute not expected in phase NotStarted")
                     case Starting =>
+                        log.debug("AdvertiseRoute, starting phase")
                         stash()
                     case Started =>
+                        log.debug("AdvertiseRoute, started phase")
                         adRoutes.add(rt)
                         val bgp = bgps.get(rt.getBgpId)
+                        log.debug("AdvertiseRoute - bgp: {}", bgp)
                         bgp match {
-                            case b: BGP => val as = b.getLocalAS
-                            bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
-                            case _ =>
+                            case Some(b) =>
+                                log.debug("AdvertiseRoute - we got a BGP object: {}", b)
+                                val as = b.getLocalAS
+                                bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                            case unknownObject =>
+                                log.debug("AdvertiseRoute - we got an unknown object: {}", unknownObject)
                         }
                     case Stopping =>
+                        log.debug("AdvertiseRoute, stopping phase")
                         //TODO(abel) do we need to stash the message when stopping?
                         stash()
                 }
 
             case StopAdvertisingRoute(rt) =>
+                log.debug("StopAdvertisingRoute: {}", rt)
                 phase match {
                     case NotStarted =>
                         log.error("RemoveRoute not expected in phase NotStarted")
@@ -360,6 +384,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                 }
 
             case AddPeerRoute(ribType, destination, gateway) =>
+                log.debug("AddPeerRoute: {}, {}, {}", ribType, destination, gateway)
                 phase match {
                     case NotStarted =>
                         log.error("AddPeerRoute not expected in phase NotStarted")
@@ -394,6 +419,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                 }
 
             case RemovePeerRoute(ribType, destination, gateway) =>
+                log.debug("RemovePeerRoute: {}, {}, {}", ribType, destination, gateway)
                 phase match {
                     case NotStarted =>
                         log.error("AddPeerRoute not expected in phase NotStarted")
@@ -429,16 +455,11 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         if (socketFile.exists())
             socketFile.delete()
 
-        val address = new AFUNIXSocketAddress(socketFile)
+        socketAddress = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
-            address, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
+            socketAddress, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
         zebra.start()
-
-        bgpVty = new BgpVtyConnection(
-            addr = "localhost",
-            port = BGP_VTY_PORT,
-            password = "zebra_password")
 
         // Create the interface bgpd will run on.
         log.info("Adding internal port {} for BGP link", BGP_INTERNAL_PORT_NAME)
@@ -475,13 +496,32 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         val bgpPair = bgps.toList.head
         val bgp = bgpPair._2
         setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
-        bgpdProcess = new BgpdProcess(this, BGP_VTY_PORT)
-        bgpdProcess.start()
+
+        // Set ourselves the port up
+        val cmdLineSetDev = "sudo ip link set dev " + internalPort.getName +
+            " arp on mtu 1300 multicast off up"
+        log.debug("internalPortReady - cmdLine: {}", cmdLineSetDev)
+        ProcessHelper.executeCommandLine(cmdLineSetDev)
+
+        val cmdLineSetAddr = "sudo ip addr add " + rport.portAddr.toUnicastString +
+            "/" + rport.portAddr.getMaskLength + " dev " + internalPort.getName
+        log.debug("internalPortReady - cmdLine: {}", cmdLineSetAddr)
+        ProcessHelper.executeCommandLine(cmdLineSetAddr)
+
+        bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT, rport.portAddr.toUnicastString, socketAddress)
+        val didStart = bgpdProcess.start()
+        if (didStart) {
+            self ! BGPD_READY
+            log.debug("bgpd process did start")
+        } else {
+            log.debug("bgpd process did not start")
+        }
 
         log.debug("internalPortReady - end")
     }
 
     def create(localAddr: IntIPv4, bgp: BGP) {
+        log.debug("create - begin")
         bgpVty.setAs(bgp.getLocalAS)
         bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
@@ -492,6 +532,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             adRoutes.add(adRoute)
+            log.debug("added adRoute: {}", adRoute)
         }
     }
 
@@ -519,7 +560,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // TCP4:179-> bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -535,7 +576,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // TCP4:->179 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -551,7 +592,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(FlowActions.output(localPortNum))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // TCP4:179-> link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -567,7 +608,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(FlowActions.output(localPortNum))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // ARP bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -579,7 +620,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // ARP link->bgpd, link->midolman
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
@@ -590,10 +631,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            //.addAction(new FlowActionUserspace)
+            .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // ICMP4 bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -608,7 +649,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         // ICMP4 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -623,7 +664,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .addAction(FlowActions.output(localPortNum))
 
         DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+            wildcardFlow, None, null, null, bgpTagSet, null))
 
         log.debug("setBGPFlows - end")
     }

@@ -8,18 +8,35 @@ import java.util.UUID
 import com.midokura.packets.MAC
 
 
-object FlowTagger {
+object
+FlowTagger {
 
     def invalidateFlowsByDevice(device: UUID): AnyRef =
         (device)
 
-    def invalidateFlowsByMac(bridgeId: UUID, mac: MAC): AnyRef =
-        (bridgeId, mac)
+    def invalidateFlowsByDeviceFilter(device: UUID, filter: UUID): AnyRef =
+        device.toString + filter.toString
+
+    def invalidateFloodedFlowsByMac(bridgeId: UUID, mac: MAC): AnyRef =
+        (bridgeId.toString + mac.toString)
 
     def invalidateFlowsByPort(bridgeId: UUID, mac: MAC,
                                   port: UUID): AnyRef =
-        (bridgeId, mac, port)
+        (bridgeId.toString + mac.toString + port.toString)
 
-    def invalidateBroadcastFlows(bridgeId: UUID): AnyRef =
-        (bridgeId, "broadcast")
+    def invalidateBroadcastFlows(bridgeId: UUID, portSet: UUID): AnyRef =
+        (bridgeId.toString + portSet.toString)
+
+    def invalidateFlowsByLogicalPort(bridgeId: UUID, logicalPortId: UUID): AnyRef =
+        (bridgeId.toString + logicalPortId.toString)
+
+    def invalidateDPPort(port: Short): AnyRef = (port.toString)
+
+    def invalidatePort(port: UUID): AnyRef = port.toString
+
+    def invalidateByRoute(routerId: UUID, routeHashCode: Int): Any =
+        (routerId.toString + routeHashCode.toString)
+
+    def invalidateByIp(routerId: UUID, ipDestination: Int): Any =
+        (routerId.toString + ipDestination.toString)
 }

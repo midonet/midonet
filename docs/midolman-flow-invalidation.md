@@ -88,18 +88,20 @@ be shared across devices, invalidating by chain ID makes it unnecessary to track
 all the devices that share a chain that has been deleted/modified.
 
 Here is an analysis of changes that trigger flow invalidation, listed according
-to the virtual device affected by the change.
+to the virtual device affected by the change. When we mention configuration change
+we refer to:
+ - the device was assign a new chain
+ - some entry in the config file changed
 
 #### Port
 ##### Port configuration in ZK
-Configuration change -> invalidate all the flows tagged with that port ID
+There's no need to react to Port addition/deletion because flow invalidation will
+be performed by BridgeManager and RouterManager, responding to changes in the
+MacLearningTable and RoutingTable respectively
 
-Port deleted ->
+configuration changes -> invalidate all flows tagged with this port ID
 
-               PortManager reacts to the deletion and invalidate the corresponding
-               flows.
-
-Tagging in Coordinator using the UUID of the port
+Tagging in Coordinator using the ID of the port
 Invalidation in PortManager
 
 ##### Port becomes active or inactive on a host
@@ -149,9 +151,19 @@ A new port is added in the PortSet:
            that host ->
            invalidate all the flows related to the PortSet
 
-A port is deleted -> do nothing, the DatapathController will take care of that
-                     (a broadcast flow get expanded into several kernel flows
-                     including all the ports of the PortSet)
+A port is deleted -> do nothing, the DatapathController will take care of that.
+                     DP tags every flow using inPort and outPort number,
+                     when a port gets deleted it will invalidate all the flows
+                     tagged by that port number, hitting also the PortSet related
+                     flows. A portSet is expanded into several output action
+                     including the local ports in the set and the tunnel port to
+                     the hosts that have ports belonging to the portSet. To PortSet
+                     related flows the DP attaches a tag for each local port and
+                     a tag for each tunnel port. The deletion of a local port
+                     will cause the flowCount to go to 0 (since all flow from
+                     that port get deleted), so that the MAC entry for that
+                     port is removed and also remote hosts get notified of
+                     this port's deletion.
 
 Tagging in Bridge.scala
 Invalidation in VirtualToPhysicalMapper
@@ -161,12 +173,11 @@ Every bridge will tag every packet it sees using its bridge id.
 
 Configuration change -> invalidate all flows tagged with this bridge id
 
-#####Materialized ports
+##### Materialized ports
 React to the changes in the MAC learning table
 
     1) A new association {port, mac} is learnt -> invalidate all flows tagged
-                                                (bridgeId, oldPort, MAC) where
-                                                oldPort = null
+                                                (bridgeId, MAC)
 
     2) A MAC entry expires -> invalidate all the flows tagged (bridgeId, oldport,
        MAC)
@@ -174,11 +185,10 @@ React to the changes in the MAC learning table
     3) A MAC moves from port1 to port2 -> invalidate all the flows tagged
        (bridgeId, port1, MAC)
 
-#####Logical ports
+##### Logical ports
 Added -> do nothing
-Removed -> remove all the flows tagged (bridge id, MAC). Where MAC is the hw
-           address of the bridge's peer port - which currently must be an internal
-           (logical) router port
+Removed -> remove all the flows tagged (bridge ID, port ID). Where port ID is
+           ID of bridge's logical port
 
 Tagging in Bridge.
 Cases:
@@ -186,9 +196,9 @@ Cases:
     1) unicast packet for the L2 network, tag = bridgeId, MAC destination,
         port destination id
 
-    2) broadcast packet, tag = bridge id, portSet id
+    2) broadcast packet, tag = bridge ID, portSet ID
 
-    3) a packet for a logical port, tag = bridge id, MAC destination
+    3) a packet for a logical port, tag = bridge ID, port ID
 
 Invalidation in BridgeManager
 
@@ -197,14 +207,19 @@ Every Router will tag every packet it sees using as tag its router id.
 
 Configuration change -> invalidate all flows
 
-Route added or deleted ->
-It will tag every packet using as tag (routerId, destinationIp) and pass to the
-FlowController a tagRemovedCallback.
+It will tag every packet using two tags:(router id, destination IP) and
+(router id, route hash). It will pass to the FlowController a tagRemovedCallback.
 The router will store internally a trie of the destination ip of the packets
 it has seen. It will use the trie to be able to detect which flows to invalidate
-if there's a change in the routing table. The FlowController will fire the
+if a route is added to the routing table. The FlowController will fire the
 tagRemovedCallback when a tag is removed because the corresponding flows get
-deleted
+deleted, so that the RouterManager will be able to clean up the trie of destination
+IP.
+
+Route added -> invalidate all the flows whose tags correspond to the ip destination
+               affected by this new route (the sub tree that has this route as root)
+
+Route deleted -> invalidate all the flows whose tag is this route
 
 Tagging: Router
 FlowInvalidation: The RCU Router will use a callback to pass the tag added to the
@@ -219,29 +234,42 @@ If a chain get modified all the flows tagged by its ID need to be invalidated
 
 #### Summary
 
-##### Tagging in DatapathController
+##### Tagging by DatapathController
 - ingress port's short-port-number on every flow
 - egress port's short-port-number of any flow that is emitted from a virtual port.
-  More than one of these tags if the flow is emitted from a PortSet.
+  More than one of these tags if the flow is emitted from a PortSet
 
 ##### Tagging by Coordinator:
 - gives every flow one tag (consisting of the vport UUID) for every vport the
   flow traverses.
+- gives every flow one tag (consisting of the filter UUID) for every filter the
+  flow traverses
 
 ##### Tagging by Bridge:
 - gives every flow a tag consisting of its own ID
 - gives every flow forwarded to a single port (interior or exterior) a tag
   consisting of the tuple (bridge ID, port ID, dst MAC)
-- gives every flooded flow a tag consisting of the tuple (bridge ID, portSet ID)
+- gives every broadcast flow a tag consisting of the tuple (bridge ID, portSet ID)
 - gives every flow forwarded to a logical port a tag consisting of a tuple
-  (bridge ID, MAC) where MAC is the hw address of the logical port
+  (bridge ID, port ID) where port ID is the ID of the logical port on the bridge
+- gives every flow flooded a tag (bridge ID, dst MAC) where MAC is the unknown
+  MAC address
+- gives every flow a tag consisting of the inFilter
+- gives every flow a tag consisting of the (its id + inFilter)
+- gives every flow a tag consisting of the outFilter
+- gives every flow a tag consisting of the (its id + outFilter)
+
 
 #### Tagging by Router:
 - gives every flow a tag consisting of its own ID
 - gives every flow a tag consisting of its own ID and the IP destination
+- gives every flow a tag consisting of its own ID + the hash of the  route the IP destination
+  matched
+- gives every flow a tag consisting of the inFilter
+- gives every flow a tag consisting of the (its id + inFilter)
+- gives every flow a tag consisting of the outFilter
+- gives every flow a tag consisting of the (its id + outFilter)
 
-#### Tagging by Chain:
-- gives every flow a tag consisting of its own ID
 
 #### Invalidation by DatapathController
 Invalidation is triggered by:
@@ -264,4 +292,4 @@ Invalidation is triggered by:
 
 #### PortManager
 Invalidation is triggered by:
-- port deletion
+- a new chain is assigned

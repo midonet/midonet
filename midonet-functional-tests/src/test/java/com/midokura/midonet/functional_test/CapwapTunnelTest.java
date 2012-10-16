@@ -42,26 +42,16 @@ public class CapwapTunnelTest extends BaseTunnelTest {
 
         // add this host to the capwap zone
         log.info("Adding this host to tunnel zone.");
-        /*
         tunnelZone.addTunnelZoneHost().
                 hostId(thisHostId).
                 ipAddress(physTapLocalIp.toUnicastString()).
                 create();
-                */
-        dataClient.tunnelZonesAddMembership(tunnelZone.getId(),
-            new CapwapTunnelZoneHost(thisHostId).
-                setIp(physTapLocalIp));
 
         log.info("Adding remote host to tunnelzone");
-        /*
         tunnelZone.addTunnelZoneHost().
                 hostId(remoteHostId).
                 ipAddress(physTapRemoteIp.toUnicastString()).
                 create();
-                */
-        dataClient.tunnelZonesAddMembership(tunnelZone.getId(),
-            new CapwapTunnelZoneHost(remoteHostId).
-                setIp(physTapRemoteIp));
     }
 
     @Override

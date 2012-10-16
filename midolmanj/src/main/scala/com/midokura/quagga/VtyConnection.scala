@@ -70,6 +70,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     private def openConnection() {
+        log.debug("begin, addr: {}, port: {}", addr, port)
         socket = new Socket(addr, port)
         out = new PrintWriter(socket.getOutputStream, true)
         in = new BufferedReader(new InputStreamReader(socket.getInputStream),
@@ -85,9 +86,12 @@ abstract class VtyConnection(val addr: String, val port: Int,
         dropMessage()
         enable()
         connected = true
+        log.debug("end")
     }
 
     private def closeConnection() {
+        log.debug("begin")
+
         connected = false
         out.close()
         in.close()
@@ -121,25 +125,33 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     protected def enable() {
+        log.debug("begin")
         sendMessage(Enable)
         dropMessage()
     }
 
     protected def disable() {
+        log.debug("begin")
         sendMessage(Disable)
         dropMessage()
     }
 
     protected def configureTerminal() {
+        log.debug("begin")
+
         sendMessage(ConfigureTerminal)
         dropMessage()
     }
 
     protected def exit() {
+        log.debug("begin")
+
         sendMessage(Exit)
     }
 
     protected def end() {
+        log.debug("begin")
+
         sendMessage(End)
     }
 }
@@ -164,6 +176,9 @@ object BgpVtyConnection {
         """^[sdh\*>irSR]*\s*([\d\./]*)\s*([\d\.]*)\s*[\d\.]*\s*([\d\.]*)\s*(.)$""".r
     private final val SetNetwork = "network %s/%d"
     private final val DeleteNetwork = "no network %s/%d"
+    private final val SetLogFile = "log file %s"
+    private final val EnableDebug = "debug bgp"
+    private final val DisableDebug = "no debug bgp"
 
     private final val log = LoggerFactory.getLogger(this.getClass)
 }
@@ -189,6 +204,10 @@ trait BgpConnection {
     def setNetwork(as: Int, nwPrefix: String, prefixLength: Int)
 
     def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int)
+
+    def setLogFile(file: String)
+
+    def setDebug(isEnabled: Boolean)
 }
 
 class BgpVtyConnection(addr: String, port: Int, password: String)
@@ -197,6 +216,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     import BgpVtyConnection._
 
     override def getAs: Int = {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
 
@@ -225,6 +246,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def setAs(as: Int) {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
 
@@ -242,6 +265,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
      * this will delete the entire AS config, including peers and networks
      */
     override def deleteAs(as: Int) {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         request += DeleteAs.format(as)
 
@@ -256,6 +281,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def setLocalNw(as: Int, localAddr: IntIPv4) {
+        log.debug("begin")
+
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += SetLocalNw.format(localAddr.toUnicastString)
@@ -271,6 +298,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int) {
+        log.debug("begin")
+
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += SetPeer.format(peerAddr.toUnicastString, peerAs)
@@ -286,6 +315,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def deletePeer(as: Int, peerAddr: IntIPv4) {
+        log.debug("begin")
+
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += DeletePeer.format(peerAddr.toUnicastString)
@@ -301,6 +332,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     def getPeerNetwork: Seq[(String, String, String, String)] = {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
 
@@ -342,6 +375,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
     }
 
     override def getNetwork: Seq[String] = {
+        log.debug("begin")
+
         var networks = new ListBuffer[String]()
         for (peerNetwork <- getPeerNetwork) {
             // If the next hop is 0.0.0.0, it should be the network we're
@@ -359,6 +394,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def setNetwork(as: Int, nwPrefix: String,
                             prefixLength: Int) {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += SetNetwork.format(nwPrefix, prefixLength)
@@ -375,6 +412,8 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
 
     override def deleteNetwork(as: Int, nwPrefix: String,
                                prefixLength: Int) {
+        log.debug("begin")
+
         val request = new ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += DeleteNetwork.format(nwPrefix, prefixLength)
@@ -385,6 +424,41 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
                 log.error("failed deleting advertising routes", e)
+            }
+        }
+    }
+
+    override def setLogFile(file: String) {
+        log.debug("begin")
+
+        val request = new ListBuffer[String]()
+        request += SetLogFile.format(file)
+
+        try {
+            doTransacation(request.toSeq, isConfigure = true)
+        } catch {
+            // TODO(yoshi): finer exception handling.
+            case e: Exception => {
+                log.error("failed setting log file", e)
+            }
+        }
+    }
+
+    override def setDebug(isEnabled: Boolean) {
+        log.debug("begin")
+
+        val request = new ListBuffer[String]()
+        if (isEnabled)
+            request += EnableDebug
+        else
+            request += DisableDebug
+
+        try {
+            doTransacation(request.toSeq, isConfigure = true)
+        } catch {
+            // TODO(yoshi): finer exception handling.
+            case e: Exception => {
+                log.error("failed setting debug option", e)
             }
         }
     }

@@ -83,7 +83,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes(), null, null))
+            wildcardFlow, None, "My packet".getBytes(), null, null, null))
 
         requestOfType[InvalidateFlowsByTag](flowProbe())
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())

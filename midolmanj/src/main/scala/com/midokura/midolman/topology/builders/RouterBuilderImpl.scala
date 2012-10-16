@@ -8,11 +8,12 @@ import java.util.UUID
 import com.midokura.midonet.cluster.client.{ArpCache, SourceNatResource, RouterBuilder}
 import akka.actor.{ActorRef, ActorContext}
 import com.midokura.midolman.layer3.{RoutingTable, Route}
-import com.midokura.midolman.topology.RouterManager.TriggerUpdate
+import com.midokura.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
 import com.midokura.sdn.flows.WildcardMatch
 import collection.immutable
 import collection.mutable
 import com.midokura.midolman.topology.{RoutingTableWrapper, RouterManager, RouterConfig}
+import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     extends RouterBuilder {
@@ -20,6 +21,8 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     private val cfg: RouterConfig = new RouterConfig
     private var arpCache: ArpCache = null
     private val routes = new scala.collection.mutable.HashSet[Route]()
+    private val routesToAdd = new scala.collection.mutable.HashSet[Route]()
+    private val routesToRemove = new scala.collection.mutable.HashSet[Route]()
 
     def setArpCache(table: ArpCache) {
         if (arpCache != null)
@@ -30,10 +33,12 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
 
     def addRoute(rt: Route) {
         routes.add(rt)
+        routesToAdd.add(rt)
     }
 
     def removeRoute(rt: Route) {
         routes.remove(rt)
+        routesToRemove.add(rt)
     }
 
     def setSourceNatResource(resource: SourceNatResource) {}
@@ -51,9 +56,18 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     }
 
     def build() {
+        // we always pass a new copy of the RoutingTable since this is accessed
+        // by the RCU Router
         val table = new RoutingTable()
         for (rt <- routes)
             table.addRoute(rt)
+        if(routesToAdd.size > 0 || routesToRemove.size > 0){
+            val added = routesToAdd.clone()
+            val deleted = routesToRemove.clone()
+            routerManager ! InvalidateFlows(added, deleted)
+        }
+        routesToAdd.clear()
+        routesToRemove.clear()
         routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
     }
 

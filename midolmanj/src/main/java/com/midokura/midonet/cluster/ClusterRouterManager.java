@@ -96,7 +96,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 arpTable.start();
             } catch (StateAccessException e) {
                 log.error(
-                    "Error retrieving ArpTable for bridge {}",
+                    "Error retrieving ArpTable for router {}",
                     id, e);
             }
             try {
@@ -370,9 +370,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             for (Route rt : added) {
                 builder.addRoute(rt);
             }
-            //if (added.size() > 0 || removed.size() > 0)
-            //notifyWatchers(); //TODO(ross) shall we notify for flow removal?
-
+            log.debug("RouteWatcher - Routes added {}, routes removed {}. " +
+                          "Notifying builder",
+                      added, removed);
             builder.build();
         }
     }

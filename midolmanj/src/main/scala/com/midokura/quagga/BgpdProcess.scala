@@ -4,36 +4,66 @@
 
 package com.midokura.quagga
 
-import com.midokura.midolman.routingprotocols.RoutingHandler
 import org.slf4j.LoggerFactory
-import java.io.IOException
+import com.midokura.util.process.ProcessHelper
+import com.midokura.util.Waiters.sleepBecause
+import org.newsclub.net.unix.AFUNIXSocketAddress
+import akka.actor.ActorRef
 
-class BgpdProcess(routingHandler: RoutingHandler, vtyPortNumber: Int) {
+class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
+                  listenAddress: String, socketAddress:AFUNIXSocketAddress) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
 
-    def start() {
-        log.debug("Starting bgpd process.")
+    def start(): Boolean = {
+        log.debug("Starting bgpd process. Vty: {}", vtyPortNumber)
 
-        try {
-            bgpdProcess = Runtime.getRuntime.exec("sudo /usr/lib/quagga/bgpd -P " + vtyPortNumber)
-            routingHandler.BGPD_READY
-        } catch {
-            case e: IOException => log.error("Cannot start bgpd process.")
+        //TODO(abel) the bgpd binary path should be provided by midolman config file
+        //TODO(abel) the bgpd config path should be provided by midolman config file
+        val bgpdCmdLine = "/usr/local/sbin/bgpd --vty_port " + vtyPortNumber +
+        " --vty_addr 127.0.0.1" +
+        " --config_file /etc/quagga/bgpd.conf --listenon " + listenAddress +
+        " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
+        " --socket " + socketAddress.getSocketFile
+
+
+        log.debug("bgpd command line: {}", bgpdCmdLine)
+
+        val daemonRunConfig =
+            ProcessHelper.newDemonProcess(bgpdCmdLine)
+                .withSudo()
+
+        if (log.isDebugEnabled) {
+            daemonRunConfig.logOutput(log, "<bgpd>",
+                ProcessHelper.OutputStreams.StdError,
+                ProcessHelper.OutputStreams.StdOutput)
         }
 
-        log.debug("bgpd process started.")
+        bgpdProcess = daemonRunConfig.run()
+
+        //TODO(abel) it's not enough to launch the process to send a ready
+        //TODO(abel) check if it succeeded
+        sleepBecause("we need bgpd to boot up", 5)
+
+        if (bgpdProcess != null) {
+            log.debug("bgpd process started. Vty: {}", vtyPortNumber)
+            true
+        } else {
+            log.debug("bgpdProcess is null, won't sent BGPD_READY")
+            false
+        }
+
     }
 
     def stop() {
-        log.debug("stopping bgpd process.")
+        log.debug("Stopping bgpd process. Vty: {}", vtyPortNumber)
 
         if (bgpdProcess != null)
             bgpdProcess.destroy()
         else
             log.warn("Couldn't kill bgpd (" + vtyPortNumber + ") because it wasn't started")
 
-        log.debug("bgpd process stopped.")
+        log.debug("bgpd process stopped. Vty: {}", vtyPortNumber)
     }
 }
 

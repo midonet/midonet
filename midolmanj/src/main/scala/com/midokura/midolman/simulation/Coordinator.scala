@@ -128,7 +128,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         new WildcardFlow()
                             .setHardExpirationMillis(hardExp)
                             .setMatch(origMatch),
-                        cookie, null, null, null))
+                        cookie, null, null, null, null))
             case None => // Internally-generated packet. Do nothing.
         }
     }
@@ -221,7 +221,8 @@ class Coordinator(val origMatch: WildcardMatch,
                               .setIngressFE(port.deviceID)
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
-
+                    log.debug("Simulating packet with match {}, device {}",
+                        pktContext.getMatch(), port.deviceID)
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         pktContext))
                 }
@@ -287,7 +288,8 @@ class Coordinator(val origMatch: WildcardMatch,
                                             .setMatch(notIPv4Match),
                                         cookie, origEthernetPkt.serialize(),
                                         pktContext.getFlowRemovedCallbacks(),
-                                        pktContext.getFlowTags()))
+                                        pktContext.getFlowTags(),
+                                        pktContext.getTagRemovedCallbacks()))
                                 // TODO(pino): Connection-tracking blob?
                         }
 
@@ -320,6 +322,8 @@ class Coordinator(val origMatch: WildcardMatch,
 
                     applyPortFilter(port, port.inFilterID,
                                     packetIngressesDevice _)
+                    // add tag for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(true)
@@ -337,6 +341,11 @@ class Coordinator(val origMatch: WildcardMatch,
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
                     pktContext.setInputPort(null).setOutputPort(null)
+                    // add ChainID for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
+                    pktContext.addFlowTag(
+                        FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
+
                     val result = Chain.apply(chain, pktContext,
                                              pktContext.getMatch, port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
@@ -367,6 +376,8 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
+                    // add tag for flow invalidation
+                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
                             emit(portID, false, port)
@@ -428,7 +439,8 @@ class Coordinator(val origMatch: WildcardMatch,
                     AddWildcardFlow(
                         wFlow, cookie, origEthernetPkt.serialize(),
                         pktContext.getFlowRemovedCallbacks(),
-                        pktContext.getFlowTags()))
+                        pktContext.getFlowTags(),
+                        pktContext.getTagRemovedCallbacks()))
         }
     }
 
