@@ -22,6 +22,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.*;
 
+
+import static com.midokura.packets.Unsigned.unsign;
+
 /**
  * Class representing rule.
  */
@@ -698,7 +701,7 @@ public abstract class Rule extends UriResource {
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
             c.nwDstIp = IntIPv4.fromString(this.getNwDstAddress(),
-                                           this.getNwDstLength());
+                this.getNwDstLength());
         }
         c.nwProto = (byte) this.getNwProto();
         c.nwProtoInv = this.isInvNwProto();
@@ -755,18 +758,26 @@ public abstract class Rule extends UriResource {
             this.setDlSrc(c.dlSrc.toString());
         if (null != c.dlDst)
             this.setDlDst(c.dlDst.toString());
-        if (c.nwDstIp != null)
+        if (null != c.nwDstIp) {
             this.setNwDstAddress(c.nwDstIp.toUnicastString());
-        if (c.nwSrcIp != null)
+            this.setNwDstLength(c.nwDstIp.getMaskLength());
+        }
+        if (null != c.nwSrcIp) {
             this.setNwSrcAddress(c.nwSrcIp.toUnicastString());
-        this.setNwDstLength(c.nwDstIp.getMaskLength());
-        this.setNwSrcLength(c.nwSrcIp.getMaskLength());
-        this.setNwProto(c.nwProto);
-        this.setNwTos(c.nwTos);
-        this.setTpDstEnd(c.tpDstEnd);
-        this.setTpDstStart(c.tpDstStart);
-        this.setTpSrcEnd(c.tpSrcEnd);
-        this.setTpSrcStart(c.tpSrcStart);
+            this.setNwSrcLength(c.nwSrcIp.getMaskLength());
+        }
+        if (null != c.nwProto)
+            this.setNwProto(unsign(c.nwProto));
+        if (null != c.nwTos)
+            this.setNwTos(unsign(c.nwTos));
+        if (null != c.tpDstEnd)
+            this.setTpDstEnd(c.tpDstEnd);
+        if (null != c.tpDstStart)
+            this.setTpDstStart(c.tpDstStart);
+        if (null != c.tpSrcEnd)
+            this.setTpSrcEnd(c.tpSrcEnd);
+        if (null != c.tpSrcStart)
+            this.setTpSrcStart(c.tpSrcStart);
     }
 
 }

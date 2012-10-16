@@ -20,8 +20,6 @@ import com.midokura.midolman.rules.{ChainPacketContext, RuleResult}
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
-import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-        ChainRequest, PortRequest}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
@@ -37,25 +35,15 @@ import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import com.midokura.netlink.Callback
 import rcu.Host
-import rcu.Host
 import rcu.PortSet
-import rcu.PortSet
-import topology.LocalPortActive
 import com.midokura.packets.Ethernet
 import topology.LocalPortActive
-import topology.VirtualTopologyActor.BridgeRequest
 import topology.VirtualTopologyActor.BridgeRequest
 import topology.VirtualTopologyActor.ChainRequest
 import topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import scala.Some
 import scala.Left
-import scala.Right
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import scala.Some
-import scala.Left
-import com.midokura.midolman.Initialize
 import scala.Right
 
 
