@@ -108,6 +108,8 @@ public class PortZkManager extends ZkManager {
 
         ops.addAll(filterZkManager.prepareCreate(id));
 
+        ops.addAll(routeZkManager.prepareLocalRoutesCreate(id, config));
+
         // If port groups are specified, need to update the membership.
         if (config.portGroupIDs != null) {
             addToPortGroupsOps(ops, id, config.portGroupIDs);
@@ -347,7 +349,9 @@ public class PortZkManager extends ZkManager {
         // this update that requires other ZK directories to be updated.
         PortConfig oldConfig = get(id);
 
-        // Copy over only the fields that can be updated
+        // Copy over only the fields that can be updated.
+        // portAddr is not among them, otherwise we would have to update the
+        // LOCAL routes too.
         oldConfig.inboundFilter = config.inboundFilter;
         oldConfig.outboundFilter = config.outboundFilter;
         oldConfig.properties = config.properties;
