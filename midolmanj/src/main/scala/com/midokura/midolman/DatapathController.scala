@@ -1073,8 +1073,11 @@ class DatapathController() extends Actor with ActorLogging {
                     cookie: Option[Int], pktMatch: WildcardMatch) {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
-                ask(VirtualTopologyActor.getRef,
-                    ChainRequest(port.outFilterID, false)).mapTo[Chain]
+                if (port.outFilterID == null)
+                    Promise.successful(null)
+                else
+                    ask(VirtualTopologyActor.getRef,
+                        ChainRequest(port.outFilterID, false)).mapTo[Chain]
             }
         // Apply the chains.
         Future.sequence(chainFutures) onComplete {
