@@ -107,10 +107,10 @@ trait RouterHelper extends MidolmanTestCase {
             setPad(true)
         triggerPacketIn(portName, eth)
 
-        requestOfType[PortRequest](vtaProbe())
-        val port = requestOfType[OutgoingMessage](vtaProbe()).m.asInstanceOf[RouterPort[_]]
-        requestOfType[RouterRequest](vtaProbe())
-        val router = replyOfType[SimRouter](vtaProbe())
+        fishForRequestOfType[PortRequest](vtaProbe())
+        val port = fishForReplyOfType[RouterPort[_]](vtaProbe())
+        fishForRequestOfType[RouterRequest](vtaProbe())
+        val router = fishForReplyOfType[SimRouter](vtaProbe())
         drainProbes()
         (router, port)
     }

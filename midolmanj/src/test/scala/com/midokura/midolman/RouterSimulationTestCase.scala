@@ -613,6 +613,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         arpPromise = router.arpTable.get(hisIp, port, expiry)(
             actors().dispatcher, actors())
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
+        try {
+            Await.result(arpPromise, Timeout(100 milliseconds).duration)
+            false should not be true
+        } catch {
+            case e: java.util.concurrent.TimeoutException =>
+        }
     }
 
 /*
