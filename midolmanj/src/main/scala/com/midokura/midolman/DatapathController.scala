@@ -852,8 +852,9 @@ class DatapathController() extends Actor with ActorLogging {
 
     def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
                            tunnelKey: Option[Long], tunnelPorts: Seq[Short],
-                           dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
+                           dpTags: ROSet[Any]): Seq[FlowAction[_]] = {
         val newActs = ListBuffer[FlowAction[_]]()
+        var newTags = new mutable.HashSet[Any]
 
         var translatablePort = port
 
@@ -861,8 +862,8 @@ class DatapathController() extends Actor with ActorLogging {
             FlowActions.output(id).asInstanceOf[FlowAction[_]]
         }
         // add tag for flow invalidation
-        if (dpTags != null) {
-            localPorts.foreach{id => dpTags += FlowTagger.invalidateDPPort(id)}
+        localPorts.foreach{id =>
+            newTags += FlowTagger.invalidateDPPort(id)
         }
 
         if (null != tunnelPorts && tunnelPorts.length > 0) {
@@ -872,9 +873,7 @@ class DatapathController() extends Actor with ActorLogging {
             } ++ tunnelPorts.map { id =>
                 FlowActions.output(id).asInstanceOf[FlowAction[_]]
             }
-            if (dpTags != null) {
-                tunnelPorts.foreach{id => dpTags += FlowTagger.invalidateDPPort(id)}
-            }
+            tunnelPorts.foreach{id => newTags += FlowTagger.invalidateDPPort(id)}
         }
 
         for (act <- acts) {
@@ -882,10 +881,14 @@ class DatapathController() extends Actor with ActorLogging {
                 case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
                     newActs ++= translatedActions
                     translatablePort = null
+                    if( dpTags != null)
+                        dpTags ++ newTags
 
                 case p: FlowActionOutputToVrnPortSet if (p.portSetId == translatablePort) =>
                     newActs ++= translatedActions
                     translatablePort = null
+                    if( dpTags != null)
+                        dpTags ++ newTags
 
                 // we only translate the first ones.
                 case x: FlowActionOutputToVrnPort =>
@@ -995,14 +998,14 @@ class DatapathController() extends Actor with ActorLogging {
                     case Right(exterior) =>
                         // add flow
                         if (active) {
-                            addFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
+                            addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
                                     List(FlowActions.output(port.getPortNo.shortValue)),
-                                    tags = FlowTagger.invalidateDPPort(p.getPortNo.shortValue()),
+                                    tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
                                     expiration = 0)
                         } else {
                             // trigger invalidation
                             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                                FlowTagger.invalidateDPPort(p.getPortNo.shortValue()))
+                                FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                         }
                         tellVtpm()
                     case _ =>
@@ -1013,11 +1016,22 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    private def addFlow(wMatch: WildcardMatch,
+    private def addDropFlow(wMatch: WildcardMatch,
+                        cookie: Option[Int] = None,
+                        expiration: Long = 3000) {
+        log.debug("adding drop flow for PacketIn match {}",
+            wMatch)
+        FlowController.getRef().tell(
+            AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
+                .setIdleExpirationMillis(expiration),
+                null, null, null, null, null))
+    }
+
+    private def addTaggedFlow(wMatch: WildcardMatch,
                         actions: Seq[FlowAction[_]],
+                        tags: ROSet[Any],
                         cookie: Option[Int] = None,
                         pktBytes: Array[Byte] = null,
-                        tags: Set[Any] = Set(),
                         expiration: Long = 3000) {
         log.debug("adding flow for PacketIn match {} with actions {}",
                   wMatch, actions)
@@ -1029,9 +1043,7 @@ class DatapathController() extends Actor with ActorLogging {
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
                                 null,
-                                tags))
-            // XXX(guillermo): make sure passing null for callbacks and tags
-            //                 is OK
+                                tags, null))
     }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
@@ -1077,17 +1089,17 @@ class DatapathController() extends Actor with ActorLogging {
                         case _ =>
                             log.debug("PacketIn came from a tunnel port but " +
                                 "the key does not map to any PortSet")
-                            addFlow(new WildcardMatch().
+                            addDropFlow(new WildcardMatch().
                                     setTunnelID(wMatch.getTunnelID).
                                     setInputPort(port),
-                                Nil, cookie)
+                                    cookie)
                     }
 
                 } else {
                     // Otherwise, drop the flow. There's a port on the DP that
                     // doesn't belong to us and is receiving packets.
-                    addFlow(new WildcardMatch().setInputPortNumber(port),
-                            Nil, cookie)
+                    addDropFlow(new WildcardMatch().setInputPortNumber(port),
+                            cookie)
                 }
 
             case null =>
@@ -1126,12 +1138,14 @@ class DatapathController() extends Actor with ActorLogging {
                                   "ACCEPT, DROP, or REJECT", chain.id, result)
                     result == RuleResult.Action.ACCEPT
                 }
-                addFlow(new WildcardMatch().setTunnelID(tunnelKey)
-                                           .setInputPort(tunnelPort),
-                        translateToDpPorts(List(action), portSetID,
-                                   portsForLocalPorts(egressPorts map
-                                                      {portchain => portchain._1.id}),
-                                   None, Nil), cookie)
+                val tags = ROSet[Any]()
+
+                addTaggedFlow(new WildcardMatch().setTunnelID(tunnelKey)
+                                                 .setInputPort(tunnelPort),
+                    translateToDpPorts(List(action), portSetID,
+                        portsForLocalPorts(egressPorts map
+                                           {portchain => portchain._1.id}),
+                        None, Nil,tags), tags, cookie)
 
             case _ => log.error("Error getting chains for PortSet {}", portSetID)
         }

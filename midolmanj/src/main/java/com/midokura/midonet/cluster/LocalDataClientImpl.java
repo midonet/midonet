@@ -50,7 +50,7 @@ import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
-public class LocalDataClientImpl implements DataClient {
+public class   LocalDataClientImpl implements DataClient {
 
     @Inject
     private TenantZkManager tenantZkManager;
