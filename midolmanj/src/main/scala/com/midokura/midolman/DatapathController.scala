@@ -373,6 +373,7 @@ object DatapathController extends Referenceable {
         def isConnTracked() = false
         def isForwardFlow() = true
         def getFlowCookie() = null
+        def addFlowTag(tag: Any) {}
     }
 }
 

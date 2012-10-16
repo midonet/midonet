@@ -17,21 +17,23 @@ public class InvalidationTrie extends RoutesTrie {
     private final static Logger log = LoggerFactory.getLogger(
         InvalidationTrie.class);
 
-    public static Iterable<RoutesTrie.TrieNode> getAllDescendants(RoutesTrie.TrieNode node){
+    public static Iterable<Integer> getAllDescendantsIpDestination(RoutesTrie.TrieNode node){
         if (node == null)
             return Collections.emptyList();
-        List<TrieNode> descendants = new ArrayList<TrieNode>();
+        List<Integer> destIps = new ArrayList<Integer>();
         Stack<TrieNode> stack = new Stack<TrieNode>();
         stack.add(node);
         while(!stack.empty()){
             TrieNode n = stack.pop();
-            descendants.add(n);
+            for(Route route: n.getRoutes()){
+                destIps.add(route.dstNetworkAddr);
+            }
             if(null != n.left)
                 stack.add(n.left);
             if(null != n.right)
                 stack.add(n.right);
         }
-        return descendants;
+        return destIps;
     }
 
     public RoutesTrie.TrieNode projectRouteAndGetSubTree(Route rt) {

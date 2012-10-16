@@ -21,7 +21,7 @@ import com.midokura.midolman.FlowController.WildcardFlowRemoved
 import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
 import topology.LocalPortActive
-import util.RouterHelper
+import util.{TestHelpers, RouterHelper}
 import com.midokura.midonet.cluster.data.Router
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.DatapathController.PacketIn
@@ -30,13 +30,15 @@ import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.FlowController.DiscardPacket
 import com.midokura.midonet.cluster.client.Port
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 
 @RunWith(classOf[JUnitRunner])
-class InvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
+class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
                        with RouterHelper{
 
     var eventProbe: TestProbe = null
-    var flowsProbe: TestProbe = null
+    var addRemoveFlowsProbe: TestProbe = null
     var datapath: Datapath = null
 
     var timeOutFlow: Long = 500
@@ -78,9 +80,9 @@ class InvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilder
         clusterRouter should not be null
 
         eventProbe = newProbe()
-        flowsProbe = newProbe()
-        actors().eventStream.subscribe(flowsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(flowsProbe.ref, classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe = newProbe()
+        actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowRemoved])
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
 
         initializeDatapath() should not be (null)
@@ -123,7 +125,7 @@ class InvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilder
     // ipSource, macSource: the source of the packets we inject, we imagine packets arrive
     // from a remote source
     // ipToReach, macToReach: it's the Ip that is the destination of the injected packets
-    def atestRouteRemovedInvalidation() {
+    def IGNOREtestRouteRemovedInvalidation() {
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
@@ -143,12 +145,12 @@ class InvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilder
         dpProbe().expectMsgClass(classOf[PacketIn])
         dpProbe().expectMsgClass(classOf[PacketIn])
 
-        requestOfType[DiscardPacket](flowProbe())
+        //requestOfType[DiscardPacket](flowProbe())
 
-        eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // when we delete the routes we expect the flow to be invalidated
         clusterDataClient().routesDelete(routeId)
-        eventProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
     }
 
@@ -192,15 +194,18 @@ class InvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilder
             MAC.fromString(macVm3),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
-        flowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        flowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        flowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         newRoute(clusterRouter, ipSource, 32, "11.11.1.0", networkToReachLength+8,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        //flowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        //flowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
 
     }
 

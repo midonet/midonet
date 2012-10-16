@@ -104,9 +104,6 @@ public abstract class RoutesTrie {
     public void addRoute(Route rt) {
         getLog().debug("addRoute: {}", rt);
         numRoutes++;
-        getLog().debug("# routes: {}", numRoutes);
-        getLog().debug("Root {}", dstPrefixTrie);
-
 
         TrieNode parent = null;
         boolean inLeftChild = false;

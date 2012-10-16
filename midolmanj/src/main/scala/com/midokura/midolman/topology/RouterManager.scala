@@ -148,15 +148,13 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             for (route <- addedRoutes) {
                 log.debug("Projecting added route {}", route)
                 val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
-                val routesToInvalidate = InvalidationTrie.getAllDescendants(subTree)
-                for (node <- routesToInvalidate) {
-                    for (route <- node.getRoutes){
-                        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                            FlowTagger.invalidateByIp(id, route.dstNetworkAddr)
-                        )
-                    }
+                val ipToInvalidate = InvalidationTrie.getAllDescendantsIpDestination(subTree)
+                log.debug("Got the following ip destination to invalidate {}",
+                    ipToInvalidate.map(ip => IPv4.fromIPv4Address(ip)))
+                val it = ipToInvalidate.iterator()
+                it.foreach(ip => FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateByIp(id, ip)) )
                 }
-            }
 
         case AddTag(dstIp) =>
             dstIpTagTrie.addRoute(createSingleHostRoute(dstIp))
