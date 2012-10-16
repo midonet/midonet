@@ -234,6 +234,15 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
+     * Gets id of the chain to jump for this rule.
+     *
+     * @return
+     */
+    public UUID getJumpChainId() {
+        return principalDto.getJumpChainId();
+    }
+
+    /**
      * Gets nat target for this rule.
      *
      * @return
@@ -627,6 +636,17 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      */
     public Rule jumpChainName(String jumpChainName) {
         principalDto.setJumpChainName(jumpChainName);
+        return this;
+    }
+
+    /**
+     * Sets jumpChainName.
+     *
+     * @param jumpChainId
+     * @return this
+     */
+    public Rule jumpChainId(UUID jumpChainId) {
+        principalDto.setJumpChainId(jumpChainId);
         return this;
     }
 
