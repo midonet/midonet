@@ -89,6 +89,14 @@
     </build>
 
     <dependencies>
+		<!-- weird dependency to add tools.jar to the classpath. This is due to a weird macosx installation -->
+		<!--<dependency>
+			<groupId>tools</groupId>
+			<artifactId>tools</artifactId>
+			<version>0.9.2</version>
+			<scope>system</scope>
+			<systemPath>/Library/Java/Home/lib/tools.jar</systemPath>
+		</dependency>-->
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-jdk-bootstrap</artifactId>

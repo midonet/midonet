@@ -490,7 +490,7 @@ class DatapathController() extends Actor with ActorLogging {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
             // schedule port requests.
-            log.info("Starting to scheduler the port stats updates.")
+            log.info("Starting to schedule the port stats updates.")
             portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
             initializer forward m
 
