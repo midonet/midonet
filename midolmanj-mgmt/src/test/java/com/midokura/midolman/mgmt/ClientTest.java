@@ -268,7 +268,10 @@ public class ClientTest extends JerseyTest {
         assertThat(bgp1.getAdRoutes(null).size(), is(1));
 
 
-        //Route
+        //Routes - there are 5 routes added automatically. One to each router
+        //port's address.
+        assertThat(r1.getRoutes(null).size(), is(5));
+
         r1.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
           .dstNetworkAddr("10.10.10.0").dstNetworkLength(32)
           .type("Normal").nextHopPort(lrp1.getId()).create();
@@ -278,7 +281,7 @@ public class ClientTest extends JerseyTest {
           .type("Blackhole").nextHopPort(lrp1.getId()).create();
 
 
-        assertThat(r1.getRoutes(null).size(), is(2));
+        assertThat(r1.getRoutes(null).size(), is(7));
 
         for (Route r : r1.getRoutes(null)) {
             log.debug("Route {}", r);
