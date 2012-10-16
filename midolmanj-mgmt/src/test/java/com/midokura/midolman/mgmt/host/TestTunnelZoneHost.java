@@ -44,11 +44,13 @@ public class TestTunnelZoneHost {
     public static class TestCrud extends JerseyTest {
 
         private DtoWebResource dtoResource;
-        private HostTopology topology;
+        private HostTopology topologyGre;
+        private HostTopology topologyCapwap;
         private HostZkManager hostManager;
         private Directory rootDirectory;
 
         private UUID host1Id = UUID.randomUUID();
+        private UUID host2Id = UUID.randomUUID();
 
         public TestCrud() {
             super(FuncTest.appDesc);
@@ -64,12 +66,20 @@ public class TestTunnelZoneHost {
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
+            DtoHost host2 = new DtoHost();
+            host2.setName("host2");
 
             DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
             tunnelZone1.setName("tz1-name");
 
-            topology = new HostTopology.Builder(dtoResource, hostManager)
+            DtoCapwapTunnelZone tunnelZone2 = new DtoCapwapTunnelZone();
+            tunnelZone2.setName("tz2-name");
+
+            topologyGre = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1Id, host1).create("tz1", tunnelZone1).build();
+
+            topologyCapwap = new HostTopology.Builder(dtoResource, hostManager)
+                    .create(host2Id, host2).create("tz2", tunnelZone2).build();
         }
 
         @After
@@ -77,16 +87,13 @@ public class TestTunnelZoneHost {
             StaticMockDirectory.clearDirectoryInstance();
         }
 
-        @Test
-        public void testCrud() throws Exception {
-
-            DtoGreTunnelZone tz1 = topology.getGreTunnelZone("tz1");
+        private <DTO extends DtoTunnelZone> void testCrud(DTO tz,
+                String tzhCollectionMediaType,
+                String tzhMediaType) {
 
             // List mappings.  There should be none.
             DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
-                    tz1.getHosts(),
-                    VendorMediaType
-                            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                    tz.getHosts(), tzhCollectionMediaType,
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(0, tzHosts.length);
 
@@ -95,35 +102,49 @@ public class TestTunnelZoneHost {
             mapping.setHostId(host1Id);
             mapping.setIpAddress("192.168.100.2");
             DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
-                    tz1.getHosts(),
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                    tz.getHosts(),
+                    tzhMediaType,
                     mapping,
                     DtoTunnelZoneHost.class);
 
             // List mapping and verify that there is one
             tzHosts = dtoResource.getAndVerifyOk(
-                    tz1.getHosts(),
-                    VendorMediaType
-                            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                    tz.getHosts(),
+                    tzhCollectionMediaType,
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(1, tzHosts.length);
 
             // Remove mapping
-            dtoResource.deleteAndVerifyNoContent(
-                    tzHost.getUri(),
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
+            dtoResource.deleteAndVerifyNoContent(tzHost.getUri(), tzhMediaType);
 
             // List mapping and verify that there is none
             tzHosts = dtoResource.getAndVerifyOk(
-                    tz1.getHosts(),
-                    VendorMediaType
-                            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                    tz.getHosts(),
+                    tzhCollectionMediaType,
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(0, tzHosts.length);
         }
 
         @Test
-        public void testClient() throws Exception {
+        public void testCrudGre() throws Exception {
+            DtoGreTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
+            Assert.assertNotNull(tz1);
+            testCrud(tz1,
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
+        }
+
+        @Test
+        public void testCrudCapwap() throws Exception {
+            DtoCapwapTunnelZone tz2 = topologyCapwap.getCapwapTunnelZone("tz2");
+            Assert.assertNotNull(tz2);
+            testCrud(tz2,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON);
+        }
+
+        @Test
+        public void testClientGre() throws Exception {
 
             URI baseUri = resource().getURI();
             MidonetMgmt mgmt = new MidonetMgmt(baseUri.toString());
@@ -154,6 +175,40 @@ public class TestTunnelZoneHost {
 
             assertThat("There is one host entry under the tunnel zone.",
                        greTunnelZone.getHosts().size(), is(1));
+        }
+
+        @Test
+        public void testClientCapwap() throws Exception {
+
+            URI baseUri = resource().getURI();
+            MidonetMgmt mgmt = new MidonetMgmt(baseUri.toString());
+            mgmt.enableLogging();
+
+            UUID hostId = UUID.randomUUID();
+
+            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+            metadata.setName("test");
+            metadata.setAddresses(new InetAddress[]{
+                    InetAddress.getByAddress(
+                            new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
+            });
+
+            hostManager.createHost(hostId, metadata);
+            hostManager.makeAlive(hostId);
+
+            ResourceCollection<Host> hosts = mgmt.getHosts();
+            com.midokura.midonet.client.resource.Host host = hosts.get(0);
+
+            TunnelZone capwapTunnelZone = mgmt.addCapwapTunnelZone()
+                    .name("capwap-tunnel-zone-1")
+                    .create();
+
+            TunnelZoneHost tzHost = capwapTunnelZone.addTunnelZoneHost()
+                    .ipAddress("1.1.1.1")
+                    .hostId(hostId).create();
+
+            assertThat("There is one host entry under the tunnel zone.",
+                    capwapTunnelZone.getHosts().size(), is(1));
         }
     }
 
