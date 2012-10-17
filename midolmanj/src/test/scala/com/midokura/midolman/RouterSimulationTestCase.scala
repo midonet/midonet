@@ -5,6 +5,7 @@ package com.midokura.midolman
 
 import scala.collection.mutable
 import scala.compat.Platform
+import annotation.tailrec
 import java.util.UUID
 
 import akka.dispatch.Await
@@ -22,7 +23,7 @@ import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import com.midokura.midolman.simulation.{ArpTableImpl, Router => SimRouter}
+import simulation.{Router => SimRouter, LoadBalancer, ArpTableImpl}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
@@ -55,7 +56,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private var clusterRouter: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
     private val uplinkNwAddr = "180.0.1.0"
-    private val uplinkNwLen = 30
+    private val uplinkNwLen = 24
     private val uplinkPortAddr = "180.0.1.2"
     private val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
     private var uplinkPort: MaterializedRouterPort = null
@@ -176,6 +177,35 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         addFlowMsg should not be null
         addFlowMsg.flow should not be null
         addFlowMsg.flow
+    }
+
+    def testBalancesRoutes() {
+        val routeDst = "21.31.41.51"
+        val gateways = List("180.0.1.40", "180.0.1.41", "180.0.1.42")
+        gateways foreach { gw =>
+            newRoute(clusterRouter, "0.0.0.0", 0, routeDst, 32,
+                     NextHop.PORT, uplinkPort.getId, gw, 1)
+        }
+        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val lb = new LoadBalancer(router.rTable)
+
+        val wmatch = new WildcardMatch().
+            setNetworkSource(IntIPv4.fromString(uplinkPortAddr)).
+            setNetworkDestination(IntIPv4.fromString(routeDst))
+
+        @tailrec
+        def matchAllResults(resultPool: List[String]) {
+            val rt = lb.lookup(wmatch)
+            rt should not be null
+            val gw = rt.getNextHopGateway
+            gw should not be null
+            resultPool should contain (gw)
+            if (resultPool.size > 1)
+                matchAllResults(resultPool - gw)
+        }
+
+        matchAllResults(gateways)
+        matchAllResults(gateways)
     }
 
     def testDropsIPv6() {
