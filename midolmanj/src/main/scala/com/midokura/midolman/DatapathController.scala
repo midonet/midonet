@@ -376,6 +376,12 @@ object DatapathController extends Referenceable {
         def addFlowTag(tag: Any) {}
     }
 
+    /**
+     * This message is sent every 2 seconds to check that the kernel contains exactly the same
+     * ports/interfaces as the system. In case that somebody uses a command line tool (for example)
+     * to bring down an interface, the system will react to it.
+     * TODO this version is constantly checking for changes. It should react to 'netlink' notifications instead.
+     */
     case class CheckForPortUpdates(datapathName: String)
 }
 
@@ -448,6 +454,7 @@ class DatapathController() extends Actor with ActorLogging {
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
+    val portsDownPool: mutable.Set[Port[_,_]] = mutable.Set()
 
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
@@ -618,31 +625,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         // WORKING MARC
         case CheckForPortUpdates(datapathName: String) =>
-          log.info("Checking any update in the datapath")
           CheckPortUpdates
-
-
-
-          /*vifPorts.get(portID) match {
-            case Some(portName) =>
-              datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
-                def onSuccess(data: Port[_, _]) {
-                  MonitoringActor.getRef() ! PortStats(portID, data.getStats);
-                }
-
-                def onTimeout() {
-                  log.error("Timeout when retrieving port stats")
-                }
-
-                def onError(e: NetlinkException) {
-                  log.error("Error retrieving port stats: {}", e )
-                }
-              });
-
-            case None =>
-              log.debug("Port was not found {}", portID)
-          } */
-
 
    }
 
@@ -650,39 +633,53 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def CheckPortUpdates() {
-      //val datapath: Datapath = datapathConnection.datapathsGet(datapathName).get()
-
       // get the datapath ports via netlink.
       datapathConnection.portsEnumerate(datapath, new ErrorHandlingCallback[java.util.Set[Port[_, _]]] {
         def onSuccess(portsSet: java.util.Set[Port[_, _]]) {
+          // create a map with the netlink ports
           val portIdPortMap = new mutable.HashMap[Int, Port[_,_]]
+          log.info("NETLINK ports: ")
+
           for (port <- portsSet) {
+            log.info("\t PortNo: {}  Port Name: {}", Array(port.getPortNo, port.getName))
             portIdPortMap.put(port.getPortNo, port)
           }
 
-          for ((tapName, port) <- localPorts) {
+          // compare them with the known localPorts
+          for ((_, port) <- localPorts) {
+            log.info("Local port: {}", port.getName)
             if (!portIdPortMap.contains(port.getPortNo)) {
-              // port has been removed. Delete this port from the datapath.
-              log.info("NEED TO DELETE PORT FROM DP {} ({})", Array(port.getPortNo, port.getName))
+              // port has been removed somehow. Delete this port from the datapath.
+              // TODO change the message to make clear that this is 'weird'
+              log.debug("Deleting port from datapath {} ({})", Array(port.getPortNo, port.getName))
               port match {
                 case p: NetDevPort =>
                   VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
                   // TODO better a full host update ?
                   localPorts.remove(p.getName)
+                  portsDownPool.add(p)
+
                 case default =>
                   log.error("port type not matched {}", default)
               }
             }
             portIdPortMap.remove(port.getPortNo)
           }
+          // what's left in portIdPortMap are new ports
+          for ( port <- portIdPortMap.values ) {
+            if (portsDownPool.contains(port)) {
+              log.info("Resurrecting a previously deleted port. {} {}", Array(port.getPortNo, port.getName))
+              // reactivate the port.
+              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = true);
+              // remove it from the down pool
+              portsDownPool.remove(port);
+              localPorts.put(port.getName, port);
+            }
+          }
         }
 
         def handleError(ex: NetlinkException, timeout: Boolean) {
-          context.system.scheduler.scheduleOnce(100 millis, new Runnable {
-            def run() {
-              queryDatapathPorts(datapath)
-            }
-          })
+          log.error("Could not check the port status", ex);
         }
       });
 

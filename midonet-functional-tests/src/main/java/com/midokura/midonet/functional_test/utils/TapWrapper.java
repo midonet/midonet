@@ -1,16 +1,12 @@
 package com.midokura.midonet.functional_test.utils;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
+import com.midokura.packets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.packets.ARP;
-import com.midokura.packets.IPv4;
-import com.midokura.packets.LLDP;
-import com.midokura.packets.MAC;
-import com.midokura.packets.IntIPv4;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import static com.midokura.util.process.ProcessHelper.newProcess;
 
 
@@ -210,8 +206,10 @@ public class TapWrapper {
     }
 
     public void down() {
-        // TODO Auto-generated method stub
-
+        newProcess(
+                String.format("sudo -n ip link set dev %s down", getName()))
+                .logOutput(log, "down_tap@"+getName())
+                .runAndWait();
     }
 
     public void remove() {

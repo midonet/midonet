@@ -31,6 +31,8 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -41,6 +43,7 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public class LinksTest {
 
+    private EmbeddedMidolman mm;
     private final static Logger log = LoggerFactory.getLogger(LinksTest.class);
 
     IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.111.1", 24);
@@ -83,7 +86,7 @@ public class LinksTest {
         MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
 
         log.info("Starting midolman");
-        EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
+        mm = startEmbeddedMidolman(testConfigurationPath);
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
                 probe.ref(), LocalPortActive.class);
@@ -157,9 +160,9 @@ public class LinksTest {
 
     @After
     public void tearDown() throws Exception {
-
+        log.info("STARTING THE TEST TEARDOWN");
         removeTapWrapper(tap1);
-        removeTapWrapper(tap2);
+        //removeTapWrapper(tap2);
         stopEmbeddedMidolman();
         stopMidolmanMgmt(apiStarter);
         stopCassandra();
@@ -176,38 +179,60 @@ public class LinksTest {
                 MAC.fromString("02:00:00:aa:aa:03"), vm2IP, rtrIp2);
         byte[] request;
 
-        log.info("Sending the first ARP request");
         // First arp for router's mac.
         assertThat("The ARP request was sent properly",
                 tap2.send(helper2.makeArpRequest()));
 
-        log.info("Checking the ARP reply.");
         MAC rtrMac = helper2.checkArpReply(tap2.recv());
         helper2.setGwMac(rtrMac);
 
         // Ping near router port.
-        log.info("Send the PING ICMP");
+        log.info("Send the first PING");
         request = helper2.makeIcmpEchoRequest(rtrIp2);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap2.getName()), tap2.send(request));
 
         // The router does not ARP before delivering the echo reply because
         // our ARP request seeded the ARP table.
-        log.info("Checking the ICMP reply from echo");
+        log.info("Checking the first PING");
         PacketHelper.checkIcmpEchoReply(request, tap2.recv());
 
         // Ping far router port.
-        log.info("Checking the ICMP reply for port 2");
+        log.info("Send the second PING");
         request = helper2.makeIcmpEchoRequest(rtrIp1);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap2.getName()), tap2.send(request));
 
         // Note: Midolman's virtual router currently does not ARP before
         // responding to ICMP echo requests addressed to its own port.
-        log.info("Checking that tap1 got back the icmp reply");
+        log.info("Checking the second PING");
         PacketHelper.checkIcmpEchoReply(request, tap2.recv());
 
         assertNoMorePacketsOnTap(tap2);
+
+        // now let's test what happens if we bring the tap down.
+        //removeTapWrapper(tap2);
+        tap2.down();
+        // wait for MM to realize that the port has gone down.
+        log.info("Waiting for MM to realize that the port has gone down.");
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+                probe.ref(), LocalPortActive.class);
+        LocalPortActive lpa = probe.expectMsgClass(LocalPortActive.class);
+        assertFalse(lpa.active());
+        log.info("Intercepted LOCALPORTACTIVE message: " + lpa.portID() + " --> " + lpa.active());
+
+        // Ping far router port.
+        log.info("Send the third PING");
+        request = helper2.makeIcmpEchoRequest(rtrIp1);
+
+        try {
+            tap2.send(request);
+            fail("Tap should have been deleted.");
+        } catch (RuntimeException e) { }
+
+        // bring the tap up again.
+
 
     }
 }
