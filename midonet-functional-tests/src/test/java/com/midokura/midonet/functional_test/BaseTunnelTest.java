@@ -53,12 +53,12 @@ public abstract class BaseTunnelTest {
     // The two VMs that will send traffic across the bridge
     final IntIPv4 localVmIp = IntIPv4.fromString("192.168.231.1", 24);
     final IntIPv4 remoteVmIp = IntIPv4.fromString("192.168.231.2", 24);
-    final MAC localVmMac = MAC.fromString("22:22:22:11:11:11");
-    final MAC remoteVmMac = MAC.fromString("33:33:33:44:44:44");
+    final MAC localVmMac = MAC.fromString("22:55:55:11:11:11");
+    final MAC remoteVmMac = MAC.fromString("22:33:33:44:44:44");
     // The physical network
     final IntIPv4 physTapLocalIp = IntIPv4.fromString("10.245.215.1", 24);
     final IntIPv4 physTapRemoteIp = IntIPv4.fromString("10.245.215.2");
-    final MAC physTapRemoteMac = MAC.fromString("aa:aa:aa:cc:cc:cc");
+    final MAC physTapRemoteMac = MAC.fromString("22:aa:aa:cc:cc:cc");
     MAC physTapLocalMac = null;
 
     TapWrapper vmTap, physTap;
