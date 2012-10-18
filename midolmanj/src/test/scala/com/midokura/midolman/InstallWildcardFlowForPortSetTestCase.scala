@@ -75,7 +75,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val localPortNumber = dpController().underlyingActor.localPorts("port1").getPortNo
 
-        // flow installed for tunnel key = port1 when the port becomes active.
+        // flows installed for tunnel key = port when the port becomes active.
         // There's only one port on this host
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
@@ -87,9 +87,11 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         dpProbe().testActor.tell(AddWildcardFlow(
             wildcardFlow, None, "My packet".getBytes, null, null, null))
         // TODO(ross) finish flow invalidation
-        // TODO(ross) shall we automatically install flows for the portSet? When
-        // a port is included in the port set shall we install the flow from tunnel
-        // with key portSetID to port?
+        // Q(ross): shall we automatically install flows for the portSet? When
+        // a port is included in the port set shall we install the flow from
+        // tunnel with key portSetID to port?
+        // A(jlm): Better not.  The flow has to be checked against the
+        // outbound chains for the port before it can be directed to it.
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
 
