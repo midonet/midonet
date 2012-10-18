@@ -121,9 +121,11 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         flowActs should not be (null)
         // The ingress port should not be in the expanded port set
+        // TODO(jlm): This is flaky; it often only includes one of the three
+        // local ports, instead of the two it should.
         flowActs should have size (5)
 
-        val setKeyAction = as[FlowActionSetKey](flowActs.get(2))
+        val setKeyAction = as[FlowActionSetKey](flowActs.get(flowActs.length - 3))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
 
         // TODO: Why does the "should contain" syntax fail here?
