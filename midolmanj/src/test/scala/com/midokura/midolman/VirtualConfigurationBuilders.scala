@@ -69,14 +69,13 @@ trait VirtualConfigurationBuilders {
     }
 
     def newBridge(name: String): ClusterBridge =
-            newBridge(new ClusterBridge().setName("bridge"))
-
-    def newPortOnBridge(bridge: ClusterBridge, port: MaterializedBridgePort) =
-        clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
-            .asInstanceOf[MaterializedBridgePort]
+            newBridge(new ClusterBridge().setName(name))
 
     def newPortOnBridge(bridge: ClusterBridge): MaterializedBridgePort =
-        newPortOnBridge(bridge, Ports.materializedBridgePort(bridge))
+        clusterDataClient().portsGet(
+                clusterDataClient().portsCreate(
+                        Ports.materializedBridgePort(bridge)))
+            .asInstanceOf[MaterializedBridgePort]
 
 
     def materializePort(port: Port[_, _], host: Host, name: String) {
