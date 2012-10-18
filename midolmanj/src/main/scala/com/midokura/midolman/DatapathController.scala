@@ -998,6 +998,17 @@ class DatapathController() extends Actor with ActorLogging {
 
                 clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
                     case Right(exterior) =>
+                        // trigger invalidation. This is done regardless of
+                        // whether we are activating or deactivating:
+                        //
+                        //   + The case for invalidating on deactivation is
+                        //     obvious.
+                        //   + On activation we invalidate flows for this dp port
+                        //     number in case it has been reused by the dp: we
+                        //     want to start with a clean state.
+                        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                            FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+
                         if (active) {
                             // packets for the port may have arrived before the
                             // port came up and made us install temporary drop flows.
@@ -1009,17 +1020,18 @@ class DatapathController() extends Actor with ActorLogging {
                                     List(FlowActions.output(port.getPortNo.shortValue)),
                                     tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
                                     expiration = 0)
-                        } else {
-                            // trigger invalidation
-                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                                FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                         }
                         tellVtpm()
                     case _ =>
-                        // TODO(guillermo) what to do here?
+                        log.warning("local port activated, but it's not an " +
+                            "ExteriorPort, I don't know what to do with it: {}",
+                            port)
                         tellVtpm()
                 }
-            case _ => tellVtpm()
+            case _ =>
+                log.warning("local port activated, but it's not a " +
+                    "NetDevPort, I don't know what to do with it: {}", port)
+                tellVtpm()
         }
     }
 
