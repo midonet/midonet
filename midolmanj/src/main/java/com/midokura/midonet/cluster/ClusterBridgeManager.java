@@ -61,6 +61,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         BridgeBuilder builder = getBuilder(id);
         if(builder == null){
             log.error("Null builder for bridge {}", id.toString());
+            return;
         }
 
         BridgeZkManager.BridgeConfig config = null;
@@ -89,13 +90,19 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                         "Error retrieving MacPortTable for bridge {}",
                         id, e);
                 }
-                if (macPortMap != null)
+                if (macPortMap != null) {
                     macPortMap.start();
+                    builder.setMacLearningTable(
+                        new MacLearningTableImpl(id, macPortMap));
+                }
                 updateLogicalPorts(builder, id, false);
             }
 
-            buildBridgeFromConfig(id, config, builder, macPortMap);
-            log.info("Update configuration for bridge {}", id);
+            log.debug("Populating builder for bridge {}", id);
+            builder.setInFilter(config.inboundFilter)
+                .setOutFilter(config.outboundFilter);
+            builder.setTunnelKey(config.tunnelKey);
+            builder.build();
         }
     }
 
@@ -128,6 +135,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         for (UUID id : logicalPortIDs) {
+            log.debug("Found logical port {}", id);
             // Find the peer of the new logical port.
             PortDirectory.LogicalBridgePortConfig bridgePort =
                 portCache.get(id, PortDirectory.LogicalBridgePortConfig.class);
@@ -153,7 +161,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             IntIPv4 rtrPortIp = new IntIPv4(routerPort.portAddr);
             rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
 
-            log.debug("updateLogicalPorts: added bridge port {} " +
+            log.debug("added bridge port {} " +
                           "connected to router port with MAC:{} and IP:{}",
                       new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
         }
@@ -162,21 +170,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         // something changed in the LogicalPortMap, so deliver the new maps.
         if(isUpdate)
             builder.build();
-
-    }
-    void buildBridgeFromConfig(UUID id, BridgeZkManager.BridgeConfig config,
-                               BridgeBuilder builder, MacPortMap macPortMap) {
-
-        //builder.setID(id)
-        builder.setInFilter(config.inboundFilter)
-               .setOutFilter(config.outboundFilter);
-        builder.setTunnelKey(config.tunnelKey);
-        // If it's an update macPortMap will be null
-        if (macPortMap != null) {
-            builder.setMacLearningTable(
-                new MacLearningTableImpl(id, macPortMap));
-        }
-        builder.build();
 
     }
 

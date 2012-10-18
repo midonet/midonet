@@ -37,6 +37,7 @@ import com.midokura.midonet.client.resource.RuleChain;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.ARP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
@@ -138,10 +139,11 @@ public class PortGroupTest {
         // port (address 10.0.0.1) as well as ARP.
         RuleChain commonChain = apiClient.addChain()
             .name("common").tenantId("pgroup_tnt").create();
-        commonChain.addRule().type(DtoRule.Accept)
+        log.debug("ChainID for common is {}", commonChain.getId());
+        commonChain.addRule().type(DtoRule.Accept).position(1)
             .nwSrcAddress(rtrIp.toUnicastString()).nwSrcLength(32).create();
-        commonChain.addRule().type(DtoRule.Accept)
-            .dlType((short) 0x0806).create();
+        commonChain.addRule().type(DtoRule.Accept).position(2)
+            .dlType(ARP.ETHERTYPE).create();
 
         // SecGroup 1 allows receiving packets from 10.1.1.0/24.
         // Port Group 1 tracks vports assigned filter SecGroup1
@@ -150,7 +152,8 @@ public class PortGroupTest {
             .name("PG1").tenantId("pgroup_tnt").create();
         RuleChain secG1 = apiClient.addChain()
             .name("SG1").tenantId("pgroup_tnt").create();
-        secG1.addRule().type(DtoRule.Accept)
+        log.debug("ChainID for SG1 is {}", secG1.getId());
+        secG1.addRule().type(DtoRule.Accept).position(1)
             .nwSrcAddress("10.1.1.0").nwSrcLength(24).create();
 
         // SecGroup2 allows receiving packets from 10.2.2.0/24, and from
@@ -159,14 +162,18 @@ public class PortGroupTest {
             .name("PG2").tenantId("pgroup_tnt").create();
         RuleChain secG2 = apiClient.addChain()
             .name("SG2").tenantId("pgroup_tnt").create();
-        secG2.addRule().type(DtoRule.Accept).portGroup(portG1.getId()).create();
-        secG2.addRule().type(DtoRule.Accept).portGroup(portG2.getId()).create();
-        secG2.addRule().type(DtoRule.Accept)
+        log.debug("ChainID for SG2 is {}", secG2.getId());
+        secG2.addRule().type(DtoRule.Accept).position(1)
+            .portGroup(portG1.getId()).create();
+        secG2.addRule().type(DtoRule.Accept).position(2)
+            .portGroup(portG2.getId()).create();
+        secG2.addRule().type(DtoRule.Accept).position(3)
             .nwSrcAddress("10.2.2.0").nwSrcLength(24).create();
 
         // Create the bridge's 1st materialized port. It's in Group1.
         RuleChain portOutChain1 = apiClient.addChain()
             .name("port1_out").tenantId("pgroup_tnt").create();
+        log.debug("ChainID for port1_out is {}", portOutChain1.getId());
         portOutChain1.addRule().type(DtoRule.Jump).position(1)
             .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain1.addRule().type(DtoRule.Jump).position(2)
@@ -179,6 +186,7 @@ public class PortGroupTest {
         // The bridge's 2nd materialized port is in Group2.
         RuleChain portOutChain2 = apiClient.addChain()
             .name("port2_out").tenantId("pgroup_tnt").create();
+        log.debug("ChainID for port2_out is {}", portOutChain2.getId());
         portOutChain2.addRule().type(DtoRule.Jump).position(1)
             .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain2.addRule().type(DtoRule.Jump).position(2)
@@ -191,6 +199,7 @@ public class PortGroupTest {
         // The bridge's 3rd materialized port is in Group1 and Group2.
         RuleChain portOutChain3 = apiClient.addChain()
             .name("port3_out").tenantId("pgroup_tnt").create();
+        log.debug("ChainID for port3_out is {}", portOutChain3.getId());
         portOutChain3.addRule().type(DtoRule.Jump).position(1)
             .jumpChainName("common").jumpChainId(commonChain.getId()).create();
         portOutChain3.addRule().type(DtoRule.Jump).position(2)
@@ -200,7 +209,7 @@ public class PortGroupTest {
         portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
         BridgePort<DtoBridgePort> brPort3 = br.addMaterializedPort()
             .outboundFilterId(portOutChain3.getId())
-            .portGroupIDs(new UUID[] {portG2.getId(), portG2.getId()})
+            .portGroupIDs(new UUID[] {portG1.getId(), portG2.getId()})
             .create();
 
         // The bridge's 4th materialized port is not in any security groups.

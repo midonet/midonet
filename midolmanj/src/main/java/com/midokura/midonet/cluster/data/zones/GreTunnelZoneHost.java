@@ -9,9 +9,6 @@ import javax.annotation.Nonnull;
 import com.midokura.packets.IntIPv4;
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
 
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
 public class GreTunnelZoneHost
         extends HostConfig<GreTunnelZoneHost, GreTunnelZoneHost.Data> {
 

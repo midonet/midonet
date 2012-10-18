@@ -36,7 +36,7 @@ trait Port[T] {
     }
 
     def setOutFilter(chain: UUID): T = {
-        this.inFilterID = chain;
+        this.outFilterID = chain;
         self
     }
 

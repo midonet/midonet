@@ -200,7 +200,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 } else {
                     getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
                         case null =>
-                            Promise.successful(new DropAction)(ec)
+                            Promise.successful(new ErrorDropAction)(ec)
                         case outPort =>
                             postRouting(inPort, outPort, rt, pktContext)
                     }
@@ -209,7 +209,11 @@ class Router(val id: UUID, val cfg: RouterConfig,
             case _ =>
                 log.error("Routing table lookup for {} returned invalid " +
                     "nextHop of {}", nwDst, rt.nextHop)
-                // TODO(jlm, pino): Should this be an exception?
+                // rt.nextHop is invalid. The only way the simulation result
+                // would change is if there are other matching routes that are
+                // 'sane'. If such routes were created, this flow will be
+                // invalidated. Thus, we can return DropAction and not
+                // ErrorDropAction
                 Promise.successful(new DropAction)(ec)
         }
     }
@@ -245,7 +249,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (pktContext.getMatch.getNetworkDestinationIPv4.getAddress ==
                                          outPort.portAddr.getAddress) {
             log.error("Got a packet addressed to a port without a LOCAL route")
-            return Promise.successful(new ErrorDropAction)(ec)
+            return Promise.successful(new DropAction)(ec)
         }
 
         // Set HWSrc

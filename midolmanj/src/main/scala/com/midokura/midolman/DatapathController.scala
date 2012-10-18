@@ -854,7 +854,7 @@ class DatapathController() extends Actor with ActorLogging {
 
     def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
                            tunnelKey: Option[Long], tunnelPorts: Seq[Short],
-                           dpTags: ROSet[Any]): Seq[FlowAction[_]] = {
+                           dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
         val newActs = ListBuffer[FlowAction[_]]()
         var newTags = new mutable.HashSet[Any]
 
@@ -883,14 +883,14 @@ class DatapathController() extends Actor with ActorLogging {
                 case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
                     newActs ++= translatedActions
                     translatablePort = null
-                    if( dpTags != null)
-                        dpTags ++ newTags
+                    if (dpTags != null)
+                        dpTags ++= newTags
 
                 case p: FlowActionOutputToVrnPortSet if (p.portSetId == translatablePort) =>
                     newActs ++= translatedActions
                     translatablePort = null
-                    if( dpTags != null)
-                        dpTags ++ newTags
+                    if (dpTags != null)
+                        dpTags ++= newTags
 
                 // we only translate the first ones.
                 case x: FlowActionOutputToVrnPort =>
@@ -998,23 +998,40 @@ class DatapathController() extends Actor with ActorLogging {
 
                 clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
                     case Right(exterior) =>
-                        // add flow
+                        // trigger invalidation. This is done regardless of
+                        // whether we are activating or deactivating:
+                        //
+                        //   + The case for invalidating on deactivation is
+                        //     obvious.
+                        //   + On activation we invalidate flows for this dp port
+                        //     number in case it has been reused by the dp: we
+                        //     want to start with a clean state.
+                        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                            FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+
                         if (active) {
+                            // packets for the port may have arrived before the
+                            // port came up and made us install temporary drop flows.
+                            // Invalidate them before adding the new flow
+                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                                FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
+
                             addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
                                     List(FlowActions.output(port.getPortNo.shortValue)),
                                     tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
                                     expiration = 0)
-                        } else {
-                            // trigger invalidation
-                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                                FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                         }
                         tellVtpm()
                     case _ =>
-                        // TODO(guillermo) what to do here?
+                        log.warning("local port activated, but it's not an " +
+                            "ExteriorPort, I don't know what to do with it: {}",
+                            port)
                         tellVtpm()
                 }
-            case _ => tellVtpm()
+            case _ =>
+                log.warning("local port activated, but it's not a " +
+                    "NetDevPort, I don't know what to do with it: {}", port)
+                tellVtpm()
         }
     }
 
@@ -1035,7 +1052,7 @@ class DatapathController() extends Actor with ActorLogging {
                         cookie: Option[Int] = None,
                         pktBytes: Array[Byte] = null,
                         expiration: Long = 3000) {
-        log.debug("adding flow for PacketIn match {} with actions {}",
+        log.debug("adding flow with match {} with actions {}",
                   wMatch, actions)
 
         FlowController.getRef().tell(
@@ -1088,20 +1105,33 @@ class DatapathController() extends Actor with ActorLogging {
                                     "PortSet {}", portSet)
                             }
 
+                        case _ if (wMatch.getTunnelID == null) =>
+                            log.error("SCREAM: got a PacketIn on a tunnel port"+
+                                " and a wildcard match with no tunnel id")
+                            addDropFlow(new WildcardMatch().
+                                setInputPort(port),
+                                cookie)
+
                         case _ =>
+                            // for now, install a drop flow. We will invalidate
+                            // it if the port comes up later on.
                             log.debug("PacketIn came from a tunnel port but " +
                                 "the key does not map to any PortSet")
-                            addDropFlow(new WildcardMatch().
-                                    setTunnelID(wMatch.getTunnelID).
-                                    setInputPort(port),
-                                    cookie)
+                            addTaggedFlow(new WildcardMatch().
+                                            setTunnelID(wMatch.getTunnelID).
+                                            setInputPort(port),
+                                actions = Nil,
+                                tags = Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
+                                cookie = cookie)
                     }
 
                 } else {
                     // Otherwise, drop the flow. There's a port on the DP that
                     // doesn't belong to us and is receiving packets.
-                    addDropFlow(new WildcardMatch().setInputPortNumber(port),
-                            cookie)
+                    addTaggedFlow(new WildcardMatch().setInputPort(port),
+                        actions = Nil,
+                        tags = Set(FlowTagger.invalidateDPPort(port)),
+                        cookie = cookie)
                 }
 
             case null =>
@@ -1143,14 +1173,14 @@ class DatapathController() extends Actor with ActorLogging {
                                   "ACCEPT, DROP, or REJECT", chain.id, result)
                     result == RuleResult.Action.ACCEPT
                 }
-                val tags = ROSet[Any]()
+                val tags = mutable.Set[Any]()
 
                 addTaggedFlow(new WildcardMatch().setTunnelID(tunnelKey)
                                                  .setInputPort(tunnelPort),
                     translateToDpPorts(List(action), portSetID,
                         portsForLocalPorts(egressPorts map
                                            {portchain => portchain._1.id}),
-                        None, Nil,tags), tags, cookie)
+                        None, Nil, tags), tags, cookie)
 
             case _ => log.error("Error getting chains for PortSet {}", portSetID)
         }
@@ -1197,6 +1227,9 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
                     peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
             }
+            // trigger invalidation
+            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                FlowTagger.invalidateDPPort(port.getPortNo.shortValue))
             localTunnelPorts.add(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,

@@ -4,23 +4,15 @@
 
 package com.midokura.midolman.util
 
-import com.midokura.packets._
-import com.midokura.sdn.flows.WildcardMatch
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import java.util.UUID
-import com.midokura.midolman.simulation.Router
+
+import com.midokura.packets._
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midonet.cluster.client.RouterPort
 import com.midokura.midolman.topology.VirtualTopologyActor.{RouterRequest, PortRequest}
-import com.midokura.midolman.guice.actors.OutgoingMessage
-import com.midokura.midolman.simulation.{ArpTableImpl, Router => SimRouter}
-import org.scalatest.matchers.ShouldMatchers
-import akka.testkit.TestKit
-import com.midokura.midolman.MidolmanTestCase
+import com.midokura.midolman.simulation.{Router => SimRouter}
 
-trait RouterHelper extends MidolmanTestCase {
-
-    final val IPv6_ETHERTYPE: Short = 0x86dd.toShort
+trait RouterHelper extends SimulationHelper {
 
     def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
                              dstIp: Int, dstMac: MAC) {
@@ -41,28 +33,6 @@ trait RouterHelper extends MidolmanTestCase {
         eth.setDestinationMACAddress(dstMac)
         eth.setEtherType(ARP.ETHERTYPE)
         triggerPacketIn(portName, eth)
-    }
-
-    def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
-        wmatch.getEthernetDestination should be === pkt.getDestinationMACAddress
-        wmatch.getEthernetSource should be === pkt.getSourceMACAddress
-        wmatch.getEtherType should be === pkt.getEtherType
-        val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
-        wmatch.getNetworkDestination should be === ipPkt.getDestinationAddress
-        wmatch.getNetworkSource should be === ipPkt.getSourceAddress
-        wmatch.getNetworkProtocol should be === ipPkt.getProtocol
-
-        ipPkt.getProtocol match {
-            case UDP.PROTOCOL_NUMBER =>
-                val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-                wmatch.getTransportDestination should be === udpPkt.getDestinationPort
-                wmatch.getTransportSource should be === udpPkt.getSourcePort
-            case TCP.PROTOCOL_NUMBER =>
-                val tcpPkt = ipPkt.getPayload.asInstanceOf[TCP]
-                wmatch.getTransportDestination should be === tcpPkt.getDestinationPort
-                wmatch.getTransportSource should be === tcpPkt.getSourcePort
-            case _ =>
-        }
     }
 
     def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,

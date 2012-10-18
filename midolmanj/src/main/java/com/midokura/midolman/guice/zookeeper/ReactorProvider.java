@@ -28,7 +28,9 @@ public class ReactorProvider implements Provider<Reactor> {
         return new ScheduledReactor();
     }
 
-    class ScheduledReactor implements Reactor {
+    static class ScheduledReactor implements Reactor {
+        private final Logger log = LoggerFactory
+            .getLogger(ScheduledReactor.class);
 
         ScheduledExecutorService executorService =
             Executors.newScheduledThreadPool(1);
@@ -39,39 +41,56 @@ public class ReactorProvider implements Provider<Reactor> {
             return System.currentTimeMillis();
         }
 
-        @Override
-        public Future<?> submit(final Runnable runnable) {
-            return submit(new Callable<Object>() {
+        private Callable<Object> wrapRunnable(final Runnable runnable) {
+            return new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    runnable.run();
+                    try {
+                        runnable.run();
+                    } catch (Throwable tt) {
+                        log.error("Reactor encountered Throwable", tt);
+                    }
                     return null;
                 }
-            });
+            };
+        }
+
+        private <V> Callable<V> wrapCallable(final Callable<V> callable) {
+            return new Callable<V>() {
+                @Override
+                public V call() throws Exception {
+                    try {
+                        callable.call();
+                    } catch (Throwable tt) {
+                        log.error("Reactor encountered Throwable", tt);
+                    }
+                    return null;
+                }
+            };
         }
 
         @Override
-        public <V> Future<V> submit(Callable<V> work) {
-            return executorService.submit(work);
+        public Future<?> submit(final Runnable runnable) {
+            return executorService.submit(wrapRunnable(runnable));
+        }
+
+        @Override
+        public <V> Future<V> submit(final Callable<V> work) {
+            return executorService.submit(wrapCallable(work));
         }
 
         @Override
         public ScheduledFuture<?> schedule(final Runnable runnable, long delay,
                                            TimeUnit unit) {
-            return schedule(
-                new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        runnable.run();
-                        return null;
-                    }
-                }, delay, unit);
+            return executorService.schedule(
+                wrapRunnable(runnable), delay, unit);
         }
 
         @Override
         public <V> ScheduledFuture<V> schedule(Callable<V> work, long delay,
                                                TimeUnit unit) {
-            return executorService.schedule(work, delay, unit);
+            return executorService.schedule(
+                wrapCallable(work), delay, unit);
         }
     }
 }

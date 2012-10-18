@@ -11,10 +11,11 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
         Port, Ports, Router => ClusterRouter, Route}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.rules.LiteralRule
-import com.midokura.midonet.cluster.{ClusterRouterManager, DataClient}
-import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort,
-        MaterializedRouterPort}
+import com.midokura.midonet.cluster.DataClient
+import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
+        LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
+//import com.midokura.midonet.cluster.data.ports._
 import com.midokura.packets.MAC
 
 
@@ -68,14 +69,24 @@ trait VirtualConfigurationBuilders {
     def newBridge(name: String): ClusterBridge =
             newBridge(new ClusterBridge().setName(name))
 
-    def newPortOnBridge(bridge: ClusterBridge): MaterializedBridgePort = {
+    def newExteriorBridgePort(bridge: ClusterBridge): MaterializedBridgePort = {
         val port = Ports.materializedBridgePort(bridge)
+        val uuid = clusterDataClient().portsCreate(port)
+        port.setId(uuid)
+    }
+
+    def newInteriorBridgePort(bridge: ClusterBridge): LogicalBridgePort = {
+        val port = Ports.logicalBridgePort(bridge)
         val uuid = clusterDataClient().portsCreate(port)
         port.setId(uuid)
     }
 
     def materializePort(port: Port[_, _], host: Host, name: String) {
         clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
+    }
+
+    def deletePort(port: Port[_, _], host: Host){
+        clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
     }
 
     def newRouter(router: ClusterRouter): ClusterRouter = {
@@ -85,13 +96,26 @@ trait VirtualConfigurationBuilders {
     def newRouter(name: String): ClusterRouter =
             newRouter(new ClusterRouter().setName(name))
 
-    def newPortOnRouter(router: ClusterRouter, port: MaterializedRouterPort) =
+    def newExteriorRouterPort(router: ClusterRouter, port: MaterializedRouterPort) =
         clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
             .asInstanceOf[MaterializedRouterPort]
 
-    def newPortOnRouter(router: ClusterRouter, mac: MAC, portAddr: String,
+    def newExteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
                         nwAddr: String, nwLen: Int): MaterializedRouterPort = {
-        newPortOnRouter(router, Ports.materializedRouterPort(router)
+        newExteriorRouterPort(router, Ports.materializedRouterPort(router)
+            .setPortAddr(portAddr)
+            .setNwAddr(nwAddr)
+            .setNwLength(nwLen)
+            .setHwAddr(mac))
+    }
+
+    def newInteriorRouterPort(router: ClusterRouter, port: LogicalRouterPort) =
+        clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
+            .asInstanceOf[LogicalRouterPort]
+
+    def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+                              nwAddr: String, nwLen: Int): LogicalRouterPort = {
+        newInteriorRouterPort(router, Ports.logicalRouterPort(router)
             .setPortAddr(portAddr)
             .setNwAddr(nwAddr)
             .setNwLength(nwLen)

@@ -53,12 +53,12 @@ public abstract class BaseTunnelTest {
     // The two VMs that will send traffic across the bridge
     final IntIPv4 localVmIp = IntIPv4.fromString("192.168.231.1", 24);
     final IntIPv4 remoteVmIp = IntIPv4.fromString("192.168.231.2", 24);
-    final MAC localVmMac = MAC.fromString("22:22:22:11:11:11");
-    final MAC remoteVmMac = MAC.fromString("33:33:33:44:44:44");
+    final MAC localVmMac = MAC.fromString("22:55:55:11:11:11");
+    final MAC remoteVmMac = MAC.fromString("22:33:33:44:44:44");
     // The physical network
     final IntIPv4 physTapLocalIp = IntIPv4.fromString("10.245.215.1", 24);
     final IntIPv4 physTapRemoteIp = IntIPv4.fromString("10.245.215.2");
-    final MAC physTapRemoteMac = MAC.fromString("aa:aa:aa:cc:cc:cc");
+    final MAC physTapRemoteMac = MAC.fromString("22:aa:aa:cc:cc:cc");
     MAC physTapLocalMac = null;
 
     TapWrapper vmTap, physTap;
@@ -165,48 +165,6 @@ public abstract class BaseTunnelTest {
         stopEmbeddedZookeeper();
     }
 
-    private void matchUdpPacket(TapWrapper device,
-                                    MAC fromMac, IntIPv4 fromIp,
-                                    MAC toMac, IntIPv4 toIp,
-                                    short udpSrc, short udpDst)
-                                throws MalformedPacketException {
-        byte[] received = device.recv();
-        assertNotNull(String.format("Expected packet on %s", device.getName()),
-                      received);
-        Ethernet eth = Ethernet.deserialize(received);
-        log.info("got packet on " + device.getName() + ": " + eth.toString());
-        matchUdpPacket(eth, fromMac, fromIp, toMac, toIp, udpSrc, udpDst);
-    }
-
-    private void matchUdpPacket(IPacket pkt,
-                                    MAC fromMac, IntIPv4 fromIp,
-                                    MAC toMac, IntIPv4 toIp,
-                                    short udpSrc, short udpDst)
-                                throws MalformedPacketException {
-        assertTrue("packet is ethernet", pkt instanceof Ethernet);
-        Ethernet eth = (Ethernet) pkt;
-
-        assertEquals("source ethernet address",
-            fromMac, eth.getSourceMACAddress());
-        assertEquals("destination ethernet address",
-            toMac, eth.getDestinationMACAddress());
-        assertEquals("ethertype", IPv4.ETHERTYPE, eth.getEtherType());
-
-        assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
-        IPv4 ipPkt = (IPv4) eth.getPayload();
-        assertEquals("source ipv4 address",
-            fromIp.addressAsInt(), ipPkt.getSourceAddress());
-        assertEquals("destination ipv4 address",
-            toIp.addressAsInt(), ipPkt.getDestinationAddress());
-
-        assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
-        UDP udpPkt = (UDP) ipPkt.getPayload();
-        assertEquals("udp source port",
-            udpSrc, udpPkt.getSourcePort());
-        assertEquals("udp destination port",
-            udpDst, udpPkt.getDestinationPort());
-    }
-
     protected abstract IPacket matchTunnelPacket(TapWrapper device,
                                                  MAC fromMac, IntIPv4 fromIp,
                                                  MAC toMac, IntIPv4 toIp)
@@ -224,7 +182,7 @@ public abstract class BaseTunnelTest {
         IPacket encap = matchTunnelPacket(physTap,
                                           physTapLocalMac, physTapLocalIp,
                                           physTapRemoteMac, physTapRemoteIp);
-        matchUdpPacket(encap, localVmMac, localVmIp,
+        PacketHelper.matchUdpPacket(encap, localVmMac, localVmIp,
                               remoteVmMac, remoteVmIp,
                               (short) 2345, (short) 9876);
     }
@@ -235,7 +193,7 @@ public abstract class BaseTunnelTest {
         assertPacketWasSentOnTap(physTap, pkt);
 
         log.info("Waiting for packet on vm tap");
-        matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
+        PacketHelper.matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
                               localVmMac, localVmIp,
                               (short) 9876, (short) 2345);
     }

@@ -5,6 +5,7 @@ package com.midokura.midolman
 
 import scala.collection.mutable
 import scala.compat.Platform
+import annotation.tailrec
 import java.util.UUID
 
 import akka.dispatch.Await
@@ -22,20 +23,17 @@ import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import com.midokura.midolman.simulation.{ArpTableImpl, Router => SimRouter}
+import simulation.{LoadBalancer, ArpTableImpl}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
-                                                            RouterRequest}
-import com.midokura.midonet.cluster.client.{ExteriorRouterPort, RouterPort}
 import com.midokura.midonet.cluster.data.{Router => ClusterRouter, Ports}
 import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets._
 import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
                                   FlowKeyEthernet, FlowKeyIPv4}
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.flows.WildcardMatch
 import topology.LocalPortActive
 import util.RouterHelper
 
@@ -55,7 +53,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private var clusterRouter: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
     private val uplinkNwAddr = "180.0.1.0"
-    private val uplinkNwLen = 30
+    private val uplinkNwLen = 24
     private val uplinkPortAddr = "180.0.1.2"
     private val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
     private var uplinkPort: MaterializedRouterPort = null
@@ -93,7 +91,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         // Create one port that works as an uplink for the router.
-        uplinkPort = newPortOnRouter(clusterRouter, uplinkMacAddr,
+        uplinkPort = newExteriorRouterPort(clusterRouter, uplinkMacAddr,
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
@@ -114,7 +112,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 val segmentAddr = new IntIPv4(nwAddr + j*4)
                 val portAddr = new IntIPv4(nwAddr + j*4 + 1)
 
-                val port = newPortOnRouter(clusterRouter, macAddr,
+                val port = newExteriorRouterPort(clusterRouter, macAddr,
                     portAddr.toString, segmentAddr.toString, 30)
                 port should not be null
 
@@ -150,17 +148,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         drainProbes()
     }
 
-    private def expectPacketOnPort(port: UUID): PacketIn = {
-        dpProbe().expectMsgClass(classOf[PacketIn])
-
-        val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
-        pktInMsg should not be null
-        pktInMsg.pktBytes should not be null
-        pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be === port
-        pktInMsg
-    }
-
     private def expectFlowActionSetKey[T](action: AnyRef)(implicit m: Manifest[T]) : T = {
         as[T](as[FlowActionSetKey](action).getFlowKey)
     }
@@ -171,11 +158,33 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private def myAddressOnPort(portNum: Int): IntIPv4 =
         new IntIPv4(portNumToSegmentAddr(portNum) + 1)
 
-    private def expectFlowAddedMessage(): WildcardFlow = {
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow
+    def testBalancesRoutes() {
+        val routeDst = "21.31.41.51"
+        val gateways = List("180.0.1.40", "180.0.1.41", "180.0.1.42")
+        gateways foreach { gw =>
+            newRoute(clusterRouter, "0.0.0.0", 0, routeDst, 32,
+                     NextHop.PORT, uplinkPort.getId, gw, 1)
+        }
+        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val lb = new LoadBalancer(router.rTable)
+
+        val wmatch = new WildcardMatch().
+            setNetworkSource(IntIPv4.fromString(uplinkPortAddr)).
+            setNetworkDestination(IntIPv4.fromString(routeDst))
+
+        @tailrec
+        def matchAllResults(resultPool: List[String]) {
+            val rt = lb.lookup(wmatch)
+            rt should not be null
+            val gw = rt.getNextHopGateway
+            gw should not be null
+            resultPool should contain (gw)
+            if (resultPool.size > 1)
+                matchAllResults(resultPool - gw)
+        }
+
+        matchAllResults(gateways)
+        matchAllResults(gateways)
     }
 
     def testDropsIPv6() {

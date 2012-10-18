@@ -87,7 +87,7 @@ public class BgpTest {
 
         log.info("Starting midolman");
         startEmbeddedMidolman(testConfigurationFile.getAbsolutePath());
-        sleepBecause("we need midolman to boot up", 5);
+        sleepBecause("we need midolman to boot up", 1);
 
         Router router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
@@ -150,7 +150,7 @@ public class BgpTest {
                 IntIPv4.fromString("1.0.0.1"));
 
 
-        sleepBecause("we need midolman to boot up", 20);
+        sleepBecause("we need midolman to boot up", 2);
 
     }
 
@@ -177,11 +177,11 @@ public class BgpTest {
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
 
-        sleepBecause("wait few seconds to see if bgpd catches the route", 20);
+        sleepBecause("wait few seconds to see if bgpd catches the route", 2);
 
         tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
 
-        sleepBecause("wait for ICMP to travel", 60);
+        sleepBecause("wait for ICMP to travel", 2);
 
         log.debug("testRouteConnectivity - stop");
     }

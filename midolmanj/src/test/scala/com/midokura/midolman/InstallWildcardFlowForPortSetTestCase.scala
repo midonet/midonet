@@ -35,11 +35,11 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val bridge = newBridge("bridge")
 
-        val port1OnHost1 = newPortOnBridge(bridge)
-        val port2OnHost1 = newPortOnBridge(bridge)
-        val port3OnHost1 = newPortOnBridge(bridge)
-        val portOnHost2 = newPortOnBridge(bridge)
-        val portOnHost3 = newPortOnBridge(bridge)
+        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port2OnHost1 = newExteriorBridgePort(bridge)
+        val port3OnHost1 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newExteriorBridgePort(bridge)
 
         //val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         //val rule1 = newLiteralRuleOnChain(chain1, 0, null, null)  //XXX
@@ -89,22 +89,25 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val localPortNumber3 = dpController().underlyingActor
                                              .localPorts("port1c").getPortNo
 
-        // for the three local exterior ports
+        // flows installed for tunnel key = port1 when the port becomes active.
+        // There are three ports on this host.
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())
+
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes(), null, null, null))
+            wildcardFlow, None, "My packet".getBytes, null, null, null))
+        // TODO(ross) finish flow invalidation
+        // TODO(ross) shall we automatically install flows for the portSet? When
+        // a port is included in the port set shall we install the flow from tunnel
+        // with key portSetID to port?
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-        requestOfType[InvalidateFlowsByTag](flowProbe())
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         addFlowMsg should not be null
         addFlowMsg.pktBytes should not be null

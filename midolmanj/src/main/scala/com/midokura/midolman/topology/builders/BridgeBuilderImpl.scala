@@ -27,6 +27,8 @@ import collection.mutable
 
 class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                         val bridgeMgr: ActorRef) extends BridgeBuilder {
+    final val log =
+        LoggerFactory.getLogger(classOf[BridgeBuilderImpl])
 
     private val cfg: BridgeConfig = new BridgeConfig
     private var macPortMap: MacLearningTable = null
@@ -65,18 +67,24 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     def setLogicalPortsMap(newRtrMacToLogicalPortId: java.util.Map[MAC, UUID],
                            newRtrIpToMac: java.util.Map[IntIPv4, MAC]) {
         import collection.JavaConversions._
+        log.debug("Diffing the maps.")
         // calculate diff between the 2 maps
-        val deletedPortMap = rtrMacToLogicalPortId -- (newRtrMacToLogicalPortId.keys)
-        // invalidate the flows of the deleted logical port
-        for ((key, value) <- deletedPortMap){
-            flowController !
-                FlowController.InvalidateFlowsByTag(FlowTagger.invalidateFlowsByLogicalPort(id, value))
+        if (null != rtrMacToLogicalPortId) {
+            val deletedPortMap =
+                rtrMacToLogicalPortId -- (newRtrMacToLogicalPortId.keys)
+            // invalidate the flows of the deleted logical port
+            for ((key, value) <- deletedPortMap){
+                flowController !
+                    FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateFlowsByLogicalPort(id, value))
+            }
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
         rtrIpToMac = newRtrIpToMac
     }
 
     def build() {
+        log.debug("Building the bridge for {}", id)
         // send messages to the BridgeManager
         // Convert the mutable map to immutable
         bridgeMgr ! BridgeManager.TriggerUpdate(cfg, macPortMap,
