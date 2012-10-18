@@ -998,8 +998,13 @@ class DatapathController() extends Actor with ActorLogging {
 
                 clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
                     case Right(exterior) =>
-                        // add flow
                         if (active) {
+                            // packets for the port may have arrived before the
+                            // port came up and made us install temporary drop flows.
+                            // Invalidate them before adding the new flow
+                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                                FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
+
                             addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
                                     List(FlowActions.output(port.getPortNo.shortValue)),
                                     tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
@@ -1096,12 +1101,16 @@ class DatapathController() extends Actor with ActorLogging {
                                 cookie)
 
                         case _ =>
+                            // for now, install a drop flow. We will invalidate
+                            // it if the port comes up later on.
                             log.debug("PacketIn came from a tunnel port but " +
                                 "the key does not map to any PortSet")
-                            addDropFlow(new WildcardMatch().
-                                    setTunnelID(wMatch.getTunnelID).
-                                    setInputPort(port),
-                                    cookie)
+                            addTaggedFlow(new WildcardMatch().
+                                            setTunnelID(wMatch.getTunnelID).
+                                            setInputPort(port),
+                                actions = Nil,
+                                tags = Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
+                                cookie = cookie)
                     }
 
                 } else {
