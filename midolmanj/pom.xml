@@ -392,6 +392,10 @@
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.5.1</version>
             </plugin>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+            </plugin>
         </plugins>
     </reporting>
 
