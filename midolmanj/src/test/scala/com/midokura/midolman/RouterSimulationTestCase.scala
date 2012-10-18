@@ -23,20 +23,17 @@ import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import simulation.{Router => SimRouter, LoadBalancer, ArpTableImpl}
+import simulation.{LoadBalancer, ArpTableImpl}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import com.midokura.midolman.topology.VirtualTopologyActor.{PortRequest,
-                                                            RouterRequest}
-import com.midokura.midonet.cluster.client.{ExteriorRouterPort, RouterPort}
 import com.midokura.midonet.cluster.data.{Router => ClusterRouter, Ports}
 import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets._
 import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
                                   FlowKeyEthernet, FlowKeyIPv4}
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.flows.WildcardMatch
 import topology.LocalPortActive
 import util.RouterHelper
 
@@ -151,17 +148,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         drainProbes()
     }
 
-    private def expectPacketOnPort(port: UUID): PacketIn = {
-        dpProbe().expectMsgClass(classOf[PacketIn])
-
-        val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
-        pktInMsg should not be null
-        pktInMsg.pktBytes should not be null
-        pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be === port
-        pktInMsg
-    }
-
     private def expectFlowActionSetKey[T](action: AnyRef)(implicit m: Manifest[T]) : T = {
         as[T](as[FlowActionSetKey](action).getFlowKey)
     }
@@ -171,13 +157,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
     private def myAddressOnPort(portNum: Int): IntIPv4 =
         new IntIPv4(portNumToSegmentAddr(portNum) + 1)
-
-    private def expectFlowAddedMessage(): WildcardFlow = {
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-        addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow
-    }
 
     def testBalancesRoutes() {
         val routeDst = "21.31.41.51"
