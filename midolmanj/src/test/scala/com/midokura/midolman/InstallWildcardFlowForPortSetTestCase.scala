@@ -90,7 +90,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         // TODO(ross) shall we automatically install flows for the portSet? When
         // a port is included in the port set shall we install the flow from tunnel
         // with key portSetID to port?
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
 
         addFlowMsg should not be null
