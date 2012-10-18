@@ -89,11 +89,11 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        inPort = newPortOnRouter(clusterRouter, MAC.fromString(macInPort),
+        inPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macInPort),
             ipInPort, ipInPort, 32)
         inPort should not be null
 
-        outPort = newPortOnRouter(clusterRouter, MAC.fromString(macOutPort),
+        outPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macOutPort),
             ipOutPort, networkToReach, networkToReachLength)
 
         //requestOfType[WildcardFlowAdded](flowProbe)

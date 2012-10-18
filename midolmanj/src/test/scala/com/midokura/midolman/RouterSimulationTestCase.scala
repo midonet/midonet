@@ -91,7 +91,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         // Create one port that works as an uplink for the router.
-        uplinkPort = newPortOnRouter(clusterRouter, uplinkMacAddr,
+        uplinkPort = newExteriorRouterPort(clusterRouter, uplinkMacAddr,
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
@@ -112,7 +112,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 val segmentAddr = new IntIPv4(nwAddr + j*4)
                 val portAddr = new IntIPv4(nwAddr + j*4 + 1)
 
-                val port = newPortOnRouter(clusterRouter, macAddr,
+                val port = newExteriorRouterPort(clusterRouter, macAddr,
                     portAddr.toString, segmentAddr.toString, 30)
                 port should not be null
 
