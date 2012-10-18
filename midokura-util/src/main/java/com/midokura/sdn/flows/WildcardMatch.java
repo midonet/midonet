@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.midokura.packets.ARP;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
@@ -35,7 +36,9 @@ public class WildcardMatch implements Cloneable {
         NetworkTOS,
         IsIPv4Fragment,
         TransportSource,
-        TransportDestination
+        TransportDestination,
+        ArpSip,
+        ArpTip
     }
 
     /**
@@ -60,6 +63,8 @@ public class WildcardMatch implements Cloneable {
     private Boolean isIPv4Fragment;
     private Short transportSource;
     private Short transportDestination;
+    private IntIPv4 arpSip;
+    private IntIPv4 arpTip;
 
     @Nonnull
     public WildcardMatch setInputPortNumber(short inputPortNumber) {
@@ -438,6 +443,44 @@ public class WildcardMatch implements Cloneable {
         return transportDestination.shortValue();
     }
 
+    @Nonnull
+    public WildcardMatch setArpSip(IntIPv4 arpSip) {
+        usedFields.add(Field.ArpSip);
+        this.arpSip = arpSip;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetArpSip() {
+        usedFields.remove(Field.ArpSip);
+        this.arpSip = null;
+        return this;
+    }
+
+    @Nullable
+    public IntIPv4 getArpSipObject() {
+        return arpSip;
+    }
+
+    @Nonnull
+    public WildcardMatch setArpTip(IntIPv4 arpTip) {
+        usedFields.add(Field.ArpTip);
+        this.arpTip = arpTip;
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetArpTip() {
+        usedFields.remove(Field.ArpTip);
+        this.arpTip = null;
+        return this;
+    }
+
+    @Nullable
+    public IntIPv4 getArpTipObject() {
+        return arpTip;
+    }
+
     /**
      * Applies this match to a fresh copy of an ethernet packet
      *
@@ -452,11 +495,14 @@ public class WildcardMatch implements Cloneable {
         Ethernet eth = Ethernet.deserialize(toPacket.serialize());
         IPv4 ipv4 = null;
         Transport transport = null;
+        ARP arp = null;
 
         if (eth.getPayload() instanceof IPv4)
             ipv4 = (IPv4) eth.getPayload();
         if (ipv4 != null && ipv4.getPayload() instanceof Transport)
             transport = (Transport) ipv4.getPayload();
+        if (eth.getPayload() instanceof ARP)
+            arp = (ARP) eth.getPayload();
 
         /* TODO (guillermo)
          * support (ethernet(ip(tcp|udp))) in the 1st go. A full/correct
@@ -492,6 +538,16 @@ public class WildcardMatch implements Cloneable {
                 case NetworkSource:
                     if (null != ipv4)
                         ipv4.setSourceAddress(networkSource.addressAsInt());
+                    break;
+                case ArpSip:
+                    if (null != arp)
+                        arp.setSenderProtocolAddress(
+                                IPv4.toIPv4AddressBytes(arpSip.addressAsInt()));
+                    break;
+                case ArpTip:
+                    if (null != arp)
+                        arp.setTargetProtocolAddress(
+                                IPv4.toIPv4AddressBytes(arpTip.addressAsInt()));
                     break;
                 case NetworkProtocol:
                     if (null != ipv4)
@@ -557,6 +613,16 @@ public class WildcardMatch implements Cloneable {
 
                 case TransportSource:
                     if (!isEqual(transportSource, that.transportSource))
+                        return false;
+                    break;
+
+                case ArpSip:
+                    if (!isEqual(arpSip, that.arpSip))
+                        return false;
+                    break;
+
+                case ArpTip:
+                    if (!isEqual(arpTip, that.arpTip))
                         return false;
                     break;
 
@@ -627,6 +693,12 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case TransportSource:
                     result = 31 * result + transportSource.hashCode();
+                    break;
+                case ArpSip:
+                    result = 31 * result + arpSip.hashCode();
+                    break;
+                case ArpTip:
+                    result = 31 * result + arpTip.hashCode();
                     break;
                 case InputPortUUID:
                     result = 31 * result + inputPortUUID.hashCode();
@@ -771,6 +843,14 @@ public class WildcardMatch implements Cloneable {
 
                     case NetworkSource:
                         newClone.networkSource = networkSource.clone();
+                        break;
+
+                    case ArpSip:
+                        newClone.arpSip = arpSip.clone();
+                        break;
+
+                    case ArpTip:
+                        newClone.arpTip = arpTip.clone();
                         break;
 
                     case NetworkProtocol:

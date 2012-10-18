@@ -626,6 +626,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
         wildcardMatch = new WildcardMatch()
             .setInputPortUUID(bgpPort.id)
+            .setArpSip(bgp.getPeerAddr)
+            .setArpTip(bgpPort.portAddr)
             .setEtherType(ARP.ETHERTYPE)
 
         wildcardFlow = new WildcardFlow()

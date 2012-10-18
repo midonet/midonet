@@ -78,6 +78,16 @@ public class Packet {
         return this;
     }
 
+    public Packet removeAction(FlowAction<?> action) {
+        if (this.actions != null) {
+            if (this.actions.contains(action)) {
+                this.actions.remove(action);
+            }
+        }
+
+        return this;
+    }
+
     public Long getUserData() {
         return userData;
     }

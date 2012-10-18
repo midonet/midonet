@@ -16,7 +16,7 @@ import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
-import com.midokura.sdn.dp.flows.FlowAction
+import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction}
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatches}
 import com.midokura.util.functors.Callback0
@@ -214,6 +214,26 @@ class FlowController extends Actor with ActorLogging {
 
     private def handlePacketIn(packet: Packet) {
         log.debug("Received packet {}", packet)
+
+        for(flowAction <- packet.getActions) {
+            if(flowAction.isInstanceOf[FlowActionUserspace]) {
+                log.debug("Packet with userspace action")
+                packet.removeAction(flowAction)
+
+                datapathConnection.packetsExecute(datapath, packet,
+                    new ErrorHandlingCallback[java.lang.Boolean] {
+                        def onSuccess(data: java.lang.Boolean) {}
+
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error(ex,
+                                "Failed to send a packet {} due to {}", packet,
+                                if (timeout) "timeout" else "error")
+                        }
+                    })
+                return
+            }
+        }
+
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
         var actions = flowManager.getActionsForDpFlow(packet.getMatch)
@@ -256,6 +276,12 @@ class FlowController extends Actor with ActorLogging {
         // If there was a match, execute its actions
         if (actions != null) {
             packet.setActions(actions)
+
+            for (action <- actions) {
+                if (action.isInstanceOf[FlowActionUserspace])
+                    packet.removeAction(action)
+            }
+
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
                     def onSuccess(data: java.lang.Boolean) {}
