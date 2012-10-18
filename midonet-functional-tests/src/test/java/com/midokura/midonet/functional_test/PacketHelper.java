@@ -9,6 +9,13 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.ICMP.UNREACH_CODE;
+import com.midokura.packets.*;
+
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -19,19 +26,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.midokura.packets.ARP;
-import com.midokura.packets.Data;
-import com.midokura.packets.Ethernet;
-import com.midokura.packets.ICMP;
-import com.midokura.packets.ICMP.UNREACH_CODE;
-import com.midokura.packets.IPv4;
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
-import com.midokura.packets.MalformedPacketException;
-import com.midokura.packets.UDP;
-
 
 public class PacketHelper {
+    private final static Logger log = LoggerFactory.getLogger(BaseTunnelTest.class);
 
     static Random rand = new Random();
     MAC epMac; // simulated endpoint's mac
@@ -457,5 +454,47 @@ public class PacketHelper {
         byte[] expected = Arrays.copyOfRange(triggerPkt, 14,
                                              14 + data.length);
         Assert.assertArrayEquals(expected, data);
+    }
+
+    public static void matchUdpPacket(TapWrapper device,
+                                      MAC fromMac, IntIPv4 fromIp,
+                                      MAC toMac, IntIPv4 toIp,
+                                      short udpSrc, short udpDst)
+            throws MalformedPacketException {
+        byte[] received = device.recv();
+        assertNotNull(String.format("Expected packet on %s", device.getName()),
+                received);
+        Ethernet eth = Ethernet.deserialize(received);
+        log.info("got packet on " + device.getName() + ": " + eth.toString());
+        matchUdpPacket(eth, fromMac, fromIp, toMac, toIp, udpSrc, udpDst);
+    }
+
+    public static void matchUdpPacket(IPacket pkt,
+                                      MAC fromMac, IntIPv4 fromIp,
+                                      MAC toMac, IntIPv4 toIp,
+                                      short udpSrc, short udpDst)
+            throws MalformedPacketException {
+        assertTrue("packet is ethernet", pkt instanceof Ethernet);
+        Ethernet eth = (Ethernet) pkt;
+
+        assertEquals("source ethernet address",
+                fromMac, eth.getSourceMACAddress());
+        assertEquals("destination ethernet address",
+                toMac, eth.getDestinationMACAddress());
+        assertEquals("ethertype", IPv4.ETHERTYPE, eth.getEtherType());
+
+        assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
+        IPv4 ipPkt = (IPv4) eth.getPayload();
+        assertEquals("source ipv4 address",
+                fromIp.addressAsInt(), ipPkt.getSourceAddress());
+        assertEquals("destination ipv4 address",
+                toIp.addressAsInt(), ipPkt.getDestinationAddress());
+
+        assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
+        UDP udpPkt = (UDP) ipPkt.getPayload();
+        assertEquals("udp source port",
+                udpSrc, udpPkt.getSourcePort());
+        assertEquals("udp destination port",
+                udpDst, udpPkt.getDestinationPort());
     }
 }

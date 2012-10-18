@@ -16,7 +16,9 @@ public class InvalidationTrie extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(
         InvalidationTrie.class);
-
+    // TODO(ross) if in the routing table there's a route that is a child of the
+    // route corresponding to the node we pass, we shouldn't invalidate the ip
+    // destination that are below this more specific route.
     public static Iterable<Integer> getAllDescendantsIpDestination(RoutesTrie.TrieNode node){
         if (node == null)
             return Collections.emptyList();

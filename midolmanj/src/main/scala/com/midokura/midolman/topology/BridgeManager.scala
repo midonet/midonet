@@ -180,6 +180,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
         case TriggerUpdate(newCfg, newMacLeaningTable, newRtrMacToLogicalPortId,
                            newRtrIpToMac) =>
+            log.debug("Received a Bridge update from the data store.")
             if (newCfg != cfg && cfg != null) {
                 // the cfg of this bridge changed, invalidate all the flows
                 filterChanged = true

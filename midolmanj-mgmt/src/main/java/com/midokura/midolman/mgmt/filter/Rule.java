@@ -691,7 +691,8 @@ public abstract class Rule extends UriResource {
             c.inPortIds = new HashSet<UUID>();
         }
         c.inPortInv = this.isInvInPorts();
-        c.dlType = this.dlType;
+        if (dlType != null)
+            c.dlType = this.dlType;
         c.invDlType = this.isInvDlType();
         if (this.dlSrc != null)
             c.dlSrc = MAC.fromString(this.dlSrc);
@@ -704,14 +705,16 @@ public abstract class Rule extends UriResource {
             c.nwDstIp = IntIPv4.fromString(this.getNwDstAddress(),
                 this.getNwDstLength());
         }
-        c.nwProto = (byte) this.getNwProto();
+        if (nwProto != 0)
+            c.nwProto = (byte)nwProto;
         c.nwProtoInv = this.isInvNwProto();
         c.nwSrcInv = this.isInvNwSrc();
         if (this.getNwSrcAddress() != null) {
             c.nwSrcIp = IntIPv4.fromString(this.getNwSrcAddress(),
                                            this.getNwSrcLength());
         }
-        c.nwTos = (byte) this.getNwTos();
+        if (nwTos != 0)
+            c.nwTos = (byte) nwTos;
         c.nwTosInv = this.isInvNwTos();
         if (this.getOutPorts() != null) {
             c.outPortIds = new HashSet<UUID>(Arrays.asList(this.getOutPorts()));
@@ -719,12 +722,16 @@ public abstract class Rule extends UriResource {
             c.outPortIds = new HashSet<UUID>();
         }
         c.outPortInv = this.isInvOutPorts();
-        c.tpDstEnd = this.getTpDstEnd();
+        if (tpDstEnd != 0) {
+            c.tpDstEnd = tpDstEnd;
+            c.tpDstStart = tpDstStart;
+        }
         c.tpDstInv = this.isInvTpDst();
-        c.tpDstStart = this.getTpDstStart();
-        c.tpSrcEnd = this.getTpSrcEnd();
+        if (tpSrcEnd != 0) {
+            c.tpSrcEnd = tpSrcEnd;
+            c.tpSrcStart = tpSrcStart;
+        }
         c.tpSrcInv = this.isInvTpSrc();
-        c.tpSrcStart = this.getTpSrcStart();
         c.portGroup = this.portGroup;
         c.invPortGroup = this.invPortGroup;
         return c;

@@ -41,7 +41,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         super.fillConfig(config)
     }
 
-    override def beforeTest = {
+    override def beforeTest() {
         val tunnelZone = greTunnelZone("default")
 
         val host1 = newHost("host1", hostId())
@@ -50,11 +50,11 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
 
         bridge = newBridge("bridge")
 
-        port1OnHost1 = newPortOnBridge(bridge)
-        port2OnHost1 = newPortOnBridge(bridge)
-        port3OnHost1 = newPortOnBridge(bridge)
-        val portOnHost2 = newPortOnBridge(bridge)
-        val portOnHost3 = newPortOnBridge(bridge)
+        port1OnHost1 = newExteriorBridgePort(bridge)
+        port2OnHost1 = newExteriorBridgePort(bridge)
+        port3OnHost1 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newExteriorBridgePort(bridge)
 
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")

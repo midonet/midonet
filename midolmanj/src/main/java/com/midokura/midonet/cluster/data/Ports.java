@@ -3,6 +3,7 @@
 */
 package com.midokura.midonet.cluster.data;
 
+import com.midokura.midonet.cluster.data.ports.LogicalBridgePort;
 import com.midokura.midonet.cluster.data.ports.LogicalRouterPort;
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort;
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort;
@@ -16,6 +17,12 @@ public class Ports {
         return
             new MaterializedBridgePort()
                 .setDeviceId(bridge.getId());
+    }
+
+    public static LogicalBridgePort logicalBridgePort(Bridge bridge) {
+        return
+                new LogicalBridgePort()
+                        .setDeviceId(bridge.getId());
     }
 
     public static MaterializedRouterPort materializedRouterPort(Router router) {

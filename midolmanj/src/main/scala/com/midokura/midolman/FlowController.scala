@@ -131,7 +131,7 @@ class FlowController extends Actor with ActorLogging {
                              flowRemovalCallbacks, tags, tagRemovalCallbacks) =>
             handleNewWildcardFlow(wildcardFlow, cookie,
                                   flowRemovalCallbacks, tags, tagRemovalCallbacks)
-            context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
+
 
         case DiscardPacket(cookieOpt) =>
             freePendedPackets(cookieOpt)
@@ -228,28 +228,30 @@ class FlowController extends Actor with ActorLogging {
                 // Empty action list means DROP. Do nothing.
                 return
             }
-        }
-        // Otherwise, try to create a datapath flow based on an existing
-        // wildcard flow.
-        val dpFlow = flowManager.createDpFlow(packet.getMatch)
-        if (dpFlow != null) {
-            log.debug("A matching wildcard flow returned actions {}",
-                dpFlow.getActions)
-            datapathConnection.flowsCreate(datapath, dpFlow,
-            new ErrorHandlingCallback[Flow] {
-                def onSuccess(data: Flow) {
-                    self ! flowAdded(data)
-                }
+        } else {
+            // Otherwise, try to create a datapath flow based on an existing
+            // wildcard flow.
+            val dpFlow = flowManager.createDpFlow(packet.getMatch)
+            if (dpFlow != null) {
+                log.debug("A matching wildcard flow returned actions {}",
+                    dpFlow.getActions)
+                datapathConnection.flowsCreate(datapath, dpFlow,
+                new ErrorHandlingCallback[Flow] {
+                    def onSuccess(data: Flow) {
+                        self ! flowAdded(data)
+                    }
 
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error("Got an exception {} or timeout {} when trying to add flow" +
-                            "with flow match {}", ex, timeout, dpFlow.getMatch)
-                }
-            })
-            actions = dpFlow.getActions
-            // Empty action list means DROP. Do nothing.
-            if (actions.size == 0)
-                return
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error("Got an exception {} or timeout {} when "+
+                                "trying to add flow with flow match {}",
+                                ex, timeout, dpFlow.getMatch)
+                    }
+                })
+                actions = dpFlow.getActions
+                // Empty action list means DROP. Do nothing.
+                if (actions.size == 0)
+                    return
+            }
         }
 
         // If there was a match, execute its actions
@@ -309,6 +311,8 @@ class FlowController extends Actor with ActorLogging {
                     cb.call()
             return
         }
+        context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
+        log.debug("Added wildcard flow {} with tags {}", wildcardFlow, tags)
 
         if (null != flowRemovalCallbacks)
             flowRemovalCallbacksMap.put(wildcardFlow, flowRemovalCallbacks)

@@ -2,7 +2,7 @@
  * Copyright 2011 Midokura KK
  */
 
-package com.midokura.midolman.openvswitch;
+package com.midokura.util;
 
 import java.io.IOException;
 import java.io.OutputStream;

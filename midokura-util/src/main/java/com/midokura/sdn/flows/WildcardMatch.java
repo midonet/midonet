@@ -677,9 +677,63 @@ public class WildcardMatch implements Cloneable {
     @Override
     public String toString() {
         String output = "";
-        for (Field f: getUsedFields()){
-           output += " ";
-           output += f.toString();
+        for (Field f: getUsedFields()) {
+            output += f.toString();
+            output += " : ";
+            switch (f) {
+                case EtherType:
+                    output += etherType.toString();
+                    break;
+
+                case IsIPv4Fragment:
+                    output += isIPv4Fragment.toString();
+                    break;
+
+                case EthernetDestination:
+                    output += ethernetDestination.toString();
+                    break;
+
+                case EthernetSource:
+                    output += ethernetSource.toString();
+                    break;
+
+                case TransportDestination:
+                    output += transportDestination.toString();
+                    break;
+
+                case TransportSource:
+                    output += transportSource.toString();
+                    break;
+
+                case InputPortUUID:
+                    output += inputPortUUID.toString();
+                    break;
+
+                case InputPortNumber:
+                    output += inputPortNumber.toString();
+                    break;
+
+                case NetworkDestination:
+                    output += networkDestination.toString();
+                    break;
+
+                case NetworkSource:
+                    output += networkSource.toString();
+                    break;
+
+                case NetworkProtocol:
+                    output += networkProtocol.toString();
+                    break;
+
+                case NetworkTTL:
+                    output += networkTTL.toString();
+                    break;
+
+                case TunnelID:
+                    output += tunnelID.toString();
+                    break;
+            }
+            output += ";";
         }
         return output;
     }

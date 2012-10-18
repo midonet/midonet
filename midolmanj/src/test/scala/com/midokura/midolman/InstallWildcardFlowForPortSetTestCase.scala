@@ -19,7 +19,7 @@ import com.midokura.midolman.DatapathController.TunnelChangeEvent
 import com.midokura.sdn.dp.flows._
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
@@ -35,9 +35,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val bridge = newBridge("bridge")
 
-        val portOnHost1 = newPortOnBridge(bridge)
-        val portOnHost2 = newPortOnBridge(bridge)
-        val portOnHost3 = newPortOnBridge(bridge)
+        val portOnHost1 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newExteriorBridgePort(bridge)
 
         materializePort(portOnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
@@ -75,20 +75,25 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val localPortNumber = dpController().underlyingActor.localPorts("port1").getPortNo
 
-        // for the local exterior port
+        // flows installed for tunnel key = port when the port becomes active.
+        // There's only one port on this host
         fishForRequestOfType[AddWildcardFlow](flowProbe())
+
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes(), null, null, null))
+            wildcardFlow, None, "My packet".getBytes, null, null, null))
+        // TODO(ross) finish flow invalidation
+        // Q(ross): shall we automatically install flows for the portSet? When
+        // a port is included in the port set shall we install the flow from
+        // tunnel with key portSetID to port?
+        // A(jlm): Better not.  The flow has to be checked against the
+        // outbound chains for the port before it can be directed to it.
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-        requestOfType[InvalidateFlowsByTag](flowProbe())
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
-
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         addFlowMsg should not be null
         addFlowMsg.pktBytes should not be null

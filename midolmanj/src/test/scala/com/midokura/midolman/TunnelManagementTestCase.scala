@@ -41,7 +41,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         val bridge = newBridge("bridge")
 
-        val portOnHost1 = newPortOnBridge(bridge)
+        val portOnHost1 = newExteriorBridgePort(bridge)
 
         materializePort(portOnHost1, host1, "port1")
 

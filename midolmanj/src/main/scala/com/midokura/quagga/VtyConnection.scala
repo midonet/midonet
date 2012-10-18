@@ -12,19 +12,19 @@ package com.midokura.quagga
 
 import scala.collection.mutable.ListBuffer
 
-import java.io.{BufferedReader, InputStreamReader, PrintWriter}
-import java.net.Socket
+import java.io._
+import java.net.{UnknownHostException, Socket}
 
 import org.slf4j.LoggerFactory
 import com.midokura.packets.IntIPv4
-
+import io.{BufferedSource, Source}
+import java.nio.charset.{CodingErrorAction, CharsetDecoder, StandardCharsets}
 
 /**
  * Static methods and constants for VtyConnection.
  */
 object VtyConnection {
     private final val BufSize = 1024
-    private final val SkipHello = 7
 
     private final val Enable = "enable"
     private final val Disable = "disable"
@@ -48,44 +48,20 @@ abstract class VtyConnection(val addr: String, val port: Int,
     var in: BufferedReader = _
     var connected = false
 
-    private def sendMessage(command: String) {
-        out.println(command)
-    }
-
-    private def recvMessage(): Seq[String] = {
-        val lines = new ListBuffer[String]()
-        var line: String = null
-        while ( {
-            line = in.readLine; line != null
-        }) {
-            lines.append(line)
-            //println(line)
-        }
-        lines.toSeq
-    }
-
-    private def dropMessage() {
-        // TODO(yoshi): handle exceptions
-        in.readLine
-    }
+    case class NotConnectedException() extends Exception
 
     private def openConnection() {
         log.debug("begin, addr: {}, port: {}", addr, port)
-        socket = new Socket(addr, port)
-        out = new PrintWriter(socket.getOutputStream, true)
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream),
-            BufSize)
+        try {
+            socket = new Socket(addr, port)
+            out = new PrintWriter(socket.getOutputStream, true)
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream))
 
-        // Quagga returns, blank line, hello message, two blank lines,
-        // user access verification message and blank line upon connection.
-        for (i <- 0 until SkipHello if in.ready) {
-            dropMessage()
+            connected = true
+        } catch {
+            case e: IOException => log.error("Could not open VTY connection: {}", e)
+            case e: UnknownHostException => log.error("Could not open VTP connection: {}", e)
         }
-        sendMessage(password)
-        // Drop password echo back.
-        dropMessage()
-        enable()
-        connected = true
         log.debug("end")
     }
 
@@ -97,9 +73,102 @@ abstract class VtyConnection(val addr: String, val port: Int,
         in.close()
     }
 
-    protected def doTransacation(messages: Seq[String],
+    private def sendMessage(command: String) {
+        log.debug("command: {}", command)
+
+        if (!connected) {
+            log.error("VTY is not connected")
+            throw new NotConnectedException
+        }
+
+        out.println(command)
+    }
+
+    private def recvMessage(): Seq[String] = {
+        log.debug("begin")
+        if (!connected) {
+            log.error("VTY is not connected")
+            throw new NotConnectedException
+        }
+
+        var lines: List[String] = null
+        if(in.ready) {
+            val charBuffer = new Array[Char](4094)
+            val count = in.read(charBuffer)
+
+            if (count > 0) {
+                //log.debug("received a buffer with {} chars.", count)
+
+                val limitedBuffer = charBuffer.take(count)
+
+                var stringBuffer = limitedBuffer.mkString
+                //log.debug("stringBuffer: {}", stringBuffer)
+
+                val controlCode : (Char) => Boolean = (c:Char) => ((c < 32 || c == 127) && c != 13)
+                val filteredStringBuffer = stringBuffer.filterNot(controlCode)
+                //log.debug("filteredStringBuffer: {}", filteredStringBuffer)
+
+                val strings = filteredStringBuffer.split(13.toChar)
+                //log.debug("splitted buffer into {} strings.", strings.size)
+
+                //strings.foreach(line => log.debug("line {}", line))
+                lines = strings.toList
+            }
+        }
+
+        if (lines == null) lines = new ListBuffer[String].toList
+
+        log.debug("end")
+        lines.toSeq
+    }
+
+    private def dropMessage() {
+        if (!connected) {
+            log.error("VTY is not connected")
+            throw new NotConnectedException
+        }
+
+        val droppedMessage = recvMessage()
+        log.debug("droppedMessage: {}", droppedMessage)
+    }
+
+    private def checkHello() {
+        log.debug("begin")
+        val PasswordRegex = ".*Password:.*".r
+        var versionMatch = false
+        val messages = recvMessage()
+        for(message <- messages) {
+            message match {
+                case "" =>
+                    log.debug("empty line")
+                case "Hello, this is Quagga (version 0.99.21)." =>
+                    log.debug("version match")
+                    versionMatch = true
+                case "Copyright 1996-2005 Kunihiro Ishiguro, et al." =>
+                    log.debug("copyright match") // ok, do nothing
+                case "User Access Verification" =>
+                    log.debug("UAV match")
+                case PasswordRegex() =>
+                    log.debug("password match")
+                    sendMessage(password)
+                case _ =>
+                    log.error("bgpd hello message doesn't match expected.")
+            }
+        }
+
+        if (versionMatch == false)  {
+            log.error("bgpd version didn't match expected.")
+        }
+
+        log.debug("end")
+}
+
+    protected def doTransaction(messages: Seq[String],
                                  isConfigure: Boolean): Seq[String] = {
         openConnection()
+        checkHello()
+        enable()
+
         if (isConfigure) {
             configureTerminal()
         }
@@ -116,6 +185,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
         exit()
 
         val response = recvMessage()
+        log.debug("response: {}", response)
         closeConnection()
         response
     }
@@ -224,7 +294,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += GetAs
 
         try {
-            response = doTransacation(request.toSeq, isConfigure = false)
+            response = doTransaction(request.toSeq, isConfigure = false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -252,7 +322,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetAs.format(as)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -271,7 +341,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += DeleteAs.format(as)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -288,7 +358,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetLocalNw.format(localAddr.toUnicastString)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -305,7 +375,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetPeer.format(peerAddr.toUnicastString, peerAs)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -322,7 +392,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += DeletePeer.format(peerAddr.toUnicastString)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -340,7 +410,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += GetNetwork
 
         try {
-            response = doTransacation(request.toSeq, isConfigure = false)
+            response = doTransaction(request.toSeq, isConfigure = false)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -401,7 +471,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetNetwork.format(nwPrefix, prefixLength)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -419,7 +489,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += DeleteNetwork.format(nwPrefix, prefixLength)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -435,7 +505,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         request += SetLogFile.format(file)
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {
@@ -454,7 +524,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
             request += DisableDebug
 
         try {
-            doTransacation(request.toSeq, isConfigure = true)
+            doTransaction(request.toSeq, isConfigure = true)
         } catch {
             // TODO(yoshi): finer exception handling.
             case e: Exception => {

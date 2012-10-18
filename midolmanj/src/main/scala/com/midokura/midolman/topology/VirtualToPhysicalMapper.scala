@@ -261,7 +261,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case None =>
                         sender ! null
                 }
-                sender ! tunnelKeyToPortSet.get(key)
 
             case portSet: rcu.PortSet =>
                 val updatedPortSet = localActivePortSets.get(portSet.id) match
