@@ -15,7 +15,6 @@ import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
-//import com.midokura.midonet.cluster.data.ports._
 import com.midokura.packets.MAC
 
 
@@ -96,30 +95,26 @@ trait VirtualConfigurationBuilders {
     def newRouter(name: String): ClusterRouter =
             newRouter(new ClusterRouter().setName(name))
 
-    def newExteriorRouterPort(router: ClusterRouter, port: MaterializedRouterPort) =
-        clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
-            .asInstanceOf[MaterializedRouterPort]
-
     def newExteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
                         nwAddr: String, nwLen: Int): MaterializedRouterPort = {
-        newExteriorRouterPort(router, Ports.materializedRouterPort(router)
-            .setPortAddr(portAddr)
-            .setNwAddr(nwAddr)
-            .setNwLength(nwLen)
-            .setHwAddr(mac))
+        val port = Ports.materializedRouterPort(router)
+                        .setPortAddr(portAddr)
+                        .setNwAddr(nwAddr)
+                        .setNwLength(nwLen)
+                        .setHwAddr(mac)
+        val uuid = clusterDataClient().portsCreate(port)
+        port.setId(uuid)
     }
-
-    def newInteriorRouterPort(router: ClusterRouter, port: LogicalRouterPort) =
-        clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
-            .asInstanceOf[LogicalRouterPort]
 
     def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
                               nwAddr: String, nwLen: Int): LogicalRouterPort = {
-        newInteriorRouterPort(router, Ports.logicalRouterPort(router)
-            .setPortAddr(portAddr)
-            .setNwAddr(nwAddr)
-            .setNwLength(nwLen)
-            .setHwAddr(mac))
+        val port = Ports.logicalRouterPort(router)
+                        .setPortAddr(portAddr)
+                        .setNwAddr(nwAddr)
+                        .setNwLength(nwLen)
+                        .setHwAddr(mac)
+        val uuid = clusterDataClient().portsCreate(port)
+        port.setId(uuid)
     }
 
     def newRoute(router: ClusterRouter,

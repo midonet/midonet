@@ -121,7 +121,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         // The ingress port should not be in the expanded port set
         flowActs should have size (5)
 
-        val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
+        val setKeyAction = as[FlowActionSetKey](flowActs.get(2))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
 
         // TODO: Why does the "should contain" syntax fail here?
