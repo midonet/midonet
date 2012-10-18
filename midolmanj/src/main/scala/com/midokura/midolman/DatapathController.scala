@@ -1088,6 +1088,13 @@ class DatapathController() extends Actor with ActorLogging {
                                     "PortSet {}", portSet)
                             }
 
+                        case _ if (wMatch.getTunnelID == null) =>
+                            log.error("SCREAM: got a PacketIn on a tunnel port"+
+                                " and a wildcard match with no tunnel id")
+                            addDropFlow(new WildcardMatch().
+                                setInputPort(port),
+                                cookie)
+
                         case _ =>
                             log.debug("PacketIn came from a tunnel port but " +
                                 "the key does not map to any PortSet")
