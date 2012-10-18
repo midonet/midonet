@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public abstract class Rule
         <RuleData extends Rule.Data, Self
                 extends Rule<RuleData, Self>>
@@ -18,7 +19,7 @@ public abstract class Rule
     public enum Property {
     }
 
-    protected Rule(Condition condition, RuleData data){
+    protected Rule(Condition condition, RuleData data) {
         this(null, condition, data);
     }
 

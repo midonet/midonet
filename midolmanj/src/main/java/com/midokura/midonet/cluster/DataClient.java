@@ -31,8 +31,8 @@ import com.midokura.midonet.cluster.data.host.VirtualPortMapping;
 import com.midokura.packets.IntIPv4;
 import com.midokura.util.functors.Callback2;
 
-public interface DataClient {
 
+public interface DataClient {
 
     /* BGP advertising routes related methods */
     AdRoute adRoutesGet(UUID id) throws StateAccessException;
