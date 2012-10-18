@@ -35,9 +35,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val bridge = newBridge("bridge")
 
-        val portOnHost1 = newPortOnBridge(bridge)
-        val portOnHost2 = newPortOnBridge(bridge)
-        val portOnHost3 = newPortOnBridge(bridge)
+        val portOnHost1 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newExteriorBridgePort(bridge)
 
         materializePort(portOnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")

@@ -6,9 +6,10 @@ package com.midokura.midolman
 import java.util.UUID
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Route, Port, Ports}
 import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midonet.cluster.{ClusterRouterManager, DataClient}
+import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
-import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort,
+import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
+                                                LogicalRouterPort,
                                                 MaterializedRouterPort,
                                                 MaterializedBridgePort}
 import com.midokura.packets.MAC
@@ -43,13 +44,19 @@ trait VirtualConfigurationBuilders {
 
     def newBridge(name: String): ClusterBridge = newBridge(new ClusterBridge().setName("bridge"))
 
-    def newPortOnBridge(bridge: ClusterBridge, port: MaterializedBridgePort) =
+    def newExteriorBridgePort(bridge: ClusterBridge, port: MaterializedBridgePort) =
         clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
             .asInstanceOf[MaterializedBridgePort]
 
-    def newPortOnBridge(bridge: ClusterBridge):MaterializedBridgePort =
-        newPortOnBridge(bridge, Ports.materializedBridgePort(bridge))
+    def newExteriorBridgePort(bridge: ClusterBridge):MaterializedBridgePort =
+        newExteriorBridgePort(bridge, Ports.materializedBridgePort(bridge))
 
+    def newInteriorBridgePort(bridge: ClusterBridge, port: LogicalBridgePort) =
+        clusterDataClient().portsGet(clusterDataClient().portsCreate(port))
+            .asInstanceOf[LogicalBridgePort]
+
+    def newInteriorBridgePort(bridge: ClusterBridge):LogicalBridgePort =
+        newInteriorBridgePort(bridge, Ports.logicalBridgePort(bridge))
 
     def materializePort(port: Port[_, _], host: Host, name: String) {
         clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
