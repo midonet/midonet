@@ -1116,8 +1116,10 @@ class DatapathController() extends Actor with ActorLogging {
                 } else {
                     // Otherwise, drop the flow. There's a port on the DP that
                     // doesn't belong to us and is receiving packets.
-                    addDropFlow(new WildcardMatch().setInputPortNumber(port),
-                            cookie)
+                    addTaggedFlow(new WildcardMatch().setInputPort(port),
+                        actions = Nil,
+                        tags = Set(FlowTagger.invalidateDPPort(port)),
+                        cookie = cookie)
                 }
 
             case null =>
@@ -1213,6 +1215,9 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
                     peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
             }
+            // trigger invalidation
+            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                FlowTagger.invalidateDPPort(port.getPortNo.shortValue))
             localTunnelPorts.add(port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,
