@@ -41,7 +41,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         super.fillConfig(config)
     }
 
-    override def beforeTest = {
+    override def beforeTest() {
         val tunnelZone = greTunnelZone("default")
 
         val host1 = newHost("host1", hostId())

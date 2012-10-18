@@ -11,27 +11,23 @@ import akka.testkit.TestProbe
 import com.midokura.sdn.dp.Datapath
 import com.midokura.packets._
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.midolman.FlowController._
-import topology.LocalPortActive
-import topology.LocalPortActive
 import java.util.UUID
-import com.midokura.midolman.FlowController.FlowUpdateCompleted
-import topology.LocalPortActive
-import com.midokura.midolman.FlowController.WildcardFlowRemoved
-import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.DatapathController.PacketIn
 import topology.LocalPortActive
 import util.{TestHelpers, RouterHelper}
-import com.midokura.midonet.cluster.data.Router
+import com.midokura.midonet.cluster.data.{Port, Router}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.WildcardFlowRemoved
 import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.FlowController.DiscardPacket
-import com.midokura.midonet.cluster.client.Port
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
+import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
+import collection.immutable.HashMap
+import collection.mutable
+import scala.collection.JavaConverters._
+
 
 @RunWith(classOf[JUnitRunner])
 class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
@@ -41,8 +37,6 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
     var addRemoveFlowsProbe: TestProbe = null
     var datapath: Datapath = null
 
-    var timeOutFlow: Long = 500
-    var delayAsynchAddRemoveInDatapath: Long = timeOutFlow/3
     val ipInPort = "10.10.0.1"
     val ipOutPort = "11.11.0.10"
     // this is the network reachable from outPort
@@ -62,6 +56,7 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
     val ttl: Byte = 17
     var outPort: MaterializedRouterPort = null
     var inPort: MaterializedRouterPort = null
+    var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
 
 
 
@@ -103,21 +98,20 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
 
         //requestOfType[WildcardFlowAdded](flowProbe)
         materializePort(inPort, host, inPortName)
+        mapPortNameShortNumber += inPortName -> 1
         requestOfType[LocalPortActive](eventProbe)
         materializePort(outPort, host, outPortName)
+        mapPortNameShortNumber += outPortName -> 2
         requestOfType[LocalPortActive](eventProbe)
 
-    }
+        // this is added when the port becomes active. A flow that takes care of
+        // the tunnelled packets to this port
+        addRemoveFlowsProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(inPortName)))))
+        addRemoveFlowsProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(outPortName)))))
 
-    def createUdpPacket(srcMac: String, srcIp: String, dstMac: String, dstIp: String): Ethernet = {
-        Packets.udp(
-            MAC.fromString(srcMac),
-            MAC.fromString(dstMac),
-            IntIPv4.fromString(srcIp),
-            IntIPv4.fromString(dstIp),
-            10, 11, "My UDP packet".getBytes)
     }
-
 
     // Characters of this test
     // inPort: it's the port that receives the inject packets
@@ -135,7 +129,7 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
         // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, createUdpPacket(macSource, ipSource,
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
             macInPort, ipToReach))
         // we trigger the learning of macToReach
         feedArpCache(outPortName,
@@ -148,11 +142,6 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
         dpProbe().expectMsgClass(classOf[PacketIn])
 
         requestOfType[DiscardPacket](flowProbe())
-
-        // two flows are for the ports that became active and a flow is created
-        // to handle tunnelled packets for those ports
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -184,20 +173,20 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
         newRoute(clusterRouter, ipSource, 32, networkToReach, networkToReachLength,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        triggerPacketIn(inPortName, createUdpPacket(macSource, ipSource, macInPort, ipVm1))
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1))
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm1).addressAsInt,
             MAC.fromString(macVm1),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        triggerPacketIn(inPortName, createUdpPacket(macSource, ipSource, macInPort, ipVm2))
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm2).addressAsInt,
             MAC.fromString(macVm2),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
-        triggerPacketIn(inPortName, createUdpPacket(macSource, ipSource, macInPort, ipVm3))
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm3))
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm3).addressAsInt,
             MAC.fromString(macVm3),
@@ -217,5 +206,70 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
             "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
 
     }
+
+    def testDpInPortDeleted() {
+
+        val ipToReach = "11.11.0.2"
+        val macToReach = "02:11:22:33:48:10"
+        // add a route from ipSource to ipToReach/32, next hop is outPort
+        newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
+            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            2)
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
+        // we trigger the learning of macToReach
+        feedArpCache(outPortName,
+            IntIPv4.fromString(ipToReach).addressAsInt,
+            MAC.fromString(macToReach),
+            IntIPv4.fromString(ipOutPort).addressAsInt,
+            MAC.fromString(macOutPort))
+
+        dpProbe().expectMsgClass(classOf[PacketIn])
+        dpProbe().expectMsgClass(classOf[PacketIn])
+
+        val flowAddedMessage = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        deletePort(inPort, host)
+
+        // We expect 2 flows to be invalidated: the one created automatically
+        // when the port becomes active to handle tunnelled packets for that port
+        // and the second installed after the packet it
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+    }
+
+    def testDpOutPortDeleted() {
+        val ipToReach = "11.11.0.2"
+        val macToReach = "02:11:22:33:48:10"
+        // add a route from ipSource to ipToReach/32, next hop is outPort
+        newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
+            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            2)
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
+        // we trigger the learning of macToReach
+        feedArpCache(outPortName,
+            IntIPv4.fromString(ipToReach).addressAsInt,
+            MAC.fromString(macToReach),
+            IntIPv4.fromString(ipOutPort).addressAsInt,
+            MAC.fromString(macOutPort))
+
+        dpProbe().expectMsgClass(classOf[PacketIn])
+        dpProbe().expectMsgClass(classOf[PacketIn])
+
+        val flowAddedMessage = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        deletePort(outPort, host)
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        /*addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
+            (FlowActions.output(mapPortNameShortNumber(outPortName)))))*/
+    }
+    //TODO portSet and tunnel
 
 }

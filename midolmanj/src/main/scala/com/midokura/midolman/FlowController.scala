@@ -131,7 +131,7 @@ class FlowController extends Actor with ActorLogging {
                              flowRemovalCallbacks, tags, tagRemovalCallbacks) =>
             handleNewWildcardFlow(wildcardFlow, cookie,
                                   flowRemovalCallbacks, tags, tagRemovalCallbacks)
-            context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
+
 
         case DiscardPacket(cookieOpt) =>
             freePendedPackets(cookieOpt)
@@ -309,6 +309,8 @@ class FlowController extends Actor with ActorLogging {
                     cb.call()
             return
         }
+        context.system.eventStream.publish(new WildcardFlowAdded(wildcardFlow))
+        log.debug("Added wildcard flow {} with tags {}", wildcardFlow, tags)
 
         if (null != flowRemovalCallbacks)
             flowRemovalCallbacksMap.put(wildcardFlow, flowRemovalCallbacks)

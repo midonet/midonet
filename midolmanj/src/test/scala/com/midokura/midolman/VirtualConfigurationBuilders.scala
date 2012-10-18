@@ -53,6 +53,10 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
     }
 
+    def deletePort(port: Port[_, _], host: Host){
+        clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
+    }
+
     def newRouter(router: ClusterRouter): ClusterRouter = {
         clusterDataClient().routersGet(clusterDataClient().routersCreate(router))
     }
