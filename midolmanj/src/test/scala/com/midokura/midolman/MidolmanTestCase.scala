@@ -3,7 +3,6 @@
 */
 package com.midokura.midolman
 
-import monitoring.{MonitoringActor, MonitoringAgent}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
@@ -11,18 +10,20 @@ import scala.annotation.tailrec
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import akka.testkit._
 import akka.actor._
-import akka.dispatch.{Future, Await}
+import akka.dispatch.{Await, Future}
+import akka.testkit._
 import akka.util.{Duration, Timeout}
 import akka.util.duration._
 
 import com.google.inject.{AbstractModule, Module, Guice, Injector}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
+        ShouldMatchers}
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
+import com.midokura.midolman.DatapathController.InitializationComplete
 import com.midokura.midolman.guice._
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
@@ -30,29 +31,32 @@ import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
-import com.midokura.midonet.cluster.{DataClient, Client}
+import com.midokura.midolman.monitoring.{MonitoringActor, MonitoringAgent}
+import com.midokura.midolman.services.{HostIdProviderService,
+        MidolmanActorsService, MidolmanService}
+import com.midokura.midolman.topology.{VirtualTopologyActor,
+        VirtualToPhysicalMapper}
+import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
-import com.midokura.sdn.dp._
-import topology.{VirtualTopologyActor, VirtualToPhysicalMapper}
 import com.midokura.packets.Ethernet
+import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.flows.FlowKeyInPort
-import com.midokura.midolman.DatapathController.InitializationComplete
 
 
-trait MidolmanTestCase extends Suite with BeforeAndAfterAll
-    with BeforeAndAfter with OneInstancePerTest with ShouldMatchers with Dilation {
+trait MidolmanTestCase extends Suite with BeforeAndAfter with BeforeAndAfterAll
+         with Dilation with OneInstancePerTest with ShouldMatchers {
 
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
 
-    protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
-      config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-      config.setProperty("midolman.enable_monitoring", "false")
-      config.setProperty("cassandra.servers", "localhost:9171")
-      config
+    protected def fillConfig(config: HierarchicalConfiguration)
+            : HierarchicalConfiguration = {
+        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
+        config.setProperty("midolman.enable_monitoring", "false")
+        config.setProperty("cassandra.servers", "localhost:9171")
+        config
     }
 
     protected def dpConn(): OvsDatapathConnection = {
@@ -109,11 +113,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     val probesByName = mutable.Map[String, TestKit]()
     val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
 
-    protected def getModulesAsJavaIterable(config: HierarchicalConfiguration) : java.lang.Iterable[Module] = {
-      asJavaIterable(getModules(config))
+    protected def getModulesAsJavaIterable(config: HierarchicalConfiguration)
+            : java.lang.Iterable[Module] = {
+        asJavaIterable(getModules(config))
     }
 
-    protected def getModules(config: HierarchicalConfiguration): Iterable[Module] = {
+    protected def getModules(config: HierarchicalConfiguration)
+            : Iterable[Module] = {
         List(
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
@@ -231,7 +237,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
 
     protected def fishForRequestOfType[T](testKit: TestKit,
             timeout: Duration = Duration(3, TimeUnit.SECONDS))
-            (implicit m: scala.reflect.Manifest[T]):T = {
+            (implicit m: Manifest[T]):T = {
 
         def messageMatcher(clazz: Class[_]): PartialFunction[Any, Boolean] = {
             {
@@ -241,23 +247,27 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         }
         val clazz = m.erasure.asInstanceOf[Class[T]]
         val msg = testKit.fishForMessage(timeout)(messageMatcher(clazz))
-        assert(clazz.isInstance(msg), "Message should have been of type %s but was %s" format (clazz, msg.getClass))
+        assert(clazz.isInstance(msg),
+               "Message should have been of type %s but was %s" format
+                   (clazz, msg.getClass))
         clazz.cast(msg)
     }
 
     protected def fishForReplyOfType[T](testKit: TestKit,
-                                          timeout: Duration = Duration(3, TimeUnit.SECONDS))
-                                         (implicit m: scala.reflect.Manifest[T]):T = {
+                                        timeout: Duration = Duration(3, TimeUnit.SECONDS))
+                                       (implicit m: Manifest[T]): T = {
         val deadline = Platform.currentTime + timeout.toMillis
         val clazz = manifest.erasure.asInstanceOf[Class[T]]
         @tailrec
         def fish: T = {
             val timeLeft = deadline - Platform.currentTime
-            assert(timeLeft > 0, "timeout waiting for reply of type %s" format (clazz))
+            assert(timeLeft > 0,
+                   "timeout waiting for reply of type %s" format clazz)
             val outMsg = fishForRequestOfType[OutgoingMessage](
                 testKit, Duration(timeLeft, TimeUnit.MILLISECONDS))
-            assert(outMsg != null, "timeout waiting for reply of type %s" format (clazz))
-            if (! clazz.isInstance(outMsg.m))
+            assert(outMsg != null,
+                   "timeout waiting for reply of type %s" format clazz)
+            if (!clazz.isInstance(outMsg.m))
                 fish
             else
                 clazz.cast(outMsg.m)
@@ -266,22 +276,32 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
     }
 
     protected def requestOfType[T](testKit: TestKit)
-                                  (implicit m: scala.reflect.Manifest[T]):T = {
+                                  (implicit m: Manifest[T]): T = {
         testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
     }
 
     protected def replyOfType[T](testKit: TestKit)
-                                (implicit manifest:scala.reflect.Manifest[T]):T = {
+                                (implicit manifest: Manifest[T]): T = {
         val clazz = manifest.erasure.asInstanceOf[Class[T]]
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
-        assert(clazz.isInstance(m), "Reply should have been of type %s but was %s" format (clazz, m.getClass))
+        assert(clazz.isInstance(m),
+               "Reply should have been of type %s but was %s" format
+                   (clazz, m.getClass))
         clazz.cast(m)
     }
 
     protected def as[T](o: AnyRef)(implicit m: Manifest[T]): T = {
-        val clazz = m.erasure.asInstanceOf[Class[T]]
-        clazz.isInstance(o) should be(true)
+        o should be (anInstanceOf[T])
         o.asInstanceOf[T]
+    }
+
+    def anInstanceOf[T](implicit manifest: Manifest[T]) = {
+        val clazz = manifest.erasure.asInstanceOf[Class[T]]
+        new BePropertyMatcher[AnyRef] {
+            def apply(left: AnyRef) =
+                BePropertyMatchResult(clazz.isAssignableFrom(left.getClass),
+                                      "an instance of " + clazz.getName)
+        }
     }
 
     protected def drainProbe(testKit: TestKit) {
@@ -297,6 +317,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfterAll
         drainProbe(dpProbe())
     }
 }
+
 
 trait Dilation {
 
@@ -315,4 +336,3 @@ trait Dilation {
     }
 
 }
-
