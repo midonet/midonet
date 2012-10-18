@@ -90,6 +90,7 @@ public class CapwapTunnelTest extends BaseTunnelTest {
         return capwap.getPayload();
     }
 
+    // TODO(guillermo) use the CAPWAP packet class to craft the packets.
     @Override
     protected byte[] buildEncapsulatedPacketForPort() {
         byte[] capwapFrame = {

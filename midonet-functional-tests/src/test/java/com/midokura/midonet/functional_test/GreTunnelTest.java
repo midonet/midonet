@@ -79,6 +79,7 @@ public class GreTunnelTest extends BaseTunnelTest {
         return grePkt.getPayload();
     }
 
+    // TODO(guillermo) use the GRE packet class to craft the packets.
     @Override
     protected byte[] buildEncapsulatedPacketForPort() {
         byte[] greFrame = new byte[]{
