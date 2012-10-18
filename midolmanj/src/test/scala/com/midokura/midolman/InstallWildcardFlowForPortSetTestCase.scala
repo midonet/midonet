@@ -9,17 +9,17 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow, WildcardFlowAdded}
-import datapath.{FlowActionOutputToVrnPortSet, FlowActionOutputToVrnPort}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
-import com.midokura.packets.IntIPv4
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+        InvalidateFlowsByTag, WildcardFlowAdded}
+import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
+        FlowActionOutputToVrnPortSet}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 import com.midokura.sdn.dp.flows._
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.packets.IntIPv4
+
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
@@ -38,6 +38,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val portOnHost1 = newPortOnBridge(bridge)
         val portOnHost2 = newPortOnBridge(bridge)
         val portOnHost3 = newPortOnBridge(bridge)
+
+        val chain1 = newOutboundChainOnPort("chain1", portOnHost1)
+        val rule1 = newLiteralRuleOnChain(chain1, 0, null, null)  //XXX
 
         materializePort(portOnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
@@ -61,10 +64,12 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
         val tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref, classOf[TunnelChangeEvent])
+        actors().eventStream.subscribe(tunnelEventsProbe.ref,
+                                       classOf[TunnelChangeEvent])
 
         val flowEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(flowEventsProbe.ref,
+                                       classOf[WildcardFlowAdded])
 
         initializeDatapath() should not be (null)
 
@@ -105,7 +110,8 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
 
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
+        // TODO: Why does the "should contain" syntax fail here?
+        assert(flowActs.contains(FlowActions.output(tunnelId1)))
+        assert(flowActs.contains(FlowActions.output(tunnelId2)))
     }
 }
