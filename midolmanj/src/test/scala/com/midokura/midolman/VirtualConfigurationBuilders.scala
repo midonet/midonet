@@ -8,10 +8,7 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Router => Clu
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
-import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
-                                                LogicalRouterPort,
-                                                MaterializedRouterPort,
-                                                MaterializedBridgePort}
+import com.midokura.midonet.cluster.data.ports._
 import com.midokura.packets.MAC
 import layer3.Route.NextHop
 

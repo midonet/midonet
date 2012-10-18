@@ -92,9 +92,9 @@ with RouterHelper{
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        port1 = newPortOnBridge(bridge)
-        port2 = newPortOnBridge(bridge)
-        port3 = newPortOnBridge(bridge)
+        port1 = newExteriorBridgePort(bridge)
+        port2 = newExteriorBridgePort(bridge)
+        port3 = newExteriorBridgePort(bridge)
 
         //requestOfType[WildcardFlowAdded](flowProbe)
         materializePort(port1, host, port1Name)
