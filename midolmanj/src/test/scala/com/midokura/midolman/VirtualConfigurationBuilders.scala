@@ -71,12 +71,11 @@ trait VirtualConfigurationBuilders {
     def newBridge(name: String): ClusterBridge =
             newBridge(new ClusterBridge().setName(name))
 
-    def newPortOnBridge(bridge: ClusterBridge): MaterializedBridgePort =
-        clusterDataClient().portsGet(
-                clusterDataClient().portsCreate(
-                        Ports.materializedBridgePort(bridge)))
-            .asInstanceOf[MaterializedBridgePort]
-
+    def newPortOnBridge(bridge: ClusterBridge): MaterializedBridgePort = {
+        val port = Ports.materializedBridgePort(bridge)
+        clusterDataClient().portsCreate(port)
+        port
+    }
 
     def materializePort(port: Port[_, _], host: Host, name: String) {
         clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
