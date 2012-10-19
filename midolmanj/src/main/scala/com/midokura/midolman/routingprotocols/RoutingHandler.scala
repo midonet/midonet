@@ -626,14 +626,14 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
         wildcardMatch = new WildcardMatch()
             .setInputPortUUID(bgpPort.id)
-            .setArpSip(bgp.getPeerAddr)
-            .setArpTip(bgpPort.portAddr)
+            //.setArpSip(bgp.getPeerAddr)
+            //.setArpTip(bgpPort.portAddr)
             .setEtherType(ARP.ETHERTYPE)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
+            //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet, null))
