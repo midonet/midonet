@@ -215,23 +215,9 @@ class FlowController extends Actor with ActorLogging {
     private def handlePacketIn(packet: Packet) {
         log.debug("Received packet {}", packet)
 
-        for(flowAction <- packet.getActions) {
-            if(flowAction.isInstanceOf[FlowActionUserspace]) {
-                log.debug("Packet with userspace action")
-                packet.removeAction(flowAction)
-
-                datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[java.lang.Boolean] {
-                        def onSuccess(data: java.lang.Boolean) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to send a packet {} due to {}", packet,
-                                if (timeout) "timeout" else "error")
-                        }
-                    })
-                return
-            }
+        if (packet.getReason == Packet.Reason.FlowActionUserspace) {
+            doSimulation(packet)
+            return
         }
 
         // In case the PacketIn notify raced a flow rule installation, see if
@@ -295,7 +281,11 @@ class FlowController extends Actor with ActorLogging {
             return
         }
 
-        // Otherwise, pass the packetIn up to the next layer for handling.
+        doSimulation(packet)
+    }
+
+    private def doSimulation(packet: Packet) {
+        // Pass the packetIn up to the next layer for handling.
         // Keep track of these packets so that for every FlowMatch, only
         // one such call goes to the next layer.
         dpMatchToCookie.get(packet.getMatch) match {
