@@ -69,15 +69,15 @@ trait VirtualConfigurationBuilders {
             newBridge(new ClusterBridge().setName(name))
 
     def newExteriorBridgePort(bridge: ClusterBridge): MaterializedBridgePort = {
-        val port = Ports.materializedBridgePort(bridge)
-        val uuid = clusterDataClient().portsCreate(port)
-        port.setId(uuid)
+        val uuid = clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
+        // do a portsGet because some fields are set during the creating and are
+        // not copied in the port object we pass, eg. TunnelKey
+        clusterDataClient().portsGet(uuid).asInstanceOf[MaterializedBridgePort]
     }
 
     def newInteriorBridgePort(bridge: ClusterBridge): LogicalBridgePort = {
-        val port = Ports.logicalBridgePort(bridge)
-        val uuid = clusterDataClient().portsCreate(port)
-        port.setId(uuid)
+        val uuid = clusterDataClient().portsCreate(Ports.logicalBridgePort(bridge))
+        clusterDataClient().portsGet(uuid).asInstanceOf[LogicalBridgePort]
     }
 
     def materializePort(port: Port[_, _], host: Host, name: String) {
@@ -103,7 +103,7 @@ trait VirtualConfigurationBuilders {
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
-        port.setId(uuid)
+        clusterDataClient().portsGet(uuid).asInstanceOf[MaterializedRouterPort]
     }
 
     def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
@@ -114,7 +114,7 @@ trait VirtualConfigurationBuilders {
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
-        port.setId(uuid)
+        clusterDataClient().portsGet(uuid).asInstanceOf[LogicalRouterPort]
     }
 
     def newRoute(router: ClusterRouter,

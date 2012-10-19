@@ -855,6 +855,8 @@ class DatapathController() extends Actor with ActorLogging {
     def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
                            tunnelKey: Option[Long], tunnelPorts: Seq[Short],
                            dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
+        log.debug("Translating port {}, ports in the same set {}, tunnelkey {}, " +
+                  "tunnelports {}", port, localPorts, tunnelKey, tunnelPorts)
         val newActs = ListBuffer[FlowAction[_]]()
         var newTags = new mutable.HashSet[Any]
 

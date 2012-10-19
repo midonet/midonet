@@ -18,7 +18,7 @@ import akka.util.duration._
 
 /**
  * A [[com.midokura.midolman.guice.MidolmanActorsModule]] that can will override
- * the top level actors with probes and also provide an easy easy to access the
+ * the top level actors with probes and also provide an easy way to access the
  * actual actors internal state.
  *
  * @see [[com.midokura.midolman.MidolmanTestCase]] for an usage example.

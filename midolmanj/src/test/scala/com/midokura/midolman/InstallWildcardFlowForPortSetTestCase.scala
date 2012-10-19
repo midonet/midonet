@@ -10,15 +10,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
-import com.midokura.midolman.FlowController.{AddWildcardFlow,
-        InvalidateFlowsByTag, WildcardFlowAdded}
-import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
-        FlowActionOutputToVrnPortSet}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import datapath.FlowActionOutputToVrnPortSet
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets.IntIPv4
+import topology.LocalPortActive
 
 
 @RunWith(classOf[JUnitRunner])
@@ -36,10 +34,15 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val bridge = newBridge("bridge")
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (2)
         val port2OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (3)
         val port3OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (4)
         val portOnHost2 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (5)
         val portOnHost3 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (6)
 
         //val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         //val rule1 = newLiteralRuleOnChain(chain1, 0, null, null)  //XXX
@@ -71,9 +74,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         actors().eventStream.subscribe(tunnelEventsProbe.ref,
                                        classOf[TunnelChangeEvent])
 
-        val flowEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref,
-                                       classOf[WildcardFlowAdded])
+        val portEventsProbe = newProbe()
+        actors().eventStream.subscribe(portEventsProbe.ref,
+                                       classOf[LocalPortActive])
 
         initializeDatapath() should not be (null)
 
@@ -95,25 +98,25 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
+        // Wait for LocalPortActive messages - they prove the
+        // VirtualToPhysicalMapper has the correct information for the PortSet.
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
+        val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes, null, null, null))
-        // TODO(ross) finish flow invalidation
-        // Q(ross): shall we automatically install flows for the portSet? When
-        // a port is included in the port set shall we install the flow from
-        // tunnel with key portSetID to port?
-        // A(jlm): Better not.  The flow has to be checked against the
-        // outbound chains for the port before it can be directed to it.
+            wildcardFlow, None, pktBytes, null, null, null))
+
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-
         addFlowMsg should not be null
-        addFlowMsg.pktBytes should not be null
-        addFlowMsg.flow should not be null
+        addFlowMsg.pktBytes should equal(pktBytes)
+        addFlowMsg.flow should equal (wildcardFlow)
         addFlowMsg.flow.getMatch.getInputPortUUID should be(null)
         addFlowMsg.flow.getMatch.getInputPortNumber should be(localPortNumber1)
 
@@ -121,10 +124,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         flowActs should not be (null)
         // The ingress port should not be in the expanded port set
-        // TODO(jlm): This is flaky; it often only includes one of the three
-        // local ports, instead of the two it should.
         flowActs should have size (5)
 
+        // Compare FlowKeyTunnelID against bridge.getTunnelKey
         val setKeyAction = as[FlowActionSetKey](flowActs.get(flowActs.length - 3))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
 

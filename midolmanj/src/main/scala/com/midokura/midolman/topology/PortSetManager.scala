@@ -33,12 +33,12 @@ class PortSetManager extends RCUDeviceManager {
         }
 
         def addHost(host: UUID) : LocalPortSetBuilder = {
-            hosts.remove(host)
+            hosts.add(host)
             this
         }
 
         def delHost(host: UUID) : LocalPortSetBuilder = {
-            hosts.add(host)
+            hosts.remove(host)
             this
         }
 

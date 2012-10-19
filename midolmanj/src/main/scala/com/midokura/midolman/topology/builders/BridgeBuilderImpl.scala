@@ -117,7 +117,6 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                 )
             }
 
-            // TODO: PortSet change. This should be done in VTPM.
         }
     }
 
