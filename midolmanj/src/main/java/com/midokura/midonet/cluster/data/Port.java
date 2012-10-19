@@ -12,10 +12,8 @@ import java.util.UUID;
 /**
  * // TODO: mtoader ! Please explain yourself.
  */
-public abstract class Port<
-    PortData extends Port.Data,
-    Self extends Port<PortData, Self>
-    >
+public abstract class Port<PortData extends Port.Data,
+                           Self extends Port<PortData, Self>>
     extends Entity.Base<UUID, PortData, Self> {
 
     public enum Property {
