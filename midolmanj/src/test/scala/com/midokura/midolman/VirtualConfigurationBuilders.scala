@@ -31,6 +31,14 @@ trait VirtualConfigurationBuilders {
 
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 
+    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        clusterDataClient().chainsCreate(chain)
+        bridge.setInboundFilter(chain.getId)
+        clusterDataClient().bridgesUpdate(bridge)
+        chain
+    }
+
     def newOutboundChainOnPort(name: String, port: Port[_, _],
                                id: UUID): Chain = {
         val chain = new Chain().setName(name).setId(id)
