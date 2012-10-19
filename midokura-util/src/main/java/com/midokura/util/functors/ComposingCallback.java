@@ -4,7 +4,7 @@
 package com.midokura.util.functors;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ *
  */
 public interface ComposingCallback<T, E extends Exception>
     extends Callback<Callback.MultiResult<T>, E> {
