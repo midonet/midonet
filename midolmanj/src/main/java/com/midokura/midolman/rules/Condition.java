@@ -65,29 +65,24 @@ public class Condition {
          * of 'conjunctionInv'.  If the conjunction evaluates to true, then
          * we return 'NOT conjunctionInv'.
          */
-        if (matchForwardFlow) {
-            if (!fwdInfo.isForwardFlow())
-                return conjunctionInv;
-        }
-        else if (matchReturnFlow) {
-            if (fwdInfo.isForwardFlow())
-                return conjunctionInv;
-        }
-        else if (null != inPortIds && inPortIds.size() > 0
-                && inPortIds.contains(inPortId) == inPortInv)
-            return conjunctionInv;
-        else if (null != outPortIds && outPortIds.size() > 0
-                && outPortIds.contains(outPortId) == outPortInv)
-            return conjunctionInv;
-        else if (null != portGroup) {
-            if (senderGroups == null
-                    ? !invPortGroup
-                    : senderGroups.contains(portGroup) == invPortGroup)
-                return conjunctionInv;
-        }
-
         boolean cond = true;
-        if (!match(dlType, pktMatch.getEtherType(), invDlType)
+        if (matchForwardFlow && !fwdInfo.isForwardFlow())
+            cond = false;
+        else if (matchReturnFlow && fwdInfo.isForwardFlow())
+            cond = false;
+        else if (null != portGroup) {
+            boolean innerCond = senderGroups != null &&
+                                senderGroups.contains(portGroup);
+            innerCond = invPortGroup? !innerCond : innerCond;
+            if (!innerCond)
+                cond = false;
+        }
+        if (!cond)
+            return conjunctionInv;
+
+        if (!match(this.inPortIds, inPortId, this.inPortInv)
+            || !match(this.outPortIds, outPortId, this.outPortInv)
+            || !match(dlType, pktMatch.getEtherType(), invDlType)
             || !match(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
             || !match(dlDst, pktMatch.getEthernetDestination(), invDlDst)
             || !match(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
@@ -101,6 +96,15 @@ public class Condition {
             )
             cond = false;
         return conjunctionInv? !cond : cond;
+    }
+
+    private boolean match(Set<UUID> condPorts, UUID port,
+                               boolean negate) {
+        // Packet is considered to match if the field is null or empty set.
+        if (condPorts == null || condPorts.size() == 0)
+            return true;
+        boolean cond = condPorts.contains(port);
+        return negate? !cond :cond;
     }
 
     /**

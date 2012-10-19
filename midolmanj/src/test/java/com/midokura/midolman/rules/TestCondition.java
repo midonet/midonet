@@ -201,9 +201,10 @@ public class TestCondition {
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcIp.setMaskLength(0);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        // nwSrcLength = 0 is like wild-carding. So inverting is ignored.
         cond.nwSrcInv = true;
-        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        // Now increase the maskLength. The packet doesn't match the
+        // condition's srcIp, but the nwSrcInv is true.
         cond.nwSrcIp.setMaskLength(32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Remove the invert, set the nwSrcIp to the packet's
@@ -218,15 +219,21 @@ public class TestCondition {
     @Test
     public void testNwDst() {
         Condition cond = new Condition();
+        // Empty condition matches the packet.
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        // Inverting is ignored if the field is null.
+        cond.nwDstInv = true;
+        // Condition still matches the packet.
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.nwDstInv = false;
         // Set the nwDstIp to something different than the packet's 0x0a000b22.
         cond.nwDstIp = new IntIPv4(0x0a000b23, 0);
-        // Since nwDstLength is still 0, the condition still matches the packet.
+        // Since nwDstLength is 0, the condition still matches the packet.
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        // Similarly, invert is ignored while nwDstLength is zero.
+        // Now try inverting the result
         cond.nwDstInv = true;
-        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = false;
         cond.nwDstIp.setMaskLength(32);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -252,56 +259,66 @@ public class TestCondition {
 
     @Test
     public void testTpSrc() {
+        // Note tpSrc is set to 4321
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcStart = 30;
-        // While tpSrcEnd is 0, this is still considered wild-carded
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = false;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcStart = 4322;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcStart = 4321;
         cond.tpSrcEnd = 4320;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcEnd = 4321;
-        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcStart = 4321;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
-        cond.tpSrcStart = 4322;
-        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcEnd = 4322;
+        cond.tpSrcStart = null;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
     @Test
     public void testTpDst() {
+        // tpDst is set to 1234
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstStart = 30;
-        // While tpDstEnd is 0, this is still considered wild-carded
-        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstInv = true;
-        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstInv = false;
-        cond.tpDstEnd = 1233;
+        cond.tpDstStart = 1235;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
-        cond.tpDstEnd = 1234;
+        cond.tpDstStart = 1233;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstStart = 1234;
+        cond.tpDstInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = false;
+        cond.tpDstEnd = 1233;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstEnd = 1234;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
         cond.tpDstStart = 1235;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstStart = null;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
     @Test
@@ -313,6 +330,8 @@ public class TestCondition {
         cond.matchForwardFlow = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         Assert.assertTrue(fwdInfo.isConnTracked());
+        // Still matches forward flow.
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.matchReturnFlow = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.matchForwardFlow = false;
