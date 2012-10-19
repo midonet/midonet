@@ -75,15 +75,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
-        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
-            case Some(portNo : Short) => portId4 = portNo
-            case None => fail("Not able to find data port number for materialize Port 4")
-        }
-        dpController().underlyingActor.vifToLocalPortNumber(port3OnHost1.getId) match {
-            case Some(portNo : Short) => portId5 = portNo
-            case None => fail("Not able to find data port number for materialize Port 5")
-        }
-
         flowEventsProbe = newProbe()
         tunnelEventsProbe = newProbe()
         actors().eventStream.subscribe(tunnelEventsProbe.ref, classOf[TunnelChangeEvent])
@@ -97,7 +88,17 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         drainProbes()
+
+        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
+            case Some(portNo : Short) => portId4 = portNo
+            case None => fail("Not able to find data port number for materialize Port 4")
+        }
+        dpController().underlyingActor.vifToLocalPortNumber(port3OnHost1.getId) match {
+            case Some(portNo : Short) => portId5 = portNo
+            case None => fail("Not able to find data port number for materialize Port 5")
+        }
     }
 
     @Test
@@ -257,6 +258,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         portName match {
             case "port1" => port1OnHost1
             case "port4" => port2OnHost1
+            case "port5" => port3OnHost1
         }
     }
 
