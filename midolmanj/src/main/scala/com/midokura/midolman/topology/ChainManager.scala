@@ -16,6 +16,8 @@ import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.ChainBuilder
 import java.util
 import com.midokura.midolman.topology.ChainManager.TriggerUpdate
+import com.midokura.midolman.FlowController
+import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 
 object ChainManager {
     case class TriggerUpdate(rules: util.Collection[Rule])
@@ -113,6 +115,9 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
                             context.actorFor("..").tell(
                                 new Chain(id, rules.toList, idToChain.toMap,
                                           "TODO: need name"))
+                        // invalidate all flow for this chain
+                        FlowController.getRef() !
+                            InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
                     case _ =>  // Nothing else to do.
                 }
         }

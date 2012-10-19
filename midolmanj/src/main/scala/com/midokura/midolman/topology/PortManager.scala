@@ -9,6 +9,8 @@ import com.midokura.packets.IntIPv4
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.topology.PortManager.TriggerUpdate
 import com.midokura.midonet.cluster.client.Port
+import com.midokura.midolman.FlowController
+import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 
 object PortManager{
     case class TriggerUpdate(port: Port[_])
@@ -45,6 +47,9 @@ class PortManager(id: UUID, val clusterClient: Client)
     override def receive = super.receive orElse {
         case TriggerUpdate(p: Port[_]) =>
             port = p
+            FlowController.getRef() !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(p.id))
             configUpdated()
+
     }
 }
