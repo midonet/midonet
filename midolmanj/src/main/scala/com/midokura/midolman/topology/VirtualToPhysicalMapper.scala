@@ -275,7 +275,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         // we need to include the tunnel to the new host
                         // 2) same for delete
                         if (localActivePortSetsToHosts.contains(portSet.id) &&
-                            localActivePortSetsToHosts.contains(portSet.id) != portSet.hosts) {
+                            localActivePortSetsToHosts(portSet.id) != portSet.hosts) {
                             FlowController.getRef() ! InvalidateFlowsByTag(
                                 // the portSet id is the same as the bridge id
                                 FlowTagger.invalidateBroadcastFlows(portSet.id, portSet.id)
