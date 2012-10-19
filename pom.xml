@@ -105,6 +105,12 @@
             <url>http://repo.typesafe.com/typesafe/releases/</url>
         </repository>
 
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype Repository</name>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+
     </repositories>
 
     <build>

@@ -10,11 +10,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
-import com.midokura.midolman.FlowController.{AddWildcardFlow,
-        InvalidateFlowsByTag, WildcardFlowAdded}
-import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
-        FlowActionOutputToVrnPortSet}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
+import datapath.FlowActionOutputToVrnPortSet
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}

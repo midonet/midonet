@@ -45,8 +45,8 @@ import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.flows.FlowKeyInPort
 
 
-trait MidolmanTestCase extends Suite with BeforeAndAfter with BeforeAndAfterAll
-         with Dilation with OneInstancePerTest with ShouldMatchers {
+trait MidolmanTestCase extends Suite with BeforeAndAfter
+        with OneInstancePerTest with ShouldMatchers with Dilation {
 
     var injector: Injector = null
     var mAgent: MonitoringAgent = null

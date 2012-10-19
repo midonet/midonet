@@ -5,26 +5,23 @@ package com.midokura.midolman
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.junit.JUnitRunner
-import java.util.concurrent.TimeUnit
 
 import com.midokura.midolman.DatapathController.{TunnelChangeEvent, PacketIn}
-import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded, InvalidateFlowsByTag}
+import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import com.midokura.packets.{Ethernet, IntIPv4, MAC, Packets}
+import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
-import akka.util.Duration
 import akka.testkit.TestProbe
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
-import com.midokura.packets.ARP
 import com.midokura.packets.Ethernet
+import org.junit.Test
 
 
 @RunWith(classOf[JUnitRunner])
-class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders 
-        with BeforeAndAfterEach {
+class BridgeSimulationTestCase extends MidolmanTestCase
+        with VirtualConfigurationBuilders {
     private var flowEventsProbe: TestProbe = null
     private var tunnelEventsProbe: TestProbe = null
     private var port1OnHost1: MaterializedBridgePort = null
@@ -103,10 +100,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         drainProbes()
     }
 
-    override def beforeEach() {
-        // TODO: reset Bridge (flush MAC learning table at least)
-    }
-
+    @Test
     def testPacketInBridgeSimulation() {
         val ethPkt = Packets.udp(
                 MAC.fromString("02:11:22:33:44:10"),
@@ -237,7 +231,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
         verifyMacLearned("02:13:66:77:88:99", "port5")
     }
 
-    private def injectOnePacket (ethPkt : Ethernet, ingressPortName : String, 
+    private def injectOnePacket (ethPkt : Ethernet, ingressPortName : String,
                                  isDropExpected: Boolean) : AddWildcardFlow = {
 
         triggerPacketIn(ingressPortName, ethPkt)
@@ -267,7 +261,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase with VirtualConfiguratio
     }
 
     /*
-     * In this test, always assume input port is port4 (keep src mac 
+     * In this test, always assume input port is port4 (keep src mac
      * consistent), and dst mac should always go out toward port1
      */
     private def verifyMacLearned(learnedMac : String, expectedPortName : String) = {
