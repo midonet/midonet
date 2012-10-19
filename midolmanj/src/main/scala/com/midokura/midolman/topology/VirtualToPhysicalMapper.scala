@@ -19,7 +19,7 @@ import akka.util.Timeout
 import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
 
-import com.midokura.midolman.Referenceable
+import com.midokura.midolman.{FlowController, Referenceable}
 import com.midokura.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
 import com.midokura.midolman.topology.rcu.Host
@@ -27,13 +27,14 @@ import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import com.midokura.midolman.state.DirectoryCallback
 import com.midokura.midolman.state.DirectoryCallback.Result
 import com.midokura.midonet.cluster.{Client, DataClient}
-import com.midokura.midonet.cluster.client.{Port, TunnelZones, HostBuilder}
+import com.midokura.midonet.cluster.client.{BridgePort, Port, TunnelZones, HostBuilder}
 import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
 import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
 import com.midokura.midonet.cluster.data.zones._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import com.midokura.midolman.simulation.Bridge
+import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 
 
 object HostConfigOperation extends Enumeration {
@@ -241,6 +242,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
     private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
+    private val localActivePortSetsToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
     private var activatingLocalPorts = false
 
     private lazy val tunnelKeyToPortSet = mutable.Map[Long, UUID]()
@@ -267,11 +269,22 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 {
                     case None => portSet
                     case Some(ports) =>
+                        // if this host has ports belonging to this portSet we need
+                        // to invalidate the flows
+                        // 1) a new host is added to the set, invalidate all flows
+                        // we need to include the tunnel to the new host
+                        // 2) same for delete
+                        if (localActivePortSetsToHosts(portSet.id) != portSet.hosts) {
+                            FlowController.getRef() ! InvalidateFlowsByTag(
+                                // the portSet id is the same as the bridge id
+                                FlowTagger.invalidateBroadcastFlows(portSet.id, portSet.id)
+                            )
+                        }
+                        localActivePortSetsToHosts += portSet.id -> portSet.hosts
                         rcu.PortSet(portSet.id, portSet.hosts, ports.toSet)
+
                 }
 
-                // TODO(pino, rossella): should we invalidate the flows with
-                // TODO: the PortSet ID tag here vs. in the PortSetManager?
                 portSets.updateAndNotifySubscribers(portSet.id, updatedPortSet)
 
             case HostRequest(hostId) =>
@@ -301,32 +314,39 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]
 
-                // assume that every device is mapped to a portSet. If it's not
-                // the case, do nothing but complete the activation
+                // Only materialized bridge ports map to a portSet.
                 portFuture onComplete {
                     case Left(ex) =>
                         self ! _ActivatedLocalPort(vifId, active = false,
                                                           success = false)
                     case Right(port) =>
-                        localActivePortSets.get(port.deviceID) match {
-                            case Some(_) =>
-                                self ! _PortSetMembershipUpdated(
-                                    vifId, port.deviceID, state = true)
-                            case None =>
-                                val future = Promise[String]()
-                                clusterDataClient.portSetsAsyncAddHost(
-                                    port.deviceID, hostIdProvider.getHostId,
-                                    new PromisingDirectoryCallback[String](future) with
-                                        DirectoryCallback.Add)
+                        if (port.isInstanceOf[BridgePort[_]]){
+                            log.debug("LocalPortActive, it's a bridge port")
+                            localActivePortSets.get(port.deviceID) match {
+                                case Some(_) =>
+                                    self ! _PortSetMembershipUpdated(
+                                        vifId, port.deviceID, state = true)
+                                case None =>
+                                    val future = Promise[String]()
+                                    clusterDataClient.portSetsAsyncAddHost(
+                                        port.deviceID, hostIdProvider.getHostId,
+                                        new PromisingDirectoryCallback[String](future) with
+                                            DirectoryCallback.Add)
 
-                                future onComplete {
-                                    case Left(ex) =>
-                                        self ! _ActivatedLocalPort(
-                                            vifId, active = true, success = true)
-                                    case Right(_) =>
-                                        self ! _PortSetMembershipUpdated(
-                                            vifId, port.deviceID, state = true)
-                                }
+                                    future onComplete {
+                                        case Left(ex) =>
+                                            self ! _ActivatedLocalPort(
+                                                vifId, active = true, success = true)
+                                        case Right(_) =>
+                                            self ! _PortSetMembershipUpdated(
+                                                vifId, port.deviceID, state = true)
+                                    }
+                            }
+                        }
+                        // it's not a bridge port we don't need to handle the port set
+                        else {
+                            self ! _ActivatedLocalPort(
+                                vifId, active = true, success = true)
                         }
                 }
 
@@ -373,18 +393,20 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
             case _ActivatedLocalPortSet(portSetId, tunKey, false) =>
                 tunnelKeyToPortSet.remove(tunKey)
+                localActivePortSets.remove(portSetId)
+                localActivePortSetsToHosts.remove(portSetId)
 
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
-                // TODO(pino, rossella): consider invalidating flows by PortSet
-                // TODO: ID tag here rather than in the BridgeBuilderImpl.
                 log.debug("Port {} in PortSet {} is up.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) =>
                         ports.add(vifId)
                         completeLocalPortActivation(vifId, active = true,
                                                            success = true)
+                        // invalidate all the flows of this port set
+                        FlowController.getRef() ! InvalidateFlowsByTag(
+                            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId))
                     case None =>
-                        localActivePortSets.put(portSetId, mutable.Set(vifId))
 
                         val bridgeFuture =
                             ask(VirtualTopologyActor.getRef(),
@@ -395,21 +417,22 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                 self ! _ActivatedLocalPort(vifId, active = true,
                                                                   success = true)
                             case Right(bridge) =>
+                                localActivePortSets.put(portSetId, mutable.Set(vifId))
                                 self ! _ActivatedLocalPortSet(portSetId,
                                                               bridge.tunnelKey,
                                                               active = true)
                                 self ! _ActivatedLocalPort(vifId, active = true,
                                                                   success = true)
+                                // invalidate all the flows of this port set
+                                FlowController.getRef() ! InvalidateFlowsByTag(
+                                    FlowTagger.invalidateBroadcastFlows(portSetId, portSetId))
                         }
                 }
 
 
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
-                // TODO(pino, rossella): consider invalidating flows by PortSet
-                // TODO: ID tag here rather than in the BridgeBuilderImpl.
-                // TODO: Also consider doing nothing because the DatapathCtrl's
-                // TODO: tag by ShortPortNo will invalidate all relevant flows
-                // TODO: anyway.
+                // We don't need to invalidate flows because the DatapathCtrl's
+                // tag by ShortPortNo will invalidate all relevant flows anyway.
                 log.debug("Port {} in PortSet {} is down.", vifId, portSetId)
                 localActivePortSets.get(portSetId) match {
                     case Some(ports) =>
