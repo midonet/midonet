@@ -68,6 +68,13 @@ trait SimulationHelper extends MidolmanTestCase {
         pktInMsg
     }
 
+    def fishForFlowAddedMessage(): WildcardFlow = {
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        addFlowMsg.flow should not be null
+        addFlowMsg.flow
+    }
+
     def expectFlowAddedMessage(): WildcardFlow = {
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
         addFlowMsg should not be null
