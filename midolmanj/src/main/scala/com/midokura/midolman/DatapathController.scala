@@ -816,6 +816,9 @@ class DatapathController() extends Actor with ActorLogging {
                             log.info("local ports: {}", set.localPorts)
                             log.info("local ports minus inPort: {}",
                                 set.localPorts - inPortUUID)
+                            // add tag for flow invalidation
+                            dpTags += FlowTagger.invalidateBroadcastFlows(br.id,
+                                       br.id)
                             translated.success(
                                 translateToDpPorts(
                                     actions, portSet,
