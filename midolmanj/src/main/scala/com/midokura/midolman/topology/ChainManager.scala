@@ -98,10 +98,14 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
         sortedRules =
             rules.toList.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
         // Send the VirtualTopologyActor an updated chain.
-        if (0 == waitingForChains)
+        if (0 == waitingForChains) {
             context.actorFor("..").tell(
                 new Chain(id, sortedRules, idToChain.toMap,
                     "TODO: need name"))
+        // invalidate all flow for this chain
+        FlowController.getRef() !
+            InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+        }
     }
 
     private def chainUpdate(chain: Chain): Unit = {
@@ -111,13 +115,14 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
                 idToChain.put(chain.id, chain) match {
                     case None =>
                         waitingForChains -= 1
-                        if (0 == waitingForChains)
+                        if (0 == waitingForChains) {
                             context.actorFor("..").tell(
                                 new Chain(id, rules.toList, idToChain.toMap,
                                           "TODO: need name"))
                         // invalidate all flow for this chain
                         FlowController.getRef() !
                             InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+                        }
                     case _ =>  // Nothing else to do.
                 }
         }
