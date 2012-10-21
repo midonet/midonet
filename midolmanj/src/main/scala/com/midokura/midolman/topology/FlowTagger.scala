@@ -30,9 +30,9 @@ FlowTagger {
     def invalidateFlowsByLogicalPort(bridgeId: UUID, logicalPortId: UUID): AnyRef =
         (bridgeId.toString + logicalPortId.toString)
 
-    def invalidateDPPort(port: Short): AnyRef = (port.toString)
+    def invalidateDPPort(port: Short): AnyRef = ("port:" + port.toString)
 
-    def invalidateByTunnelKey(key: Long): AnyRef = (key.toString)
+    def invalidateByTunnelKey(key: Long): AnyRef = ("tkey:" + key.toString)
 
     def invalidatePort(port: UUID): AnyRef = port.toString
 
