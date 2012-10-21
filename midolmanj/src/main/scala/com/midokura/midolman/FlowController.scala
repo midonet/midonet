@@ -197,7 +197,7 @@ class FlowController extends Actor with ActorLogging {
         flowToTags.remove(wildFlow) map {
             set: mutable.Set[Any] =>
                 for (tag <- set){
-                    tagToFlows.remove(tag)
+                    tagToFlows.removeBinding(tag, wildFlow)
                 }
         }
         flowRemovalCallbacksMap.remove(wildFlow) map {
