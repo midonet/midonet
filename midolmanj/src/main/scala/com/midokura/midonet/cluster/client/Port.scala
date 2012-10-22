@@ -21,22 +21,22 @@ trait Port[T] {
     }
 
     def setID(id: UUID): T = {
-        this.id = id;
+        this.id = id
         self
     }
 
     def setDeviceID(id: UUID): T = {
-        this.deviceID = id;
+        this.deviceID = id
         self
     }
 
     def setInFilter(chain: UUID): T = {
-        this.inFilterID = chain;
+        this.inFilterID = chain
         self
     }
 
     def setOutFilter(chain: UUID): T = {
-        this.outFilterID = chain;
+        this.outFilterID = chain
         self
     }
 
@@ -45,7 +45,8 @@ trait Port[T] {
     }
 
     def setProperties(props: java.util.Map[String, String]): T = {
-        properties = Map(props.toSeq:_*); self
+        properties = Map(props.toSeq:_*)
+        self
     }
 }
 
@@ -64,7 +65,7 @@ trait ExteriorPort[T] extends Port[T] {
     }
 
     def setPortGroups(groups: java.util.Set[UUID]): T = {
-        portGroups = Set(groups.toSeq:_*);
+        portGroups = Set(groups.toSeq:_*)
         self
     }
 

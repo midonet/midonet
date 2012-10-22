@@ -12,26 +12,70 @@ import org.scalatest.junit.JUnitRunner
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
 import com.midokura.midolman.FlowController.{WildcardFlowRemoved, RemoveWildcardFlow, InvalidateFlowsByTag, AddWildcardFlow}
 import datapath.FlowActionOutputToVrnPortSet
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets.IntIPv4
 import topology.{FlowTagger, LocalPortActive}
+import com.midokura.midonet.cluster.data.host.Host
+import com.midokura.midonet.cluster.data.Bridge
+import akka.testkit.TestProbe
 
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 with VirtualConfigurationBuilders {
 
-    def atestInstallFlowForPortSet() {
+    var tunnelZone: GreTunnelZone = null
 
-        val tunnelZone = greTunnelZone("default")
+    var host1: Host = null
+    var host2: Host = null
+    var host3: Host = null
 
-        val host1 = newHost("host1", hostId())
-        val host2 = newHost("host2")
-        val host3 = newHost("host3")
+    var bridge: Bridge = null
+    var tunnelEventsProbe: TestProbe = null
+    var portEventsProbe: TestProbe = null
+    var flowRemovedProbe: TestProbe = null
 
-        val bridge = newBridge("bridge")
+    override def beforeTest() {
+        tunnelZone = greTunnelZone("default")
+
+        host1 = newHost("host1", hostId())
+        host2 = newHost("host2")
+        host3 = newHost("host3")
+
+        bridge = newBridge("bridge")
+
+        clusterDataClient().tunnelZonesAddMembership(
+            tunnelZone.getId,
+            new GreTunnelZoneHost(host1.getId)
+                .setIp(IntIPv4.fromString("192.168.100.1")))
+        clusterDataClient().tunnelZonesAddMembership(
+            tunnelZone.getId,
+            new GreTunnelZoneHost(host2.getId)
+                .setIp(IntIPv4.fromString("192.168.125.1")))
+        clusterDataClient().tunnelZonesAddMembership(
+            tunnelZone.getId,
+            new GreTunnelZoneHost(host3.getId)
+                .setIp(IntIPv4.fromString("192.168.150.1")))
+
+        tunnelEventsProbe = newProbe()
+        actors().eventStream.subscribe(tunnelEventsProbe.ref,
+            classOf[TunnelChangeEvent])
+
+        portEventsProbe = newProbe()
+        actors().eventStream.subscribe(portEventsProbe.ref,
+            classOf[LocalPortActive])
+
+        flowRemovedProbe = newProbe()
+        actors().eventStream.subscribe(flowRemovedProbe.ref, classOf[WildcardFlowRemoved])
+
+        initializeDatapath() should not be (null)
+
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+    }
+
+    def testInstallFlowForPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -53,44 +97,13 @@ with VirtualConfigurationBuilders {
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
-
 
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
-        val tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref,
-            classOf[TunnelChangeEvent])
-
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
-            classOf[LocalPortActive])
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
-
         val tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
         val tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
 
-        val localPortNumber1 = dpController().underlyingActor
-            .localPorts("port1a").getPortNo
-        val localPortNumber2 = dpController().underlyingActor
-            .localPorts("port1b").getPortNo
-        val localPortNumber3 = dpController().underlyingActor
-            .localPorts("port1c").getPortNo
 
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
@@ -104,6 +117,12 @@ with VirtualConfigurationBuilders {
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
+        val localPortNumber1 = dpController().underlyingActor
+            .localPorts("port1a").getPortNo
+        val localPortNumber2 = dpController().underlyingActor
+            .localPorts("port1b").getPortNo
+        val localPortNumber3 = dpController().underlyingActor
+            .localPorts("port1c").getPortNo
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
@@ -138,13 +157,6 @@ with VirtualConfigurationBuilders {
     }
 
     def testNewHostRemovedFromPortSet() {
-        val tunnelZone = greTunnelZone("default")
-
-        val host1 = newHost("host1", hostId())
-        val host2 = newHost("host2")
-        val host3 = newHost("host3")
-
-        val bridge = newBridge("bridge")
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -158,33 +170,8 @@ with VirtualConfigurationBuilders {
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
-
-
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
-
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
-            classOf[LocalPortActive])
-
-        val flowRemovedProbe = newProbe()
-        actors().eventStream.subscribe(flowRemovedProbe.ref, classOf[WildcardFlowRemoved])
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
@@ -215,14 +202,7 @@ with VirtualConfigurationBuilders {
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
     }
 
-    def atestNewHostAddedToPortSet() {
-        val tunnelZone = greTunnelZone("default")
-
-        val host1 = newHost("host1", hostId())
-        val host2 = newHost("host2")
-        val host3 = newHost("host3")
-
-        val bridge = newBridge("bridge")
+    def testNewHostAddedToPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -236,32 +216,8 @@ with VirtualConfigurationBuilders {
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
-
 
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
-
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
-            classOf[LocalPortActive])
-
-        val flowRemovedProbe = newProbe()
-        actors().eventStream.subscribe(flowRemovedProbe.ref, classOf[WildcardFlowRemoved])
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
@@ -294,13 +250,6 @@ with VirtualConfigurationBuilders {
     }
 
     def testNewPortAddedToPortSet() {
-        val tunnelZone = greTunnelZone("default")
-
-        val host1 = newHost("host1", hostId())
-        val host2 = newHost("host2")
-        val host3 = newHost("host3")
-
-        val bridge = newBridge("bridge")
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -315,33 +264,9 @@ with VirtualConfigurationBuilders {
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
-
 
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
-
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
-            classOf[LocalPortActive])
-
-        val flowRemovedProbe = newProbe()
-        actors().eventStream.subscribe(flowRemovedProbe.ref, classOf[WildcardFlowRemoved])
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
@@ -379,5 +304,54 @@ with VirtualConfigurationBuilders {
         val flowInvalidated = flowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
 
+    }
+
+    def testRemovePortFromPortSet() {
+
+        val port1OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (2)
+        val port2OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (3)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (4)
+        val portOnHost3 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (5)
+
+        materializePort(port1OnHost1, host1, "port1a")
+        materializePort(port2OnHost1, host1, "port1b")
+        materializePort(portOnHost2, host2, "port2")
+        materializePort(portOnHost3, host3, "port3")
+
+
+        clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
+        clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
+
+        // flows installed for tunnel key = port when the port becomes active.
+        // There are three ports on this host.
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+
+        // Wait for LocalPortActive messages - they prove the
+        // VirtualToPhysicalMapper has the correct information for the PortSet.
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+
+        val wildcardFlow = new WildcardFlow()
+            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
+            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+
+        val pktBytes = "My packet".getBytes
+        dpProbe().testActor.tell(AddWildcardFlow(
+            wildcardFlow, None, pktBytes, null, null, null))
+
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+        // delete the port. The dp controller will invalidate all the flow whose
+        // source or destination is this port. The port set is expanded into several
+        // flows, the one corresponding to this port will be removed
+        deletePort(port2OnHost1, host1)
+        val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        //assert(msg.tag.equals(FlowTagger.invalidateDPPort(localPortNumber2.asShort())))
+        flowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        flowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
     }
 }
