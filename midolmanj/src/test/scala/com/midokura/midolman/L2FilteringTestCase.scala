@@ -246,6 +246,9 @@ class L2FilteringTestCase extends MidolmanTestCase with
         log.info("sending a packet that should be allowed by rule 1")
         expectPacketAllowed(4, 1, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        log.info("sending a packet that should be allowed by rule 1")
+        expectPacketAllowed(0, 3, lldpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         fishForRequestOfType[BridgeRequest](vtaProbe())
         fishForReplyOfType[SimBridge](vtaProbe())
 
@@ -259,14 +262,20 @@ class L2FilteringTestCase extends MidolmanTestCase with
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
-        log.info("sending a packet that should be dropped by rule 2")
+        log.info("sending two packets that should be dropped by rule 2")
         expectPacketDropped(4, 1, icmpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        expectPacketDropped(4, 1, lldpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         log.info("sending a packet that should be allowed by rules 1,2")
         expectPacketAllowed(4, 3, icmpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         log.info("sending an lldp packet that should be allowed by rules 1,2")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
 
         log.info("adding a third rule: drop if ether-type == LLDP")
         val cond2 = new Condition()
@@ -277,10 +286,12 @@ class L2FilteringTestCase extends MidolmanTestCase with
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
         log.info("sending an lldp packet that should be dropped by rule 3")
         expectPacketDropped(4, 3, lldpBetweenPorts)
+        expectPacketAllowed(4, 3, icmpBetweenPorts)
 
         log.info("deleting rule 3")
         clusterDataClient().rulesDelete(rule2.getId)
