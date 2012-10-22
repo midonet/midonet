@@ -1056,14 +1056,16 @@ class DatapathController() extends Actor with ActorLogging {
                         tags: ROSet[Any],
                         cookie: Option[Int] = None,
                         pktBytes: Array[Byte] = null,
-                        expiration: Long = 3000) {
+                        expiration: Long = 3000,
+                        priority: Short = 0) {
         log.debug("adding flow with match {} with actions {}",
                   wMatch, actions)
 
         FlowController.getRef().tell(
                 AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
                                         .setIdleExpirationMillis(expiration)
-                                        .setActions(actions),
+                                        .setActions(actions)
+                                        .setPriority(priority),
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
                                 null,
@@ -1136,7 +1138,8 @@ class DatapathController() extends Actor with ActorLogging {
                     addTaggedFlow(new WildcardMatch().setInputPort(port),
                         actions = Nil,
                         tags = Set(FlowTagger.invalidateDPPort(port)),
-                        cookie = cookie)
+                        cookie = cookie,
+                        priority = 1000) // TODO(abel) use a constant here
                 }
 
             case null =>
