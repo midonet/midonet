@@ -40,8 +40,11 @@ public abstract class ReplicatedSet<T> {
         for (String str : oldStrings) {
             deletedItems.add(decode(str));
         }
-        if (addedItems.size() > 0 || deletedItems.size() > 0) {
+        if (addedItems.size() > 0 || deletedItems.size() > 0
+                || !firstUpdateSent) {
             notifyWatchers(addedItems, deletedItems);
+            if (!firstUpdateSent)
+                firstUpdateSent = true;
         }
         strings = newStrings;
     }
@@ -58,6 +61,7 @@ public abstract class ReplicatedSet<T> {
 
     private Directory dir;
     private boolean running;
+    private boolean firstUpdateSent = false;
     private CreateMode createMode;
     private Set<String> strings;
     private Set<Watcher<T>> changeWatchers;

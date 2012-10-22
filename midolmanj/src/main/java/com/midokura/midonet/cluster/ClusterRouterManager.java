@@ -88,12 +88,12 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             return;
         }
 
-        ArpTable arpTable = null;
         if (!isUpdate) {
             try {
-                arpTable = new ArpTable(
+                ArpTable arpTable = new ArpTable(
                     routerMgr.getArpTableDirectory(id));
                 arpTable.start();
+                builder.setArpCache(new ArpCacheImpl(arpTable));
             } catch (StateAccessException e) {
                 log.error(
                     "Error retrieving ArpTable for router {}",
@@ -112,9 +112,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
         builder.setInFilter(config.inboundFilter)
             .setOutFilter(config.outboundFilter);
-        if(arpTable != null)
-            builder.setArpCache(new ArpCacheImpl(arpTable));
-        builder.build();
+        if (isUpdate) // Not first time we're building
+            builder.build();
+        // else no need to build - the ReplicatedRouteSet will build.
         log.info("Update configuration for router {}", id);
     }
 
