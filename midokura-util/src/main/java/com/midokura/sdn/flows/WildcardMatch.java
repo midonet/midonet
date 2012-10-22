@@ -250,7 +250,7 @@ public class WildcardMatch implements Cloneable {
      */
     @Nonnull
     public WildcardMatch setNetworkSource(@Nonnull IntIPv4 addr) {
-        if (addr.getMaskLength() == 32) {
+        if (addr.getMaskLength() != 32) {
             log.error("don't support matching on network range: {}", addr);
             addr = addr.clone().setMaskLength(32);
         }
@@ -295,7 +295,7 @@ public class WildcardMatch implements Cloneable {
      */
     @Nonnull
     public WildcardMatch setNetworkDestination(@Nonnull IntIPv4 addr) {
-        if (addr.getMaskLength() == 32) {
+        if (addr.getMaskLength() != 32) {
             log.error("don't support matching on network range: {}", addr);
             addr = addr.clone().setMaskLength(32);
         }
