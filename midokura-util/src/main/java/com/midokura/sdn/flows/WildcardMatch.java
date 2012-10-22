@@ -17,10 +17,15 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.packets.Transport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(WildcardMatch.class);
+
 
     public enum Field {
         InputPortNumber,
@@ -238,8 +243,17 @@ public class WildcardMatch implements Cloneable {
         return etherType.shortValue();
     }
 
+    /**
+     *
+     * @param addr doesn't support network range, just host IP
+     * @return
+     */
     @Nonnull
     public WildcardMatch setNetworkSource(@Nonnull IntIPv4 addr) {
+        if (addr.getMaskLength() == 32) {
+            log.error("don't support matching on network range: {}", addr);
+            addr = addr.clone().setMaskLength(32);
+        }
         usedFields.add(Field.NetworkSource);
         this.networkSource = addr;
         return this;
@@ -274,8 +288,17 @@ public class WildcardMatch implements Cloneable {
         return networkSource.addressAsInt();
     }
 
+    /**
+     *
+     * @param addr doesn't support network range, just host IP
+     * @return
+     */
     @Nonnull
     public WildcardMatch setNetworkDestination(@Nonnull IntIPv4 addr) {
+        if (addr.getMaskLength() == 32) {
+            log.error("don't support matching on network range: {}", addr);
+            addr = addr.clone().setMaskLength(32);
+        }
         usedFields.add(Field.NetworkDestination);
         this.networkDestination = addr;
         return this;
