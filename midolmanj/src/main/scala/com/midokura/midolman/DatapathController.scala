@@ -500,7 +500,7 @@ class DatapathController() extends Actor with ActorLogging {
                         localPorts.put(p.getName, p)
                 }
             }
-            doDatapathPortsUpdate
+            doDatapathPortsUpdate()
 
         /**
          * Handle personal create port requests
@@ -540,19 +540,20 @@ class DatapathController() extends Actor with ActorLogging {
 
         case host: Host =>
             this.host = host
-            doDatapathPortsUpdate
+            doDatapathPortsUpdate()
             doDatapathZonesReply(host.zones)
 
         case zone: TunnelZone[_, _] =>
-            log.debug("Got new zone notification for zone: {}", zone)
             if (!host.zones.contains(zone.getId)) {
                 zones.remove(zone.getId)
                 zonesToHosts.remove(zone.getId)
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
+                log.debug("Removing zone {}", zone)
             } else {
                 zones.put(zone.getId, zone)
                 zonesToHosts.put(zone.getId,
                         mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
+                log.debug("Adding zone {}", zone)
             }
 
         case m: ZoneChanged[_] =>
@@ -636,8 +637,7 @@ class DatapathController() extends Actor with ActorLogging {
                             .newOptions()
                             .setSourceIPv4(myConfig.getIp.addressAsInt())
                             .setDestinationIPv4(peerConf.getIp.addressAsInt()))
-
-                    self ! CreateTunnelGre(tunnelPort, Some((peerConf, m.zone)))
+                    selfPostPortCommand(CreateTunnelGre(tunnelPort, Some((peerConf, m.zone))))
 
                 case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
                     log.info("Opening a tunnel port to {}", m.hostConfig)
@@ -651,8 +651,7 @@ class DatapathController() extends Actor with ActorLogging {
                             .newOptions()
                             .setSourceIPv4(myConfig.getIp.addressAsInt())
                             .setDestinationIPv4(peerConf.getIp.addressAsInt()))
-
-                    self ! CreateTunnelCapwap(tunnelPort, Some((peerConf, m.zone)))
+                    selfPostPortCommand(CreateTunnelCapwap(tunnelPort, Some((peerConf, m.zone))))
 
                 case GreZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
                     log.info("Closing a tunnel port to {}", m.hostConfig)
@@ -674,7 +673,7 @@ class DatapathController() extends Actor with ActorLogging {
 
                     if (tunnel != null) {
                         val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
-                        self ! DeleteTunnelGre(greTunnel, Some((peerConf, zone)))
+                        selfPostPortCommand(DeleteTunnelGre(greTunnel, Some((peerConf, zone))))
                     }
 
                 case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
@@ -697,7 +696,7 @@ class DatapathController() extends Actor with ActorLogging {
 
                     if (tunnel != null) {
                         val capwapTunnel = tunnel.asInstanceOf[CapWapTunnelPort]
-                        self ! DeleteTunnelCapwap(capwapTunnel, Some((peerConf, zone)))
+                        selfPostPortCommand(DeleteTunnelCapwap(capwapTunnel, Some((peerConf, zone))))
                     }
 
                 case _ =>
@@ -721,12 +720,12 @@ class DatapathController() extends Actor with ActorLogging {
                         case p: GreTunnelPort =>
                             zone match {
                                 case z: GreTunnelZone =>
-                                    self ! DeleteTunnelGre(p, Some(z))
+                                    selfPostPortCommand(DeleteTunnelGre(p, Some(z)))
                             }
                         case p: CapWapTunnelPort =>
                             zone match {
                                 case z: CapwapTunnelZone =>
-                                    self ! DeleteTunnelCapwap(p, Some(z))
+                                    selfPostPortCommand(DeleteTunnelCapwap(p, Some(z)))
                             }
                     }
                 }
@@ -991,11 +990,14 @@ class DatapathController() extends Actor with ActorLogging {
             VirtualToPhysicalMapper.getRef() ! LocalPortActive(vifId, active)
         }
 
-        if (active)
+        if (active) {
             localToVifPorts.put(port.getPortNo.shortValue, vifId)
-        else
+            log.debug("Port {} became active", port.getPortNo.shortValue())
+        }
+        else {
             localToVifPorts.remove(port.getPortNo.shortValue)
-
+            log.debug("Port {} became inactive", port.getPortNo.shortValue())
+        }
         port match {
             case netdev: NetDevPort =>
                 val clientPortFuture = VirtualTopologyActor.getRef() ?
@@ -1025,6 +1027,7 @@ class DatapathController() extends Actor with ActorLogging {
                                     List(FlowActions.output(port.getPortNo.shortValue)),
                                     tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
                                     expiration = 0)
+                            log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
                         }
                         tellVtpm()
                     case _ =>
@@ -1226,14 +1229,19 @@ class DatapathController() extends Actor with ActorLogging {
         log.debug("Port operation reply: {}", opReply)
 
         pendingUpdateCount -= 1
+        log.debug("Pending count for handlePortOperationReply {}", pendingUpdateCount)
 
         def _handleTunnelCreate(port: Port[_,_],
                                 hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
             peerPorts.get(hConf.getId) match {
                 case Some(tunnels) =>
                     tunnels.put(zone, port.getName)
+                    log.debug("handleTunnelCreate - added zone {} port {} to" +
+                        "tunnels map", zone, port.getName)
                 case None =>
                     peerPorts.put(hConf.getId, mutable.Map(zone -> port.getName))
+                    log.debug("handleTunnelCreate - added peer port {}", hConf.getId)
+
             }
             // trigger invalidation
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -1325,6 +1333,8 @@ class DatapathController() extends Actor with ActorLogging {
         val ports: Map[UUID, String] = host.ports
         if (pendingUpdateCount != 0) {
             system.scheduler.scheduleOnce(100 millis, self, LocalPortsReply(ports))
+            log.debug("pendingUpdateCount is not 0, no update will be performed now," +
+                "next update in 100 millis")
             return
         }
 
