@@ -117,7 +117,7 @@ class Coordinator(val origMatch: WildcardMatch,
                                        connectionCache)
     pktContext.setMatch(origMatch.clone)
 
-    private def dropFlow(temporary: Boolean) {
+    private def dropFlow(temporary: Boolean, pktContext: PacketContext = null) {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         cookie match {
@@ -128,7 +128,9 @@ class Coordinator(val origMatch: WildcardMatch,
                         new WildcardFlow()
                             .setHardExpirationMillis(hardExp)
                             .setMatch(origMatch),
-                        cookie, null, null, null, null))
+                            cookie, null, null,
+                            if (temporary) null else pktContext.getFlowTags(),
+                            null))
             case None => // Internally-generated packet. Do nothing.
         }
     }
@@ -259,13 +261,14 @@ class Coordinator(val origMatch: WildcardMatch,
                         }
 
                     case _: DropAction =>
+                        pktContext.freeze()
                         log.debug("Device returned DropAction for {}",
                             origMatch)
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
-                                dropFlow(false)
-                                // TODO(pino): do we need the tags+callbacks?
+                                dropFlow(false, pktContext)
+                                // TODO(pino): do we need the callbacks?
                         }
 
                     case _: NotIPv4Action =>
@@ -352,7 +355,8 @@ class Coordinator(val origMatch: WildcardMatch,
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
                                result.action == RuleAction.REJECT) {
-                        dropFlow(false)
+                        pktContext.freeze()
+                        dropFlow(false, pktContext)
                     } else {
                         log.error("Port filter {} returned {}, not ACCEPT, " +
                                   "DROP, or REJECT.", filterID, result.action)
