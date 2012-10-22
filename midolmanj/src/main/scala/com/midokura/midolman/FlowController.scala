@@ -137,8 +137,7 @@ class FlowController extends Actor with ActorLogging {
             freePendedPackets(cookieOpt)
 
         case InvalidateFlowsByTag(tag) =>
-            val flowsOption = tagToFlows.get(tag)
-            flowsOption match {
+            tagToFlows.remove(tag) match {
                 case None =>
                     log.debug("There are no flows to invalidate for tag {}",
                         tag)
