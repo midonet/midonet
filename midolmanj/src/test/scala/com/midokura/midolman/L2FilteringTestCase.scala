@@ -170,6 +170,22 @@ class L2FilteringTestCase extends MidolmanTestCase with
         eth
     }
 
+    private def udpBetweenPorts(portIndexA: Int, portIndexB: Int): Ethernet = {
+        val udp = new UDP()
+        udp.setSourcePort((12000 + portIndexA).toShort)
+        udp.setDestinationPort((12000 + portIndexB).toShort)
+        udp.setPayload(new Data().setData("UDP payload".getBytes))
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(vmMacs(portIndexA)).
+            setDestinationMACAddress(vmMacs(portIndexB)).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA).addressAsInt).
+            setDestinationAddress(vmIps(portIndexB).addressAsInt).
+            setProtocol(UDP.PROTOCOL_NUMBER).
+            setPayload(udp))
+        eth
+    }
+
     private def lldpBetweenPorts(portIndexA: Int, portIndexB: Int): Ethernet = {
         val chassis = new LLDPTLV().setType(0x1.toByte).setLength(7.toShort).
             setValue("chassis".getBytes)
@@ -208,10 +224,12 @@ class L2FilteringTestCase extends MidolmanTestCase with
     def test() {
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
+        // populate the mac learning table
         (vmPortNames, vmMacs, vmIps).zipped foreach {
             (name, mac, ip) => arpAndCheckReply(name, mac, ip, routerIp, routerMac)
         }
 
+        // send packets between exterior ports in all possible combinations
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
             expectPacketAllowed(pair.head, pair.last, icmpBetweenPorts)
             requestOfType[WildcardFlowAdded](flowEventsProbe)
@@ -223,10 +241,15 @@ class L2FilteringTestCase extends MidolmanTestCase with
         log.info("creating chain")
         val brInChain = newInboundChainOnBridge("brInFilter", bridge)
         log.info("adding first rule: drop by ip from port0 to port3")
-        val cond0 = new Condition()
-        cond0.nwSrcIp = vmIps(0)
-        cond0.nwDstIp = vmIps(3)
-        val rule0 = newLiteralRuleOnChain(brInChain, 1, cond0,
+        val cond1 = new Condition()
+        cond1.matchReturnFlow = true
+        val rule1 = newLiteralRuleOnChain(brInChain, 1, cond1,
+                                          RuleResult.Action.ACCEPT)
+
+        val cond2 = new Condition()
+        cond2.nwSrcIp = vmIps(0)
+        cond2.nwDstIp = vmIps(3)
+        val rule2 = newLiteralRuleOnChain(brInChain, 2, cond2,
                                           RuleResult.Action.DROP)
         clusterDataClient().bridgesUpdate(bridge)
 
@@ -240,23 +263,23 @@ class L2FilteringTestCase extends MidolmanTestCase with
         drainProbe(packetsEventsProbe)
         drainProbe(flowEventsProbe)
 
-        log.info("sending a packet that should be dropped by rule 1")
+        log.info("sending a packet that should be dropped by rule 2")
         expectPacketDropped(0, 3, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
-        log.info("sending a packet that should be allowed by rule 1")
+        log.info("sending a packet that should be allowed by rule 2")
         expectPacketAllowed(4, 1, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
-        log.info("sending a packet that should be allowed by rule 1")
+        log.info("sending a packet that should be allowed by rule 2")
         expectPacketAllowed(0, 3, lldpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         fishForRequestOfType[BridgeRequest](vtaProbe())
         fishForReplyOfType[SimBridge](vtaProbe())
 
         log.info("adding a second rule: drop by mac from port4 to port1")
-        val cond1 = new Condition()
-        cond1.dlSrc = vmMacs(4)
-        cond1.dlDst = vmMacs(1)
-        val rule1 = newLiteralRuleOnChain(brInChain, 2, cond1,
+        val cond3 = new Condition()
+        cond3.dlSrc = vmMacs(4)
+        cond3.dlDst = vmMacs(1)
+        val rule3 = newLiteralRuleOnChain(brInChain, 3, cond3,
                                           RuleResult.Action.DROP)
 
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
@@ -265,22 +288,22 @@ class L2FilteringTestCase extends MidolmanTestCase with
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
-        log.info("sending two packets that should be dropped by rule 2")
+        log.info("sending two packets that should be dropped by rule 3")
         expectPacketDropped(4, 1, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         expectPacketDropped(4, 1, lldpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
-        log.info("sending a packet that should be allowed by rules 1,2")
+        log.info("sending a packet that should be allowed by rules 2,3")
         expectPacketAllowed(4, 3, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
-        log.info("sending an lldp packet that should be allowed by rules 1,2")
+        log.info("sending an lldp packet that should be allowed by rules 2,3")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
 
         log.info("adding a third rule: drop if ether-type == LLDP")
-        val cond2 = new Condition()
-        cond2.dlType = LLDP.ETHERTYPE
-        val rule2 = newLiteralRuleOnChain(brInChain, 3, cond2,
+        val cond4 = new Condition()
+        cond4.dlType = LLDP.ETHERTYPE
+        val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
@@ -289,18 +312,34 @@ class L2FilteringTestCase extends MidolmanTestCase with
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
-        log.info("sending an lldp packet that should be dropped by rule 3")
+        log.info("sending an lldp packet that should be dropped by rule 4")
         expectPacketDropped(4, 3, lldpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        log.info("sending an icmp packet that should be allowed by rule 4")
         expectPacketAllowed(4, 3, icmpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
 
-        log.info("deleting rule 3")
-        clusterDataClient().rulesDelete(rule2.getId)
+        log.info("deleting rule 4")
+        clusterDataClient().rulesDelete(rule4.getId)
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
         log.info("sending an lldp packet that should be allowed by the " +
-                 "removal of rule 3")
+                 "removal of rule 4")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
+
+        // these should be dropped
+        expectPacketDropped(4, 1, udpBetweenPorts)
+        expectPacketDropped(0, 3, udpBetweenPorts)
+
+        // poke conntrack holes in the opposite direction
+        expectPacketAllowed(1, 4, udpBetweenPorts)
+        expectPacketAllowed(3, 0, udpBetweenPorts)
+
+        // verify that the return packets are now accepted.
+        //expectPacketAllowed(4, 1, udpBetweenPorts)
+        //expectPacketAllowed(0, 3, udpBetweenPorts)
     }
 }
