@@ -19,7 +19,7 @@ import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
 import com.midokura.midonet.cluster.data.Bridge
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import com.midokura.packets.IntIPv4
+import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 
@@ -82,17 +82,22 @@ with VirtualConfigurationBuilders {
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
         val port2OnHost1 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (3)
+        //port2OnHost1.getTunnelKey should be (3)
         val port3OnHost1 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (4)
+        //port3OnHost1.getTunnelKey should be (4)
         val portOnHost2 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (5)
+        //portOnHost2.getTunnelKey should be (5)
         val portOnHost3 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (6)
+        //portOnHost3.getTunnelKey should be (6)
 
+        val srcMAC = MAC.fromString("00:11:22:33:44:55")
         val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
-        val rule1 = newLiteralRuleOnChain(chain1, 0, null, 
-                RuleResult.Action.DROP)  //XXX
+        val condition = new Condition
+        condition.dlSrc = srcMAC
+        // TODO(jlm): How does chains processing work when RuleZkManager 
+        // doesn't accept pos 0 but chains processing starts at pos 0?
+        val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
+                RuleResult.Action.DROP)  
 
         materializePort(port1OnHost1, host1, "port1a")
         materializePort(port2OnHost1, host1, "port1b")
@@ -127,7 +132,8 @@ with VirtualConfigurationBuilders {
         val localPortNumber3 = dpController().underlyingActor
             .localPorts("port1c").getPortNo
         val wildcardFlow = new WildcardFlow()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
+            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
+                                         .setEthernetSource(srcMAC))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
         val pktBytes = "My packet".getBytes
