@@ -160,6 +160,8 @@ with VirtualConfigurationBuilders {
         // TODO: Why does the "should contain" syntax fail here?
         assert(flowActs.contains(FlowActions.output(tunnelId1)))
         assert(flowActs.contains(FlowActions.output(tunnelId2)))
+        // TODO(jlm): This shouldn't contain port2 because the chain should
+        // drop it.
         assert(flowActs.contains(FlowActions.output(localPortNumber2))) //XXX
         //assert(!flowActs.contains(FlowActions.output(localPortNumber2))) //XXX
         assert(flowActs.contains(FlowActions.output(localPortNumber3)))
