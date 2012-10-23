@@ -28,7 +28,7 @@ import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
@@ -362,7 +362,13 @@ object DatapathController extends Referenceable {
      */
     case class PortStatsRequest(portID: UUID)
 
-    class DummyChainPacketContext(outportID: UUID)
+    /**
+     * Dummy ChainPacketContext used in egress port set chains.
+     * All that is available is the Output Port ID (there's no information
+     * on the ingress port or connection tracking at the egress controller).
+     * @param outportID UUID for the output port
+     */
+    class EgressPortSetChainPacketContext(outportID: UUID)
             extends ChainPacketContext {
         def getInPortId() = null
         def getOutPortId() = outportID
@@ -764,7 +770,7 @@ class DatapathController() extends Actor with ActorLogging {
         if (flowActions == null)
             flowActions = List().toList
 
-        translateActions(flowActions, inPortUUID, dpTags) onComplete {
+        translateActions(flowActions, inPortUUID, dpTags, flow.getMatch) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
@@ -777,7 +783,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: UUID, dpTags: mutable.Set[Any]): Future[Seq[FlowAction[_]]] = {
+                         inPortUUID: UUID, dpTags: mutable.Set[Any],
+                         wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
         // check for VRN port or portSet
@@ -818,13 +825,29 @@ class DatapathController() extends Actor with ActorLogging {
                             // add tag for flow invalidation
                             dpTags += FlowTagger.invalidateBroadcastFlows(br.id,
                                        br.id)
+                            val localPortFutures = 
+                                (set.localPorts-inPortUUID).toSeq map {
+                                    portID => ask(VirtualTopologyActor.getRef(),
+                                                  PortRequest(portID, false))
+                                              .mapTo[client.Port[_]]
+                                }
+                            Future.sequence(localPortFutures) onComplete {
+                                case Right(localPorts) =>
+                                    applyOutboundFilters(localPorts,
+                                        portSet, wMatch,
+                                        { portIDs =>
                             translated.success(
                                 translateToDpPorts(
                                     actions, portSet,
-                                    portsForLocalPorts(
-                                        (set.localPorts-inPortUUID).toSeq),
+                                    portsForLocalPorts(portIDs),
                                     Some(br.tunnelKey),
                                     tunnelsForHosts(set.hosts.toSeq), dpTags))
+                                        })
+
+                                case _ => log.error("Error getting " +
+                                    "configurations of local ports of " +
+                                    "PortSet {}", portSet)
+                            }
                     }
                 }
 
@@ -1107,9 +1130,19 @@ class DatapathController() extends Actor with ActorLogging {
                                 // Take the outgoing filter for each port
                                 // and apply it, checking for Action.ACCEPT.
                                 case Right(localPorts) =>
-                                    applyOutboundFilters(port, localPorts,
-                                        wMatch.getTunnelID, action, portSet.id,
-                                        cookie, wMatch)
+                                    applyOutboundFilters(localPorts,
+                                        portSet.id, wMatch, 
+                                        { portIDs => 
+                                          val tags = mutable.Set[Any]()
+                                          addTaggedFlow(new WildcardMatch()
+                                                .setTunnelID(wMatch.getTunnelID)
+                                                .setInputPort(port),
+                                             translateToDpPorts(List(action),
+                                                portSet.id,
+                                                portsForLocalPorts(portIDs),
+                                                None, Nil, tags), 
+                                             tags, cookie) 
+                                        })
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
@@ -1153,10 +1186,10 @@ class DatapathController() extends Actor with ActorLogging {
 
     }
 
-    private def applyOutboundFilters[T <: FlowAction[T]](tunnelPort: Short,
-                    localPorts: Seq[client.Port[_]], tunnelKey: Long,
-                    action: T, portSetID: UUID,
-                    cookie: Option[Int], pktMatch: WildcardMatch) {
+    private def applyOutboundFilters(
+                    localPorts: Seq[client.Port[_]], 
+                    portSetID: UUID,
+                    pktMatch: WildcardMatch, thunk: Sequence[UUID] => Unit) {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
                 if (port.outFilterID == null)
@@ -1171,7 +1204,7 @@ class DatapathController() extends Actor with ActorLogging {
                 val egressPorts = (localPorts zip chains) filter { portchain =>
                     val port = portchain._1
                     val chain = portchain._2
-                    val fwdInfo = new DummyChainPacketContext(port.id)
+                    val fwdInfo = new EgressPortSetChainPacketContext(port.id)
 
                     // apply chain and check result is ACCEPT.
                     val result =
@@ -1184,16 +1217,11 @@ class DatapathController() extends Actor with ActorLogging {
                                   "ACCEPT, DROP, or REJECT", chain.id, result)
                     result == RuleResult.Action.ACCEPT
                 }
-                val tags = mutable.Set[Any]()
 
-                addTaggedFlow(new WildcardMatch().setTunnelID(tunnelKey)
-                                                 .setInputPort(tunnelPort),
-                    translateToDpPorts(List(action), portSetID,
-                        portsForLocalPorts(egressPorts map
-                                           {portchain => portchain._1.id}),
-                        None, Nil, tags), tags, cookie)
+                thunk(egressPorts map {portchain => portchain._1.id})
 
-            case _ => log.error("Error getting chains for PortSet {}", portSetID)
+            case _ => log.error("Error getting chains for PortSet {}",
+                                portSetID)
         }
     }
 
@@ -1203,7 +1231,8 @@ class DatapathController() extends Actor with ActorLogging {
             // Empty action list drops the packet. No need to send to DP.
             return
         }
-        translateActions(origActions, null, null) onComplete {
+        translateActions(origActions, null, null, 
+                         WildcardMatches.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
                 val packet = new Packet().

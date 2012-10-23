@@ -133,8 +133,8 @@ public class FlowManager {
             wildTable = new HashMap<WildcardMatch, WildcardFlow>();
             wildcardTables.put(pattern, wildTable);
         }
-        if (!wildTable.containsKey(wildFlow.match)) {
-            wildTable.put(wildFlow.match, wildFlow);
+        if (!wildTable.containsKey(wildFlow.wcmatch)) {
+            wildTable.put(wildFlow.wcmatch, wildFlow);
             wildFlowToDpFlows.put(wildFlow, new HashSet<FlowMatch>());
             wildFlow.setCreationTimeMillis(System.currentTimeMillis());
             wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
@@ -179,8 +179,8 @@ public class FlowManager {
         dpFlowToWildFlow.put(flowMatch, wildFlow);
         wildFlowToDpFlows.get(wildFlow).add(flowMatch);
 
-        log.debug("Added flow with match {} that matches wildcard flow {}", flowMatch,
-                  wildFlow);
+        log.debug("Added flow with match {} that matches wildcard flow {}",
+                  flowMatch, wildFlow);
         return true;
     }
 
@@ -195,17 +195,18 @@ public class FlowManager {
     public void remove(WildcardFlow wildFlow) {
         log.debug("remove(WildcardFlow wildFlow) - Removing flow {}", wildFlow.getMatch());
         Set<FlowMatch> removedDpFlows = wildFlowToDpFlows.remove(wildFlow);
-        if (removedDpFlows != null){
+        if (removedDpFlows != null) {
             for (FlowMatch flowMatch : removedDpFlows) {
                 dpFlowToWildFlow.remove(flowMatch);
                 flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch));
             }
             // Get the WildcardFlowTable for this wildflow's pattern and remove
             // the wild flow.
-            Map<WildcardMatch, WildcardFlow> wcMap = wildcardTables.get(wildFlow.getMatch().getUsedFields());
-            if(wcMap != null){
-                wcMap.remove(wildFlow.match);
-                if(wcMap.size() == 0)
+            Map<WildcardMatch, WildcardFlow> wcMap =
+                wildcardTables.get(wildFlow.getMatch().getUsedFields());
+            if (wcMap != null) {
+                wcMap.remove(wildFlow.wcmatch);
+                if (wcMap.size() == 0)
                     wildcardTables.remove(wildFlow.getMatch().getUsedFields());
             }
         }
