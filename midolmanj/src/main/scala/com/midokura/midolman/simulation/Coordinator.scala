@@ -256,12 +256,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             case None => // Do nothing.
                             case Some(_) =>
                                 pktContext.getFlowRemovedCallbacks() foreach {
-                                    cb =>
-                                        //log.info("SKIPPING flow removal callback" +
-                                        log.info("RUNNING flow removal callback" +
-                                                 " for consumed packet")
-                                        cb.call()
-                                        log.info("FLOW REMOVAL CB returned")
+                                    cb => cb.call()
                                 }
                                 flowController.tell(DiscardPacket(cookie))
                         }
