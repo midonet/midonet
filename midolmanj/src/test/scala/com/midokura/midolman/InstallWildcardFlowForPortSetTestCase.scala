@@ -5,21 +5,23 @@ package com.midokura.midolman
 
 
 import scala.collection.JavaConversions._
+import akka.testkit.TestProbe
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
-import com.midokura.midolman.FlowController.{WildcardFlowRemoved, RemoveWildcardFlow, InvalidateFlowsByTag, AddWildcardFlow}
-import datapath.FlowActionOutputToVrnPortSet
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+        InvalidateFlowsByTag, RemoveWildcardFlow, WildcardFlowRemoved}
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
+import com.midokura.midolman.rules.{Condition, RuleResult}
+import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
+import com.midokura.midonet.cluster.data.Bridge
+import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.packets.IntIPv4
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.packets.IntIPv4
-import topology.{FlowTagger, LocalPortActive}
-import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midonet.cluster.data.Bridge
-import akka.testkit.TestProbe
 
 
 @RunWith(classOf[JUnitRunner])
@@ -88,8 +90,9 @@ with VirtualConfigurationBuilders {
         val portOnHost3 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (6)
 
-        //val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
-        //val rule1 = newLiteralRuleOnChain(chain1, 0, null, null)  //XXX
+        val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
+        val rule1 = newLiteralRuleOnChain(chain1, 0, null, 
+                RuleResult.Action.DROP)  //XXX
 
         materializePort(port1OnHost1, host1, "port1a")
         materializePort(port2OnHost1, host1, "port1b")

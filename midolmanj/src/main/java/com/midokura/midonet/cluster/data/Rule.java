@@ -34,7 +34,7 @@ public abstract class Rule
 
     public Self setCondition(Condition cond) {
         if (cond == null) {
-           throw new IllegalArgumentException("Condition cannot null");
+           throw new IllegalArgumentException("Condition cannot be null");
         }
         getData().condition = cond;
         return self();
