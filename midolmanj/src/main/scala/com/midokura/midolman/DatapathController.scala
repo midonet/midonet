@@ -768,7 +768,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         var flowActions = flow.getActions
         if (flowActions == null)
-            flowActions = List().toList
+            flowActions = Nil
 
         translateActions(flowActions, inPortUUID, dpTags, flow.getMatch) onComplete {
             case Right(actions) =>
@@ -857,7 +857,7 @@ class DatapathController() extends Actor with ActorLogging {
                     case Some(localPort) =>
                         translated.success(
                             translateToDpPorts(actions, port, List(localPort),
-                                None, List(), dpTags))
+                                None, Nil, dpTags))
                     case None =>
                         ask(VirtualTopologyActor.getRef(), PortRequest(port,
                             update = false)).mapTo[client.Port[_]] map {
@@ -865,7 +865,7 @@ class DatapathController() extends Actor with ActorLogging {
                                 case p: ExteriorPort[_] =>
                                     translated.success(
                                         translateToDpPorts(
-                                            actions, port, List(),
+                                            actions, port, Nil,
                                             Some(p.tunnelKey),
                                             tunnelsForHosts(List(p.hostID)), dpTags))
                             }
