@@ -115,6 +115,11 @@ public class BgpTest {
                 .create();
         log.debug("Created BGP in materialized router port: " + bgp1.toString());
 
+        bgp1.addAdRoute()
+                .nwPrefix("1.0.0.0")
+                .prefixLength(24)
+                .create();
+
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -177,7 +182,7 @@ public class BgpTest {
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
 
-        sleepBecause("wait few seconds to see if bgpd catches the route", 2);
+        sleepBecause("wait few seconds to see if bgpd catches the route", 30);
 
         tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
 

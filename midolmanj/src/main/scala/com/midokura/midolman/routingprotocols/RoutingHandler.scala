@@ -51,14 +51,9 @@ import com.midokura.util.process.ProcessHelper
  * physical hosts, therefore MidoNet must anyway be able to use different
  * RoutingHandlers for different virtual ports of the same router. *
  */
-class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client: Client)
+class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
+                     val client: Client, val dataClient: DataClient)
     extends UntypedActorWithStash with ActorLogging {
-
-
-    @Inject
-    val dataClient: DataClient = null
-
-    //val client: Client = null
 
     private final val BGP_INTERNAL_PORT_NAME: String =
         "midobgp%d".format(bgpIdx)
@@ -115,6 +110,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             log.debug("client is null")
         } else {
             log.debug("client is not null")
+        }
+
+        if (dataClient == null) {
+            log.debug("dataClient is null")
+        } else {
+            log.debug("dataClient is not null")
         }
 
         // Watch the BGP session information for this port.
@@ -408,9 +409,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                         }
 
                         val route = new Route()
+                        route.setRouterId(rport.deviceID)
                         route.setDstNetworkAddr(destination.toUnicastString)
                         route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
+                        route.setNextHop(com.midokura.midolman.layer3.Route.NextHop.PORT)
+                        route.setNextHopPort(rport.id)
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
                     case Stopping =>
@@ -427,9 +431,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                         stash()
                     case Started =>
                         val route = new Route()
+                        route.setRouterId(rport.deviceID)
                         route.setDstNetworkAddr(destination.toUnicastString)
                         route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
+                        route.setNextHop(com.midokura.midolman.layer3.Route.NextHop.PORT)
+                        route.setNextHopPort(rport.id)
                         peerRoutes.get(route) match {
                             case Some(routeId) => dataClient.routesDelete(routeId)
                             case None =>
@@ -458,7 +465,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         socketAddress = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
-            socketAddress, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
+            socketAddress, handler, rport.portAddr.toHostAddress, BGP_INTERNAL_PORT_NAME)
         zebra.start()
 
         // Create the interface bgpd will run on.

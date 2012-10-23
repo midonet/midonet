@@ -5,8 +5,11 @@
 package com.midokura.quagga
 
 import java.io.{DataInputStream, DataOutputStream}
+import org.slf4j.LoggerFactory
 
 object ZebraProtocol {
+
+    private final val log = LoggerFactory.getLogger(this.getClass)
 
     object RIBType extends Enumeration {
         type RIBType = Value
@@ -34,7 +37,7 @@ object ZebraProtocol {
     // Zebra protocol headers.
     final val ZebraHeaderSize     = 6
     final val ZebraHeaderMarker   = 255
-    final val ZebraHeaderVersion  = 1
+    final val ZebraHeaderVersion  = 2 // we only support version 2
     final val ZebraMaxPayloadSize = (1 << 16) - 1
 
     // Zebra message types.
@@ -60,7 +63,8 @@ object ZebraProtocol {
     final val ZebraRouterIdAdd:Short                = 20
     final val ZebraRouterIdDelete:Short             = 21
     final val ZebraRouterIdUpdate:Short             = 22
-    final val ZebraMessageMax:Short                 = 23
+    final val ZebraHello:Short                      = 23
+    final val ZebraMessageMax:Short                 = 24
 
     // Interface related constants.
     final val InterfaceNameSize  = 20
@@ -73,7 +77,7 @@ object ZebraProtocol {
     // Zebra message payload sizes.
     // InterfaceNameSize + MacAddrLength + Long + Int * 6 + Byte
     final val ZebraInterfaceAddSize =
-        (InterfaceNameSize + MacAddrLength + 8 + 4 * 6 + 1).toByte
+        (InterfaceNameSize + 4 + 1 + 8 + (5*4) + MacAddrLength).toByte
     // Ipv4MaxBytelen + Byte * 2
     final val ZebraRouterIdUpdateSize = (Ipv4MaxBytelen + 1 * 2).toByte
     // Ipv4MaxBytelen + Int * 2 + Byte * 3
@@ -133,8 +137,55 @@ object ZebraProtocol {
     final val ZebraRouteHsls    = 10
     final val ZebraRouteMax     = 11
 
+    // Zebra message string table.
+    final val ZebraMessageTable = Map(
+        ZebraInterfaceAdd -> "ZebraInterfaceAdd",
+        ZebraInterfaceDelete -> "ZebraInterfaceDelete",
+        ZebraInterfaceAddressAdd -> "ZebraInterfaceAddressAdd",
+        ZebraInterfaceAddressDelete -> "ZebraInterfaceAddressDelete",
+        ZebraInterfaceUp -> "ZebraInterfaceUp",
+        ZebraInterfaceDown -> "ZebraInterfaceDown",
+        ZebraIpv4RouteAdd -> "ZebraIpv4RouteAdd",
+        ZebraIpv4RouteDelete -> "ZebraIpv4RouteDelete",
+        ZebraIpv6RouteAdd -> "ZebraIpv6RouteAdd",
+        ZebraIpv6RouteDelete -> "ZebraIpv6RouteDelete",
+        ZebraRedistributeAdd -> "ZebraRedistributeAdd",
+        ZebraRedistributeDelete -> "ZebraRedistributeDelete",
+        ZebraRedistributeDefaultAdd -> "ZebraRedistributeDefaultAdd",
+        ZebraRedistributeDefaultDelete -> "ZebraRedistributeDefaultDelete",
+        ZebraIpv4NextHopLookup -> "ZebraIpv4NextHopLookup",
+        ZebraIpv6NextHopLookup -> "ZebraIpv6NextHopLookup",
+        ZebraIpv4ImportLookup -> "ZebraIpv4ImportLookup",
+        ZebraIpv6ImportLookup -> "ZebraIpv6ImportLookup",
+        ZebraInterfaceRename -> "ZebraInterfaceRename",
+        ZebraRouterIdAdd -> "ZebraRouterIdAdd",
+        ZebraRouterIdDelete -> "ZebraRouterIdDelete",
+        ZebraRouterIdUpdate -> "ZebraRouterIdUpdate",
+        ZebraHello -> "ZebraHello")
+
+    // Zebra route type string table.
+    final val ZebraRouteTypeTable = Map(
+        ZebraRouteSystem -> "System",
+        ZebraRouteKernel -> "Kernel",
+        ZebraRouteConnect -> "Connect",
+        ZebraRouteStatic -> "Static",
+        ZebraRouteRip -> "Rip",
+        ZebraRouteRipng -> "Ripng",
+        ZebraRouteOspf -> "Ospf",
+        ZebraRouteOspf6 -> "Ospf6",
+        ZebraRouteIsis -> "Isis",
+        ZebraRouteBgp -> "Bgp",
+        ZebraRouteHsls -> "Hsls")
+
+    /*
+     * look at zserv.c from quagga (zserv_create_header)
+     */
     final def sendHeader(out: DataOutputStream, message: Short, length: Int) {
-        assert(ZebraHeaderSize + length <= ZebraMaxPayloadSize)
+        log.debug("length: {}/{}", ZebraHeaderSize + length, ZebraMaxPayloadSize)
+        log.debug("headerMarker: {}", ZebraHeaderMarker)
+        log.debug("version: {}", ZebraHeaderVersion)
+        log.debug("message: {}/{}", message, ZebraMessageMax)
+        log.debug("message: {}", ZebraMessageTable(message))
 
         out.writeShort(ZebraHeaderSize + length)
         out.writeByte(ZebraHeaderMarker)
@@ -145,10 +196,17 @@ object ZebraProtocol {
     final def recvHeader(in: DataInputStream): (Short, Int) = {
         // this is blocking
         val length = in.readUnsignedShort
-        assert(length <= ZebraMaxPayloadSize)
-        val headerMarker = in.readByte
+        log.debug("length: {}/{}", length, ZebraMaxPayloadSize)
+
+        val headerMarker = in.readUnsignedByte
+        log.debug("headerMarker: {}/{}", headerMarker, ZebraHeaderMarker)
+
         val version = in.readByte
+        log.debug("version: {}/{}", version, ZebraHeaderVersion)
+
         val message = in.readUnsignedShort.toShort
+        log.debug("message: {}/{}", message, ZebraMessageMax)
+        log.debug("message: {}", ZebraMessageTable(message))
 
         (message, length - ZebraHeaderSize)
     }
