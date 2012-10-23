@@ -33,8 +33,8 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "inputPort")
         clusterDataClient().hostsAddVrnPortMapping(hostId, outputPort.getId, "outputPort")
 
+        drainProbe(flowProbe())
         initializeDatapath() should not be (null)
-
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
         val inputPortNo = dpController().underlyingActor
