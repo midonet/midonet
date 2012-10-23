@@ -13,7 +13,7 @@ import scala.compat.Platform
 import java.util.UUID
 
 import akka.dispatch.{Promise, Await}
-import akka.testkit.TestProbe
+import akka.testkit.{TestKit, TestProbe}
 import akka.util.duration._
 import akka.util.Timeout
 
@@ -329,13 +329,20 @@ class L2FilteringTestCase extends MidolmanTestCase with
         log.info("sending an lldp packet that should be allowed by the " +
                  "removal of rule 4")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
+        requestOfType[WildcardFlowAdded](flowEventsProbe)
 
-        /*
         log.info("sending two packets that should be dropped with the same " +
                  "match as the return packets that will be sent later on")
         expectPacketDropped(4, 1, udpBetweenPorts)
+        requestOfType[WildcardFlowAdded](flowEventsProbe)
         expectPacketDropped(0, 3, udpBetweenPorts)
-        */
+        requestOfType[WildcardFlowAdded](flowEventsProbe)
+
+        log.info("waiting for the return drop flows to timeout")
+        flowEventsProbe.within (15 seconds) {
+            requestOfType[WildcardFlowRemoved](flowEventsProbe)
+            requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        }
 
         log.info("sending two packets that should install conntrack entries")
         expectPacketAllowed(1, 4, udpBetweenPorts)
