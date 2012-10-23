@@ -2,7 +2,7 @@
 
 package com.midokura.midolman.simulation
 
-import collection.mutable
+import collection.{Set => ROSet, mutable}
 import collection.JavaConversions._
 import compat.Platform
 import java.util.concurrent.TimeoutException
@@ -108,6 +108,7 @@ class Coordinator(val origMatch: WildcardMatch,
     private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
     private val TEMPORARY_DROP_MILLIS = 5 * 1000
     private val IDLE_EXPIRATION_MILLIS = 60 * 1000
+    private val RETURN_FLOW_EXPIRATION_MILLIS = 60 * 1000
     private val MAX_DEVICES_TRAVERSED = 12
 
     // Used to detect loops: devices simulated (with duplicates).
@@ -117,20 +118,20 @@ class Coordinator(val origMatch: WildcardMatch,
                                        connectionCache)
     pktContext.setMatch(origMatch.clone)
 
-    private def dropFlow(temporary: Boolean, pktContext: PacketContext = null) {
+    private def dropFlow(temporary: Boolean, tags: ROSet[Any] = null) {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         cookie match {
             case Some(_) =>
                 val hardExp = if (temporary) TEMPORARY_DROP_MILLIS else 0
+                val wflow = new WildcardFlow().setMatch(origMatch)
+                if (temporary)
+                    wflow.setHardExpirationMillis(TEMPORARY_DROP_MILLIS)
+                else
+                    wflow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
+
                 datapathController.tell(
-                    AddWildcardFlow(
-                        new WildcardFlow()
-                            .setHardExpirationMillis(hardExp)
-                            .setMatch(origMatch),
-                            cookie, null, null,
-                            if (temporary) null else pktContext.getFlowTags(),
-                            null))
+                    AddWildcardFlow(wflow, cookie, null, null, tags, null))
             case None => // Internally-generated packet. Do nothing.
         }
     }
@@ -267,7 +268,20 @@ class Coordinator(val origMatch: WildcardMatch,
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
-                                dropFlow(false, pktContext)
+                                var temporary = false
+                                // Flows which (if they were return flows in a
+                                // conntracked connection) could be symmetrical
+                                // to their forward flow (i.e. UDP), will be
+                                // temporary.
+                                // The reason is that changes in the conntrack
+                                // table could render them invalid, and we
+                                // don't get notifications for new conntrack
+                                // entries
+                                if (pktContext.isConnTracked() &&
+                                    pktContext.forwardAndReturnAreSymmetric) {
+                                    temporary = true
+                                }
+                                dropFlow(temporary, pktContext.getFlowTags())
                                 // TODO(pino): do we need the callbacks?
                         }
 
@@ -356,7 +370,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     } else if (result.action == RuleAction.DROP ||
                                result.action == RuleAction.REJECT) {
                         pktContext.freeze()
-                        dropFlow(false, pktContext)
+                        dropFlow(false, pktContext.getFlowTags())
                     } else {
                         log.error("Port filter {} returned {}, not ACCEPT, " +
                                   "DROP, or REJECT.", filterID, result.action)
@@ -438,7 +452,10 @@ class Coordinator(val origMatch: WildcardMatch,
                 val wFlow = new WildcardFlow()
                     .setMatch(origMatch)
                     .setActions(actions.toList)
-                    .setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
+                if (pktContext.isConnTracked() && !pktContext.isForwardFlow())
+                    wFlow.setHardExpirationMillis(RETURN_FLOW_EXPIRATION_MILLIS)
+                else
+                    wFlow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
                 datapathController.tell(
                     AddWildcardFlow(
                         wFlow, cookie, origEthernetPkt.serialize(),
