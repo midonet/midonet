@@ -96,7 +96,7 @@ with VirtualConfigurationBuilders {
         val condition = new Condition
         condition.dlSrc = srcMAC
         val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
-                RuleResult.Action.DROP)  
+                RuleResult.Action.DROP)
 
         materializePort(port1OnHost1, host1, "port1a")
         materializePort(port2OnHost1, host1, "port1b")
