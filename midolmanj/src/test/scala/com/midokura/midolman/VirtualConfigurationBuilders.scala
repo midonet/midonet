@@ -54,16 +54,12 @@ trait VirtualConfigurationBuilders {
         newOutboundChainOnPort(name, port, UUID.randomUUID)
 
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action, id: UUID): LiteralRule = {
-        val rule = new LiteralRule(condition, action).setId(id)
-                        .setChainId(chain.getId).setPosition(pos)
-        clusterDataClient().rulesCreate(rule)
-        rule
+                              action: Action): LiteralRule = {
+        val rule = new LiteralRule(condition, action).
+                        setChainId(chain.getId).setPosition(pos)
+        val id = clusterDataClient().rulesCreate(rule)
+        clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
     }
-
-    def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action): LiteralRule =
-        newLiteralRuleOnChain(chain, pos, condition, action, UUID.randomUUID)
 
     def greTunnelZone(name: String): GreTunnelZone = {
         val tunnelZone = new GreTunnelZone().setName("default")
