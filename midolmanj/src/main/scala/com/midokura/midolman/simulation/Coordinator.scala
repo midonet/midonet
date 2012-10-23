@@ -118,12 +118,12 @@ class Coordinator(val origMatch: WildcardMatch,
                                        connectionCache)
     pktContext.setMatch(origMatch.clone)
 
-    private def dropFlow(temporary: Boolean, tags: ROSet[Any] = null) {
+    private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         cookie match {
             case Some(_) =>
-                val hardExp = if (temporary) TEMPORARY_DROP_MILLIS else 0
+                pktContext.freeze()
                 val wflow = new WildcardFlow().setMatch(origMatch)
                 if (temporary)
                     wflow.setHardExpirationMillis(TEMPORARY_DROP_MILLIS)
@@ -131,7 +131,11 @@ class Coordinator(val origMatch: WildcardMatch,
                     wflow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
 
                 datapathController.tell(
-                    AddWildcardFlow(wflow, cookie, null, null, tags, null))
+                    AddWildcardFlow(wflow, cookie, null,
+                        pktContext.getFlowRemovedCallbacks(),
+                        if (withTags) pktContext.getFlowTags() else null,
+                        if (withTags) pktContext.getTagRemovedCallbacks() else null))
+
             case None => // Internally-generated packet. Do nothing.
         }
     }
@@ -175,7 +179,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             "port NOR ingressed a virtual device's exterior " +
                             "port. Match: %s; Packet: %s".format(
                                 origMatch.toString, origEthernetPkt.toString))
-                        dropFlow(true)
+                        dropFlow(temporary = true)
 
                     case id: UUID =>
                         packetIngressesPort(id, true)
@@ -193,7 +197,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             "port AND ingressed a virtual device's exterior " +
                             "port. Match: %s; Packet: %s".format(
                                 origMatch.toString, origEthernetPkt.toString))
-                        dropFlow(true)
+                        dropFlow(temporary = true)
                 }
         }
     }
@@ -210,15 +214,15 @@ class Coordinator(val origMatch: WildcardMatch,
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
                           "bridge or router!", port, port.deviceID)
-                dropFlow(true)
+                dropFlow(temporary = true)
                 return
         }
         deviceFuture.onComplete {
-            case Left(err) => dropFlow(true)
+            case Left(err) => dropFlow(temporary = true)
             case Right(deviceReply) =>
                 if (!deviceReply.isInstanceOf[Device]) {
                     log.error("VirtualTopologyManager didn't return a device!")
-                    dropFlow(true)
+                    dropFlow(temporary = true)
                 } else {
                     pktContext.setInputPort(port.id)
                               .setIngressFE(port.deviceID)
@@ -236,7 +240,7 @@ class Coordinator(val origMatch: WildcardMatch,
         actionF.onComplete {
             case Left(err) =>
                 log.error("Error instead of Action - {}", err)
-                dropFlow(true)
+                dropFlow(temporary = true)
             case Right(action) =>
                 log.info("Received action: {}", action)
                 action match {
@@ -247,9 +251,13 @@ class Coordinator(val origMatch: WildcardMatch,
                         packetEgressesPort(outPortID)
 
                     case _: ConsumedAction =>
+                        pktContext.freeze()
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
+                                pktContext.getFlowRemovedCallbacks() foreach {
+                                    cb => cb.call()
+                                }
                                 flowController.tell(DiscardPacket(cookie))
                         }
 
@@ -258,7 +266,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             case None => // Do nothing.
                             case Some(_) =>
                                 // Drop the flow temporarily
-                                dropFlow(true)
+                                dropFlow(temporary = true)
                         }
 
                     case _: DropAction =>
@@ -281,8 +289,7 @@ class Coordinator(val origMatch: WildcardMatch,
                                     pktContext.forwardAndReturnAreSymmetric) {
                                     temporary = true
                                 }
-                                dropFlow(temporary, pktContext.getFlowTags())
-                                // TODO(pino): do we need the callbacks?
+                                dropFlow(temporary, withTags = true)
                         }
 
                     case _: NotIPv4Action =>
@@ -313,7 +320,7 @@ class Coordinator(val origMatch: WildcardMatch,
 
                     case _ =>
                         log.error("Device returned unexpected action!")
-                        dropFlow(true)
+                        dropFlow(temporary = true)
                 } // end action match
         } // end onComplete
     }
@@ -321,14 +328,14 @@ class Coordinator(val origMatch: WildcardMatch,
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean) {
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            dropFlow(true)
+            dropFlow(temporary = true)
             return
         }
 
         // Get the RCU port object and start simulation.
         expiringAsk(virtualTopologyManager, PortRequest(portID, false),
                     expiry) onComplete {
-            case Left(err) => dropFlow(true)
+            case Left(err) => dropFlow(temporary = true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
                     if (getPortGroups &&
@@ -343,7 +350,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
-                    dropFlow(true)
+                    dropFlow(temporary = true)
             }
         }
     }
@@ -354,7 +361,7 @@ class Coordinator(val origMatch: WildcardMatch,
             thunk(port)
         else expiringAsk(virtualTopologyManager, ChainRequest(filterID, false),
                          expiry) onComplete {
-            case Left(err) => dropFlow(true)
+            case Left(err) => dropFlow(temporary = true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
                     pktContext.setInputPort(null).setOutputPort(null)
@@ -369,16 +376,15 @@ class Coordinator(val origMatch: WildcardMatch,
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
                                result.action == RuleAction.REJECT) {
-                        pktContext.freeze()
-                        dropFlow(false, pktContext.getFlowTags())
+                        dropFlow(temporary = false, withTags = true)
                     } else {
                         log.error("Port filter {} returned {}, not ACCEPT, " +
                                   "DROP, or REJECT.", filterID, result.action)
-                        dropFlow(true)
+                        dropFlow(temporary = true)
                     }
                 case _ =>
                     log.error("VirtualTopologyActor didn't return a chain!")
-                    dropFlow(true)
+                    dropFlow(temporary = true)
             }
         }
     }
@@ -391,7 +397,7 @@ class Coordinator(val origMatch: WildcardMatch,
     private def packetEgressesPort(portID: UUID) {
         expiringAsk(virtualTopologyManager, PortRequest(portID, false),
                     expiry) onComplete {
-            case Left(err) => dropFlow(true)
+            case Left(err) => dropFlow(temporary = true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
                     // add tag for flow invalidation
@@ -405,11 +411,11 @@ class Coordinator(val origMatch: WildcardMatch,
                             log.error(
                                 "Port {} neither interior nor exterior port",
                                 port)
-                            dropFlow(true)
+                            dropFlow(temporary = true)
                     })
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
-                    dropFlow(true)
+                    dropFlow(temporary = true)
             }
         }
     }
