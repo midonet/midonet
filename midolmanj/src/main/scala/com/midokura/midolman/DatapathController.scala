@@ -11,6 +11,7 @@ import akka.util.duration._
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
+import java.lang.{Short => JShort}
 import java.util.{HashSet, UUID}
 
 import com.google.inject.Inject
@@ -436,7 +437,7 @@ class DatapathController() extends Actor with ActorLogging {
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
-    val localTunnelPorts: mutable.Set[Short] = mutable.Set()
+    val localTunnelPorts: mutable.Set[JShort] = mutable.Set()
     // Map of vport ID to local interface name - according to ZK.
     val vifPorts: mutable.Map[UUID, String] = mutable.Map()
 
@@ -1096,7 +1097,8 @@ class DatapathController() extends Actor with ActorLogging {
                            cookie: Option[Int]) {
 
         wMatch.getInputPortNumber match {
-            case port: java.lang.Short =>
+            case port: JShort =>
+                log.debug("PacketIn on port #{}", port)
                 if (localToVifPorts.contains(port)) {
                     wMatch.setInputPortUUID(localToVifPorts(port))
                     SimulationController.getRef().tell(
@@ -1171,7 +1173,7 @@ class DatapathController() extends Actor with ActorLogging {
                         priority = 1000) // TODO(abel) use a constant here
                 }
 
-            case null =>
+            case _ =>
                 // Missing InputPortNumber. This should never happen.
                 log.error("SCREAM: got a PacketIn that has no inPort number.",
                     wMatch)
@@ -1266,12 +1268,14 @@ class DatapathController() extends Actor with ActorLogging {
 
             }
             // trigger invalidation
+            val tunnelPortNum: JShort = port.getPortNo.shortValue
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateDPPort(port.getPortNo.shortValue))
-            localTunnelPorts.add(port.getPortNo.shortValue)
+                FlowTagger.invalidateDPPort(tunnelPortNum))
+            localTunnelPorts.add(tunnelPortNum)
+            log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,
-                    Some(port.getPortNo.shortValue()),
+                    Some(tunnelPortNum),
                     TunnelChangeEventOperation.Established))
         }
 
@@ -1291,6 +1295,8 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
             }
             localTunnelPorts.remove(port.getPortNo.shortValue)
+            log.debug("Removing tunnel with port #{}", 
+                      port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
                     host.zones(zone), hConf,

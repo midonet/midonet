@@ -66,8 +66,6 @@ public class FlowMatch {
 
     @Override
     public String toString() {
-        return "FlowMatch{" +
-            "keys=" + keys +
-            '}';
+        return "FlowMatch{" + "keys=" + keys + '}';
     }
 }

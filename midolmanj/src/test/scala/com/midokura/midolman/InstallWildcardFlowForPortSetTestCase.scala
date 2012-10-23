@@ -9,8 +9,9 @@ import akka.testkit.TestProbe
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
-import com.midokura.midolman.DatapathController.TunnelChangeEvent
+import com.midokura.midolman.DatapathController.{PacketIn, TunnelChangeEvent}
 import com.midokura.midolman.FlowController.{AddWildcardFlow,
         InvalidateFlowsByTag, RemoveWildcardFlow, WildcardFlowRemoved}
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
@@ -20,7 +21,9 @@ import com.midokura.midonet.cluster.data.Bridge
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import com.midokura.packets.{IntIPv4, MAC}
+import com.midokura.sdn.dp.FlowMatch
 import com.midokura.sdn.dp.flows._
+import com.midokura.sdn.dp.flows.FlowKeys.ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
@@ -38,6 +41,9 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
     var tunnelEventsProbe: TestProbe = null
     var portEventsProbe: TestProbe = null
     var flowRemovedProbe: TestProbe = null
+
+    private val log = LoggerFactory.getLogger(
+        classOf[InstallWildcardFlowForPortSetTestCase])
 
     override def beforeTest() {
         tunnelZone = greTunnelZone("default")
@@ -165,6 +171,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
     }
 
     def testInstallFlowForPortSetFromTunnel() {
+        log.debug("Starting testInstallFlowForPortSetFromTunnel")
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -178,6 +185,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         //portOnHost3.getTunnelKey should be (6)
 
         val srcMAC = MAC.fromString("00:11:22:33:44:55")
+        val dstMAC = MAC.fromString("ff:ff:ff:ff:ff:ff")
         val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         val condition = new Condition
         condition.dlSrc = srcMAC
@@ -216,20 +224,20 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
             .localPorts("port1b").getPortNo
         val localPortNumber3 = dpController().underlyingActor
             .localPorts("port1c").getPortNo
-        val wildcardFlow = new WildcardFlow()
-            .setMatch(new WildcardMatch().setInputPortNumber(tunnelId1)
-                                         .setEthernetSource(srcMAC))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val dpMatch = new FlowMatch().addKey(ethernet(srcMAC.getAddress,
+                                                      dstMAC.getAddress))
+        val wcMatch = new WildcardMatch().setInputPortNumber(tunnelId1)
+                                         .setEthernetSource(srcMAC)
+                                         .setTunnelID(bridge.getTunnelKey)
 
         val pktBytes = "My packet".getBytes
-        dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+        dpProbe().testActor.tell(PacketIn(wcMatch, pktBytes, dpMatch, 
+                                          null, None))
 
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         addFlowMsg should not be null
-        addFlowMsg.pktBytes should equal (pktBytes)
-        addFlowMsg.flow should equal (wildcardFlow)
+        //XXX addFlowMsg.pktBytes should equal (pktBytes)
         addFlowMsg.flow.getMatch.getInputPortUUID should be (null)
         addFlowMsg.flow.getMatch.getInputPortNumber should be (tunnelId1)
 
