@@ -430,7 +430,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     cookie.get, actions)
                 pktContext.freeze()
                 if (!isPortSet && pktContext.isConnTracked &&
-                        !pktContext.isForwardFlow) {
+                        pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
                     installConnectionCacheEntry(outputID, pktContext.getMatch,
                                                 port)
