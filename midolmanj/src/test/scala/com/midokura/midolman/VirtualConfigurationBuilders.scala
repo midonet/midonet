@@ -7,11 +7,11 @@ import java.util.UUID
 import com.midokura.midolman.layer3.Route.NextHop
 import com.midokura.midolman.rules.Condition
 import com.midokura.midolman.rules.RuleResult.Action
+import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
         Port, Ports, Router => ClusterRouter, Route}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.rules.LiteralRule
-import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
