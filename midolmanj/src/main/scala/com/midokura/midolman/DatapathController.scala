@@ -1106,6 +1106,16 @@ class DatapathController() extends Actor with ActorLogging {
                     return
                 } else if (localTunnelPorts.contains(port)) {
                     log.debug("PacketIn came from a tunnel port")
+                    if (wMatch.getTunnelID == null) {
+                        log.error("SCREAM: got a PacketIn on a tunnel port " +
+                                  "and a wildcard match with no tunnel ID; " +
+                                  "dropping all flows from tunnel port #{}",
+                                  port)
+                        addDropFlow(new WildcardMatch().setInputPort(port),
+                                    cookie)
+                        return
+                    }
+
                     val portSetFuture = VirtualToPhysicalMapper.getRef() ?
                         PortSetForTunnelKeyRequest(wMatch.getTunnelID)
 
@@ -1136,19 +1146,12 @@ class DatapathController() extends Actor with ActorLogging {
                                                 portSet.id,
                                                 portsForLocalPorts(portIDs),
                                                 None, Nil, tags),
-                                             tags, cookie)
+                                             tags, cookie, pktBytes)
                                         })
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
                             }
-
-                        case _ if (wMatch.getTunnelID == null) =>
-                            log.error("SCREAM: got a PacketIn on a tunnel port"+
-                                " and a wildcard match with no tunnel id")
-                            addDropFlow(new WildcardMatch().
-                                setInputPort(port),
-                                cookie)
 
                         case _ =>
                             // for now, install a drop flow. We will invalidate
@@ -1159,7 +1162,8 @@ class DatapathController() extends Actor with ActorLogging {
                                             setTunnelID(wMatch.getTunnelID).
                                             setInputPort(port),
                                 actions = Nil,
-                                tags = Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
+                                tags = Set(FlowTagger.invalidateByTunnelKey(
+                                               wMatch.getTunnelID)),
                                 cookie = cookie)
                     }
 

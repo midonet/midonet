@@ -237,7 +237,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         addFlowMsg should not be null
-        //XXX addFlowMsg.pktBytes should equal (pktBytes)
+        addFlowMsg.pktBytes should equal (pktBytes)
         addFlowMsg.flow.getMatch.getInputPortUUID should be (null)
         addFlowMsg.flow.getMatch.getInputPortNumber should be (tunnelId1)
 
