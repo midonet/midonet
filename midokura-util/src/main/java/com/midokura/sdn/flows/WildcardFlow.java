@@ -57,11 +57,13 @@ public class WildcardFlow {
         if (that.getHardExpirationMillis() != this.getCreationTimeMillis() ||
             that.getIdleExpirationMillis() != this.getIdleExpirationMillis() ||
             that.getPriority() != this.getPriority())
-            return false;
-        if(actions != null ? !actions.equals(that.actions) : that.actions != null){
+                return false;
+        if (actions != null ? !actions.equals(that.actions)
+                            : that.actions != null) {
             return false;
         }
-        if(wcmatch != null ? !wcmatch.equals(that.wcmatch) : that.wcmatch != null){
+        if (wcmatch != null ? !wcmatch.equals(that.wcmatch)
+                            : that.wcmatch != null) {
             return false;
         }
         return true;

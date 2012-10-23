@@ -825,7 +825,7 @@ class DatapathController() extends Actor with ActorLogging {
                             // add tag for flow invalidation
                             dpTags += FlowTagger.invalidateBroadcastFlows(br.id,
                                        br.id)
-                            val localPortFutures = 
+                            val localPortFutures =
                                 (set.localPorts-inPortUUID).toSeq map {
                                     portID => ask(VirtualTopologyActor.getRef(),
                                                   PortRequest(portID, false))
@@ -835,13 +835,13 @@ class DatapathController() extends Actor with ActorLogging {
                                 case Right(localPorts) =>
                                     applyOutboundFilters(localPorts,
                                         portSet, wMatch,
-                                        { portIDs =>
-                            translated.success(
-                                translateToDpPorts(
-                                    actions, portSet,
-                                    portsForLocalPorts(portIDs),
-                                    Some(br.tunnelKey),
-                                    tunnelsForHosts(set.hosts.toSeq), dpTags))
+                                        { portIDs => translated.success(
+                                            translateToDpPorts(
+                                                actions, portSet,
+                                                portsForLocalPorts(portIDs),
+                                                Some(br.tunnelKey),
+                                                tunnelsForHosts(set.hosts.toSeq),
+                                                dpTags))
                                         })
 
                                 case _ => log.error("Error getting " +
@@ -1131,8 +1131,8 @@ class DatapathController() extends Actor with ActorLogging {
                                 // and apply it, checking for Action.ACCEPT.
                                 case Right(localPorts) =>
                                     applyOutboundFilters(localPorts,
-                                        portSet.id, wMatch, 
-                                        { portIDs => 
+                                        portSet.id, wMatch,
+                                        { portIDs =>
                                           val tags = mutable.Set[Any]()
                                           addTaggedFlow(new WildcardMatch()
                                                 .setTunnelID(wMatch.getTunnelID)
@@ -1140,8 +1140,8 @@ class DatapathController() extends Actor with ActorLogging {
                                              translateToDpPorts(List(action),
                                                 portSet.id,
                                                 portsForLocalPorts(portIDs),
-                                                None, Nil, tags), 
-                                             tags, cookie) 
+                                                None, Nil, tags),
+                                             tags, cookie)
                                         })
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
@@ -1187,7 +1187,7 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     private def applyOutboundFilters(
-                    localPorts: Seq[client.Port[_]], 
+                    localPorts: Seq[client.Port[_]],
                     portSetID: UUID,
                     pktMatch: WildcardMatch, thunk: Sequence[UUID] => Unit) {
         // Fetch all of the chains.
@@ -1231,7 +1231,7 @@ class DatapathController() extends Actor with ActorLogging {
             // Empty action list drops the packet. No need to send to DP.
             return
         }
-        translateActions(origActions, null, null, 
+        translateActions(origActions, null, null,
                          WildcardMatches.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
