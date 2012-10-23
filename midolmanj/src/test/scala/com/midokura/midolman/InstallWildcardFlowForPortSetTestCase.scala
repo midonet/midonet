@@ -172,9 +172,9 @@ with VirtualConfigurationBuilders {
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
         val portOnHost2 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (3)
+        //portOnHost2.getTunnelKey should be (3)
         val portOnHost3 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (4)
+        //portOnHost3.getTunnelKey should be (4)
 
 
         materializePort(port1OnHost1, host1, "port1")
@@ -218,9 +218,9 @@ with VirtualConfigurationBuilders {
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
         val portOnHost2 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (3)
+        //portOnHost2.getTunnelKey should be (3)
         val portOnHost3 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (4)
+        //portOnHost3.getTunnelKey should be (4)
 
 
         materializePort(port1OnHost1, host1, "port1")
@@ -264,11 +264,10 @@ with VirtualConfigurationBuilders {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        //port2OnHost1.getTunnelKey should be (3)
         val portOnHost2 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (4)
+        //portOnHost2.getTunnelKey should be (3)
         val portOnHost3 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (5)
+        //portOnHost3.getTunnelKey should be (4)
 
 
         materializePort(port1OnHost1, host1, "port1a")
@@ -322,11 +321,11 @@ with VirtualConfigurationBuilders {
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
         val port2OnHost1 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (3)
+        //port2OnHost1.getTunnelKey should be (3)
         val portOnHost2 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (4)
+        //portOnHost2.getTunnelKey should be (4)
         val portOnHost3 = newExteriorBridgePort(bridge)
-        //port1OnHost1.getTunnelKey should be (5)
+        //portOnHost3.getTunnelKey should be (5)
 
         materializePort(port1OnHost1, host1, "port1a")
         materializePort(port2OnHost1, host1, "port1b")
