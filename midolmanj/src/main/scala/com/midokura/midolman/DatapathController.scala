@@ -8,6 +8,9 @@ import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
+import host.interfaces.InterfaceDescription
+import host.scanner.InterfaceScanner
+import host.sensor.NetlinkInterfaceSensor
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
@@ -442,6 +445,9 @@ class DatapathController() extends Actor with ActorLogging {
     @Inject
     val hostService: HostIdProviderService = null
 
+    @Inject
+    val interfaceScanner: InterfaceScanner = null
+
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
@@ -454,7 +460,7 @@ class DatapathController() extends Actor with ActorLogging {
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
-    val portsDownPool: mutable.Set[Port[_,_]] = mutable.Set()
+    val portsDownPool: mutable.Map[String, Port[_,_]] = mutable.Map()
 
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
@@ -633,56 +639,59 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def CheckPortUpdates() {
-      // get the datapath ports via netlink.
-      datapathConnection.portsEnumerate(datapath, new ErrorHandlingCallback[java.util.Set[Port[_, _]]] {
-        def onSuccess(portsSet: java.util.Set[Port[_, _]]) {
-          // create a map with the netlink ports
-          val portIdPortMap = new mutable.HashMap[Int, Port[_,_]]
-          log.info("NETLINK ports: ")
+      val interfacesSet = new HashSet[String]
 
-          for (port <- portsSet) {
-            log.info("\t PortNo: {}  Port Name: {}", Array(port.getPortNo, port.getName))
-            portIdPortMap.put(port.getPortNo, port)
-          }
+      val deletedPorts = new HashSet[String]
+      deletedPorts.addAll(localPorts.keySet)
 
-          // compare them with the known localPorts
-          for ((_, port) <- localPorts) {
-            log.info("Local port: {}", port.getName)
-            if (!portIdPortMap.contains(port.getPortNo)) {
-              // port has been removed somehow. Delete this port from the datapath.
-              // TODO change the message to make clear that this is 'weird'
-              log.debug("Deleting port from datapath {} ({})", Array(port.getPortNo, port.getName))
-              port match {
-                case p: NetDevPort =>
-                  VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
-                  // TODO better a full host update ?
-                  localPorts.remove(p.getName)
-                  portsDownPool.add(p)
+      for (interface <- interfaceScanner.scanInterfaces()) {
+        deletedPorts.remove(interface.getName)
+        if (interface.isUp) {
+          interfacesSet.add(interface.getName)
+        }
+        // interface went down.
+        if (localPorts.contains(interface.getName) && !interface.isUp) {
+          log.info("Interface went down: {}", interface.getName)
+          localPorts.get(interface.getName).get match {
+            case p: NetDevPort =>
+              log.info("Sending interface down notification to the VirtualToPhysicalMapper")
+              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
+              portsDownPool.put(p.getName, p)
+              localPorts.remove(p.getName)
 
-                case default =>
-                  log.error("port type not matched {}", default)
-              }
-            }
-            portIdPortMap.remove(port.getPortNo)
-          }
-          // what's left in portIdPortMap are new ports
-          for ( port <- portIdPortMap.values ) {
-            if (portsDownPool.contains(port)) {
-              log.info("Resurrecting a previously deleted port. {} {}", Array(port.getPortNo, port.getName))
-              // reactivate the port.
-              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = true);
-              // remove it from the down pool
-              portsDownPool.remove(port);
-              localPorts.put(port.getName, port);
-            }
+            case default =>
+              log.error("port type not matched {}", default)
           }
         }
+      }
 
-        def handleError(ex: NetlinkException, timeout: Boolean) {
-          log.error("Could not check the port status", ex);
+      // this set contains the ports that have been deleted.
+      deletedPorts.foreach{
+        deletedPort =>
+          log.info("Interface was deleted: {}", deletedPort)
+          localPorts.get(deletedPort).get match {
+            case p: NetDevPort =>
+              log.info("Sending interface deleted notification to the VirtualToPhysicalMapper")
+              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
+              portsDownPool.put(p.getName, p)
+              localPorts.remove(p.getName)
+            case default =>
+              log.error("port type not matched {}", default)
+          }
+      }
+
+      // remove all the local ports. The rest will be datapath ports that are not known to the system.
+      // one of them might be a port that went up again.
+      interfacesSet.removeAll(localPorts.keySet)
+      interfacesSet.foreach( interface =>
+        if (portsDownPool.contains(interface)) {
+          val p: Port[_,_] = portsDownPool.get(interface).get
+          log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
+          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
+          localPorts.put(p.getName, p);
+          portsDownPool.remove(interface)
         }
-      });
-
+      )
 
     }
 

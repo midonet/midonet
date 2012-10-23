@@ -18,6 +18,7 @@ import static com.midokura.util.process.ProcessHelper.newProcess;
  */
 public class TapWrapper {
     private final static Logger log = LoggerFactory.getLogger(TapWrapper.class);
+    private boolean up;
 
     String name;
     MAC hwAddr;
@@ -48,6 +49,7 @@ public class TapWrapper {
         }
 
         fd = Tap.openTap(name, true).fd;
+        up = true;
     }
 
     public String getName() {
@@ -88,11 +90,16 @@ public class TapWrapper {
         if (fd > 0) {
             Tap.closeFD(fd);
         }
+        up = false;
     }
 
     public boolean send(byte[] pktBytes) {
-        Tap.writeToTap(this.fd, pktBytes, pktBytes.length);
-        return true;
+        if (up) {
+            Tap.writeToTap(this.fd, pktBytes, pktBytes.length);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public byte[] recv() {
@@ -210,7 +217,17 @@ public class TapWrapper {
                 String.format("sudo -n ip link set dev %s down", getName()))
                 .logOutput(log, "down_tap@"+getName())
                 .runAndWait();
+        up = false;
     }
+
+    public void up() {
+        newProcess(
+                String.format("sudo -n ip link set dev %s up", getName()))
+                .logOutput(log, "up_tap@"+getName())
+                .runAndWait();
+        up = true;
+    }
+
 
     public void remove() {
         closeFd();
@@ -219,6 +236,7 @@ public class TapWrapper {
             String.format("sudo -n ip tuntap del dev %s mode tap", getName()))
             .logOutput(log, "remove_tap@" + getName())
             .runAndWait();
+        up = false;
 
     }
 }
