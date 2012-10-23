@@ -135,6 +135,7 @@ public class NatLeaseManager implements NatMapping {
                         tpSrc, IPv4.fromIPv4Address(oldNwDst),
                         oldTpDst });
 
+        // TODO(pino): can't one write to the cache suffice?
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
                 oldTpDst);
         cache.set(fwdKey, makeCacheValue(newNwDst, newTpDst));
@@ -142,6 +143,7 @@ public class NatLeaseManager implements NatMapping {
                                      newTpDst);
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
+        // TODO(pino): subscribe for flow-removal notification.
         scheduleRefresh(origMatch, fwdKey, revKey);
         return new NwTpPair(newNwDst, (short)newTpDst);
     }
@@ -249,9 +251,11 @@ public class NatLeaseManager implements NatMapping {
                         tpDst });
         String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
                 tpDst);
+        // TODO(pino): can't one write to the cache suffice?
         cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
         log.debug("allocateSnat fwd key {} and rev key {}", key, reverseKey);
+        // TODO(pino): subscribe for flow-removal notification.
         scheduleRefresh(origMatch, key, reverseKey);
         return true;
     }
