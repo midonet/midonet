@@ -160,7 +160,8 @@ with VirtualConfigurationBuilders {
         // TODO: Why does the "should contain" syntax fail here?
         assert(flowActs.contains(FlowActions.output(tunnelId1)))
         assert(flowActs.contains(FlowActions.output(tunnelId2)))
-        assert(flowActs.contains(FlowActions.output(localPortNumber2)))
+        assert(flowActs.contains(FlowActions.output(localPortNumber2))) //XXX
+        //assert(!flowActs.contains(FlowActions.output(localPortNumber2))) //XXX
         assert(flowActs.contains(FlowActions.output(localPortNumber3)))
     }
 
