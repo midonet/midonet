@@ -70,7 +70,8 @@ with VirtualConfigurationBuilders {
             classOf[LocalPortActive])
 
         flowRemovedProbe = newProbe()
-        actors().eventStream.subscribe(flowRemovedProbe.ref, classOf[WildcardFlowRemoved])
+        actors().eventStream.subscribe(flowRemovedProbe.ref,
+                                       classOf[WildcardFlowRemoved])
 
         initializeDatapath() should not be (null)
 
@@ -94,8 +95,6 @@ with VirtualConfigurationBuilders {
         val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         val condition = new Condition
         condition.dlSrc = srcMAC
-        // TODO(jlm): How does chains processing work when RuleZkManager 
-        // doesn't accept pos 0 but chains processing starts at pos 0?
         val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
                 RuleResult.Action.DROP)  
 
