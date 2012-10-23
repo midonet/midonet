@@ -39,15 +39,18 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
-    def newOutboundChainOnPort(name: String, port: Port[_, _],
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+                              (name: String, port: Port[PD, P],
                                id: UUID): Chain = {
         val chain = new Chain().setName(name).setId(id)
         clusterDataClient().chainsCreate(chain)
         port.setOutboundFilter(id)
+        clusterDataClient().portsUpdate(port)
         chain
     }
 
-    def newOutboundChainOnPort(name: String, port: Port[_, _]): Chain =
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+                              (name: String, port: Port[PD, P]): Chain =
         newOutboundChainOnPort(name, port, UUID.randomUUID)
 
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
