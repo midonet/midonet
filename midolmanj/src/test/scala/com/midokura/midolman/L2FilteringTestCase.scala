@@ -330,16 +330,20 @@ class L2FilteringTestCase extends MidolmanTestCase with
                  "removal of rule 4")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
 
-        // these should be dropped
+        /*
+        log.info("sending two packets that should be dropped with the same " +
+                 "match as the return packets that will be sent later on")
         expectPacketDropped(4, 1, udpBetweenPorts)
         expectPacketDropped(0, 3, udpBetweenPorts)
+        */
 
-        // poke conntrack holes in the opposite direction
+        log.info("sending two packets that should install conntrack entries")
         expectPacketAllowed(1, 4, udpBetweenPorts)
         expectPacketAllowed(3, 0, udpBetweenPorts)
 
-        // verify that the return packets are now accepted.
-        //expectPacketAllowed(4, 1, udpBetweenPorts)
-        //expectPacketAllowed(0, 3, udpBetweenPorts)
+        log.info("sending two return packets that should be accepted due to " +
+                 "conntrack")
+        expectPacketAllowed(4, 1, udpBetweenPorts)
+        expectPacketAllowed(0, 3, udpBetweenPorts)
     }
 }
