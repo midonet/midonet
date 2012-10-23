@@ -3,40 +3,28 @@
 */
 package com.midokura.midolman
 
-import guice.actors.OutgoingMessage
-import guice.actors.OutgoingMessage
-import layer3.Route
-import layer3.Route.NextHop
-import rules.{RuleResult, Condition}
-import scala.collection.mutable
-import scala.compat.Platform
-import java.util.UUID
+import scala.Some
 
-import akka.dispatch.{Promise, Await}
-import akka.testkit.{TestKit, TestProbe}
+import akka.testkit.TestProbe
 import akka.util.duration._
-import akka.util.Timeout
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
+import guice.actors.OutgoingMessage
+
 import com.midokura.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
+import layer3.Route
+import layer3.Route.NextHop
+import rules.{RuleResult, Condition}
 import topology.LocalPortActive
-import topology.LocalPortActive
-import topology.VirtualToPhysicalMapper.HostRequest
 import com.midokura.packets._
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Port}
-import com.midokura.sdn.dp.{Port => DpPort}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import topology.VirtualToPhysicalMapper.HostRequest
 import topology.VirtualTopologyActor.BridgeRequest
 import util.SimulationHelper
 import com.midokura.midolman.simulation.{Bridge => SimBridge}
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.netlink.Callback
-import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowAction, FlowActionOutput}
-import scala.Some
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with
@@ -224,12 +212,12 @@ class L2FilteringTestCase extends MidolmanTestCase with
     def test() {
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
-        // populate the mac learning table
+        log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
             (name, mac, ip) => arpAndCheckReply(name, mac, ip, routerIp, routerMac)
         }
 
-        // send packets between exterior ports in all possible combinations
+        log.info("sending icmp echoes between every pair of ports")
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
             expectPacketAllowed(pair.head, pair.last, icmpBetweenPorts)
             requestOfType[WildcardFlowAdded](flowEventsProbe)
@@ -253,6 +241,7 @@ class L2FilteringTestCase extends MidolmanTestCase with
                                           RuleResult.Action.DROP)
         clusterDataClient().bridgesUpdate(bridge)
 
+        log.info("checking that the creation of the chain invalidates all flows")
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
