@@ -1299,7 +1299,7 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
             }
             localTunnelPorts.remove(port.getPortNo.shortValue)
-            log.debug("Removing tunnel with port #{}", 
+            log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
