@@ -26,7 +26,7 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
-with VirtualConfigurationBuilders {
+        with VirtualConfigurationBuilders {
 
     var tunnelZone: GreTunnelZone = null
 
@@ -160,6 +160,87 @@ with VirtualConfigurationBuilders {
         // TODO: Why does the "should contain" syntax fail here?
         assert(flowActs.contains(FlowActions.output(tunnelId1)))
         assert(flowActs.contains(FlowActions.output(tunnelId2)))
+        assert(!flowActs.contains(FlowActions.output(localPortNumber2)))
+        assert(flowActs.contains(FlowActions.output(localPortNumber3)))
+    }
+
+    def testInstallFlowForPortSetFromTunnel() {
+
+        val port1OnHost1 = newExteriorBridgePort(bridge)
+        //port1OnHost1.getTunnelKey should be (2)
+        val port2OnHost1 = newExteriorBridgePort(bridge)
+        //port2OnHost1.getTunnelKey should be (3)
+        val port3OnHost1 = newExteriorBridgePort(bridge)
+        //port3OnHost1.getTunnelKey should be (4)
+        val portOnHost2 = newExteriorBridgePort(bridge)
+        //portOnHost2.getTunnelKey should be (5)
+        val portOnHost3 = newExteriorBridgePort(bridge)
+        //portOnHost3.getTunnelKey should be (6)
+
+        val srcMAC = MAC.fromString("00:11:22:33:44:55")
+        val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
+        val condition = new Condition
+        condition.dlSrc = srcMAC
+        val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
+                RuleResult.Action.DROP)
+
+        materializePort(port1OnHost1, host1, "port1a")
+        materializePort(port2OnHost1, host1, "port1b")
+        materializePort(port3OnHost1, host1, "port1c")
+        materializePort(portOnHost2, host2, "port2")
+        materializePort(portOnHost3, host3, "port3")
+
+
+        clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
+        clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
+
+        val tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
+        val tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
+
+
+        // flows installed for tunnel key = port when the port becomes active.
+        // There are three ports on this host.
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
+
+        // Wait for LocalPortActive messages - they prove the
+        // VirtualToPhysicalMapper has the correct information for the PortSet.
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+
+        val localPortNumber1 = dpController().underlyingActor
+            .localPorts("port1a").getPortNo
+        val localPortNumber2 = dpController().underlyingActor
+            .localPorts("port1b").getPortNo
+        val localPortNumber3 = dpController().underlyingActor
+            .localPorts("port1c").getPortNo
+        val wildcardFlow = new WildcardFlow()
+            .setMatch(new WildcardMatch().setInputPortNumber(tunnelId1)
+                                         .setEthernetSource(srcMAC))
+            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+
+        val pktBytes = "My packet".getBytes
+        dpProbe().testActor.tell(AddWildcardFlow(
+            wildcardFlow, None, pktBytes, null, null, null))
+
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
+
+        addFlowMsg should not be null
+        addFlowMsg.pktBytes should equal (pktBytes)
+        addFlowMsg.flow should equal (wildcardFlow)
+        addFlowMsg.flow.getMatch.getInputPortUUID should be (null)
+        addFlowMsg.flow.getMatch.getInputPortNumber should be (tunnelId1)
+
+        val flowActs = addFlowMsg.flow.getActions.toList
+
+        flowActs should not be (null)
+        // Should output to local ports 1 and 3 only.
+        flowActs should have size (2)
+
+        // TODO: Why does the "should contain" syntax fail here?
+        assert(flowActs.contains(FlowActions.output(localPortNumber1)))
         assert(!flowActs.contains(FlowActions.output(localPortNumber2)))
         assert(flowActs.contains(FlowActions.output(localPortNumber3)))
     }

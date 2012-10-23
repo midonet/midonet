@@ -9,42 +9,37 @@ import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
 import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, mutable, immutable}
+import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
 import java.util.{HashSet, UUID}
 
 import com.google.inject.Inject
+
+import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.rules.{ChainPacketContext, RuleResult}
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+        ChainRequest, PortRequest}
+import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
         CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
-import com.midokura.netlink.Callback
-import rcu.Host
-import rcu.PortSet
-import com.midokura.packets.Ethernet
-import topology.LocalPortActive
-import topology.VirtualTopologyActor.BridgeRequest
-import topology.VirtualTopologyActor.ChainRequest
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import scala.Some
-import scala.Left
-import scala.Right
 
 
 /**
@@ -861,14 +856,12 @@ class DatapathController() extends Actor with ActorLogging {
                     case None =>
                         ask(VirtualTopologyActor.getRef(), PortRequest(port,
                             update = false)).mapTo[client.Port[_]] map {
-                            _ match {
                                 case p: ExteriorPort[_] =>
-                                    translated.success(
-                                        translateToDpPorts(
+                                    translated.success(translateToDpPorts(
                                             actions, port, Nil,
                                             Some(p.tunnelKey),
-                                            tunnelsForHosts(List(p.hostID)), dpTags))
-                            }
+                                            tunnelsForHosts(List(p.hostID)),
+                                            dpTags))
                         }
                 }
             case None =>
@@ -1095,8 +1088,7 @@ class DatapathController() extends Actor with ActorLogging {
                                         .setPriority(priority),
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
-                                null,
-                                tags, null))
+                                null, tags, null))
     }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
