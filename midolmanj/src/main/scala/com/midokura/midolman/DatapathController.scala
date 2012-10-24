@@ -11,8 +11,8 @@ import akka.util.duration._
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
-import java.lang.{Short => JShort}
-import java.util.{HashSet, UUID}
+import java.lang.{Boolean => JBoolean, Short => JShort}
+import java.util.{HashSet, Set => JSet, UUID}
 
 import com.google.inject.Inject
 
@@ -1238,8 +1238,8 @@ class DatapathController() extends Actor with ActorLogging {
                     setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
                     setData(ethPkt.serialize).setActions(actions)
                 datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[java.lang.Boolean] {
-                        def onSuccess(data: java.lang.Boolean) {}
+                    new ErrorHandlingCallback[JBoolean] {
+                        def onSuccess(data: JBoolean) {}
 
                         def handleError(ex: NetlinkException, timeout: Boolean) {
                             log.error(ex,
@@ -1475,8 +1475,8 @@ class DatapathController() extends Actor with ActorLogging {
         def handleExistingDP(dp: Datapath) {
             log.info("The datapath already existed. Flushing the flows.")
             datapathConnection.flowsFlush(dp,
-                new ErrorHandlingCallback[java.lang.Boolean] {
-                    def onSuccess(data: java.lang.Boolean) {}
+                new ErrorHandlingCallback[JBoolean] {
+                    def onSuccess(data: JBoolean) {}
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error("Failed to flush the Datapath's flows!")
                     }
@@ -1529,8 +1529,8 @@ class DatapathController() extends Actor with ActorLogging {
     private def queryDatapathPorts(datapath: Datapath) {
         log.info("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,
-            new ErrorHandlingCallback[java.util.Set[Port[_, _]]] {
-                def onSuccess(ports: java.util.Set[Port[_, _]]) {
+            new ErrorHandlingCallback[JSet[Port[_, _]]] {
+                def onSuccess(ports: JSet[Port[_, _]]) {
                     self ! _SetLocalDatapathPorts(datapath, ports.toSet)
                 }
 
