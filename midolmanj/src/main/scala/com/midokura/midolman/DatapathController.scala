@@ -28,7 +28,7 @@ import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
@@ -1233,7 +1233,7 @@ class DatapathController() extends Actor with ActorLogging {
             return
         }
         translateActions(origActions, null, null,
-                         WildcardMatches.fromEthernetPacket(ethPkt)) onComplete {
+                         WildcardMatch.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
                 val packet = new Packet().
