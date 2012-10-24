@@ -7,22 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midonet.cluster.data.AdRoute;
-import com.midokura.midonet.cluster.data.BGP;
-import com.midokura.midonet.cluster.data.Bridge;
-import com.midokura.midonet.cluster.data.Chain;
-import com.midokura.midonet.cluster.data.Port;
-import com.midokura.midonet.cluster.data.PortGroup;
-import com.midokura.midonet.cluster.data.Route;
-import com.midokura.midonet.cluster.data.Router;
-import com.midokura.midonet.cluster.data.Rule;
-import com.midokura.midonet.cluster.data.TunnelZone;
-import com.midokura.midonet.cluster.data.VPN;
+import com.midokura.midonet.cluster.data.*;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
 import com.midokura.midonet.cluster.data.host.Host;
@@ -35,7 +26,7 @@ import com.midokura.util.functors.Callback2;
 public interface DataClient {
 
     /* BGP advertising routes related methods */
-    AdRoute adRoutesGet(UUID id) throws StateAccessException;
+    @CheckForNull AdRoute adRoutesGet(UUID id) throws StateAccessException;
 
     void adRoutesDelete(UUID id) throws StateAccessException;
 
@@ -45,7 +36,7 @@ public interface DataClient {
 
 
     /* BGP related methods */
-    BGP bgpGet(UUID id) throws StateAccessException;
+    @CheckForNull BGP bgpGet(UUID id) throws StateAccessException;
 
     void bgpDelete(UUID id) throws StateAccessException;
 
@@ -55,13 +46,13 @@ public interface DataClient {
 
 
     /* Bridges related methods */
-    Bridge bridgesGet(UUID id) throws StateAccessException;
+    @CheckForNull Bridge bridgesGet(UUID id) throws StateAccessException;
 
     void bridgesDelete(UUID id) throws StateAccessException;
 
     UUID bridgesCreate(@Nonnull Bridge bridge) throws StateAccessException;
 
-    Bridge bridgesGetByName(String tenantId, String name)
+    @CheckForNull Bridge bridgesGetByName(String tenantId, String name)
          throws StateAccessException;
 
     void bridgesUpdate(@Nonnull Bridge bridge) throws StateAccessException;
@@ -71,13 +62,13 @@ public interface DataClient {
 
 
     /* Chains related methods */
-    Chain chainsGet(UUID id) throws StateAccessException;
+    @CheckForNull Chain chainsGet(UUID id) throws StateAccessException;
 
     void chainsDelete(UUID id) throws StateAccessException;
 
     UUID chainsCreate(@Nonnull Chain chain) throws StateAccessException;
 
-    Chain chainsGetByName(String tenantId, String name)
+    @CheckForNull Chain chainsGetByName(String tenantId, String name)
             throws StateAccessException;
 
     List<Chain> chainsFindByTenant(String tenantId)
@@ -85,30 +76,30 @@ public interface DataClient {
 
 
     /* DHCP related methods */
-    void dhcpSubnetsCreate(UUID bridgeId, Subnet subnet)
+    void dhcpSubnetsCreate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException;
 
-    void dhcpSubnetsUpdate(UUID bridgeId, Subnet subnet)
+    void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
         throws StateAccessException;
 
     void dhcpSubnetsDelete(UUID bridgeId, IntIPv4 subnetAddr)
         throws StateAccessException;
 
-    Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
+    @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException;
 
     List<Subnet> dhcpSubnetsGetByBridge(UUID bridgeId)
             throws StateAccessException;
 
-    void dhcpHostsCreate(UUID bridgeId, IntIPv4 subnet,
+    void dhcpHostsCreate(@Nonnull UUID bridgeId, @Nonnull IntIPv4 subnet,
                          com.midokura.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException;
 
-    void dhcpHostsUpdate(UUID bridgeId, IntIPv4 subnet,
+    void dhcpHostsUpdate(@Nonnull UUID bridgeId, @Nonnull IntIPv4 subnet,
                          com.midokura.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException;
 
-    com.midokura.midonet.cluster.data.dhcp.Host dhcpHostsGet(
+    @CheckForNull com.midokura.midonet.cluster.data.dhcp.Host dhcpHostsGet(
             UUID bridgeId, IntIPv4 subnet, String mac)
         throws StateAccessException;
 
@@ -138,9 +129,9 @@ public interface DataClient {
      * ports and manage their BGPs (if any).
      * @param cb
      */
-    void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb);
+    void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb);
 
-    UUID tunnelZonesCreate(TunnelZone<?, ?> zone)
+    UUID tunnelZonesCreate(@Nonnull TunnelZone<?, ?> zone)
         throws StateAccessException;
 
     void tunnelZonesDelete(UUID uuid)
@@ -148,12 +139,12 @@ public interface DataClient {
 
     boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
 
-    TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
+    @CheckForNull TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException;
 
     List<TunnelZone<?, ?>> tunnelZonesGetAll() throws StateAccessException;
 
-    void tunnelZonesUpdate(TunnelZone<?, ?> zone) throws StateAccessException;
+    void tunnelZonesUpdate(@Nonnull TunnelZone<?, ?> zone) throws StateAccessException;
 
     boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
         throws StateAccessException;
@@ -161,21 +152,21 @@ public interface DataClient {
     Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(UUID uuid)
         throws StateAccessException;
 
-    TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID uuid,
+    @CheckForNull TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID uuid,
                                                          UUID hostId)
         throws StateAccessException;
 
-    UUID tunnelZonesAddMembership(UUID zoneId,
-                                  TunnelZone.HostConfig<?, ?> hostConfig)
+    UUID tunnelZonesAddMembership(@Nonnull UUID zoneId,
+                                  @Nonnull TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException;
 
     void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException;
 
-    UUID hostsCreate(UUID id, Host host) throws StateAccessException;
+    UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host) throws StateAccessException;
 
     /* hosts related methods */
-    Host hostsGet(UUID hostId) throws StateAccessException;
+    @CheckForNull Host hostsGet(UUID hostId) throws StateAccessException;
 
     void hostsDelete(UUID hostId) throws StateAccessException;
 
@@ -188,7 +179,7 @@ public interface DataClient {
     List<Interface> interfacesGetByHost(UUID hostId)
             throws StateAccessException;
 
-    Interface interfacesGet(UUID hostId, String interfaceName)
+    @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
             throws StateAccessException;
 
     Integer commandsCreateForInterfaceupdate(UUID hostId, String curInterfaceId,
@@ -198,7 +189,7 @@ public interface DataClient {
     List<Command> commandsGetByHost(UUID hostId)
         throws StateAccessException;
 
-    Command commandsGet(UUID hostId, Integer id) throws StateAccessException;
+    @CheckForNull Command commandsGet(UUID hostId, Integer id) throws StateAccessException;
 
     void commandsDelete(UUID hostId, Integer id) throws StateAccessException;
 
@@ -208,13 +199,14 @@ public interface DataClient {
     boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
         throws StateAccessException;
 
-    VirtualPortMapping hostsGetVirtualPortMapping(UUID hostId, UUID portId)
+    @CheckForNull VirtualPortMapping hostsGetVirtualPortMapping(UUID hostId, UUID portId)
         throws StateAccessException;
 
-    void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
+    void hostsAddVrnPortMapping(@Nonnull UUID hostId, @Nonnull UUID portId,
+                                @Nonnull String localPortName)
         throws StateAccessException;
 
-    void hostsAddDatapathMapping(UUID hostId, String datapathName)
+    void hostsAddDatapathMapping(@Nonnull UUID hostId, @Nonnull String datapathName)
             throws StateAccessException;
 
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
@@ -225,11 +217,11 @@ public interface DataClient {
                                          String metricName, long timeStart,
                                          long timeEnd);
 
-    void metricsAddTypeToTarget(String targetIdentifier, String type);
+    void metricsAddTypeToTarget(@Nonnull String targetIdentifier, @Nonnull String type);
 
     List<String> metricsGetTypeForTarget(String targetIdentifier);
 
-    void metricsAddToType(String type, String metricName);
+    void metricsAddToType(@Nonnull String type, @Nonnull String metricName);
 
     List<String> metricsGetForType(String type);
 
@@ -237,7 +229,7 @@ public interface DataClient {
     /* Ports related methods */
     boolean portsExists(UUID id) throws StateAccessException;
 
-    UUID portsCreate(Port<?, ?> port) throws StateAccessException;
+    UUID portsCreate(@Nonnull Port<?, ?> port) throws StateAccessException;
 
     void portsDelete(UUID id) throws StateAccessException;
 
@@ -253,7 +245,7 @@ public interface DataClient {
     List<Port<?, ?>> portsFindPeersByRouter(UUID routerId)
             throws StateAccessException;
 
-    Port<?, ?> portsGet(UUID id) throws StateAccessException;
+    @CheckForNull Port<?, ?> portsGet(UUID id) throws StateAccessException;
 
     void portsUpdate(@Nonnull Port port) throws StateAccessException;
 
@@ -267,7 +259,7 @@ public interface DataClient {
 
 
     /* Port group related methods */
-    PortGroup portGroupsGet(UUID id) throws StateAccessException;
+    @CheckForNull PortGroup portGroupsGet(UUID id) throws StateAccessException;
 
     void portGroupsDelete(UUID id) throws StateAccessException;
 
@@ -276,24 +268,24 @@ public interface DataClient {
 
     boolean portGroupsExists(UUID id) throws StateAccessException;
 
-    PortGroup portGroupsGetByName(String tenantId, String name)
+    @CheckForNull PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException;
 
     List<PortGroup> portGroupsFindByTenant(String tenantId)
             throws StateAccessException;
 
-    boolean portGroupsIsPortMember(@Nonnull UUID id, @Nonnull UUID portId)
+    boolean portGroupsIsPortMember(UUID id, UUID portId)
         throws StateAccessException;
 
     void portGroupsAddPortMembership(@Nonnull UUID id, @Nonnull UUID portId)
         throws StateAccessException;
 
-    void portGroupsRemovePortMembership(@Nonnull UUID id, @Nonnull UUID portId)
+    void portGroupsRemovePortMembership(UUID id, UUID portId)
         throws StateAccessException;
 
 
     /* Routes related methods */
-    Route routesGet(UUID id) throws StateAccessException;
+    @CheckForNull Route routesGet(UUID id) throws StateAccessException;
 
     void routesDelete(UUID id) throws StateAccessException;
 
@@ -305,7 +297,7 @@ public interface DataClient {
 
 
     /* Routers related methods */
-    Router routersGet(UUID id) throws StateAccessException;
+    @CheckForNull Router routersGet(UUID id) throws StateAccessException;
 
     void routersDelete(UUID id) throws StateAccessException;
 
@@ -313,7 +305,7 @@ public interface DataClient {
 
     void routersUpdate(@Nonnull Router router) throws StateAccessException;
 
-    Router routersGetByName(String tenantId, String name)
+    @CheckForNull Router routersGetByName(String tenantId, String name)
             throws StateAccessException;
 
     List<Router> routersFindByTenant(String tenantId)
@@ -321,7 +313,7 @@ public interface DataClient {
 
 
     /* Rules related methods */
-    Rule<?, ?> rulesGet(UUID id) throws StateAccessException;
+    @CheckForNull Rule<?, ?> rulesGet(UUID id) throws StateAccessException;
 
     void rulesDelete(UUID id) throws StateAccessException;
 
@@ -332,7 +324,7 @@ public interface DataClient {
 
 
     /* VPN related methods */
-    VPN vpnGet(UUID id) throws StateAccessException;
+    @CheckForNull VPN vpnGet(UUID id) throws StateAccessException;
 
     void vpnDelete(UUID id) throws StateAccessException;
 
