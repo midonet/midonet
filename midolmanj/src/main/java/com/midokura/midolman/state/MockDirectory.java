@@ -145,7 +145,7 @@ public class MockDirectory implements Directory {
 
                 if (isMulti) {
                     synchronized (multiDataWatchers) {
-                    multiDataWatchers.put(watcher, watchedEvent);
+                        multiDataWatchers.put(watcher, watchedEvent);
                     }
                 } else {
                     watcher.process(watchedEvent);
@@ -155,7 +155,7 @@ public class MockDirectory implements Directory {
     }
 
     private Node rootNode;
-    private Map<Watcher, WatchedEvent> multiDataWatchers;
+    private final Map<Watcher, WatchedEvent> multiDataWatchers;
     public boolean enableDebugLog = false;
 
     private MockDirectory(Node root, Map<Watcher, WatchedEvent> multiWatchers) {
@@ -373,8 +373,8 @@ public class MockDirectory implements Directory {
             }
         } finally {
             synchronized (multiDataWatchers) {
-            watchers.putAll(multiDataWatchers);
-            multiDataWatchers.clear();
+                watchers.putAll(multiDataWatchers);
+                multiDataWatchers.clear();
             }
         }
 
