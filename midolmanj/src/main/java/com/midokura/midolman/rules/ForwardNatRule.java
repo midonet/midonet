@@ -7,6 +7,7 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.util.functors.Callback0;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,16 +55,16 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(Object flowCookie, RuleResult res,
-                      NatMapping natMapping) {
+    public void apply(ChainPacketContext fwdInfo, Object flowCookie,
+                      RuleResult res, NatMapping natMapping) {
         if (null == natMapping) {
             log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
             return;
         }
         if (dnat)
-            applyDnat(flowCookie, res, natMapping);
+            applyDnat(fwdInfo, flowCookie, res, natMapping);
         else
-            applySnat(flowCookie, res, natMapping);
+            applySnat(fwdInfo, flowCookie, res, natMapping);
     }
 
     /**
@@ -76,8 +77,8 @@ public class ForwardNatRule extends NatRule {
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applyDnat(Object flowCookie, RuleResult res,
-                          NatMapping natMapping) {
+    private void applyDnat(ChainPacketContext fwdInfo, final Object flowCookie,
+                           RuleResult res, final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
@@ -98,6 +99,7 @@ public class ForwardNatRule extends NatRule {
                 res.pmatch.getNetworkDestination(),
                 res.pmatch.getTransportDestination(), flowCookie);
         if (null == conn)
+            // TODO(guillermo) tag this flow.
             conn = natMapping.allocateDnat(res.pmatch.getNetworkSource(),
                     res.pmatch.getTransportSource(),
                     res.pmatch.getNetworkDestination(),
@@ -115,6 +117,13 @@ public class ForwardNatRule extends NatRule {
         res.pmatch.setTransportDestination(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
+
+        fwdInfo.addFlowRemovedCallback(new Callback0() {
+            @Override
+            public void call() {
+                natMapping.freeFlowResources(flowCookie);
+            }
+        });
     }
 
     /**
@@ -127,8 +136,8 @@ public class ForwardNatRule extends NatRule {
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applySnat(Object flowCookie, RuleResult res,
-                          NatMapping natMapping) {
+    private void applySnat(ChainPacketContext fwdInfo, final Object flowCookie,
+                           RuleResult res, final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
@@ -169,6 +178,13 @@ public class ForwardNatRule extends NatRule {
         res.pmatch.setTransportSource(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
+
+        fwdInfo.addFlowRemovedCallback(new Callback0() {
+            @Override
+            public void call() {
+                natMapping.freeFlowResources(flowCookie);
+            }
+        });
     }
 
     // Used by RuleEngine to discover resources that must be initialized

@@ -17,6 +17,7 @@ import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
 import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.util.functors.Callback0;
 
 
 /* VRNController creates and partially populate an instance of
@@ -238,4 +239,7 @@ public class MockPacketContext implements ChainPacketContext {
     public void addFlowTag(Object tag) {
         tags.add(tag);
     }
+
+    @Override
+    public void addFlowRemovedCallback(Callback0 cb) {}
 }

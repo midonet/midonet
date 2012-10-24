@@ -19,6 +19,7 @@ import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
 import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.util.functors.Callback0;
 
 
 /* VRNController creates and partially populate an instance of
@@ -233,5 +234,11 @@ public class ForwardInfo implements ChainPacketContext {
     @Override
     public void addFlowTag(Object tag) {
         flowTags.add(tag);
+    }
+
+    @Override
+    public void addFlowRemovedCallback(Callback0 cb) {
+        // XXX(guillermo) do nothing, this class is unused outside of tests
+        // and going away. Right?
     }
 }

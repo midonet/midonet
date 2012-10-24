@@ -367,14 +367,15 @@ object DatapathController extends Referenceable {
      */
     class EgressPortSetChainPacketContext(outportID: UUID)
             extends ChainPacketContext {
-        def getInPortId() = null
-        def getOutPortId() = outportID
-        def getPortGroups() = new HashSet[UUID]()
-        def addTraversedElementID(id: UUID) { }
-        def isConnTracked() = false
-        def isForwardFlow() = true
-        def getFlowCookie() = null
-        def addFlowTag(tag: Any) {}
+        override def getInPortId() = null
+        override def getOutPortId() = outportID
+        override def getPortGroups() = new HashSet[UUID]()
+        override def addTraversedElementID(id: UUID) { }
+        override def isConnTracked() = false
+        override def isForwardFlow() = true
+        override def getFlowCookie() = null
+        override def addFlowTag(tag: Any) {}
+        override def addFlowRemovedCallback(cb: Callback0) {}
     }
 
     /**

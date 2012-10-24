@@ -62,7 +62,7 @@ public abstract class Rule implements Comparable<Rule> {
                         NatMapping natMapping, boolean isPortFilter) {
         if (condition.matches(fwdInfo, res.pmatch, isPortFilter)) {
             log.debug("Condition matched");
-            apply(fwdInfo.getFlowCookie(), res, natMapping);
+            apply(fwdInfo, fwdInfo.getFlowCookie(), res, natMapping);
         }
     }
 
@@ -73,6 +73,8 @@ public abstract class Rule implements Comparable<Rule> {
     /**
      * Apply this rule to the packet specified by res.pmatch.
      *
+     * @param fwdInfo
+     *            the PacketContext for the packet being processed.
      * @param flowCookie
      *            An object that uniquely identifies the packet that
      *            originally entered the datapath. It
@@ -83,8 +85,8 @@ public abstract class Rule implements Comparable<Rule> {
      * @param natMapping
      *            NAT state of the element using this chain.
      */
-    protected abstract void apply(Object flowCookie, RuleResult res,
-                                  NatMapping natMapping);
+    protected abstract void apply(ChainPacketContext fwdInfo, Object flowCookie,
+                                  RuleResult res, NatMapping natMapping);
 
 
     public Map<String, String> getProperties() {
