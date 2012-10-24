@@ -45,6 +45,8 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     
     Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
 
+    com.midokura.util.functors.Callback<Packet, ?> packetExecCb = null;
+
     boolean initialized = false;
 
     AtomicInteger datapathIds = new AtomicInteger(1);
@@ -324,6 +326,12 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath, @Nonnull Packet packet,
                                      @Nonnull Callback<Boolean> callback, long timeoutMillis) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (packetExecCb != null)
+            packetExecCb.onSuccess(packet);
+    }
+
+    public void packetsExecuteSubscribe(
+            com.midokura.util.functors.Callback<Packet, ?> cb) {
+        this.packetExecCb = cb;
     }
 }

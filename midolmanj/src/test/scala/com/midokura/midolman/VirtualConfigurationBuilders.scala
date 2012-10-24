@@ -7,11 +7,11 @@ import java.util.UUID
 import com.midokura.midolman.layer3.Route.NextHop
 import com.midokura.midolman.rules.Condition
 import com.midokura.midolman.rules.RuleResult.Action
+import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
         Port, Ports, Router => ClusterRouter, Route}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.rules.LiteralRule
-import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
@@ -31,28 +31,35 @@ trait VirtualConfigurationBuilders {
 
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 
-    def newOutboundChainOnPort(name: String, port: Port[_, _],
+    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        clusterDataClient().chainsCreate(chain)
+        bridge.setInboundFilter(chain.getId)
+        clusterDataClient().bridgesUpdate(bridge)
+        chain
+    }
+
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+                              (name: String, port: Port[PD, P],
                                id: UUID): Chain = {
         val chain = new Chain().setName(name).setId(id)
         clusterDataClient().chainsCreate(chain)
         port.setOutboundFilter(id)
+        clusterDataClient().portsUpdate(port)
         chain
     }
 
-    def newOutboundChainOnPort(name: String, port: Port[_, _]): Chain =
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+                              (name: String, port: Port[PD, P]): Chain =
         newOutboundChainOnPort(name, port, UUID.randomUUID)
 
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action, id: UUID): LiteralRule = {
-        val rule = new LiteralRule(condition, action).setId(id)
-                        .setChainId(chain.getId).setPosition(pos)
-        clusterDataClient().rulesCreate(rule)
-        rule
+                              action: Action): LiteralRule = {
+        val rule = new LiteralRule(condition, action).
+                        setChainId(chain.getId).setPosition(pos)
+        val id = clusterDataClient().rulesCreate(rule)
+        clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
     }
-
-    def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action): LiteralRule =
-        newLiteralRuleOnChain(chain, pos, condition, action, UUID.randomUUID)
 
     def greTunnelZone(name: String): GreTunnelZone = {
         val tunnelZone = new GreTunnelZone().setName("default")

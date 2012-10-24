@@ -13,7 +13,7 @@ import com.midokura.sdn.dp.flows.FlowAction;
 
 public class WildcardFlow {
     short priority = 0; // used to choose among many matching flows
-    WildcardMatch match;
+    WildcardMatch wcmatch;
     List<FlowAction<?>> actions;
 
     long creationTimeMillis;
@@ -23,7 +23,7 @@ public class WildcardFlow {
     long idleExpirationMillis = 0; // default: never expire
 
     public WildcardFlow() {
-        this.match = new WildcardMatch();
+        this.wcmatch = new WildcardMatch();
         this.actions = new ArrayList<FlowAction<?>>();
     }
 
@@ -37,11 +37,11 @@ public class WildcardFlow {
     }
 
     public WildcardMatch getMatch() {
-        return match;
+        return wcmatch;
     }
 
-    public WildcardFlow setMatch(WildcardMatch match) {
-        this.match = match;
+    public WildcardFlow setMatch(WildcardMatch wcmatch) {
+        this.wcmatch = wcmatch;
         return this;
 
     }
@@ -57,11 +57,13 @@ public class WildcardFlow {
         if (that.getHardExpirationMillis() != this.getCreationTimeMillis() ||
             that.getIdleExpirationMillis() != this.getIdleExpirationMillis() ||
             that.getPriority() != this.getPriority())
-            return false;
-        if(actions != null ? !actions.equals(that.actions) : that.actions != null){
+                return false;
+        if (actions != null ? !actions.equals(that.actions)
+                            : that.actions != null) {
             return false;
         }
-        if(match != null ? !match.equals(that.match) : that.match != null){
+        if (wcmatch != null ? !wcmatch.equals(that.wcmatch)
+                            : that.wcmatch != null) {
             return false;
         }
         return true;
@@ -75,7 +77,7 @@ public class WildcardFlow {
             append(idleExpirationMillis).
             append(priority).
             append(actions).
-            append(match).
+            append(wcmatch).
             toHashCode();
     }
 
@@ -136,7 +138,7 @@ public class WildcardFlow {
         return "WildcardFlow{" +
             "actions=" + actions +
             ", priority=" + priority +
-            ", match=" + match +
+            ", wcmatch=" + wcmatch +
             ", creationTimeMillis=" + creationTimeMillis +
             ", lastUsedTimeMillis=" + lastUsedTimeMillis +
             ", hardExpirationMillis=" + hardExpirationMillis +

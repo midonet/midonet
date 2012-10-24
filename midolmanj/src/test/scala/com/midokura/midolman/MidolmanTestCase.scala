@@ -43,10 +43,13 @@ import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.dp._
 import com.midokura.sdn.dp.flows.FlowKeyInPort
+import com.midokura.util.functors.callbacks.AbstractCallback
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
         with OneInstancePerTest with ShouldMatchers with Dilation {
+
+    case class PacketsExecute(packet: Packet)
 
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
@@ -92,6 +95,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         injector.getInstance(classOf[MidolmanService]).startAndWait()
         mAgent = injector.getInstance(classOf[MonitoringAgent])
         mAgent.startMonitoringIfEnabled()
+
+        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].
+            packetsExecuteSubscribe(new AbstractCallback[Packet, Exception] {
+                override def onSuccess(pkt: Packet) {
+                    actors().eventStream.publish(PacketsExecute(pkt))
+                }
+        })
+
         beforeTest()
     }
 

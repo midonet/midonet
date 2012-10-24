@@ -96,7 +96,7 @@ public class BgpTest {
                 .portAddress("1.0.0.1")
                 .networkAddress("1.0.0.0")
                 .networkLength(24)
-                .portMac("00:00:00:00:01:01")
+                .portMac("02:00:00:00:01:01")
                 .create();
         log.debug("Created logical router port: " + materializedRouterPort1_vm.toString());
 
@@ -104,7 +104,7 @@ public class BgpTest {
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)
-                .portMac("00:00:00:00:aa:01")
+                .portMac("02:00:00:00:aa:01")
                 .create();
         log.debug("Created materialized router port: " + materializedRouterPort1_bgp.toString());
 
@@ -144,9 +144,9 @@ public class BgpTest {
                 .create();
 
         packetHelper1 = new PacketHelper(
-                MAC.fromString("00:00:00:00:01:02"),
+                MAC.fromString("02:00:00:00:01:02"),
                 IntIPv4.fromString("1.0.0.2"),
-                MAC.fromString("00:00:00:00:01:01"),
+                MAC.fromString("02:00:00:00:01:01"),
                 IntIPv4.fromString("1.0.0.1"));
 
 

@@ -16,7 +16,7 @@ import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
-import com.midokura.sdn.dp.flows.FlowAction
+import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction}
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatch}
 import com.midokura.util.functors.Callback0
@@ -137,8 +137,7 @@ class FlowController extends Actor with ActorLogging {
             freePendedPackets(cookieOpt)
 
         case InvalidateFlowsByTag(tag) =>
-            val flowsOption = tagToFlows.get(tag)
-            flowsOption match {
+            tagToFlows.remove(tag) match {
                 case None =>
                     log.debug("There are no flows to invalidate for tag {}",
                         tag)
@@ -197,7 +196,7 @@ class FlowController extends Actor with ActorLogging {
         flowToTags.remove(wildFlow) map {
             set: mutable.Set[Any] =>
                 for (tag <- set){
-                    tagToFlows.remove(tag)
+                    tagToFlows.removeBinding(tag, wildFlow)
                 }
         }
         flowRemovalCallbacksMap.remove(wildFlow) map {
@@ -215,6 +214,12 @@ class FlowController extends Actor with ActorLogging {
 
     private def handlePacketIn(packet: Packet) {
         log.debug("Received packet {}", packet)
+
+        if (packet.getReason == Packet.Reason.FlowActionUserspace) {
+            doSimulation(packet)
+            return
+        }
+
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
         var actions = flowManager.getActionsForDpFlow(packet.getMatch)
@@ -257,6 +262,12 @@ class FlowController extends Actor with ActorLogging {
         // If there was a match, execute its actions
         if (actions != null) {
             packet.setActions(actions)
+
+            for (action <- actions) {
+                if (action.isInstanceOf[FlowActionUserspace])
+                    packet.removeAction(action)
+            }
+
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
                     def onSuccess(data: java.lang.Boolean) {}
@@ -270,7 +281,11 @@ class FlowController extends Actor with ActorLogging {
             return
         }
 
-        // Otherwise, pass the packetIn up to the next layer for handling.
+        doSimulation(packet)
+    }
+
+    private def doSimulation(packet: Packet) {
+        // Pass the packetIn up to the next layer for handling.
         // Keep track of these packets so that for every FlowMatch, only
         // one such call goes to the next layer.
         dpMatchToCookie.get(packet.getMatch) match {

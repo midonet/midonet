@@ -14,27 +14,6 @@ import com.midokura.midolman.simulation.{Router => SimRouter}
 
 trait RouterHelper extends SimulationHelper {
 
-    def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
-                             dstIp: Int, dstMac: MAC) {
-        val arp = new ARP()
-        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-        arp.setProtocolType(ARP.PROTO_TYPE_IP)
-        arp.setHardwareAddressLength(6)
-        arp.setProtocolAddressLength(4)
-        arp.setOpCode(ARP.OP_REPLY)
-        arp.setSenderHardwareAddress(srcMac)
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(srcIp))
-        arp.setTargetHardwareAddress(dstMac)
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(dstIp))
-
-        val eth = new Ethernet()
-        eth.setPayload(arp)
-        eth.setSourceMACAddress(srcMac)
-        eth.setDestinationMACAddress(dstMac)
-        eth.setEtherType(ARP.ETHERTYPE)
-        triggerPacketIn(portName, eth)
-    }
-
     def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,
                                toMac: MAC, toIp: IntIPv4,
                                icmpType: Char, icmpCode: Char) {

@@ -551,8 +551,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr)
-            .setNetworkDestination(bgp.getPeerAddr)
+            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
         var wildcardFlow = new WildcardFlow()
@@ -567,8 +567,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr)
-            .setNetworkDestination(bgp.getPeerAddr)
+            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
             .setTransportSource(BGP_TCP_PORT)
 
         wildcardFlow = new WildcardFlow()
@@ -583,8 +583,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgp.getPeerAddr)
-            .setNetworkDestination(bgpPort.portAddr)
+            .setNetworkSource(bgp.getPeerAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
         wildcardFlow = new WildcardFlow()
@@ -599,8 +599,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgp.getPeerAddr)
-            .setNetworkDestination(bgpPort.portAddr)
+            .setNetworkSource(bgp.getPeerAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
             .setTransportSource(BGP_TCP_PORT)
 
         wildcardFlow = new WildcardFlow()
@@ -626,12 +626,14 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
         wildcardMatch = new WildcardMatch()
             .setInputPortUUID(bgpPort.id)
+            //.setArpSip(bgp.getPeerAddr.toHostAddress)
+            //.setArpTip(bgpPort.portAddr.toHostAddress)
             .setEtherType(ARP.ETHERTYPE)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
+            //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet, null))
@@ -641,8 +643,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr)
-            .setNetworkDestination(bgp.getPeerAddr)
+            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
@@ -656,8 +658,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgp.getPeerAddr)
-            .setNetworkDestination(bgpPort.portAddr)
+            .setNetworkSource(bgp.getPeerAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)

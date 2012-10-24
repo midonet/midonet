@@ -140,10 +140,10 @@ public class Route implements Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(IPv4.fromIPv4Address(srcNetworkAddr)).append(",");
-        sb.append(IPv4.fromIPv4Address(srcNetworkLength)).append(",");
-        sb.append(IPv4.fromIPv4Address(dstNetworkAddr)).append(",");
-        sb.append(IPv4.fromIPv4Address(dstNetworkLength)).append(",");
+        sb.append(IPv4.fromIPv4Address(srcNetworkAddr)).append("/");
+        sb.append(srcNetworkLength).append(",");
+        sb.append(IPv4.fromIPv4Address(dstNetworkAddr)).append("/");
+        sb.append(dstNetworkLength).append(",");
         if (null != nextHop)
             sb.append(nextHop.toString());
         sb.append(",");

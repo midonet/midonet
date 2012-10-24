@@ -106,7 +106,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
             //2. MAC moved from port-x to port-y
-            if (newPort != null && oldPort != null) {
+            if (newPort != null && oldPort != null && !newPort.equals(oldPort)) {
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }

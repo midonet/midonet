@@ -10,11 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ import com.midokura.midolman.host.commands.HostCommandGenerator;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.PortConfig;
@@ -34,7 +34,6 @@ import com.midokura.midolman.state.RuleIndexOutOfBoundsException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.zkManagers.*;
-import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.data.*;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.Command;
@@ -50,7 +49,9 @@ import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
-public class   LocalDataClientImpl implements DataClient {
+//TODO(ross) most methods don't use the reactor when accessing zk, this needs to be
+// fixed!
+public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private TenantZkManager tenantZkManager;
@@ -535,36 +536,8 @@ public class   LocalDataClientImpl implements DataClient {
                 }
             }
         });
-    }
+}
 
-    //TODO(rossella) remove this class, create a new one using zk asynch api
-    private class RoutesManager {
-        JSONSerializer serializer = new JSONSerializer();
-        Directory dir;
-
-        private RoutesManager(Directory dir) {
-            this.dir = dir;
-        }
-
-        void addRoute(com.midokura.midolman.layer3.Route item){
-
-            try {
-                String path = "/" + new String(serializer.objToBytes(item));
-                dir.add(path, null, CreateMode.EPHEMERAL);
-            } catch (Exception e) {
-                log.error("Error creating route {}", item.toString(), e);
-            }
-        }
-
-        public void remove(com.midokura.midolman.layer3.Route item){
-
-            try {
-                dir.delete("/" + new String(serializer.objToBytes(item)));
-            } catch (Exception e) {
-                log.error("Error removing route {}", item.toString(), e);
-            }
-        }
-    }
 
     public Chain chainsGetByName(@Nonnull String tenantId, String name)
             throws StateAccessException {
@@ -995,8 +968,21 @@ public class   LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID portsCreate(Port port) throws StateAccessException {
-        return portZkManager.create(Converter.toPortConfig(port));
+    public UUID portsCreate(final Port port) throws StateAccessException {
+        Future<UUID> portIdFuture = reactor.submit(new Callable<UUID>(){
+            @Override
+            public UUID call() throws Exception {
+                return portZkManager.create(Converter.toPortConfig(port));
+            }
+        }
+        );
+        UUID portId = null;
+        try {
+            portId = portIdFuture.get();
+        } catch (Exception e) {
+            log.error("portsCreate {}, got exception", port, e);
+        }
+        return portId;
     }
 
     @Override

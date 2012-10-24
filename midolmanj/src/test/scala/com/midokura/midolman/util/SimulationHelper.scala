@@ -16,6 +16,47 @@ trait SimulationHelper extends MidolmanTestCase {
 
     final val IPv6_ETHERTYPE: Short = 0x86dd.toShort
 
+    def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {
+        val arp = new ARP()
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+        arp.setProtocolType(ARP.PROTO_TYPE_IP)
+        arp.setHardwareAddressLength(6)
+        arp.setProtocolAddressLength(4)
+        arp.setOpCode(ARP.OP_REQUEST)
+        arp.setSenderHardwareAddress(srcMac)
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(srcIp))
+        arp.setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(dstIp))
+
+        val eth = new Ethernet()
+        eth.setPayload(arp)
+        eth.setSourceMACAddress(srcMac)
+        eth.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+        eth.setEtherType(ARP.ETHERTYPE)
+        triggerPacketIn(portName, eth)
+    }
+
+    def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
+                     dstIp: Int, dstMac: MAC) {
+        val arp = new ARP()
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+        arp.setProtocolType(ARP.PROTO_TYPE_IP)
+        arp.setHardwareAddressLength(6)
+        arp.setProtocolAddressLength(4)
+        arp.setOpCode(ARP.OP_REPLY)
+        arp.setSenderHardwareAddress(srcMac)
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(srcIp))
+        arp.setTargetHardwareAddress(dstMac)
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(dstIp))
+
+        val eth = new Ethernet()
+        eth.setPayload(arp)
+        eth.setSourceMACAddress(srcMac)
+        eth.setDestinationMACAddress(dstMac)
+        eth.setEtherType(ARP.ETHERTYPE)
+        triggerPacketIn(portName, eth)
+    }
+
     def expectPacketOnPort(port: UUID): PacketIn = {
         dpProbe().expectMsgClass(classOf[PacketIn])
 
@@ -25,6 +66,13 @@ trait SimulationHelper extends MidolmanTestCase {
         pktInMsg.wMatch should not be null
         pktInMsg.wMatch.getInputPortUUID should be === port
         pktInMsg
+    }
+
+    def fishForFlowAddedMessage(): WildcardFlow = {
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
+        addFlowMsg should not be null
+        addFlowMsg.flow should not be null
+        addFlowMsg.flow
     }
 
     def expectFlowAddedMessage(): WildcardFlow = {

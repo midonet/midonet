@@ -38,8 +38,14 @@ class BridgeConfig() {
     var inboundFilter: UUID = null
     var outboundFilter: UUID = null
 
-    override def hashCode =
-        (inboundFilter.toString + outboundFilter.toString).hashCode()
+    override def hashCode: Int = {
+        var hCode = 0
+        if (null != inboundFilter)
+            hCode += inboundFilter.hashCode
+        if (null != outboundFilter)
+            hCode = hCode * 17 + outboundFilter.hashCode
+        hCode
+    }
 
     override def equals(other: Any) = other match {
         case that: BridgeConfig =>
@@ -51,6 +57,14 @@ class BridgeConfig() {
     }
 
     def canEqual(other: Any) = other.isInstanceOf[BridgeConfig]
+
+    override def clone: BridgeConfig = {
+        val ret = new BridgeConfig()
+        ret.inboundFilter = this.inboundFilter
+        ret.outboundFilter = this.outboundFilter
+        ret.tunnelKey = this.tunnelKey
+        ret
+    }
 }
 
 object BridgeManager {
@@ -185,7 +199,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                 // the cfg of this bridge changed, invalidate all the flows
                 filterChanged = true
             }
-            cfg = newCfg
+            cfg = newCfg.clone
             macPortMap = newMacLeaningTable
             rtrMacToLogicalPortId = newRtrMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac

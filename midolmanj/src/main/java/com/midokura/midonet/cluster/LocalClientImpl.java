@@ -106,6 +106,7 @@ public class LocalClientImpl implements Client {
     @Override
     public void getPort(UUID portID, PortBuilder builder) {
         portsManager.registerNewBuilder(portID, builder);
+        log.debug("getPort {}", portID);
     }
 
     @Override

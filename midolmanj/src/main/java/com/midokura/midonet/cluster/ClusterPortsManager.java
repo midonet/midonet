@@ -89,6 +89,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
         PortBuilder builder = getBuilder(id);
         builder.setPort(port);
+        log.debug("Build port {}", port);
         builder.build();
     }
 

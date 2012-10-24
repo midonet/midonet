@@ -60,7 +60,7 @@ public class ReactorProvider implements Provider<Reactor> {
                 @Override
                 public V call() throws Exception {
                     try {
-                        callable.call();
+                        return callable.call();
                     } catch (Throwable tt) {
                         log.error("Reactor encountered Throwable", tt);
                     }

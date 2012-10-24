@@ -21,12 +21,13 @@ class PortManager(id: UUID, val clusterClient: Client)
     var port: Port[_] = null
 
     override def chainsUpdated() {
-        log.info("chains updated")
+        log.info("chains updated, new port {}", port)
+        // TODO(ross) better cloning this port before passing it
         context.actorFor("..").tell(port)
     }
 
     override def preStart() {
-        log.info("preStart")
+        log.info("preStart, port id {}", id)
         clusterClient.getPort(id, new PortBuilderImpl(self))
     }
 

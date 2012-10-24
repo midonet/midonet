@@ -104,8 +104,26 @@ public class WildcardMatchTest {
     }
 
     @Test
-    public void testSetNwDst() {
+    public void testSetNwDst_networkRange() {
         int len = 25;
+        int expectedLen = 32;
+        WildcardMatch wmatch = new WildcardMatch();
+        int nwDest = 0x12345678;
+        wmatch.setNetworkDestination(nwDest, len);
+        IntIPv4 ipDst = wmatch.getNetworkDestinationIPv4();
+        assertThat(ipDst, notNullValue());
+        if (null != ipDst) {
+            assertThat(ipDst.getMaskLength(), is(expectedLen));
+            assertThat(ipDst.addressAsInt(), is(nwDest));
+        }
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+            contains(WildcardMatch.Field.NetworkDestination));
+    }
+
+    @Test
+    public void testSetNwDst_unicastAddress() {
+        int len = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
         wmatch.setNetworkDestination(nwDest, len);
@@ -117,12 +135,30 @@ public class WildcardMatchTest {
         }
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-            contains(WildcardMatch.Field.NetworkDestination));
+                contains(WildcardMatch.Field.NetworkDestination));
     }
 
     @Test
-    public void testSetNwSrc() {
+    public void testSetNwSrc_networkRange() {
         int len = 25;
+        int expectedLen = 32;
+        WildcardMatch wmatch = new WildcardMatch();
+        int nwSource = 0x12345678;
+        wmatch.setNetworkSource(nwSource, len);
+        IntIPv4 ipSrc = wmatch.getNetworkSourceIPv4();
+        assertThat(ipSrc, notNullValue());
+        if (null != ipSrc) {
+            assertThat(ipSrc.getMaskLength(), is(expectedLen));
+            assertThat(ipSrc.addressAsInt(), is(nwSource));
+        }
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+            contains(WildcardMatch.Field.NetworkSource));
+    }
+
+    @Test
+    public void testSetNwSrc_unicastAddress() {
+        int len = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
         wmatch.setNetworkSource(nwSource, len);
@@ -134,6 +170,6 @@ public class WildcardMatchTest {
         }
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-            contains(WildcardMatch.Field.NetworkSource));
+                contains(WildcardMatch.Field.NetworkSource));
     }
 }

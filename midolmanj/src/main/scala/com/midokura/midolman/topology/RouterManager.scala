@@ -46,7 +46,7 @@ class RouterConfig {
     var outboundFilter: UUID = null
 
     override def hashCode: Int = {
-        var hCode = 0;
+        var hCode = 0
         if (null != inboundFilter)
             hCode += inboundFilter.hashCode
         if (null != outboundFilter)
@@ -64,6 +64,13 @@ class RouterConfig {
     }
 
     def canEqual(other: Any) = other.isInstanceOf[RouterConfig]
+
+    override def clone: RouterConfig = {
+        val ret = new RouterConfig()
+        ret.inboundFilter = this.inboundFilter
+        ret.outboundFilter = this.outboundFilter
+        ret
+    }
 }
 
 trait TagManager {
@@ -128,7 +135,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 // the cfg of this router changed, invalidate all the flows
                 filterChanged = true
             }
-            cfg = newCfg
+            cfg = newCfg.clone
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config)
