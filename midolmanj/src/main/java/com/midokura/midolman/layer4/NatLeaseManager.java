@@ -4,6 +4,8 @@
 
 package com.midokura.midolman.layer4;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +17,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +56,21 @@ public class NatLeaseManager implements NatMapping {
     private String rtrIdStr;
     private Cache cache;
     private Reactor reactor;
-    private Map<Object, Set<String>> matchToNatKeys;
-    private Map<Object, ScheduledFuture> matchToFuture;
     private Random rand;
     private int refreshSeconds;
+    private ConcurrentMap<Object, MatchMetadata> matches;
+
+    private class MatchMetadata {
+        public Set<String> natKeys;
+        public ScheduledFuture future;
+        public AtomicInteger flowCount;
+
+        public MatchMetadata() {
+            flowCount = new AtomicInteger(1);
+            natKeys = new HashSet<String>();
+            future = null;
+        }
+    }
 
     public NatLeaseManager(FiltersZkManager filterMgr, UUID routerId,
             Cache cache, Reactor reactor) {
@@ -70,8 +84,7 @@ public class NatLeaseManager implements NatMapping {
         this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
         this.rand = new Random();
-        this.matchToNatKeys = new HashMap<Object, Set<String>>();
-        this.matchToFuture = new HashMap<Object, ScheduledFuture>();
+        this.matches = new ConcurrentHashMap<Object, MatchMetadata>();
     }
 
     private class RefreshNatMappings implements Runnable {
@@ -84,14 +97,14 @@ public class NatLeaseManager implements NatMapping {
         @Override
         public void run() {
             log.debug("RefreshNatMappings for match {}", match);
-            Set<String> refreshKeys = matchToNatKeys.get(match);
-            if (null == refreshKeys) {
+            MatchMetadata matchData = matches.get(match);
+            if (null == matchData || null == matchData.natKeys) {
                 // The match's flow must have expired, stop refreshing.
                 log.debug("RefreshNatMappings stop refresh, got null keyset.");
                 return;
             }
             // Refresh all the nat keys associated with this match.
-            for (String key : refreshKeys) {
+            for (String key : matchData.natKeys) {
                 log.debug("RefreshNatMappings refresh key {}", key);
                 try {
                     String val = cache.getAndTouch(key);
@@ -104,7 +117,6 @@ public class NatLeaseManager implements NatMapping {
             // Re-schedule this runnable.
             reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
         }
-
     }
 
     @Override
@@ -148,19 +160,25 @@ public class NatLeaseManager implements NatMapping {
         return new NwTpPair(newNwDst, (short)newTpDst);
     }
 
-    private void scheduleRefresh(Object origMatch, String fwdKey,
-            String revKey) {
-        Set<String> refreshKeys = matchToNatKeys.get(origMatch);
-        if (null == refreshKeys) {
-            refreshKeys = new HashSet<String>();
-            matchToNatKeys.put(origMatch, refreshKeys);
-            ScheduledFuture<?> future = reactor.schedule(new RefreshNatMappings(
-                    origMatch), refreshSeconds, TimeUnit.SECONDS);
-            matchToFuture.put(origMatch, future);
+    private void scheduleRefresh(Object origMatch,
+                                 String fwdKey, String revKey) {
+        boolean isNew = matchRef(origMatch);
+        MatchMetadata matchData = matches.get(origMatch);
+        if (null == matchData) {
+            log.error("SCREAM: match not found after matchRef()");
+            return;
+        }
+
+        if (isNew) {
+            matchData.future = reactor.schedule(
+                    new RefreshNatMappings(origMatch),
+                    refreshSeconds,
+                    TimeUnit.SECONDS);
             log.debug("scheduleRefresh");
         }
-        refreshKeys.add(fwdKey);
-        refreshKeys.add(revKey);
+
+        matchData.natKeys.add(fwdKey);
+        matchData.natKeys.add(revKey);
     }
 
     public static String makeCacheKey(String prefix, int nwSrc, int tpSrc,
@@ -448,17 +466,60 @@ public class NatLeaseManager implements NatMapping {
     public void freeFlowResources(Object match) {
         log.debug("freeFlowResources: match {}", match);
 
+        // this was not the last user of this match
+        MatchMetadata matchData = matchUnref(match);
+        if (null == matchData)
+            return;
+
         // Cancel refreshing of any keys associated with this match.
-        Set<String> keys = matchToNatKeys.remove(match);
-        if (null != keys) {
-            for (String k : keys)
+        if (null != matchData.natKeys) {
+            for (String k : matchData.natKeys)
                 log.debug("freeFlowResources canceling refresh of key {}", k);
         }
-        ScheduledFuture future = matchToFuture.remove(match);
-        if (null != future) {
+        if (null != matchData.future) {
             log.debug("freeFlowResources found future to cancel.");
-            future.cancel(false);
+            matchData.future.cancel(false);
         }
     }
 
+    private boolean matchRef(Object match) {
+        log.debug("incrementing reference count for match {}", match);
+        MatchMetadata matchData = matches.get(match);
+        if (null == matchData) {
+            /* This is a new match. Put a new metadata object into the map.
+             * If somebody else races with us and adds it first, start over with
+             * a recursive call.
+             */
+            matchData = new MatchMetadata();
+            MatchMetadata oldV = matches.putIfAbsent(match, matchData);
+            return (null == oldV) ? true : matchRef(match);
+        } else {
+            /* This is a known match. If somebody raced with us to delete the
+             * match while we increment the refcount, start over with a
+             * recursive call.
+             */
+            if (matchData.flowCount.incrementAndGet() <= 1) {
+                matchData.flowCount.decrementAndGet();
+                return matchRef(match);
+            }
+
+            return (matchData == matches.get(match)) ? false : matchRef(match);
+        }
+    }
+
+    /** Decreases the flow reference count for a match object.
+     *
+     * @param match
+     * @return The MatchMetadata for the released match if this was the last
+     *         reference. null otherwise.
+     */
+    private MatchMetadata matchUnref(Object match) {
+        log.debug("decrementing reference count for match {}", match);
+        MatchMetadata matchData = matches.get(match);
+
+        if (null != matchData && matchData.flowCount.decrementAndGet() == 0)
+            return matches.remove(match);
+        else
+            return null;
+    }
 }
