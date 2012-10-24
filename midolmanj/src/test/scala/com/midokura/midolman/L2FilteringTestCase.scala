@@ -4,6 +4,7 @@
 package com.midokura.midolman
 
 import scala.Some
+import scala.collection.JavaConversions._
 
 import akka.testkit.TestProbe
 import akka.util.duration._
@@ -12,7 +13,8 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import guice.actors.OutgoingMessage
 
-import com.midokura.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
+import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
+                                             WildcardFlowAdded}
 import layer3.Route
 import layer3.Route.NextHop
 import rules.{RuleResult, Condition}
@@ -20,11 +22,9 @@ import topology.LocalPortActive
 import com.midokura.packets._
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import topology.VirtualToPhysicalMapper.HostRequest
-import topology.VirtualTopologyActor.BridgeRequest
 import util.SimulationHelper
-import com.midokura.midolman.simulation.{Bridge => SimBridge}
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.sdn.dp.flows.{FlowAction, FlowActionOutput}
+import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with
@@ -117,11 +117,13 @@ class L2FilteringTestCase extends MidolmanTestCase with
         pktOut.getData should not be null
         log.debug("Packet execute: {}", pktOut)
 
-        pktOut.getActions.size should be === 1
-        val action = pktOut.getActions.get(0)
-        action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
-        action.getValue.getClass() should be === classOf[FlowActionOutput]
-        action.getValue.asInstanceOf[FlowActionOutput].getPortNumber should be === port
+        pktOut.getActions.size should (equal (1) or equal (vmPortNames.size - 1))
+
+        pktOut.getActions.toList map { action =>
+            action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
+            action.getValue.getClass() should be === classOf[FlowActionOutput]
+            action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
+        } should contain (port)
 
         Ethernet.deserialize(pktOut.getData)
     }
@@ -242,8 +244,6 @@ class L2FilteringTestCase extends MidolmanTestCase with
         clusterDataClient().bridgesUpdate(bridge)
 
         log.info("checking that the creation of the chain invalidates all flows")
-        fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
-        fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
             fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
             fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
@@ -261,8 +261,6 @@ class L2FilteringTestCase extends MidolmanTestCase with
         log.info("sending a packet that should be allowed by rule 2")
         expectPacketAllowed(0, 3, lldpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
-        fishForRequestOfType[BridgeRequest](vtaProbe())
-        fishForReplyOfType[SimBridge](vtaProbe())
 
         log.info("adding a second rule: drop by mac from port4 to port1")
         val cond3 = new Condition()
@@ -271,10 +269,7 @@ class L2FilteringTestCase extends MidolmanTestCase with
         val rule3 = newLiteralRuleOnChain(brInChain, 3, cond3,
                                           RuleResult.Action.DROP)
 
-        fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        1 to 3 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe) }
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
         log.info("sending two packets that should be dropped by rule 3")
@@ -294,11 +289,7 @@ class L2FilteringTestCase extends MidolmanTestCase with
         cond4.dlType = LLDP.ETHERTYPE
         val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
-        fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        1 to 4 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe) }
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
         log.info("sending an lldp packet that should be dropped by rule 4")
@@ -310,7 +301,6 @@ class L2FilteringTestCase extends MidolmanTestCase with
 
         log.info("deleting rule 4")
         clusterDataClient().rulesDelete(rule4.getId)
-        fishForRequestOfType[FlowController.InvalidateFlowsByTag](flowProbe())
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
