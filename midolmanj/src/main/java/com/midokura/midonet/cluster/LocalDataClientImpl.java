@@ -8,10 +8,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -49,8 +50,6 @@ import com.midokura.util.functors.Callback2;
 import com.midokura.util.functors.CollectionFunctors;
 import com.midokura.util.functors.Functor;
 
-//TODO(ross) most methods don't use the reactor when accessing zk, this needs to be
-// fixed!
 public class LocalDataClientImpl implements DataClient {
 
     @Inject
@@ -120,8 +119,8 @@ public class LocalDataClientImpl implements DataClient {
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     private Reactor reactor;
 
-    Set<Callback2<UUID, Boolean>> subscriptionPortsActive =
-        new HashSet<Callback2<UUID, Boolean>>();
+    final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =
+        new ConcurrentLinkedQueue<Callback2<UUID, Boolean>>();
 
     @Inject
     private Store monitoringStore;
@@ -130,7 +129,7 @@ public class LocalDataClientImpl implements DataClient {
             LoggerFactory.getLogger(LocalDataClientImpl.class);
 
     @Override
-    public AdRoute adRoutesGet(UUID id) throws StateAccessException {
+    public @CheckForNull AdRoute adRoutesGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         AdRoute adRoute = null;
@@ -155,7 +154,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public List<AdRoute> adRoutesFindByBgp(UUID bgpId)
+    public List<AdRoute> adRoutesFindByBgp(@Nonnull UUID bgpId)
             throws StateAccessException {
         List<UUID> adRouteIds = adRouteZkManager.list(bgpId);
         List<AdRoute> adRoutes = new ArrayList<AdRoute>();
@@ -166,7 +165,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public BGP bgpGet(UUID id) throws StateAccessException {
+    public @CheckForNull BGP bgpGet(@Nonnull UUID id) throws StateAccessException {
         return bgpZkManager.getBGP(id);
     }
 
@@ -191,7 +190,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Bridge bridgesGetByName(String tenantId, String name)
+    public @CheckForNull Bridge bridgesGetByName(String tenantId, String name)
             throws StateAccessException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
@@ -312,7 +311,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Bridge bridgesGet(UUID id) throws StateAccessException {
+    public @CheckForNull Bridge bridgesGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         Bridge bridge = null;
@@ -343,7 +342,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Chain chainsGet(UUID id) throws StateAccessException {
+    public @CheckForNull Chain chainsGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         Chain chain = null;
@@ -410,13 +409,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void subscribeToLocalActivePorts(Callback2<UUID, Boolean> cb) {
-        //TODO(ross) notify when the port goes down
-        subscriptionPortsActive.add(cb);
+    public void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb) {
+        subscriptionPortsActive.offer(cb);
     }
 
     @Override
-    public UUID tunnelZonesCreate(TunnelZone<?, ?> zone)
+    public UUID tunnelZonesCreate(@Nonnull TunnelZone<?, ?> zone)
         throws StateAccessException {
         return zonesZkManager.createZone(zone, null);
     }
@@ -433,7 +431,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
+    public @CheckForNull TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
         throws StateAccessException {
         return zonesZkManager.getZone(uuid, null);
     }
@@ -456,7 +454,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void tunnelZonesUpdate(TunnelZone<?, ?> zone)
+    public void tunnelZonesUpdate(@Nonnull TunnelZone<?, ?> zone)
             throws StateAccessException {
         zonesZkManager.updateZone(zone);
     }
@@ -468,7 +466,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID id,
+    public @CheckForNull TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID id,
                                                                 UUID hostId)
         throws StateAccessException {
         return zonesZkManager.getZoneMembership(id, hostId, null);
@@ -539,7 +537,7 @@ public class LocalDataClientImpl implements DataClient {
 }
 
 
-    public Chain chainsGetByName(@Nonnull String tenantId, String name)
+    public @CheckForNull Chain chainsGetByName(@Nonnull String tenantId, String name)
             throws StateAccessException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
@@ -581,14 +579,14 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpSubnetsCreate(UUID bridgeId, Subnet subnet)
+    public void dhcpSubnetsCreate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException {
         dhcpZkManager.createSubnet(bridgeId,
                                    Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
-    public void dhcpSubnetsUpdate(UUID bridgeId, Subnet subnet)
+    public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException {
         dhcpZkManager.updateSubnet(bridgeId,
                                    Converter.toDhcpSubnetConfig(subnet));
@@ -601,7 +599,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
+    public @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException {
 
         Subnet subnet = null;
@@ -650,7 +648,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public com.midokura.midonet.cluster.data.dhcp.Host dhcpHostsGet(
+    public @CheckForNull com.midokura.midonet.cluster.data.dhcp.Host dhcpHostsGet(
             UUID bridgeId, IntIPv4 subnet, String mac)
             throws StateAccessException {
 
@@ -688,7 +686,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Host hostsGet(UUID hostId) throws StateAccessException {
+    public @CheckForNull Host hostsGet(UUID hostId) throws StateAccessException {
 
         Host host = null;
         if (hostsExists(hostId)) {
@@ -767,7 +765,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Interface interfacesGet(UUID hostId, String interfaceName)
+    public @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
             throws StateAccessException {
         Interface anInterface = null;
 
@@ -823,7 +821,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Command commandsGet(UUID hostId, Integer id)
+    public @CheckForNull Command commandsGet(UUID hostId, Integer id)
             throws StateAccessException {
         Command command = null;
 
@@ -880,7 +878,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public VirtualPortMapping hostsGetVirtualPortMapping(
+    public @CheckForNull VirtualPortMapping hostsGetVirtualPortMapping(
             UUID hostId, UUID portId) throws StateAccessException {
         HostDirectory.VirtualPortMapping mapping =
                 hostZkManager.getVirtualPortMapping(hostId, portId);
@@ -968,25 +966,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID portsCreate(final Port port) throws StateAccessException {
-        Future<UUID> portIdFuture = reactor.submit(new Callable<UUID>(){
-            @Override
-            public UUID call() throws Exception {
-                return portZkManager.create(Converter.toPortConfig(port));
-            }
-        }
-        );
-        UUID portId = null;
-        try {
-            portId = portIdFuture.get();
-        } catch (Exception e) {
-            log.error("portsCreate {}, got exception", port, e);
-        }
-        return portId;
+    public UUID portsCreate(@Nonnull final Port port) throws StateAccessException {
+        return portZkManager.create(Converter.toPortConfig(port));
     }
 
     @Override
-    public Port portsGet(UUID id) throws StateAccessException {
+    public @CheckForNull Port portsGet(UUID id) throws StateAccessException {
         Port port = null;
         if (portZkManager.exists(id)) {
             port = Converter.fromPortConfig(portZkManager.get(id));
@@ -1090,8 +1075,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portGroupsRemovePortMembership(@Nonnull UUID id,
-                                               @Nonnull UUID portId)
+    public void portGroupsRemovePortMembership(UUID id, UUID portId)
             throws StateAccessException {
         portGroupZkManager.removePortFromPortGroup(id, portId);
     }
@@ -1144,7 +1128,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public PortGroup portGroupsGet(UUID id) throws StateAccessException {
+    public @CheckForNull PortGroup portGroupsGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         PortGroup portGroup = null;
@@ -1176,20 +1160,21 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID hostsCreate(UUID hostId, Host host) throws StateAccessException {
+    public UUID hostsCreate(@Nonnull UUID hostId, @Nonnull Host host) throws StateAccessException {
         hostZkManager.createHost(hostId, Converter.toHostConfig(host));
         return hostId;
     }
 
     @Override
-    public void hostsAddVrnPortMapping(UUID hostId, UUID portId, String localPortName)
+    public void hostsAddVrnPortMapping(@Nonnull UUID hostId, @Nonnull UUID portId,
+                                       @Nonnull String localPortName)
             throws StateAccessException {
         hostZkManager.addVirtualPortMapping(
             hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
-    public void hostsAddDatapathMapping(UUID hostId, String datapathName)
+    public void hostsAddDatapathMapping(@Nonnull UUID hostId, @Nonnull String datapathName)
             throws StateAccessException {
         hostZkManager.addVirtualDatapathMapping(hostId, datapathName);
     }
@@ -1204,13 +1189,14 @@ public class LocalDataClientImpl implements DataClient {
     public Map<String, Long> metricsGetTSPoints(String type,
                                                 String targetIdentifier,
                                                 String metricName,
-                                                long timeStart, long timeEnd) {
+                                                long timeStart,
+                                                long timeEnd) {
         return monitoringStore.getTSPoints(type, targetIdentifier, metricName,
                 timeStart, timeEnd);
     }
 
     @Override
-    public void metricsAddTypeToTarget(String targetIdentifier, String type) {
+    public void metricsAddTypeToTarget(@Nonnull String targetIdentifier, @Nonnull String type) {
         monitoringStore.addMetricTypeToTarget(targetIdentifier, type);
     }
 
@@ -1220,7 +1206,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void metricsAddToType(String type, String metricName) {
+    public void metricsAddToType(@Nonnull String type, @Nonnull String metricName) {
         monitoringStore.addMetricToType(type, metricName);
     }
 
@@ -1231,7 +1217,7 @@ public class LocalDataClientImpl implements DataClient {
 
 
     @Override
-    public Route routesGet(UUID id) throws StateAccessException {
+    public @CheckForNull Route routesGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         Route route = null;
@@ -1273,7 +1259,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Router routersGet(UUID id) throws StateAccessException {
+    public @CheckForNull Router routersGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         Router router = null;
@@ -1383,7 +1369,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Router routersGetByName(String tenantId, String name)
+    public @CheckForNull Router routersGetByName(@Nonnull String tenantId, @Nonnull String name)
             throws StateAccessException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
@@ -1426,7 +1412,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Rule<?, ?> rulesGet(UUID id) throws StateAccessException {
+    public @CheckForNull Rule<?, ?> rulesGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         Rule rule = null;
@@ -1462,7 +1448,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public VPN vpnGet(UUID id) throws StateAccessException {
+    public @CheckForNull VPN vpnGet(UUID id) throws StateAccessException {
         log.debug("Entered: id={}", id);
 
         VPN vpn = null;
@@ -1496,13 +1482,13 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portSetsAsyncAddHost(UUID portSetId, UUID hostId,
+    public void portSetsAsyncAddHost(@Nonnull UUID portSetId, @Nonnull UUID hostId,
                                      DirectoryCallback.Add callback) {
         portSetZkManager.addMemberAsync(portSetId, hostId, callback);
     }
 
     @Override
-    public void portSetsAddHost(UUID portSetId, UUID hostId)
+    public void portSetsAddHost(@Nonnull UUID portSetId, @Nonnull UUID hostId)
         throws StateAccessException {
         portSetZkManager.addMember(portSetId, hostId);
     }
