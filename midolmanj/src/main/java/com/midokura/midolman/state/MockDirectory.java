@@ -11,9 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import javax.annotation.Nonnull;
 
 import org.apache.jute.Record;
@@ -68,7 +65,7 @@ public class MockDirectory implements Directory {
             this.watchers = new HashSet<Watcher>();
         }
 
-        Node getChild(String name) throws NoNodeException {
+        synchronized Node getChild(String name) throws NoNodeException {
             Node child = children.get(name);
             if (null == child)
                 throw new NoNodeException(path + '/' + name);
@@ -76,7 +73,7 @@ public class MockDirectory implements Directory {
         }
 
         // Document that this returns the absolute path of the child
-        String addChild(String name, byte[] data, CreateMode mode,
+        synchronized String addChild(String name, byte[] data, CreateMode mode,
                         boolean multi)
             throws NodeExistsException, NoChildrenForEphemeralsException {
             if (enableDebugLog)
@@ -96,7 +93,7 @@ public class MockDirectory implements Directory {
             return childPath;
         }
 
-        void setData(byte[] data, boolean multi) {
+        synchronized void setData(byte[] data, boolean multi) {
             if (enableDebugLog)
                 log.debug("[child]setData => {}", data);
             this.data = data;
@@ -104,7 +101,7 @@ public class MockDirectory implements Directory {
             fireWatchers(multi, EventType.NodeDataChanged);
         }
 
-        byte[] getData(Watcher watcher) {
+        synchronized byte[] getData(Watcher watcher) {
             if (watcher != null)
                 watchers.add(watcher);
 
@@ -114,14 +111,14 @@ public class MockDirectory implements Directory {
             return data.clone();
         }
 
-        Set<String> getChildren(Runnable watcher) {
+        synchronized Set<String> getChildren(Runnable watcher) {
             if (watcher != null)
                 watchers.add(wrapCallback(watcher));
 
             return new HashSet<String>(children.keySet());
         }
 
-        void deleteChild(String name, boolean multi)
+        synchronized void deleteChild(String name, boolean multi)
             throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
             String childPath = path + "/" + name;
@@ -135,7 +132,7 @@ public class MockDirectory implements Directory {
             this.fireWatchers(multi, EventType.NodeChildrenChanged);
         }
 
-        void fireWatchers(boolean isMulti, EventType eventType) {
+        synchronized void fireWatchers(boolean isMulti, EventType eventType) {
             // Each Watcher is called back at most once for every time they
             // register.
             Set<Watcher> watchers = new HashSet<Watcher>(this.watchers);
@@ -147,7 +144,9 @@ public class MockDirectory implements Directory {
                 );
 
                 if (isMulti) {
+                    synchronized (multiDataWatchers) {
                     multiDataWatchers.put(watcher, watchedEvent);
+                    }
                 } else {
                     watcher.process(watchedEvent);
                 }
@@ -373,8 +372,10 @@ public class MockDirectory implements Directory {
                 }
             }
         } finally {
+            synchronized (multiDataWatchers) {
             watchers.putAll(multiDataWatchers);
             multiDataWatchers.clear();
+            }
         }
 
         for (Watcher watcher : watchers.keySet()) {
@@ -427,8 +428,8 @@ public class MockDirectory implements Directory {
             Collections.<byte[]>emptySet(), null));
         }
         // Map to keep track of the callbacks that returned
-        final ConcurrentMap<String, byte[]> callbackResults =
-            new ConcurrentHashMap<String, byte[]>();
+        final Map<String, byte[]> callbackResults =
+            new HashMap<String, byte[]>();
         for(final String path: relativePaths){
             asyncGet(path, new DirectoryCallback<byte[]>(){
 

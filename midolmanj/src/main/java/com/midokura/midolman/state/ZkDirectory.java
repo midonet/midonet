@@ -5,13 +5,11 @@
 package com.midokura.midolman.state;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import javax.annotation.Nonnull;
 
 import org.apache.zookeeper.AsyncCallback;
@@ -318,8 +316,11 @@ public class ZkDirectory implements Directory {
                 Collections.<byte[]>emptySet(), null));
         }
         // Map to keep track of the callbacks that returned
-        final ConcurrentMap<String, byte[]> callbackResults =
-            new ConcurrentHashMap<String, byte[]>();
+        // TODO(rossella) probably it's better to return a ConcurrentMap and make
+        // sure that all the updates are seen
+        // (http://www.javamex.com/tutorials/synchronization_concurrency_8_hashmap2.shtml)
+        final Map<String, byte[]> callbackResults =
+            new HashMap<String, byte[]>();
         for(final String path: relativePaths){
             asyncGet(path, new DirectoryCallback<byte[]>(){
 
