@@ -246,7 +246,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
 
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe)
+        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
         if (isDropExpected == false) {
             addFlowMsg.pktBytes should not be null
             Ethernet.deserialize(addFlowMsg.pktBytes) should equal(ethPkt)
@@ -279,7 +279,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowActs should have size(1)
         dpController().underlyingActor.vifToLocalPortNumber(expectedPort.getId) match {
             case Some(portNo : Short) =>
-                as[FlowActionOutput](flowActs.get(0)).getPortNumber() should equal (portNo)
+                as[FlowActionOutput](flowActs.get(0)).getPortNumber should equal (portNo)
             case None => fail("Not able to find data port number for materialize Port " +
                               expectedPort.getId)
         }

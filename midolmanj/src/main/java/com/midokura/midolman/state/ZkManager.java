@@ -332,7 +332,6 @@ public class ZkManager {
     }
 
     public Op getPersistentCreateOp(String path, byte[] data) {
-        log.debug("ZkManager.getPersistentCreateOp entered: path={}", path);
         return Op
                 .create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
@@ -349,12 +348,10 @@ public class ZkManager {
     }
 
     public Op getDeleteOp(String path) {
-        log.debug("ZkManager.getDeleteOp entered: path={}", path);
         return Op.delete(path, -1);
     }
 
     public Op getSetDataOp(String path, byte[] data) {
-        log.debug("ZkManager.getDeleteOp entered: path={}", path);
         return Op.setData(path, data, -1);
     }
 

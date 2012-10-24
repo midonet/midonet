@@ -9,42 +9,38 @@ import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
 import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, mutable, immutable}
+import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
-import java.util.{HashSet, UUID}
+import java.lang.{Boolean => JBoolean, Short => JShort}
+import java.util.{HashSet, Set => JSet, UUID}
 
 import com.google.inject.Inject
+
+import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
 import com.midokura.midolman.rules.{ChainPacketContext, RuleResult}
 import com.midokura.midolman.services.HostIdProviderService
 import com.midokura.midolman.simulation.{Bridge => RCUBridge, Chain}
 import com.midokura.midolman.topology._
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+        ChainRequest, PortRequest}
+import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
 import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
 import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
         CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
-import com.midokura.netlink.Callback
-import rcu.Host
-import rcu.PortSet
-import com.midokura.packets.Ethernet
-import topology.LocalPortActive
-import topology.VirtualTopologyActor.BridgeRequest
-import topology.VirtualTopologyActor.ChainRequest
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import scala.Some
-import scala.Left
-import scala.Right
 
 
 /**
@@ -441,7 +437,7 @@ class DatapathController() extends Actor with ActorLogging {
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
-    val localTunnelPorts: mutable.Set[Short] = mutable.Set()
+    val localTunnelPorts: mutable.Set[JShort] = mutable.Set()
     // Map of vport ID to local interface name - according to ZK.
     val vifPorts: mutable.Map[UUID, String] = mutable.Map()
 
@@ -768,7 +764,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         var flowActions = flow.getActions
         if (flowActions == null)
-            flowActions = List().toList
+            flowActions = Nil
 
         translateActions(flowActions, inPortUUID, dpTags, flow.getMatch) onComplete {
             case Right(actions) =>
@@ -857,18 +853,16 @@ class DatapathController() extends Actor with ActorLogging {
                     case Some(localPort) =>
                         translated.success(
                             translateToDpPorts(actions, port, List(localPort),
-                                None, List(), dpTags))
+                                None, Nil, dpTags))
                     case None =>
                         ask(VirtualTopologyActor.getRef(), PortRequest(port,
                             update = false)).mapTo[client.Port[_]] map {
-                            _ match {
                                 case p: ExteriorPort[_] =>
-                                    translated.success(
-                                        translateToDpPorts(
-                                            actions, port, List(),
+                                    translated.success(translateToDpPorts(
+                                            actions, port, Nil,
                                             Some(p.tunnelKey),
-                                            tunnelsForHosts(List(p.hostID)), dpTags))
-                            }
+                                            tunnelsForHosts(List(p.hostID)),
+                                            dpTags))
                         }
                 }
             case None =>
@@ -1095,8 +1089,7 @@ class DatapathController() extends Actor with ActorLogging {
                                         .setPriority(priority),
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
-                                null,
-                                tags, null))
+                                null, tags, null))
     }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
@@ -1104,7 +1097,8 @@ class DatapathController() extends Actor with ActorLogging {
                            cookie: Option[Int]) {
 
         wMatch.getInputPortNumber match {
-            case port: java.lang.Short =>
+            case port: JShort =>
+                log.debug("PacketIn on port #{}", port)
                 if (localToVifPorts.contains(port)) {
                     wMatch.setInputPortUUID(localToVifPorts(port))
                     SimulationController.getRef().tell(
@@ -1112,6 +1106,16 @@ class DatapathController() extends Actor with ActorLogging {
                     return
                 } else if (localTunnelPorts.contains(port)) {
                     log.debug("PacketIn came from a tunnel port")
+                    if (wMatch.getTunnelID == null) {
+                        log.error("SCREAM: got a PacketIn on a tunnel port " +
+                                  "and a wildcard match with no tunnel ID; " +
+                                  "dropping all flows from tunnel port #{}",
+                                  port)
+                        addDropFlow(new WildcardMatch().setInputPort(port),
+                                    cookie)
+                        return
+                    }
+
                     val portSetFuture = VirtualToPhysicalMapper.getRef() ?
                         PortSetForTunnelKeyRequest(wMatch.getTunnelID)
 
@@ -1142,19 +1146,12 @@ class DatapathController() extends Actor with ActorLogging {
                                                 portSet.id,
                                                 portsForLocalPorts(portIDs),
                                                 None, Nil, tags),
-                                             tags, cookie)
+                                             tags, cookie, pktBytes)
                                         })
                                 case _ => log.error("Error getting " +
                                     "configurations of local ports of " +
                                     "PortSet {}", portSet)
                             }
-
-                        case _ if (wMatch.getTunnelID == null) =>
-                            log.error("SCREAM: got a PacketIn on a tunnel port"+
-                                " and a wildcard match with no tunnel id")
-                            addDropFlow(new WildcardMatch().
-                                setInputPort(port),
-                                cookie)
 
                         case _ =>
                             // for now, install a drop flow. We will invalidate
@@ -1165,7 +1162,8 @@ class DatapathController() extends Actor with ActorLogging {
                                             setTunnelID(wMatch.getTunnelID).
                                             setInputPort(port),
                                 actions = Nil,
-                                tags = Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
+                                tags = Set(FlowTagger.invalidateByTunnelKey(
+                                               wMatch.getTunnelID)),
                                 cookie = cookie)
                     }
 
@@ -1179,7 +1177,7 @@ class DatapathController() extends Actor with ActorLogging {
                         priority = 1000) // TODO(abel) use a constant here
                 }
 
-            case null =>
+            case _ =>
                 // Missing InputPortNumber. This should never happen.
                 log.error("SCREAM: got a PacketIn that has no inPort number.",
                     wMatch)
@@ -1240,8 +1238,8 @@ class DatapathController() extends Actor with ActorLogging {
                     setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
                     setData(ethPkt.serialize).setActions(actions)
                 datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[java.lang.Boolean] {
-                        def onSuccess(data: java.lang.Boolean) {}
+                    new ErrorHandlingCallback[JBoolean] {
+                        def onSuccess(data: JBoolean) {}
 
                         def handleError(ex: NetlinkException, timeout: Boolean) {
                             log.error(ex,
@@ -1274,12 +1272,14 @@ class DatapathController() extends Actor with ActorLogging {
 
             }
             // trigger invalidation
+            val tunnelPortNum: JShort = port.getPortNo.shortValue
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateDPPort(port.getPortNo.shortValue))
-            localTunnelPorts.add(port.getPortNo.shortValue)
+                FlowTagger.invalidateDPPort(tunnelPortNum))
+            localTunnelPorts.add(tunnelPortNum)
+            log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones(zone), hConf,
-                    Some(port.getPortNo.shortValue()),
+                    Some(tunnelPortNum),
                     TunnelChangeEventOperation.Established))
         }
 
@@ -1299,6 +1299,8 @@ class DatapathController() extends Actor with ActorLogging {
                 case None =>
             }
             localTunnelPorts.remove(port.getPortNo.shortValue)
+            log.debug("Removing tunnel with port #{}",
+                      port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
                     host.zones(zone), hConf,
@@ -1473,8 +1475,8 @@ class DatapathController() extends Actor with ActorLogging {
         def handleExistingDP(dp: Datapath) {
             log.info("The datapath already existed. Flushing the flows.")
             datapathConnection.flowsFlush(dp,
-                new ErrorHandlingCallback[java.lang.Boolean] {
-                    def onSuccess(data: java.lang.Boolean) {}
+                new ErrorHandlingCallback[JBoolean] {
+                    def onSuccess(data: JBoolean) {}
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error("Failed to flush the Datapath's flows!")
                     }
@@ -1527,8 +1529,8 @@ class DatapathController() extends Actor with ActorLogging {
     private def queryDatapathPorts(datapath: Datapath) {
         log.info("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,
-            new ErrorHandlingCallback[java.util.Set[Port[_, _]]] {
-                def onSuccess(ports: java.util.Set[Port[_, _]]) {
+            new ErrorHandlingCallback[JSet[Port[_, _]]] {
+                def onSuccess(ports: JSet[Port[_, _]]) {
                     self ! _SetLocalDatapathPorts(datapath, ports.toSet)
                 }
 

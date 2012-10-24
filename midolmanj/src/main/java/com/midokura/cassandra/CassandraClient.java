@@ -127,8 +127,12 @@ public class CassandraClient {
 
     public void set(String key, String value, String newColumn) {
         try {
+            // Mutator is not thread safe, cannot be accessed by different threads
+            // at the same time. See the class or
+            // http://comments.gmane.org/gmane.comp.db.hector.user/5046
+            // We create a new one every time and only one thread will use it, should
+            // be fine.
             Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
-
             mutator.insert(key, columnFamily,
                            HFactory.createColumn(newColumn, value,
                                                  expirationSecs,
@@ -140,6 +144,8 @@ public class CassandraClient {
     }
 
     public String get(String key, String columnName) {
+        // All get operations in Hector are performed by ExecutingKeyspace.doExecute
+        // which is thread safe
         HColumn<String, String> result = null;
         try {
             ColumnQuery<String, String, String> query =
