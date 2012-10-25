@@ -28,7 +28,7 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
 @RunWith(classOf[JUnitRunner])
-class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
+class FlowManagementForPortSetTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders {
 
     var tunnelZone: GreTunnelZone = null
@@ -43,7 +43,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
     var flowRemovedProbe: TestProbe = null
 
     private val log = LoggerFactory.getLogger(
-        classOf[InstallWildcardFlowForPortSetTestCase])
+        classOf[FlowManagementForPortSetTestCase])
 
     override def beforeTest() {
         tunnelZone = greTunnelZone("default")
@@ -143,7 +143,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+            wildcardFlow, None, pktBytes, null, null))
 
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
@@ -253,7 +253,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         assert(flowActs.contains(FlowActions.output(localPortNumber3)))
     }
 
-    def testNewHostRemovedFromPortSet() {
+    def testInvalidationHostRemovedFromPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -284,10 +284,10 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+            wildcardFlow, None, pktBytes, null, null))
 
         val flowToInvalidate = fishForRequestOfType[AddWildcardFlow](flowProbe())
-
+        // delete one host from the portSet
         clusterDataClient().portSetsDelHost(bridge.getId, host3.getId)
         // expect flow invalidation for the flow tagged using the bridge id and portSet id,
         // which are the same
@@ -299,7 +299,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
     }
 
-    def testNewHostAddedToPortSet() {
+    def testInvalidationNewHostAddedToPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -330,7 +330,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+            wildcardFlow, None, pktBytes, null, null))
 
         val flowToInvalidate = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
@@ -346,7 +346,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
     }
 
-    def testNewPortAddedToPortSet() {
+    def testInvalidationNewPortAddedToPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -378,31 +378,32 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+            wildcardFlow, None, pktBytes, null, null))
 
         val flowToInvalidate = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         val port2OnHost1 = newExteriorBridgePort(bridge)
-        // TODO(ross) why is this not working?
-        //materializePort(port2OnHost1, host1, "port1b")
-        // flow installed for tunnel key = port
-        // fishForRequestOfType[AddWildcardFlow](flowProbe())
-        vtpProbe().testActor.tell(new LocalPortActive(port2OnHost1.getId, true))
+        materializePort(port2OnHost1, host1, "port1b")
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
-        // invalidation with tag port id
+        // invalidation with tag port datapath short id
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        // flow installed for tunnel key = port
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        // flow invalidation tag = port id
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+
         // expect flow invalidation for the flow tagged using the bridge id and portSet id,
         // which are the same
         val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(FlowTagger.invalidateBroadcastFlows(bridge.getId,
-            bridge.getId)) )
+            bridge.getId)))
 
         val flowInvalidated = flowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
 
     }
 
-    def testRemovePortFromPortSet() {
+    def testInvalidationRemovePortFromPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
@@ -438,7 +439,7 @@ class InstallWildcardFlowForPortSetTestCase extends MidolmanTestCase
 
         val pktBytes = "My packet".getBytes
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null, null))
+            wildcardFlow, None, pktBytes, null, null))
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         // delete the port. The dp controller will invalidate all the flow whose
