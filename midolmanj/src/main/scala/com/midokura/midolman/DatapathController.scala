@@ -571,10 +571,9 @@ class DatapathController() extends Actor with ActorLogging {
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
 
-        case AddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks, tags,
-                              tagRemovalCallback) =>
+        case AddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks, tags) =>
             handleAddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks,
-                                    tags, tagRemovalCallback)
+                                    tags)
 
         case SendPacket(ethPkt, actions) =>
             handleSendPacket(ethPkt, actions)
@@ -740,8 +739,7 @@ class DatapathController() extends Actor with ActorLogging {
                               cookie: Option[Int],
                               pktBytes: Array[Byte],
                               flowRemovalCallbacks: ROSet[Callback0],
-                              tags: ROSet[Any],
-                              tagRemovalCallbacks: ROSet[Callback0]) {
+                              tags: ROSet[Any]) {
         val flowMatch = flow.getMatch
         val inPortUUID = flowMatch.getInputPortUUID
 
@@ -770,11 +768,11 @@ class DatapathController() extends Actor with ActorLogging {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
-                    pktBytes,flowRemovalCallbacks, dpTags, tagRemovalCallbacks)
+                    pktBytes,flowRemovalCallbacks, dpTags)
             case _ =>
                 // TODO(pino): should we push a temporary drop flow instead?
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
-                    pktBytes, flowRemovalCallbacks, dpTags, tagRemovalCallbacks)
+                    pktBytes, flowRemovalCallbacks, dpTags)
         }
     }
 
@@ -1069,7 +1067,7 @@ class DatapathController() extends Actor with ActorLogging {
         FlowController.getRef().tell(
             AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
                 .setIdleExpirationMillis(expiration),
-                None, null, null, null, null))
+                None, null, null, null))
     }
 
     private def addTaggedFlow(wMatch: WildcardMatch,
@@ -1089,7 +1087,7 @@ class DatapathController() extends Actor with ActorLogging {
                                         .setPriority(priority),
                                 cookie,
                                 if (actions == Nil) null else pktBytes,
-                                null, tags, null))
+                                null, tags))
     }
 
     def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],

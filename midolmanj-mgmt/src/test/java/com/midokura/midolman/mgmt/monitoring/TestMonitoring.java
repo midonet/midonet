@@ -17,11 +17,6 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 
 import com.midokura.cassandra.CassandraClient;
 import com.midokura.midolman.mgmt.VendorMediaType;
@@ -32,6 +27,10 @@ import com.midokura.midonet.client.dto.DtoMetric;
 import com.midokura.midonet.client.dto.DtoMetricQuery;
 import com.midokura.midonet.client.dto.DtoMetricQueryResponse;
 import com.midokura.midonet.client.dto.DtoMetricTarget;
+
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Date: 5/4/12
@@ -47,6 +46,7 @@ public class TestMonitoring extends JerseyTest {
     int numEntries = 10;
 
     public TestMonitoring() throws TestContainerException {
+        // Note: this call will start the embedded Cassandra server.
         super(FuncTest.getBuilder().build());
 
     }
@@ -74,11 +74,6 @@ public class TestMonitoring extends JerseyTest {
         StaticMockDirectory.clearDirectoryInstance();
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
-
-    //@AfterClass
-    //public static void resetCassandra() throws Exception {
-    //    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-    //}
 
     @Test
     public void testGetMetric() {

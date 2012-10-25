@@ -132,9 +132,8 @@ class Coordinator(val origMatch: WildcardMatch,
 
                 datapathController.tell(
                     AddWildcardFlow(wflow, cookie, null,
-                        pktContext.getFlowRemovedCallbacks(),
-                        if (withTags) pktContext.getFlowTags() else null,
-                        if (withTags) pktContext.getTagRemovedCallbacks() else null))
+                        pktContext.getFlowRemovedCallbacks,
+                        if (withTags) pktContext.getFlowTags else null))
 
             case None => // Internally-generated packet. Do nothing.
         }
@@ -255,7 +254,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
-                                pktContext.getFlowRemovedCallbacks() foreach {
+                                pktContext.getFlowRemovedCallbacks foreach {
                                     cb => cb.call()
                                 }
                                 flowController.tell(DiscardPacket(cookie))
@@ -311,9 +310,8 @@ class Coordinator(val origMatch: WildcardMatch,
                                         new WildcardFlow()
                                             .setMatch(notIPv4Match),
                                         cookie, origEthernetPkt.serialize(),
-                                        pktContext.getFlowRemovedCallbacks(),
-                                        pktContext.getFlowTags(),
-                                        pktContext.getTagRemovedCallbacks()))
+                                        pktContext.getFlowRemovedCallbacks,
+                                        pktContext.getFlowTags))
                                 // TODO(pino): Connection-tracking blob?
                         }
 
@@ -465,9 +463,8 @@ class Coordinator(val origMatch: WildcardMatch,
                 datapathController.tell(
                     AddWildcardFlow(
                         wFlow, cookie, origEthernetPkt.serialize(),
-                        pktContext.getFlowRemovedCallbacks(),
-                        pktContext.getFlowTags(),
-                        pktContext.getTagRemovedCallbacks()))
+                        pktContext.getFlowRemovedCallbacks,
+                        pktContext.getFlowTags))
         }
     }
 

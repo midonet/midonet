@@ -49,7 +49,7 @@ class SimulationController() extends Actor with ActorLogging {
                             new WildcardFlow()
                                 .setHardExpirationMillis(5 * 1000)
                                 .setMatch(wMatch),
-                            cookie, null, null, null, null))
+                            cookie, null, null, null))
 
                 case Right(true) =>
                     //Nothing to do

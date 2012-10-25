@@ -103,7 +103,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         flowProbe().testActor.tell(
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
-                            null, null, null))
+                            null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -138,7 +138,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         flowProbe().testActor.tell(
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
-                null, null, null))
+                null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -174,7 +174,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         flowProbe().testActor.tell(
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
-                null, null, null))
+                null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -211,7 +211,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         flowProbe().testActor.tell(
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
-                null, null, null))
+                null, null))
 
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -242,7 +242,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         flowProbe().testActor.tell(
             AddWildcardFlow(wFlow, pktInMsg.cookie, pktInMsg.pktBytes,
-                null, null, null))
+                null, null))
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         eventProbe.expectMsgClass(classOf[WildcardFlowAdded])

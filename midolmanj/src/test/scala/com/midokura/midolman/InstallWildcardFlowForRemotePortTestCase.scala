@@ -66,7 +66,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         dpProbe().testActor.tell(AddWildcardFlow(wildcardFlow, None,
-            "my packet".getBytes(), null, null, null))
+            "my packet".getBytes(), null, null))
 
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](
             flowProbe(), Duration(3, TimeUnit.SECONDS))

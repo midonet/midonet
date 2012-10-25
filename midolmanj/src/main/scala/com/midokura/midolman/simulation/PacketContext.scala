@@ -91,30 +91,12 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         else
             flowRemovedCallbacks.add(cb)
     }
-    def getFlowRemovedCallbacks(): ROSet[Callback0] = {
+    def getFlowRemovedCallbacks: ROSet[Callback0] = {
         if (!frozen)
             throw new IllegalArgumentException(
                     "Reading callbacks from unfrozen PacketContext")
 
         flowRemovedCallbacks
-    }
-
-    // This set stores the callback to call when this tag is removed because the
-    // flow is removed.
-    private val tagRemovedCallbacks = mutable.Set[Callback0]()
-    def addTagRemovedCallback(cb: Callback0): Unit = this.synchronized {
-        if (frozen)
-            throw new IllegalArgumentException(
-                "Adding callback to frozen PacketContext")
-        else
-            tagRemovedCallbacks.add(cb)
-    }
-    def getTagRemovedCallbacks(): ROSet[Callback0] = {
-        if (!frozen)
-            throw new IllegalArgumentException(
-                "Reading callbacks from unfrozen PacketContext")
-
-        tagRemovedCallbacks
     }
 
     // This Set stores the tags by which the flow may be indexed.
@@ -127,7 +109,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         else
             flowTags.add(tag)
     }
-    def getFlowTags(): ROSet[Any] = {
+    def getFlowTags: ROSet[Any] = {
         if (!frozen)
             throw new IllegalArgumentException(
                     "Reading tags from unfrozen PacketContext")
@@ -145,14 +127,14 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     }
 
     /* Packet context methods used by Chains. */
-    override def getInPortId(): UUID = inPortID
-    override def getOutPortId(): UUID = outPortID
-    override def getPortGroups(): JSet[UUID] = portGroups
+    override def getInPortId: UUID = inPortID
+    override def getOutPortId: UUID = outPortID
+    override def getPortGroups: JSet[UUID] = portGroups
     override def addTraversedElementID(id: UUID) { /* XXX */ }
-    override def getFlowCookie(): Object = flowCookie
-    override def isConnTracked(): Boolean = connectionTracked
+    override def getFlowCookie: Object = flowCookie
+    override def isConnTracked: Boolean = connectionTracked
 
-    override def isForwardFlow(): Boolean = {
+    override def isForwardFlow: Boolean = {
         // Connection tracking:  connectionTracked starts out as false.
         // If isForwardFlow is called, connectionTracked becomes true and
         // a lookup into Cassandra determines which direction this packet

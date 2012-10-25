@@ -194,7 +194,8 @@ public class MidolmanLauncher {
     }
 
     public synchronized void stop() {
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+        //Don't stop it because it cannot be restarted (bug in stop method).
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
         if (null != midolmanProcess) {
             ProcessHelper.killProcess(midolmanProcess);
             try {

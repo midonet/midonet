@@ -107,7 +107,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra()
+        //Don't stop it because it cannot be restarted (bug in stop method).
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
         if (mAgent != null) {
             mAgent.stop()
