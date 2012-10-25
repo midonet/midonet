@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.state;
 
+<<<<<<< HEAD
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,13 +20,20 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+=======
+import com.midokura.util.eventloop.Reactor;
+import org.apache.zookeeper.*;
+>>>>>>> wip.
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.util.eventloop.Reactor;
+import javax.annotation.Nonnull;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class ZkDirectory implements Directory {
     static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
@@ -280,7 +288,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncDelete(String relativePath) {
-        zk.getZooKeeper().delete(relativePath, -1, new AsyncCallback.VoidCallback() {
+        String absPath = getAbsolutePath(relativePath);
+        zk.getZooKeeper().delete(absPath, -1, new AsyncCallback.VoidCallback() {
             @Override
             public void processResult(int rc, String path, Object ctx) {
 

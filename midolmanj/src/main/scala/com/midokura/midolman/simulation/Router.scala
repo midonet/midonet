@@ -146,27 +146,32 @@ class Router(val id: UUID, val cfg: RouterConfig,
             }
         }
 
-        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
-        val rt: Route = loadBalancer.lookup(pktContext.getMatch)
-        if (rt == null) {
-            // No route to network
-            log.debug("Route lookup: No route to network (dst:{}), {}",
-                pktContext.getMatch.getNetworkDestinationIPv4, rTable.rTable)
-            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
-                ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
-            return Promise.successful(new DropAction)(ec)
+
+      // tag using the destination IP
+      val dstIp = pktContext.getMatch().getNetworkDestination
+      pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
+      // pass the tag to the RouterManager so that it will be able to invalidate
+      // the flow
+      routerMgrTagger.addTag(dstIp)
+      // register the tag removal callback
+
+      // TODO get rid of this.
+      pktContext.addTagRemovedCallback(routerMgrTagger.getTagRemovalCallback(dstIp))
+
+      val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
+      val rt: Route = loadBalancer.lookup(pktContext.getMatch)
+      if (rt == null) {
+          // No route to network
+          log.debug("Route lookup: No route to network (dst:{}), {}",
+          pktContext.getMatch.getNetworkDestinationIPv4, rTable.rTable)
+          sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
+          ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+          return Promise.successful(new DropAction)(ec)
         }
+
 
         // tag using this route
         pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))
-        // tag using the destination IP
-        val dstIp = pktContext.getMatch().getNetworkDestination
-        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
-        // pass the tag to the RouterManager so that it will be able to invalidate
-        // the flow
-        routerMgrTagger.addTag(dstIp)
-        // register the tag removal callback
-        pktContext.addFlowRemovedCallback(routerMgrTagger.getFlowRemovalCallback(dstIp))
 
         rt.nextHop match {
             case Route.NextHop.LOCAL =>

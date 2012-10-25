@@ -4,32 +4,9 @@
 
 package com.midokura.midonet.cluster;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.layer3.Route;
-import com.midokura.midolman.state.ArpCacheEntry;
-import com.midokura.midolman.state.ArpTable;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.DirectoryCallback;
-import com.midokura.midolman.state.ReplicatedSet;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkStateSerializationException;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.zkManagers.RouteZkManager;
 import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midonet.cluster.client.ArpCache;
@@ -39,6 +16,14 @@ import com.midokura.packets.MAC;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
 import com.midokura.util.functors.Callback2;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.*;
 
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
@@ -60,6 +45,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         new HashMap<UUID, Set<Route>>();
 
     Map<UUID, ReplicatedRouteSet> mapRouterIdToRoutes = new HashMap<UUID, ReplicatedRouteSet>();
+
+    Map<UUID, PortRoutesCallback> portIdCallback = new HashMap<UUID, PortRoutesCallback>();
+    Map<UUID, PortRoutesWatcher> portIdWatcher = new HashMap<UUID, PortRoutesWatcher>();
+
+    Map<UUID, Set<Route>> routeGraveyard = new HashMap<UUID, Set<Route>>();
 
     private static final Logger log =
          LoggerFactory.getLogger(ClusterRouterManager.class);
@@ -138,16 +128,12 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                                                           boolean active){
         log.debug("Port {} of router {} became active {}",
             new Object[] {portId, routerId, active} );
-        if(!active){
-            // do nothing the watcher should take care of removing the routes
-            return;
-        }
         try {
 
             if(mapPortIdToRoutes.containsKey(portId)){
                 log.error("The cluster client has already requested the routes for this port");
             }
-            getPortRoutes(routerId, portId);
+            handlePortRoutes(routerId, portId, active);
         } catch (Exception e) {
             log.error("Error when trying to get routes for port {} that became " +
                           "active locally", portId, e);
@@ -158,6 +144,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     class PortRoutesWatcher extends Directory.DefaultTypedWatcher {
         UUID routeId;
         UUID portId;
+        private boolean cancelled = false;
 
         PortRoutesWatcher(UUID routeId, UUID portId) {
             this.routeId = routeId;
@@ -166,19 +153,41 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void run() {
-            try {
-                log.debug("Fired watcher for port {} on router {}", portId, routeId);
-                getPortRoutes(routeId, portId);
-            } catch (Exception e) {
-                log.error("Got exception when running watcher for the routes of " +
-                              "port {}", portId.toString(), e);
+            if (!isCancelled()) {
+                try {
+                    handlePortRoutes(routeId, portId, true);
+                } catch (Exception e) {
+                    log.error("Got exception when running watcher for the routes of " +
+                            "port {}", portId.toString(), e);
+                }
+            } else {
+               log.info("Port has been cancelled: No routes watching for you.");
             }
+        }
+
+        public void cancel() {
+            this.cancelled = true;
+        }
+
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        public void reenable() {
+            this.cancelled = true;
         }
 
     }
 
-    private void getPortRoutes(UUID routerId, UUID portId)
-        throws StateAccessException, KeeperException {
+    /**
+     * This method handles the routes <-> port relation when there is a change in a port state.
+     * @param routerId
+     * @param portId
+     * @throws StateAccessException
+     * @throws KeeperException
+     */
+    private void handlePortRoutes(UUID routerId, UUID portId, boolean active)
+            throws StateAccessException, KeeperException {
 
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
         log.debug("Old routes: {}", oldRoutes);
@@ -187,12 +196,27 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             mapPortIdToRoutes.put(portId, new HashSet<Route>());
         }
 
-        routeManager.listPortRoutesAsync(portId,
-                                         new PortRoutesCallback(routerId,
-                                                                portId),
-                                         new PortRoutesWatcher(routerId,
-                                                               portId)) ;
+        if (!active) {
+            // if port is down, just cancel these routes.
+            // this won't allow routes to be retrieved or updated from this port.
+            log.info("(MM)Cancelling the port callbacks for port {}", portId);
+            portIdCallback.get(portId).cancel();
+            portIdWatcher.get(portId).cancel();
+            // clean the router's routing table
+            // and set the local routes cache to empty.
+            updateRoutingTableAfterGettingRoutes(routerId, portId, Collections.<Route>emptySet());
+        } else {
+            // installing callbacks (or if they were cancelled, reenabling them).
+            log.info("(MM) Adding callbacks for port {}", portId);
+            portIdCallback.put(portId, new PortRoutesCallback(routerId, portId));
+            portIdWatcher.put(portId, new PortRoutesWatcher(routerId, portId));
 
+            // lists all the routes for a given portId, handle them with the callback
+            // and install the watcher in zk.
+            routeManager.listPortRoutesAsync(portId,
+                    portIdCallback.get(portId),
+                    portIdWatcher.get(portId));
+        }
     }
 
     class GetRoutesCallback extends
@@ -209,13 +233,20 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void onSuccess(Result<Set<Route>> data) {
-            log.debug("GetRoutesCallback success, got {} routes {}",
+            log.debug("(MM)GetRoutesCallback success, got {} routes {}",
                       data.getData().size(), data.getData());
             updateRoutingTableAfterGettingRoutes(routerId, portId,
                                                  data.getData());
         }
     }
 
+    /**
+     * This method does a diff between the received routes and the old routes (the ones
+     * contained in local).
+     * @param routerId
+     * @param portId
+     * @param newRoutes
+     */
     private void updateRoutingTableAfterGettingRoutes(UUID routerId, UUID portId,
                                                       Set<Route> newRoutes){
 
@@ -228,7 +259,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                       routerId, e);
             return;
         }
-        log.debug("Updating routes for port {} of router {}. Old routes {} " +
+        log.debug("(MM)Updating routes for port {} of router {}. Old routes {} " +
             "New routes {}",
             new Object[] {portId, routerId, oldRoutes, newRoutes});
         RouteEncoder encoder = new RouteEncoder();
@@ -253,7 +284,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         mapPortIdToRoutes.put(portId, newRoutes);
-
     }
 
 
@@ -261,52 +291,76 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         UUID routerId;
         UUID portId;
+        private boolean cancelled = false;
 
         PortRoutesCallback(UUID routerId, UUID portId) {
+            log.info("Creating a PortRouteCallback for: "+routerId.toString() + " - " + portId.toString());
             this.routerId = routerId;
             this.portId = portId;
         }
 
         @Override
         public void onSuccess(Result<Set<UUID>> data) {
-            log.debug("PortRoutesCallback success, received {} routes: {} " +
-                          "for port {}",
-                      new Object[]{data.getData().size(), data.getData(), portId});
+            if (!isCancelled()) {
+                log.debug("(MM)PortRoutesCallback success, received {} routes: {} " +
+                        "for port {}",
+                        new Object[]{data.getData().size(), data.getData(), portId});
 
-            Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
+                Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
 
-            if (data.getData().equals(oldRoutes)){
-                log.debug("No change in the routes, nothing to do for port {}", portId);
-                return;
+                if (data.getData().equals(oldRoutes)){
+                    log.debug("No change in the routes, nothing to do for port {}", portId);
+                    return;
+                }
+
+                // if the routes in zk are different from the routes contained in local update them
+                // asynchronously.
+                routeManager.asyncMultiRoutesGet(data.getData(),
+                        new GetRoutesCallback(routerId,
+                                portId,
+                                "get routes for port"
+                                        + portId.toString(),
+                                log));
+            } else {
+                log.info("(MM)Port has been cancelled: No routes back for you.");
             }
-
-            routeManager.asyncMultiRoutesGet(data.getData(),
-                                             new GetRoutesCallback(routerId,
-                                                                   portId,
-                                                                   "get routes for port"
-                                                                       + portId.toString(),
-                                                                   log));
         }
 
         @Override
         public void onTimeout() {
-            log.error("Callback timeout when trying to get routes for port {}",
-                      portId);
+            if (!isCancelled()) {
+                log.error("Callback timeout when trying to get routes for port {}",
+                        portId);
+            }
         }
 
         @Override
         public void onError(KeeperException e) {
-            if (e instanceof KeeperException.NoNodeException) {
-                Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
-                // If we get a NoStatePathException it means the someone removed
-                // the port routes. Remove all routes
-                updateRoutingTableAfterGettingRoutes(routerId, portId,
-                                                     Collections.<Route>emptySet());
+            if (!isCancelled()) {
+                log.info("ONERROR: port disappeared.");
+                if (e instanceof KeeperException.NoNodeException) {
+                    // If we get a NoStatePathException it means the someone removed
+                    // the port routes. Remove all routes
+                    updateRoutingTableAfterGettingRoutes(routerId, portId,
+                            Collections.<Route>emptySet());
+                }
+                else {
+                    log.error("Callback error when trying to get routes for port {}",
+                            portId, e);
+                }
             }
-            else {
-                log.error("Callback error when trying to get routes for port {}",
-                          portId, e);
-            }
+        }
+
+        public void cancel() {
+            this.cancelled = true;
+        }
+
+        public boolean isCancelled() {
+            return this.cancelled;
+        }
+
+        public void reenable() {
+            this.cancelled = false;
         }
     }
 

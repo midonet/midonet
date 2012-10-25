@@ -687,9 +687,10 @@ class DatapathController() extends Actor with ActorLogging {
         if (portsDownPool.contains(interface)) {
           val p: Port[_,_] = portsDownPool.get(interface).get
           log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
-          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
+          //VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
           localPorts.put(p.getName, p);
           portsDownPool.remove(interface)
+          finalizePortActivation(p, localToVifPorts.get(p.getPortNo.shortValue).get, true)
         }
       )
 

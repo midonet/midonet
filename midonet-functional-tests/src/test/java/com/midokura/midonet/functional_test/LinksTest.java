@@ -10,10 +10,7 @@ import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
-import com.midokura.midonet.client.resource.Host;
-import com.midokura.midonet.client.resource.ResourceCollection;
-import com.midokura.midonet.client.resource.Router;
-import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -32,10 +29,11 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
+import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -64,6 +62,7 @@ public class LinksTest {
     TapWrapper tap2;
 
     MockMgmtStarter apiStarter;
+    Router rtr;
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
@@ -96,7 +95,7 @@ public class LinksTest {
 
         // Build a router
         //////////////////////////////////////////////////////////////////
-        Router rtr = apiClient.addRouter().tenantId(TENANT_NAME)
+        rtr = apiClient.addRouter().tenantId(TENANT_NAME)
                 .name("rtr1").create();
         // Add a materialized port.
         rtrPort1 = rtr.addMaterializedRouterPort()
@@ -134,6 +133,9 @@ public class LinksTest {
                 .nextHopPort(rtrPort2.getId())
                 .type(DtoRoute.Normal).weight(10)
                 .create();
+
+        ResourceCollection<Route> routes = rtr.getRoutes(null);
+        Assert.assertThat("Router doesn't contain the expected routes", routes.size(), equalTo(4));
 
         // Now bind the materialized ports to interfaces on the local host.
         log.debug("Getting host from REST API");
@@ -187,6 +189,7 @@ public class LinksTest {
     public void testMakePing()
             throws MalformedPacketException, InterruptedException {
 
+
         PacketHelper helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:02"), vm2IP, rtrIp2);
         byte[] request;
@@ -234,46 +237,90 @@ public class LinksTest {
         rtrMac = helper1.checkArpReply(tap1.recv());
         helper1.setGwMac(rtrMac);
 
+        // Ping vm2 ip.
+        // TODO make sure that the flow is installed by doing this twice.
         request = helper1.makeIcmpEchoRequest(vm2IP);
         tap1.send(request);
         helper2.checkIcmpEchoRequest(request, tap2.recv());
 
         // now let's test what happens if we bring the tap down.
         ///////////////////////////////////////////////////////////////
-        // wait for MM to realize that the port has gone down.
-        log.info("Waiting for MM to realize that the port has gone down.");
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
                 probe.ref(), LocalPortActive.class);
 
         // this should bring the router's route down as it cannot get to the 222 network.
         tap2.down();
+        log.info("Waiting for MM to realize that the port has gone down.");
         LocalPortActive lpa = probe.expectMsgClass(LocalPortActive.class);
         assertFalse(lpa.active());
+
+        Thread.sleep(2000);
 
         // send a request to a disconnected port.
         log.info("Sending the ping request to the tap that went down.");
         tap1.send(request);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
+        helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
 
-        //log.info("Checking that the tap received a ICMP error");
-        Thread.sleep(6000);
-        helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_HOST, vm1IP, request );
+        // TODO ping the far router port.
+        log.info("Sending the ping request to the far router port");
+        request = helper1.makeIcmpEchoRequest(rtrIp2);
+        tap1.send(request);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        PacketHelper.checkIcmpEchoReply(request, tap1.recv());
+        //helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
 
-
+        log.info("BRING TAP UP AGAIN.");
         // bring the tap up again.
         tap2.up();
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertTrue(lpa.active());
+        Thread.sleep(2000);
 
-        assertNoMorePacketsOnTap(tap2);
+        // use tap2 to ping the router.
+        //////////////////////////////////////////////////
+        request = helper2.makeIcmpEchoRequest(rtrIp2);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap2.getName()), tap2.send(request));
+        PacketHelper.checkIcmpEchoReply(request, tap2.recv());
 
-        // send now that the tap is up.
-        tap1.send(request);
+
+        request = helper2.makeIcmpEchoRequest(rtrIp1);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap2.getName()), tap2.send(request));
+        PacketHelper.checkIcmpEchoReply(request, tap2.recv());
+
+        // use tap2 to ping other vm
+        //////////////////////////////////////////////////
+        log.info("Checking that tap2 can send pings to tap1");
+        request = helper2.makeIcmpEchoRequest(vm1IP);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap2.getName()), tap2.send(request));
+        helper1.checkIcmpEchoRequest(request, tap1.recv());
+
+        Thread.sleep(2000);
+        // and now the other way round.
+        log.info("Checking that tap1 can send pings to tap2");
+        request = helper1.makeIcmpEchoRequest(rtrIp1);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        PacketHelper.checkIcmpEchoReply(request, tap1.recv());
+        request = helper1.makeIcmpEchoRequest(rtrIp2);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        PacketHelper.checkIcmpEchoReply(request, tap1.recv());
+
+
+
+        request = helper1.makeIcmpEchoRequest(vm2IP);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
         helper2.checkIcmpEchoRequest(request, tap2.recv());
+
+
 
     }
 }
