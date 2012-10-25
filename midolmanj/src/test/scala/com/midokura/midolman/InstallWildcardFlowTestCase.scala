@@ -57,7 +57,7 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes, null, null, null))
+            wildcardFlow, None, "My packet".getBytes, null, null))
 
         val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
 
