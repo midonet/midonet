@@ -68,7 +68,8 @@
                 <configuration>
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
-                    <argLine>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
+                    <argLine>-XX:-UseSplitVerifier
+                        -Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
                 </configuration>
             </plugin>
 

@@ -4,6 +4,8 @@
 package com.midokura.midolman.monitoring.store;
 
 import com.midokura.cassandra.CassandraClient;
+import com.midokura.util.Waiters;
+
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.*;
 
@@ -27,10 +29,10 @@ public class CassandraStoreTest {
     int numEntries = 10;
     CassandraStore store;
 
-
     @BeforeClass
     public static void setUpCassandra() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        Waiters.sleepBecause("Cassandra server must come up.", 2);
     }
 
     @Before
@@ -117,6 +119,6 @@ public class CassandraStoreTest {
 
     @AfterClass
     public static void tearDownCassandra() throws Exception {
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+        //EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 }

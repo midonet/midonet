@@ -305,7 +305,8 @@ public class FunctionalTestsHelper {
     }
 
     public static void stopCassandra() {
-        EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+        //Don't stop it because it cannot be restarted (bug in stop method).
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
     /**

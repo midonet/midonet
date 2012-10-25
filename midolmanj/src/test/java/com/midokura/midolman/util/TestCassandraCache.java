@@ -12,12 +12,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.midokura.cassandra.CassandraCache;
+import com.midokura.util.Waiters;
 
 public class TestCassandraCache extends TestCache {
 
     @BeforeClass
     public static void setUpCassandra() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        Waiters.sleepBecause("Cassandra server must come up.", 2);
     }
 
     @Before

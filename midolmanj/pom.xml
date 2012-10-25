@@ -141,7 +141,8 @@
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
-                    <argLine>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
+                    <argLine>-XX:-UseSplitVerifier
+                        -Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <org.newsclub.net.unix.library.path>
                             ${project.build.directory}/lib-native
@@ -312,19 +313,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <check />
-                    <formats>
-                        <format>xml</format>
-                        <format>html</format>
-                    </formats>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.4</version>
@@ -387,11 +375,6 @@
 
     <reporting>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.5.1</version>
-            </plugin>
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
