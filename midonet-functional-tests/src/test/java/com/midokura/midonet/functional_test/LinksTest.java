@@ -6,6 +6,7 @@ package com.midokura.midonet.functional_test;
 
 import akka.testkit.TestProbe;
 import akka.util.Duration;
+import com.midokura.midolman.FlowController;
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
@@ -44,6 +45,8 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public class LinksTest {
 
+
+
     private EmbeddedMidolman mm;
     private final static Logger log = LoggerFactory.getLogger(LinksTest.class);
 
@@ -60,6 +63,8 @@ public class LinksTest {
 
     TapWrapper tap1;
     TapWrapper tap2;
+    private final String TAP1NAME = "tapLink1";
+    private final String TAP2NAME = "tapLink2";
 
     MockMgmtStarter apiStarter;
     Router rtr;
@@ -70,7 +75,6 @@ public class LinksTest {
 
     @Before
     public void setUp() throws Exception {
-
 
         String testConfigurationPath =
                 "midolmanj_runtime_configurations/midolman-default.conf";
@@ -103,12 +107,7 @@ public class LinksTest {
                 .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
                 .networkLength(rtrIp1.getMaskLength())
                 .create();
-        //rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-        //        .dstNetworkAddr(rtrPort1.getNetworkAddress())
-        //        .dstNetworkLength(rtrPort1.getNetworkLength())
-        //        .nextHopPort(rtrPort1.getId())
-        //        .type(DtoRoute.Normal).weight(10)
-        //        .create();
+
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
                 .dstNetworkAddr("192.168.111.2")
                 .dstNetworkLength(vm1IP.getMaskLength())
@@ -121,12 +120,7 @@ public class LinksTest {
                 .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
                 .networkLength(rtrIp2.getMaskLength())
                 .create();
-        //rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-        //        .dstNetworkAddr(rtrPort2.getNetworkAddress())
-        //        .dstNetworkLength(rtrPort2.getNetworkLength())
-        //        .nextHopPort(rtrPort2.getId())
-        //        .type(DtoRoute.Normal).weight(10)
-        //        .create();
+
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
                 .dstNetworkAddr("192.168.222.2")
                 .dstNetworkLength(vm2IP.getMaskLength())
@@ -151,9 +145,8 @@ public class LinksTest {
         assertNotNull("Host is null", host);
 
         log.debug("Creating TAP");
-        tap1 = new TapWrapper("tapLink1");
-        tap2 = new TapWrapper("tapLink2");
-
+        tap1 = new TapWrapper(TAP1NAME);
+        tap2 = new TapWrapper(TAP2NAME);
 
         log.debug("Bind tap to router's materialized port.");
         host.addHostInterfacePort()
@@ -176,7 +169,7 @@ public class LinksTest {
 
     @After
     public void tearDown() throws Exception {
-        log.info("STARTING THE TEST TEARDOWN");
+        log.info("Starting the teardown.");
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         stopEmbeddedMidolman();
@@ -226,7 +219,6 @@ public class LinksTest {
 
         assertNoMorePacketsOnTap(tap2);
 
-
         // Ping router ip
         PacketHelper helper1 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
@@ -238,8 +230,10 @@ public class LinksTest {
         helper1.setGwMac(rtrMac);
 
         // Ping vm2 ip.
-        // TODO make sure that the flow is installed by doing this twice.
+        // make sure that the flow is installed by doing this twice.
         request = helper1.makeIcmpEchoRequest(vm2IP);
+        tap1.send(request);
+        helper2.checkIcmpEchoRequest(request, tap2.recv());
         tap1.send(request);
         helper2.checkIcmpEchoRequest(request, tap2.recv());
 
@@ -248,6 +242,8 @@ public class LinksTest {
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
                 probe.ref(), LocalPortActive.class);
+        mm.getActorSystem().eventStream().subscribe(
+                probe.ref(), FlowController.WildcardFlowRemoved.class);
 
         // this should bring the router's route down as it cannot get to the 222 network.
         tap2.down();
@@ -255,30 +251,32 @@ public class LinksTest {
         LocalPortActive lpa = probe.expectMsgClass(LocalPortActive.class);
         assertFalse(lpa.active());
 
-        Thread.sleep(2000);
+        probe.expectMsgClass(FlowController.WildcardFlowRemoved.class);
 
         // send a request to a disconnected port.
         log.info("Sending the ping request to the tap that went down.");
         tap1.send(request);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
-        helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
+        PacketHelper.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, rtrMac, rtrIp1, MAC.fromString("02:00:00:aa:aa:01"), vm1IP, request);
+        //helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
 
-        // TODO ping the far router port.
+        // ping the far router port.
         log.info("Sending the ping request to the far router port");
         request = helper1.makeIcmpEchoRequest(rtrIp2);
         tap1.send(request);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
-        //helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
 
-        log.info("BRING TAP UP AGAIN.");
+        log.info("Bring the tap up again");
         // bring the tap up again.
         tap2.up();
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertTrue(lpa.active());
-        Thread.sleep(2000);
+
+        probe.expectMsgClass(FlowController.WildcardFlowRemoved.class);
+
 
         // use tap2 to ping the router.
         //////////////////////////////////////////////////
@@ -286,7 +284,6 @@ public class LinksTest {
         assertThat(String.format("The tap %s should have sent the packet",
                 tap2.getName()), tap2.send(request));
         PacketHelper.checkIcmpEchoReply(request, tap2.recv());
-
 
         request = helper2.makeIcmpEchoRequest(rtrIp1);
         assertThat(String.format("The tap %s should have sent the packet",
@@ -301,7 +298,7 @@ public class LinksTest {
                 tap2.getName()), tap2.send(request));
         helper1.checkIcmpEchoRequest(request, tap1.recv());
 
-        Thread.sleep(2000);
+
         // and now the other way round.
         log.info("Checking that tap1 can send pings to tap2");
         request = helper1.makeIcmpEchoRequest(rtrIp1);
@@ -313,14 +310,38 @@ public class LinksTest {
                 tap1.getName()), tap1.send(request));
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
-
-
         request = helper1.makeIcmpEchoRequest(vm2IP);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
         helper2.checkIcmpEchoRequest(request, tap2.recv());
 
+        // delete the tap
+        /*log.info("Deleting the tap.");
+        removeTapWrapper(tap2);
 
+        log.info("Waiting for MM to realize that the port has gone down.");
+        lpa = probe.expectMsgClass(LocalPortActive.class);
+        assertFalse(lpa.active());
 
+        // TODO replace this for an actor message.
+        Thread.sleep(2000);
+        log.info("Sending the ping request to the tap that went down.");
+        tap1.send(request);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
+
+        log.info("Bringing the tap up again.");
+        tap2 = new TapWrapper(TAP2NAME);
+        lpa = probe.expectMsgClass(LocalPortActive.class);
+        assertTrue(lpa.active());
+
+        Thread.sleep(2000);
+
+        log.info("Sending the ping request to the restarted tap.");
+        request = helper1.makeIcmpEchoRequest(vm2IP);
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        helper2.checkIcmpEchoRequest(request, tap2.recv());  */
     }
 }

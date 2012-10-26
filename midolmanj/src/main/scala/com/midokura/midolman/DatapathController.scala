@@ -621,7 +621,7 @@ class DatapathController() extends Actor with ActorLogging {
                 }
 
                 def onError(e: NetlinkException) {
-                  log.error("Error retrieving port stats: {}", e )
+                  log.error("Error retrieving port stats for port {}({}): {}", Array(portID, vifPorts.get(portID).get, e))
                 }
               })
 
@@ -666,6 +666,7 @@ class DatapathController() extends Actor with ActorLogging {
       }
 
       // this set contains the ports that have been deleted.
+      // the behaviour is the same as if the port had gone down.
       deletedPorts.foreach{
         deletedPort =>
           log.info("Interface was deleted: {}", deletedPort)
@@ -687,10 +688,10 @@ class DatapathController() extends Actor with ActorLogging {
         if (portsDownPool.contains(interface)) {
           val p: Port[_,_] = portsDownPool.get(interface).get
           log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
-          //VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
+          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
           localPorts.put(p.getName, p);
           portsDownPool.remove(interface)
-          finalizePortActivation(p, localToVifPorts.get(p.getPortNo.shortValue).get, true)
+          //finalizePortActivation(p, localToVifPorts.get(p.getPortNo.shortValue).get, true)
         }
       )
 

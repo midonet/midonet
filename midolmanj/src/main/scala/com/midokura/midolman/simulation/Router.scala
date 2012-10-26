@@ -155,9 +155,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
       routerMgrTagger.addTag(dstIp)
       // register the tag removal callback
 
-      // TODO get rid of this.
-      pktContext.addTagRemovedCallback(routerMgrTagger.getTagRemovalCallback(dstIp))
-
       val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
       val rt: Route = loadBalancer.lookup(pktContext.getMatch)
       if (rt == null) {

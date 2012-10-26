@@ -387,7 +387,7 @@ public class PacketHelper {
      */
     public void checkIcmpEchoRequest(byte[] sent, byte[] recv) throws MalformedPacketException {
         assertThat("The sent ICMP Echo buffer wasn't correct.", sent, notNullValue());
-        assertThat("The recv ICMP Reply buffer wasn't correct.", recv, notNullValue());
+        assertThat("The recv ICMP Echo buffer wasn't correct.", recv, notNullValue());
         assertThat("The sent and received packages had different sizes.",
                 sent.length, equalTo(recv.length));
 
