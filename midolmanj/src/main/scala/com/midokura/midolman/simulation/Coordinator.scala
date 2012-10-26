@@ -447,6 +447,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
                 pktContext.freeze()
+                // TODO(jlm): Can we do connection tracking for port sets?
                 if (!isPortSet && pktContext.isConnTracked &&
                         pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.

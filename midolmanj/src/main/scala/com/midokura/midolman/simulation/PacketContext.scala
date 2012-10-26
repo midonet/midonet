@@ -157,6 +157,8 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
                                 wcmatch.getNetworkDestination(),
                                 wcmatch.getTransportDestination(),
                                 wcmatch.getNetworkProtocol(), ingressFE)
+        // TODO(jlm): Finish com.midokura.cassandra.AsyncCassandraCache
+        //            and use it instead.
         val value = connectionCache.get(key)
         forwardFlow = (value != "r")
         return forwardFlow
