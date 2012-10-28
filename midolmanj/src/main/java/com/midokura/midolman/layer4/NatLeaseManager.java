@@ -6,10 +6,8 @@ package com.midokura.midolman.layer4;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
@@ -50,7 +48,7 @@ public class NatLeaseManager implements NatMapping {
     // Also note that we don't care about ip ranges - nat targets with more than
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
-    Map<Integer, NavigableSet<Integer>> ipToFreePortsMap;
+    ConcurrentMap<Integer, NavigableSet<Integer>> ipToFreePortsMap;
     private FiltersZkManager filterMgr;
     private UUID routerId;
     private String rtrIdStr;
@@ -77,7 +75,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("constructor with {}, {}, {}, and {}",
             new Object[] {filterMgr, routerId, cache, reactor});
         this.filterMgr = filterMgr;
-        this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Integer>>();
+        this.ipToFreePortsMap = new ConcurrentHashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
         this.cache = cache;
@@ -293,16 +291,18 @@ public class NatLeaseManager implements NatMapping {
                 if (null == freePorts)
                     continue;
                 while (true) {
-                    // Look for a port in the desired range
-                    Integer port = freePorts.ceiling(tpStart);
-                    if (null == port || port > tpEnd)
-                        break;
-                    // We've found a free port.
-                    freePorts.remove(port);
-                    // Check cache to make sure the port's really free.
-                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
-                            nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, port.shortValue());
+                    synchronized (freePorts) {
+                        Integer port = freePorts.ceiling(tpStart);
+                        if (null == port || port > tpEnd)
+                            break;
+                        // Look for a port in the desired range
+                        // We've found a free port.
+                        freePorts.remove(port);
+                        // Check cache to make sure the port's really free.
+                        if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
+                                nwDst, tpDst, origMatch))
+                            return new NwTpPair(ip, port.shortValue());
+                    }
                     // Give up after 20 attempts.
                     numTries++;
                     if (numTries > 20) {
@@ -383,33 +383,39 @@ public class NatLeaseManager implements NatMapping {
                 NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts) {
                     freePorts = new TreeSet<Integer>();
-                    ipToFreePortsMap.put(ip, freePorts);
+                    NavigableSet<Integer> oldV = null;
+                    oldV = ipToFreePortsMap.putIfAbsent(ip, freePorts);
+                    if (null != oldV)
+                        freePorts = oldV;
                 }
-                log.debug("allocateSnat adding range {} to {} to list of "
-                        + "free ports.", block, block+block_size-1);
-                for (int i = 0; i < block_size; i++)
-                    freePorts.add(block + i);
-                // Now, starting with the smaller of 'block' and tpStart
-                // see if the mapping really is free in cache by making sure
-                // that the reverse mapping isn't already taken. Note that the
-                // common case for snat requires 4 calls to cache (one to
-                // check whether we've already seen the forward flow, one to
-                // make sure the newIp, newPort haven't already been used with
-                // the nwDst and tpDst, and 2 to actually store the forward
-                // and reverse mappings).
-                int freePort = block;
-                if (freePort < tpStart)
-                    freePort = tpStart;
-                while (true) {
-                    freePorts.remove(freePort);
-                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
-                            nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, (short)freePort);
-                    freePort++;
-                    if (0 == freePort % block_size || freePort > tpEnd) {
-                        log.warn("allocateSnat unable to reserve any port "
-                                + "in the newly reserved block. Giving up.");
-                        return null;
+
+                synchronized (freePorts) {
+                    log.debug("allocateSnat adding range {} to {} to list of "
+                            + "free ports.", block, block+block_size-1);
+                    for (int i = 0; i < block_size; i++)
+                        freePorts.add(block + i);
+                    // Now, starting with the smaller of 'block' and tpStart
+                    // see if the mapping really is free in cache by making sure
+                    // that the reverse mapping isn't already taken. Note that
+                    // the common case for snat requires 4 calls to cache (one
+                    // to check whether we've already seen the forward flow, one
+                    // to make sure the newIp, newPort haven't already been used
+                    // with the nwDst and tpDst, and 2 to actually store the
+                    // forward and reverse mappings).
+                    int freePort = block;
+                    if (freePort < tpStart)
+                        freePort = tpStart;
+                    while (true) {
+                        freePorts.remove(freePort);
+                        if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
+                                nwDst, tpDst, origMatch))
+                            return new NwTpPair(ip, (short)freePort);
+                        freePort++;
+                        if (0 == freePort % block_size || freePort > tpEnd) {
+                            log.warn("allocateSnat unable to reserve any port "
+                                    + "in the newly reserved block. Giving up.");
+                            return null;
+                        }
                     }
                 }
             } // End for loop over ip addresses in a nat target.
