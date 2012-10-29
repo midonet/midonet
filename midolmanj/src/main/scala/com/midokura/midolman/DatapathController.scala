@@ -43,7 +43,8 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
-import com.midokura.util.functors.Callback0
+import com.midokura.util.functors.{Callback1, Callback0}
+import java.util.{List => JList}
 
 
 /**
@@ -386,6 +387,9 @@ object DatapathController extends Referenceable {
      * TODO this version is constantly checking for changes. It should react to 'netlink' notifications instead.
      */
     case class CheckForPortUpdates(datapathName: String)
+
+    case class UpdatePort(val portID: String, val up: Boolean)
+
 }
 
 
@@ -629,11 +633,26 @@ class DatapathController() extends Actor with ActorLogging {
                 log.debug("Port was not found {}", portID)
             }
 
-        // WORKING MARC
         case CheckForPortUpdates(datapathName: String) =>
           CheckPortUpdates
 
-   }
+
+        case UpdatePort(portName : String, up: Boolean) =>
+          var port: Port[_,_] = null
+
+          if (up) {
+            port = portsDownPool.get(portName).get
+            localPorts.put(portName, port)
+            portsDownPool.remove(portName)
+          } else {
+            port = localPorts.get(portName).get
+            portsDownPool.put(portName, port)
+            localPorts.remove(portName)
+          }
+
+          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = up)
+
+    }
 
     def completePendingPortSetTranslations() {
     }
@@ -644,57 +663,65 @@ class DatapathController() extends Actor with ActorLogging {
       val deletedPorts = new HashSet[String]
       deletedPorts.addAll(localPorts.keySet)
 
-      for (interface <- interfaceScanner.scanInterfaces()) {
-        deletedPorts.remove(interface.getName)
-        if (interface.isUp) {
-          interfacesSet.add(interface.getName)
+      interfaceScanner.scanInterfaces( new Callback[JList[InterfaceDescription]] {
+        def onError(e: NetlinkException) {
+          log.error(e.getMessage)
         }
-        // interface went down.
-        if (localPorts.contains(interface.getName) && !interface.isUp) {
-          log.info("Interface went down: {}", interface.getName)
-          localPorts.get(interface.getName).get match {
-            case p: NetDevPort =>
-              log.info("Sending interface down notification to the VirtualToPhysicalMapper")
-              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
-              portsDownPool.put(p.getName, p)
-              localPorts.remove(p.getName)
 
-            case default =>
-              log.error("port type not matched {}", default)
+        def onTimeout() {
+          log.error("Timing out when checking the port updates.")
+        }
+
+        def onSuccess(data: JList[InterfaceDescription]) {
+          for (interface <- data) {
+            deletedPorts.remove(interface.getName)
+            if (interface.isUp) {
+              interfacesSet.add(interface.getName)
+            }
+            // interface went down.
+            if (localPorts.contains(interface.getName) && !interface.isUp) {
+              log.info("Interface went down: {}", interface.getName)
+              localPorts.get(interface.getName).get match {
+                case p: NetDevPort =>
+                  self ! new UpdatePort(interface.getName, false);
+
+                case default =>
+                  log.error("port type not matched {}", default)
+              }
+            }
           }
-        }
-      }
 
-      // this set contains the ports that have been deleted.
-      // the behaviour is the same as if the port had gone down.
-      deletedPorts.foreach{
-        deletedPort =>
-          log.info("Interface was deleted: {}", deletedPort)
-          localPorts.get(deletedPort).get match {
-            case p: NetDevPort =>
-              log.info("Sending interface deleted notification to the VirtualToPhysicalMapper")
-              VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active = false)
-              portsDownPool.put(p.getName, p)
-              localPorts.remove(p.getName)
-            case default =>
-              log.error("port type not matched {}", default)
+          // this set contains the ports that have been deleted.
+          // the behaviour is the same as if the port had gone down.
+          deletedPorts.foreach{
+            deletedPort =>
+              log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
+              localPorts.get(deletedPort).get match {
+                case p: NetDevPort =>
+                  // delete the dp <-> port link
+                  selfPostPortCommand(DeletePortNetdev(p, None))
+                  // set port to inactive.
+                  self ! new UpdatePort(p.getName, false);
+                case default =>
+                  log.error("port type not matched {}", default)
+              }
           }
-      }
 
-      // remove all the local ports. The rest will be datapath ports that are not known to the system.
-      // one of them might be a port that went up again.
-      interfacesSet.removeAll(localPorts.keySet)
-      interfacesSet.foreach( interface =>
-        if (portsDownPool.contains(interface)) {
-          val p: Port[_,_] = portsDownPool.get(interface).get
-          log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
-          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(p.getPortNo.shortValue()).get, active=true)
-          localPorts.put(p.getName, p);
-          portsDownPool.remove(interface)
-          //finalizePortActivation(p, localToVifPorts.get(p.getPortNo.shortValue).get, true)
+          // remove all the local ports. The rest will be datapath ports that are not known to the system.
+          // one of them might be a port that went up again.
+          interfacesSet.removeAll(localPorts.keySet)
+          interfacesSet.foreach( interface =>
+            if (portsDownPool.contains(interface)) {
+              val p: Port[_,_] = portsDownPool.get(interface).get
+              log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
+
+              // recreate port in datapath.
+              selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(interface), localToVifPorts.get(p.getPortNo.shortValue())))
+              self ! new UpdatePort(p.getName, true);
+            }
+          );
         }
-      )
-
+      });
     }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,

@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.collection.Seq;
 
 import java.util.concurrent.TimeUnit;
 
@@ -37,15 +38,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
-/**
- *  So for example, you could set up a virtual topology with a few materialized ports, bind them to some taps, move
- *  packets between them, then put one of the taps in state down via an 'ip link set' command... and then make sure
- *  traffic flows correctly elsewhere... e.g. on a router the sender would get an ICMP net unreachable if the route was
- *  taken out of the forwarding table as a result of the link going down.
- */
 public class LinksTest {
-
-
 
     private EmbeddedMidolman mm;
     private final static Logger log = LoggerFactory.getLogger(LinksTest.class);
@@ -71,7 +64,6 @@ public class LinksTest {
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9" ;
-
 
     @Before
     public void setUp() throws Exception {
@@ -298,7 +290,6 @@ public class LinksTest {
                 tap2.getName()), tap2.send(request));
         helper1.checkIcmpEchoRequest(request, tap1.recv());
 
-
         // and now the other way round.
         log.info("Checking that tap1 can send pings to tap2");
         request = helper1.makeIcmpEchoRequest(rtrIp1);
@@ -316,32 +307,36 @@ public class LinksTest {
         helper2.checkIcmpEchoRequest(request, tap2.recv());
 
         // delete the tap
-        /*log.info("Deleting the tap.");
+        log.info("Deleting the tap.");
         removeTapWrapper(tap2);
 
         log.info("Waiting for MM to realize that the port has gone down.");
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertFalse(lpa.active());
 
-        // TODO replace this for an actor message.
-        Thread.sleep(2000);
+        probe.expectMsgClass(FlowController.WildcardFlowRemoved.class);
+
         log.info("Sending the ping request to the tap that went down.");
         tap1.send(request);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
-        helper1.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, vm1IP, request);
+        PacketHelper.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET, rtrMac, rtrIp1, MAC.fromString("02:00:00:aa:aa:01"), vm1IP, request);
 
-        log.info("Bringing the tap up again.");
+        log.info("Resurrecting the tap.");
         tap2 = new TapWrapper(TAP2NAME);
+
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertTrue(lpa.active());
 
-        Thread.sleep(2000);
+        for (int i = 0; i < 4; i++) {
+            // waiting for the flows to get created...
+            probe.receiveOne(Duration.create(5, "seconds"));
+        }
 
         log.info("Sending the ping request to the restarted tap.");
         request = helper1.makeIcmpEchoRequest(vm2IP);
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1.getName()), tap1.send(request));
-        helper2.checkIcmpEchoRequest(request, tap2.recv());  */
+        helper2.checkIcmpEchoRequest(request, tap2.recv());
     }
 }
