@@ -16,25 +16,26 @@ import com.midokura.midolman.state.NoStatePathException
 case class HandleConnection(socket: Socket)
 
 object ZebraConnection {
-import ZebraProtocol._
 
-// Midolman OpenvSwitch constants.
-// TODO(yoshi): get some values from config file.
-private final val BgpExtIdValue = "bgp"
-private final val OspfExtIdValue = "ospf"
-private final val RipfExtIdValue = "rip"
+    import ZebraProtocol._
 
-// The mtu size 1300 to avoid ovs dropping packets.
-private final val MidolmanMTU = 1300
-// The weight of advertised routes.
-private final val AdvertisedWeight = 0
+    // Midolman OpenvSwitch constants.
+    // TODO(yoshi): get some values from config file.
+    private final val BgpExtIdValue = "bgp"
+    private final val OspfExtIdValue = "ospf"
+    private final val RipfExtIdValue = "rip"
+
+    // The mtu size 1300 to avoid ovs dropping packets.
+    private final val MidolmanMTU = 1300
+    // The weight of advertised routes.
+    private final val AdvertisedWeight = 0
 }
 
 class ZebraConnection(val dispatcher: Actor,
-                  val handler: ZebraProtocolHandler,
-                  val ifAddr: IntIPv4,
-                  val ifName: String,
-                  val clientId: Int)
+                      val handler: ZebraProtocolHandler,
+                      val ifAddr: IntIPv4,
+                      val ifName: String,
+                      val clientId: Int)
     extends Actor {
 
     import ZebraConnection._
@@ -129,7 +130,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("addrLen: {}", addrLen)
     }
 
-    private def sendInterfaceAddrDstAddr(out:DataOutputStream, ipv4addr: Int) {
+    private def sendInterfaceAddrDstAddr(out: DataOutputStream, ipv4addr: Int) {
         out.writeInt(ipv4addr)
         log.debug("dstAddr: %x".format(ipv4addr))
     }
@@ -196,7 +197,10 @@ class ZebraConnection(val dispatcher: Actor,
         in.read(prefix, 0, ((prefixLen + 7) / 8))
         log.debug("prefix: {}", prefix.map(_.toInt))
 
-        assert(ZebraRouteTypeTable.contains(ribType))
+        if (!ZebraRouteTypeTable.contains(ribType)) {
+            log.error("Wrong RIB type: {}", ribType)
+            return
+        }
 
         val advertised = "%s/%d".format(
             InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
@@ -295,15 +299,16 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def handleRequest(in: DataInputStream, out: DataOutputStream) {
+    def handleConnection(in: DataInputStream, out: DataOutputStream) {
         log.debug("begin - clientId: {}", clientId)
 
         while (true) {
             val (message, _) = recvHeader(in)
 
             message match {
-                case ZebraInterfaceAdd =>
-                { interfaceAdd(out) }
+                case ZebraInterfaceAdd => {
+                    interfaceAdd(out)
+                }
                 case ZebraInterfaceDelete => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -329,10 +334,12 @@ class ZebraConnection(val dispatcher: Actor,
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
                 }
-                case ZebraIpv4RouteAdd =>
-                { ipv4RouteAdd(in) }
-                case ZebraIpv4RouteDelete =>
-                { ipv4RouteDelete(in, out) }
+                case ZebraIpv4RouteAdd => {
+                    ipv4RouteAdd(in)
+                }
+                case ZebraIpv4RouteDelete => {
+                    ipv4RouteDelete(in, out)
+                }
                 case ZebraIpv6RouteAdd => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -388,8 +395,9 @@ class ZebraConnection(val dispatcher: Actor,
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
                 }
-                case ZebraRouterIdAdd =>
-                { routerIdUpdate(out) }
+                case ZebraRouterIdAdd => {
+                    routerIdUpdate(out)
+                }
                 case ZebraRouterIdDelete => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -400,8 +408,9 @@ class ZebraConnection(val dispatcher: Actor,
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
                 }
-                case ZebraHello =>
-                { hello(in, out) }
+                case ZebraHello => {
+                    hello(in, out)
+                }
                 case _ => {
                     log.error("received unknown message %s".format(message))
                 }
@@ -415,22 +424,26 @@ class ZebraConnection(val dispatcher: Actor,
                 case HandleConnection(socket: Socket) => {
                     log.debug("clientId: {}", clientId)
                     try {
-                        handleRequest(socket.getInputStream,
-                                      socket.getOutputStream)
+                        handleConnection(socket.getInputStream,
+                            socket.getOutputStream)
                     } catch {
-                        case e: NoStatePathException =>
-                        { log.warn("config isn't in the directory") }
-                        case e: EOFException =>
-                        { log.warn("connection closed by the peer") }
-                        case e: IOException =>
-                        { log.warn("IO error", e) }
+                        case e: NoStatePathException => {
+                            log.warn("config isn't in the directory")
+                        }
+                        case e: EOFException => {
+                            log.warn("connection closed by the peer")
+                        }
+                        case e: IOException => {
+                            log.warn("IO error", e)
+                        }
                     } finally {
                         socket.close()
                         dispatcher ! Response(clientId)
                     }
                 }
-                case _ =>
-                { log.error("received unknown request") }
+                case _ => {
+                    log.error("received unknown request")
+                }
             }
         }
     }

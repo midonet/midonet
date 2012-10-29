@@ -28,8 +28,6 @@ class RoutingManagerActor extends Actor with ActorLogging {
     var config: MidolmanConfig = null
     @Inject
     val client: Client = null
-    @Inject
-    val injector: Injector = null
 
     private var bgpPortIdx = 0
 

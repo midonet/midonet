@@ -101,21 +101,18 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         super.preStart()
 
         if (rport == null) {
-            log.debug("port is null")
-        } else {
-            log.debug("port is not null")
+            log.error("port is null")
+            return
         }
 
         if (client == null) {
-            log.debug("client is null")
-        } else {
-            log.debug("client is not null")
+            log.error("client is null")
+            return
         }
 
         if (dataClient == null) {
-            log.debug("dataClient is null")
-        } else {
-            log.debug("dataClient is not null")
+            log.error("dataClient is null")
+            return
         }
 
         // Watch the BGP session information for this port.
@@ -640,7 +637,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
+        //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet))
