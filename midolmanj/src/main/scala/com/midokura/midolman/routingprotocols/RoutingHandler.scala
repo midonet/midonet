@@ -5,7 +5,6 @@
 package com.midokura.midolman.routingprotocols
 
 import akka.actor.{UntypedActorWithStash, ActorLogging}
-import com.google.inject.Inject
 import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midolman.topology.VirtualTopologyActor
 import java.util.UUID
@@ -20,14 +19,13 @@ import com.midokura.sdn.dp.Ports
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
-import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
+import com.midokura.sdn.dp.flows.FlowActions
 import com.midokura.sdn.dp.ports.InternalPort
 import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.DatapathController.CreatePortInternal
 import com.midokura.midolman.DatapathController.PortInternalOpReply
-import java.net.SocketAddress
 import com.midokura.util.process.ProcessHelper
 
 /**
@@ -51,14 +49,9 @@ import com.midokura.util.process.ProcessHelper
  * physical hosts, therefore MidoNet must anyway be able to use different
  * RoutingHandlers for different virtual ports of the same router. *
  */
-class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client: Client)
+class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
+                     val client: Client, val dataClient: DataClient)
     extends UntypedActorWithStash with ActorLogging {
-
-
-    @Inject
-    val dataClient: DataClient = null
-
-    //val client: Client = null
 
     private final val BGP_INTERNAL_PORT_NAME: String =
         "midobgp%d".format(bgpIdx)
@@ -106,15 +99,18 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         super.preStart()
 
         if (rport == null) {
-            log.debug("port is null")
-        } else {
-            log.debug("port is not null")
+            log.error("port is null")
+            return
         }
 
         if (client == null) {
-            log.debug("client is null")
-        } else {
-            log.debug("client is not null")
+            log.error("client is null")
+            return
+        }
+
+        if (dataClient == null) {
+            log.error("dataClient is null")
+            return
         }
 
         // Watch the BGP session information for this port.
@@ -408,9 +404,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                         }
 
                         val route = new Route()
+                        route.setRouterId(rport.deviceID)
                         route.setDstNetworkAddr(destination.toUnicastString)
                         route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
+                        route.setNextHop(com.midokura.midolman.layer3.Route.NextHop.PORT)
+                        route.setNextHopPort(rport.id)
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
                     case Stopping =>
@@ -427,9 +426,12 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
                         stash()
                     case Started =>
                         val route = new Route()
+                        route.setRouterId(rport.deviceID)
                         route.setDstNetworkAddr(destination.toUnicastString)
                         route.setDstNetworkLength(destination.prefixLen())
                         route.setNextHopGateway(gateway.toUnicastString)
+                        route.setNextHop(com.midokura.midolman.layer3.Route.NextHop.PORT)
+                        route.setNextHopPort(rport.id)
                         peerRoutes.get(route) match {
                             case Some(routeId) => dataClient.routesDelete(routeId)
                             case None =>
@@ -458,7 +460,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         socketAddress = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
-            socketAddress, handler, rport.nwAddr(), BGP_INTERNAL_PORT_NAME)
+            socketAddress, handler, rport.portAddr.toHostAddress, BGP_INTERNAL_PORT_NAME)
         zebra.start()
 
         // Create the interface bgpd will run on.
@@ -633,7 +635,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int, val client:
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-            //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
+        //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet))

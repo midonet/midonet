@@ -6,13 +6,13 @@ package com.midokura.midolman.routingprotocols
 
 import akka.actor.{ActorRef, Props, ActorLogging, Actor}
 import com.midokura.midonet.cluster.{Client, DataClient}
-import com.google.inject.Inject
+import com.google.inject.{Injector, Inject}
 import java.util.UUID
 import com.midokura.util.functors.Callback2
 import com.midokura.midolman.config.MidolmanConfig
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort}
 import collection.mutable
-import com.midokura.midolman.topology.VirtualTopologyActor
+import com.midokura.midolman.topology.{VirtualTopologyActor}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.Referenceable
 
@@ -81,10 +81,11 @@ class RoutingManagerActor extends Actor with ActorLogging {
 
             if (activePorts(port.id) && portHandlers.get(port.id) == None) {
                 bgpPortIdx += 1
+
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, client)).withDispatcher("actors.stash-dispatcher"),
+                        Props(new RoutingHandler(port, bgpPortIdx, client, dataClient)).withDispatcher("actors.stash-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug("RoutingManager - ExteriorRouterPort - RoutingHandler actor creation requested")

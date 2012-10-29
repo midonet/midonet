@@ -43,8 +43,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
     }
 
-    /* Does pre-routing phase. Delegates routing post-routing and out
-     * phases to routing() and postRouting()
+    /* Does pre-routing phase.  Delegates routing, post-routing, and emit
+     * phases to routing() and postRouting().
      */
     private def preRouting(pktContext: PacketContext, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,

@@ -7,72 +7,23 @@ package com.midokura.quagga
 import org.slf4j.LoggerFactory
 import actors.Actor
 import com.midokura.packets.IntIPv4
-import collection.mutable
-import java.util.UUID
 import java.io._
-import java.net.InetAddress
+import java.net.{Socket, InetAddress}
 import com.midokura.midolman.state.NoStatePathException
 
+case class HandleConnection(socket: Socket)
+
 object ZebraConnection {
-import ZebraProtocol._
 
-// Midolman OpenvSwitch constants.
-// TODO(yoshi): get some values from config file.
-private final val BgpExtIdValue = "bgp"
-private final val OspfExtIdValue = "ospf"
-private final val RipfExtIdValue = "rip"
-
-// The mtu size 1300 to avoid ovs dropping packets.
-private final val MidolmanMTU = 1300
-// The weight of advertised routes.
-private final val AdvertisedWeight = 0
-
-// Zebra message string table.
-private final val ZebraMessageTable = Map(
-    ZebraInterfaceAdd -> "ZebraInterfaceAdd",
-    ZebraInterfaceDelete -> "ZebraInterfaceDelete",
-    ZebraInterfaceAddressAdd -> "ZebraInterfaceAddressAdd",
-    ZebraInterfaceAddressDelete -> "ZebraInterfaceAddressDelete",
-    ZebraInterfaceUp -> "ZebraInterfaceUp",
-    ZebraInterfaceDown -> "ZebraInterfaceDown",
-    ZebraIpv4RouteAdd -> "ZebraIpv4RouteAdd",
-    ZebraIpv4RouteDelete -> "ZebraIpv4RouteDelete",
-    ZebraIpv6RouteAdd -> "ZebraIpv6RouteAdd",
-    ZebraIpv6RouteDelete -> "ZebraIpv6RouteDelete",
-    ZebraRedistributeAdd -> "ZebraRedistributeAdd",
-    ZebraRedistributeDelete -> "ZebraRedistributeDelete",
-    ZebraRedistributeDefaultAdd -> "ZebraRedistributeDefaultAdd",
-    ZebraRedistributeDefaultDelete -> "ZebraRedistributeDefaultDelete",
-    ZebraIpv4NextHopLookup -> "ZebraIpv4NextHopLookup",
-    ZebraIpv6NextHopLookup -> "ZebraIpv6NextHopLookup",
-    ZebraIpv4ImportLookup -> "ZebraIpv4ImportLookup",
-    ZebraIpv6ImportLookup -> "ZebraIpv6ImportLookup",
-    ZebraInterfaceRename -> "ZebraInterfaceRename",
-    ZebraRouterIdAdd -> "ZebraRouterIdAdd",
-    ZebraRouterIdDelete -> "ZebraRouterIdDelete",
-    ZebraRouterIdUpdate -> "ZebraRouterIdUpdate")
-
-// Zebra route type string table.
-private final val ZebraRouteTypeTable = Map(
-    ZebraRouteSystem -> "System",
-    ZebraRouteKernel -> "Kernel",
-    ZebraRouteConnect -> "Connect",
-    ZebraRouteStatic -> "Static",
-    ZebraRouteRip -> "Rip",
-    ZebraRouteRipng -> "Ripng",
-    ZebraRouteOspf -> "Ospf",
-    ZebraRouteOspf6 -> "Ospf6",
-    ZebraRouteIsis -> "Isis",
-    ZebraRouteBgp -> "Bgp",
-    ZebraRouteHsls -> "Hsls")
-
-private final val log = LoggerFactory.getLogger(this.getClass)
+    // The mtu size 1300 to avoid ovs dropping packets.
+    private final val MidolmanMTU = 1300
 }
 
 class ZebraConnection(val dispatcher: Actor,
-                  val handler: ZebraProtocolHandler,
-                  val ifAddr: IntIPv4,
-                  val ifName: String)
+                      val handler: ZebraProtocolHandler,
+                      val ifAddr: IntIPv4,
+                      val ifName: String,
+                      val clientId: Int)
     extends Actor {
 
     import ZebraConnection._
@@ -80,113 +31,120 @@ class ZebraConnection(val dispatcher: Actor,
 
     private final val log = LoggerFactory.getLogger(this.getClass)
 
-    // Map to get port uuid from route type.
-    private val ribTypeToPortUUID = mutable.Map[Int, String]()
-    // Map to track zebra route and MidoNet Route.
-    private val zebraToRoute = mutable.Map[String, UUID]()
-
     implicit def inputStreamWrapper(in: InputStream) =
         new DataInputStream(in)
 
     implicit def outputStreamWrapper(out: OutputStream) =
         new DataOutputStream(out)
 
-    private def interfaceAdd(out: DataOutputStream) {
-        log.debug("begin")
-
-        //val protocols = Array(BgpExtIdValue, OspfExtIdValue, RipfExtIdValue)
-        var ifIndex = 0
-
-        /* TODO(pino): ask Yoshi why this was done per-protocol.
-    for (protocol <- protocols) {
-    val servicePort = ovsdb.synchronized {
-        ovsdb.getPortNamesByExternalId(OvsPortServiceExtIdKey,
-                                       protocol)
-    }
-    // Only one service port for each protocol at maximum.
-    if (servicePort.size == 1) {
-        val portName = servicePort.head
-        // Get router port uuid.
-        val portUUID = ovsdb.synchronized {         // remote virtual port
-            ovsdb.getPortExternalId(portName, OvsPortIdExtIdKey)
-        }
-        assert(portUUID.nonEmpty)
-
-        val portConfig = portMgr.synchronized {
-            portMgr.get(UUID.fromString(portUUID),
-                    classOf[MaterializedRouterPortConfig])
-        }
-
-        // Create a map to get port uuid from route type. Note that
-        // this implementation will limit that each protocol can
-        // only be handled by one router port.
-        // TODO(yoshi): remove this limitation.
-        protocol match {
-            case RipfExtIdValue =>
-                { ribTypeToPortUUID(ZebraRouteRip) = portUUID }
-            case OspfExtIdValue =>
-                { ribTypeToPortUUID(ZebraRouteOspf) = portUUID }
-            case BgpExtIdValue =>
-                { ribTypeToPortUUID(ZebraRouteBgp) = portUUID }
-        }
-        */
-
-        sendHeader(out, ZebraInterfaceAdd, ZebraInterfaceAddSize)
-
+    private def sendInterfaceName(out: DataOutputStream, ifName: String) {
         val ifNameBuf = new StringBuffer(ifName)
-        // TODO(pino): why does the length need to be set exactly?
         ifNameBuf.setLength(InterfaceNameSize)
         out.writeBytes(ifNameBuf.toString)
+        log.debug("ifName: {}", ifNameBuf)
+    }
 
-        // Send bogus index now. c.f. ip link show <port>
+    private def sendInterfaceIndex(out: DataOutputStream, ifIndex: Int) {
         out.writeInt(ifIndex)
-        out.writeByte(ZebraInterfaceActive)
+        log.debug("ifIndex: {}", ifIndex)
+    }
 
-        // Send flags that show up in internal ports.
-        val flags = IFF_UP | IFF_BROADCAST | IFF_PROMISC | IFF_MULTICAST
+    private def sendInterfaceStatus(out: DataOutputStream, status: Int) {
+        out.writeByte(status.toByte)
+        log.debug("status: {}", status)
+    }
+
+    private def sendInterfaceFlags(out: DataOutputStream, flags: Int) {
         out.writeLong(flags)
+        log.debug("flags: 0x%x".format(flags))
+    }
 
-        // metric
-        out.writeInt(1)
-        // mtu
-        out.writeInt(MidolmanMTU)
-        // mtu6
-        out.writeInt(MidolmanMTU)
-        // bandwidth
-        out.writeInt(0)
+    private def sendInterfaceMetric(out: DataOutputStream, metric: Int) {
+        out.writeInt(metric)
+        log.debug("metric: {}", metric)
+    }
 
-        // Send empty mac address.
-        // TODO(yoshi): replace this using
-        // NetworkInterface.getByName(). But it'll blow up if OVS
-        // internal port is up.
-        out.writeInt(MacAddrLength)
+    private def sendInterfaceMtu(out: DataOutputStream, mtu: Int) {
+        out.writeInt(mtu)
+        log.debug("MTU: {}", mtu)
+    }
+
+    private def sendInterfaceMtu6(out: DataOutputStream, mtu6: Int) {
+        out.writeInt(mtu6)
+        log.debug("MTU6: {}", mtu6)
+    }
+
+    private def sendInterfaceBandwidth(out: DataOutputStream, bandwidth: Int) {
+        out.writeInt(bandwidth)
+        log.debug("Bandwidth: {}", bandwidth)
+    }
+
+    private def sendInterfaceHwLen(out: DataOutputStream, hwLen: Int) {
+        out.writeInt(hwLen)
+        log.debug("hwLen: {}", hwLen)
+    }
+
+    private def sendInterfaceHwAddr(out: DataOutputStream) {
         val mac = new Array[Byte](MacAddrLength)
         out.write(mac, 0, MacAddrLength)
+        log.debug("hwAddr; {}", mac.toString)
+    }
 
-        log.info("ZebraInterfaceAdd: index %d name %s".format(ifIndex,
-            ifName))
+    private def sendInterfaceAddrIndex(out: DataOutputStream, ifIndex: Int) {
+        out.writeInt(ifIndex)
+        log.debug("ifIndex: {}", ifIndex)
+    }
+
+    private def sendInterfaceAddrFlags(out: DataOutputStream, flags: Byte) {
+        out.writeByte(flags)
+        log.debug("flags: {}", flags)
+    }
+
+    private def sendInterfaceAddrFamily(out: DataOutputStream, family: Int) {
+        out.writeByte(family.toByte)
+        log.debug("family: {}", family)
+    }
+
+    private def sendInterfaceAddr(out: DataOutputStream, ipv4addr: Int) {
+        out.writeInt(ipv4addr)
+        log.debug("addr: %x".format(ipv4addr))
+    }
+
+    private def sendInterfaceAddrLen(out: DataOutputStream, addrLen: Byte) {
+        out.writeByte(addrLen)
+        log.debug("addrLen: {}", addrLen)
+    }
+
+    private def sendInterfaceAddrDstAddr(out: DataOutputStream, ipv4addr: Int) {
+        out.writeInt(ipv4addr)
+        log.debug("dstAddr: %x".format(ipv4addr))
+    }
+
+    private def interfaceAdd(out: DataOutputStream) {
+        log.debug("begin, clientId: {}", clientId)
+
+        sendHeader(out, ZebraInterfaceAdd, ZebraInterfaceAddSize)
+        sendInterfaceName(out, ifName)
+        sendInterfaceIndex(out, 0)
+        sendInterfaceStatus(out, ZebraInterfaceActive)
+        sendInterfaceFlags(out, IFF_UP | IFF_BROADCAST | IFF_PROMISC | IFF_MULTICAST)
+        sendInterfaceMetric(out, 1)
+        sendInterfaceMtu(out, MidolmanMTU)
+        sendInterfaceMtu6(out, MidolmanMTU)
+        sendInterfaceBandwidth(out, 0)
+        sendInterfaceHwLen(out, MacAddrLength)
+        sendInterfaceHwAddr(out)
+
 
         sendHeader(out, ZebraInterfaceAddressAdd,
             ZebraInterfaceAddressAddSize)
-        out.writeInt(ifIndex)
-        // ifc->flags
-        out.write(0)
-        out.write(AF_INET)
+        sendInterfaceAddrIndex(out, 0)
+        sendInterfaceAddrFlags(out, 0)
+        sendInterfaceAddrFamily(out, AF_INET)
+        sendInterfaceAddr(out, ifAddr.addressAsInt())
+        sendInterfaceAddrLen(out, 4)
+        sendInterfaceAddrDstAddr(out, 0)
 
-        // TODO(yoshi): Ipv6
-        out.writeInt(ifAddr.addressAsInt())
-        out.write(ifAddr.prefixLen())
-        // TODO(yoshi): fix dummy destination address.
-        out.writeInt(0)
-
-        log.info("ZebraInterfaceAddressAdd: index %d name %s addr %d"
-            .format(ifIndex, ifNameBuf, ifAddr))
-
-        ifIndex += 1
-        //} else if (servicePort.nonEmpty) {
-        //    log.warn("Only one service port for each protocol")
-        //}
-        //}
         log.debug("end")
     }
 
@@ -199,20 +157,35 @@ class ZebraConnection(val dispatcher: Actor,
         out.write(ia.getAddress, 0, Ipv4MaxBytelen)
         // prefix length
         out.writeByte(32)
-        log.info("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
+        log.debug("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
     }
 
-    def ipv4RouteAdd(in: DataInputStream, out: DataOutputStream) {
+    def ipv4RouteAdd(in: DataInputStream) {
         log.debug("begin")
         val ribType = in.readByte
+        log.debug("ribType: {}", ribType)
+
         val flags = in.readByte
+        log.debug("flags: 0x%x".format(flags))
+
         val message = in.readByte
-        val prefixLen:Byte = in.readByte
+        log.debug("message: {}({})", ZebraMessageTable(message), message)
+
+        val safi = in.readShort
+        log.debug("safi: {}", safi)
+
+        val prefixLen = in.readByte
+        log.debug("prefixLen: {}", prefixLen)
+
         val prefix = new Array[Byte](Ipv4MaxBytelen)
         // Protocol daemons only send network part.
         in.read(prefix, 0, ((prefixLen + 7) / 8))
+        log.debug("prefix: {}", prefix.map(_.toInt))
 
-        assert(ZebraRouteTypeTable.contains(ribType))
+        if (!ZebraRouteTypeTable.contains(ribType)) {
+            log.error("Wrong RIB type: {}", ribType)
+            return
+        }
 
         val advertised = "%s/%d".format(
             InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
@@ -255,6 +228,7 @@ class ZebraConnection(val dispatcher: Actor,
         val ribType = in.readByte
         val flags = in.readByte
         val message = in.readByte
+        val safi = in.readShort
         val prefixLen = in.readByte
         val prefix = new Array[Byte](Ipv4MaxBytelen)
         // Protocol daemons only send network part.
@@ -300,13 +274,26 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def handleRequest(in: DataInputStream, out: DataOutputStream, id: Int) {
+    def hello(in: DataInputStream, out: DataOutputStream) {
+        log.debug("begin, clientId: {}", clientId)
+
+        val proto = in.readByte
+        log.debug("proto: {}", proto)
+        assert(proto == ZebraRouteBgp)
+
+        log.debug("end")
+    }
+
+    def handleConnection(in: DataInputStream, out: DataOutputStream) {
+        log.debug("begin - clientId: {}", clientId)
+
         while (true) {
             val (message, _) = recvHeader(in)
 
             message match {
-                case ZebraInterfaceAdd =>
-                { interfaceAdd(out) }
+                case ZebraInterfaceAdd => {
+                    interfaceAdd(out)
+                }
                 case ZebraInterfaceDelete => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -332,10 +319,12 @@ class ZebraConnection(val dispatcher: Actor,
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
                 }
-                case ZebraIpv4RouteAdd =>
-                { ipv4RouteAdd(in, out) }
-                case ZebraIpv4RouteDelete =>
-                { ipv4RouteDelete(in, out) }
+                case ZebraIpv4RouteAdd => {
+                    ipv4RouteAdd(in)
+                }
+                case ZebraIpv4RouteDelete => {
+                    ipv4RouteDelete(in, out)
+                }
                 case ZebraIpv6RouteAdd => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -391,8 +380,9 @@ class ZebraConnection(val dispatcher: Actor,
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
                 }
-                case ZebraRouterIdAdd =>
-                { routerIdUpdate(out) }
+                case ZebraRouterIdAdd => {
+                    routerIdUpdate(out)
+                }
                 case ZebraRouterIdDelete => {
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
@@ -402,6 +392,9 @@ class ZebraConnection(val dispatcher: Actor,
                     log.error("%s isn't implemented yet".format(
                         ZebraMessageTable(message)))
                     throw new RuntimeException("not implemented")
+                }
+                case ZebraHello => {
+                    hello(in, out)
                 }
                 case _ => {
                     log.error("received unknown message %s".format(message))
@@ -413,25 +406,29 @@ class ZebraConnection(val dispatcher: Actor,
     def act() {
         loop {
             react {
-                case Request(conn, requestId) => {
-                    log.info("received request %d".format(requestId))
+                case HandleConnection(socket: Socket) => {
+                    log.debug("clientId: {}", clientId)
                     try {
-                        handleRequest(conn.getInputStream,
-                            conn.getOutputStream, requestId)
+                        handleConnection(socket.getInputStream,
+                            socket.getOutputStream)
                     } catch {
-                        case e: NoStatePathException =>
-                        { log.warn("config isn't in the directory") }
-                        case e: EOFException =>
-                        { log.warn("connection closed by the peer") }
-                        case e: IOException =>
-                        { log.warn("IO error", e) }
+                        case e: NoStatePathException => {
+                            log.warn("config isn't in the directory")
+                        }
+                        case e: EOFException => {
+                            log.warn("connection closed by the peer")
+                        }
+                        case e: IOException => {
+                            log.warn("IO error", e)
+                        }
                     } finally {
-                        conn.close()
-                        dispatcher ! Response(requestId)
+                        socket.close()
+                        dispatcher ! Response(clientId)
                     }
                 }
-                case _ =>
-                { log.error("received unknown request") }
+                case _ => {
+                    log.error("received unknown request")
+                }
             }
         }
     }
