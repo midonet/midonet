@@ -136,6 +136,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         if (withTags) pktContext.getFlowTags else null))
 
             case None => // Internally-generated packet. Do nothing.
+                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
         }
     }
 
@@ -251,18 +252,21 @@ class Coordinator(val origMatch: WildcardMatch,
 
                     case _: ConsumedAction =>
                         pktContext.freeze()
+                        pktContext.getFlowRemovedCallbacks foreach {
+                            cb => cb.call()
+                        }
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
-                                pktContext.getFlowRemovedCallbacks foreach {
-                                    cb => cb.call()
-                                }
                                 flowController.tell(DiscardPacket(cookie))
                         }
 
                     case _: ErrorDropAction =>
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
                                 // Drop the flow temporarily
                                 dropFlow(temporary = true)
@@ -274,6 +278,9 @@ class Coordinator(val origMatch: WildcardMatch,
                             origMatch)
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
                                 var temporary = false
                                 // Flows which (if they were return flows in a
@@ -296,6 +303,9 @@ class Coordinator(val origMatch: WildcardMatch,
                             origMatch)
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
                                 pktContext.freeze()
                                 val notIPv4Match =
@@ -443,6 +453,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 datapathController.tell(
                     SendPacket(origEthernetPkt, actions.toList))
+                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
