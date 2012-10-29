@@ -22,10 +22,10 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
         //TODO(abel) the bgpd config path should be provided by midolman config file
         val bgpdCmdLine = "/usr/local/sbin/bgpd --vty_port " + vtyPortNumber +
         " --vty_addr 127.0.0.1" +
-        " --config_file /etc/quagga/bgpd.conf --listenon " + listenAddress +
+        " --config_file /etc/quagga/bgpd.conf" +
+        " --listenon " + listenAddress +
         " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
         " --socket " + socketAddress.getSocketFile
-
 
         log.debug("bgpd command line: {}", bgpdCmdLine)
 

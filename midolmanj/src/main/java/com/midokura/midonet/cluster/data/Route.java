@@ -156,6 +156,18 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
         public UUID routerId;
         public Map<String, String> properties = new HashMap<String, String>();
 
+        public Data() {
+            srcNetworkAddr = "0.0.0.0";
+            srcNetworkLength = 0;
+            dstNetworkAddr = "0.0.0.0";
+            dstNetworkLength = 0;
+            nextHop = com.midokura.midolman.layer3.Route.NextHop.REJECT;
+            nextHopPort = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
+            nextHopGateway = "0.0.0.0";
+            weight = 0;
+            attributes = "";
+            routerId = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
+        }
         @Override
         public boolean equals(Object other) {
             if (other == null)
