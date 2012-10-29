@@ -14,7 +14,6 @@ import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
-import com.midokura.midonet.functional_test.utils.TapProxy;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import org.junit.After;
@@ -31,7 +30,6 @@ import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;

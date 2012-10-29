@@ -5,7 +5,6 @@
 package com.midokura.midolman.routingprotocols
 
 import akka.actor.{UntypedActorWithStash, ActorLogging}
-import com.google.inject.Inject
 import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midolman.topology.VirtualTopologyActor
 import java.util.UUID
@@ -20,14 +19,13 @@ import com.midokura.sdn.dp.Ports
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
-import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
+import com.midokura.sdn.dp.flows.FlowActions
 import com.midokura.sdn.dp.ports.InternalPort
 import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.DatapathController.CreatePortInternal
 import com.midokura.midolman.DatapathController.PortInternalOpReply
-import java.net.SocketAddress
 import com.midokura.util.process.ProcessHelper
 
 /**

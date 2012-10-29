@@ -7,8 +7,6 @@ package com.midokura.quagga
 import org.slf4j.LoggerFactory
 import actors.Actor
 import com.midokura.packets.IntIPv4
-import collection.mutable
-import java.util.UUID
 import java.io._
 import java.net.{Socket, InetAddress}
 import com.midokura.midolman.state.NoStatePathException
@@ -17,18 +15,8 @@ case class HandleConnection(socket: Socket)
 
 object ZebraConnection {
 
-    import ZebraProtocol._
-
-    // Midolman OpenvSwitch constants.
-    // TODO(yoshi): get some values from config file.
-    private final val BgpExtIdValue = "bgp"
-    private final val OspfExtIdValue = "ospf"
-    private final val RipfExtIdValue = "rip"
-
     // The mtu size 1300 to avoid ovs dropping packets.
     private final val MidolmanMTU = 1300
-    // The weight of advertised routes.
-    private final val AdvertisedWeight = 0
 }
 
 class ZebraConnection(val dispatcher: Actor,
@@ -42,9 +30,6 @@ class ZebraConnection(val dispatcher: Actor,
     import ZebraProtocol._
 
     private final val log = LoggerFactory.getLogger(this.getClass)
-
-    // Map to track zebra route and MidoNet Route.
-    private val zebraToRoute = mutable.Map[String, UUID]()
 
     implicit def inputStreamWrapper(in: InputStream) =
         new DataInputStream(in)
