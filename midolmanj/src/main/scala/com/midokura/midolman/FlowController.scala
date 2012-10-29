@@ -251,12 +251,15 @@ class FlowController extends Actor with ActorLogging {
         }
 
         // If there was a match, execute its actions
+        //TODO(abel) use match
         if (actions != null) {
             packet.setActions(actions)
 
             for (action <- actions) {
-                if (action.isInstanceOf[FlowActionUserspace])
+                if (action.isInstanceOf[FlowActionUserspace]) {
                     packet.removeAction(action)
+                    doSimulation(packet)
+                }
             }
 
             datapathConnection.packetsExecute(datapath, packet,
@@ -269,9 +272,11 @@ class FlowController extends Actor with ActorLogging {
                             if (timeout) "timeout" else "error")
                     }
                 })
+
             return
         }
 
+        // No actions -> no match -> figure out what this packet is
         doSimulation(packet)
     }
 
