@@ -764,7 +764,8 @@ class DatapathController() extends Actor with ActorLogging {
         if (flowActions == null)
             flowActions = Nil
 
-        translateActions(flowActions, inPortUUID, dpTags, flow.getMatch) onComplete {
+        translateActions(flowActions, Option(inPortUUID),
+                         Option(dpTags), flow.getMatch) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
@@ -777,7 +778,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: UUID, dpTags: mutable.Set[Any],
+                         inPortUUID: Option[UUID],
+                         dpTags: Option[mutable.Set[Any]],
                          wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
@@ -812,15 +814,18 @@ class DatapathController() extends Actor with ActorLogging {
                         case br =>
                             // Don't include the input port in the expanded
                             // port set.
+                            var outPorts = set.localPorts
+                            inPortUUID foreach { p => outPorts -= p }
                             log.info("inPort: {}", inPortUUID)
                             log.info("local ports: {}", set.localPorts)
-                            log.info("local ports minus inPort: {}",
-                                set.localPorts - inPortUUID)
+                            log.info("local ports minus inPort: {}", outPorts)
                             // add tag for flow invalidation
-                            dpTags += FlowTagger.invalidateBroadcastFlows(br.id,
-                                       br.id)
+                            dpTags foreach { tags =>
+                                tags += FlowTagger.invalidateBroadcastFlows(
+                                    br.id, br.id)
+                            }
                             val localPortFutures =
-                                (set.localPorts-inPortUUID).toSeq map {
+                                outPorts.toSeq map {
                                     portID => ask(VirtualTopologyActor.getRef(),
                                                   PortRequest(portID, false))
                                               .mapTo[client.Port[_]]
@@ -835,7 +840,7 @@ class DatapathController() extends Actor with ActorLogging {
                                                 portsForLocalPorts(portIDs),
                                                 Some(br.tunnelKey),
                                                 tunnelsForHosts(set.hosts.toSeq),
-                                                dpTags))
+                                                dpTags.orNull))
                                         })
 
                                 case _ => log.error("Error getting " +
@@ -851,7 +856,7 @@ class DatapathController() extends Actor with ActorLogging {
                     case Some(localPort) =>
                         translated.success(
                             translateToDpPorts(actions, port, List(localPort),
-                                None, Nil, dpTags))
+                                None, Nil, dpTags.orNull))
                     case None =>
                         ask(VirtualTopologyActor.getRef(), PortRequest(port,
                             update = false)).mapTo[client.Port[_]] map {
@@ -860,7 +865,7 @@ class DatapathController() extends Actor with ActorLogging {
                                             actions, port, Nil,
                                             Some(p.tunnelKey),
                                             tunnelsForHosts(List(p.hostID)),
-                                            dpTags))
+                                            dpTags.orNull))
                         }
                 }
             case None =>
@@ -1228,7 +1233,7 @@ class DatapathController() extends Actor with ActorLogging {
             // Empty action list drops the packet. No need to send to DP.
             return
         }
-        translateActions(origActions, null, null,
+        translateActions(origActions, None, None,
                          WildcardMatches.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
