@@ -17,7 +17,7 @@ import topology.RouterManager.RouterInvTrieTagCountModified
 import util.{TestHelpers, RouterHelper}
 import com.midokura.midonet.cluster.data.{Port, Router}
 import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.DatapathController.{TunnelChangeEvent, PacketIn}
 import com.midokura.midolman.FlowController.{RemoveWildcardFlow, WildcardFlowRemoved, WildcardFlowAdded, DiscardPacket}
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import akka.util.Duration
@@ -26,10 +26,11 @@ import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
 import collection.immutable.HashMap
 import collection.mutable
 import scala.collection.JavaConverters._
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 
 
 @RunWith(classOf[JUnitRunner])
-class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
+class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
                        with RouterHelper{
 
     var eventProbe: TestProbe = null
@@ -289,70 +290,5 @@ class FlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBui
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm2AsInt, 0))
 
     }
-
-    def testDpInPortDeleted() {
-
-        val ipToReach = "11.11.0.2"
-        val macToReach = "02:11:22:33:48:10"
-        // add a route from ipSource to ipToReach/32, next hop is outPort
-        newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
-            2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
-        // we trigger the learning of macToReach
-        feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
-            MAC.fromString(macToReach),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
-            MAC.fromString(macOutPort))
-
-        dpProbe().expectMsgClass(classOf[PacketIn])
-        dpProbe().expectMsgClass(classOf[PacketIn])
-
-        val flowAddedMessage = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
-        deletePort(inPort, host)
-
-        // We expect 2 flows to be invalidated: the one created automatically
-        // when the port becomes active to handle tunnelled packets for that port
-        // and the second installed after the packet it
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-    }
-
-    def testDpOutPortDeleted() {
-        val ipToReach = "11.11.0.2"
-        val macToReach = "02:11:22:33:48:10"
-        // add a route from ipSource to ipToReach/32, next hop is outPort
-        newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
-            2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
-        // we trigger the learning of macToReach
-        feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
-            MAC.fromString(macToReach),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
-            MAC.fromString(macOutPort))
-
-        dpProbe().expectMsgClass(classOf[PacketIn])
-        dpProbe().expectMsgClass(classOf[PacketIn])
-
-        val flowAddedMessage = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
-        deletePort(outPort, host)
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        /*addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
-            (FlowActions.output(mapPortNameShortNumber(outPortName)))))*/
-    }
-    //TODO(rossella) tunnel ports test
 
 }
