@@ -19,7 +19,7 @@ import com.midokura.sdn.dp.Ports
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
-import com.midokura.sdn.dp.flows.FlowActions
+import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
 import com.midokura.sdn.dp.ports.InternalPort
 import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
@@ -635,7 +635,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
-        //.addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
+            .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
         DatapathController.getRef.tell(AddWildcardFlow(
             wildcardFlow, None, null, null, bgpTagSet))

@@ -16,6 +16,7 @@ import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,6 +42,13 @@ public class BgpTest {
 
     final String tenantName = "tenant";
 
+    /*
+    static final String networkNamespace = "mido_ns_0";
+    static final String pairedInterfaceLocal = "veth0";
+    static final String pairedInterfacePeer  = "veth1";
+    static final String peerVm = "peerVmPort";
+    */
+
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
     MidolmanLauncher midolman;
@@ -56,13 +64,63 @@ public class BgpTest {
 
 
     @BeforeClass
-    public static void checkLock() {
+    public static void setUpClass() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+        /*
+
+        List<String> commandList = null;
+
+        // Create network namespace
+        commandList = ProcessHelper.executeCommandLine
+                ("ip netns list | grep " + networkNamespace);
+        if (commandList.size() == 0) {
+            ProcessHelper.executeCommandLine
+                    ("sudo ip netns add " + networkNamespace);
+        }
+
+        // Create paired interfaces
+        ProcessHelper.executeCommandLine("sudo ip link delete " +
+                pairedInterfaceLocal);
+        ProcessHelper.executeCommandLine("sudo ip link add type veth");
+        ProcessHelper.executeCommandLine("sudo ifconfig " +
+                pairedInterfaceLocal + " up");
+        ProcessHelper.executeCommandLine("sudo ifconfig " +
+                pairedInterfacePeer + " 100.0.0.2 up");
+
+        // Send peer paired interface to network namespace
+        ProcessHelper.executeCommandLine("sudo ip link set " +
+                pairedInterfacePeer + " netns " + networkNamespace);
+
+        // bring up loopback in network namespace
+        ProcessHelper.executeCommandLine("sudo ip netns exec " +
+                networkNamespace + " ifconfig lo up");
+
+        // Create fake VM port in network namespace
+        ProcessHelper.executeCommandLine("sudo ip link add type dummy " + peerVm);
+        ProcessHelper.executeCommandLine("sudo ifconfig vmport 2.0.0.2 up");
+        ProcessHelper.executeCommandLine("sudo ip link set " + peerVm +
+                + " netns " + networkNamespace);
+
+        // run bgpd peer
+        ProcessHelper.executeCommandLine("sudo ip netns exec " +
+                networkNamespace + " /usr/local/sbin/bgpd --config_file " +
+                "./peer.bgpd.conf --listenon 100.0.0.2 --pid_file " +
+                "/var/run/quagga/peer.bgpd.pid -A 127.0.0.1");
+        */
     }
 
     @AfterClass
-    public static void releaseLock() {
+    public static void tearDownClass() {
         lock.release();
+
+        /*
+        ProcessHelper.executeCommandLine("sudo killall bgpd");
+
+        ProcessHelper.executeCommandLine("sudo ip link delete " +
+                pairedInterfaceLocal);
+        ProcessHelper.executeCommandLine("sudo ip netns delete " +
+                networkNamespace);
+        */
     }
 
     @Before
@@ -97,6 +155,15 @@ public class BgpTest {
                 .portMac("02:00:00:00:01:01")
                 .create();
         log.debug("Created logical router port: " + materializedRouterPort1_vm.toString());
+
+        router1.addRoute()
+                .dstNetworkAddr("1.0.0.1")
+                .dstNetworkLength(24)
+                .srcNetworkAddr("0.0.0.0")
+                .srcNetworkLength(0)
+                .nextHopPort(materializedRouterPort1_vm.getId())
+                .type("Normal")
+                .create();
 
         RouterPort materializedRouterPort1_bgp = (RouterPort) router1.addMaterializedRouterPort()
                 .portAddress("100.0.0.1")
@@ -155,6 +222,24 @@ public class BgpTest {
 
         sleepBecause("we need midolman to boot up", 2);
 
+        // This is just for ARP between fake VM and router, so the
+        // router has the fake VM MAC
+        PacketHelper helper1 = new PacketHelper(
+                MAC.fromString("02:00:00:00:01:02"),
+                IntIPv4.fromString("1.0.0.2"),
+                IntIPv4.fromString("1.0.0.1"));
+
+        // arp for router's mac
+        assertThat("The ARP request was sent properly",
+                tap1_vm.send(helper1.makeArpRequest()));
+
+        try {
+            MAC rtrMac = helper1.checkArpReply(tap1_vm.recv());
+            helper1.setGwMac(rtrMac);
+        } catch (MalformedPacketException e) {
+            log.debug("bad packet: {}", e);
+        }
+
     }
 
     @After
@@ -182,9 +267,14 @@ public class BgpTest {
 
         sleepBecause("wait few seconds to see if bgpd catches the route", 30);
 
-        tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
+        byte [] request;
+        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1_vm.getName()), tap1_vm.send(request));
 
-        sleepBecause("wait for ICMP to travel", 2);
+        sleepBecause("wait for ICMP to travel", 1);
+
+        PacketHelper.checkIcmpEchoReply(request, tap1_vm.recv());
 
         log.debug("testRouteConnectivity - stop");
     }

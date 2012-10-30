@@ -252,12 +252,12 @@ class FlowController extends Actor with ActorLogging {
 
         // If there was a match, execute its actions
         if (actions != null) {
-            packet.setActions(actions)
 
-            for (action <- actions) {
-                if (action.isInstanceOf[FlowActionUserspace])
-                    packet.removeAction(action)
-            }
+            val packetActions = actions.filter(action => !action.isInstanceOf[FlowActionUserspace])
+            packet.setActions(packetActions)
+            if (packetActions.size != actions.size)
+                // we removed at least one FlowActionUserspace
+                doSimulation(packet)
 
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
@@ -269,9 +269,11 @@ class FlowController extends Actor with ActorLogging {
                             if (timeout) "timeout" else "error")
                     }
                 })
+
             return
         }
 
+        // No actions -> no match -> figure out what this packet is
         doSimulation(packet)
     }
 
