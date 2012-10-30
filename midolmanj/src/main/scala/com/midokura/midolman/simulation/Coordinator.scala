@@ -453,6 +453,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 datapathController.tell(
                     SendPacket(origEthernetPkt, actions.toList))
+                pktContext.freeze()
                 pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
