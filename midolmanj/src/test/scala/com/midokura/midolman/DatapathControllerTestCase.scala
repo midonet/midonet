@@ -252,17 +252,4 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     dpController().underlyingActor.vifPorts should contain value ("port1")
   }
 
-  def testDatapathStartingUpdates() {
-    val host = new Host(hostId()).setName("myself")
-    clusterDataClient().hostsCreate(hostId(), host)
-
-    // create & wait.
-    dpConn().datapathsCreate("test").get()
-
-    dpController().underlyingActor.portWatcher should be (null)
-    // send initialization message and wait
-    initializeDatapath() should not be (null)
-    dpController().underlyingActor.portWatcher should not be (null)
-    dpController().underlyingActor.portWatcher.isCancelled should be (false)
-  }
 }
