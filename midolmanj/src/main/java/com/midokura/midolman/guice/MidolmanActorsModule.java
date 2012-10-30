@@ -5,25 +5,22 @@ package com.midokura.midolman.guice;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
-import com.midokura.midolman.monitoring.MonitoringActor;
-import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
-import com.midokura.midolman.routingprotocols.RoutingManagerActor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.cache.Cache;
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
+import com.midokura.midolman.host.scanner.InterfaceScanner;
+import com.midokura.midolman.monitoring.MonitoringActor;
+import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
+import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
-import com.midokura.midolman.topology.HostManager;
-import com.midokura.midolman.topology.PortSetManager;
-import com.midokura.midolman.topology.TunnelZoneManager;
-import com.midokura.midolman.topology.VirtualToPhysicalMapper;
-import com.midokura.midolman.topology.VirtualTopologyActor;
+import com.midokura.midolman.topology.*;
 import com.midokura.netlink.protos.OvsDatapathConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so
@@ -54,6 +51,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(FlowController.class).in(Singleton.class);
         bind(SimulationController.class).in(Singleton.class);
         bind(MonitoringActor.class).in(Singleton.class);
+        bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
         bind(PortSetManager.class);
