@@ -227,7 +227,7 @@
             <id>use-tools-jar</id>
             <activation>
                 <os>
-                    <family>!mac</family>
+                    <family>mac</family>
                 </os>
             </activation>
             <dependencies>
