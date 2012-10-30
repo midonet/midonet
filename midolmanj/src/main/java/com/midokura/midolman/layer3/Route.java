@@ -50,7 +50,9 @@ public class Route implements Serializable {
     }
 
     // Default constructor for the Jackson deserialization.
-    public Route() { super(); }
+    public Route() {
+        super();
+    }
 
     /* Custom accessors for more readable IP address representation in Jackson serialization. */
 
