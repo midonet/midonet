@@ -23,7 +23,7 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
         val bgpdCmdLine = "/usr/lib/quagga/bgpd --vty_port " + vtyPortNumber +
         " --vty_addr 127.0.0.1" +
         " --config_file /etc/quagga/bgpd.conf" +
-        " --listenon " + listenAddress +
+        //" --listenon " + listenAddress +
         " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
         " --socket " + socketAddress.getSocketFile
 
