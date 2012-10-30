@@ -388,6 +388,11 @@ object DatapathController extends Referenceable {
      */
     case class CheckForPortUpdates(datapathName: String)
 
+    /**
+     * This message is only to be sent when testing. This will disable the feature that is constantly
+     * inspecting the ports to react to unexpected changes.
+     */
+    case class DisablePortWatcher()
 }
 
 
@@ -474,6 +479,7 @@ class DatapathController() extends Actor with ActorLogging {
     var host: Host = null
 
     var portWatcher: Cancellable = null
+    var portWatcherEnabled = true
 
     override def preStart() {
         super.preStart()
@@ -504,10 +510,17 @@ class DatapathController() extends Actor with ActorLogging {
             for ((zoneId, zone) <- host.zones) {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
-            // schedule port requests.
-            log.info("Starting to schedule the port stats updates.")
-            portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
+            if (portWatcherEnabled) {
+                // schedule port requests.
+                log.info("Starting to schedule the port stats updates.")
+                portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
+            }
             initializer forward m
+
+
+        case DisablePortWatcher() =>
+            log.info("Disabling the port watching feature.")
+            portWatcherEnabled = false
 
         case host: Host =>
             this.host = host

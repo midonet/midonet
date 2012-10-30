@@ -23,7 +23,7 @@ import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
-import com.midokura.midolman.DatapathController.InitializationComplete
+import com.midokura.midolman.DatapathController.{DisablePortWatcher, InitializationComplete}
 import com.midokura.midolman.guice._
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
@@ -185,9 +185,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def initializeDatapath(): DatapathController.InitializationComplete = {
+
+        topActor(DatapathController.Name).tell(DisablePortWatcher())
+
         val result = ask[InitializationComplete](
             topActor(DatapathController.Name), Initialize())
 
+        dpProbe().expectMsgType[DisablePortWatcher] should not be null
         dpProbe().expectMsgType[Initialize] should not be null
         dpProbe().expectMsgType[OutgoingMessage] should not be null
 
