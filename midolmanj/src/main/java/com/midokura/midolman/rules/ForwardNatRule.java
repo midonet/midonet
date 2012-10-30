@@ -67,6 +67,16 @@ public class ForwardNatRule extends NatRule {
             applySnat(fwdInfo, flowCookie, res, natMapping);
     }
 
+    private Callback0 makeUnrefCallback(final NatMapping mapping,
+                                        final String key) {
+        return new Callback0() {
+            @Override
+            public void call() {
+                mapping.natUnref(key);
+            }
+        };
+    }
+
     /**
      * Translate the destination network address (and possibly L4 port).
      *
@@ -97,13 +107,12 @@ public class ForwardNatRule extends NatRule {
                 res.pmatch.getNetworkSource(),
                 res.pmatch.getTransportSource(),
                 res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination(), flowCookie);
+                res.pmatch.getTransportDestination());
         if (null == conn)
-            // TODO(guillermo) tag this flow.
             conn = natMapping.allocateDnat(res.pmatch.getNetworkSource(),
                     res.pmatch.getTransportSource(),
                     res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets, flowCookie);
+                    res.pmatch.getTransportDestination(), targets);
         else
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
@@ -118,12 +127,7 @@ public class ForwardNatRule extends NatRule {
         res.action = action;
         res.trackConnection = true;
 
-        fwdInfo.addFlowRemovedCallback(new Callback0() {
-            @Override
-            public void call() {
-                natMapping.freeFlowResources(flowCookie);
-            }
-        });
+        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
 
     /**
@@ -155,12 +159,12 @@ public class ForwardNatRule extends NatRule {
                 res.pmatch.getNetworkSource(),
                 res.pmatch.getTransportSource(),
                 res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination(), flowCookie);
+                res.pmatch.getTransportDestination());
         if (null == conn)
             conn = natMapping.allocateSnat(res.pmatch.getNetworkSource(),
                     res.pmatch.getTransportSource(),
                     res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets, flowCookie);
+                    res.pmatch.getTransportDestination(), targets);
         else
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
@@ -179,12 +183,7 @@ public class ForwardNatRule extends NatRule {
         res.action = action;
         res.trackConnection = true;
 
-        fwdInfo.addFlowRemovedCallback(new Callback0() {
-            @Override
-            public void call() {
-                natMapping.freeFlowResources(flowCookie);
-            }
-        });
+        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
 
     // Used by RuleEngine to discover resources that must be initialized

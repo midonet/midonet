@@ -34,7 +34,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats, Object origMatch) {
+            short oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -49,7 +49,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Object origMatch) {
+            short oldTpDst) {
         return dnatFwdMap.get(new PacketSignature(nwSrc, tpSrc, oldNwDst,
                 oldTpDst));
     }
@@ -63,7 +63,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats, Object origMatch) {
+            short tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
@@ -78,7 +78,7 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Object origMatch) {
+            short tpDst) {
         return snatFwdMap.get(new PacketSignature(oldNwSrc, oldTpSrc, nwDst,
                 tpDst));
     }
@@ -102,7 +102,7 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public void freeFlowResources(Object match) {
+    public void natUnref(String fwdKey) {
         // Do nothing.
     }
 }

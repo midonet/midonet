@@ -8,10 +8,18 @@ public class NwTpPair {
 
     public final int nwAddr;
     public final short tpPort;
+    public final String unrefKey;
 
     public NwTpPair(int nwAddr, short tpPort) {
         this.nwAddr = nwAddr;
         this.tpPort = tpPort;
+        this.unrefKey = null;
+    }
+
+    public NwTpPair(int nwAddr, short tpPort, String unrefKey) {
+        this.nwAddr = nwAddr;
+        this.tpPort = tpPort;
+        this.unrefKey = unrefKey;
     }
 
     @Override
