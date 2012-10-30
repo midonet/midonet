@@ -154,6 +154,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
       // the flow
       routerMgrTagger.addTag(dstIp)
       // register the tag removal callback
+      pktContext.addFlowRemovedCallback(routerMgrTagger.getFlowRemovalCallback(dstIp))
 
       val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
       val rt: Route = loadBalancer.lookup(pktContext.getMatch)
@@ -165,7 +166,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
           ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
           return Promise.successful(new DropAction)(ec)
         }
-
 
         // tag using this route
         pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))

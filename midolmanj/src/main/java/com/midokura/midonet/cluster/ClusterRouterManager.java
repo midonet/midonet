@@ -61,7 +61,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
      * @return
      */
     public void getRouterConf(final UUID id, final boolean isUpdate) {
-        log.info("Updating configuration for router {}", id);
+        log.debug("Updating configuration for router {}", id);
         RouterBuilder builder = getBuilder(id);
 
         if(builder == null){
@@ -105,7 +105,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         if (isUpdate) // Not first time we're building
             builder.build();
         // else no need to build - the ReplicatedRouteSet will build.
-        log.info("Update configuration for router {}", id);
+        log.debug("Update configuration for router {}", id);
     }
 
     Runnable watchRouter(final UUID id) {
@@ -114,7 +114,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             public void run() {
                 // return fast and update later
                 getRouterConf(id, true);
-                log.info("Added watcher for router {}", id);
+                log.debug("Added watcher for router {}", id);
             }
         };
     }
@@ -129,9 +129,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         log.debug("Port {} of router {} became active {}",
             new Object[] {portId, routerId, active} );
         try {
-
-            if(mapPortIdToRoutes.containsKey(portId)){
-                log.error("The cluster client has already requested the routes for this port");
+            if (active) {
+                if(mapPortIdToRoutes.containsKey(portId)){
+                    log.error("The cluster client has already requested the routes for this port");
+                }
             }
             handlePortRoutes(routerId, portId, active);
         } catch (Exception e) {
@@ -160,8 +161,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                     log.error("Got exception when running watcher for the routes of " +
                             "port {}", portId.toString(), e);
                 }
-            } else {
-               log.info("Port has been cancelled: No routes watching for you.");
             }
         }
 
@@ -199,7 +198,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         if (!active) {
             // if port is down, just cancel these routes.
             // this won't allow routes to be retrieved or updated from this port.
-            log.info("(MM)Cancelling the port callbacks for port {}", portId);
+            log.debug("Cancelling the port callbacks for port {}", portId);
             portIdCallback.get(portId).cancel();
             portIdWatcher.get(portId).cancel();
             // clean the router's routing table
@@ -207,7 +206,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             updateRoutingTableAfterGettingRoutes(routerId, portId, Collections.<Route>emptySet());
         } else {
             // installing callbacks (or if they were cancelled, reenabling them).
-            log.info("(MM) Adding callbacks for port {}", portId);
+            log.debug("Adding callbacks for port {}", portId);
             portIdCallback.put(portId, new PortRoutesCallback(routerId, portId));
             portIdWatcher.put(portId, new PortRoutesWatcher(routerId, portId));
 
@@ -233,7 +232,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void onSuccess(Result<Set<Route>> data) {
-            log.debug("(MM)GetRoutesCallback success, got {} routes {}",
+            log.debug("GetRoutesCallback success, got {} routes {}",
                       data.getData().size(), data.getData());
             updateRoutingTableAfterGettingRoutes(routerId, portId,
                                                  data.getData());
@@ -259,7 +258,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                       routerId, e);
             return;
         }
-        log.debug("(MM)Updating routes for port {} of router {}. Old routes {} " +
+        log.debug("Updating routes for port {} of router {}. Old routes {} " +
             "New routes {}",
             new Object[] {portId, routerId, oldRoutes, newRoutes});
         RouteEncoder encoder = new RouteEncoder();
@@ -294,7 +293,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         private boolean cancelled = false;
 
         PortRoutesCallback(UUID routerId, UUID portId) {
-            log.info("Creating a PortRouteCallback for: "+routerId.toString() + " - " + portId.toString());
+            log.debug("Creating a PortRouteCallback for: "+routerId.toString() + " - " + portId.toString());
             this.routerId = routerId;
             this.portId = portId;
         }
@@ -302,7 +301,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         @Override
         public void onSuccess(Result<Set<UUID>> data) {
             if (!isCancelled()) {
-                log.debug("(MM)PortRoutesCallback success, received {} routes: {} " +
+                log.debug("PortRoutesCallback success, received {} routes: {} " +
                         "for port {}",
                         new Object[]{data.getData().size(), data.getData(), portId});
 
@@ -321,8 +320,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                                 "get routes for port"
                                         + portId.toString(),
                                 log));
-            } else {
-                log.info("(MM)Port has been cancelled: No routes back for you.");
             }
         }
 
@@ -337,7 +334,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         @Override
         public void onError(KeeperException e) {
             if (!isCancelled()) {
-                log.info("ONERROR: port disappeared.");
                 if (e instanceof KeeperException.NoNodeException) {
                     // If we get a NoStatePathException it means the someone removed
                     // the port routes. Remove all routes

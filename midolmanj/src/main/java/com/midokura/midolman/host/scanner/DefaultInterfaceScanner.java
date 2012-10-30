@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Default implementation for the interface scanning component.
+ */
+
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
 

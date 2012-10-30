@@ -388,7 +388,7 @@ object DatapathController extends Referenceable {
      */
     case class CheckForPortUpdates(datapathName: String)
 
-    case class UpdatePort(val portID: String, val up: Boolean)
+    //case class UpdatePort(val portID: String, val up: Boolean)
 
 }
 
@@ -529,9 +529,9 @@ class DatapathController() extends Actor with ActorLogging {
             doDatapathPortsUpdate()
 
         /**
-         * Handle personal create port requests
-         */
-          case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
+        * Handle personal create port requests
+        */
+        case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         /**
@@ -564,7 +564,7 @@ class DatapathController() extends Actor with ActorLogging {
             become(DatapathInitializationActor)
             // In case there were some scheduled port update checks, cancel them.
             if (portWatcher != null) {
-              portWatcher.cancel()
+                portWatcher.cancel()
             }
             self ! m
 
@@ -614,115 +614,100 @@ class DatapathController() extends Actor with ActorLogging {
 
         case PortStatsRequest(portID) =>
             vifPorts.get(portID) match {
-              case Some(portName) =>
-                datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
-                def onSuccess(data: Port[_, _]) {
-                  MonitoringActor.getRef() ! PortStats(portID, data.getStats)
-                }
+                case Some(portName) =>
+                    datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
+                    def onSuccess(data: Port[_, _]) {
+                        MonitoringActor.getRef() ! PortStats(portID, data.getStats)
+                    }
 
-                def onTimeout() {
-                  log.error("Timeout when retrieving port stats")
+                    def onTimeout() {
+                    log.error("Timeout when retrieving port stats")
                 }
 
                 def onError(e: NetlinkException) {
-                  log.error("Error retrieving port stats for port {}({}): {}", Array(portID, vifPorts.get(portID).get, e))
+                    log.error("Error retrieving port stats for port {}({}): {}", Array(portID, vifPorts.get(portID).get, e))
                 }
               })
 
               case None =>
-                log.debug("Port was not found {}", portID)
+                  log.debug("Port was not found {}", portID)
             }
 
         case CheckForPortUpdates(datapathName: String) =>
-          CheckPortUpdates
+            checkPortUpdates
 
+    }
 
-        case UpdatePort(portName : String, up: Boolean) =>
-          var port: Port[_,_] = null
+    def checkPortUpdates() {
+        val interfacesSet = new HashSet[String]
 
-          if (up) {
+        val deletedPorts = new HashSet[String]
+        deletedPorts.addAll(localPorts.keySet)
+
+        for (interface <- interfaceScanner.scanInterfaces()) {
+            deletedPorts.remove(interface.getName)
+            if (interface.isUp) {
+                interfacesSet.add(interface.getName)
+            }
+
+            // interface went down.
+            if (localPorts.contains(interface.getName) && !interface.isUp) {
+                log.info("Interface went down: {}", interface.getName)
+                localPorts.get(interface.getName).get match {
+                    case p: NetDevPort =>
+                        updatePort(interface.getName, false);
+
+                    case default =>
+                        log.error("port type not matched {}", default)
+                }
+            }
+        }
+
+        // this set contains the ports that have been deleted.
+        // the behaviour is the same as if the port had gone down.
+        deletedPorts.foreach{
+            deletedPort =>
+                log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
+                localPorts.get(deletedPort).get match {
+                case p: NetDevPort =>
+                    // delete the dp <-> port link
+                    selfPostPortCommand(DeletePortNetdev(p, None))
+                    // set port to inactive.
+                    updatePort(p.getName, false);
+                case default =>
+                    log.error("port type not matched {}", default)
+            }
+        }
+
+        // remove all the local ports. The rest will be datapath ports that are not known to the system.
+        // one of them might be a port that went up again.
+        interfacesSet.removeAll(localPorts.keySet)
+        interfacesSet.foreach( interface =>
+            if (portsDownPool.contains(interface)) {
+                val p: Port[_,_] = portsDownPool.get(interface).get
+                log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
+
+                // recreate port in datapath.
+                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(interface), localToVifPorts.get(p.getPortNo.shortValue())))
+                updatePort(p.getName, true);
+            }
+        );
+    }
+
+    def updatePort(portName : String, up: Boolean) {
+        var port: Port[_,_] = null
+        if (up) {
             port = portsDownPool.get(portName).get
             localPorts.put(portName, port)
             portsDownPool.remove(portName)
-          } else {
+        } else {
             port = localPorts.get(portName).get
             portsDownPool.put(portName, port)
             localPorts.remove(portName)
-          }
-
-          VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = up)
-
+        }
+        VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = up)
     }
 
-    def completePendingPortSetTranslations() {
-    }
-
-    def CheckPortUpdates() {
-      val interfacesSet = new HashSet[String]
-
-      val deletedPorts = new HashSet[String]
-      deletedPorts.addAll(localPorts.keySet)
-
-      interfaceScanner.scanInterfaces( new Callback[JList[InterfaceDescription]] {
-        def onError(e: NetlinkException) {
-          log.error(e.getMessage)
-        }
-
-        def onTimeout() {
-          log.error("Timing out when checking the port updates.")
-        }
-
-        def onSuccess(data: JList[InterfaceDescription]) {
-          for (interface <- data) {
-            deletedPorts.remove(interface.getName)
-            if (interface.isUp) {
-              interfacesSet.add(interface.getName)
-            }
-            // interface went down.
-            if (localPorts.contains(interface.getName) && !interface.isUp) {
-              log.info("Interface went down: {}", interface.getName)
-              localPorts.get(interface.getName).get match {
-                case p: NetDevPort =>
-                  self ! new UpdatePort(interface.getName, false);
-
-                case default =>
-                  log.error("port type not matched {}", default)
-              }
-            }
-          }
-
-          // this set contains the ports that have been deleted.
-          // the behaviour is the same as if the port had gone down.
-          deletedPorts.foreach{
-            deletedPort =>
-              log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
-              localPorts.get(deletedPort).get match {
-                case p: NetDevPort =>
-                  // delete the dp <-> port link
-                  selfPostPortCommand(DeletePortNetdev(p, None))
-                  // set port to inactive.
-                  self ! new UpdatePort(p.getName, false);
-                case default =>
-                  log.error("port type not matched {}", default)
-              }
-          }
-
-          // remove all the local ports. The rest will be datapath ports that are not known to the system.
-          // one of them might be a port that went up again.
-          interfacesSet.removeAll(localPorts.keySet)
-          interfacesSet.foreach( interface =>
-            if (portsDownPool.contains(interface)) {
-              val p: Port[_,_] = portsDownPool.get(interface).get
-              log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
-
-              // recreate port in datapath.
-              selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(interface), localToVifPorts.get(p.getPortNo.shortValue())))
-              self ! new UpdatePort(p.getName, true);
-            }
-          );
-        }
-      });
-    }
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
                              target: GreTunnelZoneHost): String = {
@@ -1503,7 +1488,7 @@ class DatapathController() extends Actor with ActorLogging {
             if (!localPorts.contains(tapName)) {
                 selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
             }
-              // port is already tracked.
+            // port is already tracked.
             else {
                 val p = localPorts(tapName)
                 val shortPortNum = p.getPortNo.shortValue()

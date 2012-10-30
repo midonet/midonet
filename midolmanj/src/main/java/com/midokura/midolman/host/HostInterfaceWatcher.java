@@ -14,7 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-// TODO this class should react to netlink events instead of polling.
+/**
+ * Main interface scanning loop. Internally it uses an {@link InterfaceScanner}
+ * TODO this class should react to netlink events instead of polling
+ */
 public class HostInterfaceWatcher implements Runnable {
 
     private final static Logger log =
