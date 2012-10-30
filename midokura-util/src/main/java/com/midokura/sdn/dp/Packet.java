@@ -66,21 +66,7 @@ public class Packet {
     }
 
     public Packet setActions(List<FlowAction<?>> actions) {
-        // actions may be null on deserialization
-        if (actions == null)
-            return this;
-
-        // We received an immutable scala List
-        // Our list needs to be modifiable
-        if (this.actions == null) {
-            this.actions = new ArrayList<FlowAction<?>>();
-        } else {
-            this.actions.clear();
-        }
-
-        for(FlowAction<?> action : actions) {
-            this.actions.add(action);
-        }
+        this.actions = actions;
         return this;
     }
 

@@ -251,7 +251,6 @@ class FlowController extends Actor with ActorLogging {
         }
 
         // If there was a match, execute its actions
-        //TODO(abel) use match
         if (actions != null) {
             packet.setActions(actions)
 
