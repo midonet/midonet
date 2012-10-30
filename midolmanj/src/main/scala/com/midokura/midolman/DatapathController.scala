@@ -388,8 +388,6 @@ object DatapathController extends Referenceable {
      */
     case class CheckForPortUpdates(datapathName: String)
 
-    //case class UpdatePort(val portID: String, val up: Boolean)
-
 }
 
 
