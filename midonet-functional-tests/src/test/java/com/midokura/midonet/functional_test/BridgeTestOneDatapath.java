@@ -13,6 +13,7 @@ import akka.testkit.TestProbe;
 import akka.util.Duration;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.*;
 
+@Ignore
 public class BridgeTestOneDatapath {
 
     private final static Logger log = LoggerFactory.getLogger(BridgeTestOneDatapath.class);

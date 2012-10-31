@@ -25,6 +25,7 @@ import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
+import org.scalatest.Ignore
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with
@@ -211,6 +212,7 @@ class L2FilteringTestCase extends MidolmanTestCase with
         packetsEventsProbe.expectNoMsg()
     }
 
+    @Ignore
     def test() {
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 

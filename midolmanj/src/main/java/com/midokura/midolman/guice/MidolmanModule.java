@@ -58,16 +58,6 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
         expose(MidolmanConfig.class);
 
-        bind(Cache.class)
-            .toProvider(CacheProvider.class)
-            .in(Singleton.class);
-        expose(Cache.class);
-
-        bind(NatMappingFactory.class)
-            .toProvider(NatMappingFactoryProvider.class)
-            .asEagerSingleton();
-        expose(NatMappingFactory.class);
-
         requestStaticInjection(Chain.class);
 
         Named watcherAnnotation = Names.named(
@@ -97,52 +87,4 @@ public class MidolmanModule extends PrivateModule {
         }
     }
 
-    public static class CacheProvider implements Provider<Cache> {
-        Logger log = LoggerFactory.getLogger(CacheProvider.class);
-
-        @Inject
-        ConfigProvider configProvider;
-
-        @Override
-        public Cache get() {
-            try {
-                return CacheFactory.create(
-                        configProvider.getConfig(MidolmanConfig.class));
-            } catch (Exception e) {
-                log.error("Exception trying to create Cache:", e);
-                return null;
-            }
-        }
-    }
-
-    private static class NatMappingFactoryProvider
-            implements Provider<NatMappingFactory> {
-        @Inject @Nullable
-        private Cache cache;
-
-        @Inject
-        private Reactor reactor;
-
-        @Inject
-        private Directory zkDir;
-
-        @Inject
-        ConfigProvider configProvider;
-
-        public NatMappingFactory get() {
-            final String zkBasePath =
-                    configProvider.getConfig(ZookeeperConfig.class)
-                                  .getMidolmanRootKey();
-
-            return new NatMappingFactory() {
-                public NatMapping newNatMapping(final UUID ownerID) {
-                    return new NatLeaseManager(
-                        new FiltersZkManager(zkDir, zkBasePath),
-                        ownerID,
-                        new CacheWithPrefix(cache, ownerID.toString()),
-                        reactor);
-                }
-            };
-        }
-    }
 }

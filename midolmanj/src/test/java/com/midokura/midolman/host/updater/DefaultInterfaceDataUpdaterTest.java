@@ -31,6 +31,8 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.InterfaceScannerModule;
+import com.midokura.midolman.guice.MockMonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.MockConfigProviderModule;
 import com.midokura.midolman.guice.datapath.MockDatapathModule;
@@ -93,6 +95,8 @@ public class DefaultInterfaceDataUpdaterTest {
                         });
                 }
             },
+            new InterfaceScannerModule(),
+            new MockMonitoringStoreModule(),
             new ClusterClientModule());
 
         directory = cleanDirectory;

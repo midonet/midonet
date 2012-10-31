@@ -7,6 +7,9 @@ package com.midokura.midonet.functional_test.utils;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import com.midokura.midolman.guice.FlowStateCacheModule;
+import com.midokura.midolman.guice.InterfaceScannerModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +17,7 @@ import akka.actor.ActorSystem;
 
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
@@ -48,9 +52,12 @@ public class EmbeddedMidolman {
                 new HostModule(),
                 new ConfigProviderModule(configFilePath),
                 new DatapathModule(),
+                new MonitoringStoreModule(),
                 new ClusterClientModule(),
+                new FlowStateCacheModule(),
                 new MidolmanActorsModule(),
-                new MidolmanModule()
+                new MidolmanModule(),
+                new InterfaceScannerModule()
         );
 
         // start the services

@@ -25,6 +25,7 @@ import com.midokura.sdn.dp.FlowMatch
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.dp.flows.FlowKeys.ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.scalatest.Ignore
 
 
 @RunWith(classOf[JUnitRunner])
@@ -84,6 +85,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
     }
 
+    @Ignore
     def testInstallFlowForPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
@@ -170,6 +172,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         assert(flowActs.contains(FlowActions.output(localPortNumber3)))
     }
 
+    @Ignore
     def testInstallFlowForPortSetFromTunnel() {
         log.debug("Starting testInstallFlowForPortSetFromTunnel")
 
@@ -231,7 +234,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
                                          .setTunnelID(bridge.getTunnelKey)
 
         val pktBytes = "My packet".getBytes
-        dpProbe().testActor.tell(PacketIn(wcMatch, pktBytes, dpMatch, 
+        dpProbe().testActor.tell(PacketIn(wcMatch, pktBytes, dpMatch,
                                           null, None))
 
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())

@@ -6,7 +6,6 @@ package com.midokura.midolman.topology
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestActorRef, TestProbe}
-import akka.util.Duration
 import java.util.Arrays
 
 import com.google.inject.{Guice, Injector}
@@ -16,13 +15,13 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
 
 import com.midokura.midolman.Setup
 import com.midokura.midolman.config.{MidolmanConfig, ZookeeperConfig}
-import com.midokura.midolman.guice.ComponentInjectorHolder
+import com.midokura.midolman.guice.{MockMonitoringStoreModule,
+                                    ComponentInjectorHolder}
 import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.{TypedConfigModule,
                                            MockConfigProviderModule}
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.state.{Directory, ZkManager}
 import com.midokura.midolman.state.zkManagers.BridgeZkManager
 import com.midokura.midolman.state.zkManagers.BridgeZkManager.{BridgeConfig => ZkBridgeConfig}
@@ -67,6 +66,7 @@ with BeforeAndAfter {
             new TypedConfigModule[MidolmanConfig](classOf[MidolmanConfig]),
 
             new ReactorModule(),
+            new MockMonitoringStoreModule(),
             new ClusterClientModule()
         )
         ComponentInjectorHolder.setInjector(injector)

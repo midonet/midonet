@@ -21,10 +21,10 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 import com.midokura.midolman.DatapathController.{DisablePortWatcher, InitializationComplete}
 import com.midokura.midolman.guice._
+import cluster.ClusterClientModule
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
 import com.midokura.midolman.guice.config.MockConfigProviderModule
@@ -87,7 +87,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     before {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         val config = fillConfig(new HierarchicalConfiguration())
         injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
@@ -107,8 +106,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
-        //Don't stop it because it cannot be restarted (bug in stop method).
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
         if (mAgent != null) {
             mAgent.stop()
@@ -135,6 +132,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         List(
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
+            new MockFlowStateCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
@@ -146,9 +144,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ReactorModule(),
-            new MockClusterClientModule(),
+            new MockMonitoringStoreModule(),
+            new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
-            new MidolmanModule()
+            new MidolmanModule(),
+            new InterfaceScannerModule()
         )
     }
 

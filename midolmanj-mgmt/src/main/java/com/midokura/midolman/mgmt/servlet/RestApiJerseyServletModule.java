@@ -3,6 +3,7 @@
  */
 package com.midokura.midolman.mgmt.servlet;
 
+import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.DataClusterClientModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
 import com.midokura.midolman.mgmt.auth.AuthContainerRequestFilter;
@@ -68,6 +69,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new ReactorModule()); // Need this for DataClient
         install(new ZookeeperModule());
         install(new DataClusterClientModule());
+        install(new MonitoringStoreModule());
 
         install(new NetworkModule());
         install(new FilterModule());

@@ -4,25 +4,15 @@
 
 package com.midokura.midolman;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.util.Properties;
-
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
+import com.midokura.midolman.guice.FlowStateCacheModule;
+import com.midokura.midolman.guice.InterfaceScannerModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
@@ -34,6 +24,19 @@ import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.remote.RemoteHost;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.Properties;
 
 public class Midolman {
 
@@ -98,9 +101,12 @@ public class Midolman {
             new HostModule(),
             new ConfigProviderModule(configFilePath),
             new DatapathModule(),
+            new MonitoringStoreModule(),
             new ClusterClientModule(),
+            new FlowStateCacheModule(),
             new MidolmanActorsModule(),
-            new MidolmanModule()
+            new MidolmanModule(),
+            new InterfaceScannerModule()
         );
 
         // start the services

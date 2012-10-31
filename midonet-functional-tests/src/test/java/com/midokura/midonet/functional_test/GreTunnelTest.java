@@ -17,6 +17,7 @@ import com.midokura.packets.IPacket;
 import com.midokura.packets.GRE;
 import com.midokura.packets.MalformedPacketException;
 
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+@Ignore
 public class GreTunnelTest extends BaseTunnelTest {
     private final static Logger log = LoggerFactory.getLogger(GreTunnelTest.class);
 
