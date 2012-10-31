@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman
 
+import layer4.NatMappingFactory
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
@@ -76,6 +77,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def clusterDataClient(): DataClient = {
         injector.getInstance(classOf[DataClient])
+    }
+
+    protected def natMappingFactory(): NatMappingFactory = {
+        injector.getInstance(classOf[NatMappingFactory])
     }
 
     protected def newProbe(): TestProbe = {
