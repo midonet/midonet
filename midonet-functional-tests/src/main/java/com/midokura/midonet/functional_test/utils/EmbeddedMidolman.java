@@ -7,6 +7,7 @@ package com.midokura.midonet.functional_test.utils;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.midokura.midolman.guice.InterfaceScannerModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,8 @@ public class EmbeddedMidolman {
                 new DatapathModule(),
                 new ClusterClientModule(),
                 new MidolmanActorsModule(),
-                new MidolmanModule()
+                new MidolmanModule(),
+                new InterfaceScannerModule()
         );
 
         // start the services

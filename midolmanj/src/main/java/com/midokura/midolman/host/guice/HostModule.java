@@ -3,18 +3,13 @@
  */
 package com.midokura.midolman.host.guice;
 
-import javax.inject.Singleton;
-
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
-
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.host.HostInterfaceWatcher;
 import com.midokura.midolman.host.commands.executors.CommandInterpreter;
 import com.midokura.midolman.host.commands.executors.HostCommandWatcher;
 import com.midokura.midolman.host.config.HostConfig;
-import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
-import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.host.sensor.DmesgInterfaceSensor;
 import com.midokura.midolman.host.sensor.IpAddrInterfaceSensor;
 import com.midokura.midolman.host.sensor.IpTuntapInterfaceSensor;
@@ -25,6 +20,8 @@ import com.midokura.midolman.host.updater.DefaultInterfaceDataUpdater;
 import com.midokura.midolman.host.updater.InterfaceDataUpdater;
 import com.midokura.midolman.services.HostIdProviderService;
 
+import javax.inject.Singleton;
+
 /**
  * Module to configure dependencies for the host.
  */
@@ -34,11 +31,11 @@ public class HostModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
 
-        bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
+        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
         bind(CommandInterpreter.class).in(Scopes.SINGLETON);
 
-        expose(InterfaceScanner.class);
+        //expose(InterfaceScanner.class);
         expose(InterfaceDataUpdater.class);
         expose(CommandInterpreter.class);
 

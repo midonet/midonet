@@ -10,8 +10,6 @@ import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.host.scanner.DefaultInterfaceScanner;
-import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
 import com.midokura.midolman.routingprotocols.RoutingManagerActor;
@@ -51,7 +49,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(FlowController.class).in(Singleton.class);
         bind(SimulationController.class).in(Singleton.class);
         bind(MonitoringActor.class).in(Singleton.class);
-        bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
+        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
         bind(PortSetManager.class);
