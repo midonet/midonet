@@ -6,6 +6,8 @@ package com.midokura.midonet.functional_test;
 
 import java.nio.ByteBuffer;
 
+import org.junit.Ignore;
+
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;

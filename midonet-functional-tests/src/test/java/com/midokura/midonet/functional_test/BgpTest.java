@@ -36,6 +36,7 @@ import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 
+@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);

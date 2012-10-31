@@ -17,6 +17,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.topology.LocalPortActive;
@@ -56,6 +57,7 @@ import static org.junit.Assert.assertTrue;
  * This class emulates a MidoNet client implementing SecurityGroups using
  * MidoNet PortGroups to track/match SecurityGroup membership.
  */
+@Ignore
 public class PortGroupTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoLogicalRouterPort> rtrPort;
