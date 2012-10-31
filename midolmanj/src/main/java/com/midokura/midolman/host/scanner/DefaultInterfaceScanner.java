@@ -6,21 +6,20 @@ package com.midokura.midolman.host.scanner;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.sensor.*;
+import com.midokura.netlink.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Default implementation for the interface scanning component.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
  */
+
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
 
@@ -59,5 +58,11 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
         }
 
         return interfaces.toArray(new InterfaceDescription[interfaces.size()]);
+    }
+
+    @Override
+    public void scanInterfaces(Callback<List<InterfaceDescription>> callback) {
+        List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
+        callback.onSuccess(list);
     }
 }

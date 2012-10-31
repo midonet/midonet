@@ -3,11 +3,14 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef}
 import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
+import host.interfaces.InterfaceDescription
+import host.scanner.InterfaceScanner
+import host.sensor.NetlinkInterfaceSensor
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
@@ -40,7 +43,8 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
-import com.midokura.util.functors.Callback0
+import com.midokura.util.functors.{Callback1, Callback0}
+import java.util.{List => JList}
 
 
 /**
@@ -375,6 +379,20 @@ object DatapathController extends Referenceable {
         def getFlowCookie() = null
         def addFlowTag(tag: Any) {}
     }
+
+    /**
+     * This message is sent every 2 seconds to check that the kernel contains exactly the same
+     * ports/interfaces as the system. In case that somebody uses a command line tool (for example)
+     * to bring down an interface, the system will react to it.
+     * TODO this version is constantly checking for changes. It should react to 'netlink' notifications instead.
+     */
+    case class CheckForPortUpdates(datapathName: String)
+
+    /**
+     * This message is only to be sent when testing. This will disable the feature that is constantly
+     * inspecting the ports to react to unexpected changes.
+     */
+    case class DisablePortWatcher()
 }
 
 
@@ -434,6 +452,9 @@ class DatapathController() extends Actor with ActorLogging {
     @Inject
     val hostService: HostIdProviderService = null
 
+    @Inject
+    val interfaceScanner: InterfaceScanner = null
+
     var datapath: Datapath = null
 
     val localToVifPorts: mutable.Map[Short, UUID] = mutable.Map()
@@ -446,6 +467,7 @@ class DatapathController() extends Actor with ActorLogging {
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
+    val portsDownPool: mutable.Map[String, Port[_,_]] = mutable.Map()
 
     // peerHostId -> { ZoneID -> tunnelName }
     val peerPorts = mutable.Map[UUID, mutable.Map[UUID, String]]()
@@ -455,6 +477,9 @@ class DatapathController() extends Actor with ActorLogging {
     var initializer: ActorRef = null
     var initialized = false
     var host: Host = null
+
+    var portWatcher: Cancellable = null
+    var portWatcherEnabled = true
 
     override def preStart() {
         super.preStart()
@@ -485,7 +510,17 @@ class DatapathController() extends Actor with ActorLogging {
             for ((zoneId, zone) <- host.zones) {
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
             }
+            if (portWatcherEnabled) {
+                // schedule port requests.
+                log.info("Starting to schedule the port stats updates.")
+                portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
+            }
             initializer forward m
+
+
+        case DisablePortWatcher() =>
+            log.info("Disabling the port watching feature.")
+            portWatcherEnabled = false
 
         case host: Host =>
             this.host = host
@@ -505,8 +540,8 @@ class DatapathController() extends Actor with ActorLogging {
             doDatapathPortsUpdate()
 
         /**
-         * Handle personal create port requests
-         */
+        * Handle personal create port requests
+        */
         case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
@@ -538,6 +573,10 @@ class DatapathController() extends Actor with ActorLogging {
         case m: Initialize =>
             initialized = false
             become(DatapathInitializationActor)
+            // In case there were some scheduled port update checks, cancel them.
+            if (portWatcher != null) {
+                portWatcher.cancel()
+            }
             self ! m
 
         case host: Host =>
@@ -586,26 +625,100 @@ class DatapathController() extends Actor with ActorLogging {
 
         case PortStatsRequest(portID) =>
             vifPorts.get(portID) match {
-              case Some(portName) =>
-                datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
-                def onSuccess(data: Port[_, _]) {
-                  MonitoringActor.getRef() ! PortStats(portID, data.getStats)
-                }
+                case Some(portName) =>
+                    datapathConnection.portsGet(portName, datapath, new Callback[Port[_,_]]{
+                    def onSuccess(data: Port[_, _]) {
+                        MonitoringActor.getRef() ! PortStats(portID, data.getStats)
+                    }
 
-                def onTimeout() {
-                  log.error("Timeout when retrieving port stats")
+                    def onTimeout() {
+                    log.error("Timeout when retrieving port stats")
                 }
 
                 def onError(e: NetlinkException) {
-                  log.error("Error retrieving port stats: {}", e )
+                    log.error("Error retrieving port stats for port {}({}): {}", Array(portID, vifPorts.get(portID).get, e))
                 }
               })
 
               case None =>
-                log.debug("Port was not found {}", portID)
+                  log.debug("Port was not found {}", portID)
             }
 
+        case CheckForPortUpdates(datapathName: String) =>
+            checkPortUpdates
+
     }
+
+    def checkPortUpdates() {
+        val interfacesSet = new HashSet[String]
+
+        val deletedPorts = new HashSet[String]
+        deletedPorts.addAll(localPorts.keySet)
+
+        for (interface <- interfaceScanner.scanInterfaces()) {
+            deletedPorts.remove(interface.getName)
+            if (interface.isUp) {
+                interfacesSet.add(interface.getName)
+            }
+
+            // interface went down.
+            if (localPorts.contains(interface.getName) && !interface.isUp) {
+                log.info("Interface went down: {}", interface.getName)
+                localPorts.get(interface.getName).get match {
+                    case p: NetDevPort =>
+                        updatePort(interface.getName, false);
+
+                    case default =>
+                        log.error("port type not matched {}", default)
+                }
+            }
+        }
+
+        // this set contains the ports that have been deleted.
+        // the behaviour is the same as if the port had gone down.
+        deletedPorts.foreach{
+            deletedPort =>
+                log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
+                localPorts.get(deletedPort).get match {
+                case p: NetDevPort =>
+                    // delete the dp <-> port link
+                    selfPostPortCommand(DeletePortNetdev(p, None))
+                    // set port to inactive.
+                    updatePort(p.getName, false);
+                case default =>
+                    log.error("port type not matched {}", default)
+            }
+        }
+
+        // remove all the local ports. The rest will be datapath ports that are not known to the system.
+        // one of them might be a port that went up again.
+        interfacesSet.removeAll(localPorts.keySet)
+        interfacesSet.foreach( interface =>
+            if (portsDownPool.contains(interface)) {
+                val p: Port[_,_] = portsDownPool.get(interface).get
+                log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
+
+                // recreate port in datapath.
+                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(interface), localToVifPorts.get(p.getPortNo.shortValue())))
+                updatePort(p.getName, true);
+            }
+        );
+    }
+
+    def updatePort(portName : String, up: Boolean) {
+        var port: Port[_,_] = null
+        if (up) {
+            port = portsDownPool.get(portName).get
+            localPorts.put(portName, port)
+            portsDownPool.remove(portName)
+        } else {
+            port = localPorts.get(portName).get
+            portsDownPool.put(portName, port)
+            localPorts.remove(portName)
+        }
+        VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = up)
+    }
+
 
     def newGreTunnelPortName(source: GreTunnelZoneHost,
                              target: GreTunnelZoneHost): String = {
@@ -764,7 +877,8 @@ class DatapathController() extends Actor with ActorLogging {
         if (flowActions == null)
             flowActions = Nil
 
-        translateActions(flowActions, inPortUUID, dpTags, flow.getMatch) onComplete {
+        translateActions(flowActions, Option(inPortUUID),
+                         Option(dpTags), flow.getMatch) onComplete {
             case Right(actions) =>
                 flow.setActions(actions.toList)
                 FlowController.getRef() ! AddWildcardFlow(flow, cookie,
@@ -777,7 +891,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: UUID, dpTags: mutable.Set[Any],
+                         inPortUUID: Option[UUID],
+                         dpTags: Option[mutable.Set[Any]],
                          wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
         val translated = Promise[Seq[FlowAction[_]]]()
 
@@ -812,15 +927,18 @@ class DatapathController() extends Actor with ActorLogging {
                         case br =>
                             // Don't include the input port in the expanded
                             // port set.
+                            var outPorts = set.localPorts
+                            inPortUUID foreach { p => outPorts -= p }
                             log.info("inPort: {}", inPortUUID)
                             log.info("local ports: {}", set.localPorts)
-                            log.info("local ports minus inPort: {}",
-                                set.localPorts - inPortUUID)
+                            log.info("local ports minus inPort: {}", outPorts)
                             // add tag for flow invalidation
-                            dpTags += FlowTagger.invalidateBroadcastFlows(br.id,
-                                       br.id)
+                            dpTags foreach { tags =>
+                                tags += FlowTagger.invalidateBroadcastFlows(
+                                    br.id, br.id)
+                            }
                             val localPortFutures =
-                                (set.localPorts-inPortUUID).toSeq map {
+                                outPorts.toSeq map {
                                     portID => ask(VirtualTopologyActor.getRef(),
                                                   PortRequest(portID, false))
                                               .mapTo[client.Port[_]]
@@ -835,7 +953,7 @@ class DatapathController() extends Actor with ActorLogging {
                                                 portsForLocalPorts(portIDs),
                                                 Some(br.tunnelKey),
                                                 tunnelsForHosts(set.hosts.toSeq),
-                                                dpTags))
+                                                dpTags.orNull))
                                         })
 
                                 case _ => log.error("Error getting " +
@@ -851,7 +969,7 @@ class DatapathController() extends Actor with ActorLogging {
                     case Some(localPort) =>
                         translated.success(
                             translateToDpPorts(actions, port, List(localPort),
-                                None, Nil, dpTags))
+                                None, Nil, dpTags.orNull))
                     case None =>
                         ask(VirtualTopologyActor.getRef(), PortRequest(port,
                             update = false)).mapTo[client.Port[_]] map {
@@ -860,7 +978,7 @@ class DatapathController() extends Actor with ActorLogging {
                                             actions, port, Nil,
                                             Some(p.tunnelKey),
                                             tunnelsForHosts(List(p.hostID)),
-                                            dpTags))
+                                            dpTags.orNull))
                         }
                 }
             case None =>
@@ -1228,7 +1346,7 @@ class DatapathController() extends Actor with ActorLogging {
             // Empty action list drops the packet. No need to send to DP.
             return
         }
-        translateActions(origActions, null, null,
+        translateActions(origActions, None, None,
                          WildcardMatch.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
                 log.debug("Translated actions to action list {}", actions)
@@ -1377,9 +1495,11 @@ class DatapathController() extends Actor with ActorLogging {
         for ((vifId, tapName) <- ports) {
             vifPorts.put(vifId, tapName)
             newTaps.add(tapName)
+            // new port
             if (!localPorts.contains(tapName)) {
                 selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
             }
+            // port is already tracked.
             else {
                 val p = localPorts(tapName)
                 val shortPortNum = p.getPortNo.shortValue()

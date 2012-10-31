@@ -4,25 +4,20 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Random;
-
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.*;
+import com.midokura.packets.ICMP.UNREACH_CODE;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.packets.ICMP.UNREACH_CODE;
-import com.midokura.packets.*;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Random;
 
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -390,30 +385,39 @@ public class PacketHelper {
      * @param sent is the serialization of the echo request
      * @param recv is the serialization of the reply we received
      */
-    public void checkIcmpEchoRequest(byte[] sent, byte[] recv) {
-        assertThat("The sent ICMP Echo buffer wasn't correct.", sent,
-                   notNullValue());
-        assertThat("The recv ICMP Reply buffer wasn't correct.", recv,
-                   notNullValue());
+    public void checkIcmpEchoRequest(byte[] sent, byte[] recv) throws MalformedPacketException {
+        assertThat("The sent ICMP Echo buffer wasn't correct.", sent, notNullValue());
+        assertThat("The recv ICMP Echo buffer wasn't correct.", recv, notNullValue());
         assertThat("The sent and received packages had different sizes.",
-                   sent.length, equalTo(recv.length));
+                sent.length, equalTo(recv.length));
+
 
         byte[] mac = Arrays.copyOf(recv, 6); // the destination mac
         assertThat(
-            "The destination mac address of the incoming package was different " +
-                "from the port mac address.",
-            new MAC(mac), equalTo(epMac));
+                "The destination mac address of the incoming package was different " +
+                        "from the port mac address.",
+                new MAC(mac), equalTo(epMac));
 
         mac = Arrays.copyOfRange(recv, 6, 12); // the source mac
         assertThat("The source mac address of the incoming package was different " +
-                       "from the gateway mac address.",
-                   new MAC(mac), equalTo(gwMac));
+                "from the gateway mac address.",
+                new MAC(mac), equalTo(gwMac));
 
-        // The rest of the packet should be identical.
-        Arrays.fill(sent, 0, 12, (byte) 0);
-        Arrays.fill(recv, 0, 12, (byte) 0);
-        assertThat("The rest of the package bytes were different.",
-                   sent, equalTo(recv));
+        Ethernet sentPacket = Ethernet.deserialize(sent);
+        Ethernet recvPacket = Ethernet.deserialize(recv);
+
+        IPv4 sentIpPacket = (IPv4) sentPacket.getPayload();
+        IPv4 recvIpPacket = (IPv4) recvPacket.getPayload();
+
+        assertThat("The TTL of the received packet is bigger or the same as the sent packet",
+                1,
+                equalTo(Byte.compare(sentIpPacket.getTtl(), recvIpPacket.getTtl())));
+
+
+        assertThat("Checkums are the same", sentIpPacket.getChecksum(), not(recvIpPacket.getChecksum()));
+
+        assertThat("Protocol is not the same", sentIpPacket.getProtocol(), equalTo(recvIpPacket.getProtocol()));
+
     }
 
     /**
@@ -434,8 +438,8 @@ public class PacketHelper {
     public static void checkIcmpError(byte[] recv, UNREACH_CODE code, MAC dlSrc,
             IntIPv4 nwSrc, MAC dlDst, IntIPv4 nwDst, byte[] triggerPkt)
                     throws MalformedPacketException {
-        assertNotNull(recv);
-        assertNotNull(triggerPkt);
+        Assert.assertThat("Received data is null", recv, notNullValue());
+        Assert.assertThat("Trigger packet is null", triggerPkt, notNullValue());
         Ethernet pkt = new Ethernet();
         ByteBuffer bb = ByteBuffer.wrap(recv, 0, recv.length);
         pkt.deserialize(bb);

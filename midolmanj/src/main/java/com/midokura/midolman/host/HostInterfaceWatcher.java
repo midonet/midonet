@@ -3,25 +3,20 @@
  */
 package com.midokura.midolman.host;
 
-import java.util.UUID;
-
 import com.google.inject.Inject;
 import com.midokura.midolman.host.config.HostConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.scanner.InterfaceScanner;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.updater.InterfaceDataUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 /**
  * Main interface scanning loop. Internally it uses an {@link InterfaceScanner}
- * implementation and an {@link InterfaceDataUpdater} implementation to scan
- * periodically and respectively upload the scanned data to ZooKeeper.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
+ * TODO this class should react to netlink events instead of polling
  */
 public class HostInterfaceWatcher implements Runnable {
 

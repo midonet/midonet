@@ -4,6 +4,9 @@
 package com.midokura.midolman.host.scanner;
 
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.netlink.Callback;
+
+import java.util.List;
 
 /**
  * Interface data scanning module api. It's job is to return an up-to-date list
@@ -21,4 +24,6 @@ public interface InterfaceScanner {
      * @return list of interfaces
      */
     InterfaceDescription[] scanInterfaces();
+
+    void scanInterfaces(Callback<List<InterfaceDescription>> callback);
 }

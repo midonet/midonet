@@ -20,6 +20,7 @@ MIDO_ETC=/etc/midolman
 MIDO_MAIN=com.midokura.midolman.Midolman
 # FIXME(tfukushima): Remove hard coded version number.
 MIDO_JAR=$MIDO_HOME/midolmanj.jar
+MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midokura-jdk-bootstrap.jar
 MIDO_CFG=$MIDO_ETC/midolman.conf
 MIDO_LOG_DIR=/var/log/midolman/
 QUAGGA_DIR=/var/run/quagga/
@@ -55,7 +56,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 is_running()
 {
     start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $JAVA \
-        --user $USER --test > /dev/null \
+        --test > /dev/null \
                 || return 1
     return 0
 }
@@ -94,9 +95,9 @@ do_start()
     start-stop-daemon --start --quiet \
                --pidfile $PIDFILE \
                --make-pidfile \
-               --chuid $USER:$GROUP \
                --background \
                --exec $JAVA -- \
+                   -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
                    -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                    $JAVA_OPTS \
                    $MIDO_MAIN \

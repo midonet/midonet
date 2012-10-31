@@ -357,6 +357,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
             case LocalPortActive(vifId, false) =>
                 log.debug("Received a LocalPortActive false for {}", vifId)
                 activatingLocalPorts = true
+                clusterDataClient.portsSetLocalAndActive(vifId, false)
+
                 val portFuture =
                     ask(VirtualTopologyActor.getRef(),
                         PortRequest(vifId, update = false)).mapTo[Port[_]]

@@ -121,9 +121,9 @@ class Coordinator(val origMatch: WildcardMatch,
     private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
+        pktContext.freeze()
         cookie match {
             case Some(_) =>
-                pktContext.freeze()
                 val wflow = new WildcardFlow().setMatch(origMatch)
                 if (temporary)
                     wflow.setHardExpirationMillis(TEMPORARY_DROP_MILLIS)
@@ -136,6 +136,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         if (withTags) pktContext.getFlowTags else null))
 
             case None => // Internally-generated packet. Do nothing.
+                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
         }
     }
 
@@ -251,18 +252,22 @@ class Coordinator(val origMatch: WildcardMatch,
 
                     case _: ConsumedAction =>
                         pktContext.freeze()
+                        pktContext.getFlowRemovedCallbacks foreach {
+                            cb => cb.call()
+                        }
                         cookie match {
                             case None => // Do nothing.
                             case Some(_) =>
-                                pktContext.getFlowRemovedCallbacks foreach {
-                                    cb => cb.call()
-                                }
                                 flowController.tell(DiscardPacket(cookie))
                         }
 
                     case _: ErrorDropAction =>
+                        pktContext.freeze()
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
                                 // Drop the flow temporarily
                                 dropFlow(temporary = true)
@@ -274,6 +279,9 @@ class Coordinator(val origMatch: WildcardMatch,
                             origMatch)
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
                                 var temporary = false
                                 // Flows which (if they were return flows in a
@@ -294,10 +302,13 @@ class Coordinator(val origMatch: WildcardMatch,
                     case _: NotIPv4Action =>
                         log.debug("Device returned NotIPv4Action for {}",
                             origMatch)
+                        pktContext.freeze()
                         cookie match {
                             case None => // Do nothing.
+                                pktContext.getFlowRemovedCallbacks foreach {
+                                    cb => cb.call()
+                                }
                             case Some(_) =>
-                                pktContext.freeze()
                                 val notIPv4Match =
                                     (new WildcardMatch()
                                         .setInputPortUUID(origMatch.getInputPortUUID)
@@ -443,6 +454,8 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 datapathController.tell(
                     SendPacket(origEthernetPkt, actions.toList))
+                pktContext.freeze()
+                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)

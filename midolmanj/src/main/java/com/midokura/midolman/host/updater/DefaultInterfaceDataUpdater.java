@@ -3,29 +3,19 @@
  */
 package com.midokura.midolman.host.updater;
 
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.util.*;
+
 import static com.midokura.midolman.host.state.HostDirectory.Interface;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
- */
 public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
 
     private final static Logger log =
