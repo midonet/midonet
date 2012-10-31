@@ -3,16 +3,12 @@
 */
 package com.midokura.midolman.guice;
 
-import javax.inject.Singleton;
+import com.google.inject.Singleton;
 
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.MockCache;
 
-public class MockCacheModule extends CacheModule {
-
-    public MockCacheModule() {
-
-    }
+public class MockFlowStateCacheModule extends FlowStateCacheModule {
 
     @Override
     protected void bindCache() {

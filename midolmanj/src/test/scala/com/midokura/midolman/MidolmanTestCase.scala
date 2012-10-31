@@ -24,6 +24,7 @@ import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
 
 import com.midokura.midolman.DatapathController.{DisablePortWatcher, InitializationComplete}
 import com.midokura.midolman.guice._
+import cluster.ClusterClientModule
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
 import com.midokura.midolman.guice.config.MockConfigProviderModule
@@ -131,7 +132,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         List(
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockCacheModule(),
+            new MockFlowStateCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
@@ -143,7 +144,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ReactorModule(),
-            new MockClusterClientModule(),
+            new ClusterClientModule(),
+            new MockMonitoringStoreModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
             new MidolmanModule(),
             new InterfaceScannerModule()

@@ -7,6 +7,8 @@ package com.midokura.midolman;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import com.midokura.midolman.guice.FlowStateCacheModule;
 import com.midokura.midolman.guice.InterfaceScannerModule;
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
@@ -99,6 +101,7 @@ public class Midolman {
             new ConfigProviderModule(configFilePath),
             new DatapathModule(),
             new ClusterClientModule(),
+            new FlowStateCacheModule(),
             new MidolmanActorsModule(),
             new MidolmanModule(),
             new InterfaceScannerModule()

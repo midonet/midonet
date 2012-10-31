@@ -14,34 +14,15 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
-import com.midokura.cassandra.CassandraClient;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
-import com.midokura.midolman.monitoring.guice.MonitoringConfigurationProvider;
-import com.midokura.midolman.monitoring.store.CassandraClientProvider;
-import com.midokura.midolman.monitoring.store.CassandraStoreProvider;
-import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
-import com.midokura.midolman.state.zkManagers.BgpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeDhcpZkManager;
-import com.midokura.midolman.state.zkManagers.BridgeZkManager;
-import com.midokura.midolman.state.zkManagers.ChainZkManager;
-import com.midokura.midolman.state.zkManagers.PortGroupZkManager;
-import com.midokura.midolman.state.zkManagers.PortSetZkManager;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.midolman.state.zkManagers.RouteZkManager;
-import com.midokura.midolman.state.zkManagers.RouterZkManager;
-import com.midokura.midolman.state.zkManagers.RuleZkManager;
-import com.midokura.midolman.state.zkManagers.TenantZkManager;
-import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
-import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.ClusterBgpManager;
 import com.midokura.midonet.cluster.ClusterBridgeManager;
@@ -65,14 +46,13 @@ public class DataClusterClientModule extends PrivateModule {
 
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class, Names.named(
-                ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+            ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
 
         bind(PathBuilder.class);
         bind(ZkConfigSerializer.class)
                 .toInstance(new ZkConfigSerializer(new JSONSerializer()));
 
         bindZkManagers();
-        bindCassandraStore();
 
         bind(DataClient.class).to(LocalDataClientImpl.class)
                 .asEagerSingleton();
@@ -100,19 +80,6 @@ public class DataClusterClientModule extends PrivateModule {
 
         bind(MidostoreSetupService.class).in(Singleton.class);
         expose(MidostoreSetupService.class);
-    }
-
-    protected void bindCassandraStore() {
-        requireBinding(MonitoringConfiguration.class);
-        bind(MonitoringConfiguration.class).toProvider(
-                MonitoringConfigurationProvider.class).asEagerSingleton();
-
-        bind(CassandraClient.class).toProvider(CassandraClientProvider.class)
-                .asEagerSingleton();
-        bind(Store.class).toProvider(CassandraStoreProvider.class)
-                .asEagerSingleton();
-        expose(Store.class);
-        expose(MonitoringConfiguration.class);
     }
 
     protected void bindZkManagers() {

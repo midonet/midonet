@@ -29,7 +29,7 @@ import com.midokura.util.eventloop.Reactor;
 /**
  * Main midolman configuration module
  */
-public class CacheModule extends PrivateModule {
+public class FlowStateCacheModule extends PrivateModule {
 
     @Override
     protected void configure() {
