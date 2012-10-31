@@ -7,9 +7,6 @@ import scala.Some
 import scala.collection.JavaConversions._
 
 import akka.testkit.TestProbe
-import akka.util.duration._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import guice.actors.OutgoingMessage
 
@@ -17,15 +14,16 @@ import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
                                              WildcardFlowAdded}
 import layer3.Route
 import layer3.Route.NextHop
-import rules.{RuleResult, Condition}
 import topology.LocalPortActive
 import com.midokura.packets._
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
                                           Router => ClusterRouter}
+import com.midokura.midonet.cluster.data.host.Host
 import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
+import com.midokura.sdn.dp.Packet
 
 trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         VirtualConfigurationBuilders {
@@ -49,9 +47,11 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         IntIPv4.fromString("10.0.0.3"),
         IntIPv4.fromString("10.0.0.4"),
         IntIPv4.fromString("10.0.0.5"))
+    val vmNetworkIp = IntIPv4.fromString("10.0.0.0", 24)
 
     var bridge: ClusterBridge = null
     var router: ClusterRouter = null
+    var host: Host = null
 
     var flowEventsProbe: TestProbe = null
     var portEventsProbe: TestProbe = null
@@ -66,7 +66,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
-        val host = newHost("myself", hostId())
+        host = newHost("myself", hostId())
         host should not be null
         router = newRouter("router")
         router should not be null
@@ -85,7 +85,6 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             NextHop.PORT, rtrPort.getId,
             new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
 
-        // XXX need tenant name?
         bridge = newBridge("bridge")
         bridge should not be null
 
@@ -112,13 +111,13 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         drainProbes()
     }
 
-    def expectPacketOut(port: Int): Ethernet = {
+    def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null
         log.debug("Packet execute: {}", pktOut)
 
-        pktOut.getActions.size should (equal (1) or equal (vmPortNames.size - 1))
+        numPorts should contain (pktOut.getActions.size)
 
         pktOut.getActions.toList map { action =>
             action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
@@ -129,11 +128,17 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         Ethernet.deserialize(pktOut.getData)
     }
 
-    def arpAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
-                                           dstIp: IntIPv4, expectedMac: MAC) {
+    def expectPacketOutRouterToVm(port: Int): Ethernet =
+        expectPacketOut(port, List(1, vmPortNames.size))
+
+    def expectPacketOutVmToVm(port: Int): Ethernet =
+        expectPacketOut(port, List(1, vmPortNames.size - 1))
+
+    def arpVmToVmAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
+                               dstIp: IntIPv4, expectedMac: MAC) {
 
         injectArpRequest(portName, srcIp.getAddress, srcMac, dstIp.getAddress)
-        val pkt = expectPacketOut(vmPortNameToPortNumber(portName))
+        val pkt = expectPacketOutVmToVm(vmPortNameToPortNumber(portName))
         log.debug("Packet out: {}", pkt)
         // TODO(guillermo) check the arp reply packet
     }
@@ -194,10 +199,10 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     }
 
     def expectPacketAllowed(portIndexA: Int, portIndexB: Int,
-                                    packetGenerator: (Int, Int) => Ethernet) {
+                            packetGenerator: (Int, Int) => Ethernet) {
         val eth = packetGenerator(portIndexA, portIndexB)
         triggerPacketIn(vmPortNames(portIndexA), eth)
-        val outpkt = expectPacketOut(vmPortNameToPortNumber(vmPortNames(portIndexB)))
+        val outpkt = expectPacketOutVmToVm(vmPortNameToPortNumber(vmPortNames(portIndexB)))
         outpkt should be === eth
         outpkt.getPayload should be === eth.getPayload
         outpkt.getPayload.getPayload should be === eth.getPayload.getPayload
@@ -206,7 +211,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     }
 
     def expectPacketDropped(portIndexA: Int, portIndexB: Int,
-                                    packetGenerator: (Int, Int) => Ethernet) {
+                            packetGenerator: (Int, Int) => Ethernet) {
         triggerPacketIn(vmPortNames(portIndexA),
                         packetGenerator(portIndexA, portIndexB))
         packetsEventsProbe.expectNoMsg()

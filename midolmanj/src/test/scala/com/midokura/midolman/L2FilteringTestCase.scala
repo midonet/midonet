@@ -3,29 +3,17 @@
 */
 package com.midokura.midolman
 
-import scala.Some
-import scala.collection.JavaConversions._
-
-import akka.testkit.TestProbe
 import akka.util.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
-import guice.actors.OutgoingMessage
 
 import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
                                              WildcardFlowAdded}
-import layer3.Route
-import layer3.Route.NextHop
 import rules.{RuleResult, Condition}
-import topology.LocalPortActive
 import com.midokura.packets._
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
-import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
@@ -38,7 +26,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
-            (name, mac, ip) => arpAndCheckReply(name, mac, ip, routerIp, routerMac)
+            (name, mac, ip) => arpVmToVmAndCheckReply(name, mac, ip, routerIp, routerMac)
         }
 
         log.info("sending icmp echoes between every pair of ports")
