@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>12.12</version>
+        <version>13.06-SNAPSHOT</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>12.12</version>
+    <version>13.06-SNAPSHOT</version>
     <artifactId>midolmanj-mgmt</artifactId>
     <packaging>war</packaging>
 
@@ -374,7 +374,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
-            <version>12.12</version>
+            <version>13.06-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun</groupId>
@@ -385,12 +385,12 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midolmanj</artifactId>
-            <version>12.12</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
          <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midonet-client</artifactId>
-            <version>12.12</version>
+            <version>13.06-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
