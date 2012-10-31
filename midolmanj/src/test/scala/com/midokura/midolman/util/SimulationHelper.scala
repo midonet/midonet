@@ -6,16 +6,81 @@ package com.midokura.midolman.util
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+
 import com.midokura.packets._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.MidolmanTestCase
+import com.midokura.midolman.util.AddressConversions._
+import com.midokura.sdn.dp.Packet
+import com.midokura.sdn.dp.flows._
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.util.AddressConversions._
 
 trait SimulationHelper extends MidolmanTestCase {
 
     final val IPv6_ETHERTYPE: Short = 0x86dd.toShort
+
+    def applyOutPacketActions(packet: Packet): Ethernet = {
+        packet should not be null
+        packet.getData should not be null
+        packet.getActions should not be null
+
+        val eth = Ethernet.deserialize(packet.getData)
+        var ip: IPv4 = null
+        var tcp: TCP = null
+        var udp: UDP = null
+        eth.getEtherType match {
+            case IPv4.ETHERTYPE =>
+                ip = eth.getPayload.asInstanceOf[IPv4]
+                ip.getProtocol match {
+                    case TCP.PROTOCOL_NUMBER =>
+                        tcp = ip.getPayload.asInstanceOf[TCP]
+                    case UDP.PROTOCOL_NUMBER =>
+                        udp = ip.getPayload.asInstanceOf[UDP]
+                }
+        }
+
+        val actions = packet.getActions.flatMap(action => action match {
+            case a: FlowActionSetKey => Option(a)
+            case _ => None
+        }).toSet
+
+        // TODO(guillermo) incomplete, but it should cover testing needs
+        actions foreach { action =>
+            action.getFlowKey match {
+                case key: FlowKeyEthernet =>
+                    if (key.getDst != null) eth.setDestinationMACAddress(key.getDst)
+                    if (key.getSrc != null) eth.setSourceMACAddress(key.getSrc)
+                case key: FlowKeyIPv4 =>
+                    ip should not be null
+                    if (key.getDst != null) ip.setDestinationAddress(key.getDst)
+                    if (key.getSrc != null) ip.setSourceAddress(key.getSrc)
+                    if (key.getTtl != null) ip.setTtl(key.getTtl)
+                case key: FlowKeyTCP =>
+                    tcp should not be null
+                    if (key.getDst != null) tcp.setDestinationPort(key.getDst)
+                    if (key.getSrc != null) tcp.setSourcePort(key.getSrc)
+                case key: FlowKeyUDP =>
+                    udp should not be null
+                    if (key.getUdpDst != null) udp.setDestinationPort(key.getUdpDst)
+                    if (key.getUdpSrc != null) udp.setSourcePort(key.getUdpSrc)
+            }
+        }
+
+        eth
+    }
+
+    def getOutPacketPorts(packet: Packet): Set[Short] = {
+        packet should not be null
+        packet.getData should not be null
+        packet.getActions should not be null
+
+        packet.getActions.flatMap(action => action match {
+            case a: FlowActionOutput => Option(a.getValue.getPortNumber.toShort)
+            case _ => None
+        }).toSet
+    }
 
     def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {
         val arp = new ARP()

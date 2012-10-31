@@ -113,17 +113,11 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
 
     def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getData should not be null
         log.debug("Packet execute: {}", pktOut)
 
-        numPorts should contain (pktOut.getActions.size)
-
-        pktOut.getActions.toList map { action =>
-            action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
-            action.getValue.getClass() should be === classOf[FlowActionOutput]
-            action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
-        } should contain (port)
+        val outPorts = getOutPacketPorts(pktOut)
+        numPorts should contain (outPorts.size)
+        outPorts should contain (port.toShort)
 
         Ethernet.deserialize(pktOut.getData)
     }
