@@ -17,6 +17,7 @@ import akka.actor.ActorSystem;
 
 import com.midokura.midolman.guice.MidolmanActorsModule;
 import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
@@ -51,6 +52,7 @@ public class EmbeddedMidolman {
                 new HostModule(),
                 new ConfigProviderModule(configFilePath),
                 new DatapathModule(),
+                new MonitoringStoreModule(),
                 new ClusterClientModule(),
                 new FlowStateCacheModule(),
                 new MidolmanActorsModule(),

@@ -144,8 +144,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ReactorModule(),
-            new ClusterClientModule(),
             new MockMonitoringStoreModule(),
+            new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
             new MidolmanModule(),
             new InterfaceScannerModule()

@@ -17,6 +17,7 @@ import com.google.inject.name.Names;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.monitoring.store.Store;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.PathBuilder;
 import com.midokura.midolman.state.PortConfigCache;
@@ -47,6 +48,7 @@ public class DataClusterClientModule extends PrivateModule {
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class, Names.named(
             ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+        requireBinding(Store.class);
 
         bind(PathBuilder.class);
         bind(ZkConfigSerializer.class)

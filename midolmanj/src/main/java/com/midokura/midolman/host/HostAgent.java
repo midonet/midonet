@@ -7,6 +7,7 @@ import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
 import com.midokura.midolman.guice.datapath.DatapathModule;
 import com.midokura.midolman.guice.reactor.ReactorModule;
@@ -81,6 +82,7 @@ public class HostAgent {
                 new DatapathModule(),
                 new ReactorModule(),
                 new HostAgentModule(),
+                new MonitoringStoreModule(),
                 new ClusterClientModule());
 
         injector.getInstance(HostAgentService.class).startAndWait();

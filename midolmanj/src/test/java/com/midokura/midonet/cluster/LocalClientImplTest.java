@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import com.midokura.midolman.Setup;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.MockMonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
 import com.midokura.midolman.guice.config.MockConfigProviderModule;
 import com.midokura.midolman.guice.config.TypedConfigModule;
@@ -85,6 +86,7 @@ public class LocalClientImplTest {
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
 
             new ReactorModule(),
+            new MockMonitoringStoreModule(),
             new ClusterClientModule()
         );
         injector.injectMembers(this);
