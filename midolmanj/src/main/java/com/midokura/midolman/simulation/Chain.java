@@ -18,7 +18,6 @@ import scala.Option;
 import scala.Some;
 import scala.collection.Map;
 
-import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.layer4.NatMappingFactory;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
@@ -33,8 +32,6 @@ public class Chain {
     private List<Rule> rules;
     private Map<UUID, Chain> jumpTargets;
     private String name;
-    private static HashMap<UUID, NatMapping> natMappingMap =
-        new HashMap<UUID, NatMapping>();
 
     @Inject
     private static NatMappingFactory natMappingFactory;
@@ -117,7 +114,7 @@ public class Chain {
                 Rule r = cp.rules.get(cp.position);
                 cp.position++;
                 log.debug("Process rule {}", r);
-                r.process(fwdInfo, res, getNatMapping(ownerId), isPortFilter);
+                r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)
                         || res.action.equals(RuleResult.Action.REJECT)) {
@@ -165,17 +162,6 @@ public class Chain {
         // If we fall off the end of the starting chain, we ACCEPT.
         res.action = RuleResult.Action.ACCEPT;
         return res;
-    }
-
-    private static NatMapping getNatMapping(UUID ownerID) {
-        if (natMappingMap.containsKey(ownerID)) {
-            return natMappingMap.get(ownerID);
-        } else {
-            log.debug("Creating a new NatMapping for {}", ownerID);
-            NatMapping natMapping = natMappingFactory.newNatMapping(ownerID);
-            natMappingMap.put(ownerID, natMapping);
-            return natMapping;
-        }
     }
 
     private static class ChainPosition {
