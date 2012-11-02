@@ -8,9 +8,7 @@ import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
-import host.interfaces.InterfaceDescription
 import host.scanner.InterfaceScanner
-import host.sensor.NetlinkInterfaceSensor
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
@@ -43,8 +41,7 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
-import com.midokura.util.functors.{Callback1, Callback0}
-import java.util.{List => JList}
+import com.midokura.util.functors.Callback0
 
 
 /**
@@ -530,10 +527,14 @@ class DatapathController() extends Actor with ActorLogging {
             this.datapath = datapathObj
             ports.foreach { _ match {
                     case p: GreTunnelPort =>
-                        selfPostPortCommand(DeleteTunnelGre(p, None))
+                        deleteDatapathPort(self, p, None)
                     case p: CapWapTunnelPort =>
-                        selfPostPortCommand(DeleteTunnelCapwap(p, None))
+                        deleteDatapathPort(self, p, None)
+                    case p: NetDevPort =>
+                        deleteDatapathPort(self, p, None)
                     case p =>
+                        log.debug("Keeping port {} found during " +
+                            "initialization", p)
                         localPorts.put(p.getName, p)
                 }
             }
@@ -682,7 +683,7 @@ class DatapathController() extends Actor with ActorLogging {
                 localPorts.get(deletedPort).get match {
                 case p: NetDevPort =>
                     // delete the dp <-> port link
-                    selfPostPortCommand(DeletePortNetdev(p, None))
+                    deleteDatapathPort(self, p, None)
                     // set port to inactive.
                     updatePort(p.getName, false);
                 case default =>
@@ -699,7 +700,8 @@ class DatapathController() extends Actor with ActorLogging {
                 log.info("Resurrecting a previously deleted port. {} {}", Array(p.getPortNo, p.getName))
 
                 // recreate port in datapath.
-                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(interface), localToVifPorts.get(p.getPortNo.shortValue())))
+                createDatapathPort(self, Ports.newNetDevPort(interface),
+                    localToVifPorts.get(p.getPortNo.shortValue()))
                 updatePort(p.getName, true);
             }
         );
@@ -751,7 +753,8 @@ class DatapathController() extends Actor with ActorLogging {
                             .newOptions()
                             .setSourceIPv4(myConfig.getIp.addressAsInt())
                             .setDestinationIPv4(peerConf.getIp.addressAsInt()))
-                    selfPostPortCommand(CreateTunnelGre(tunnelPort, Some((peerConf, m.zone))))
+                    createDatapathPort(
+                        self, tunnelPort, Some((peerConf, m.zone)))
 
                 case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
                     log.info("Opening a tunnel port to {}", m.hostConfig)
@@ -765,7 +768,8 @@ class DatapathController() extends Actor with ActorLogging {
                             .newOptions()
                             .setSourceIPv4(myConfig.getIp.addressAsInt())
                             .setDestinationIPv4(peerConf.getIp.addressAsInt()))
-                    selfPostPortCommand(CreateTunnelCapwap(tunnelPort, Some((peerConf, m.zone))))
+                    createDatapathPort(
+                        self, tunnelPort, Some((peerConf, m.zone)))
 
                 case GreZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
                     log.info("Closing a tunnel port to {}", m.hostConfig)
@@ -787,7 +791,8 @@ class DatapathController() extends Actor with ActorLogging {
 
                     if (tunnel != null) {
                         val greTunnel = tunnel.asInstanceOf[GreTunnelPort]
-                        selfPostPortCommand(DeleteTunnelGre(greTunnel, Some((peerConf, zone))))
+                        deleteDatapathPort(
+                            self, greTunnel, Some((peerConf, zone)))
                     }
 
                 case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
@@ -810,7 +815,8 @@ class DatapathController() extends Actor with ActorLogging {
 
                     if (tunnel != null) {
                         val capwapTunnel = tunnel.asInstanceOf[CapWapTunnelPort]
-                        selfPostPortCommand(DeleteTunnelCapwap(capwapTunnel, Some((peerConf, zone))))
+                        deleteDatapathPort(
+                            self, capwapTunnel, Some((peerConf, zone)))
                     }
 
                 case _ =>
@@ -834,12 +840,12 @@ class DatapathController() extends Actor with ActorLogging {
                         case p: GreTunnelPort =>
                             zone match {
                                 case z: GreTunnelZone =>
-                                    selfPostPortCommand(DeleteTunnelGre(p, Some(z)))
+                                    deleteDatapathPort(self, p, Some(z))
                             }
                         case p: CapWapTunnelPort =>
                             zone match {
                                 case z: CapwapTunnelZone =>
-                                    selfPostPortCommand(DeleteTunnelCapwap(p, Some(z)))
+                                    deleteDatapathPort(self, p, Some(z))
                             }
                     }
                 }
@@ -1497,7 +1503,8 @@ class DatapathController() extends Actor with ActorLogging {
             newTaps.add(tapName)
             // new port
             if (!localPorts.contains(tapName)) {
-                selfPostPortCommand(CreatePortNetdev(Ports.newNetDevPort(tapName), Some(vifId)))
+                createDatapathPort(
+                    self, Ports.newNetDevPort(tapName), Some(vifId))
             }
             // port is already tracked.
             else {
@@ -1521,10 +1528,10 @@ class DatapathController() extends Actor with ActorLogging {
             if (!newTaps.contains(portName) && portName != datapath.getName) {
                 portData match {
                     case p: NetDevPort =>
-                        selfPostPortCommand(DeletePortNetdev(p, None))
+                        deleteDatapathPort(self, p, None)
                     case p: InternalPort =>
                         if (p.getPortNo != 0) {
-                            selfPostPortCommand(DeletePortInternal(p, None))
+                            deleteDatapathPort(self, p, None)
                         }
                     case default =>
                         log.error("port type not matched {}", default)
@@ -1537,13 +1544,9 @@ class DatapathController() extends Actor with ActorLogging {
             self ! InitializationComplete()
     }
 
-    private def selfPostPortCommand(command: PortOp[_]) {
-        pendingUpdateCount += 1
-        log.info("Scheduling port command {}", command)
-        self ! command
-    }
-
     def createDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
+        if (caller == self)
+            pendingUpdateCount += 1
         log.info("creating port: {} (by request of: {})", port, caller)
 
         datapathConnection.portsCreate(datapath, port,
@@ -1559,6 +1562,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def deleteDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
+        if (caller == self)
+            pendingUpdateCount += 1
         log.info("deleting port: {} (by request of: {})", port, caller)
 
         datapathConnection.portsDelete(port, datapath, new ErrorHandlingCallback[Port[_, _]] {
