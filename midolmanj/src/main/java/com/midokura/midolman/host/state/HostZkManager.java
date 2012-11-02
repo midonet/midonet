@@ -3,27 +3,17 @@
  */
 package com.midokura.midolman.host.state;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.midokura.midolman.state.*;
+import com.midokura.midolman.state.zkManagers.PortZkManager;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PortConfig;
-import com.midokura.midolman.state.PortDirectory;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkManager;
-import com.midokura.midolman.state.ZkStateSerializationException;
-import com.midokura.midolman.state.zkManagers.PortZkManager;
-import com.midokura.util.functors.CollectionFunctors;
-import com.midokura.util.functors.Functor;
+import java.io.IOException;
+import java.util.*;
+
 import static com.midokura.midolman.host.state.HostDirectory.Command;
 
 /**
@@ -123,6 +113,10 @@ public class HostZkManager extends ZkManager {
         addEphemeral(paths.getHostPath(hostId) + "/alive",
                      new byte[0]);
         updateMetadata(hostId, metadata);
+    }
+
+    public void makeDead(UUID hostId) throws StateAccessException {
+        deleteEphemeral(paths.getHostPath(hostId) + "/alive");
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)
