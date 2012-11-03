@@ -519,9 +519,18 @@ class DatapathController() extends Actor with ActorLogging {
             log.info("Disabling the port watching feature.")
             portWatcherEnabled = false
 
-        case host: Host =>
-            this.host = host
-            readDatapathInformation(host.datapath)
+        case h: Host =>
+            // If we already had the host info, process this after init.
+            this.host match {
+                case null =>
+                    // Only set it if the datapath is known.
+                    if (null != h.datapath) {
+                        this.host = h
+                        readDatapathInformation(h.datapath)
+                    }
+                case _ =>
+                    system.scheduler.scheduleOnce(300 millis, self, h)
+            }
 
         case _SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
@@ -538,7 +547,13 @@ class DatapathController() extends Actor with ActorLogging {
                         localPorts.put(p.getName, p)
                 }
             }
-            doDatapathPortsUpdate()
+            // Schedule processing of zones and bindings for after
+            // initialization completes.
+            system.scheduler.scheduleOnce(300 millis, self, host)
+            log.debug("Finished processing datapath's ports. " +
+                "Pending updates {}", pendingUpdateCount)
+            if (pendingUpdateCount == 0)
+                self ! InitializationComplete()
 
         /**
         * Handle personal create port requests
@@ -1483,15 +1498,15 @@ class DatapathController() extends Actor with ActorLogging {
             self ! InitializationComplete()
     }
 
-    def doDatapathPortsUpdate() {
-        val ports: Map[UUID, String] = host.ports
+    private def doDatapathPortsUpdate() {
         if (pendingUpdateCount != 0) {
-            system.scheduler.scheduleOnce(100 millis, self, LocalPortsReply(ports))
-            log.debug("pendingUpdateCount is not 0, no update will be performed now," +
-                "next update in 100 millis")
+            system.scheduler.scheduleOnce(200 millis, self, host)
+            log.debug("pendingUpdateCount is not 0, no update will be " +
+                "performed now, next update in 200 millis")
             return
         }
 
+        val ports: Map[UUID, String] = host.ports
         log.info("Migrating local datapath to configuration {}", ports)
         log.info("Current known local ports: {}", localPorts)
 
@@ -1594,6 +1609,10 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
+    /**
+     * ONLY USE THIS DURING INITIALIZATION.
+     * @param wantedDatapath
+     */
     private def readDatapathInformation(wantedDatapath: String) {
         def handleExistingDP(dp: Datapath) {
             log.info("The datapath already existed. Flushing the flows.")
@@ -1649,6 +1668,10 @@ class DatapathController() extends Actor with ActorLogging {
         )
     }
 
+    /**
+     * ONLY USE THIS DURING INITIALIZATION.
+     * @param datapath
+     */
     private def queryDatapathPorts(datapath: Datapath) {
         log.info("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,

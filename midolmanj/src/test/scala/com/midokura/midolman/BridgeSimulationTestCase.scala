@@ -17,6 +17,7 @@ import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
 import com.midokura.packets.Ethernet
 import org.junit.Test
+import topology.LocalPortActive
 
 
 @RunWith(classOf[JUnitRunner])
@@ -77,8 +78,10 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         flowEventsProbe = newProbe()
         tunnelEventsProbe = newProbe()
+        val portEventsProbe = newProbe()
         actors().eventStream.subscribe(tunnelEventsProbe.ref, classOf[TunnelChangeEvent])
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
 
         initializeDatapath() should not be (null)
 
@@ -89,6 +92,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         drainProbes()
 
         dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
