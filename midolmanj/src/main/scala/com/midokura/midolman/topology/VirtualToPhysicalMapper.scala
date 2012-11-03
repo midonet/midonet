@@ -6,7 +6,6 @@ package com.midokura.midolman.topology
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
 
-import java.util
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 
@@ -27,12 +26,11 @@ import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import com.midokura.midolman.state.DirectoryCallback
 import com.midokura.midolman.state.DirectoryCallback.Result
 import com.midokura.midonet.cluster.{Client, DataClient}
-import com.midokura.midonet.cluster.client.{BridgePort, Port, TunnelZones, HostBuilder}
-import com.midokura.midonet.cluster.client.TunnelZones.GreBuilder
-import com.midokura.midonet.cluster.data.{PortSet, TunnelZone}
-import com.midokura.midonet.cluster.data.TunnelZone.HostConfig
+import com.midokura.midonet.cluster.client.{BridgePort, Port, TunnelZones}
+import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones._
-import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
+import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
+                                                            PortRequest}
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 
@@ -66,27 +64,6 @@ object VirtualToPhysicalMapper extends Referenceable {
     val Name = "VirtualToPhysicalMapper"
 
     case class HostRequest(hostId: UUID)
-
-    /**
-     * Will make the actor fire a `LocalStateReply` message to the sender
-     * containing the desired local information for the current
-     *
-     * @param hostIdentifier is the identifier of the current host.
-     */
-    case class LocalDatapathRequest(hostIdentifier: UUID)
-
-    /**
-     * Carries the local desired state information
-     *
-     * @param dpName is the name of the local datapath that we want.
-     */
-    case class LocalDatapathReply(dpName: String)
-
-    case class LocalPortsRequest(hostIdentifier: UUID)
-
-    case class LocalPortsReply(ports: collection.immutable.Map[UUID, String])
-
-    case class LocalTunnelZonesReply(zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
 
     case class TunnelZoneRequest(zoneId: UUID)
 
@@ -224,13 +201,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
     @Inject
     val hostIdProvider: HostIdProviderService = null
-
-    private val actorWants = mutable.Map[ActorRef, ExpectingState]()
-    private val localHostData =
-        mutable.Map[UUID, (
-            String,
-                mutable.Map[UUID, String],
-                mutable.Map[UUID, TunnelZone.HostConfig[_, _]])]()
 
     private lazy val hosts: DeviceHandlersManager[Host, HostManager] =
         new DeviceHandlersManager[Host, HostManager](context, actorsService, "host")
@@ -468,17 +438,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                                            success = true)
                 }
 
-
             case _ActivatedLocalPort(vifId, active, success) =>
                 completeLocalPortActivation(vifId, active, success)
-
-            case LocalPortsRequest(host) =>
-                actorWants.put(sender, ExpectingPorts())
-                fireHostStateUpdates(host, Some(sender))
-
-            case _LocalDataUpdatedForHost(host, datapath, ports, tunnelZones) =>
-                localHostData.put(host, (datapath, ports, tunnelZones))
-                fireHostStateUpdates(host, Some(sender))
 
             case value =>
                 log.error("Unknown message: " + value)
@@ -497,102 +458,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
         activatingLocalPorts = false
         unstashAll()
     }
-
-    private def fireHostStateUpdates(hostId: UUID, actorOption: Option[ActorRef]) {
-        def updateActor(host: Host, actor: ActorRef) {
-                actorWants(actor) match {
-                    case ExpectingDatapath() =>
-                        actor ! LocalDatapathReply(host.datapath)
-                    case ExpectingPorts() =>
-                        actor ! LocalPortsReply(host.ports.toMap)
-                        actor ! LocalTunnelZonesReply(host.zones)
-                }
-        }
-
-        actorOption match {
-            case Some(actor) =>
-                hosts.getById(hostId) match {
-                    case None =>
-                    case Some(host) => updateActor(host, actor)
-                }
-            case None =>
-                hosts.notifySubscribers(hostId) {
-                    (actor, host) => updateActor(host, actor)
-                }
-        }
-    }
-
-    class MyHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {
-
-        var ports = mutable.Map[UUID, String]()
-        var zoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig[_, _]]()
-        var datapathName: String = ""
-
-        def setDatapathName(datapathName: String): HostBuilder = {
-            this.datapathName = datapathName
-            this
-        }
-
-        def addMaterializedPortMapping(portId: UUID, interfaceName: String): HostBuilder = {
-            ports += (portId -> interfaceName)
-            this
-        }
-
-        def delMaterializedPortMapping(portId: UUID, interfaceName: String): HostBuilder = {
-            ports -= portId
-            this
-        }
-
-
-        def setTunnelZones(newZoneConfigs: util.Map[UUID, HostConfig[_, _]]): HostBuilder = {
-            zoneConfigs.clear()
-            zoneConfigs ++ newZoneConfigs.toMap
-            this
-        }
-
-        def start() = null
-
-        def build() {
-            actor ! _LocalDataUpdatedForHost(host, datapathName, ports, zoneConfigs)
-        }
-    }
-
-    // XXX(guillermo) unused class :-?
-    class GreTunnelZoneBuilder(actor: ActorRef, greZone: GreTunnelZone) extends TunnelZones.GreBuilder {
-        def setConfiguration(configuration: GreBuilder.ZoneConfig): GreTunnelZoneBuilder = {
-            this
-        }
-
-        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
-            actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Added)
-            this
-        }
-
-        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): GreTunnelZoneBuilder = {
-            actor ! GreZoneChanged(greZone.getId, hostConfig, HostConfigOperation.Deleted)
-            this
-        }
-
-        def start() = null
-
-        def build() {
-            //
-        }
-    }
-
-    case class _LocalDataUpdatedForHost(host: UUID, dpName: String,
-                                        ports: mutable.Map[UUID, String],
-                                        zones: mutable.Map[UUID, TunnelZone.HostConfig[_, _]])
-
-    case class _TunnelZoneUpdated(zone: UUID, dpName: String,
-                                        ports: mutable.Map[UUID, String],
-                                        zones: mutable.Set[UUID])
-
-    private sealed trait ExpectingState
-
-    private case class ExpectingDatapath() extends ExpectingState
-
-    private case class ExpectingPorts() extends ExpectingState
 
     /**
      * Message sent by the Mapper to itself to track membership changes in a

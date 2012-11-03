@@ -1629,43 +1629,47 @@ class DatapathController() extends Actor with ActorLogging {
         }
         log.info("Wanted datapath: {}", wantedDatapath)
 
-        datapathConnection.datapathsGet(wantedDatapath,
-            new ErrorHandlingCallback[Datapath] {
-                def onSuccess(dp: Datapath) {
-                    handleExistingDP(dp)
-                }
+        val retryTask = new Runnable {
+            def run() {
+                readDatapathInformation(wantedDatapath)
+            }
+        }
 
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                    if (timeout) {
-                        log.error("Timeout while getting the datapath", timeout)
-                        context.system.scheduler.scheduleOnce(100 millis, new Runnable {
-                            def run() {
-                                readDatapathInformation(wantedDatapath)
-                            }
-                        })
-                    } else if (ex != null) {
-                        val errorCode: ErrorCode = ex.getErrorCodeEnum
+        val dpCreateCallback = new ErrorHandlingCallback[Datapath] {
+            def onSuccess(data: Datapath) {
+                log.info("Datapath created {}", data)
+                queryDatapathPorts(data)
+            }
 
-                        if (errorCode != null &&
-                            errorCode == NetlinkException.ErrorCode.ENODEV) {
-                            log.info("Datapath is missing. Creating.")
-                            datapathConnection.datapathsCreate(wantedDatapath, new ErrorHandlingCallback[Datapath] {
-                                def onSuccess(data: Datapath) {
-                                    log.info("Datapath created {}", data)
-                                    queryDatapathPorts(data)
-                                }
+            def handleError(ex: NetlinkException, timeout: Boolean) {
+                log.error(ex, "Datapath creation failure {}", timeout)
+                context.system.scheduler.scheduleOnce(100 millis, retryTask)
+            }
+        }
 
-                                def handleError(ex: NetlinkException, timeout: Boolean) {
-                                    log.error(ex, "Datapath creation failure {}", timeout)
-                                    context.system.scheduler.scheduleOnce(100 millis,
-                                        self, LocalDatapathReply(wantedDatapath))
-                                }
-                            })
-                        }
+        val dpGetCallback = new ErrorHandlingCallback[Datapath] {
+            def onSuccess(dp: Datapath) {
+                handleExistingDP(dp)
+            }
+
+            def handleError(ex: NetlinkException, timeout: Boolean) {
+                if (timeout) {
+                    log.error("Timeout while getting the datapath", timeout)
+                    context.system.scheduler.scheduleOnce(100 millis, retryTask)
+                } else if (ex != null) {
+                    val errorCode: ErrorCode = ex.getErrorCodeEnum
+
+                    if (errorCode != null &&
+                        errorCode == NetlinkException.ErrorCode.ENODEV) {
+                        log.info("Datapath is missing. Creating.")
+                        datapathConnection.datapathsCreate(
+                            wantedDatapath, dpCreateCallback)
                     }
                 }
             }
-        )
+        }
+
+        datapathConnection.datapathsGet(wantedDatapath, dpGetCallback)
     }
 
     /**
