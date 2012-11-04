@@ -45,20 +45,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         materializePort(portOnHost1, host1, "port1")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            greZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            greZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.200.1")))
-
+        // Wait to add myself to the tunnel zone so that the tunnel port
+        // gets created after the virtual port.
         val myGreConfig = new GreTunnelZoneHost(host1.getId)
             .setIp(IntIPv4.fromString("192.168.100.1"))
-
-        clusterDataClient()
-            .tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         val herGreConfig = new GreTunnelZoneHost(host2.getId)
             .setIp(IntIPv4.fromString("192.168.200.1"))
@@ -67,19 +57,25 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
-        val eventProbe = newProbe()
-        val localPortProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
-        actors().eventStream.subscribe(localPortProbe.ref, classOf[LocalPortActive])
+        val portChangedProbe = newProbe()
+        val portActiveProbe = newProbe()
+        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
+        actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
 
         // start initialization
         initializeDatapath() should not be (null)
 
         // assert that the port event was fired properly
-        var portChangedEvent = eventProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
+        var portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
         portChangedEvent.op should be(PortOperation.Create)
         portChangedEvent.port.getName should be("port1")
         portChangedEvent.port.isInstanceOf[NetDevPort] should be(true)
+
+        portActiveProbe.expectMsgClass(classOf[LocalPortActive])
+
+        // Now add myself to the tunnel zone.
+        clusterDataClient()
+            .tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
@@ -89,13 +85,11 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         tzRequest.zoneId should be === greZone.getId
 
-        localPortProbe.expectMsgClass(classOf[LocalPortActive])
-
         fishForReplyOfType[GreTunnelZone](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)
+        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
         portChangedEvent.op should be(PortOperation.Create)
         portChangedEvent.port.getName should be("tngreC0A8C801")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
@@ -118,13 +112,13 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
             greZone.getId, herSecondGreConfig)
 
         // assert a delete event was fired on the bus.
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)
+        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
         portChangedEvent.op should be(PortOperation.Delete)
         portChangedEvent.port.getName should be("tngreC0A8C801")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
         // assert the proper datapath port changed event is fired
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](eventProbe)
+        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
 
         portChangedEvent.op should be(PortOperation.Create)
         portChangedEvent.port.getName should be("tngreC0A8D201")
