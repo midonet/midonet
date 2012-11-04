@@ -21,12 +21,20 @@ import org.junit.{Ignore, Test}
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
+import akka.testkit.TestProbe
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
   import scala.collection.JavaConversions._
   import DatapathController._
+
+  private var portEventsProbe: TestProbe = null
+  override def beforeTest() {
+      portEventsProbe = newProbe()
+      actors().eventStream.subscribe(portEventsProbe.ref,
+          classOf[LocalPortActive])
+  }
 
   def testDatapathEmptyDefault() {
 
@@ -69,6 +77,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     val eventProbe = newProbe()
     actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
     requestOfType[DatapathPortChangedEvent](eventProbe)
+    portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
     // validate the final datapath state
     val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -121,6 +130,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     // send initialization message and wait
     initializeDatapath() should not be (null)
+    portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
     // validate the final datapath state
     val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -160,6 +170,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     // validate the final datapath state
     val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+      portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
     datapaths should have size 1
     datapaths.head should have('name("test"))
@@ -223,6 +234,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     clusterDataClient().hostsAddVrnPortMapping(hostId, port1.getId, "port1")
 
     initializeDatapath() should not be (null)
+    portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
     dpController().underlyingActor.vifPorts should contain key(port1.getId)
     dpController().underlyingActor.vifPorts should contain value ("port1")

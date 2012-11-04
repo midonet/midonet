@@ -12,6 +12,7 @@ import java.util.Arrays
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.midokura.midonet.cluster.data.host.Host
+import topology.LocalPortActive
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
@@ -30,12 +31,17 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val outputPort = Ports.materializedBridgePort(bridge)
         outputPort.setId(clusterDataClient().portsCreate(outputPort))
 
+        val portEventsProbe = newProbe()
+        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
+
         clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "inputPort")
         clusterDataClient().hostsAddVrnPortMapping(hostId, outputPort.getId, "outputPort")
 
         drainProbe(flowProbe())
         initializeDatapath() should not be (null)
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val inputPortNo = dpController().underlyingActor
             .localPorts("inputPort").getPortNo
@@ -55,6 +61,7 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())
+        drainProbe(flowProbe())
 
         dpProbe().testActor.tell(AddWildcardFlow(
             wildcardFlow, None, "My packet".getBytes, null, null))
