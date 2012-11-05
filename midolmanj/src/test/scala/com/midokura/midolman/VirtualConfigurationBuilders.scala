@@ -15,7 +15,7 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
         Port, Ports, Router => ClusterRouter, Route}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.rules.{NatRule, LiteralRule,
-                                                ForwardNatRule}
+                                                ForwardNatRule, ReverseNatRule}
 import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
@@ -40,6 +40,22 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().chainsCreate(chain)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
+        chain
+    }
+
+    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
+        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        clusterDataClient().chainsCreate(chain)
+        router.setInboundFilter(chain.getId)
+        clusterDataClient().routersUpdate(router)
+        chain
+    }
+
+    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
+        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        clusterDataClient().chainsCreate(chain)
+        router.setOutboundFilter(chain.getId)
+        clusterDataClient().routersUpdate(router)
         chain
     }
 
@@ -88,6 +104,14 @@ trait VirtualConfigurationBuilders {
                         setChainId(chain.getId).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         clusterDataClient().rulesGet(id).asInstanceOf[ForwardNatRule]
+    }
+
+    def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                         action: Action, isDnat: Boolean) : ReverseNatRule = {
+        val rule = new ReverseNatRule(condition, action, isDnat).
+            setChainId(chain.getId).setPosition(pos)
+        val id = clusterDataClient().rulesCreate(rule)
+        clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
     }
 
     def greTunnelZone(name: String): GreTunnelZone = {
