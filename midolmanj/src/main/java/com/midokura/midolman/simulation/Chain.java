@@ -2,6 +2,8 @@
 
 package com.midokura.midolman.simulation;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +42,8 @@ public class Chain {
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
                  String name_) {
         id = id_;
-        rules = rules_;
+        rules = new ArrayList<Rule>(rules_);
+        Collections.sort(rules);
         jumpTargets = jumpTargets_;
         name = name_;
     }

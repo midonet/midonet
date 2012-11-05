@@ -6,6 +6,7 @@ package com.midokura.midonet.cluster;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -86,7 +87,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
             // Are there any rules that need to be added?
             if (oldRuleIds.size() == curRuleIds.size()) {
-                getBuilder(chainId).setRules(ruleMap.values());
+                getBuilder(chainId).setRules(
+                    new HashSet<Rule>(ruleMap.values()));
                 return;
             }
             // Otherwise, we have to fetch some rules.
@@ -162,7 +164,9 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(r.chainId);
             ruleMap.put(ruleId, r);
             if (missingRuleIds.size() == 0)
-                getBuilder(r.chainId).setRules(ruleMap.values());
+                getBuilder(r.chainId).setRules(
+                    new HashSet<Rule>(ruleMap.values()));
+
         }
 
         @Override
