@@ -225,7 +225,10 @@ class Coordinator(val origMatch: WildcardMatch,
                     dropFlow(temporary = true)
                 } else {
                     pktContext.setInputPort(port.id)
-                              .setIngressFE(port.deviceID)
+                    if(numDevicesSimulated == 0) {
+                        // add ingressFE only at the beginning of the simulation
+                        pktContext.setIngressFE(port.deviceID)
+                    }
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",

@@ -11,7 +11,7 @@ import java.util.{Set => JSet, UUID}
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.util.Net
-import com.midokura.packets.{Ethernet, IPv4, TCP, UDP}
+import com.midokura.packets._
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
 
@@ -43,6 +43,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     // read-only.
     private var frozen = false
     private var wcmatch: WildcardMatch = null
+    //ingressFE for generated packet is null, provide a cleaner way
     private var ingressFE: UUID = null
     private var portGroups: JSet[UUID] = null
     private var connectionTracked = false
@@ -50,18 +51,18 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     private var inPortID: UUID = null
     private var outPortID: UUID = null
 
-    def isFrozen() = frozen
+    def isFrozen = frozen
 
-    def getFrame(): Ethernet = frame
+    def getFrame: Ethernet = frame
 
-    def getExpiry(): Long = expiry
+    def getExpiry: Long = expiry
 
     def setMatch(m: WildcardMatch): PacketContext = {
         wcmatch = m
         this
     }
 
-    def getMatch(): WildcardMatch = wcmatch
+    def getMatch: WildcardMatch = wcmatch
 
     def setIngressFE(fe: UUID): PacketContext = {
         ingressFE = fe
@@ -136,6 +137,20 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     override def isConnTracked: Boolean = connectionTracked
 
     override def isForwardFlow: Boolean = {
+
+        // Generated packets have ingressFE == null. We will treat all generated
+        // packets as return flows, except ARP requests. TODO(rossella) is that
+        // enough to determine that it's a return flow?
+        if (ingressFE == null) {
+            if(frame.getEtherType == ARP.ETHERTYPE) {
+                val arp = frame.getPayload.asInstanceOf[ARP]
+                if (arp.getOpCode == ARP.OP_REQUEST) {
+                    return true
+                }
+            }
+            return false
+        }
+
         // Connection tracking:  connectionTracked starts out as false.
         // If isForwardFlow is called, connectionTracked becomes true and
         // a lookup into Cassandra determines which direction this packet
@@ -161,7 +176,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         //            and use it instead.
         val value = connectionCache.get(key)
         forwardFlow = (value != "r")
-        return forwardFlow
+        forwardFlow
     }
 }
 
