@@ -15,6 +15,7 @@ import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
+import topology.LocalPortActive
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
@@ -51,9 +52,13 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         val flowEventsProbe = newProbe()
         actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
 
+        val portEventsProbe = newProbe()
+        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
+
         initializeDatapath() should not be (null)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val tunnelId = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
 

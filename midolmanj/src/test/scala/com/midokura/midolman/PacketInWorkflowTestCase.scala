@@ -12,6 +12,7 @@ import com.midokura.midonet.cluster.data.host.Host
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.midokura.packets.{IntIPv4, MAC, Packets}
+import topology.LocalPortActive
 
 @RunWith(classOf[JUnitRunner])
 class PacketInWorkflowTestCase extends MidolmanTestCase {
@@ -34,9 +35,13 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort.getId, "port")
 
+        val portEventsProbe = newProbe()
+        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
+
         initializeDatapath() should not be (null)
 
         requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val portNo = dpController().underlyingActor.localPorts("port").getPortNo
         triggerPacketIn(
