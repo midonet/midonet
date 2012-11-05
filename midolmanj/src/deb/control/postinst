@@ -33,5 +33,5 @@ usermod -G quagga $USER
 # make a symlink for the package
 MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolmanj.list  | grep midolmanj.*\.jar | awk -F'/' '{if (NF <= 1) printf "."; else {OFS="/"; $NF=""; printf "%s", substr($0, 1, length($0) - 1);}}'`
 
-ln -sf `cat $POST_DIR/midolmanj.list | grep midolmanj.*\.jar` "$MIDOLMAN_JAR_DIR/midolman.jar"
+ln -sf `cat $POST_DIR/midolmanj.list | grep midolmanj.*\.jar` "$MIDOLMAN_JAR_DIR/midolmanj.jar"
 ln -sf `cat $POST_DIR/midolmanj.list | grep midokura-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midokura-jdk-bootstrap.jar"
