@@ -35,6 +35,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     private var uplinkPortNum: Short = 0
 
     private val dnatAddress = "180.0.1.100"
+    private val snatAddressStart: IntIPv4 = "180.0.1.200"
+    private val snatAddressEnd: IntIPv4 = "180.0.1.205"
 
     private var leaseManager: NatLeaseManager = null
     private var mappings = Set[String]()
@@ -143,6 +145,15 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", router)
         val rtrInChain = newInboundChainOnRouter("rtrInChain", router)
 
+        // 0.- Reverse NAT rules
+        val revDnatRule = newReverseNatRuleOnChain(rtrOutChain, 1,
+            new Condition(), RuleResult.Action.CONTINUE, isDnat = true)
+        revDnatRule should not be null
+
+        val revSnatRule = newReverseNatRuleOnChain(rtrInChain, 1,
+            new Condition(), RuleResult.Action.CONTINUE, isDnat = false)
+        revSnatRule should not be null
+
         // 1.- DNAT -> from !vm-network to dnatAddress --> dnat(vm-network)
         log.info("adding DNAT rule")
         val dnatCond = new Condition()
@@ -152,22 +163,18 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         dnatCond.tpDstStart = 80.toShort
         dnatCond.tpDstEnd = 80.toShort
         val dnatTarget =  new NatTarget(vmIps.head, vmIps.last, 80, 80)
-        val dnatRule = newForwardNatRuleOnChain(rtrInChain, 1, dnatCond,
+        val dnatRule = newForwardNatRuleOnChain(rtrInChain, 2, dnatCond,
                 RuleResult.Action.CONTINUE, Set(dnatTarget), isDnat = true)
         dnatRule should not be null
 
-        val revDnatCond = new Condition()
-        val revDnatRule = newReverseNatRuleOnChain(rtrOutChain, 1, revDnatCond,
-            RuleResult.Action.CONTINUE, isDnat = true)
-        revDnatRule should not be null
-
-        // 2.- SNAT -> from vm-network to !vm-network --> snat(uplinkPortAddr)
+        // 2.- SNAT -> from vm-network to !vm-network  dstPort=22 --> snat(uplinkPortAddr)
         log.info("adding SNAT rule")
         val snatCond = new Condition()
         snatCond.nwSrcIp = vmNetworkIp
         snatCond.nwDstIp = vmNetworkIp
         snatCond.nwDstInv = true
-        val snatTarget = new NatTarget(uplinkPortAddr, uplinkPortAddr, 0, 0)
+        // FIXME(guillermo) why does a port range of 0:0 allow 0 to be picked as source port??
+        val snatTarget = new NatTarget(snatAddressStart, snatAddressEnd, 10001.toShort, 65535.toShort)
         val snatRule = newForwardNatRuleOnChain(rtrOutChain, 2, snatCond,
                 RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
         snatRule should not be null
@@ -217,7 +224,6 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         var outPorts = getOutPacketPorts(pktOut)
         drainProbes()
-        log.info("forward in packet: {}", Ethernet.deserialize(pktOut.getData))
         val newMappings: Set[String] = updateAndDiffMappings()
         newMappings.size should be === (1)
         leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
@@ -260,10 +266,65 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         flowController() ! InvalidateFlowsByTag(router.getId)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        requestOfType[WildcardFlowRemoved](flowEventsProbe)
 
         mapping.flowCount.get should be === (0)
     }
 
     def testSnat() {
+        log.info("Sending a tcp packet that should be SNAT'ed")
+        injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 30501,
+            routerMac, "62.72.82.1", 22,
+            syn = true)
+        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        var outPorts = getOutPacketPorts(pktOut)
+        drainProbes()
+        val newMappings: Set[String] = updateAndDiffMappings()
+        newMappings.size should be === (1)
+        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
+        outPorts.size should be === (1)
+        localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
+
+        val mapping = new Mapping(newMappings.head,
+            leaseManager.fwdKeys.get(newMappings.head).flowCount,
+            vmPortNames.head, "uplinkPort",
+            Ethernet.deserialize(pktOut.getData),
+            applyOutPacketActions(pktOut))
+
+        log.info("Sending a return tcp packet")
+        injectTcp(mapping.revInPort,
+            mapping.revInFromMac, mapping revInFromIp, mapping.revInFromPort,
+            mapping.revInToMac, mapping.revInToIp, mapping.revInToPort,
+            ack = true, syn = true)
+
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        outPorts = getOutPacketPorts(pktOut)
+        drainProbes()
+        updateAndDiffMappings().size should be === (0)
+        outPorts.size should be === (1)
+        localPortNumberToName(outPorts.head) should be === (Some(mapping.fwdInPort))
+        mapping.matchReturnOutPacket(applyOutPacketActions(pktOut))
+        mapping.flowCount.get should be === (1)
+
+        log.debug("sending a second forward packet, from a different network card")
+        injectTcp(vmPortNames.head, "02:34:34:43:43:20", vmIps.head, 30501,
+            routerMac, "62.72.82.1", 22,
+            ack = true)
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        outPorts = getOutPacketPorts(pktOut)
+        drainProbes()
+        updateAndDiffMappings().size should be === (0)
+        outPorts.size should be === (1)
+        localPortNumberToName(outPorts.head) should be === (Some(mapping.fwdOutPort))
+        mapping.matchForwardOutPacket(applyOutPacketActions(pktOut))
+        mapping.flowCount.get should be === (2)
+
+        drainProbe(flowEventsProbe)
+        flowController() ! InvalidateFlowsByTag(router.getId)
+        requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        requestOfType[WildcardFlowRemoved](flowEventsProbe)
+
+        mapping.flowCount.get should be === (0)
     }
 }
