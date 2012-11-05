@@ -411,7 +411,7 @@ public class NatLeaseManager implements NatMapping {
                         NwTpPair reservation = makeSnatReservation(
                                 oldNwSrc, oldTpSrc, ip, freePort, nwDst, tpDst);
                         if (reservation != null)
-                            return new NwTpPair(ip, (short)freePort);
+                            return reservation;
                         freePort++;
                         if (0 == freePort % block_size || freePort > tpEnd) {
                             log.warn("allocateSnat unable to reserve any port "
