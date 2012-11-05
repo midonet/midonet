@@ -48,6 +48,7 @@ public class NatLeaseManager implements NatMapping {
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
     ConcurrentMap<Integer, NavigableSet<Integer>> ipToFreePortsMap;
+    ConcurrentMap<String, KeyMetadata> fwdKeys;
     private FiltersZkManager filterMgr;
     private UUID routerId;
     private String rtrIdStr;
@@ -55,7 +56,6 @@ public class NatLeaseManager implements NatMapping {
     private Reactor reactor;
     private Random rand;
     private int refreshSeconds;
-    private ConcurrentMap<String, KeyMetadata> fwdKeys;
 
     private class KeyMetadata {
         public String revKey;
@@ -236,7 +236,7 @@ public class NatLeaseManager implements NatMapping {
         String key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 newNwDst, newTpDst);
         String value = cache.get(key);
-        log.debug("lookupDnatFwd key {} value {}", key, value);
+        log.debug("lookupDnatRev key {} value {}", key, value);
         if (null == value)
             return null;
         return makePairFromString(value, null);
