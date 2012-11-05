@@ -232,7 +232,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",
-                        pktContext.getMatch(), port.deviceID)
+                        pktContext.getMatch, port.deviceID)
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         pktContext))
                 }
