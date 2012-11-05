@@ -54,17 +54,17 @@ trait SimulationHelper extends MidolmanTestCase {
                     if (key.getSrc != null) eth.setSourceMACAddress(key.getSrc)
                 case key: FlowKeyIPv4 =>
                     ip should not be null
-                    if (key.getDst != null) ip.setDestinationAddress(key.getDst)
-                    if (key.getSrc != null) ip.setSourceAddress(key.getSrc)
-                    if (key.getTtl != null) ip.setTtl(key.getTtl)
+                    if (key.getDst != 0) ip.setDestinationAddress(key.getDst)
+                    if (key.getSrc != 0) ip.setSourceAddress(key.getSrc)
+                    if (key.getTtl != 0) ip.setTtl(key.getTtl)
                 case key: FlowKeyTCP =>
                     tcp should not be null
-                    if (key.getDst != null) tcp.setDestinationPort(key.getDst)
-                    if (key.getSrc != null) tcp.setSourcePort(key.getSrc)
+                    if (key.getDst != 0) tcp.setDestinationPort(key.getDst)
+                    if (key.getSrc != 0) tcp.setSourcePort(key.getSrc)
                 case key: FlowKeyUDP =>
                     udp should not be null
-                    if (key.getUdpDst != null) udp.setDestinationPort(key.getUdpDst)
-                    if (key.getUdpSrc != null) udp.setSourcePort(key.getUdpSrc)
+                    if (key.getUdpDst != 0) udp.setDestinationPort(key.getUdpDst)
+                    if (key.getUdpSrc != 0) udp.setSourcePort(key.getUdpSrc)
             }
         }
 
@@ -191,6 +191,13 @@ trait SimulationHelper extends MidolmanTestCase {
                 wmatch.getTransportDestination should be === tcpPkt.getDestinationPort
                 wmatch.getTransportSource should be === tcpPkt.getSourcePort
             case _ =>
+        }
+    }
+
+    def localPortNumberToName(portNo: Short): Option[String] = {
+        dpController().underlyingActor.localToVifPorts.get(portNo) match {
+            case Some(id) => dpController().underlyingActor.vifPorts.get(id)
+            case None => None
         }
     }
 }
