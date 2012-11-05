@@ -95,7 +95,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
-        requestOfType[LocalPortActive](portEventsProbe)
+        var portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        portEvent.active should be(true)
+        portEvent.portID should be(uplinkPort.getId)
 
         upLinkRoute = newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0,
             NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
@@ -117,7 +119,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 port should not be null
 
                 materializePort(port, host, portName)
-                requestOfType[LocalPortActive](portEventsProbe)
+                portEvent = requestOfType[LocalPortActive](portEventsProbe)
+                portEvent.active should be(true)
+                portEvent.portID should be(port.getId)
 
                 // store port info for later use
                 portConfigs.put(portNum, port)

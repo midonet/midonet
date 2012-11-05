@@ -474,6 +474,10 @@ class DatapathController() extends Actor with ActorLogging {
     var initializer: ActorRef = null
     var initialized = false
     var host: Host = null
+    // If a Host message arrives while one is being processed, we stash it
+    // in this variable. We don't use Akka's stash here, because we only
+    // care about the last Host message (i.e. ignore intermediate messages).
+    var nextHost: Host = null
 
     var portWatcher: Cancellable = null
     var portWatcherEnabled = true
@@ -495,26 +499,6 @@ class DatapathController() extends Actor with ActorLogging {
             log.info("Initialize from: " + sender)
             VirtualToPhysicalMapper.getRef() ! HostRequest(hostService.getHostId)
 
-        /**
-         * Initialization complete (sent by self) and we forward the reply to
-         * the actual guy that requested initialization.
-         */
-        case m: InitializationComplete if (sender == self) =>
-            log.info("Initialization complete. Starting to act as a controller.")
-            initialized = true
-            become(DatapathControllerActor)
-            FlowController.getRef() ! DatapathController.DatapathReady(datapath)
-            for ((zoneId, zone) <- host.zones) {
-                VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
-            }
-            if (portWatcherEnabled) {
-                // schedule port requests.
-                log.info("Starting to schedule the port stats updates.")
-                portWatcher = system.scheduler.schedule(1 second, 2 seconds, self, CheckForPortUpdates(datapath.getName))
-            }
-            initializer forward m
-
-
         case DisablePortWatcher() =>
             log.info("Disabling the port watching feature.")
             portWatcherEnabled = false
@@ -529,7 +513,7 @@ class DatapathController() extends Actor with ActorLogging {
                         readDatapathInformation(h.datapath)
                     }
                 case _ =>
-                    system.scheduler.scheduleOnce(300 millis, self, h)
+                    this.nextHost = h
             }
 
         case _SetLocalDatapathPorts(datapathObj, ports) =>
@@ -547,13 +531,10 @@ class DatapathController() extends Actor with ActorLogging {
                         localPorts.put(p.getName, p)
                 }
             }
-            // Schedule processing of zones and bindings for after
-            // initialization completes.
-            system.scheduler.scheduleOnce(300 millis, self, host)
-            log.debug("Finished processing datapath's ports. " +
+            log.debug("Finished processing datapath's existing ports. " +
                 "Pending updates {}", pendingUpdateCount)
             if (pendingUpdateCount == 0)
-                self ! InitializationComplete()
+                completeInitialization
 
         /**
         * Handle personal create port requests
@@ -580,6 +561,37 @@ class DatapathController() extends Actor with ActorLogging {
             log.info("(behaving as InitializationActor). Not handling message: " + m)
     }
 
+    /**
+     * Complete initialization and notify the actor that requested init.
+     */
+    private def completeInitialization {
+        log.info("Initialization complete. Starting to act as a controller.")
+        initialized = true
+        become(DatapathControllerActor)
+        FlowController.getRef() ! DatapathController.DatapathReady(datapath)
+        for ((zoneId, zone) <- host.zones) {
+            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
+        }
+        if (portWatcherEnabled) {
+            // schedule port requests.
+            log.info("Starting to schedule the port link status updates.")
+            portWatcher = system.scheduler.schedule(1 second, 2 seconds,
+                self, CheckForPortUpdates(datapath.getName))
+        }
+        initializer ! InitializationComplete()
+        log.info("Process the host's zones and vport bindings.")
+        doDatapathPortsUpdate
+    }
+
+    private def processNextHost {
+        if (null != nextHost && pendingUpdateCount == 0) {
+            host = nextHost
+            nextHost = null
+            doDatapathPortsUpdate
+            doDatapathZonesReply(host.zones)
+        }
+    }
+
     val DatapathControllerActor: Receive = {
 
         // When we get the initialization message we switch into initialization
@@ -595,10 +607,9 @@ class DatapathController() extends Actor with ActorLogging {
             }
             self ! m
 
-        case host: Host =>
-            this.host = host
-            doDatapathPortsUpdate()
-            doDatapathZonesReply(host.zones)
+        case h: Host =>
+            this.nextHost = h
+            processNextHost
 
         case zone: TunnelZone[_, _] =>
             if (!host.zones.contains(zone.getId)) {
@@ -1494,18 +1505,19 @@ class DatapathController() extends Actor with ActorLogging {
                 log.error("No match {}", value)
         }
 
-        if (pendingUpdateCount == 0 && !initialized)
-            self ! InitializationComplete()
+        if (pendingUpdateCount == 0) {
+            if (!initialized)
+                completeInitialization
+            else
+                processNextHost
+        }
     }
 
-    private def doDatapathPortsUpdate() {
-        if (pendingUpdateCount != 0) {
-            system.scheduler.scheduleOnce(200 millis, self, host)
-            log.debug("pendingUpdateCount is not 0, no update will be " +
-                "performed now, next update in 200 millis")
-            return
-        }
-
+    /**
+     * Avoid calling this when there are already pending updates.
+     * Don't call this during initialization.
+     */
+    private def doDatapathPortsUpdate {
         val ports: Map[UUID, String] = host.ports
         log.info("Migrating local datapath to configuration {}", ports)
         log.info("Current known local ports: {}", localPorts)
@@ -1555,8 +1567,8 @@ class DatapathController() extends Actor with ActorLogging {
         }
 
         log.info("Pending updates {}", pendingUpdateCount)
-        if (pendingUpdateCount == 0 && !initialized)
-            self ! InitializationComplete()
+        if (pendingUpdateCount == 0)
+                processNextHost
     }
 
     def createDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
