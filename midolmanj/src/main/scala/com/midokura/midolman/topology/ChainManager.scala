@@ -67,7 +67,6 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     var rules: util.Collection[Rule] = null
-    var sortedRules: util.List[Rule] = null
 
     private def updateRules(curRules: util.Collection[Rule]): Unit = {
         for (r <- curRules) {
@@ -95,12 +94,14 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
                 }
             }
         rules = curRules
-        sortedRules =
-            rules.toList.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
+        // Sort in the Chain itself. Java conversions mess up the sort!
+        //val sortedRules =
+        //    rules.toList.sortWith((l: Rule, r: Rule) => l.compareTo(r) < 0)
+
         // Send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains) {
             context.actorFor("..").tell(
-                new Chain(id, sortedRules, idToChain.toMap,
+                new Chain(id, rules.toBuffer[Rule], idToChain.toMap,
                     "TODO: need name"))
         // invalidate all flow for this chain
         FlowController.getRef() !
