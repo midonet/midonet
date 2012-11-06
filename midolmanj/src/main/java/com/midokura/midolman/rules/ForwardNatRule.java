@@ -55,16 +55,16 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(ChainPacketContext fwdInfo, Object flowCookie,
-                      RuleResult res, NatMapping natMapping) {
+    public void apply(ChainPacketContext fwdInfo, RuleResult res,
+                      NatMapping natMapping) {
         if (null == natMapping) {
             log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
             return;
         }
         if (dnat)
-            applyDnat(fwdInfo, flowCookie, res, natMapping);
+            applyDnat(fwdInfo, res, natMapping);
         else
-            applySnat(fwdInfo, flowCookie, res, natMapping);
+            applySnat(fwdInfo, res, natMapping);
     }
 
     private Callback0 makeUnrefCallback(final NatMapping mapping,
@@ -80,15 +80,12 @@ public class ForwardNatRule extends NatRule {
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param flowCookie
-     *            An object that uniquely identifies the packet that
-     *            originally entered the datapath. Do NOT modify.
      * @param res
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    private void applyDnat(ChainPacketContext fwdInfo, final Object flowCookie,
-                           RuleResult res, final NatMapping natMapping) {
+    private void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
+                           final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
@@ -133,15 +130,12 @@ public class ForwardNatRule extends NatRule {
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param flowCookie
-     *            An object that uniquely identifies the packet that
-     *            originally entered the datapath. Do NOT modify.
      * @param res
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    private void applySnat(ChainPacketContext fwdInfo, final Object flowCookie,
-                           RuleResult res, final NatMapping natMapping) {
+    private void applySnat(ChainPacketContext fwdInfo,  RuleResult res,
+                           final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
