@@ -470,15 +470,82 @@ public class NatLeaseManager implements NatMapping {
 
     }
 
+    /* natUnref() and natRef() update the reference count for a forwardKey,
+     * while also maintaining the map of keys consistently up to date:
+     *
+     *  - When natRef() creates the first reference to a key, it adds the key
+     *    to the map.
+     *  - When natUnref() removes the last reference to a key, it removes the
+     *    key from the map.
+     *
+     * Their synchronization is lockless, and this is how the possible races are
+     * prevented, most are trivial but explained for completeness:
+     *
+     *   + refcount = 0
+     *      - Two natRef() calls could race with each other. This is avoided
+     *        by using putIfAbsent() to write to the map. Only the winner of
+     *        this race will report to the caller that this is a new mapping,
+     *        thus the caller can do further initialization on the new
+     *        entry in confidence that no one else is going to to the same.
+     *
+     *        The loser will start over through a recursive call to natRef.
+     *
+     *      - natUnref() is a no-op in this case.
+     *
+     *   + refcount = 1
+     *      - Two natRef() calls. No races are possible since the refcount is
+     *        atomic.
+     *
+     *      - Two natUnref() calls could race with each other, albeit if that
+     *        happened it would be due to a bug in the users of this class,
+     *        because ref/unref ops are supposed to be symmetric.
+     *
+     *        If this happened, only the natUnref() that decrements the atomic
+     *        counter to zero would go on and clean up the entry. We further by
+     *        cleaning up only if the removed entry is the same we decremented
+     *        on.
+     *
+     *      - A natRef() could race with a natRef() call, only if natUnref()
+     *        gets to the atomic op first. This is really the only non-trivial
+     *        case:
+     *
+     *          - Upon noticing that the decrement operation brought the counter
+     *            down to zero, natUnref() will remove the key from the map
+     *            and proceed to do the cleanups (actually, just cancelling the
+     *            future, but it could be anything).
+     *
+     *          - After the atomic increment natUnref() needs protection against
+     *            the case where natUnref() decremented first (and is thus
+     *            cleaning up just now.
+     *
+     *            In this case, natRef() undoes its atomic increment and restarts
+     *            the operation through a recursive call. If the new call beats
+     *            the running natUnref() and gets to the decrement before
+     *            natUnref() removes the key, the same mechanism would kick in,
+     *            recursive calls will be made until natUnref() gets to removing
+     *            the key from the map.
+     *
+     *            This 'undoing the decrement' is problematic, because it makes
+     *            us lose the atomicity. We recover this atomicity by
+     *            synchronizing the increment+decrement block.
+     *
+     *            There's no need to synchronize with natUnref(), because to get
+     *            here there must have been a natRef() invokation that got zero
+     *            as a result of its decrement. The cleanup will surely be done,
+     *            and it's protected against races against itself as explained
+     *            above.
+     */
     @Override
     public void natUnref(String fwdKey) {
         log.debug("natUnref: key {}", fwdKey);
         KeyMetadata keyData = fwdKeys.get(fwdKey);
-        if (null == keyData || keyData.flowCount.decrementAndGet() > 0) {
-            // this was not the last user of this key
+        if (null == keyData || keyData.flowCount.decrementAndGet() != 0) {
+            // this was not the last user of this key, or the key did not exist
             return;
         }
 
+        if (fwdKeys.remove(fwdKey) != keyData)
+            return;
         // Cancel refreshing of the nat keys
         log.debug("natUnref canceling refresh of key {}", fwdKey);
         if (null != keyData.revKey) {
@@ -507,14 +574,15 @@ public class NatLeaseManager implements NatMapping {
              * key while we increment the refcount, start over with a recursive
              * call.
              */
-            if (keyData.flowCount.incrementAndGet() <= 1) {
-                keyData.flowCount.decrementAndGet();
-                return natRef(fwdKey, revKey);
+            int refcount = 0;
+            // this ensures that all calls to natRef() are unaffected
+            // by the increment+decrement chained ops.
+            synchronized (keyData) {
+                refcount = keyData.flowCount.incrementAndGet();
+                if (refcount <= 1)
+                    keyData.flowCount.decrementAndGet();
             }
-
-            return (keyData == fwdKeys.get(fwdKey)) ?
-                    false :
-                    natRef(fwdKey, revKey);
+            return (refcount <= 1) ? natRef(fwdKey, revKey) : false;
         }
     }
 }
