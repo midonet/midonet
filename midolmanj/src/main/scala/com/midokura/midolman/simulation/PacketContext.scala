@@ -138,33 +138,37 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
 
     override def isForwardFlow: Boolean = {
 
-        // Generated packets have ingressFE == null. We will treat all generated
-        // packets as return flows, except ARP requests. TODO(rossella) is that
-        // enough to determine that it's a return flow?
-        if (ingressFE == null) {
-            if(frame.getEtherType == ARP.ETHERTYPE) {
-                val arp = frame.getPayload.asInstanceOf[ARP]
-                if (arp.getOpCode == ARP.OP_REQUEST) {
-                    return true
-                }
-            }
-            return false
-        }
-
-        // Connection tracking:  connectionTracked starts out as false.
-        // If isForwardFlow is called, connectionTracked becomes true and
-        // a lookup into Cassandra determines which direction this packet
-        // is considered to be going.
-
-        if (connectionTracked)
-            return forwardFlow
 
         // Packets which aren't TCP-or-UDP over IPv4 aren't connection
         // tracked, and always treated as forward flows.
         if (wcmatch.getDataLayerType() != IPv4.ETHERTYPE ||
-                (wcmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER))
+            (wcmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
+                wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER)) {
             return true
+        }
+        else {
+            // Generated packets have ingressFE == null. We will treat all generated
+            // packets as return flows, except ARP requests. TODO(rossella) is that
+            // enough to determine that it's a return flow?
+
+            if (ingressFE == null) {
+                if(frame.getEtherType == ARP.ETHERTYPE) {
+                    val arp = frame.getPayload.asInstanceOf[ARP]
+                    if (arp.getOpCode == ARP.OP_REQUEST) {
+                        return true
+                    }
+                }
+                return false
+            }
+            // Connection tracking:  connectionTracked starts out as false.
+            // If isForwardFlow is called, connectionTracked becomes true and
+            // a lookup into Cassandra determines which direction this packet
+            // is considered to be going.
+
+            if (connectionTracked)
+                return forwardFlow
+
+        }
 
         connectionTracked = true
         val key = connectionKey(wcmatch.getNetworkSource(),
