@@ -225,7 +225,7 @@ class Coordinator(val origMatch: WildcardMatch,
                     dropFlow(temporary = true)
                 } else {
                     pktContext.setInputPort(port.id)
-                    if(numDevicesSimulated == 0 && generatedPacketEgressPort.isDefined) {
+                    if(numDevicesSimulated == 0 && !generatedPacketEgressPort.isDefined) {
                         // add ingressFE only at the beginning of the simulation
                         // and only if it's not a generated packet
                         pktContext.setIngressFE(port.deviceID)
