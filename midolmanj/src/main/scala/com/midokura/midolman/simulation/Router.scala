@@ -148,7 +148,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
 
       // tag using the destination IP
-      val dstIp = pktContext.getMatch().getNetworkDestination
+      val dstIp = pktContext.getMatch.getNetworkDestination
       pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
       // pass the tag to the RouterManager so that it will be able to invalidate
       // the flow
@@ -172,10 +172,10 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         rt.nextHop match {
             case Route.NextHop.LOCAL =>
-                if (isIcmpEchoRequest(pktContext.getMatch())) {
+                if (isIcmpEchoRequest(pktContext.getMatch)) {
                     log.debug("got ICMP echo")
-                    sendIcmpEchoReply(pktContext.getMatch(), pktContext.getFrame(),
-                        pktContext.getExpiry())
+                    sendIcmpEchoReply(pktContext.getMatch, pktContext.getFrame,
+                        pktContext.getExpiry)
                     Promise.successful(new ConsumedAction)(ec)
                 } else {
                     Promise.successful(new DropAction)(ec)
