@@ -7,6 +7,7 @@ package com.midokura.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
+import com.midokura.util.functors.Callback0;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,30 +55,37 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(Object flowCookie, RuleResult res,
+    public void apply(ChainPacketContext fwdInfo, RuleResult res,
                       NatMapping natMapping) {
         if (null == natMapping) {
             log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
             return;
         }
         if (dnat)
-            applyDnat(flowCookie, res, natMapping);
+            applyDnat(fwdInfo, res, natMapping);
         else
-            applySnat(flowCookie, res, natMapping);
+            applySnat(fwdInfo, res, natMapping);
+    }
+
+    private Callback0 makeUnrefCallback(final NatMapping mapping,
+                                        final String key) {
+        return new Callback0() {
+            @Override
+            public void call() {
+                mapping.natUnref(key);
+            }
+        };
     }
 
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param flowCookie
-     *            An object that uniquely identifies the packet that
-     *            originally entered the datapath. Do NOT modify.
      * @param res
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applyDnat(Object flowCookie, RuleResult res,
-                          NatMapping natMapping) {
+    private void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
+                           final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
@@ -96,12 +104,12 @@ public class ForwardNatRule extends NatRule {
                 res.pmatch.getNetworkSource(),
                 res.pmatch.getTransportSource(),
                 res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination(), flowCookie);
+                res.pmatch.getTransportDestination());
         if (null == conn)
             conn = natMapping.allocateDnat(res.pmatch.getNetworkSource(),
                     res.pmatch.getTransportSource(),
                     res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets, flowCookie);
+                    res.pmatch.getTransportDestination(), targets);
         else
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
@@ -115,20 +123,19 @@ public class ForwardNatRule extends NatRule {
         res.pmatch.setTransportDestination(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
+
+        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
 
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param flowCookie
-     *            An object that uniquely identifies the packet that
-     *            originally entered the datapath. Do NOT modify.
      * @param res
      *            contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    public void applySnat(Object flowCookie, RuleResult res,
-                          NatMapping natMapping) {
+    private void applySnat(ChainPacketContext fwdInfo,  RuleResult res,
+                           final NatMapping natMapping) {
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
@@ -146,12 +153,12 @@ public class ForwardNatRule extends NatRule {
                 res.pmatch.getNetworkSource(),
                 res.pmatch.getTransportSource(),
                 res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination(), flowCookie);
+                res.pmatch.getTransportDestination());
         if (null == conn)
             conn = natMapping.allocateSnat(res.pmatch.getNetworkSource(),
                     res.pmatch.getTransportSource(),
                     res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets, flowCookie);
+                    res.pmatch.getTransportDestination(), targets);
         else
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}", new Object[] {
@@ -169,6 +176,8 @@ public class ForwardNatRule extends NatRule {
         res.pmatch.setTransportSource(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
+
+        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
 
     // Used by RuleEngine to discover resources that must be initialized

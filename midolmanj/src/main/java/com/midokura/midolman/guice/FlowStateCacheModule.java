@@ -4,6 +4,8 @@
 package com.midokura.midolman.guice;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
@@ -86,18 +88,32 @@ public class FlowStateCacheModule extends PrivateModule {
         @Inject
         ConfigProvider configProvider;
 
+        private static ConcurrentMap<UUID, NatMapping> natMappingMap =
+                new ConcurrentHashMap<UUID, NatMapping>();
+
         public NatMappingFactory get() {
             final String zkBasePath =
                     configProvider.getConfig(ZookeeperConfig.class)
-                                  .getMidolmanRootKey();
+                            .getMidolmanRootKey();
 
             return new NatMappingFactory() {
-                public NatMapping newNatMapping(final UUID ownerID) {
-                    return new NatLeaseManager(
-                        new FiltersZkManager(zkDir, zkBasePath),
-                        ownerID,
-                        new CacheWithPrefix(cache, ownerID.toString()),
-                        reactor);
+                Logger log = LoggerFactory.getLogger(NatMappingFactory.class);
+
+                public NatMapping get(final UUID ownerID) {
+                    if (natMappingMap.containsKey(ownerID)) {
+                        return natMappingMap.get(ownerID);
+                    } else {
+                        log.debug("Creating a new NatMapping for {}", ownerID);
+                        NatMapping natMapping = new NatLeaseManager(
+                                new FiltersZkManager(zkDir, zkBasePath),
+                                ownerID,
+                                new CacheWithPrefix(cache, ownerID.toString()),
+                                reactor);
+                        if (natMappingMap.putIfAbsent(ownerID, natMapping) == null)
+                            return natMapping;
+                        else
+                            return get(ownerID);
+                    }
                 }
             };
         }

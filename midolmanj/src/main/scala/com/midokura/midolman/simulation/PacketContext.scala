@@ -86,7 +86,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
 
     // This set stores the callback to call when this flow is removed.
     private val flowRemovedCallbacks = mutable.Set[Callback0]()
-    def addFlowRemovedCallback(cb: Callback0): Unit = this.synchronized {
+    override def addFlowRemovedCallback(cb: Callback0): Unit = this.synchronized {
         if (frozen)
             throw new IllegalArgumentException(
                             "Adding callback to frozen PacketContext")

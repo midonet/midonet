@@ -41,7 +41,7 @@ public class LiteralRule extends Rule {
     }
 
     @Override
-    public void apply(Object flowCookie, RuleResult res,
+    public void apply(ChainPacketContext fwdInfo, RuleResult res,
                       NatMapping natMapping) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);

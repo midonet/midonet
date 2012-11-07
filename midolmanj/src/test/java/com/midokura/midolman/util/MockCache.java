@@ -25,7 +25,7 @@ public class MockCache implements Cache {
 
     public MockCache() {
         reactor = null;
-        expirationMillis = 0;
+        expirationMillis = 60 * 1000;
     }
 
     public MockCache(Reactor reactor, int expirationSeconds) {

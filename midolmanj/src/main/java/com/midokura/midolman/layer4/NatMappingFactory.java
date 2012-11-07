@@ -6,5 +6,5 @@ import java.util.UUID;
 
 
 public interface NatMappingFactory {
-    NatMapping newNatMapping(UUID ownerID);
+    NatMapping get(UUID ownerID);
 }

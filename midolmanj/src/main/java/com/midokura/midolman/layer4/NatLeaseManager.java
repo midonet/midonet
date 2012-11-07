@@ -4,10 +4,9 @@
 
 package com.midokura.midolman.layer4;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
@@ -15,6 +14,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,77 +39,93 @@ public class NatLeaseManager implements NatMapping {
     public static final String REV_SNAT_PREFIX = "snatrev";
 
     // The following maps IP addresses to ordered lists of free ports.
-    // These structures are meant to be shared by all rules/nat targets.
-    // So nat targets for different rules can overlap and we'll still avoid
-    // collisions. That's why we don't care about the nat target here.
-    // Note that we use a NaviableSet instead of a simple list because different
-    // nat targets might use different port ranges for the same ip.
-    // Also note that we don't care about ip ranges - nat targets with more than
+    // These structures are meant to be shared by all rules/snat targets.
+    // So snat targets for different rules can overlap and we'll still avoid
+    // collisions. That's why we don't care about the snat target here.
+    // Note that we use a NavigableSet instead of a simple list because different
+    // snat targets might use different port ranges for the same ip.
+    // Also note that we don't care about ip ranges - snat targets with more than
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
-    Map<Integer, NavigableSet<Integer>> ipToFreePortsMap;
+    ConcurrentMap<Integer, NavigableSet<Integer>> ipToFreePortsMap;
+    ConcurrentMap<String, KeyMetadata> fwdKeys;
     private FiltersZkManager filterMgr;
     private UUID routerId;
     private String rtrIdStr;
     private Cache cache;
     private Reactor reactor;
-    private Map<Object, Set<String>> matchToNatKeys;
-    private Map<Object, ScheduledFuture> matchToFuture;
     private Random rand;
     private int refreshSeconds;
+
+    private class KeyMetadata {
+        public String revKey;
+        public ScheduledFuture future;
+        public AtomicInteger flowCount;
+
+        public KeyMetadata(String revKey) {
+            flowCount = new AtomicInteger(1);
+            this.revKey = revKey;
+            future = null;
+        }
+    }
 
     public NatLeaseManager(FiltersZkManager filterMgr, UUID routerId,
             Cache cache, Reactor reactor) {
         log.debug("constructor with {}, {}, {}, and {}",
             new Object[] {filterMgr, routerId, cache, reactor});
         this.filterMgr = filterMgr;
-        this.ipToFreePortsMap = new HashMap<Integer, NavigableSet<Integer>>();
+        this.ipToFreePortsMap = new ConcurrentHashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;
         rtrIdStr = routerId.toString();
         this.cache = cache;
         this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
         this.rand = new Random();
-        this.matchToNatKeys = new HashMap<Object, Set<String>>();
-        this.matchToFuture = new HashMap<Object, ScheduledFuture>();
+        this.fwdKeys = new ConcurrentHashMap<String, KeyMetadata>();
     }
 
     private class RefreshNatMappings implements Runnable {
-        Object match;
+        String fwdKey;
 
-        private RefreshNatMappings(Object match) {
-            this.match = match;
+        private RefreshNatMappings(String fwdKey) {
+            this.fwdKey = fwdKey;
+        }
+
+        private void refreshKey(String key) {
+            if (null == key) {
+                log.error("SCREAM: refreshKey() got a null key");
+                return;
+            }
+            log.debug("RefreshNatMappings refresh key {}", key);
+            try {
+                String val = cache.getAndTouch(key);
+                log.debug("RefreshNatMappings found value {}", val);
+            } catch (Exception e) {
+                log.error("RefreshNatMappings caught: {}", e);
+            }
         }
 
         @Override
         public void run() {
-            log.debug("RefreshNatMappings for match {}", match);
-            Set<String> refreshKeys = matchToNatKeys.get(match);
-            if (null == refreshKeys) {
-                // The match's flow must have expired, stop refreshing.
-                log.debug("RefreshNatMappings stop refresh, got null keyset.");
+            log.debug("RefreshNatMappings for fwd key {}", fwdKey);
+            KeyMetadata keyData = fwdKeys.get(fwdKey);
+            if (null == keyData) {
+                // The key's flows must have expired, stop refreshing.
+                log.debug("RefreshNatMappings stop refresh, got null metadata.");
                 return;
             }
-            // Refresh all the nat keys associated with this match.
-            for (String key : refreshKeys) {
-                log.debug("RefreshNatMappings refresh key {}", key);
-                try {
-                    String val = cache.getAndTouch(key);
-                    log.debug("RefreshNatMappings found value {}", val);
-                } catch (Exception e) {
-                    log.error("RefreshNatMappings caught: {}", e);
-                }
-            }
+            // Refresh both nat keys
+            refreshKey(fwdKey);
+            refreshKey(keyData.revKey);
             log.debug("RefreshNatMappings completed. Rescheduling.");
             // Re-schedule this runnable.
             reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
         }
-
     }
 
     @Override
     public NwTpPair allocateDnat(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, Set<NatTarget> nats, Object origMatch) {
+                                 short oldTpDst_, Set<NatTarget> nats) {
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
@@ -143,28 +159,29 @@ public class NatLeaseManager implements NatMapping {
                                      newTpDst);
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
-        // TODO(pino): subscribe for flow-removal notification.
-        scheduleRefresh(origMatch, fwdKey, revKey);
-        return new NwTpPair(newNwDst, (short)newTpDst);
+        scheduleRefresh(fwdKey, revKey);
+        return new NwTpPair(newNwDst, (short)newTpDst, fwdKey);
     }
 
-    private void scheduleRefresh(Object origMatch, String fwdKey,
-            String revKey) {
-        Set<String> refreshKeys = matchToNatKeys.get(origMatch);
-        if (null == refreshKeys) {
-            refreshKeys = new HashSet<String>();
-            matchToNatKeys.put(origMatch, refreshKeys);
-            ScheduledFuture<?> future = reactor.schedule(new RefreshNatMappings(
-                    origMatch), refreshSeconds, TimeUnit.SECONDS);
-            matchToFuture.put(origMatch, future);
+    private void scheduleRefresh(String fwdKey, String revKey) {
+        boolean isNew = natRef(fwdKey, revKey);
+        KeyMetadata keyData = fwdKeys.get(fwdKey);
+        if (null == keyData) {
+            log.error("SCREAM: key not found after natRef()");
+            return;
+        }
+
+        if (isNew) {
+            keyData.future = reactor.schedule(
+                    new RefreshNatMappings(fwdKey),
+                    refreshSeconds,
+                    TimeUnit.SECONDS);
             log.debug("scheduleRefresh");
         }
-        refreshKeys.add(fwdKey);
-        refreshKeys.add(revKey);
     }
 
     public static String makeCacheKey(String prefix, int nwSrc, int tpSrc,
-            int nwDst, int tpDst) {
+                                                     int nwDst, int tpDst) {
         return String.format("%s%08x:%d:%08x:%d", prefix, nwSrc,
                 tpSrc & USHORT, nwDst, tpDst & USHORT);
     }
@@ -173,13 +190,14 @@ public class NatLeaseManager implements NatMapping {
         return String.format("%08x/%d", nwAddr, tpPort & USHORT);
     }
 
-    public static NwTpPair makePairFromString(String value) {
+    private static NwTpPair makePairFromString(String value, String unrefKey) {
         if (null == value || value.equals(""))
             return null;
         String[] parts = value.split("/");
         try {
             return new NwTpPair((int) Long.parseLong(parts[0], 16),
-                    (short) Integer.parseInt(parts[1]));
+                    (short) Integer.parseInt(parts[1]),
+                    unrefKey);
         }
         catch (Exception e) {
             log.warn("makePairFromString bad value {}", value);
@@ -188,8 +206,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_, int oldNwDst,
-            short oldTpDst_, Object resourceKey) {
+    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_,
+                                  int oldNwDst, short oldTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
@@ -200,33 +218,32 @@ public class NatLeaseManager implements NatMapping {
         // then schedule a refresh.
         if (null == value)
             return null;
-        NwTpPair pair = makePairFromString(value);
+        NwTpPair pair = makePairFromString(value, fwdKey);
         if (null == pair)
             return null;
         String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 pair.nwAddr, pair.tpPort);
         cache.getAndTouch(revKey);
-        scheduleRefresh(resourceKey, fwdKey, revKey);
+        scheduleRefresh(fwdKey, revKey);
         return pair;
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc_, int newNwDst,
-            short newTpDst_) {
+    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc_,
+                                  int newNwDst, short newTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int newTpDst = newTpDst_ & USHORT;
         String key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
                 newNwDst, newTpDst);
         String value = cache.get(key);
-        log.debug("lookupDnatFwd key {} value {}", key, value);
+        log.debug("lookupDnatRev key {} value {}", key, value);
         if (null == value)
             return null;
-        return makePairFromString(value);
+        return makePairFromString(value, null);
     }
 
-    private boolean makeSnatReservation(int oldNwSrc, int oldTpSrc,
-            int newNwSrc, int newTpSrc, int nwDst, int tpDst,
-            Object origMatch) {
+    private NwTpPair makeSnatReservation(int oldNwSrc, int oldTpSrc,
+            int newNwSrc, int newTpSrc, int nwDst, int tpDst) {
         log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
                 + "newTpSrc {} nw Dst {} tpDst {}",
                 new Object[] { IPv4.fromIPv4Address(oldNwSrc),
@@ -240,7 +257,7 @@ public class NatLeaseManager implements NatMapping {
             log.warn("{} Snat encountered a collision reserving SRC {}:{}",
                     new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
                             newTpSrc });
-            return false;
+            return null;
         }
         // If we got here, we can use this port.
         log.debug("{} SNAT reserved new SRC {}:{} for flow from {}:{} to "
@@ -249,20 +266,19 @@ public class NatLeaseManager implements NatMapping {
                         newTpSrc, IPv4.fromIPv4Address(oldNwSrc),
                         oldTpSrc, IPv4.fromIPv4Address(nwDst),
                         tpDst });
-        String key = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
+        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
                 tpDst);
         // TODO(pino): can't one write to the cache suffice?
-        cache.set(key, makeCacheValue(newNwSrc, newTpSrc));
+        cache.set(fwdKey, makeCacheValue(newNwSrc, newTpSrc));
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
-        log.debug("allocateSnat fwd key {} and rev key {}", key, reverseKey);
-        // TODO(pino): subscribe for flow-removal notification.
-        scheduleRefresh(origMatch, key, reverseKey);
-        return true;
+        log.debug("allocateSnat fwd key {} and rev key {}", fwdKey, reverseKey);
+        scheduleRefresh(fwdKey, reverseKey);
+        return new NwTpPair(newNwSrc, (short)newTpSrc, fwdKey);
     }
 
     @Override
     public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, Set<NatTarget> nats, Object origMatch) {
+                                 short tpDst_, Set<NatTarget> nats) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         // First try to find a port in a block we've already leased.
@@ -275,16 +291,19 @@ public class NatLeaseManager implements NatMapping {
                 if (null == freePorts)
                     continue;
                 while (true) {
-                    // Look for a port in the desired range
-                    Integer port = freePorts.ceiling(tpStart);
-                    if (null == port || port > tpEnd)
-                        break;
-                    // We've found a free port.
-                    freePorts.remove(port);
-                    // Check cache to make sure the port's really free.
-                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, port,
-                            nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, port.shortValue());
+                    synchronized (freePorts) {
+                        Integer port = freePorts.ceiling(tpStart);
+                        if (null == port || port > tpEnd)
+                            break;
+                        // Look for a port in the desired range
+                        // We've found a free port.
+                        freePorts.remove(port);
+                        // Check cache to make sure the port's really free.
+                        NwTpPair reservation = makeSnatReservation(
+                                    oldNwSrc, oldTpSrc, ip, port, nwDst, tpDst);
+                        if (reservation != null)
+                            return reservation;
+                    }
                     // Give up after 20 attempts.
                     numTries++;
                     if (numTries > 20) {
@@ -365,33 +384,40 @@ public class NatLeaseManager implements NatMapping {
                 NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts) {
                     freePorts = new TreeSet<Integer>();
-                    ipToFreePortsMap.put(ip, freePorts);
+                    NavigableSet<Integer> oldV = null;
+                    oldV = ipToFreePortsMap.putIfAbsent(ip, freePorts);
+                    if (null != oldV)
+                        freePorts = oldV;
                 }
-                log.debug("allocateSnat adding range {} to {} to list of "
-                        + "free ports.", block, block+block_size-1);
-                for (int i = 0; i < block_size; i++)
-                    freePorts.add(block + i);
-                // Now, starting with the smaller of 'block' and tpStart
-                // see if the mapping really is free in cache by making sure
-                // that the reverse mapping isn't already taken. Note that the
-                // common case for snat requires 4 calls to cache (one to
-                // check whether we've already seen the forward flow, one to
-                // make sure the newIp, newPort haven't already been used with
-                // the nwDst and tpDst, and 2 to actually store the forward
-                // and reverse mappings).
-                int freePort = block;
-                if (freePort < tpStart)
-                    freePort = tpStart;
-                while (true) {
-                    freePorts.remove(freePort);
-                    if (makeSnatReservation(oldNwSrc, oldTpSrc, ip, freePort,
-                            nwDst, tpDst, origMatch))
-                        return new NwTpPair(ip, (short)freePort);
-                    freePort++;
-                    if (0 == freePort % block_size || freePort > tpEnd) {
-                        log.warn("allocateSnat unable to reserve any port "
-                                + "in the newly reserved block. Giving up.");
-                        return null;
+
+                synchronized (freePorts) {
+                    log.debug("allocateSnat adding range {} to {} to list of "
+                            + "free ports.", block, block+block_size-1);
+                    for (int i = 0; i < block_size; i++)
+                        freePorts.add(block + i);
+                    // Now, starting with the smaller of 'block' and tpStart
+                    // see if the mapping really is free in cache by making sure
+                    // that the reverse mapping isn't already taken. Note that
+                    // the common case for snat requires 4 calls to cache (one
+                    // to check whether we've already seen the forward flow, one
+                    // to make sure the newIp, newPort haven't already been used
+                    // with the nwDst and tpDst, and 2 to actually store the
+                    // forward and reverse mappings).
+                    int freePort = block;
+                    if (freePort < tpStart)
+                        freePort = tpStart;
+                    while (true) {
+                        freePorts.remove(freePort);
+                        NwTpPair reservation = makeSnatReservation(
+                                oldNwSrc, oldTpSrc, ip, freePort, nwDst, tpDst);
+                        if (reservation != null)
+                            return reservation;
+                        freePort++;
+                        if (0 == freePort % block_size || freePort > tpEnd) {
+                            log.warn("allocateSnat unable to reserve any port "
+                                    + "in the newly reserved block. Giving up.");
+                            return null;
+                        }
                     }
                 }
             } // End for loop over ip addresses in a nat target.
@@ -400,8 +426,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_, int nwDst,
-            short tpDst_, Object origMatch) {
+    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_,
+                                  int nwDst, short tpDst_) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
@@ -410,7 +436,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("lookupSnatFwd: key {} value {}", fwdKey, value);
         if (null == value)
             return null;
-        NwTpPair pair = makePairFromString(value);
+        NwTpPair pair = makePairFromString(value, fwdKey);
         if (null == pair)
             return null;
         // If the forward mapping was found, touch the reverse mapping too,
@@ -418,13 +444,13 @@ public class NatLeaseManager implements NatMapping {
         String revKey = makeCacheKey(REV_SNAT_PREFIX, pair.nwAddr,
                 pair.tpPort, nwDst, tpDst);
         cache.getAndTouch(revKey);
-        scheduleRefresh(origMatch, fwdKey, revKey);
+        scheduleRefresh(fwdKey, revKey);
         return pair;
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc_, int nwDst,
-            short tpDst_) {
+    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc_,
+                                  int nwDst, short tpDst_) {
         int newTpSrc = newTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String key = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
@@ -433,7 +459,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("lookupSnatRev: key {} value {}", key, value);
         if (null == value)
             return null;
-        return makePairFromString(value);
+        return makePairFromString(value, null);
     }
 
     @Override
@@ -444,21 +470,110 @@ public class NatLeaseManager implements NatMapping {
 
     }
 
+    /* natUnref() and natRef() update the reference count for a forwardKey,
+     * while also maintaining the map of keys consistently up to date:
+     *
+     *  - When natRef() creates the first reference to a key, it adds the key
+     *    to the map.
+     *  - When natUnref() removes the last reference to a key, it removes the
+     *    key from the map.
+     *
+     * Their synchronization is lockless, and this is how the possible races are
+     * prevented, most are trivial but explained for completeness:
+     *
+     *   + refcount = 0
+     *      - Two natRef() calls could race with each other. This is avoided
+     *        by using putIfAbsent() to write to the map. Only the winner of
+     *        this race will report to the caller that this is a new mapping,
+     *        thus the caller can do further initialization on the new
+     *        entry in confidence that no one else is going to to the same.
+     *
+     *        The loser will start over through a recursive call to natRef.
+     *
+     *      - natUnref() is a no-op in this case.
+     *
+     *   + refcount = 1
+     *      - Two natRef() calls. No races are possible since the refcount is
+     *        atomic.
+     *
+     *      - Two natUnref() calls could race with each other, albeit if that
+     *        happened it would be due to a bug in the users of this class,
+     *        because ref/unref ops are supposed to be symmetric.
+     *
+     *        If this happened, only the natUnref() that decrements the atomic
+     *        counter to zero would go on and clean up the entry.
+     *
+     *      - A natRef() could race with a natUnref() call, only if natUnref()
+     *        gets to the atomic op first. This is really the only non-trivial
+     *        case:
+     *
+     *          - Upon noticing that the decrement operation brought the counter
+     *            down to zero, natUnref() will remove the key from the map
+     *            and proceed to do the cleanups (actually, just cancelling the
+     *            future, but it could be anything).
+     *
+     *          - natRef() needs protection against natUnref() decrementing
+     *            first, if that happens all runninng natRef() calls must
+     *            be retried, and one of them will create a new mapping. This
+     *            achieved through a conditional variant of the atomic
+     *            increment: incrementIfGreaterThanAndGet(). After a successful
+     *            call to this function, natRef() is assured that no natUnref()
+     *            calls have decremented the counter to zero.
+     */
     @Override
-    public void freeFlowResources(Object match) {
-        log.debug("freeFlowResources: match {}", match);
-
-        // Cancel refreshing of any keys associated with this match.
-        Set<String> keys = matchToNatKeys.remove(match);
-        if (null != keys) {
-            for (String k : keys)
-                log.debug("freeFlowResources canceling refresh of key {}", k);
+    public void natUnref(String fwdKey) {
+        log.debug("natUnref: key {}", fwdKey);
+        KeyMetadata keyData = fwdKeys.get(fwdKey);
+        if (null == keyData || keyData.flowCount.decrementAndGet() != 0) {
+            // this was not the last user of this key, or the key did not exist
+            return;
         }
-        ScheduledFuture future = matchToFuture.remove(match);
-        if (null != future) {
-            log.debug("freeFlowResources found future to cancel.");
-            future.cancel(false);
+
+        if (fwdKeys.remove(fwdKey) != keyData)
+            return;
+        // Cancel refreshing of the nat keys
+        log.debug("natUnref canceling refresh of key {}", fwdKey);
+        if (null != keyData.revKey) {
+            log.debug("natUnref canceling refresh of key {}",
+                      keyData.revKey);
+        }
+        if (null != keyData.future) {
+            log.debug("natUnref found future to cancel.");
+            keyData.future.cancel(false);
         }
     }
 
+    private static int incrementIfGreaterThanAndGet(AtomicInteger integer,
+                                                    int value) {
+        for (;;) {
+            int i = integer.get();
+            if (i <= value)
+                return i;
+            if (integer.compareAndSet(i, i+1))
+                return i+1;
+        }
+    }
+
+    private boolean natRef(String fwdKey, String revKey) {
+        log.debug("incrementing reference count for key {}", fwdKey);
+        KeyMetadata keyData = fwdKeys.get(fwdKey);
+        if (null == keyData) {
+            /* This is a new key. Put a new metadata object into the map.
+             * If somebody else races with us and adds it first, start over with
+             * a recursive call.
+             */
+            keyData = new KeyMetadata(revKey);
+            KeyMetadata oldV = fwdKeys.putIfAbsent(fwdKey, keyData);
+            return (null == oldV) ? true : natRef(fwdKey, revKey);
+        } else {
+            /* This is a known key. If somebody raced with us to delete the
+             * key while we increment the refcount, start over with a recursive
+             * call.
+             */
+            if (incrementIfGreaterThanAndGet(keyData.flowCount, 0) > 1)
+                return false;
+            else
+                return natRef(fwdKey, revKey);
+        }
+    }
 }
