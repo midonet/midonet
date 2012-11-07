@@ -501,11 +501,9 @@ public class NatLeaseManager implements NatMapping {
      *        because ref/unref ops are supposed to be symmetric.
      *
      *        If this happened, only the natUnref() that decrements the atomic
-     *        counter to zero would go on and clean up the entry. We further by
-     *        cleaning up only if the removed entry is the same we decremented
-     *        on.
+     *        counter to zero would go on and clean up the entry.
      *
-     *      - A natRef() could race with a natRef() call, only if natUnref()
+     *      - A natRef() could race with a natUnref() call, only if natUnref()
      *        gets to the atomic op first. This is really the only non-trivial
      *        case:
      *
@@ -514,26 +512,13 @@ public class NatLeaseManager implements NatMapping {
      *            and proceed to do the cleanups (actually, just cancelling the
      *            future, but it could be anything).
      *
-     *          - After the atomic increment natUnref() needs protection against
-     *            the case where natUnref() decremented first (and is thus
-     *            cleaning up just now.
-     *
-     *            In this case, natRef() undoes its atomic increment and restarts
-     *            the operation through a recursive call. If the new call beats
-     *            the running natUnref() and gets to the decrement before
-     *            natUnref() removes the key, the same mechanism would kick in,
-     *            recursive calls will be made until natUnref() gets to removing
-     *            the key from the map.
-     *
-     *            This 'undoing the decrement' is problematic, because it makes
-     *            us lose the atomicity. We recover this atomicity by
-     *            synchronizing the increment+decrement block.
-     *
-     *            There's no need to synchronize with natUnref(), because to get
-     *            here there must have been a natRef() invokation that got zero
-     *            as a result of its decrement. The cleanup will surely be done,
-     *            and it's protected against races against itself as explained
-     *            above.
+     *          - natRef() needs protection against natUnref() decrementing
+     *            first, if that happens all runninng natRef() calls must
+     *            be retried, and one of them will create a new mapping. This
+     *            achieved through a conditional variant of the atomic
+     *            increment: incrementIfGreaterThanAndGet(). After a successful
+     *            call to this function, natRef() is assured that no natUnref()
+     *            calls have decremented the counter to zero.
      */
     @Override
     public void natUnref(String fwdKey) {
@@ -558,6 +543,17 @@ public class NatLeaseManager implements NatMapping {
         }
     }
 
+    private static int incrementIfGreaterThanAndGet(AtomicInteger integer,
+                                                    int value) {
+        for (;;) {
+            int i = integer.get();
+            if (i <= value)
+                return i;
+            if (integer.compareAndSet(i, i+1))
+                return i+1;
+        }
+    }
+
     private boolean natRef(String fwdKey, String revKey) {
         log.debug("incrementing reference count for key {}", fwdKey);
         KeyMetadata keyData = fwdKeys.get(fwdKey);
@@ -574,15 +570,10 @@ public class NatLeaseManager implements NatMapping {
              * key while we increment the refcount, start over with a recursive
              * call.
              */
-            int refcount = 0;
-            // this ensures that all calls to natRef() are unaffected
-            // by the increment+decrement chained ops.
-            synchronized (keyData) {
-                refcount = keyData.flowCount.incrementAndGet();
-                if (refcount <= 1)
-                    keyData.flowCount.decrementAndGet();
-            }
-            return (refcount <= 1) ? natRef(fwdKey, revKey) : false;
+            if (incrementIfGreaterThanAndGet(keyData.flowCount, 0) > 1)
+                return false;
+            else
+                return natRef(fwdKey, revKey);
         }
     }
 }
