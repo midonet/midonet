@@ -112,19 +112,20 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     private def chainUpdate(chain: Chain): Unit = {
         idToRefCount.get(chain.id) match {
             case None =>  // we don't care about this chain anymore
-            case Some(count) =>
-                idToChain.put(chain.id, chain) match {
-                    case None =>
-                        waitingForChains -= 1
-                        if (0 == waitingForChains) {
-                            context.actorFor("..").tell(
-                                new Chain(id, rules.toList, idToChain.toMap,
-                                          "TODO: need name"))
-                        // invalidate all flow for this chain
-                        FlowController.getRef() !
-                            InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
-                        }
-                    case _ =>  // Nothing else to do.
+            case Some(_) =>
+                // If this is the first Chain object we see for its ID, then
+                // we were waiting for it to build the chain we're managing.
+                if (idToChain.put(chain.id, chain).isEmpty)
+                    waitingForChains -= 1
+                // In either case, if we're not waiting for other jump-to
+                // chains, send an update for the chain we manage.
+                if (0 == waitingForChains) {
+                    context.actorFor("..").tell(
+                        new Chain(id, rules.toList, idToChain.toMap,
+                            "TODO: need name"))
+                    // invalidate all flow for this chain
+                    FlowController.getRef() ! InvalidateFlowsByTag(
+                        FlowTagger.invalidateFlowsByDevice(id))
                 }
         }
     }
