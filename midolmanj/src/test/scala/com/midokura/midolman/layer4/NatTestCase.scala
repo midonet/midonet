@@ -269,6 +269,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
 
         mapping.flowCount.get should be === (0)
+        leaseManager.fwdKeys.size should be === (0)
     }
 
     def testSnat() {
@@ -326,5 +327,6 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
 
         mapping.flowCount.get should be === (0)
+        leaseManager.fwdKeys.size should be === (0)
     }
 }
