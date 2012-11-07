@@ -198,7 +198,7 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/etc/tomcat6/Catalina/localhost
+                                        <prefix>/etc/tomcat7/Catalina/localhost
                                         </prefix>
                                     </mapper>
                                 </data>
