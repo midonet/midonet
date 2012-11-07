@@ -28,6 +28,8 @@ import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
 import util.RouterHelper
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.DatapathController.PacketIn
 
 @RunWith(classOf[JUnitRunner])
 class PingTestCase extends MidolmanTestCase with
@@ -236,47 +238,37 @@ class PingTestCase extends MidolmanTestCase with
 
         log.info("When the VM boots up, it should start sending DHCP discover")
         injectDhcpDiscover(vm2PortName, vm2Mac)
-
+        requestOfType[PacketIn](simProbe())
+        requestOfType[EmitGeneratedPacket](simProbe())
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
         //expectPacketOnPort(brPort2.getId)
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
-
+        requestOfType[PacketIn](simProbe())
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
-        expectPacketOnPort(brPort2.getId)
+        //expectPacketOnPort(brPort2.getId)
 
         log.info("Sending ARP")
         //arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp2,
         //                 routerMac2, vm2PortNumber)
         feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac, 
                      routerIp2.addressAsInt, routerMac2)
-        //fishForRequestOfType[DiscardPacket](flowProbe())
+        requestOfType[PacketIn](simProbe())
+        fishForRequestOfType[DiscardPacket](flowProbe())
         drainProbes()
-
-        log.info("Ping Router port 2")
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
-
-        log.info("Check ICMP Echo Reply from Router port 2")
-        // Check ICMP Echo Reply from Router port 2
-        //expectPacketOnPort(brPort2.getId)
-        //requestOfType[DiscardPacket](flowProbe())
-        expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP, 
-                       ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
-
         log.info("ARP Router port 1, and ping it too")
         arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp1, routerMac2,
                          vm2PortNumber)
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
-      
-        log.info("Check ICMP Echo Reply from Router port 1")
-        // Check ICMP Echo Reply from Router port 1
-        expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP, 
+        requestOfType[PacketIn](simProbe())
+        log.info("Ping Router port 2")
+        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
+        requestOfType[PacketIn](simProbe())
+        log.info("Check ICMP Echo Reply from Router port 2")
+        expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
 
-        log.info("ARP already done for VM1, ping VM1 now")
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
     }
 }
