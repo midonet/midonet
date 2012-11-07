@@ -9,6 +9,7 @@ import java.util.{HashSet => JSet}
 
 import com.midokura.midolman.layer3.Route.NextHop
 import rules.{NatTarget, Condition}
+import rules.Condition
 import com.midokura.midolman.rules.RuleResult.Action
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
@@ -16,10 +17,12 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.rules.{NatRule, LiteralRule,
                                                 ForwardNatRule, ReverseNatRule}
+import com.midokura.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
 import com.midokura.packets.MAC
+import com.midokura.midonet.cluster.data.dhcp.Subnet
 
 
 trait VirtualConfigurationBuilders {
@@ -36,15 +39,14 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
-        val chain = new Chain().setName(name).setId(UUID.randomUUID)
-        clusterDataClient().chainsCreate(chain)
+        val chain = createChain(name, None)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
         chain
     }
 
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        val chain = createChain(name, None)
         clusterDataClient().chainsCreate(chain)
         router.setInboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
@@ -52,18 +54,27 @@ trait VirtualConfigurationBuilders {
     }
 
     def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = new Chain().setName(name).setId(UUID.randomUUID)
+        val chain = createChain(name, None)
         clusterDataClient().chainsCreate(chain)
         router.setOutboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
         chain
     }
 
+    def createChain(name: String, id: Option[UUID]): Chain = {
+        val chain = new Chain().setName(name)
+        if (id.isDefined)
+            chain.setId(id.get)
+        else
+            chain.setId(UUID.randomUUID)
+        clusterDataClient().chainsCreate(chain)
+        chain
+    }
+
     def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
                               (name: String, port: Port[PD, P],
                                id: UUID): Chain = {
-        val chain = new Chain().setName(name).setId(id)
-        clusterDataClient().chainsCreate(chain)
+        val chain = createChain(name, Some(id))
         port.setOutboundFilter(id)
         clusterDataClient().portsUpdate(port)
         chain
@@ -112,6 +123,22 @@ trait VirtualConfigurationBuilders {
             setChainId(chain.getId).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
+    }
+
+    def removeRuleFromBridge(bridge: ClusterBridge) {
+        bridge.setInboundFilter(null)
+        clusterDataClient().bridgesUpdate(bridge)
+    }
+
+    def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                              jumpToChainID: UUID): JumpRule = {
+        val rule = new JumpRule(condition).
+            setChainId(chain.getId).setPosition(pos).setJumpToChainId(jumpToChainID)
+        val id = clusterDataClient().rulesCreate(rule)
+        clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
+    }
+    def deleteRule(id: UUID) {
+        clusterDataClient().rulesDelete(id)
     }
 
     def greTunnelZone(name: String): GreTunnelZone = {

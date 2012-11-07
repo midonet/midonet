@@ -14,13 +14,64 @@ import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
 import rules.{RuleResult, Condition}
 import com.midokura.packets._
 import util.SimulationHelper
+import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
+import com.midokura.midonet.cluster.data.rules.JumpRule
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         with SimulationHelper {
     private final val log = LoggerFactory.getLogger(classOf[L2FilteringTestCase])
 
-    @Ignore
+    def testAddAndModifyJumpChain() {
+        drainProbes()
+        log.info("creating inbound chain, assigning the chain to the bridge")
+        val brInChain = newInboundChainOnBridge("brInFilter", bridge)
+
+        // this is a chain that will be set as jump chain for brInChain
+        val jumpChain = createChain("jumpRule", None)
+
+        // add rule that allows return flows
+        val cond = new Condition()
+        cond.matchReturnFlow = true
+        newLiteralRuleOnChain(brInChain, 1, cond, RuleResult.Action.ACCEPT)
+
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+
+        drainProbes()
+        drainProbe(packetsEventsProbe)
+        drainProbe(flowEventsProbe)
+        // add a rule that drops the packets from 0 to 3 in the jump chain
+        val cond1 = new Condition()
+        cond1.nwSrcIp = vmIps(0)
+        cond1.nwDstIp = vmIps(3)
+        val jumpRule = newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
+        newJumpRuleOnChain(brInChain, 1, cond1, jumpChain.getId)
+        log.info("The flow should be invalidated")
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+
+        log.info("sending a packet that should be dropped by jump rule")
+        expectPacketDropped(0, 3, icmpBetweenPorts)
+        var flow = fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        flow.f.getActions.size() should be (0)
+
+        log.info("removing a rule from the jump rule itself (inner chain)")
+        deleteRule(jumpRule.getId)
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        flow = fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        flow.f.getActions.size() should (be > 0)
+
+        log.info("adding back rule from the jump rule itself (inner chain)")
+        newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
+        // expect invalidation
+        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe)
+        // expect that packet is dropped
+        expectPacketDropped(0, 3, icmpBetweenPorts)
+        flow = fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        flow.f.getActions.size() should be (0)
+
+    }
+
     def test() {
         flowController().underlyingActor.flowToTags.size should be === vmPorts.size
 
