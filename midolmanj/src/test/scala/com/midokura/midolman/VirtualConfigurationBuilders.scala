@@ -16,6 +16,7 @@ import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort,
         LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZone
 import com.midokura.packets.MAC
+import com.midokura.midonet.cluster.data.dhcp.Subnet
 
 
 trait VirtualConfigurationBuilders {
@@ -138,5 +139,16 @@ trait VirtualConfigurationBuilders {
             .setNextHopPort(nextHopPort)
             .setNextHopGateway(nextHopGateway)
             .setWeight(weight))
+    }
+
+    def addDhcpSubnet(bridge : ClusterBridge,
+                      subnet : Subnet) = {
+        clusterDataClient().dhcpSubnetsCreate(bridge.getId, subnet)
+    }
+
+    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+                    host : com.midokura.midonet.cluster.data.dhcp.Host) = {
+        clusterDataClient().dhcpHostsCreate(bridge.getId,
+                                            subnet.getSubnetAddr, host)
     }
 }
