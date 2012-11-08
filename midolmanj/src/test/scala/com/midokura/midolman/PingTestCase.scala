@@ -50,6 +50,8 @@ class PingTestCase extends MidolmanTestCase with
     var brPort2 : MaterializedBridgePort = null
     val vm2PortName = "VM2"
     var vm2PortNumber = 0
+    var dhcpServerIp = 0
+    var dhcpClientIp = 0
 
     var bridge: ClusterBridge = null
 
@@ -212,12 +214,23 @@ class PingTestCase extends MidolmanTestCase with
         dhcpReq.setHardwareType(0x01)
         dhcpReq.setHardwareAddressLength(6)
         dhcpReq.setClientHardwareAddress(srcMac)
-        // server IP address should be set on DHCP request
-        dhcpReq.setServerIPAddress(0)
+        dhcpReq.setServerIPAddress(dhcpServerIp)
         var options = mutable.ListBuffer[DHCPOption]()
         options.add(new DHCPOption(DHCPOption.Code.DHCP_TYPE.value,
                            DHCPOption.Code.DHCP_TYPE.length,
                            Array[Byte](DHCPOption.MsgType.REQUEST.value)))
+        options.add(new DHCPOption(DHCPOption.Code.REQUESTED_IP.value,
+                           DHCPOption.Code.REQUESTED_IP.length,
+                           Array[Byte](((dhcpClientIp >> 24) & 0xFF).toByte,
+                                       ((dhcpClientIp >> 16) & 0xFF).toByte,
+                                       ((dhcpClientIp >> 8) & 0xFF).toByte,
+                                       dhcpClientIp.toByte)))
+        options.add(new DHCPOption(DHCPOption.Code.SERVER_ID.value,
+                           DHCPOption.Code.SERVER_ID.length,
+                           Array[Byte](((dhcpServerIp >> 24) & 0xFF).toByte,
+                                       ((dhcpServerIp >> 16) & 0xFF).toByte,
+                                       ((dhcpServerIp >> 8) & 0xFF).toByte,
+                                       dhcpServerIp.toByte)))
         dhcpReq.setOptions(options)
         val udp = new UDP()
         udp.setSourcePort((68).toShort)
@@ -234,22 +247,53 @@ class PingTestCase extends MidolmanTestCase with
         triggerPacketIn(portName, eth)
     }
 
+    private def expectEmitDhcpReply(expectedMsgType : Byte) = {
+        val returnPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        returnPkt.getEtherType should be === IPv4.ETHERTYPE
+        val ipPkt = returnPkt.getPayload.asInstanceOf[IPv4]
+        ipPkt.getProtocol should be === UDP.PROTOCOL_NUMBER
+        val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
+        udpPkt.getSourcePort() should be === 67
+        udpPkt.getDestinationPort() should be === 68
+        val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
+        dhcpClientIp = dhcpPkt.getYourIPAddress
+        dhcpServerIp = dhcpPkt.getServerIPAddress
+        val replyOptions = mutable.HashMap[Byte, DHCPOption]()
+        val replyCodes = mutable.Set[Byte]()
+        for (opt <- dhcpPkt.getOptions) {
+            val code = opt.getCode
+            replyOptions.put(code, opt)
+            code match {
+                case v if (v == DHCPOption.Code.DHCP_TYPE.value) =>
+                    if (opt.getLength != 1) {
+                        fail("DHCP option type value invalid length")
+                    }
+                    val msgType = opt.getData()(0)
+                    msgType should be === expectedMsgType
+                case _ => // Do nothing
+            }
+        }
+    }
+
     def test() {
 
         log.info("When the VM boots up, it should start sending DHCP discover")
         injectDhcpDiscover(vm2PortName, vm2Mac)
         requestOfType[PacketIn](simProbe())
-        requestOfType[EmitGeneratedPacket](simProbe())
+
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
-        //expectPacketOnPort(brPort2.getId)
+        expectEmitDhcpReply(DHCPOption.MsgType.OFFER.value)
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
         requestOfType[PacketIn](simProbe())
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
-        //expectPacketOnPort(brPort2.getId)
+        expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
+
+        val vm2IpInt = vm2IP.addressAsInt
+        dhcpClientIp should be === vm2IpInt
 
         log.info("Sending ARP")
         //arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp2,
