@@ -279,6 +279,17 @@
                                         <prefix>/etc/quagga</prefix>
                                     </mapper>
                                 </data>
+                                <data>
+                                    <src>
+                                        ${project.basedir}/src/deb/bin/mm-dpctl
+                                    </src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/bin</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
                             </dataSet>
                         </configuration>
                     </execution>
