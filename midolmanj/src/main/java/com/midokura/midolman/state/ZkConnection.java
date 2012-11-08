@@ -103,8 +103,10 @@ public class ZkConnection implements Watcher {
         synchronized (this) {
             if (connecting) {
                 connecting = false;
-                if (event.getState() == KeeperState.SyncConnected)
+                if (event.getState() == KeeperState.SyncConnected) {
+                    log.info("Zookeeper SessionId: {}", zk.getSessionId());
                     connected = true;
+                }
                 notifyAll();
             }
         }

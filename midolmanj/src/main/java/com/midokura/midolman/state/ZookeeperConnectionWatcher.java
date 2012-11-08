@@ -33,7 +33,9 @@ public class ZookeeperConnectionWatcher implements Watcher {
     @Override
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
-            log.warn("KeeperState is Disconnected, shutdown soon");
+            log.warn("KeeperState is Disconnected, will shutdown in {} " +
+                "seconds if the connection is not restored.",
+                config.getZooKeeperGraceTime());
 
             disconnectHandle = executorService.schedule(new Runnable() {
                 @Override
@@ -42,7 +44,7 @@ public class ZookeeperConnectionWatcher implements Watcher {
                             "so exiting", config.getZooKeeperGraceTime());
                     System.exit(-1);
                 }
-            }, config.getZooKeeperGraceTime(), TimeUnit.SECONDS);
+            }, config.getZooKeeperGraceTime(), TimeUnit.MILLISECONDS);
         }
 
         if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
