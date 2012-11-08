@@ -19,9 +19,6 @@ import static com.midokura.midolman.host.state.HostDirectory.Command;
 /**
  * Wrapper class over a Directory that handled setting and reading data related
  * to hosts and interfaces associated with the hosts.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/31/12
  */
 public class HostZkManager extends ZkManager {
 
@@ -113,10 +110,6 @@ public class HostZkManager extends ZkManager {
         addEphemeral(paths.getHostPath(hostId) + "/alive",
                      new byte[0]);
         updateMetadata(hostId, metadata);
-    }
-
-    public void makeDead(UUID hostId) throws StateAccessException {
-        deleteEphemeral(paths.getHostPath(hostId) + "/alive");
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)

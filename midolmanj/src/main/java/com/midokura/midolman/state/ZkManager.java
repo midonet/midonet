@@ -409,4 +409,12 @@ public class ZkManager {
             return Op.delete(arg0, -1);
         }
     }
+
+    /**
+     * Disconnects from the underlying storage.
+     */
+    public void disconnect() {
+        if (zk != null)
+            zk.closeConnection();
+    }
 }

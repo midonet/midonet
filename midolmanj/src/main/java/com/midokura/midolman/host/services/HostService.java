@@ -88,15 +88,13 @@ public class HostService extends AbstractService
             if (watcherThread != null )
                 watcherThread.join();
 
-            // delete the ephemeral node explicitly.
-            zkManager.makeDead(hostId);
+            // disconnect from zookeeper.
+            // this will cause the ephemeral nodes to disappear.
+            zkManager.disconnect();
+
             notifyStopped();
         } catch (InterruptedException e) {
             notifyFailed(e);
-        } catch (StateAccessException e) {
-            // could not delete the node explicitly. This is not an error as it will
-            // die eventually.
-            log.error("Could not delete the ephemeral node in zookeeper.");
         }
         log.info("Midolman host agent stopped.");
 
