@@ -87,4 +87,4 @@ if [ ! -e "$MIDO_JAR" ]; then
    exit 1
 fi
 
-$JAVA -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH com.midokura.mmdpctl.Mmdpctl $*
+$JAVA -Dlog4j.configuration=file:/etc/midolman/log4j-dpctl.xml -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH com.midokura.mmdpctl.Mmdpctl $*
