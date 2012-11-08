@@ -16,18 +16,25 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class ZookeeperConnectionWatcher implements Watcher {
+public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ZookeeperConnectionWatcher.class);
 
     private ScheduledExecutorService executorService;
     private ScheduledFuture<?> disconnectHandle;
+    private ZkConnection conn = null;
+    private long sessionId = 0;
 
     @Inject
     MidolmanConfig config;
 
     public ZookeeperConnectionWatcher() {
         executorService = Executors.newScheduledThreadPool(1);
+    }
+
+    @Override
+    public void setZkConnection(ZkConnection conn) {
+        this.conn = conn;
     }
 
     @Override
@@ -48,7 +55,19 @@ public class ZookeeperConnectionWatcher implements Watcher {
         }
 
         if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-            log.info("KeeperState is SyncConnected");
+            if (conn != null) {
+                if (sessionId == 0) {
+                    this.sessionId = conn.getZooKeeper().getSessionId();
+                } else if (sessionId != conn.getZooKeeper().getSessionId()) {
+                    log.warn("Zookeeper connection restored to a new session " +
+                            "id (old={} new={}), shutting down",
+                            sessionId, conn.getZooKeeper().getSessionId());
+                    System.exit(-1);
+                }
+            }
+
+            log.info("KeeperState is SyncConnected, SessionId={}",
+                     conn.getZooKeeper().getSessionId());
 
             if (disconnectHandle != null) {
                 log.info("canceling shutdown");

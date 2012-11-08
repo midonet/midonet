@@ -17,6 +17,7 @@ import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.simulation.Chain;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 import com.midokura.midolman.state.ZookeeperConnectionWatcher;
 import com.midokura.midonet.cluster.Client;
 
@@ -47,12 +48,12 @@ public class MidolmanModule extends PrivateModule {
         Named watcherAnnotation = Names.named(
                 ZKConnectionProvider.WATCHER_NAME_TAG);
 
-        bind(Watcher.class)
+        bind(ZkConnectionAwareWatcher.class)
             .annotatedWith(watcherAnnotation)
             .to(ZookeeperConnectionWatcher.class)
             .asEagerSingleton();
 
-        expose(Watcher.class)
+        expose(ZkConnectionAwareWatcher.class)
             .annotatedWith(watcherAnnotation);
     }
 

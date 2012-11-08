@@ -11,6 +11,7 @@ import org.apache.zookeeper.Watcher;
 
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 import com.midokura.util.eventloop.Reactor;
 
 /**
@@ -33,7 +34,7 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
 
     @Inject(optional = true)
     @Named(WATCHER_NAME_TAG)
-    Watcher watcher;
+    ZkConnectionAwareWatcher watcher;
 
     @Override
     public ZkConnection get() {
@@ -43,6 +44,7 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
                     config.getZooKeeperHosts(),
                     config.getZooKeeperSessionTimeout(), watcher, reactorLoop);
 
+            watcher.setZkConnection(zkConnection);
             zkConnection.open();
 
             return zkConnection;
