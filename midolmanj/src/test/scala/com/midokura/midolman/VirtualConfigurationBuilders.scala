@@ -47,7 +47,6 @@ trait VirtualConfigurationBuilders {
 
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
         val chain = createChain(name, None)
-        clusterDataClient().chainsCreate(chain)
         router.setInboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
         chain
@@ -55,7 +54,6 @@ trait VirtualConfigurationBuilders {
 
     def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
         val chain = createChain(name, None)
-        clusterDataClient().chainsCreate(chain)
         router.setOutboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
         chain
