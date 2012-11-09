@@ -690,12 +690,15 @@ class DatapathController() extends Actor with ActorLogging {
             }
 
             // interface went down.
-            if (localPorts.contains(interface.getName) && !interface.isUp) {
-                log.info("Interface went down: {}", interface.getName)
+            if (localPorts.contains(interface.getName) &&
+                    !interface.isUp) {
                 localPorts.get(interface.getName).get match {
                     case p: NetDevPort =>
+                        log.info("Interface went down: {}", interface.getName)
                         updatePort(interface.getName, false);
-
+                    case p: InternalPort =>
+                        log.info("Interface went down: {}", interface.getName)
+                        updatePort(interface.getName, false);
                     case default =>
                         log.error("port type not matched {}", default)
                 }
@@ -706,15 +709,15 @@ class DatapathController() extends Actor with ActorLogging {
         // the behaviour is the same as if the port had gone down.
         deletedPorts.foreach{
             deletedPort =>
-                log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
                 localPorts.get(deletedPort).get match {
-                case p: NetDevPort =>
-                    // delete the dp <-> port link
-                    deleteDatapathPort(self, p, None)
-                    // set port to inactive.
-                    updatePort(p.getName, false);
-                case default =>
-                    log.error("port type not matched {}", default)
+                    case p: NetDevPort =>
+                        log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
+                        // delete the dp <-> port link
+                        deleteDatapathPort(self, p, None)
+                        // set port to inactive.
+                        updatePort(p.getName, false);
+                    case default =>
+                        log.error("port type not matched {}", default)
             }
         }
 
@@ -745,7 +748,13 @@ class DatapathController() extends Actor with ActorLogging {
             portsDownPool.put(portName, port)
             localPorts.remove(portName)
         }
-        VirtualToPhysicalMapper.getRef() ! LocalPortActive(localToVifPorts.get(port.getPortNo.shortValue()).get, active = up)
+
+        val portVif = localToVifPorts.get(port.getPortNo.shortValue())
+        if (portVif != None) {
+            VirtualToPhysicalMapper.getRef() ! LocalPortActive(portVif.get, active = up)
+        } else {
+            log.info(portName + " did not map to anything. Ignoring.")
+        }
     }
 
 
