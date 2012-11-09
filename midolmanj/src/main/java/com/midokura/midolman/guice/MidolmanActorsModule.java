@@ -43,12 +43,23 @@ public class MidolmanActorsModule extends PrivateModule {
 
         bind(VifMetrics.class).in(Singleton.class);
 
-        bind(VirtualTopologyActor.class).in(Singleton.class);
-        bind(VirtualToPhysicalMapper.class).in(Singleton.class);
-        bind(DatapathController.class).in(Singleton.class);
-        bind(FlowController.class).in(Singleton.class);
-        bind(SimulationController.class).in(Singleton.class);
-        bind(MonitoringActor.class).in(Singleton.class);
+        /* NOTE(guillermo) In midolman's architecture these actors are all
+         * singletons. However this constraint is enforced by
+         * MidolmanActorsService, which launches them at the top level with
+         * a well-known name.
+         *
+         * Here we do allow the creation of multiple instances because,
+         * while there will only be one actor of each type, akka expects that
+         * relaunching an actor be done with a fresh instance. If we asked
+         * akka to restart an actor and we gave it the old instance, bad things
+         * would happen (the behaviour is not defined but akka v2.0.3 will
+         * start the actor with a null context). */
+        bind(VirtualTopologyActor.class);
+        bind(VirtualToPhysicalMapper.class);
+        bind(DatapathController.class);
+        bind(FlowController.class);
+        bind(SimulationController.class);
+        bind(MonitoringActor.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(HostManager.class);
         bind(TunnelZoneManager.class);
