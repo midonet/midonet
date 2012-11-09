@@ -8,12 +8,13 @@ import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
+import host.interfaces.InterfaceDescription
 import host.scanner.InterfaceScanner
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
 import java.lang.{Boolean => JBoolean, Short => JShort}
-import java.util.{HashSet, Set => JSet, UUID}
+import java.util.{HashSet, Set => JSet, UUID, List => JList}
 
 import com.google.inject.Inject
 
@@ -42,6 +43,7 @@ import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
+import java.util
 
 
 /**
@@ -391,6 +393,11 @@ object DatapathController extends Referenceable {
      * inspecting the ports to react to unexpected changes.
      */
     case class DisablePortWatcher()
+
+    /**
+     * This message is sent when the separate thread has succesfully retrieved all information about the interfaces.
+     */
+    case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
 }
 
 
@@ -673,17 +680,38 @@ class DatapathController() extends Actor with ActorLogging {
             }
 
         case CheckForPortUpdates(datapathName: String) =>
-            checkPortUpdates
+            checkPortUpdates()
+
+        case InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
+            updateInterfaces(interfaces)
+
 
     }
 
     def checkPortUpdates() {
+
+        interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
+            def onError(e: NetlinkException) {
+                log.error("Error while retrieving the interface status:" + e.getMessage)
+            }
+
+            def onTimeout() {
+                log.error("Timeout while retrieving the interface status.")
+            }
+
+            def onSuccess(data: JList[InterfaceDescription]) {
+                self ! InterfacesUpdate(data)
+            }
+        })
+    }
+
+    def updateInterfaces(interfaces : JList[InterfaceDescription]) {
         val interfacesSet = new HashSet[String]
 
         val deletedPorts = new HashSet[String]
         deletedPorts.addAll(localPorts.keySet)
 
-        for (interface <- interfaceScanner.scanInterfaces()) {
+        for (interface <- interfaces) {
             deletedPorts.remove(interface.getName)
             if (interface.isUp) {
                 interfacesSet.add(interface.getName)
@@ -1727,5 +1755,6 @@ class DatapathController() extends Actor with ActorLogging {
     private case class _PacketIn(packet: Packet)
 
     private case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
+
 
 }

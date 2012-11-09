@@ -49,8 +49,6 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
 
     @Override
     public synchronized InterfaceDescription[] scanInterfaces() {
-        log.debug("Start scanning for interface data.");
-
         List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
 
         for (InterfaceSensor sensor : sensors) {
@@ -61,8 +59,13 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
     }
 
     @Override
-    public void scanInterfaces(Callback<List<InterfaceDescription>> callback) {
-        List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
-        callback.onSuccess(list);
+    public void scanInterfaces(final Callback<List<InterfaceDescription>> callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
+                callback.onSuccess(list);
+            }
+        }).run();
     }
 }
