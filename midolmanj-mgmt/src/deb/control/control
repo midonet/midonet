@@ -3,7 +3,7 @@ Version: [[version]]
 Section: misc
 Priority: optional
 Architecture: all
-Depends: tomcat6
+Depends: tomcat7
 Recommends: java7-runtime-headless | java7-runtime
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midolman-mgmt is the REST API for Midolman, a virtual network controller
