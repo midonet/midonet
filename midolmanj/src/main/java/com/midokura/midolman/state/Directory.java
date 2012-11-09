@@ -59,6 +59,8 @@ public interface Directory {
 
     long getSessionId();
 
+    void closeConnection();
+
     // HACK: TypedWatcher is a runnable so that it can be passed to Directory
     // methods that take Runnable 'watchers'. However, the run method should
     // Never be called.

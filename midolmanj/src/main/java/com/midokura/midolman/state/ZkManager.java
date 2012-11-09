@@ -4,13 +4,10 @@
  */
 package com.midokura.midolman.state;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.midokura.midolman.util.JSONSerializer;
+import com.midokura.util.functors.CollectionFunctors;
+import com.midokura.util.functors.Functor;
+import com.midokura.util.functors.TreeNode;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -21,10 +18,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.util.JSONSerializer;
-import com.midokura.util.functors.CollectionFunctors;
-import com.midokura.util.functors.Functor;
-import com.midokura.util.functors.TreeNode;
+import java.util.*;
+
 import static com.midokura.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
 
@@ -156,6 +151,20 @@ public class ZkManager {
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding an ephemeral node to the path "
+                            + path + ": " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteEphemeral(String path) throws StateAccessException {
+        try {
+            zk.delete(path);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while deleting an ephemeral node on path "
+                            + path + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while removing an ephemeral node on the path "
                             + path + ": " + e.getMessage(), e);
         }
     }
@@ -399,5 +408,13 @@ public class ZkManager {
         public Op apply(String arg0) {
             return Op.delete(arg0, -1);
         }
+    }
+
+    /**
+     * Disconnects from the underlying storage.
+     */
+    public void disconnect() {
+        if (zk != null)
+            zk.closeConnection();
     }
 }

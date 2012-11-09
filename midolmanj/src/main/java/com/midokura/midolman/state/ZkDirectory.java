@@ -352,4 +352,12 @@ public class ZkDirectory implements Directory {
     public long getSessionId() {
         return zk.getZooKeeper().getSessionId();
     }
+
+    @Override
+    public void closeConnection() {
+        log.info("Closing the Zookeeper connection.");
+        zk.close();
+    }
+
+
 }

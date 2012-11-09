@@ -391,6 +391,11 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public void closeConnection() {
+        // Do nothing here.
+    }
+
+    @Override
     public String toString() {
         return "MockDirectory{" +
             "node.path=" + rootNode.path +

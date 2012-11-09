@@ -6,20 +6,19 @@
  */
 package com.midokura.midolman.host;
 
+import com.midokura.midolman.host.config.HostConfig;
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.midokura.midolman.host.config.HostConfig;
-import com.midokura.midolman.host.state.HostDirectory;
-import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.state.StateAccessException;
 
 /**
  * HostIdGenerator will be used to generate unique ID for the controllers. These ids
@@ -101,11 +100,15 @@ public class HostIdGenerator {
             // check if it's null, if so generate it
             if (myUUID == null) {
                 myUUID = generateUniqueId(zkManager);
-                log.debug("Generated id {}", myUUID);
+                log.debug("Generated new id {}", myUUID);
                 // write it in the properties file
                 writeId(myUUID, localPropertiesFilePath);
                 zkManager.createHost(myUUID, new HostDirectory.Metadata());
+            } else {
+                log.debug("Found ID in the local properties file: {}", myUUID);
             }
+        } else {
+            log.info("Found ID in the configuration file: {}", myUUID);
         }
         if (!zkManager.hostExists(myUUID))
             zkManager.createHost(myUUID, new HostDirectory.Metadata());

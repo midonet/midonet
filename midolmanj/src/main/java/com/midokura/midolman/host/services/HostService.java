@@ -3,17 +3,8 @@
  */
 package com.midokura.midolman.host.services;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.midokura.midolman.host.HostIdGenerator;
 import com.midokura.midolman.host.HostIdGenerator.HostIdAlreadyInUseException;
 import com.midokura.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
@@ -26,11 +17,20 @@ import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.state.StateAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Host internal service.
  * <p/>
  * It starts and stops the host service.
+ * TODO: need to try to reattach the zk session so we can recover the host state.
  */
 public class HostService extends AbstractService
     implements HostIdProviderService {
@@ -87,6 +87,11 @@ public class HostService extends AbstractService
             // wait for the thread to finish running
             if (watcherThread != null )
                 watcherThread.join();
+
+            // disconnect from zookeeper.
+            // this will cause the ephemeral nodes to disappear.
+            zkManager.disconnect();
+
             notifyStopped();
         } catch (InterruptedException e) {
             notifyFailed(e);
@@ -144,7 +149,7 @@ public class HostService extends AbstractService
             } catch (HostIdAlreadyInUseException e) {
                 // The ID is already in use, wait. It could be that the ephemeral
                 // node has not been deleted yet (if the host just crashed)
-                log.warn("Host Id already in use.", e);
+                log.warn("Host Id already in use. Waiting for it to be released.", e);
                 // Reset the hostId to null to continue looping
                 hostId = null;
             }
