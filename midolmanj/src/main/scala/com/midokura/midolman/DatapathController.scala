@@ -3,7 +3,7 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef}
+import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef, SupervisorStrategy}
 import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -443,6 +443,9 @@ class DatapathController() extends Actor with ActorLogging {
     import context._
 
     implicit val requestReplyTimeout = new Timeout(1 second)
+
+    @Inject
+    override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null

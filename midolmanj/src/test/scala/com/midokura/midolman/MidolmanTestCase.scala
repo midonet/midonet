@@ -157,10 +157,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         )
     }
 
-    def topActor[A <: Actor](name: String): ActorRef = {
-        actors().actorFor(actors() / name)
-    }
-
     protected def ask[T](actor: ActorRef, msg: Object): T = {
         val t = Timeout(1 second)
         val promise = akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
@@ -191,10 +187,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def initializeDatapath(): DatapathController.InitializationComplete = {
 
-        topActor(DatapathController.Name).tell(DisablePortWatcher())
+        DatapathController.getRef(actors()).tell(DisablePortWatcher())
 
         val result = ask[InitializationComplete](
-            topActor(DatapathController.Name), Initialize())
+            DatapathController.getRef(actors()), Initialize())
 
         dpProbe().expectMsgType[DisablePortWatcher] should not be null
         dpProbe().expectMsgType[Initialize] should not be null

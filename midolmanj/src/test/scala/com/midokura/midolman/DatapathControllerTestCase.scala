@@ -192,7 +192,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     var opReply =
       ask[PortNetdevOpReply](
-        topActor(DatapathController.Name),
+        DatapathController.getRef(actors()),
         CreatePortNetdev(Ports.newNetDevPort("netdev"), None))
 
     opReply should not be (null)
@@ -210,7 +210,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     opReply =
       ask[PortNetdevOpReply](
-        topActor(DatapathController.Name),
+        DatapathController.getRef(actors()),
         DeletePortNetdev(opReply.port, None))
     opReply should not be (null)
 
