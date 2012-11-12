@@ -29,7 +29,7 @@ MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
 # OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in the
 # java library path. We specify our jna.jar in the classpath, this leads to incompatibility.
-# We should use whether (1) the system jnidispatcher and the system jna.jar
+# We should use either (1) the system jnidispatcher and the system jna.jar
 # or (2) the packaged jnidispatcher and the packaged jna.jar.
 # Here we remove the /usr/lib/jni from the library path to use the package
 # jnidispatcher
