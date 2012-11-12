@@ -33,6 +33,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
                                                             PortRequest}
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.midolman.guice.MidolmanActorsModule
 
 
 object HostConfigOperation extends Enumeration {
@@ -189,6 +190,10 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
 class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
     import VirtualToPhysicalMapper._
+
+    @Inject
+    @MidolmanActorsModule.CRASH_STRATEGY
+    override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
     val clusterClient: Client = null

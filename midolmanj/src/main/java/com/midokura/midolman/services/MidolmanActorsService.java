@@ -31,7 +31,6 @@ import com.midokura.midolman.SimulationController;
 import com.midokura.midolman.SupervisorActor;
 import com.midokura.midolman.SupervisorActor.StartChild;
 import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.guice.ComponentInjectorHolder;
 import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
@@ -67,8 +66,6 @@ public class MidolmanActorsService extends AbstractService {
 
     @Override
     protected void doStart() {
-        ComponentInjectorHolder.setInjector(injector);
-
         log.info("Booting up actors service");
 
         log.debug("Creating actors system.");

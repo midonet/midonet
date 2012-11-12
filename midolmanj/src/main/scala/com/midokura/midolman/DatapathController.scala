@@ -445,9 +445,6 @@ class DatapathController() extends Actor with ActorLogging {
     implicit val requestReplyTimeout = new Timeout(1 second)
 
     @Inject
-    override val supervisorStrategy: SupervisorStrategy = null
-
-    @Inject
     val datapathConnection: OvsDatapathConnection = null
 
     @Inject

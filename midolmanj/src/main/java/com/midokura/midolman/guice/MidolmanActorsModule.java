@@ -3,6 +3,9 @@
 */
 package com.midokura.midolman.guice;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 import akka.actor.ActorInitializationException;
 import akka.actor.ActorKilledException;
 import akka.actor.OneForOneStrategy;
@@ -10,6 +13,7 @@ import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
 import akka.util.Duration;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -30,6 +34,9 @@ import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.*;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
 import static akka.actor.SupervisorStrategy.escalate;
@@ -40,6 +47,11 @@ import static akka.actor.SupervisorStrategy.escalate;
  * initialization time.
  */
 public class MidolmanActorsModule extends PrivateModule {
+    @BindingAnnotation @Target({FIELD}) @Retention(RUNTIME)
+    public @interface RESUME_STRATEGY {}
+    @BindingAnnotation @Target({FIELD}) @Retention(RUNTIME)
+    public @interface CRASH_STRATEGY {}
+
     private static final Logger log = LoggerFactory
             .getLogger(MidolmanActorsModule.class);
 
@@ -50,8 +62,19 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(SupervisorStrategy.class)
                 .toProvider(CrashStrategyProvider.class)
                 .in(Singleton.class);
-
         expose(SupervisorStrategy.class);
+
+        bind(SupervisorStrategy.class)
+                .annotatedWith(RESUME_STRATEGY.class)
+                .toProvider(ResumeStrategyProvider.class)
+                .in(Singleton.class);
+        expose(SupervisorStrategy.class).annotatedWith(RESUME_STRATEGY.class);
+
+        bind(SupervisorStrategy.class)
+                .annotatedWith(CRASH_STRATEGY.class)
+                .toProvider(CrashStrategyProvider.class)
+                .in(Singleton.class);
+        expose(SupervisorStrategy.class).annotatedWith(CRASH_STRATEGY.class);
 
         requireBinding(MidolmanConfig.class);
         requireBinding(Cache.class);

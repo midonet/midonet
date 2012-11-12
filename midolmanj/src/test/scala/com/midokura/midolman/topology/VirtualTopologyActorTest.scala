@@ -15,8 +15,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
 
 import com.midokura.midolman.Setup
 import com.midokura.midolman.config.{MidolmanConfig, ZookeeperConfig}
-import com.midokura.midolman.guice.{MockMonitoringStoreModule,
-                                    ComponentInjectorHolder}
+import com.midokura.midolman.guice.MockMonitoringStoreModule
 import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.{TypedConfigModule,
                                            MockConfigProviderModule}
@@ -69,7 +68,6 @@ with BeforeAndAfter {
             new MockMonitoringStoreModule(),
             new ClusterClientModule()
         )
-        ComponentInjectorHolder.setInjector(injector)
         /*injector.getInstance(classOf[MidolmanService]).startAndWait()
         injector.getInstance(classOf[MidostoreSetupService]).startAndWait()*/
     }
