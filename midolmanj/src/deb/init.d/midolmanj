@@ -27,6 +27,14 @@ QUAGGA_DIR=/var/run/quagga/
 MIDO_DEBUG_PORT=8001
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
+# OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in the
+# java library path. We specify our jna.jar in the classpath, this leads to incompatibility.
+# We should use whether (1) the system jnidispatcher and the system jna.jar
+# or (2) the packaged jnidispatcher and the packaged jna.jar.
+# Here we remove the /usr/lib/jni from the library path to use the package
+# jnidispatcher
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+
 # Exit if the package is not installed
 # Test that midolmanj is installed
 [ -r $MIDO_JAR ] || exit 0
@@ -97,6 +105,7 @@ do_start()
                --make-pidfile \
                --background \
                --exec $JAVA -- \
+                   $JAVA_LIBRARY_PATH \
                    -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
                    -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                    $JAVA_OPTS \
