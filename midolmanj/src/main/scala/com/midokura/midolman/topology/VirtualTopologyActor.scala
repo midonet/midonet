@@ -16,7 +16,7 @@ import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.Port
 
 object VirtualTopologyActor extends Referenceable {
-    val Name: String = "VirtualTopologyActor"
+    override val Name: String = "VirtualTopologyActor"
 
     /*
      * VirtualTopologyActor's clients use these messages to request the most

@@ -24,7 +24,7 @@ import akka.event.LoggingReceive
 
 
 object FlowController extends Referenceable {
-    val Name = "FlowController"
+    override val Name = "FlowController"
 
     /**
      *

@@ -17,7 +17,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.Referenceable
 
 object RoutingManagerActor extends Referenceable {
-    val Name = "RoutingManager"
+    override val Name = "RoutingManager"
 }
 
 class RoutingManagerActor extends Actor with ActorLogging {

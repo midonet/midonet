@@ -61,7 +61,7 @@ sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
 case class LocalPortActive(portID: UUID, active: Boolean)
 
 object VirtualToPhysicalMapper extends Referenceable {
-    val Name = "VirtualToPhysicalMapper"
+    override val Name = "VirtualToPhysicalMapper"
 
     case class HostRequest(hostId: UUID)
 

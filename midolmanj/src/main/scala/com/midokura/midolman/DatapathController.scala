@@ -85,7 +85,7 @@ case class Initialize()
 
 object DatapathController extends Referenceable {
 
-    val Name = "DatapathController"
+    override val Name = "DatapathController"
 
     // Java API
     def getInitialize: Initialize = {
