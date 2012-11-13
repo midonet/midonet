@@ -16,12 +16,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class ZookeeperConnectionWatcher implements Watcher {
+public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ZookeeperConnectionWatcher.class);
 
     private ScheduledExecutorService executorService;
     private ScheduledFuture<?> disconnectHandle;
+    private ZkConnection conn = null;
+    private long sessionId = 0;
 
     @Inject
     MidolmanConfig config;
@@ -31,9 +33,16 @@ public class ZookeeperConnectionWatcher implements Watcher {
     }
 
     @Override
+    public void setZkConnection(ZkConnection conn) {
+        this.conn = conn;
+    }
+
+    @Override
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
-            log.warn("KeeperState is Disconnected, shutdown soon");
+            log.warn("KeeperState is Disconnected, will shutdown in {} " +
+                "seconds if the connection is not restored.",
+                config.getZooKeeperGraceTime());
 
             disconnectHandle = executorService.schedule(new Runnable() {
                 @Override
@@ -42,11 +51,23 @@ public class ZookeeperConnectionWatcher implements Watcher {
                             "so exiting", config.getZooKeeperGraceTime());
                     System.exit(-1);
                 }
-            }, config.getZooKeeperGraceTime(), TimeUnit.SECONDS);
+            }, config.getZooKeeperGraceTime(), TimeUnit.MILLISECONDS);
         }
 
         if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-            log.info("KeeperState is SyncConnected");
+            if (conn != null) {
+                if (sessionId == 0) {
+                    this.sessionId = conn.getZooKeeper().getSessionId();
+                } else if (sessionId != conn.getZooKeeper().getSessionId()) {
+                    log.warn("Zookeeper connection restored to a new session " +
+                            "id (old={} new={}), shutting down",
+                            sessionId, conn.getZooKeeper().getSessionId());
+                    System.exit(-1);
+                }
+            }
+
+            log.info("KeeperState is SyncConnected, SessionId={}",
+                     conn.getZooKeeper().getSessionId());
 
             if (disconnectHandle != null) {
                 log.info("canceling shutdown");

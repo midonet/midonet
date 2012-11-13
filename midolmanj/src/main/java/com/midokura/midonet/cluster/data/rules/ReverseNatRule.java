@@ -23,7 +23,7 @@ public class ReverseNatRule
 
     public ReverseNatRule(UUID uuid, Condition condition,
                           RuleResult.Action action, boolean isDnat,
-                          ReverseNatRule.Data ruleData){
+                          NatRule.Data ruleData){
         super(uuid, condition, action, isDnat, ruleData);
     }
 
