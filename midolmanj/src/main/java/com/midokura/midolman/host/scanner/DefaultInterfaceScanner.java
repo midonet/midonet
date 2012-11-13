@@ -6,12 +6,15 @@ package com.midokura.midolman.host.scanner;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.interfaces.InterfaceDescription;
 import com.midokura.midolman.host.sensor.*;
 import com.midokura.netlink.Callback;
+import com.midokura.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +25,11 @@ import java.util.List;
 
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
+    public static final String INTERFACE_REACTOR = "interface reactor" ;
+
+    @Inject
+    @Named(INTERFACE_REACTOR)
+    Reactor reactor;
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes
@@ -49,8 +57,6 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
 
     @Override
     public synchronized InterfaceDescription[] scanInterfaces() {
-        log.debug("Start scanning for interface data.");
-
         List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
 
         for (InterfaceSensor sensor : sensors) {
@@ -61,8 +67,15 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
     }
 
     @Override
-    public void scanInterfaces(Callback<List<InterfaceDescription>> callback) {
-        List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
-        callback.onSuccess(list);
+    public void scanInterfaces(final Callback<List<InterfaceDescription>> callback) {
+        reactor.submit(
+            new Runnable() {
+                @Override
+                public void run() {
+                    List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
+                    callback.onSuccess(list);
+                }
+            }
+        );
     }
 }
