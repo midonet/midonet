@@ -13,10 +13,7 @@ import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
 import akka.util.Duration;
-import com.google.inject.BindingAnnotation;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +32,7 @@ import com.midokura.midolman.topology.*;
 import com.midokura.netlink.protos.OvsDatapathConnection;
 
 import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import static akka.actor.SupervisorStrategy.resume;
@@ -47,9 +45,12 @@ import static akka.actor.SupervisorStrategy.escalate;
  * initialization time.
  */
 public class MidolmanActorsModule extends PrivateModule {
-    @BindingAnnotation @Target({FIELD}) @Retention(RUNTIME)
+    public static final String CRASH_STRATEGY_NAME = "crash";
+    public static final String RESUME_STRATEGY_NAME = "resume";
+
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface RESUME_STRATEGY {}
-    @BindingAnnotation @Target({FIELD}) @Retention(RUNTIME)
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface CRASH_STRATEGY {}
 
     private static final Logger log = LoggerFactory
@@ -58,23 +59,6 @@ public class MidolmanActorsModule extends PrivateModule {
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
-
-        bind(SupervisorStrategy.class)
-                .toProvider(CrashStrategyProvider.class)
-                .in(Singleton.class);
-        expose(SupervisorStrategy.class);
-
-        bind(SupervisorStrategy.class)
-                .annotatedWith(RESUME_STRATEGY.class)
-                .toProvider(ResumeStrategyProvider.class)
-                .in(Singleton.class);
-        expose(SupervisorStrategy.class).annotatedWith(RESUME_STRATEGY.class);
-
-        bind(SupervisorStrategy.class)
-                .annotatedWith(CRASH_STRATEGY.class)
-                .toProvider(CrashStrategyProvider.class)
-                .in(Singleton.class);
-        expose(SupervisorStrategy.class).annotatedWith(CRASH_STRATEGY.class);
 
         requireBinding(MidolmanConfig.class);
         requireBinding(Cache.class);
@@ -115,12 +99,24 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(MidolmanActorsService.class).in(Singleton.class);
     }
 
-    public static class ResumeStrategyProvider
-            implements Provider<SupervisorStrategy> {
+    @Provides @Exposed
+    public SupervisorStrategy getSupervisorActorStrategy(MidolmanConfig config) {
+        String strategy = config.getMidolmanTopLevelActorsSupervisor();
+        switch (strategy) {
+            case CRASH_STRATEGY_NAME:
+                return getCrashStrategy();
+            case RESUME_STRATEGY_NAME:
+                return getResumeStrategy();
+            default:
+                log.warn("Unknown supervisor strategy [{}], " +
+                         "falling back to resume strategy", strategy);
+                return getResumeStrategy();
+        }
+    }
 
-        @Override
-        public SupervisorStrategy get() {
-            return new OneForOneStrategy(-1, Duration.Inf(),
+    @Provides @Exposed @RESUME_STRATEGY
+    public SupervisorStrategy getResumeStrategy() {
+        return new OneForOneStrategy(-1, Duration.Inf(),
                 new Function<Throwable, Directive>() {
                     @Override
                     public Directive apply(Throwable t) {
@@ -132,23 +128,18 @@ public class MidolmanActorsModule extends PrivateModule {
                             return resume();
                     }
                 });
-        }
     }
 
-    public static class CrashStrategyProvider
-            implements Provider<SupervisorStrategy> {
-
-        @Override
-        public SupervisorStrategy get() {
-            return new OneForOneStrategy(-1, Duration.Inf(),
-                    new Function<Throwable, Directive>() {
-                        @Override
-                        public Directive apply(Throwable t) {
-                            log.warn("Actor crashed, aborting: {}", t);
-                            System.exit(-1);
-                            return stop();
-                        }
-                    });
-        }
+    @Provides @Exposed @CRASH_STRATEGY
+    public SupervisorStrategy getCrashStrategy() {
+        return new OneForOneStrategy(-1, Duration.Inf(),
+                new Function<Throwable, Directive>() {
+                    @Override
+                    public Directive apply(Throwable t) {
+                        log.warn("Actor crashed, aborting: {}", t);
+                        System.exit(-1);
+                        return stop();
+                    }
+                });
     }
 }

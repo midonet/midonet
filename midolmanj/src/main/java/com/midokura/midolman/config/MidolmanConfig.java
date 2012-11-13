@@ -36,6 +36,9 @@ public interface MidolmanConfig
     @ConfigString(key = "cache_type", defaultValue = "cassandra")
     public String getMidolmanCacheType();
 
+    @ConfigString(key = "top_level_actors_supervisor", defaultValue = "resume")
+    public String getMidolmanTopLevelActorsSupervisor();
+
     @ConfigBool(key = "enable_monitoring", defaultValue = true)
     public boolean getMidolmanEnableMonitoring();
 
