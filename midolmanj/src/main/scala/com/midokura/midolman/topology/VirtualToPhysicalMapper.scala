@@ -33,6 +33,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
                                                             PortRequest}
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.midolman.guice.MidolmanActorsModule
 
 
 object HostConfigOperation extends Enumeration {
@@ -61,7 +62,7 @@ sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
 case class LocalPortActive(portID: UUID, active: Boolean)
 
 object VirtualToPhysicalMapper extends Referenceable {
-    val Name = "VirtualToPhysicalMapper"
+    override val Name = "VirtualToPhysicalMapper"
 
     case class HostRequest(hostId: UUID)
 
@@ -189,6 +190,9 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
 class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
     import VirtualToPhysicalMapper._
+
+    @Inject
+    override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
     val clusterClient: Client = null

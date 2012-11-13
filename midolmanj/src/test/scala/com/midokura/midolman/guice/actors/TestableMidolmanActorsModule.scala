@@ -3,18 +3,21 @@
 */
 package com.midokura.midolman.guice.actors
 
-import com.midokura.midolman.guice.MidolmanActorsModule
-import com.midokura.midolman.services.MidolmanActorsService
+import scala.Some
 import collection.mutable
+import java.util.concurrent.LinkedBlockingDeque
+
 import akka.testkit.{TestActor, TestActorRef, TestKit}
 import akka.actor._
-import java.util.concurrent.LinkedBlockingDeque
 import akka.testkit.TestActor.{AutoPilot, Message}
-import scala.Some
 import akka.event.Logging
 import akka.pattern.ask
-import akka.util.Timeout
-import akka.util.duration._
+import akka.util.{Duration, Timeout}
+import akka.dispatch.Await
+
+import com.midokura.midolman.guice.MidolmanActorsModule
+import com.midokura.midolman.services.MidolmanActorsService
+import com.midokura.midolman.SupervisorActor
 
 /**
  * A [[com.midokura.midolman.guice.MidolmanActorsModule]] that can will override
@@ -88,7 +91,10 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
         var instance: ProbingTestActor = null
 
         override lazy val testActor: ActorRef = {
-            system.actorOf(Props(makeInstance()), actorName)
+            implicit val tout = new Timeout(Duration("3 seconds"))
+            val actorFuture = SupervisorActor.getRef(_system) ?
+                SupervisorActor.StartChild(Props(makeInstance()), actorName)
+            Await.result(actorFuture.mapTo[ActorRef], tout.duration)
         }
 
         private def makeInstance(): ProbingTestActor = {

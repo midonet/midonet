@@ -4,23 +4,28 @@
 
 package com.midokura.midolman.routingprotocols
 
-import akka.actor.{ActorRef, Props, ActorLogging, Actor}
-import com.midokura.midonet.cluster.{Client, DataClient}
-import com.google.inject.{Injector, Inject}
+import collection.mutable
+import akka.actor._
+import com.google.inject.Inject
 import java.util.UUID
+
 import com.midokura.util.functors.Callback2
 import com.midokura.midolman.config.MidolmanConfig
+import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort}
-import collection.mutable
 import com.midokura.midolman.topology.{VirtualTopologyActor}
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.Referenceable
+import com.midokura.midolman.guice.MidolmanActorsModule
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 
 object RoutingManagerActor extends Referenceable {
-    val Name = "RoutingManager"
+    override val Name = "RoutingManager"
 }
 
 class RoutingManagerActor extends Actor with ActorLogging {
+
+    @Inject
+    override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
     var dataClient: DataClient = null

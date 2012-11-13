@@ -3,7 +3,7 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef}
+import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef, SupervisorStrategy}
 import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -85,7 +85,7 @@ case class Initialize()
 
 object DatapathController extends Referenceable {
 
-    val Name = "DatapathController"
+    override val Name = "DatapathController"
 
     // Java API
     def getInitialize: Initialize = {

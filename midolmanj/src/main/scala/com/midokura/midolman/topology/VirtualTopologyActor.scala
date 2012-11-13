@@ -3,20 +3,21 @@
  */
 package com.midokura.midolman.topology
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import collection.mutable
+import scala.Some
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, SupervisorStrategy}
 import java.util.UUID
-import javax.inject.Inject
+import com.google.inject.Inject
 
 import com.midokura.midolman.Referenceable
 import com.midokura.midolman.config.MidolmanConfig
-import com.midokura.midolman.guice.ComponentInjectorHolder
+import com.midokura.midolman.guice.MidolmanActorsModule
 import com.midokura.midolman.simulation.{Bridge, Chain, Router}
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.Port
 
 object VirtualTopologyActor extends Referenceable {
-    val Name: String = "VirtualTopologyActor"
+    override val Name: String = "VirtualTopologyActor"
 
     /*
      * VirtualTopologyActor's clients use these messages to request the most
@@ -58,9 +59,11 @@ object VirtualTopologyActor extends Referenceable {
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 }
 
-class VirtualTopologyActor() extends Actor with ActorLogging {
+class VirtualTopologyActor extends Actor with ActorLogging {
     import VirtualTopologyActor._
     // dir: Directory, zkBasePath: String, val hostIp: IntIPv4
+
+    // XXX TODO(pino): get the local host ID for VPN locking.
 
     private val idToBridge = mutable.Map[UUID, Bridge]()
     private val idToChain = mutable.Map[UUID, Chain]()
@@ -74,19 +77,15 @@ class VirtualTopologyActor() extends Actor with ActorLogging {
     private val managed = mutable.Set[UUID]()
 
     @Inject
-    var clusterClient: Client = null
+    override val supervisorStrategy: SupervisorStrategy = null
+
+    @Inject
+    val clusterClient: Client = null
 
     //@Inject
     //var greZK: TunnelZkManager = null
     @Inject
-    var config: MidolmanConfig = null
-
-    override def preStart() {
-        super.preStart()
-        // XXX TODO(pino): get the local host ID for VPN locking.
-        ComponentInjectorHolder.inject(this)
-
-    }
+    val config: MidolmanConfig = null
 
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {

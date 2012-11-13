@@ -18,19 +18,21 @@ import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.monitoring.MonitoringActor;
-import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static akka.pattern.Patterns.ask;
 import static akka.pattern.Patterns.gracefulStop;
 
 import com.midokura.midolman.DatapathController;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.SimulationController;
-import com.midokura.midolman.guice.ComponentInjectorHolder;
+import com.midokura.midolman.SupervisorActor;
+import com.midokura.midolman.SupervisorActor.StartChild;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.monitoring.MonitoringActor;
+import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.midokura.midolman.topology.VirtualToPhysicalMapper;
 import com.midokura.midolman.topology.VirtualTopologyActor;
 
@@ -53,6 +55,7 @@ public class MidolmanActorsService extends AbstractService {
 
     protected ActorSystem actorSystem;
 
+    ActorRef supervisorActor;
     ActorRef virtualTopologyActor;
     ActorRef datapathControllerActor;
     ActorRef virtualToPhysicalActor;
@@ -63,13 +66,16 @@ public class MidolmanActorsService extends AbstractService {
 
     @Override
     protected void doStart() {
-        ComponentInjectorHolder.setInjector(injector);
-
         log.info("Booting up actors service");
 
         log.debug("Creating actors system.");
         actorSystem = ActorSystem.create("MidolmanActors",
                 ConfigFactory.load().getConfig("midolman"));
+
+        supervisorActor =
+                startTopActor(
+                        getGuiceAwareFactory(SupervisorActor.class),
+                        SupervisorActor.Name());
 
         virtualTopologyActor =
                 startActor(
@@ -148,12 +154,12 @@ public class MidolmanActorsService extends AbstractService {
         }
     }
 
-    private ActorRef startActor(Props actorProps, String actorName) {
+    private ActorRef startTopActor(Props actorProps, String actorName) {
         ActorRef actorRef = null;
 
         try {
             log.debug("Starting actor {}", actorName);
-            actorRef = makeActorRef(actorProps, actorName);
+            actorRef = actorSystem.actorOf(actorProps, actorName);
 
             log.debug("Started at {}", actorRef);
         } catch (Exception e) {
@@ -163,8 +169,26 @@ public class MidolmanActorsService extends AbstractService {
         return actorRef;
     }
 
-    protected ActorRef makeActorRef(Props actorProps, String actorName) {
-        return actorSystem.actorOf(actorProps, actorName);
+    private ActorRef startActor(Props actorProps, String actorName) {
+        ActorRef actorRef = null;
+
+        try {
+            log.debug("Starting actor {}", actorName);
+            actorRef = makeActorRef(actorProps, actorName);
+            log.debug("Started at {}", actorRef);
+        } catch (Exception e) {
+            log.error("Failed {}", e);
+        }
+
+        return actorRef;
+    }
+
+    protected ActorRef makeActorRef(Props actorProps, String actorName)
+            throws Exception {
+        Timeout tout = new Timeout(Duration.parse("3 seconds"));
+        Future<Object> actorFuture = ask(
+                supervisorActor, new StartChild(actorProps, actorName), tout);
+        return (ActorRef) Await.result(actorFuture, tout.duration());
     }
 
     public void initProcessing() throws Exception {

@@ -24,7 +24,7 @@ import com.midokura.midolman.{Referenceable, DatapathController}
  */
 
 object MonitoringActor extends Referenceable {
-  val Name = "MonitoringActor"
+  override val Name = "MonitoringActor"
 
 }
 

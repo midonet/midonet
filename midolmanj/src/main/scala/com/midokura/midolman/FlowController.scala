@@ -24,7 +24,7 @@ import akka.event.LoggingReceive
 
 
 object FlowController extends Referenceable {
-    val Name = "FlowController"
+    override val Name = "FlowController"
 
     /**
      *
@@ -96,7 +96,6 @@ class FlowController extends Actor with ActorLogging {
 
     override def preStart() {
         super.preStart()
-        //ComponentInjectorHolder.inject(this)
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
 
         flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,

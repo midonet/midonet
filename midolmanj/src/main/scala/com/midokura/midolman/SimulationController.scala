@@ -24,7 +24,7 @@ import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.google.inject.Inject
 
 object SimulationController extends Referenceable {
-    val Name = "SimulationController"
+    override val Name = "SimulationController"
 
     case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet)
 }

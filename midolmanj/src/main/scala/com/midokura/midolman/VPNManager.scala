@@ -9,7 +9,7 @@ import topology.VirtualTopologyActor
 import topology.VirtualTopologyActor.{AcquiredLockOnVPN, RegisterVPNHandler}
 
 object VPNManager extends Referenceable {
-    val Name = "VPNManager"
+    override val Name = "VPNManager"
 }
 
 class VPNManager extends Actor with ActorLogging {
