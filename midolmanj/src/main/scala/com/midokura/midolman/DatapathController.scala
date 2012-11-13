@@ -739,7 +739,8 @@ class DatapathController() extends Actor with ActorLogging {
             deletedPort =>
                 localPorts.get(deletedPort).get match {
                     case p: NetDevPort =>
-                        log.info("Interface was deleted: {} {}", Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
+                        log.info("Interface was deleted: {}, {}",
+                            Array(localPorts.get(deletedPort).get.getPortNo,deletedPort))
                         // delete the dp <-> port link
                         deleteDatapathPort(self, p, None)
                         // set port to inactive.
@@ -781,6 +782,7 @@ class DatapathController() extends Actor with ActorLogging {
         if (portVif != None) {
             VirtualToPhysicalMapper.getRef() ! LocalPortActive(portVif.get, active = up)
         } else {
+            // the port does not contain a known zookeeper id yet. Nothing to do.
             log.info(portName + " did not map to anything. Ignoring.")
         }
     }
