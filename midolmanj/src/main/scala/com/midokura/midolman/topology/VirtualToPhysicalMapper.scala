@@ -192,7 +192,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     import VirtualToPhysicalMapper._
 
     @Inject
-    @MidolmanActorsModule.CRASH_STRATEGY
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject

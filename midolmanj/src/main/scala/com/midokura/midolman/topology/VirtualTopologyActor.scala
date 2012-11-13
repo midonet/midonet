@@ -77,7 +77,6 @@ class VirtualTopologyActor extends Actor with ActorLogging {
     private val managed = mutable.Set[UUID]()
 
     @Inject
-    @MidolmanActorsModule.CRASH_STRATEGY
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject

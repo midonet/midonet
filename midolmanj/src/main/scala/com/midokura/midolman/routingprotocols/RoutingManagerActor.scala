@@ -25,7 +25,6 @@ object RoutingManagerActor extends Referenceable {
 class RoutingManagerActor extends Actor with ActorLogging {
 
     @Inject
-    @MidolmanActorsModule.CRASH_STRATEGY
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
