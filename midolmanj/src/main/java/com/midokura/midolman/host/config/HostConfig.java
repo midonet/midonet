@@ -40,7 +40,7 @@ public interface HostConfig {
      *
      * @return properties file
      */
-    @ConfigString(key = "properties_file", defaultValue = "host_uuid.properties")
+    @ConfigString(key = "properties_file", defaultValue = "/etc/midolman/host_uuid.properties")
     public String getHostPropertiesFilePath();
 
     /**
