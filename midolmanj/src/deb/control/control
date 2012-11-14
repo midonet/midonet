@@ -3,7 +3,7 @@ Version: [[version]]
 Section: misc
 Priority: optional
 Architecture: amd64
-Depends: quagga, zookeeper (>= 3.4.5-mido)
+Depends: quagga
 Recommends: java7-runtime-headless, java7-jdk, openvswitch-datapath-dkms
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midolman is a virtual network controller
