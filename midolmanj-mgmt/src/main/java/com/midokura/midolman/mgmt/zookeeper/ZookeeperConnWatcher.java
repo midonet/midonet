@@ -3,8 +3,13 @@
  */
 package com.midokura.midolman.mgmt.zookeeper;
 
+import com.google.inject.Inject;
 import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -13,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Zookeeper connection watcher for the API server.
  */
-public class ZookeeperConnWatcher implements Watcher {
+public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZookeeperConnWatcher.class);
@@ -21,8 +26,8 @@ public class ZookeeperConnWatcher implements Watcher {
     private ZkConnection conn;
     private final ZookeeperConfig config;
 
-    public ZookeeperConnWatcher(ZkConnection conn, ZookeeperConfig config) {
-        this.conn = conn;
+    @Inject
+    public ZookeeperConnWatcher(ZookeeperConfig config) {
         this.config = config;
     }
 
@@ -49,4 +54,35 @@ public class ZookeeperConnWatcher implements Watcher {
         log.debug("ZookeeperConnWatcher.process: Exiting");
     }
 
+    @Override
+    public void setZkConnection(ZkConnection conn) {
+        this.conn = conn;
+    }
+
+    @Override
+    public void scheduleOnReconnect(Runnable runnable) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void handleError(String operationDesc, Runnable retry,
+                            KeeperException e) {
+        log.debug("handleError(): ignoring: {}", e);
+    }
+
+    @Override
+    public void handleError(String operationDesc, Runnable retry,
+                            StateAccessException e) {
+        log.debug("handleError(): ignoring: {}", e);
+    }
+
+    @Override
+    public void handleTimeout(Runnable runnable) {
+        // do nothing
+    }
+
+    @Override
+    public void handleDisconnect(Runnable runnable) {
+        // do nothing
+    }
 }

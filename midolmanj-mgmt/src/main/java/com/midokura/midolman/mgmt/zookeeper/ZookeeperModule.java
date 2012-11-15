@@ -3,11 +3,9 @@
  */
 package com.midokura.midolman.mgmt.zookeeper;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Key;
-import com.google.inject.Provides;
+import com.google.inject.*;
 import com.google.inject.name.Names;
+
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ReactorProvider;
@@ -15,6 +13,7 @@ import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 import com.midokura.util.eventloop.Reactor;
 
 /**
@@ -30,6 +29,15 @@ public class ZookeeperModule extends AbstractModule {
                 ZookeeperConnectionModule.ZookeeperConfigProvider.class)
                 .asEagerSingleton();
 
+        bind(Reactor.class).annotatedWith(
+                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+                .toProvider(ReactorProvider.class)
+                .asEagerSingleton();
+
+        bind(ZkConnectionAwareWatcher.class)
+                .to(ZookeeperConnWatcher.class)
+                .asEagerSingleton();
+
         // Bind the ZK connection with watcher
         bind(ZkConnection.class).toProvider(
                 ZkConnectionProvider.class).asEagerSingleton();
@@ -37,11 +45,6 @@ public class ZookeeperModule extends AbstractModule {
         // Bind the Directory object
         bind(Directory.class).toProvider(
                 ExtendedDirectoryProvider.class).asEagerSingleton();
-
-        bind(Reactor.class).annotatedWith(
-                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
-                .toProvider(ReactorProvider.class)
-                .asEagerSingleton();
     }
 
     @Inject
