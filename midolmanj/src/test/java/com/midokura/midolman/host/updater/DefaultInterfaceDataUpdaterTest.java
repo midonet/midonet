@@ -10,17 +10,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.inject.Inject;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
+import akka.actor.Actor;
+import akka.testkit.TestActorRef;
+import akka.testkit.TestKit;
+import com.google.inject.*;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
+import scala.collection.JavaConversions;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -28,9 +28,10 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 
-import com.midokura.config.ConfigProvider;
-import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.config.ZookeeperConfig;
+import com.midokura.midolman.guice.MidolmanModule;
+import com.midokura.midolman.guice.MockFlowStateCacheModule;
+import com.midokura.midolman.guice.actors.TestableMidolmanActorsModule;
 import com.midokura.midolman.guice.InterfaceScannerModule;
 import com.midokura.midolman.guice.MockMonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
@@ -46,6 +47,7 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
+
 import static com.midokura.midolman.host.state.HostDirectory.Interface;
 
 public class DefaultInterfaceDataUpdaterTest {
@@ -75,29 +77,18 @@ public class DefaultInterfaceDataUpdaterTest {
 
         Injector injector = Guice.createInjector(
             new MockConfigProviderModule(configuration),
-            new MockZookeeperConnectionModule(cleanDirectory),
             new MockDatapathModule(),
-            new ReactorModule(),
+            new MockFlowStateCacheModule(),
+            new MockZookeeperConnectionModule(cleanDirectory),
             new HostModule(),
-            new AbstractModule() {
-                @Override
-                protected void configure() {
-                    bind(MidolmanConfig.class)
-                        .toProvider(new Provider<MidolmanConfig>() {
-                            @Inject
-                            ConfigProvider configProvider;
-
-                            @Override
-                            public MidolmanConfig get() {
-                                return configProvider.getConfig(
-                                    MidolmanConfig.class);
-                            }
-                        });
-                }
-            },
-            new InterfaceScannerModule(),
+            new ReactorModule(),
             new MockMonitoringStoreModule(),
-            new ClusterClientModule());
+            new ClusterClientModule(),
+            new TestableMidolmanActorsModule(
+                JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
+                JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>())),
+            new MidolmanModule(),
+            new InterfaceScannerModule());
 
         directory = cleanDirectory;
         updater = injector.getInstance(InterfaceDataUpdater.class);
