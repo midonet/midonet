@@ -77,9 +77,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         try {
             if (!isUpdate) {
                 arpTable = new ArpTable(routerMgr.getArpTableDirectory(id));
+                arpTable.setConnectionWatcher(connectionWatcher);
                 routeSet = new ReplicatedRouteSet(
                             routerMgr.getRoutingTableDirectory(id),
                             CreateMode.EPHEMERAL, builder);
+                routeSet.setConnectionWatcher(connectionWatcher);
                 mapRouterIdToRoutes.put(id, routeSet);
             }
             /* NOTE(guillermo) this the last zk-related call in this block

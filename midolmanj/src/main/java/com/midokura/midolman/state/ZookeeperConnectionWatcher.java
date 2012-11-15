@@ -143,7 +143,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         else if (e instanceof KeeperException.OperationTimeoutException)
             handleTimeout(retry);
         else
-            log.error("ZK operation failed for {} - {}", operationDesc, e);
+            log.error("Non recoverable error on ZK operation for {} - {}",
+                      operationDesc, e);
     }
 
     // TODO(guillermo) There is a bit of an abstraction leak in the ZK exception
@@ -158,7 +159,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         else if (e.getCause() instanceof InterruptedException)
             handleTimeout(retry);
         else
-            log.error("ZK operation failed for {} - {}", operationDesc, e);
+            log.error("Non recoverable error on ZK operation for {} - {}",
+                      operationDesc, e);
     }
 
     @Override

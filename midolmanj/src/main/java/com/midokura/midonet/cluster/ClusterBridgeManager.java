@@ -76,6 +76,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                         zkConfig.getMidolmanRootKey());
                 macPortMap = new MacPortMap(dir.getSubDirectory(
                         pathManager.getBridgeMacPortsPath(id)));
+                macPortMap.setConnectionWatcher(connectionWatcher);
 
                 macPortMap.start();
                 builder.setMacLearningTable(

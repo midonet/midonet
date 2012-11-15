@@ -17,11 +17,14 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
+
 
 public abstract class ReplicatedMap<K, V> {
-
     private final static Logger log =
          LoggerFactory.getLogger(ReplicatedMap.class);
+
+    protected ZkConnectionAwareWatcher connectionWatcher;
 
     /*
      * TODO(pino): don't allow deletes to be lost.
@@ -40,6 +43,10 @@ public abstract class ReplicatedMap<K, V> {
 
     public interface Watcher<K1, V1> {
         void processChange(K1 key, V1 oldValue, V1 newValue);
+    }
+
+    public void setConnectionWatcher(ZkConnectionAwareWatcher watcher) {
+        connectionWatcher = watcher;
     }
 
     private static class Notification<K1, V1> {
@@ -62,10 +69,15 @@ public abstract class ReplicatedMap<K, V> {
                 // XXX TODO(pino, rossella): make this asynchronous.
                 curPaths = dir.getChildren("/", this);
             } catch (KeeperException e) {
-                log.error("DirectoryWatcher.run", e);
-                throw new RuntimeException(e);
+                log.warn("DirectoryWatcher.run {}", e);
+                if (connectionWatcher != null) {
+                    connectionWatcher.handleError("ReplicatedMap", this, e);
+                    return;
+                } else {
+                    throw new RuntimeException(e);
+                }
             } catch (InterruptedException e) {
-                log.error("DirectoryWatcher.run", e);
+                log.error("DirectoryWatcher.run {}", e);
                 Thread.currentThread().interrupt();
             }
             List<String> cleanupPaths = new LinkedList<String>();
@@ -123,6 +135,7 @@ public abstract class ReplicatedMap<K, V> {
                     dir.delete(path);
                 } catch (KeeperException e) {
                     log.error("DirectoryWatcher.run", e);
+                    // XXX(guillermo) connectionWatcher.handleError()?
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
                     log.error("DirectoryWatcher.run", e);
