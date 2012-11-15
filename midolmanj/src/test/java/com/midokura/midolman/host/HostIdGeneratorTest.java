@@ -32,8 +32,6 @@ public class HostIdGeneratorTest {
     String hostId1 = "e3f9adc0-5175-11e1-b86c-0800200c9a66";
     String hostId2 = "e3f9adc0-5175-11e1-b86c-0800200c9a67";
     HostZkManager zkManager;
-    File confFile;
-    File confFileFake;
     File propFile;
     String basePath = "/midolman";
     HostConfig config;
@@ -54,6 +52,8 @@ public class HostIdGeneratorTest {
 
         final HierarchicalConfiguration configuration =
                 new HierarchicalConfiguration();
+
+        // this configuration will use the default hostid properties location.
         configuration.addNodes(HostConfig.GROUP_NAME,
                 Arrays.asList(new HierarchicalConfiguration.Node
                         (uuidPropertyName, hostId1)
@@ -67,7 +67,9 @@ public class HostIdGeneratorTest {
 
         final HierarchicalConfiguration fakeConfiguration =
                 new HierarchicalConfiguration();
-        fakeConfiguration.addNodes(HostConfig.GROUP_NAME, null);
+        fakeConfiguration.addNodes(HostConfig.GROUP_NAME,
+                Arrays.asList(new HierarchicalConfiguration.Node
+                        ("properties_file", localPropertiesFile)));
 
         configFake =
                 ConfigProvider
