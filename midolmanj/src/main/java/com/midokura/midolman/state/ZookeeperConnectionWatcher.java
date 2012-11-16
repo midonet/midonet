@@ -6,9 +6,6 @@ package com.midokura.midolman.state;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
-import com.midokura.util.eventloop.Reactor;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -21,6 +18,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
+import com.midokura.util.eventloop.Reactor;
 
 public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 

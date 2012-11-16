@@ -5,11 +5,11 @@ package com.midokura.midolman.mgmt.zookeeper;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.midokura.midolman.state.ZkConnection;
-import com.midokura.midolman.state.ZkConnectionAwareWatcher;
-import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 
 /**
  * ZkConnection provider
