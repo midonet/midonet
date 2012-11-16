@@ -11,7 +11,8 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 import akka.actor.ActorRef
 
 class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
-                  listenAddress: String, socketAddress:AFUNIXSocketAddress) {
+                  listenAddress: String, socketAddress:AFUNIXSocketAddress,
+                  networkNamespace: String) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
 
@@ -20,10 +21,11 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
 
         //TODO(abel) the bgpd binary path should be provided by midolman config file
         //TODO(abel) the bgpd config path should be provided by midolman config file
-        val bgpdCmdLine = "/usr/lib/quagga/bgpd --vty_port " + vtyPortNumber +
-        " --vty_addr 127.0.0.1" +
+        val bgpdCmdLine = "sudo ip netns exec " + networkNamespace +
+        " /usr/lib/quagga/bgpd" +
+        " --vty_port " + vtyPortNumber +
+        //" --vty_addr 127.0.0.1" +
         " --config_file /etc/quagga/bgpd.conf" +
-        //" --listenon " + listenAddress +
         " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
         " --socket " + socketAddress.getSocketFile
 

@@ -17,6 +17,7 @@ import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
+import com.midokura.util.process.ProcessHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,19 +37,16 @@ import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.lock.LockHelper;
 
-@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
     final String tenantName = "tenant";
 
-    /*
-    static final String networkNamespace = "mido_ns_0";
-    static final String pairedInterfaceLocal = "veth0";
-    static final String pairedInterfacePeer  = "veth1";
+    static final String networkNamespace = "bgptest_ns";
+    static final String pairedInterfaceLocal = "bgptest0";
+    static final String pairedInterfacePeer  = "bgptest1";
     static final String peerVm = "peerVmPort";
-    */
 
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
@@ -67,61 +65,85 @@ public class BgpTest {
     @BeforeClass
     public static void setUpClass() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-        /*
 
-        List<String> commandList = null;
+        String bgpPeerConfig = "midolmanj_runtime_configurations/peer.bgpd.conf";
+
+        ProcessHelper.ProcessResult result;
+        String cmdLine;
 
         // Create network namespace
-        commandList = ProcessHelper.executeCommandLine
-                ("ip netns list | grep " + networkNamespace);
-        if (commandList.size() == 0) {
-            ProcessHelper.executeCommandLine
-                    ("sudo ip netns add " + networkNamespace);
+        cmdLine = "/bin/sh -c \"sudo ip netns list | grep " + networkNamespace + "\"";
+        result = ProcessHelper.executeCommandLine(cmdLine);
+        log.debug("result.consoleOutput: {}", result.consoleOutput);
+        log.debug("result.consoleOutput.size: {}", result.consoleOutput.size());
+        if (result.consoleOutput.size() == 0) {
+            cmdLine = "sudo ip netns add " + networkNamespace;
+            ProcessHelper.executeCommandLine(cmdLine);
+        } else {
+            cmdLine = "sudo ip link delete " + pairedInterfaceLocal;
+            ProcessHelper.executeCommandLine(cmdLine);
+
+            cmdLine = "sudo killall bgpd";
+            ProcessHelper.executeCommandLine(cmdLine);
         }
 
         // Create paired interfaces
-        ProcessHelper.executeCommandLine("sudo ip link delete " +
-                pairedInterfaceLocal);
-        ProcessHelper.executeCommandLine("sudo ip link add type veth");
-        ProcessHelper.executeCommandLine("sudo ifconfig " +
-                pairedInterfaceLocal + " up");
-        ProcessHelper.executeCommandLine("sudo ifconfig " +
-                pairedInterfacePeer + " 100.0.0.2 up");
+        cmdLine = "sudo ip link add name " + pairedInterfaceLocal +
+                " type veth peer name " + pairedInterfacePeer;
+        ProcessHelper.executeCommandLine(cmdLine);
+
+        cmdLine = "sudo ifconfig " + pairedInterfaceLocal + " up";
+        ProcessHelper.executeCommandLine(cmdLine);
 
         // Send peer paired interface to network namespace
-        ProcessHelper.executeCommandLine("sudo ip link set " +
-                pairedInterfacePeer + " netns " + networkNamespace);
+        cmdLine = "sudo ip link set " + pairedInterfacePeer + " netns " +
+                networkNamespace;
+        ProcessHelper.executeCommandLine(cmdLine);
+
+        cmdLine = "sudo ip netns exec " + networkNamespace + " ifconfig " +
+                pairedInterfacePeer + " 100.0.0.2 up";
+        ProcessHelper.executeCommandLine(cmdLine);
 
         // bring up loopback in network namespace
-        ProcessHelper.executeCommandLine("sudo ip netns exec " +
-                networkNamespace + " ifconfig lo up");
+        cmdLine = "sudo ip netns exec " + networkNamespace + " ifconfig lo up";
+        ProcessHelper.executeCommandLine(cmdLine);
 
         // Create fake VM port in network namespace
-        ProcessHelper.executeCommandLine("sudo ip link add type dummy " + peerVm);
-        ProcessHelper.executeCommandLine("sudo ifconfig vmport 2.0.0.2 up");
+        ProcessHelper.executeCommandLine("sudo ip link add name " + peerVm + " type dummy");
         ProcessHelper.executeCommandLine("sudo ip link set " + peerVm +
-                + " netns " + networkNamespace);
+                " netns " + networkNamespace);
+        ProcessHelper.executeCommandLine("sudo ip netns exec " + networkNamespace +
+                " ifconfig " + peerVm + " 2.0.0.2 up");
+
+        // run zebra
+        cmdLine = "sudo ip netns exec " + networkNamespace + " zebra";
+        ProcessHelper.RunnerConfiguration zebra_runner =
+                ProcessHelper.newDemonProcess(cmdLine);
+        zebra_runner.run();
 
         // run bgpd peer
-        ProcessHelper.executeCommandLine("sudo ip netns exec " +
+        cmdLine = "sudo ip netns exec " +
                 networkNamespace + " /usr/local/sbin/bgpd --config_file " +
-                "./peer.bgpd.conf --listenon 100.0.0.2 --pid_file " +
-                "/var/run/quagga/peer.bgpd.pid -A 127.0.0.1");
-        */
+                bgpPeerConfig + " --pid_file " +
+                "/var/run/quagga/peer.bgpd.pid";
+        ProcessHelper.RunnerConfiguration bgpd_runner =
+                ProcessHelper.newDemonProcess(cmdLine);
+        bgpd_runner.run();
     }
 
     @AfterClass
     public static void tearDownClass() {
         lock.release();
 
-        /*
         ProcessHelper.executeCommandLine("sudo killall bgpd");
+        ProcessHelper.executeCommandLine("sudo killall zebra");
 
         ProcessHelper.executeCommandLine("sudo ip link delete " +
                 pairedInterfaceLocal);
+        ProcessHelper.executeCommandLine("sudo ip netns exec " +
+                networkNamespace + " ip link delete " + peerVm);
         ProcessHelper.executeCommandLine("sudo ip netns delete " +
                 networkNamespace);
-        */
     }
 
     @Before
@@ -155,7 +177,7 @@ public class BgpTest {
                 .networkLength(24)
                 .portMac("02:00:00:00:01:01")
                 .create();
-        log.debug("Created logical router port: " + materializedRouterPort1_vm.toString());
+        log.debug("Created materialized router port - VM: " + materializedRouterPort1_vm.toString());
 
         router1.addRoute()
                 .dstNetworkAddr("1.0.0.1")
@@ -172,14 +194,15 @@ public class BgpTest {
                 .networkLength(30)
                 .portMac("02:00:00:00:aa:01")
                 .create();
-        log.debug("Created materialized router port: " + materializedRouterPort1_bgp.toString());
+        log.debug("Created materialized router port - BGP: " + materializedRouterPort1_bgp.toString());
 
         bgp1 = materializedRouterPort1_bgp.addBgp()
                 .localAS(1)
                 .peerAddr("100.0.0.2")
                 .peerAS(2)
                 .create();
-        log.debug("Created BGP in materialized router port: " + bgp1.toString());
+        log.debug("Created BGP {} in materialized router port {} ",
+                bgp1.toString(), materializedRouterPort1_bgp.toString());
 
         bgp1.addAdRoute()
                 .nwPrefix("1.0.0.0")
@@ -210,7 +233,7 @@ public class BgpTest {
 
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
-                .interfaceName("veth0")
+                .interfaceName(pairedInterfaceLocal)
                 .portId(materializedRouterPort1_bgp.getId())
                 .create();
 

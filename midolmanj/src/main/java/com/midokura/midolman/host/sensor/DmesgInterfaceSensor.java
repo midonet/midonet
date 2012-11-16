@@ -28,7 +28,7 @@ public class DmesgInterfaceSensor implements InterfaceSensor {
 
     protected List<String> getDmesgOutput(String interfaceName) {
         return ProcessHelper.executeCommandLine(
-            "dmesg | grep " + interfaceName + " | grep PHY");
+            "dmesg | grep " + interfaceName + " | grep PHY").consoleOutput;
     }
 
     private boolean isPhysical(String interfaceName) {

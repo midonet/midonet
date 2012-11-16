@@ -166,9 +166,8 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void subscribeBgp(UUID portID, BGPListBuilder builder) {
-        log.debug("subscribeBgp - begin");
+        log.debug("subscribing port {} for BGP updates", portID);
         bgpManager.registerNewBuilder(portID, builder);
-        log.debug("subscribeBgp - end");
     }
 
     private void readHosts(final TunnelZone<?, ?> zone,
