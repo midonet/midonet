@@ -9,12 +9,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.cache.LoadingCache;
-import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;

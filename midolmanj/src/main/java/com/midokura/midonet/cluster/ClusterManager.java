@@ -33,7 +33,6 @@ abstract class ClusterManager<T> {
     Reactor reactorLoop;
 
     @Inject
-    @Named(ZKConnectionProvider.WATCHER_NAME_TAG)
     ZkConnectionAwareWatcher connectionWatcher;
 
     private TypedMap<UUID, T> stagingMap = new TypedHashMap<UUID, T>();

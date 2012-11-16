@@ -6,19 +6,13 @@ package com.midokura.midolman.guice;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import org.apache.zookeeper.Watcher;
 
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.services.DatapathConnectionService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
 import com.midokura.midolman.simulation.Chain;
-import com.midokura.midolman.state.ZkConnectionAwareWatcher;
-import com.midokura.midolman.state.ZookeeperConnectionWatcher;
 import com.midokura.midonet.cluster.Client;
 
 /**
@@ -45,16 +39,6 @@ public class MidolmanModule extends PrivateModule {
 
         requestStaticInjection(Chain.class);
 
-        Named watcherAnnotation = Names.named(
-                ZKConnectionProvider.WATCHER_NAME_TAG);
-
-        bind(ZkConnectionAwareWatcher.class)
-            .annotatedWith(watcherAnnotation)
-            .to(ZookeeperConnectionWatcher.class)
-            .asEagerSingleton();
-
-        expose(ZkConnectionAwareWatcher.class)
-            .annotatedWith(watcherAnnotation);
     }
 
     /**
