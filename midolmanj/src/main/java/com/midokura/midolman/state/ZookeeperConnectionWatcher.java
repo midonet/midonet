@@ -4,6 +4,7 @@
 
 package com.midokura.midolman.state;
 
+import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -14,7 +15,8 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -28,6 +30,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
+    private List<Runnable> reconnectCallbacks;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -43,6 +46,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
+        this.reconnectCallbacks = new LinkedList<Runnable>();
     }
 
     @Override
@@ -72,10 +76,15 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                             sessionId, conn.getZooKeeper().getSessionId());
                     System.exit(-1);
                 }
+
+                log.info("KeeperState is SyncConnected, SessionId={}",
+                        conn.getZooKeeper().getSessionId());
+            } else {
+                log.error("Got ZK connection event but ZkConnection "+
+                          "has not been supplied, cannot track sessions");
             }
 
-            log.info("KeeperState is SyncConnected, SessionId={}",
-                     conn.getZooKeeper().getSessionId());
+            submitReconnectCallbacks();
 
             if (disconnectHandle != null) {
                 log.info("canceling shutdown");
@@ -92,8 +101,21 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         //TODO(abel) should this class process other Zookeeper events?
     }
 
+    private void submitReconnectCallbacks() {
+        if (reconnectCallbacks.size() > 0) {
+            log.info("ZK connection restored, re-issuing {} requests",
+                    reconnectCallbacks.size());
+            for (Runnable r: reconnectCallbacks)
+                reactorLoop.submit(r);
+            reconnectCallbacks.clear();
+        }
+
+    }
+
     @Override
     public void scheduleOnReconnect(Runnable runnable) {
+        log.info("scheduling callback on zookeeper reconnection");
+        reconnectCallbacks.add(runnable);
     }
 
     /**
