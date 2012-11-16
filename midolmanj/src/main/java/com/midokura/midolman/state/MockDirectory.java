@@ -510,7 +510,7 @@ public class MockDirectory implements Directory {
                     break;
 
                 case None:
-                    typedWatcher.pathNoChange(event.getPath());
+                    typedWatcher.connectionStateChanged(event.getState());
                     break;
             }
         }

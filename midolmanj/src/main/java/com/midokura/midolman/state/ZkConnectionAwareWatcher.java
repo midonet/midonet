@@ -8,4 +8,6 @@ import org.apache.zookeeper.Watcher;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
     void setZkConnection(ZkConnection conn);
+
+    void scheduleOnReconnect(Runnable runnable);
 }

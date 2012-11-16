@@ -83,4 +83,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
         //TODO(abel) should this class process other Zookeeper events?
     }
+
+    @Override
+    public void scheduleOnReconnect(Runnable runnable) {
+    }
 }

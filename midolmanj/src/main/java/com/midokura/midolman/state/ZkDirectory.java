@@ -118,6 +118,9 @@ public class ZkDirectory implements Directory {
 
         @Override
         public void process(WatchedEvent arg0) {
+            if (arg0.getType() == Event.EventType.None)
+                return;
+
             if (null == reactor) {
                 log.warn("Reactor is null - processing ZK event in ZK thread.");
                 watcher.run();
@@ -170,7 +173,7 @@ public class ZkDirectory implements Directory {
                     break;
 
                 case None:
-                    typedWatcher.pathNoChange(event.getPath());
+                    typedWatcher.connectionStateChanged(event.getState());
                     break;
             }
         }
