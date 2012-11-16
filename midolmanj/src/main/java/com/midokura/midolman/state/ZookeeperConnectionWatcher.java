@@ -4,7 +4,11 @@
 
 package com.midokura.midolman.state;
 
+import com.google.inject.name.Named;
 import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
+import com.midokura.util.eventloop.Reactor;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -24,6 +28,10 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
+
+    @Inject
+    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    Reactor reactorLoop;
 
     @Inject
     MidolmanConfig config;
@@ -86,5 +94,59 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     @Override
     public void scheduleOnReconnect(Runnable runnable) {
+    }
+
+    /**
+     * Handles an error thrown by a cluster operation. There are three possible
+     * outcomes:
+     *
+     *     - The operation is retried. This is done for operations that were
+     *       interrupted or timed out.
+     *     - The operation is queued in the ZookeeperConnectionWatcher for
+     *       resubmission when the Zookeeper connection is restored. This is
+     *       done for disconnection errors.
+     *     - All other errors are ignored and logged. Their operations will
+     *       never be retried and their watchers/callbacks never invoked.
+     *
+     * @param operationDesc Human-readable string describing the failed operation
+     * @param retry A runnable that will retry the operation inside the
+     *              the directory reactor.
+     * @param e The error thrown by the failed operation.
+     */
+    @Override
+    public void handleError(String operationDesc, Runnable retry,
+                            KeeperException e) {
+        if (e instanceof KeeperException.ConnectionLossException)
+            handleDisconnect(retry);
+        else if (e instanceof KeeperException.OperationTimeoutException)
+            handleTimeout(retry);
+        else
+            log.error("ZK operation failed for {} - {}", operationDesc, e);
+    }
+
+    // TODO(guillermo) There is a bit of an abstraction leak in the ZK exception
+    // business. Some classes map them to StateAccessException subclasses, some
+    // let KeeperExceptions to pass through their api. We handle both cases here
+    // but should eventually choose one or the other.
+    @Override
+    public void handleError(String operationDesc, Runnable retry,
+                            StateAccessException e) {
+        if (e.getCause() instanceof KeeperException)
+            handleError(operationDesc, retry, (KeeperException) e.getCause());
+        else if (e.getCause() instanceof InterruptedException)
+            handleTimeout(retry);
+        else
+            log.error("ZK operation failed for {} - {}", operationDesc, e);
+    }
+
+    @Override
+    public void handleTimeout(Runnable runnable) {
+        log.info("Resubmitting timed-out zookeeper request");
+        reactorLoop.submit(runnable);
+    }
+
+    @Override
+    public void handleDisconnect(Runnable runnable) {
+        scheduleOnReconnect(runnable);
     }
 }
