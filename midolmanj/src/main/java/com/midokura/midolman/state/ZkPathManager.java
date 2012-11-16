@@ -121,20 +121,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get the path of a bridge's port to location map.
-     *
-     * @param id Bridge UUID
-     * @return /bridges/bridgeId/port_locations
-     */
-    public String getBridgePortLocationsPath(UUID id) {
-        return buildBridgePortLocations(id).toString();
-    }
-
-    protected StringBuilder buildBridgePortLocations(UUID id) {
-        return buildBridgePath(id).append("/port_locations");
-    }
-
-    /**
      * Get ZK path for filtering state
      *
      * @return /filters
@@ -227,20 +213,6 @@ public class ZkPathManager {
 
     private StringBuilder buildPortPath(UUID id) {
         return buildPortsPath().append("/").append(id);
-    }
-
-    /**
-     * Get ZK locations path for a given port.
-     *
-     * @param id Port ID.
-     * @return /ports/portId/locations
-     */
-    public String getPortLocationsPath(UUID id) {
-        return buildPortLocationsPath(id).toString();
-    }
-
-    private StringBuilder buildPortLocationsPath(UUID id) {
-        return buildPortPath(id).append("/locations");
     }
 
     /**
@@ -841,19 +813,6 @@ public class ZkPathManager {
     private StringBuilder buildBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
         return buildBgpAdRoutesPath(bgpId).append("/")
             .append(adRouteId);
-    }
-
-    /**
-     * Get the path to the port to location map for the router network.
-     *
-     * @return /vrn_port_locations
-     */
-    public String getVRNPortLocationsPath() {
-        return buildVRNPortLocationsPath().toString();
-    }
-
-    private StringBuilder buildVRNPortLocationsPath() {
-        return basePath().append("/vrn_port_locations");
     }
 
     /**

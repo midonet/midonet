@@ -157,9 +157,6 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(paths.getBridgeMacPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(paths.getBridgePortLocationsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
         // Add a port-set for this bridge
         ops.add(Op.create(paths.getPortSetPath(id),
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -250,7 +247,6 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
-        ops.add(Op.delete(paths.getBridgePortLocationsPath(id), -1));
 
         // Delete GRE
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));

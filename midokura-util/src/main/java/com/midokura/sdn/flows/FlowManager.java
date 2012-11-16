@@ -172,9 +172,9 @@ public class FlowManager {
         if(howManyFlowsToRemoveToFreeSpace() > 0){
             log.error("The flow table is full, cannot add flow with match {}",
                       flowMatch);
-            // There's no point in trying to free space, because the remove operation
-            // won't take please until the FlowController receive and process the
-            // message RemoveFlow
+            // There's no point in trying to free space, because the remove
+            // operation won't take place until the FlowController receives
+            // and processes the RemoveFlow message.
         }
         dpFlowToWildFlow.put(flowMatch, wildFlow);
         wildFlowToDpFlows.get(wildFlow).add(flowMatch);
