@@ -187,14 +187,6 @@ public class TunnelZoneZkManager extends ZkManager {
             zoneId = UUID.randomUUID();
         }
 
-        if (!exists(paths.getTunnelZonesPath())) {
-            createMulti.add(
-                getPersistentCreateOp(
-                    paths.getTunnelZonesPath(), null
-                )
-            );
-        }
-
         createMulti.add(
             getPersistentCreateOp(
                 paths.getTunnelZonePath(zoneId),

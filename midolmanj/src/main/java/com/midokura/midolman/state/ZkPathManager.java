@@ -15,7 +15,7 @@ import com.midokura.packets.MAC;
  */
 public class ZkPathManager {
 
-    public static final String TUNNEL_ZONES = "tunnel-zones";
+    public static final String TUNNEL_ZONES = "tunnel_zones";
     public static final String MEMBERSHIPS = "memberships";
 
     protected String basePath = null;
