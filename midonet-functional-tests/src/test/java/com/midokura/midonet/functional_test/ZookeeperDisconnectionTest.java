@@ -121,9 +121,10 @@ public class ZookeeperDisconnectionTest {
             Patterns.ask(vta, new BridgeRequest(bridge.getId(), true), 30000);
         Waiters.sleepBecause("We want the ZK request to fail", 16);
 
+        assertThat("Bridge future has not completed", !bridgeFuture.isCompleted());
+
         log.info("turning communications with zookeeper back on");
         assertThat("iptables command is successful", unblockCommunications() == 0);
-        // check that we get the proper RCU bridge
 
         log.info("waiting for the RCU bridge to be sent to us");
         Object result = Await.result(bridgeFuture, Duration.parse("30 seconds"));
