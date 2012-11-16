@@ -42,6 +42,9 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     @Override
     protected void getConfig(final UUID id) {
         PortConfig config = portConfigCache.get(id);
+        if (config == null)
+            return;
+
         Port<?> port = null;
 
         if (config instanceof PortDirectory.LogicalBridgePortConfig) {

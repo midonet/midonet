@@ -159,9 +159,13 @@ public class DataClusterClientModule extends PrivateModule {
         @Inject
         Reactor reactor;
 
+        @Inject
+        ZkConnectionAwareWatcher connWatcher;
+
         @Override
         public PortConfigCache get() {
-            return new PortConfigCache(reactor, directory, config.getMidolmanRootKey());
+            return new PortConfigCache(reactor, directory,
+                                       config.getMidolmanRootKey(), connWatcher);
         }
     }
 }

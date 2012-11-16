@@ -8,10 +8,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.cache.LoadingCache;
+import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.state.zkManagers.PortZkManager;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.functors.Callback1;
@@ -34,13 +37,16 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
     private static final Logger log =
             LoggerFactory.getLogger(PortConfigCache.class);
 
+    ZkConnectionAwareWatcher connectionWatcher;
+
     private PortZkManager portMgr;
     private Set<Callback1<UUID>> watchers = new HashSet<Callback1<UUID>>();
 
     public PortConfigCache(Reactor reactor, Directory zkDir,
-                           String zkBasePath) {
+            String zkBasePath, ZkConnectionAwareWatcher connWatcher) {
         super(reactor);
         portMgr = new PortZkManager(zkDir, zkBasePath);
+        connectionWatcher = connWatcher;
     }
 
     public <T extends PortConfig> T get(UUID key, Class<T> clazz) {
@@ -71,10 +77,13 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
 
     @Override
     protected PortConfig load(UUID key) {
+        PortWatcher watcher = new PortWatcher(key);
         try {
-            return portMgr.get(key, new PortWatcher(key));
+            return portMgr.get(key, watcher);
         } catch (StateAccessException e) {
-            log.error("Exception retrieving PortConfig", e);
+            log.warn("Exception retrieving PortConfig", e);
+            connectionWatcher.handleError(
+                    "PortWatcher:" + key.toString(), watcher, e);
         }
         return null;
     }
@@ -96,7 +105,9 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                     notifyWatchers(portID);
                 } catch (StateAccessException e) {
                     // If the ZK lookup fails, the cache keeps the old value.
-                    log.error("Exception refreshing PortConfig", e);
+                    log.warn("Exception refreshing PortConfig", e);
+                    connectionWatcher.handleError(
+                            "PortWatcher:" + portID.toString(), this, e);
                 }
         }
     }
