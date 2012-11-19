@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura 
-*/
+ * Copyright 2012 Midokura
+ */
 package com.midokura.midolman
 
 import scala.Some
@@ -25,8 +25,8 @@ import com.midokura.midonet.cluster.data.dhcp.Subnet
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
-import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
+import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
+import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions, FlowAction}
 import util.RouterHelper
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.DatapathController.PacketIn
@@ -43,6 +43,7 @@ class PingTestCase extends MidolmanTestCase with
     val routerIp2 = IntIPv4.fromString("192.168.222.1", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     // VM1: remote host to ping
+    val vm1Mac = MAC.fromString("02:23:24:25:26:27")
     val vm1Ip = IntIPv4.fromString("192.168.111.2", 24)
     // DHCP client
     val vm2IP = IntIPv4.fromString("192.168.222.2", 24)
@@ -52,8 +53,9 @@ class PingTestCase extends MidolmanTestCase with
     var vm2PortNumber = 0
     var dhcpServerIp = 0
     var dhcpClientIp = 0
-
-    var bridge: ClusterBridge = null
+    var rtrPort1 : MaterializedRouterPort = null
+    val rtrPort1Name = "RouterPort1"
+    var rtrPort1Num = 0
 
     private var flowEventsProbe: TestProbe = null
     private var portEventsProbe: TestProbe = null
@@ -78,11 +80,19 @@ class PingTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         // set up materialized port on router
-        val rtrPort1 = newExteriorRouterPort(router, routerMac1,
-            routerIp1.toUnicastString, 
+        rtrPort1 = newExteriorRouterPort(router, routerMac1,
+            routerIp1.toUnicastString,
             routerIp1.toNetworkAddress.toUnicastString,
             routerIp1.getMaskLength)
         rtrPort1 should not be null
+        materializePort(rtrPort1, host, rtrPort1Name)
+        val portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        portEvent.active should be(true)
+        portEvent.portID should be(rtrPort1.getId)
+        dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId) match {
+            case Some(portNo : Short) => rtrPort1Num = portNo
+            case None => fail("Not able to find data port number for Router port 1")
+        }
 
         newRoute(router, "0.0.0.0", 0,
             routerIp1.toNetworkAddress.toUnicastString, routerIp1.getMaskLength,
@@ -91,7 +101,7 @@ class PingTestCase extends MidolmanTestCase with
 
         // set up logical port on router
         val rtrPort2 = newInteriorRouterPort(router, routerMac2,
-            routerIp2.toUnicastString, 
+            routerIp2.toUnicastString,
             routerIp2.toNetworkAddress.toUnicastString,
             routerIp2.getMaskLength)
         rtrPort2 should not be null
@@ -102,7 +112,7 @@ class PingTestCase extends MidolmanTestCase with
             new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
 
         // create bridge link to router's logical port
-        bridge = newBridge("bridge")
+        val bridge = newBridge("bridge")
         bridge should not be null
 
         val brPort1 = newInteriorBridgePort(bridge)
@@ -112,7 +122,7 @@ class PingTestCase extends MidolmanTestCase with
         // add a materialized port on bridge, logically connect to VM2
         brPort2 = newExteriorBridgePort(bridge)
         brPort2 should not be null
-        
+
         // DHCP related setup
         // set up Option 121
         var opt121Obj = (new Opt121()
@@ -158,6 +168,21 @@ class PingTestCase extends MidolmanTestCase with
         Ethernet.deserialize(pktOut.getData)
     }
 
+    private def expectRoutedPacketOut(portNum : Int): Ethernet = {
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        pktOut should not be null
+        pktOut.getData should not be null
+        log.debug("Packet Broadcast: {}", pktOut)
+
+        val flowActs = pktOut.getActions
+
+        flowActs.size should equal (3)
+
+        flowActs.contains(FlowActions.output(portNum)) should be (true)
+
+        Ethernet.deserialize(pktOut.getData)
+    }
+
     private def arpAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
                                  dstIp: IntIPv4, expectedMac: MAC, portNum : Int) {
 
@@ -179,6 +204,22 @@ class PingTestCase extends MidolmanTestCase with
             setDestinationAddress(dstIp.addressAsInt).
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echo))
+        triggerPacketIn(portName, eth)
+    }
+
+    private def sendEchoReply(portName : String, srcMac : MAC, srcIp : IntIPv4,
+                              echoId : Short, echoSeqNum : Short, dstMac : MAC,
+                              dstIp : IntIPv4) = {
+        val echoReply = new ICMP()
+        echoReply.setEchoReply(echoId, echoSeqNum, "My ICMP".getBytes)
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(srcMac).
+            setDestinationMACAddress(dstMac).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
+            setDestinationAddress(dstIp.addressAsInt).
+            setProtocol(ICMP.PROTOCOL_NUMBER).
+            setPayload(echoReply))
         triggerPacketIn(portName, eth)
     }
 
@@ -284,6 +325,7 @@ class PingTestCase extends MidolmanTestCase with
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
         expectEmitDhcpReply(DHCPOption.MsgType.OFFER.value)
+        expectPacketOut(vm2PortNumber);
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
@@ -291,28 +333,56 @@ class PingTestCase extends MidolmanTestCase with
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
+        expectPacketOut(vm2PortNumber);
 
         val vm2IpInt = vm2IP.addressAsInt
         dhcpClientIp should be === vm2IpInt
 
-        log.info("Sending ARP")
+        //log.info("Sending ARP")
         //arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp2,
         //                 routerMac2, vm2PortNumber)
-        feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac, 
+        feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac,
                      routerIp2.addressAsInt, routerMac2)
         requestOfType[PacketIn](simProbe())
         fishForRequestOfType[DiscardPacket](flowProbe())
         drainProbes()
-        log.info("ARP Router port 1, and ping it too")
-        arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp1, routerMac2,
-                         vm2PortNumber)
-        requestOfType[PacketIn](simProbe())
+
         log.info("Ping Router port 2")
         injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
         requestOfType[PacketIn](simProbe())
         log.info("Check ICMP Echo Reply from Router port 2")
         expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+        expectPacketOut(vm2PortNumber);
+        
+        log.info("Ping Router port 1")
+        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
+        requestOfType[PacketIn](simProbe())
+        log.info("Check ICMP Echo Reply from Router port 1")
+        expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP,
+                       ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+        expectPacketOut(vm2PortNumber);
 
+        log.info("Ping VM1, not expecting any reply")
+        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
+
+        log.info("Send Ping reply on behalf of VM1")
+        sendEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 
+                      16, 32,
+                      routerMac1, vm2IP)
+        requestOfType[PacketIn](simProbe())
+        fishForRequestOfType[DiscardPacket](flowProbe())
+        expectPacketOut(rtrPort1Num)
+
+        log.info("Expecting packet out on VM2 port")
+        val eth = expectRoutedPacketOut(vm2PortNumber)
+        val ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak should not be null
+        ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        ipPak.getSourceAddress should be (vm1Ip.addressAsInt)
+        ipPak.getDestinationAddress should be (vm2IP.addressAsInt)
+        val icmpPak= ipPak.getPayload.asInstanceOf[ICMP]
+        icmpPak should not be null
+        icmpPak.getType should be (ICMP.TYPE_ECHO_REPLY)
     }
 }
