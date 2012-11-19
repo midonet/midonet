@@ -20,13 +20,12 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
-import com.midokura.sdn.dp.ports.{NetDevPort, InternalPort}
+import com.midokura.sdn.dp.ports.NetDevPort
 import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev, CreatePortInternal, PortInternalOpReply}
+import com.midokura.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
 import com.midokura.util.process.ProcessHelper
-import com.midokura.util.Waiters.sleepBecause
 
 
 /**
@@ -111,7 +110,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     /**
      * This actor can be in these phases:
      * NotStarted: bgp has not been started (no known bgp configs on the port)
-     * Starting: waiting for bgpd to come up (and maybe the internal port)
+     * Starting: waiting for bgpd and netdev port to come up
      * Started: zebra, bgpVty and bgpd are up
      * Stopping: we're in the process of stopping the bgpd
      *
