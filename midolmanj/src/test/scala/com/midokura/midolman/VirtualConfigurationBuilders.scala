@@ -217,4 +217,15 @@ trait VirtualConfigurationBuilders {
             .setNextHopGateway(nextHopGateway)
             .setWeight(weight))
     }
+
+    def addDhcpSubnet(bridge : ClusterBridge,
+                      subnet : Subnet) = {
+        clusterDataClient().dhcpSubnetsCreate(bridge.getId, subnet)
+    }
+
+    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+                    host : com.midokura.midonet.cluster.data.dhcp.Host) = {
+        clusterDataClient().dhcpHostsCreate(bridge.getId,
+                                            subnet.getSubnetAddr, host)
+    }
 }
