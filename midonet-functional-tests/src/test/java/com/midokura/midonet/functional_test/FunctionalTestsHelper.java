@@ -332,6 +332,10 @@ public class FunctionalTestsHelper {
         return midolman;
     }
 
+    public static EmbeddedMidolman getEmbeddedMidolman() {
+        return midolman;
+    }
+
     /**
      * Stops midolman (as a separate process)
      * @param ml

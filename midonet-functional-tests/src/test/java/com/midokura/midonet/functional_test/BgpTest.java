@@ -6,7 +6,14 @@ package com.midokura.midonet.functional_test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import akka.actor.ActorRef;
+import akka.testkit.TestProbe;
+import akka.util.Duration;
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midolman.topology.VirtualTopologyActor;
+import com.midokura.midolman.topology.VirtualTopologyActor.RouterRequest;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.resource.Bgp;
 import com.midokura.midonet.client.resource.Host;
@@ -14,6 +21,7 @@ import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
+import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
@@ -32,6 +40,7 @@ import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertTrue;
 
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -52,6 +61,7 @@ public class BgpTest {
     MidonetMgmt apiClient;
     MidolmanLauncher midolman;
 
+    Router router1;
     TapWrapper tap1_vm;
 
     PacketHelper packetHelper1;
@@ -165,10 +175,13 @@ public class BgpTest {
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
         log.info("Starting midolman");
-        startEmbeddedMidolman(testConfigurationFile.getAbsolutePath());
-        sleepBecause("we need midolman to boot up", 1);
+        EmbeddedMidolman mm = startEmbeddedMidolman(
+                testConfigurationFile.getAbsolutePath());
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+                probe.ref(), LocalPortActive.class);
 
-        Router router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
+        router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
 
         RouterPort materializedRouterPort1_vm = (RouterPort) router1.addMaterializedRouterPort()
@@ -237,14 +250,20 @@ public class BgpTest {
                 .portId(materializedRouterPort1_bgp.getId())
                 .create();
 
+        // Wait for the ports to become active
+        for (int i = 0; i < 2; i++) {
+            LocalPortActive activeMsg = probe.expectMsgClass(
+                    Duration.create(10, TimeUnit.SECONDS),
+                    LocalPortActive.class);
+            log.info("Received one LocalPortActive message from stream.");
+            assertTrue("The port should be active.", activeMsg.active());
+        }
+
         packetHelper1 = new PacketHelper(
                 MAC.fromString("02:00:00:00:01:02"),
                 IntIPv4.fromString("1.0.0.2"),
                 MAC.fromString("02:00:00:00:01:01"),
                 IntIPv4.fromString("1.0.0.1"));
-
-
-        sleepBecause("we need midolman to boot up", 2);
 
         // This is just for ARP between fake VM and router, so the
         // router has the fake VM MAC
@@ -289,7 +308,7 @@ public class BgpTest {
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
 
-        sleepBecause("wait few seconds to see if bgpd catches the route", 30);
+        waitForBgp();
 
         byte [] request;
         request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
@@ -301,5 +320,32 @@ public class BgpTest {
         PacketHelper.checkIcmpEchoReply(request, tap1_vm.recv());
 
         log.debug("testRouteConnectivity - stop");
+    }
+
+    private void waitForBgp() {
+        log.debug("begin");
+
+        EmbeddedMidolman mm = getEmbeddedMidolman();
+        assertThat(mm, notNullValue());
+
+        TestProbe probe = new TestProbe(mm.getActorSystem());
+        ActorRef vta = VirtualTopologyActor.getRef(mm.getActorSystem());
+
+        RouterRequest routerRequest = new RouterRequest(router1.getId(), true);
+        vta.tell(routerRequest, probe.ref());
+
+        // Ask VTA to give us (TestProbe) the router, and keep us updated
+        com.midokura.midolman.simulation.Router router =
+                probe.expectMsgClass(Duration.create(10, TimeUnit.MILLISECONDS),
+                  com.midokura.midolman.simulation.Router.class);
+
+        log.debug("router id: {}", router.id());
+
+        // We received the router, now lets wait for the router update.
+        // The router is updated when it receives the routes from BGP.
+        router = probe.expectMsgClass(Duration.create(30, TimeUnit.SECONDS),
+                        com.midokura.midolman.simulation.Router.class);
+
+        log.debug("end - router id: {}", router.id());
     }
 }
