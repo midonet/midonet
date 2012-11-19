@@ -35,3 +35,5 @@ MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolmanj.list  | grep midolmanj.*\.jar | awk -F
 
 ln -sf `cat $POST_DIR/midolmanj.list | grep midolmanj.*\.jar` "$MIDOLMAN_JAR_DIR/midolmanj.jar"
 ln -sf `cat $POST_DIR/midolmanj.list | grep midokura-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midokura-jdk-bootstrap.jar"
+
+update-rc.d midolmanj defaults 98 02 >/dev/null

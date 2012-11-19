@@ -2,6 +2,9 @@
 
 # Midokura
 
-/usr/sbin/userdel midonet 2> /dev/null >/dev/null
+if [ "$1" = purge ]; then
+    update-rc.d midolmanj remove
+    /usr/sbin/userdel midonet 2> /dev/null >/dev/null
+fi
 
 exit 0
