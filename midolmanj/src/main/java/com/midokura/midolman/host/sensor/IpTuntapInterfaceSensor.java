@@ -55,6 +55,6 @@ public class IpTuntapInterfaceSensor implements InterfaceSensor{
     }
 
     protected List<String> getTuntapOutput() {
-        return ProcessHelper.executeCommandLine("ip tuntap");
+        return ProcessHelper.executeCommandLine("ip tuntap").consoleOutput;
     }
 }

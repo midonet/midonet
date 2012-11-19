@@ -29,7 +29,7 @@ public class MacCommandExecutor extends AbstractCommandExecutor<String> {
         try {
 
             List<String> stdOut =
-                executeCommandLine(format("ip link show %s", targetName));
+                executeCommandLine(format("ip link show %s", targetName)).consoleOutput;
 
             log.debug("Stdout: " + stdOut);
             boolean wasUp = stdOut.size() > 0 && stdOut.get(0).matches(".*state UP.*");

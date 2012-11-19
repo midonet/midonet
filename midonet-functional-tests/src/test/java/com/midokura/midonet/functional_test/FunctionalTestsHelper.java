@@ -97,7 +97,7 @@ public class FunctionalTestsHelper {
         }
 
         List<String> pathList =
-                ProcessHelper.executeLocalCommandLine("which " + zkClientPath);
+                ProcessHelper.executeLocalCommandLine("which " + zkClientPath).consoleOutput;
 
         if (pathList.isEmpty()) {
             switch (osType) {

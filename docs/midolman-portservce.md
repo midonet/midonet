@@ -2,9 +2,12 @@
 
 ### Precis
 
+Note: this document is obsolete.
+Obsoleted-by: Midonet - BGP.
+
 MN provides virtual network topology and the core Midolman does the
 emulation of the virtual topology.  In order to support various network
-services among multiple layers, we incorporate external software to MN.  To
+services among multiple layers, we incorporate external software to MN. To
 plug external software to MN, MN needs to setup the environment to run it,
 and to send certain classes of traffic to it.
 

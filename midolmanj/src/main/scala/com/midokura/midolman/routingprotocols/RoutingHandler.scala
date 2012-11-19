@@ -20,13 +20,13 @@ import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
-import com.midokura.sdn.dp.ports.InternalPort
+import com.midokura.sdn.dp.ports.NetDevPort
 import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.DatapathController.CreatePortInternal
-import com.midokura.midolman.DatapathController.PortInternalOpReply
+import com.midokura.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
 import com.midokura.util.process.ProcessHelper
+
 
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
@@ -53,8 +53,23 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient)
     extends UntypedActorWithStash with ActorLogging {
 
-    private final val BGP_INTERNAL_PORT_NAME: String =
-        "midobgp%d".format(bgpIdx)
+    private final val BGP_NETDEV_PORT_NAME: String =
+        "mbgp%d".format(bgpIdx)
+    private final val BGP_NETDEV_PORT_MIRROR_NAME: String =
+        "mbgp%d_m".format(bgpIdx)
+    private final val BGP_VTY_PORT_NAME: String =
+        "mbgp%d_vty".format(bgpIdx)
+    private final val BGP_VTY_PORT_MIRROR_NAME: String =
+        "mbgp%d_vtym".format(bgpIdx)
+    private final val BGP_VTY_BRIDGE_NAME: String =
+        "mbgp%d_br".format(bgpIdx)
+    private final val BGP_VTY_LOCAL_IP: String =
+        "172.23.0.%d".format((bgpIdx * 4) + 1)
+    private final val BGP_VTY_MIRROR_IP: String =
+        "172.23.0.%d".format((bgpIdx * 4) + 2)
+    private final val BGP_VTY_MASK_LEN: Int = 30
+    private final val BGP_NETWORK_NAMESPACE: String =
+        "mbgp%d_ns".format(bgpIdx)
     private final val ZSERVE_API_SOCKET =
         "/var/run/quagga/zserv%d.api".format(bgpIdx)
     private final val BGP_VTY_PORT: Int = 2605 + bgpIdx
@@ -66,7 +81,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     private val bgps = mutable.Map[UUID, BGP]()
     private val adRoutes = mutable.Set[AdRoute]()
     private val peerRoutes = mutable.Map[Route, UUID]()
-    private var internalPort: InternalPort = null
     private var socketAddress: AFUNIXSocketAddress = null
 
     // At this moment we only support one bgpd process
@@ -93,8 +107,33 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
     case class BGPD_DEAD()
 
+    /**
+     * This actor can be in these phases:
+     * NotStarted: bgp has not been started (no known bgp configs on the port)
+     * Starting: waiting for bgpd and netdev port to come up
+     * Started: zebra, bgpVty and bgpd are up
+     * Stopping: we're in the process of stopping the bgpd
+     *
+     * The transitions are:
+     * NotStarted -> Starting : when we learn about the first BGP config
+     * Starting -> Started : when the bgpd has come up
+     * Started -> Starting : if the bgpd crashes or needs a restart
+     * Started -> Stopping : when all the bgp configs have been removed
+     */
+    object Phase extends Enumeration {
+        type Phase = Value
+        val NotStarted = Value("NotStarted")
+        val Starting = Value("Starting")
+        val Started = Value("Started")
+        val Stopping = Value("Stopping")
+    }
+
+    import Phase._
+
+    var phase = NotStarted
+
     override def preStart() {
-        log.debug("Starting routingHandler.")
+        log.debug("Starting routingHandler for port {}.", rport.id)
 
         super.preStart()
 
@@ -146,7 +185,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
     override def postStop() {
         super.postStop()
-        stopBGP()
+        phase match {
+            case Started => stopBGP()
+            case _ => // nothing
+        }
     }
 
     private val handler = new ZebraProtocolHandler {
@@ -160,31 +202,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             self ! RemovePeerRoute(ribType, destination, gateway)
         }
     }
-
-    /**
-     * This actor can be in these phases:
-     * NotStarted: bgp has not been started (no known bgp configs on the port)
-     * Starting: waiting for bgpd to come up (and maybe the internal port)
-     * Started: zebra, bgpVty and bgpd are up
-     * Stopping: we're in the process of stopping the bgpd
-     *
-     * The transitions are:
-     * NotStarted -> Starting : when we learn about the first BGP config
-     * Starting -> Started : when the bgpd has come up
-     * Started -> Starting : if the bgpd crashes or needs a restart
-     * Started -> Stopping : when all the bgp configs have been removed
-     */
-    object Phase extends Enumeration {
-        type Phase = Value
-        val NotStarted = Value("NotStarted")
-        val Starting = Value("Starting")
-        val Started = Value("Started")
-        val Stopping = Value("Stopping")
-    }
-
-    import Phase._
-
-    var phase = NotStarted
 
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
@@ -207,7 +224,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                     "virtual router port. We got {}", port)
 
             case NewBgpSession(bgp) =>
-                log.debug("NewBgpSession called.")
+                log.debug("NewBgpSession called for port {}.", rport.id)
                 phase match {
                     case NotStarted =>
                         // This must be the first bgp we learn about.
@@ -259,7 +276,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         // This probably shouldn't happen. A BGP config is being
                         // removed, implying we knew about it - we shouldn't be
                         // NotStarted...
-                        log.error("KillBgp not expected in phase NotStarted")
+                        log.error("KillBgp not expected in phase NotStarted for port {}",
+                            rport.id)
                     case Starting =>
                         stash()
                     case Started =>
@@ -279,29 +297,34 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         stash()
                 }
 
-            case PortInternalOpReply(iport, PortOperation.Create,
+            case PortNetdevOpReply(netdevPort, PortOperation.Create,
             false, null, null) =>
-                log.debug("PortInternalOpReply - create")
+                log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
-                        internalPortReady(iport)
+                        netdevPortReady(netdevPort)
                     case _ =>
-                        log.error("PortInternalOpReply expected only while " +
+                        log.error("PortNetdevOpReply expected only while " +
                             "Starting - we're now in {}", phase)
                 }
 
-            case PortInternalOpReply(_, _, _, _, _) => // Do nothing
-                log.debug("PortInternalOpReply - unknown")
+            case PortNetdevOpReply(port, op, timeout, ex, tag) => // Do nothing
+                log.debug("PortNetdevOpReply - unknown")
+                log.debug("port: {}", port)
+                log.debug("op: {}", op)
+                log.debug("timeout: {}", timeout)
+                log.debug("ex: {}", ex)
+                log.debug("tag: {}", tag)
 
             case BGPD_READY =>
-                log.debug("BGPD_READY")
+                log.debug("BGPD_READY for port {}", rport.id)
                 phase match {
                     case Starting =>
                         phase = Started
                         unstashAll()
 
                         bgpVty = new BgpVtyConnection(
-                            addr = "localhost",
+                            addr = BGP_VTY_MIRROR_IP,
                             port = BGP_VTY_PORT,
                             password = "zebra_password")
 
@@ -444,7 +467,18 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     }
 
     private def startBGP() {
-        log.debug("startBGP - begin")
+        log.debug("startBGP - begin for port {}", rport.id)
+
+        // In Linux interface names can be at most 15 characters long
+        val interfaces = List(
+            BGP_NETDEV_PORT_NAME,
+            BGP_NETDEV_PORT_MIRROR_NAME,
+            BGP_VTY_PORT_NAME,
+            BGP_VTY_PORT_MIRROR_NAME)
+        interfaces.foreach(interface => if (interface.length > 15) {
+            log.error("Interface name can be at most 15 characters: {}", interface)
+            return
+        })
 
         val socketFile = new File(ZSERVE_API_SOCKET)
         val socketDir = socketFile.getParentFile
@@ -460,15 +494,113 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         socketAddress = new AFUNIXSocketAddress(socketFile)
 
         zebra = new ZebraServer(
-            socketAddress, handler, rport.portAddr.toHostAddress, BGP_INTERNAL_PORT_NAME)
+            socketAddress, handler, rport.portAddr.toHostAddress, BGP_NETDEV_PORT_MIRROR_NAME)
         zebra.start()
 
+        // does the bgp interface already exist?
+        var cmdLine = "/bin/sh -c \"sudo ip link | grep " + BGP_NETDEV_PORT_NAME + "\""
+        if (ProcessHelper.executeCommandLine(cmdLine).consoleOutput.size() > 0) {
+            // It already existed: delete it
+            cmdLine = "sudo ip link delete " + BGP_NETDEV_PORT_NAME
+            log.debug("cmdLine: {}", cmdLine)
+            ProcessHelper.executeCommandLine(cmdLine)
+        }
+
         // Create the interface bgpd will run on.
-        log.info("Adding internal port {} for BGP link", BGP_INTERNAL_PORT_NAME)
+        cmdLine = "sudo ip link add name " + BGP_NETDEV_PORT_NAME +
+            " type veth peer name " + BGP_NETDEV_PORT_MIRROR_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Does the namespace exist?
+        cmdLine = "/bin/sh -c \"sudo ip netns list | grep -w " + BGP_NETWORK_NAMESPACE + "\""
+        if (ProcessHelper.executeCommandLine(cmdLine).consoleOutput.size() > 0) {
+            // It already existed: delete it
+            cmdLine = "sudo ip netns delete " + BGP_NETWORK_NAMESPACE
+            log.debug("cmdLine: {}", cmdLine)
+            ProcessHelper.executeCommandLine(cmdLine)
+        }
+
+        // Create the network namespace
+        cmdLine = "sudo ip netns add " + BGP_NETWORK_NAMESPACE
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Move the mirror interface inside the network namespace
+        cmdLine = "sudo ip link set " + BGP_NETDEV_PORT_MIRROR_NAME +
+            " netns " + BGP_NETWORK_NAMESPACE
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Configure the mirror interface
+        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
+            " ip link set dev " + BGP_NETDEV_PORT_MIRROR_NAME +
+            " up"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
+            " ip addr add " + rport.portAddr.toUnicastString +
+            "/" + rport.portAddr.getMaskLength + " dev " +
+            BGP_NETDEV_PORT_MIRROR_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // wake up loopback inside network namespace
+        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
+            " ifconfig lo up"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // wake up local port
+        cmdLine = "sudo ip link set dev " + BGP_NETDEV_PORT_NAME + " up"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Add port to datapath
         DatapathController.getRef() !
-            CreatePortInternal(
-                Ports.newInternalPort(BGP_INTERNAL_PORT_NAME)
-                    .setAddress(rport.portMac.getAddress), null)
+            CreatePortNetdev(
+                Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+
+        // VTY
+
+        // Create the interface pair for VTY communication
+        cmdLine = "sudo ip link add name " + BGP_VTY_PORT_NAME +
+            " type veth peer name " + BGP_VTY_PORT_MIRROR_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Move the mirror VTY interface inside the network namespace
+        cmdLine = "sudo ip link set " + BGP_VTY_PORT_MIRROR_NAME +
+            " netns " + BGP_NETWORK_NAMESPACE
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Configure the mirror VTY interface
+        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
+            " ip link set dev " + BGP_VTY_PORT_MIRROR_NAME +
+            " up"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
+            " ip addr add " + BGP_VTY_MIRROR_IP +
+            "/" + BGP_VTY_MASK_LEN + " dev " +
+            BGP_VTY_PORT_MIRROR_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Wake up local vty interface
+        cmdLine = "sudo ip link set dev " + BGP_VTY_PORT_NAME + " up"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Create a bridge for VTY communication
+        cmdLine = "sudo brctl addbr  " + BGP_VTY_BRIDGE_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Add VTY interface to VTY bridge
+        cmdLine = "sudo brctl addif " + BGP_VTY_BRIDGE_NAME +
+            " " + BGP_VTY_PORT_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Set up bridge as local VTY interface
+        cmdLine = "sudo ip addr add " + BGP_VTY_LOCAL_IP +
+            "/" + BGP_VTY_MASK_LEN + " dev " +
+            BGP_VTY_BRIDGE_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // Bring up bridge interface for VTY
+        cmdLine = "sudo ip link set dev " + BGP_VTY_BRIDGE_NAME + " up"
+        ProcessHelper.executeCommandLine(cmdLine)
 
         log.debug("startBGP - end")
     }
@@ -480,13 +612,32 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             bgpdProcess.stop()
         }
 
+        // delete vty interface pair
+        var cmdLine = "sudo ip link del " + BGP_VTY_PORT_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // get vty bridge down
+        cmdLine = "sudo ip link set dev " + BGP_VTY_BRIDGE_NAME + " down"
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // delete vty bridge
+        cmdLine = "sudo brctl delbr " + BGP_VTY_BRIDGE_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // delete bgp interface pair
+        cmdLine = "sudo ip link del " + BGP_NETDEV_PORT_NAME
+        ProcessHelper.executeCommandLine(cmdLine)
+
+        // delete network namespace
+        cmdLine = "sudo ip netns del " + BGP_NETWORK_NAMESPACE
+        ProcessHelper.executeCommandLine(cmdLine)
+
         log.debug("stopBGP - end")
     }
 
-    private def internalPortReady(newPort: InternalPort) {
-        log.debug("internalPortReady - begin")
+    private def netdevPortReady(newPort: NetDevPort) {
+        log.debug("begin")
 
-        internalPort = newPort
         // The internal port is ready. Set up the flows
         if (bgps.size <= 0) {
             log.warning("No BGPs configured for this port: {}", newPort)
@@ -497,20 +648,11 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // the very first one to create the BGPd process
         val bgpPair = bgps.toList.head
         val bgp = bgpPair._2
-        setBGPFlows(internalPort.getPortNo.shortValue(), bgp, rport)
+        setBGPFlows(newPort.getPortNo.shortValue(), bgp, rport)
 
-        // Set ourselves the port up
-        val cmdLineSetDev = "sudo ip link set dev " + internalPort.getName +
-            " arp on mtu 1300 multicast off up"
-        log.debug("internalPortReady - cmdLine: {}", cmdLineSetDev)
-        ProcessHelper.executeCommandLine(cmdLineSetDev)
-
-        val cmdLineSetAddr = "sudo ip addr add " + rport.portAddr.toUnicastString +
-            "/" + rport.portAddr.getMaskLength + " dev " + internalPort.getName
-        log.debug("internalPortReady - cmdLine: {}", cmdLineSetAddr)
-        ProcessHelper.executeCommandLine(cmdLineSetAddr)
-
-        bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT, rport.portAddr.toUnicastString, socketAddress)
+        bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
+            rport.portAddr.toUnicastString, socketAddress,
+            BGP_NETWORK_NAMESPACE)
         val didStart = bgpdProcess.start()
         if (didStart) {
             self ! BGPD_READY
@@ -519,7 +661,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             log.debug("bgpd process did not start")
         }
 
-        log.debug("internalPortReady - end")
+        log.debug("end")
     }
 
     def create(localAddr: IntIPv4, bgp: BGP) {

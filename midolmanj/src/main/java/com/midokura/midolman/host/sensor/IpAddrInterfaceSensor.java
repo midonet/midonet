@@ -56,7 +56,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     // Protected methods
     ///////////////////////////////////////////////////////////////////////////
     protected List<String> getInterfacesOutput() {
-        return ProcessHelper.executeCommandLine("ip addr");
+        return ProcessHelper.executeCommandLine("ip addr").consoleOutput;
     }
 
     ///////////////////////////////////////////////////////////////////////////

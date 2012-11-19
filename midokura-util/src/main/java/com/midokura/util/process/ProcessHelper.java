@@ -311,30 +311,41 @@ public class ProcessHelper {
 
     }
 
-    public static List<String> executeLocalCommandLine(String commandLine) {
+    public static ProcessResult executeLocalCommandLine(String commandLine) {
         return _executeCommandLine(commandLine, false);
     }
 
-    public static List<String> executeCommandLine(String commandLine) {
+    public static ProcessResult executeCommandLine(String commandLine) {
         return _executeCommandLine(commandLine, true);
     }
 
-    private static List<String> _executeCommandLine(String command,
+    private static ProcessResult _executeCommandLine(String command,
                                                     boolean canBeRemote) {
+        ProcessResult result = new ProcessResult();
         try {
             List<String> stringList = new ArrayList<String>();
 
             RunnerConfiguration runner = _newProcess(command, canBeRemote);
 
             runner.setDrainTarget(DrainTargets.stringCollector(stringList));
-            runner.runAndWait();
 
-            return stringList;
+            result.returnValue = runner.runAndWait();
+            result.consoleOutput = stringList;
         } catch (Exception e) {
             log.error("cannot execute command line " + e.toString());
         }
 
-        return Collections.emptyList();
+        return result;
+    }
+
+    public static class ProcessResult {
+        public List<String> consoleOutput;
+        public int returnValue;
+
+        public ProcessResult() {
+            this.returnValue = 666;
+            this.consoleOutput = Collections.emptyList();
+        }
     }
 
     public enum OutputStreams {
