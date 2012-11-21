@@ -63,7 +63,7 @@ class RoutingManagerActor extends Actor with ActorLogging {
     override def receive = {
         case LocalPortActive(portID, true) =>
             log.debug("RoutingManager - LocalPortActive(true)" + portID)
-            if (!activePorts(portID)) {
+            if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
                 // Request the port configuration
                 VirtualTopologyActor.getRef() ! PortRequest(portID, update = false)
@@ -71,15 +71,16 @@ class RoutingManagerActor extends Actor with ActorLogging {
 
         case LocalPortActive(portID, false) =>
             log.debug("RoutingManager - LocalPortActive(false)" + portID)
-            if (!activePorts(portID)) {
+            if (!activePorts.contains(portID)) {
                 log.error("we should have had information about port {}", portID)
             } else {
                 activePorts.remove(portID)
 
                 // Only exterior ports can have a routing handler
-                val routingHandler = portHandlers(portID)
-                if (routingHandler != None) {
-                    context.stop(portHandlers(portID))
+                val result = portHandlers.get(portID)
+                result match {
+                    case None =>
+                    case Some(routingHandler) => context.stop(routingHandler)
                 }
             }
 
@@ -87,13 +88,13 @@ class RoutingManagerActor extends Actor with ActorLogging {
             log.debug("RoutingManager - ExteriorRouterPort: " + port.id)
             // Only exterior virtual router ports support BGP.
             // Create a handler if there isn't one and the port is active
-            if (activePorts(port.id))
+            if (activePorts.contains(port.id))
                 log.debug("RoutingManager - port is active: " + port.id)
 
             if (portHandlers.get(port.id) == None)
                 log.debug("RoutingManager - no RoutingHandler actor is registered with port: " + port.id)
 
-            if (activePorts(port.id) && portHandlers.get(port.id) == None) {
+            if (activePorts.contains(port.id) && portHandlers.get(port.id) == None) {
                 bgpPortIdx += 1
 
                 portHandlers.put(
