@@ -63,7 +63,7 @@ class RoutingManagerActor extends Actor with ActorLogging {
     override def receive = {
         case LocalPortActive(portID, true) =>
             log.debug("RoutingManager - LocalPortActive(true)" + portID)
-            if (!activePorts(portID)) {
+            if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
                 // Request the port configuration
                 VirtualTopologyActor.getRef() ! PortRequest(portID, update = false)
@@ -71,20 +71,30 @@ class RoutingManagerActor extends Actor with ActorLogging {
 
         case LocalPortActive(portID, false) =>
             log.debug("RoutingManager - LocalPortActive(false)" + portID)
-            activePorts.remove(portID)
-            context.stop(portHandlers(portID))
+            if (!activePorts.contains(portID)) {
+                log.error("we should have had information about port {}", portID)
+            } else {
+                activePorts.remove(portID)
+
+                // Only exterior ports can have a routing handler
+                val result = portHandlers.get(portID)
+                result match {
+                    case None =>
+                    case Some(routingHandler) => context.stop(routingHandler)
+                }
+            }
 
         case port: ExteriorRouterPort =>
             log.debug("RoutingManager - ExteriorRouterPort: " + port.id)
             // Only exterior virtual router ports support BGP.
             // Create a handler if there isn't one and the port is active
-            if (activePorts(port.id))
+            if (activePorts.contains(port.id))
                 log.debug("RoutingManager - port is active: " + port.id)
 
             if (portHandlers.get(port.id) == None)
                 log.debug("RoutingManager - no RoutingHandler actor is registered with port: " + port.id)
 
-            if (activePorts(port.id) && portHandlers.get(port.id) == None) {
+            if (activePorts.contains(port.id) && portHandlers.get(port.id) == None) {
                 bgpPortIdx += 1
 
                 portHandlers.put(
@@ -97,7 +107,8 @@ class RoutingManagerActor extends Actor with ActorLogging {
             }
             log.debug("RoutingManager - ExteriorRouterPort - end")
 
-        case port: Port[_] => log.error("Port type not supported.")
+        case port: Port[_] =>
+            log.debug("Port type not supported to handle routing protocols.")
 
         case _ => log.error("Unknown message.")
     }
