@@ -128,11 +128,10 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     def expectPacketOutVmToVm(port: Int): Ethernet =
         expectPacketOut(port, List(1, vmPortNames.size - 1))
 
-    def arpVmToVmAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
+    def arpVmToRouterAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
                                dstIp: IntIPv4, expectedMac: MAC) {
-
         injectArpRequest(portName, srcIp.getAddress, srcMac, dstIp.getAddress)
-        val pkt = expectPacketOutVmToVm(vmPortNameToPortNumber(portName))
+        val pkt = expectPacketOutRouterToVm(vmPortNameToPortNumber(portName))
         log.debug("Packet out: {}", pkt)
         // TODO(guillermo) check the arp reply packet
     }

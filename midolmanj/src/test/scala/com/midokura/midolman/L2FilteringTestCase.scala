@@ -6,7 +6,6 @@ package com.midokura.midolman
 import akka.util.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
@@ -14,8 +13,6 @@ import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
 import rules.{RuleResult, Condition}
 import com.midokura.packets._
 import util.SimulationHelper
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
-import com.midokura.midonet.cluster.data.rules.JumpRule
 
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
@@ -79,7 +76,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
-            (name, mac, ip) => arpVmToVmAndCheckReply(name, mac, ip, routerIp, routerMac)
+            (name, mac, ip) => arpVmToRouterAndCheckReply(name, mac, ip, routerIp, routerMac)
         }
 
         log.info("sending icmp echoes between every pair of ports")
@@ -93,12 +90,12 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("creating chain")
         val brInChain = newInboundChainOnBridge("brInFilter", bridge)
-        log.info("adding first rule: drop by ip from port0 to port3")
         val cond1 = new Condition()
         cond1.matchReturnFlow = true
         val rule1 = newLiteralRuleOnChain(brInChain, 1, cond1,
                                           RuleResult.Action.ACCEPT)
 
+        log.info("adding first rule: drop by ip from port0 to port3")
         val cond2 = new Condition()
         cond2.nwSrcIp = vmIps(0)
         cond2.nwDstIp = vmIps(3)
@@ -181,14 +178,18 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         requestOfType[WildcardFlowAdded](flowEventsProbe)
 
         log.info("waiting for the return drop flows to timeout")
-        flowEventsProbe.within (15 seconds) {
+        flowEventsProbe.within (30 seconds) {
+            requestOfType[WildcardFlowRemoved](flowEventsProbe)
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
         }
 
+        drainProbe(flowEventsProbe)
         log.info("sending two packets that should install conntrack entries")
         expectPacketAllowed(1, 4, udpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
         expectPacketAllowed(3, 0, udpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
 
         log.info("sending two return packets that should be accepted due to " +
                  "conntrack")
