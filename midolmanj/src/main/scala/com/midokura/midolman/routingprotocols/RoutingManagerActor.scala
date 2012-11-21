@@ -71,8 +71,17 @@ class RoutingManagerActor extends Actor with ActorLogging {
 
         case LocalPortActive(portID, false) =>
             log.debug("RoutingManager - LocalPortActive(false)" + portID)
-            activePorts.remove(portID)
-            context.stop(portHandlers(portID))
+            if (!activePorts(portID)) {
+                log.error("we should have had information about port {}", portID)
+            } else {
+                activePorts.remove(portID)
+
+                // Only exterior ports can have a routing handler
+                val routingHandler = portHandlers(portID)
+                if (routingHandler != None) {
+                    context.stop(portHandlers(portID))
+                }
+            }
 
         case port: ExteriorRouterPort =>
             log.debug("RoutingManager - ExteriorRouterPort: " + port.id)
@@ -97,7 +106,8 @@ class RoutingManagerActor extends Actor with ActorLogging {
             }
             log.debug("RoutingManager - ExteriorRouterPort - end")
 
-        case port: Port[_] => log.error("Port type not supported.")
+        case port: Port[_] =>
+            log.debug("Port type not supported to handle routing protocols.")
 
         case _ => log.error("Unknown message.")
     }
