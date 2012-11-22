@@ -27,7 +27,6 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ZookeeperConnectionWatcher.class);
 
-    private ScheduledExecutorService executorService;
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
@@ -39,10 +38,6 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     @Inject
     MidolmanConfig config;
-
-    public ZookeeperConnectionWatcher() {
-        executorService = Executors.newScheduledThreadPool(1);
-    }
 
     @Override
     public void setZkConnection(ZkConnection conn) {
@@ -57,7 +52,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                 "seconds if the connection is not restored.",
                 config.getZooKeeperGraceTime());
 
-            disconnectHandle = executorService.schedule(new Runnable() {
+            disconnectHandle = reactorLoop.schedule(new Runnable() {
                 @Override
                 public void run() {
                     log.error("have been disconnected for {} seconds, " +
