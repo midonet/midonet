@@ -532,7 +532,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // Configure the mirror interface
         cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
             " ip link set dev " + BGP_NETDEV_PORT_MIRROR_NAME +
-            " up"
+            " up" +
+            " address " + rport.portMac.toString
         ProcessHelper.executeCommandLine(cmdLine)
 
         cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
