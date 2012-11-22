@@ -79,6 +79,7 @@ if [ ! -d "$MIDO_HOME" ]; then
    exit 1
 fi
 
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midokura-jdk-bootstrap.jar
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 MIDO_JAR=$MIDO_HOME/midolmanj.jar
@@ -87,4 +88,4 @@ if [ ! -e "$MIDO_JAR" ]; then
    exit 1
 fi
 
-$JAVA -Dlog4j.configuration=file:/etc/midolman/log4j-dpctl.xml -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH com.midokura.mmdpctl.Mmdpctl $*
+$JAVA -Dlog4j.configuration=file:/etc/midolman/log4j-dpctl.xml $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH com.midokura.mmdpctl.Mmdpctl $*
