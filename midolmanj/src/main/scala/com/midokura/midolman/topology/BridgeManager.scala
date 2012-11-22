@@ -183,6 +183,14 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             }
 
         case RemoveUnreferencedMacPortEntry(mac, port) =>
+            // TODO(guillermo, pino) This is inaccurate because during the
+            // timeout interval the flowcount could have increased and come
+            // back to zero. So this flow may have count of zero have just been
+            // used.
+            // We should keep a timestamp upon registering the timer and
+            // compare that here with the time that the flow was last
+            // decremented to zero (last used time).
+
             // If we now have references for this mac-port pair, do nothing.
             if (!flowCountMap.contains((mac, port))) {
                 // Note that this will delete the mac-port entry in the shared
