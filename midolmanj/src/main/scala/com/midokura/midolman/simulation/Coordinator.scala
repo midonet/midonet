@@ -464,12 +464,11 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
                 pktContext.freeze()
-                // TODO(jlm): Can we do connection tracking for port sets?
-                if (!isPortSet && pktContext.isConnTracked &&
-                        pktContext.isForwardFlow) {
+                // TODO(guillermo,pino) don't assume that portset id == bridge id
+                if (pktContext.isConnTracked && pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
                     installConnectionCacheEntry(outputID, pktContext.getMatch,
-                                                port)
+                            if (isPortSet) outputID else port.deviceID)
                 }
                 val wFlow = new WildcardFlow()
                     .setMatch(origMatch)
@@ -488,14 +487,14 @@ class Coordinator(val origMatch: WildcardMatch,
 
     private def installConnectionCacheEntry(outPortID: UUID,
                                             flowMatch: WildcardMatch,
-                                            portConfig: Port[_]) {
+                                            deviceID: UUID) {
         val key = PacketContext.connectionKey(
                         flowMatch.getNetworkDestination(),
                         flowMatch.getTransportDestination(),
                         flowMatch.getNetworkSource(),
                         flowMatch.getTransportSource(),
                         flowMatch.getNetworkProtocol(),
-                        portConfig.deviceID)
+                        deviceID)
         connectionCache.set(key, "r")
     }
 
