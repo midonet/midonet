@@ -78,9 +78,9 @@ do_start()
     #   0 if daemon has been started
     #   1 if daemon was already running
     #   2 if daemon could not be started
-    if [ ! -d /sys/module/openvswitch ] ; then
+    if [ ! -d /sys/module/openvswitch ] && [ ! -d /sys/module/openvswitch_mod ]; then
         echo "Loading openvswitch kernel module"
-        modprobe openvswitch || return 2
+        modprobe openvswitch_mod 2>/dev/null || modprobe openvswitch || return 2
     fi
 
     echo -n "Starting midolmanj... "
