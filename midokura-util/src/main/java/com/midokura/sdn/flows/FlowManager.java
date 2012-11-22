@@ -219,7 +219,8 @@ public class FlowManager {
      * @param flowMatch
      * @return
      */
-    public List<FlowAction<?>> getActionsForDpFlow(FlowMatch flowMatch) {
+    public List<FlowAction<?>> getActionsForDpFlow(FlowMatch flowMatch, Integer packetNumber) {
+        log.debug("getting actions for packet number {}", packetNumber);
         return dpFlowTable.get(flowMatch);
     }
 
@@ -234,7 +235,8 @@ public class FlowManager {
      * @return A datapath Flow if one already exists or a new one if the
      *         FlowMatch matches a wildcard flow. Otherwise, null.
      */
-    public Flow createDpFlow(FlowMatch flowMatch) {
+    public Flow createDpFlow(FlowMatch flowMatch, Integer packetNumber) {
+        log.debug("creating DP flow for packet number {}", packetNumber);
         // TODO(ross) why should we install a copy?
         List<FlowAction<?>> actions = dpFlowTable.get(flowMatch);
         if (null != actions)
@@ -259,13 +261,15 @@ public class FlowManager {
         }
         // If we found a valid wildcard flow, create a Flow for the FlowMatch.
         if (null == wFlowCandidate){
-            log.debug("FlowMatch {} didn't match any wildcard flow", flowMatch);
+            log.debug("FlowMatch {} from packet number {} didn't match any wildcard flow",
+                    flowMatch, packetNumber);
             return null;
         }
         else {
             Flow dpFlow = new Flow().setMatch(flowMatch)
                                     .setActions(wFlowCandidate.getActions());
             assert(add(flowMatch, wFlowCandidate));
+            log.debug("match on packet number {}", packetNumber);
             log.debug("FlowMatch {} matched wildcard flow {} ", flowMatch,
                       wFlowCandidate);
             return dpFlow;
