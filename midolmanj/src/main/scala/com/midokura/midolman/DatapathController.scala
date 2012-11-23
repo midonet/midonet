@@ -29,8 +29,9 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
         ChainRequest, PortRequest}
 import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
-import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
+import com.midokura.midonet.cluster.client.ExteriorPort
 import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
         CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
 import com.midokura.netlink.Callback
@@ -43,7 +44,6 @@ import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
-import java.util
 
 
 /**
@@ -350,8 +350,8 @@ object DatapathController extends Referenceable {
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 
-    class TunnelChangeEvent(val myself: TunnelZone.HostConfig[_, _],
-                            val peer: TunnelZone.HostConfig[_, _],
+    class TunnelChangeEvent(val myself: TZHostConfig[_, _],
+                            val peer: TZHostConfig[_, _],
                             val portOption: Option[Short],
                             val op: TunnelChangeEventOperation.Value)
 
@@ -470,7 +470,7 @@ class DatapathController() extends Actor with ActorLogging {
     // the list of local ports
     val localPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
-    val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
+    val portsToHosts = mutable.Map[Integer, TZHostConfig[_,_]]()
     val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
     val portsDownPool: mutable.Map[String, Port[_,_]] = mutable.Map()
 
@@ -622,13 +622,10 @@ class DatapathController() extends Actor with ActorLogging {
         case zone: TunnelZone[_, _] =>
             if (!host.zones.contains(zone.getId)) {
                 zones.remove(zone.getId)
-                zonesToHosts.remove(zone.getId)
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
                 log.debug("Removing zone {}", zone)
             } else {
                 zones.put(zone.getId, zone)
-                zonesToHosts.put(zone.getId,
-                        mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
                 log.debug("Adding zone {}", zone)
             }
 
@@ -799,7 +796,7 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
-        val hostConfig = m.hostConfig.asInstanceOf[TunnelZone.HostConfig[_, _]]
+        val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
 
         if (!zones.contains(m.zone) ||
             (hostConfig.getId == host.id &&
@@ -891,7 +888,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def doDatapathZonesReply(newZones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]]) {
+    def doDatapathZonesReply(newZones: immutable.Map[UUID, TZHostConfig[_, _]]) {
         log.debug("Local Zone list updated {}", newZones)
         for (zone <- newZones.keys) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
@@ -1448,7 +1445,7 @@ class DatapathController() extends Actor with ActorLogging {
         log.debug("Pending count for handlePortOperationReply {}", pendingUpdateCount)
 
         def _handleTunnelCreate(port: Port[_,_],
-                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+                                hConf: TZHostConfig[_,_], zone: UUID) {
             peerPorts.get(hConf.getId) match {
                 case Some(tunnels) =>
                     tunnels.put(zone, port.getName)
@@ -1459,6 +1456,7 @@ class DatapathController() extends Actor with ActorLogging {
                     log.debug("handleTunnelCreate - added peer port {}", hConf.getId)
 
             }
+            portsToHosts.put(port.getPortNo, hConf)
             // trigger invalidation
             val tunnelPortNum: JShort = port.getPortNo.shortValue
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -1472,7 +1470,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
 
         def _handleTunnelDelete(port: Port[_,_],
-                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+                                hConf: TZHostConfig[_,_], zone: UUID) {
             peerPorts.get(hConf.getId) match {
                 case Some(zoneTunnelMap) =>
                     zoneTunnelMap.remove(zone)
@@ -1486,6 +1484,7 @@ class DatapathController() extends Actor with ActorLogging {
 
                 case None =>
             }
+            portsToHosts.remove(port.getPortNo)
             localTunnelPorts.remove(port.getPortNo.shortValue)
             log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
