@@ -798,11 +798,14 @@ class DatapathController() extends Actor with ActorLogging {
     def handleZoneChange(m: ZoneChanged[_]) {
         val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
 
-        if (!zones.contains(m.zone) ||
-            (hostConfig.getId == host.id &&
-                m.op == HostConfigOperation.Deleted)) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(m.zone)
-        } else if (hostConfig.getId != host.id) {
+        if (!zones.contains(m.zone)) {
+            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
+        } else if (hostConfig.getId == host.id &&
+                   m.op == HostConfigOperation.Deleted) {
+            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
+            dropTunnelsInZone(m.zone)
+            zones.remove(m.zone)
+        } else if (hostConfig.getId != host.id && zones.contains(m.zone)) {
             m match {
                 case GreZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
                     log.info("Opening a tunnel port to {}", m.hostConfig)
@@ -895,25 +898,19 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def dropTunnelsInZone(zone: TunnelZone[_, _]) {
-        zonesToTunnels.get(zone.getId) match {
-            case Some(tunnels) =>
-                for (port <- tunnels) {
-                    port match {
-                        case p: GreTunnelPort =>
-                            zone match {
-                                case z: GreTunnelZone =>
-                                    deleteDatapathPort(self, p, Some(z))
-                            }
-                        case p: CapWapTunnelPort =>
-                            zone match {
-                                case z: CapwapTunnelZone =>
-                                    deleteDatapathPort(self, p, Some(z))
-                            }
-                    }
+    def dropTunnelsInZone(zoneId: UUID) {
+        zonesToTunnels.get(zoneId) foreach { tunnels =>
+            for (port <- tunnels) {
+                portsToHosts.get(port.getPortNo) match {
+                    case Some(tzhost: GreTunnelZoneHost) =>
+                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
+                    case Some(tzhost: CapwapTunnelZoneHost) =>
+                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
+                    case _ =>
+                        log.error("Cannot find TZHost for port {} while "+
+                            "dropping tunnels in zone {}", port.getPortNo, zoneId)
                 }
-
-            case None =>
+            }
         }
     }
 
