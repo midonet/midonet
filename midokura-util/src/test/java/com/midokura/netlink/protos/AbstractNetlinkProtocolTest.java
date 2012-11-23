@@ -8,10 +8,8 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -28,7 +26,7 @@ import com.midokura.netlink.AbstractNetlinkConnection;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.util.eventloop.Reactor;
-import com.midokura.util.eventloop.SelectLoop;
+import com.midokura.util.eventloop.TryCatchReactor;
 
 public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends AbstractNetlinkConnection> {
 
@@ -37,15 +35,13 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
     BlockingQueue<ValueFuture<ByteBuffer>> listWrites;
-    ScheduledExecutorService executorService;
     Reactor reactor = null;
 
     NetlinkConnection connection;
 
     protected void setUp(final byte[][] responses) throws Exception {
 
-        executorService = Executors.newSingleThreadScheduledExecutor();
-        reactor = new SelectLoop(executorService);
+        reactor = new TryCatchReactor("test", 1);
 
         Netlink.Address remote = new Netlink.Address(0);
         Netlink.Address local = new Netlink.Address(uplinkPid());
@@ -98,7 +94,7 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
     }
 
     protected void tearDown() throws Exception {
-        executorService.shutdown();
+        reactor.shutDownNow();
     }
 
     protected int uplinkPid() {

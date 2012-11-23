@@ -1,20 +1,21 @@
 package com.midokura.mmdpctl.netlink;
 
+import java.io.IOException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.spi.SelectorProvider;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkSelectorProvider;
 import com.midokura.netlink.protos.OvsDatapathConnection;
-import com.midokura.sdn.dp.Datapath;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.spi.SelectorProvider;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import com.midokura.util.eventloop.TryCatchReactor;
 
 public class NetlinkClient {
 
@@ -43,12 +44,12 @@ public class NetlinkClient {
         netlinkChannel.connect(new Netlink.Address(0));
 
         log.info("Creating the selector loop");
-        final SelectLoop loop = new SelectLoop(
-                Executors.newScheduledThreadPool(1));
+        final SelectLoop loop = new SelectLoop();
+        final Reactor reactor = new TryCatchReactor("ovs-connection", 1);
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-                OvsDatapathConnection.create(netlinkChannel, loop);
+                OvsDatapathConnection.create(netlinkChannel, reactor);
 
         log.info("Setting the channel to non blocking");
         netlinkChannel.configureBlocking(false);

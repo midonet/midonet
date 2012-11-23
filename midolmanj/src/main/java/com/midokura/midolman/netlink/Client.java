@@ -8,7 +8,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -25,8 +24,10 @@ import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
+import com.midokura.util.eventloop.TryCatchReactor;
 import static com.midokura.netlink.Netlink.Protocol;
 import static com.midokura.sdn.dp.flows.FlowActions.output;
 import static com.midokura.sdn.dp.flows.FlowKeys.arp;
@@ -59,12 +60,12 @@ public class Client {
         netlinkChannel.connect(new Netlink.Address(0));
 
         log.info("Creating the selector loop");
-        final SelectLoop loop = new SelectLoop(
-            Executors.newScheduledThreadPool(1));
+        final SelectLoop loop = new SelectLoop();
+        final Reactor reactor = new TryCatchReactor("client", 1);
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-            OvsDatapathConnection.create(netlinkChannel, loop);
+            OvsDatapathConnection.create(netlinkChannel, reactor);
 
         log.info("Setting the channel to non blocking");
         netlinkChannel.configureBlocking(false);

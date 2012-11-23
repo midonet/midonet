@@ -13,6 +13,7 @@ import com.midokura.midolman.state.ZkConnection;
 import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 import com.midokura.midolman.state.ZookeeperConnectionWatcher;
 import com.midokura.util.eventloop.Reactor;
+import com.midokura.util.eventloop.TryCatchReactor;
 
 /**
  * Modules which creates the proper bindings for building a Directory backed up
@@ -60,7 +61,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
             Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
-            .toProvider(ReactorProvider.class)
+            .toProvider(ZookeeperMgmtReactorProvider.class)
             .asEagerSingleton();
     }
 
@@ -77,6 +78,15 @@ public class ZookeeperConnectionModule extends PrivateModule {
         @Override
         public ZookeeperConfig get() {
             return configProvider.getConfig(ZookeeperConfig.class);
+        }
+    }
+
+    public static class ZookeeperMgmtReactorProvider
+        implements Provider<Reactor> {
+
+        @Override
+        public Reactor get() {
+            return new TryCatchReactor("zookeeper", 1);
         }
     }
 }

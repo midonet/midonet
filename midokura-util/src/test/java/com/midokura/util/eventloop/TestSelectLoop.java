@@ -4,20 +4,16 @@ package com.midokura.util.eventloop;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Pipe;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -28,7 +24,8 @@ public class TestSelectLoop {
     private final static Logger log =
                         LoggerFactory.getLogger(TestSelectLoop.class);
 
-    SelectLoop reactor;
+    SelectLoop loop;
+    Reactor reactor;
     Pipe pipe1, pipe2;
     SelectableChannel channel1, channel2;
     ByteBuffer message;
@@ -37,7 +34,8 @@ public class TestSelectLoop {
 
     @Before
     public void setup() throws IOException {
-        reactor = new SelectLoop(Executors.newScheduledThreadPool(1));
+        loop = new SelectLoop();
+        reactor = new TryCatchReactor("test", 1);
         pipe1 = Pipe.open();
         pipe2 = Pipe.open();
         channel1 = pipe1.source();
@@ -55,7 +53,8 @@ public class TestSelectLoop {
 
     @After
     public void teardown() throws IOException {
-        reactor.shutdown();
+        reactor.shutDownNow();
+        loop.shutdown();
         pipe1.sink().close();
         pipe1.source().close();
         pipe2.sink().close();
@@ -67,7 +66,7 @@ public class TestSelectLoop {
                                    public void run() {
                                        log.debug("Entering reactor thread");
                                        try {
-                                           reactor.doLoop();
+                                           loop.doLoop();
                                            reactorFinished.value = true;
                                        } catch (Exception e) {
                                            reactorThrew.value = true;
@@ -93,113 +92,26 @@ public class TestSelectLoop {
                 public void run() {
                     try {
                         // Race with select()
-                        reactor.register(channel1, SelectionKey.OP_READ,
+                        loop.register(channel1, SelectionKey.OP_READ,
                                          listener);
                         // Make sure we've entered the select() call.
                         Thread.sleep(100);
-                        reactor.register(channel2, SelectionKey.OP_READ,
+                        loop.register(channel2, SelectionKey.OP_READ,
                                          listener);
                         noExceptions.value = true;
                     } catch (Exception e) {
                         System.err.println("Caught exception " + e);
                         e.printStackTrace();
                     } finally {
-                        reactor.shutdown();
+                        loop.shutdown();
                     }
                 }
             });
         registerThread.start();
-        reactor.doLoop();
+        loop.doLoop();
 
         registerThread.join();
         assertTrue(noExceptions.value);
-    }
-
-    @Test
-    public void testSubmitDuringEvent()
-            throws IOException, InterruptedException, ClosedChannelException {
-        log.debug("Entering testSubmitDuringEvent");
-        final BooleanBox submitHasRun = new BooleanBox();
-        final BooleanBox somethingBroke = new BooleanBox();
-        submitHasRun.value = false;
-        somethingBroke.value = false;
-        final SelectListener listener =
-                new SelectListener() {
-                    @Override
-                    public void handleEvent(SelectionKey key) {
-                        log.debug("testSubmitDuringEvent: " +
-                                  "entering handleEvent()");
-                        try {
-                            reactor.submit(
-                                new Runnable() {
-                                    public void run() {
-                                        submitHasRun.value = true;
-                                    }
-                                });
-                            ByteBuffer recvbuf = ByteBuffer.allocate(8);
-                            pipe1.source().read(recvbuf);
-                            Thread.sleep(30);
-                            log.debug("Reactor thread waking up");
-                            if (submitHasRun.value)
-                                somethingBroke.value = true;
-                        } catch (Exception e) {
-                            somethingBroke.value = true;
-                        }
-                    }
-                };
-        startReactorThread();
-        reactor.register(channel1, SelectionKey.OP_READ, listener);
-        log.debug("About to write {}", message);
-        pipe1.sink().write(message);
-        log.debug("Just wrote {}", message);
-        Thread.sleep(60);   // Let the sleep() in handleEvent() finish.
-        log.debug("Main thread waking up");
-        assertTrue(submitHasRun.value);
-        assertFalse(somethingBroke.value);
-        assertFalse(reactorThrew.value);
-        assertFalse(reactorFinished.value);
-    }
-
-    @Test
-    public void testEventDuringSubmit()
-                throws ClosedChannelException, InterruptedException {
-        final BooleanBox eventHasRun = new BooleanBox();
-        final BooleanBox somethingBroke = new BooleanBox();
-        eventHasRun.value = false;
-        somethingBroke.value = false;
-        startReactorThread();
-
-        SelectListener listener =
-                        new SelectListener() {
-                            public void handleEvent(SelectionKey key) {
-                                try {
-                                    eventHasRun.value = true;
-                                    ByteBuffer recvbuf = ByteBuffer.allocate(8);
-                                    pipe1.source().read(recvbuf);
-                                } catch (Exception e) {
-                                    somethingBroke.value = true;
-                                }
-                            }
-                        };
-        reactor.register(channel1, SelectionKey.OP_READ, listener);
-
-        reactor.submit(new Runnable() {
-                           public void run() {
-                               try {
-                                   pipe1.sink().write(message);
-                                   Thread.sleep(30);
-                                   if (eventHasRun.value)
-                                       somethingBroke.value = true;
-                               } catch (Exception e) {
-                                   somethingBroke.value = true;
-                               }
-                           }
-                       });
-        Thread.sleep(60);
-        assertTrue(eventHasRun.value);
-        assertFalse(somethingBroke.value);
-        assertFalse(reactorThrew.value);
-        assertFalse(reactorFinished.value);
     }
 
     @Test
@@ -237,8 +149,8 @@ public class TestSelectLoop {
         pipe1.sink().write(message);
         message.rewind();
         pipe2.sink().write(message);
-        reactor.register(channel1, SelectionKey.OP_READ, listener1);
-        reactor.register(channel2, SelectionKey.OP_READ, listener2);
+        loop.register(channel1, SelectionKey.OP_READ, listener1);
+        loop.register(channel2, SelectionKey.OP_READ, listener2);
 
         startReactorThread();
         Thread.sleep(30);
@@ -246,7 +158,8 @@ public class TestSelectLoop {
         Thread.sleep(60);
         assertTrue(event1HasRun.value && event2HasRun.value);
         assertFalse(reactorFinished.value);
-        reactor.shutdown();
+        loop.shutdown();
+        reactor.shutDownNow();
         Thread.sleep(30);
         assertTrue(reactorFinished.value);
         assertFalse(somethingBroke.value);
