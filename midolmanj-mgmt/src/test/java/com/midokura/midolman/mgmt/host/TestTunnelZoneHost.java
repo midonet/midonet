@@ -100,6 +100,12 @@ public class TestTunnelZoneHost {
             // Map a tunnel zone to a host
             DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();
             mapping.setHostId(host1Id);
+            // Verify that forgetting to set the IP address returns bad request
+            dtoResource.postAndVerifyBadRequest(
+                    tz.getHosts(),
+                    tzhMediaType,
+                    mapping);
+            // Now set the ip address and the create should succeed.
             mapping.setIpAddress("192.168.100.2");
             DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
