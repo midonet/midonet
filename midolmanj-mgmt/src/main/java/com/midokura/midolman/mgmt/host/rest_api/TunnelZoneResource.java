@@ -143,7 +143,10 @@ public class TunnelZoneResource {
 
     @Path("/{id}" + ResourceUriBuilder.HOSTS)
     public TunnelZoneHostResource getTunnelZoneHostResource(
-            @PathParam("id") UUID id) {
+            @PathParam("id") UUID id) throws StateAccessException {
+        if (!dataClient.tunnelZonesExists(id)) {
+            throw new NotFoundHttpException();
+        }
         return factory.getTunnelZoneHostResource(id);
     }
 }
