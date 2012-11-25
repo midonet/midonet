@@ -3,21 +3,21 @@
 */
 package com.midokura.midolman
 
-import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef, SupervisorStrategy}
+import scala.collection.JavaConversions._
+import scala.collection.{Set => ROSet, immutable, mutable}
+import scala.collection.mutable.ListBuffer
+import akka.actor.{Cancellable, Actor, ActorLogging, ActorRef}
 import akka.dispatch.{Future, Promise}
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
-import host.interfaces.InterfaceDescription
-import host.scanner.InterfaceScanner
-import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, immutable, mutable}
-import scala.collection.mutable.ListBuffer
 import java.lang.{Boolean => JBoolean, Short => JShort}
 import java.util.{HashSet, Set => JSet, UUID, List => JList}
 
 import com.google.inject.Inject
 
+import com.midokura.midolman.host.interfaces.InterfaceDescription
+import com.midokura.midolman.host.scanner.InterfaceScanner
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.datapath._
 import com.midokura.midolman.monitoring.MonitoringActor
@@ -29,10 +29,11 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
         ChainRequest, PortRequest}
 import com.midokura.midolman.topology.rcu.{Host, PortSet}
 import com.midokura.midonet.cluster.client
-import com.midokura.midonet.cluster.client.{ExteriorPort, TunnelZones}
+import com.midokura.midonet.cluster.client.ExteriorPort
 import com.midokura.midonet.cluster.data.TunnelZone
-import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZone,
-        CapwapTunnelZoneHost, GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
+import com.midokura.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
+                                                GreTunnelZoneHost}
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
@@ -43,7 +44,6 @@ import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
-import java.util
 
 
 /**
@@ -350,8 +350,8 @@ object DatapathController extends Referenceable {
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
 
-    class TunnelChangeEvent(val myself: TunnelZone.HostConfig[_, _],
-                            val peer: TunnelZone.HostConfig[_, _],
+    class TunnelChangeEvent(val myself: Option[TZHostConfig[_,_]],
+                            val peer: TZHostConfig[_, _],
                             val portOption: Option[Short],
                             val op: TunnelChangeEventOperation.Value)
 
@@ -470,8 +470,10 @@ class DatapathController() extends Actor with ActorLogging {
     // the list of local ports
     val localPorts: mutable.Map[String, Port[_, _]] = mutable.Map()
     val zones = mutable.Map[UUID, TunnelZone[_, _]]()
-    val zonesToHosts = mutable.Map[UUID, mutable.Map[UUID, TunnelZones.Builder.HostConfig]]()
-    val zonesToTunnels: mutable.Map[UUID, mutable.Set[Port[_, _]]] = mutable.Map()
+    val zonesToTunnels: mutable.MultiMap[UUID, Port[_,_]] =
+        new mutable.HashMap[UUID, mutable.Set[Port[_,_]]] with
+            mutable.MultiMap[UUID, Port[_,_]]
+    val tunnelsToHosts = mutable.Map[Integer, TZHostConfig[_,_]]()
     val portsDownPool: mutable.Map[String, Port[_,_]] = mutable.Map()
 
     // peerHostId -> { ZoneID -> tunnelName }
@@ -622,13 +624,10 @@ class DatapathController() extends Actor with ActorLogging {
         case zone: TunnelZone[_, _] =>
             if (!host.zones.contains(zone.getId)) {
                 zones.remove(zone.getId)
-                zonesToHosts.remove(zone.getId)
                 VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
                 log.debug("Removing zone {}", zone)
             } else {
                 zones.put(zone.getId, zone)
-                zonesToHosts.put(zone.getId,
-                        mutable.Map[UUID, TunnelZones.Builder.HostConfig]())
                 log.debug("Adding zone {}", zone)
             }
 
@@ -799,13 +798,18 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
-        val hostConfig = m.hostConfig.asInstanceOf[TunnelZone.HostConfig[_, _]]
+        val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
 
-        if (!zones.contains(m.zone) ||
-            (hostConfig.getId == host.id &&
-                m.op == HostConfigOperation.Deleted)) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(m.zone)
-        } else if (hostConfig.getId != host.id) {
+        if (!zones.contains(m.zone)) {
+            log.debug("a zone changed that this host does not belong to, " +
+                      "unsubscribing and ignoring")
+            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
+        } else if (hostConfig.getId == host.id &&
+                   m.op == HostConfigOperation.Deleted) {
+            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
+            dropTunnelsInZone(m.zone)
+            zones.remove(m.zone)
+        } else if (hostConfig.getId != host.id && zones.contains(m.zone)) {
             m match {
                 case GreZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
                     log.info("Opening a tunnel port to {}", m.hostConfig)
@@ -891,32 +895,27 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def doDatapathZonesReply(newZones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]]) {
+    def doDatapathZonesReply(newZones: immutable.Map[UUID, TZHostConfig[_, _]]) {
         log.debug("Local Zone list updated {}", newZones)
         for (zone <- newZones.keys) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
         }
     }
 
-    def dropTunnelsInZone(zone: TunnelZone[_, _]) {
-        zonesToTunnels.get(zone.getId) match {
-            case Some(tunnels) =>
-                for (port <- tunnels) {
-                    port match {
-                        case p: GreTunnelPort =>
-                            zone match {
-                                case z: GreTunnelZone =>
-                                    deleteDatapathPort(self, p, Some(z))
-                            }
-                        case p: CapWapTunnelPort =>
-                            zone match {
-                                case z: CapwapTunnelZone =>
-                                    deleteDatapathPort(self, p, Some(z))
-                            }
-                    }
+    def dropTunnelsInZone(zoneId: UUID) {
+        log.info("dropping all tunnels in zone: {}", zoneId)
+        zonesToTunnels.get(zoneId) foreach { tunnels =>
+            for (port <- tunnels) {
+                tunnelsToHosts.get(port.getPortNo) match {
+                    case Some(tzhost: GreTunnelZoneHost) =>
+                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
+                    case Some(tzhost: CapwapTunnelZoneHost) =>
+                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
+                    case _ =>
+                        log.error("Cannot find TZHost for port {} while "+
+                            "dropping tunnels in zone {}", port.getPortNo, zoneId)
                 }
-
-            case None =>
+            }
         }
     }
 
@@ -1448,7 +1447,7 @@ class DatapathController() extends Actor with ActorLogging {
         log.debug("Pending count for handlePortOperationReply {}", pendingUpdateCount)
 
         def _handleTunnelCreate(port: Port[_,_],
-                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+                                hConf: TZHostConfig[_,_], zone: UUID) {
             peerPorts.get(hConf.getId) match {
                 case Some(tunnels) =>
                     tunnels.put(zone, port.getName)
@@ -1459,6 +1458,8 @@ class DatapathController() extends Actor with ActorLogging {
                     log.debug("handleTunnelCreate - added peer port {}", hConf.getId)
 
             }
+            tunnelsToHosts.put(port.getPortNo, hConf)
+            zonesToTunnels.addBinding(zone, port)
             // trigger invalidation
             val tunnelPortNum: JShort = port.getPortNo.shortValue
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
@@ -1466,13 +1467,13 @@ class DatapathController() extends Actor with ActorLogging {
             localTunnelPorts.add(tunnelPortNum)
             log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
-                new TunnelChangeEvent(this.host.zones(zone), hConf,
+                new TunnelChangeEvent(this.host.zones.get(zone), hConf,
                     Some(tunnelPortNum),
                     TunnelChangeEventOperation.Established))
         }
 
         def _handleTunnelDelete(port: Port[_,_],
-                                hConf: TunnelZone.HostConfig[_,_], zone: UUID) {
+                                hConf: TZHostConfig[_,_], zone: UUID) {
             peerPorts.get(hConf.getId) match {
                 case Some(zoneTunnelMap) =>
                     zoneTunnelMap.remove(zone)
@@ -1486,12 +1487,14 @@ class DatapathController() extends Actor with ActorLogging {
 
                 case None =>
             }
+            tunnelsToHosts.remove(port.getPortNo)
+            zonesToTunnels.removeBinding(zone, port)
             localTunnelPorts.remove(port.getPortNo.shortValue)
             log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(
-                    host.zones(zone), hConf,
+                    host.zones.get(zone), hConf,
                     None, TunnelChangeEventOperation.Removed))
         }
 
