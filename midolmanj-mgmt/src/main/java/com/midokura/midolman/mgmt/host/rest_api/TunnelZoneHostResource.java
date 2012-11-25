@@ -98,13 +98,23 @@ public class TunnelZoneHostResource {
             TunnelZoneHost tzh =
                     TunnelZoneHostFactory.createTunnelZoneHost(
                             tunnelZoneId, data);
-            if (tzh.getClass().equals(clazz)) {
+            if (clazz == null || tzh.getClass().equals(clazz)) {
                 tzh.setBaseUri(uriInfo.getBaseUri());
                 tunnelZoneHosts.add(tzh);
             }
         }
 
         return tunnelZoneHosts;
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType
+            .APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON })
+    public List<TunnelZoneHost> listUntypedTunnelZoneHosts() throws
+        StateAccessException {
+
+        return listTunnelZoneHosts(null);
     }
 
     @GET

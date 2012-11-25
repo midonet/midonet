@@ -114,6 +114,13 @@ public class TestTunnelZoneHost {
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(1, tzHosts.length);
 
+            // List the hosts using untyped tunnel zone media type.
+            tzHosts = dtoResource.getAndVerifyOk(
+                tz.getHosts(),
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                DtoTunnelZoneHost[].class);
+            Assert.assertEquals(1, tzHosts.length);
+
             // Remove mapping
             dtoResource.deleteAndVerifyNoContent(tzHost.getUri(), tzhMediaType);
 
