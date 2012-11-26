@@ -368,7 +368,7 @@ public class FlowManager {
 
             WildcardFlow wcFlow = dpFlowToWildFlow.remove(match);
             Set<FlowMatch> matches = wildFlowToDpFlows.get(wcFlow);
-            if(matches != null && match != null) {
+            if(matches != null) {
                 matches.remove(match);
                 nFlowsRemoved++;
             } else {
