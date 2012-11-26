@@ -25,6 +25,7 @@
   * [Interface](#interface)
   * [Host Command](#hostcommand)
   * [Tunnel Zone](#tunnelzone)
+  * [Tunnel Zone Host](#tunnelzonehost)
   * [Metric Target](#metrictarget)
   * [Metric](#metric)
   * [Metric Query](#metricquery)
@@ -1538,9 +1539,10 @@ isolated zone for tunneling. It contains the following fields:
     </tr>
 </table>
 
+<a name="tunnelzonehost"/>
 ### TunnelZoneHost [application/vnd.com.midokura.midolman.mgmt.TunnelZoneHost+json]
 
-Represents a host’s membership in a tunnel zone:
+Represents a host's membership in a tunnel zone:
 
 <table>
     <tr>
@@ -1568,9 +1570,9 @@ Represents a host’s membership in a tunnel zone:
     <tr>
         <td>tunnelZoneId</td>
         <td>UUID</td>
-        <td>POST</td>
-        <td>Yes</td>
-        <td>ID of the tunnel zone to add a host to.</td>
+        <td></td>
+        <td></td>
+        <td>ID of the tunnel zone that the host is a member of.</td>
     </tr>
     <tr>
         <td>tunnelZone</td>
