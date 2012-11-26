@@ -1204,47 +1204,53 @@ class DatapathController() extends Actor with ActorLogging {
             log.debug("Port {} became inactive", port.getPortNo.shortValue())
         }
         port match {
-            case netdev: NetDevPort =>
-                val clientPortFuture = VirtualTopologyActor.getRef() ?
-                    PortRequest(vifId, update = false)
+            case netdev: NetDevPort => installTunnelKeyFlow(netdev, vifId, active)
 
-                clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
-                    case Right(exterior) =>
-                        // trigger invalidation. This is done regardless of
-                        // whether we are activating or deactivating:
-                        //
-                        //   + The case for invalidating on deactivation is
-                        //     obvious.
-                        //   + On activation we invalidate flows for this dp port
-                        //     number in case it has been reused by the dp: we
-                        //     want to start with a clean state.
-                        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                            FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+            case internal: InternalPort => installTunnelKeyFlow(internal, vifId, active)
 
-                        if (active) {
-                            // packets for the port may have arrived before the
-                            // port came up and made us install temporary drop flows.
-                            // Invalidate them before adding the new flow
-                            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                                FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
-
-                            addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
-                                    List(FlowActions.output(port.getPortNo.shortValue)),
-                                    tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
-                                    expiration = 0)
-                            log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
-                        }
-                        tellVtpm()
-                    case _ =>
-                        log.warning("local port activated, but it's not an " +
-                            "ExteriorPort, I don't know what to do with it: {}",
-                            port)
-                        tellVtpm()
-                }
             case _ =>
                 log.warning("local port activated, but it's not a " +
-                    "NetDevPort, I don't know what to do with it: {}", port)
-                tellVtpm()
+                    "NetDevPort nor Internal Port, I don't know what to do with it: {}", port)
+        }
+        tellVtpm()
+    }
+
+    private def installTunnelKeyFlow(port: Port[_, _], vifId: UUID, active: Boolean) {
+        val clientPortFuture = VirtualTopologyActor.getRef() ?
+            PortRequest(vifId, update = false)
+
+        clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
+            case Right(exterior) =>
+                // trigger invalidation. This is done regardless of
+                // whether we are activating or deactivating:
+                //
+                //   + The case for invalidating on deactivation is
+                //     obvious.
+                //   + On activation we invalidate flows for this dp port
+                //     number in case it has been reused by the dp: we
+                //     want to start with a clean state.
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+
+                if (active) {
+                    // packets for the port may have arrived before the
+                    // port came up and made us install temporary drop flows.
+                    // Invalidate them before adding the new flow
+                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
+
+                    addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
+                        List(FlowActions.output(port.getPortNo.shortValue)),
+                        tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
+                        expiration = 0)
+                    log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
+                }
+
+            case _ =>
+                log.warning("local port activated, but it's not an " +
+                    "ExteriorPort, I don't know what to do with it: {}",
+                    port)
+
         }
     }
 
