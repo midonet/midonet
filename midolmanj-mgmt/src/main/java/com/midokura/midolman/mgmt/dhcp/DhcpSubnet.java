@@ -20,6 +20,8 @@ public class DhcpSubnet extends RelativeUriResource {
     private String subnetPrefix;
     private int subnetLength;
     private String defaultGateway;
+    private String serverAddr;
+    private String dnsServerAddr;
     private List<DhcpOption121> opt121Routes;
 
     /* Default constructor is needed for parsing/unparsing. */
@@ -39,6 +41,14 @@ public class DhcpSubnet extends RelativeUriResource {
         IntIPv4 gway = subnet.getDefaultGateway();
         if (null != gway)
             this.setDefaultGateway(gway.toUnicastString());
+
+        IntIPv4 srvAddr = subnet.getServerAddr();
+        if (null != srvAddr)
+            this.setServerAddr(srvAddr.toUnicastString());
+
+        IntIPv4 dnsSrvAddr = subnet.getDnsServerAddr();
+        if (null != dnsSrvAddr)
+            this.setDnsServerAddr(dnsSrvAddr.toUnicastString());
 
         List<DhcpOption121> routes = new ArrayList<DhcpOption121>();
         if (null != subnet.getOpt121Routes()) {
@@ -70,6 +80,22 @@ public class DhcpSubnet extends RelativeUriResource {
 
     public void setDefaultGateway(String defaultGateway) {
         this.defaultGateway = defaultGateway;
+    }
+
+    public String getServerAddr() {
+        return serverAddr;
+    }
+
+    public void setServerAddr(String serverAddr) {
+        this.serverAddr = serverAddr;
+    }
+
+    public String getDnsServerAddr() {
+        return dnsServerAddr;
+    }
+
+    public void setDnsServerAddr(String dnsServerAddr) {
+        this.dnsServerAddr = dnsServerAddr;
     }
 
     public List<DhcpOption121> getOpt121Routes() {
@@ -107,18 +133,24 @@ public class DhcpSubnet extends RelativeUriResource {
         IntIPv4 subnetAddr = IntIPv4.fromString(subnetPrefix, subnetLength);
         IntIPv4 gtway = (null == defaultGateway) ? null
                 : IntIPv4.fromString(defaultGateway);
+        IntIPv4 srvAddr = (null == serverAddr) ? null : IntIPv4.fromString(serverAddr);
+        IntIPv4 dnsSrvAddr = (null == dnsServerAddr) ? null : IntIPv4.fromString(dnsServerAddr);
 
         return new Subnet()
                 .setDefaultGateway(gtway)
                 .setSubnetAddr(subnetAddr)
-                .setOpt121Routes(routes);
+                .setOpt121Routes(routes)
+                .setServerAddr(srvAddr)
+                .setDnsServerAddr(dnsSrvAddr);
     }
 
     @Override
     public String toString() {
         return "DhcpSubnet{" + "subnetPrefix='" + subnetPrefix + '\''
                 + ", subnetLength=" + subnetLength + ", defaultGateway='"
-                + defaultGateway + '\'' + ", opt121Routes=" + opt121Routes
+                + defaultGateway + '\'' + ", serverAddr='" + serverAddr + '\''
+                + ", dnsServerAddr='" + dnsServerAddr + '\''
+                + ", opt121Routes=" + opt121Routes
                 + '}';
     }
 }

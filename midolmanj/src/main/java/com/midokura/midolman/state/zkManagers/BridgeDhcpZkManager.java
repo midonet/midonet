@@ -27,7 +27,8 @@ public class BridgeDhcpZkManager extends ZkManager {
 
     public static class Subnet {
         IntIPv4 subnetAddr;
-        IntIPv4 serverAddr; // TODO: implement this.
+        IntIPv4 serverAddr;
+        IntIPv4 dnsServerAddr;
         IntIPv4 defaultGateway;
         List<Opt121> opt121Routes;
 
@@ -36,11 +37,14 @@ public class BridgeDhcpZkManager extends ZkManager {
         }
 
         public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
+                      IntIPv4 serverAddr, IntIPv4 dnsServerAddr,
                       List<Opt121> opt121Routes) {
             this.subnetAddr = subnetAddr;
             // TODO(pino): remove this hard-coded server IP. Make configurable.
-            this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
-                    subnetAddr.getMaskLength());
+            //this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
+            //        subnetAddr.getMaskLength());
+            this.serverAddr = serverAddr;
+            this.dnsServerAddr = dnsServerAddr;
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
         }
@@ -51,6 +55,10 @@ public class BridgeDhcpZkManager extends ZkManager {
 
         public IntIPv4 getServerAddr() {
             return serverAddr;
+        }
+
+        public IntIPv4 getDnsServerAddr() {
+            return dnsServerAddr;
         }
 
         public List<Opt121> getOpt121Routes() {
@@ -77,11 +85,16 @@ public class BridgeDhcpZkManager extends ZkManager {
             this.serverAddr = serverAddr;
         }
 
+        public void setDnsServerAddr(IntIPv4 dnsServerAddr) {
+            this.dnsServerAddr = dnsServerAddr;
+        }
+
         @Override
         public String toString() {
             return "Subnet{" +
                 "subnetAddr=" + subnetAddr +
                 ", serverAddr=" + serverAddr +
+                ", dnsServerAddr=" + dnsServerAddr +
                 ", defaultGateway=" + defaultGateway +
                 ", opt121Routes=" + opt121Routes +
                 '}';

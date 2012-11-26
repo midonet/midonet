@@ -58,7 +58,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
+//@Ignore
 public class FloatingIpTest {
 
     private final static Logger log = LoggerFactory
@@ -183,6 +183,8 @@ public class FloatingIpTest {
             .defaultGateway(rtrPort3.getPortAddress())
             .subnetPrefix(rtrPort3.getNetworkAddress())
             .subnetLength(rtrPort3.getNetworkLength())
+            .serverAddr("192.168.77.118")
+            .dnsServerAddr("192.168.77.128")
             .opt121Routes(opt121Routes)
             .create();
         dhcpSubnet.addDhcpHost()

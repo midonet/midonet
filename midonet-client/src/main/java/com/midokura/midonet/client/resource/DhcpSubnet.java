@@ -58,6 +58,24 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
     }
 
     /**
+     * Gets DHCP server IP.
+     *
+     * @return
+     */
+    public String getServerAddr() {
+        return principalDto.getServerAddr();
+    }
+
+    /**
+     * Gets DNS server IP.
+     *
+     * @return
+     */
+    public String getDnsServerAddr() {
+        return principalDto.getDnsServerAddr();
+    }
+
+    /**
      * Gets length of the subnet address.
      *
      * @return
@@ -118,6 +136,28 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      */
     public DhcpSubnet subnetPrefix(String subnetPrefix) {
         principalDto.setSubnetPrefix(subnetPrefix);
+        return this;
+    }
+
+    /**
+     * Sets DHCP Server IP.
+     *
+     * @param serverAddr
+     * @return this
+     */
+    public DhcpSubnet serverAddr(String serverAddr) {
+        principalDto.setServerAddr(serverAddr);
+        return this;
+    }
+
+    /**
+     * Sets DNS Server IP.
+     *
+     * @param serverAddr
+     * @return this
+     */
+    public DhcpSubnet dnsServerAddr(String dnsServerAddr) {
+        principalDto.setDnsServerAddr(dnsServerAddr);
         return this;
     }
 
