@@ -303,10 +303,6 @@ public class FlowManagerTest {
                    flowManager.getDpFlowTable().size(),
                    equalTo(maxAcceptedDpFlows));
 
-        assertThat("WildcardFlowsToDpFlows, a flow hasn't been removed",
-                   flowManager.getWildFlowToDpFlows().size(),
-                   equalTo(maxAcceptedDpFlows));
-
         assertThat("DpFlowToWildFlow, a flow hasn't been removed",
                    flowManager.getDpFlowToWildFlow().size(),
                    equalTo(maxAcceptedDpFlows));

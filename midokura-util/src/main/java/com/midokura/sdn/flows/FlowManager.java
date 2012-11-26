@@ -4,7 +4,15 @@
 
 package com.midokura.sdn.flows;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -326,7 +334,7 @@ public class FlowManager {
             long timeLived = System.currentTimeMillis() - flowToExpire.getLastUsedTimeMillis();
             if(timeLived > flowToExpire.getIdleExpirationMillis()/2){
                 // these flows needs to be expired
-                if( timeLived > flowToExpire.getIdleExpirationMillis()){
+                if(timeLived > flowToExpire.getIdleExpirationMillis()){
                     it.remove();
                     flowManagerHelper.removeWildcardFlow(flowToExpire);
                     log.debug("Removing flow {} for idle expiration, expired {} ms ago, now {}",
@@ -353,18 +361,25 @@ public class FlowManager {
         if (nFlowsToRemove <= 0)
             return;
 
-        for (int i = 0; i < nFlowsToRemove; i++){
         Iterator<FlowMatch> it = dpFlowTable.keySet().iterator();
-            if(it.hasNext()){
-                FlowMatch match = it.next();
-                // this call will eventually lead to the removal of this flow
-                // from dpFlowTable
-                flowManagerHelper.removeFlow(new Flow().setMatch(match));
-                WildcardFlow wcFlow = dpFlowToWildFlow.remove(match);
-                wildFlowToDpFlows.get(wcFlow).remove(match);
-                if(wildFlowToDpFlows.get(wcFlow).size() == 0)
-                    wildFlowToDpFlows.remove(wcFlow);
+        int nFlowsRemoved = 0;
+        while(it.hasNext() && nFlowsRemoved < nFlowsToRemove){
+            FlowMatch match = it.next();
+
+            WildcardFlow wcFlow = dpFlowToWildFlow.remove(match);
+            Set<FlowMatch> matches = wildFlowToDpFlows.get(wcFlow);
+            if(matches != null) {
+                matches.remove(match);
+                nFlowsRemoved++;
+            } else {
+                // remove this flow otherwise we'd keep trying to remove it
+                it.remove();
+                log.error("Flow table out of sync, couldn't remove match {}," +
+                              " from matches {}", match, matches);
             }
+            // this call will eventually lead to the removal of this flow
+            // from dpFlowTable
+            flowManagerHelper.removeFlow(new Flow().setMatch(match));
         }
     }
 
