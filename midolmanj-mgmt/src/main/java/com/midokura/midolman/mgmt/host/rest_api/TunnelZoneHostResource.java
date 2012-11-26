@@ -148,11 +148,20 @@ public class TunnelZoneHostResource {
 
         TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
                 tunnelZoneId, data);
-        if (!tzh.getClass().equals(clazz))
+        if (clazz != null && !tzh.getClass().equals(clazz))
             throw new NotFoundHttpException("The resource was not found");
 
         tzh.setBaseUri(uriInfo.getBaseUri());
         return tzh;
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON })
+    @Path("/{hostId}")
+    public TunnelZoneHost getUntypedTunnelZoneHost(
+            @PathParam("hostId") UUID hostId) throws StateAccessException {
+        return getTunnelZoneHost(null, hostId);
     }
 
     @GET

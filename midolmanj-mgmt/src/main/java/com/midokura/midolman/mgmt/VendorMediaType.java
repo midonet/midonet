@@ -60,6 +60,9 @@ public class VendorMediaType {
             "application/vnd.com.midokura.midolman.mgmt.collection" +
                     ".TunnelZone+json";
 
+    public static final String APPLICATION_TUNNEL_ZONE_HOST_JSON =
+        "application/vnd.com.midokura.midolman.mgmt" +
+            ".TunnelZoneHost+json";
     public static final String
         APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON =
         "application/vnd.com.midokura.midolman.mgmt.collection" +
