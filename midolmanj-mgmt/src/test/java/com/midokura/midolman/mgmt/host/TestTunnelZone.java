@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.net.URI;
 import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -96,6 +97,21 @@ public class TestTunnelZone {
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
                     DtoTunnelZone[].class);
             Assert.assertEquals(1, tunnelZones.length);
+
+            // Get the tunnel zone building the URI by hand.
+            DtoGreTunnelZone tZone = dtoResource.getAndVerifyOk(
+                    UriBuilder.fromUri(tunnelZonesUri)
+                        .path(tunnelZone.getId().toString()).build(),
+                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
+                    DtoGreTunnelZone.class);
+            Assert.assertEquals(tunnelZone.getType(), tZone.getType());
+            Assert.assertEquals(tunnelZone.getName(), tZone.getName());
+
+            // Getting a non-existent zone returns a 404.
+            dtoResource.getAndVerifyNotFound(
+                UriBuilder.fromUri(tunnelZonesUri)
+                    .path(UUID.randomUUID().toString()).build(),
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
 
             // Delete it
             dtoResource.deleteAndVerifyNoContent(tunnelZone.getUri(),
