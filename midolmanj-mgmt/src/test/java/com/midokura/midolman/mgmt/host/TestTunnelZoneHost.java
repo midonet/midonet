@@ -270,6 +270,7 @@ public class TestTunnelZoneHost {
             // Invalid host ID
             DtoTunnelZoneHost badHostId = new DtoTunnelZoneHost();
             badHostId.setHostId(UUID.randomUUID()); // non-existent
+            badHostId.setIpAddress("10.10.10.10");
             params.add(new Object[] { badHostId, "hostId" });
 
             return params;
