@@ -124,8 +124,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair allocateDnat(int nwSrc, short tpSrc_, int oldNwDst,
-                                 short oldTpDst_, Set<NatTarget> nats) {
+    public NwTpPair allocateDnat(int nwSrc, int tpSrc_, int oldNwDst,
+                                 int oldTpDst_, Set<NatTarget> nats) {
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
@@ -160,7 +160,7 @@ public class NatLeaseManager implements NatMapping {
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
         scheduleRefresh(fwdKey, revKey);
-        return new NwTpPair(newNwDst, (short)newTpDst, fwdKey);
+        return new NwTpPair(newNwDst, (int)newTpDst, fwdKey);
     }
 
     private void scheduleRefresh(String fwdKey, String revKey) {
@@ -196,7 +196,7 @@ public class NatLeaseManager implements NatMapping {
         String[] parts = value.split("/");
         try {
             return new NwTpPair((int) Long.parseLong(parts[0], 16),
-                    (short) Integer.parseInt(parts[1]),
+                    Integer.parseInt(parts[1]),
                     unrefKey);
         }
         catch (Exception e) {
@@ -206,8 +206,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc_,
-                                  int oldNwDst, short oldTpDst_) {
+    public NwTpPair lookupDnatFwd(int nwSrc, int tpSrc_,
+                                  int oldNwDst, int oldTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
@@ -229,8 +229,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc_,
-                                  int newNwDst, short newTpDst_) {
+    public NwTpPair lookupDnatRev(int nwSrc, int tpSrc_,
+                                  int newNwDst, int newTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int newTpDst = newTpDst_ & USHORT;
         String key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
@@ -273,12 +273,12 @@ public class NatLeaseManager implements NatMapping {
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
         log.debug("allocateSnat fwd key {} and rev key {}", fwdKey, reverseKey);
         scheduleRefresh(fwdKey, reverseKey);
-        return new NwTpPair(newNwSrc, (short)newTpSrc, fwdKey);
+        return new NwTpPair(newNwSrc, newTpSrc, fwdKey);
     }
 
     @Override
-    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc_, int nwDst,
-                                 short tpDst_, Set<NatTarget> nats) {
+    public NwTpPair allocateSnat(int oldNwSrc, int oldTpSrc_, int nwDst,
+                                 int tpDst_, Set<NatTarget> nats) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         // First try to find a port in a block we've already leased.
@@ -426,8 +426,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc_,
-                                  int nwDst, short tpDst_) {
+    public NwTpPair lookupSnatFwd(int oldNwSrc, int oldTpSrc_,
+                                  int nwDst, int tpDst_) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
@@ -449,8 +449,8 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc_,
-                                  int nwDst, short tpDst_) {
+    public NwTpPair lookupSnatRev(int newNwSrc, int newTpSrc_,
+                                  int nwDst, int tpDst_) {
         int newTpSrc = newTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String key = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,

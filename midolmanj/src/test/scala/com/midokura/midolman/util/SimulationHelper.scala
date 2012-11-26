@@ -124,8 +124,8 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def injectTcp(port: String,
-              fromMac: MAC, fromIp: IntIPv4, fromPort: Short,
-              toMac: MAC, toIp: IntIPv4, toPort: Short,
+              fromMac: MAC, fromIp: IntIPv4, fromPort: Int,
+              toMac: MAC, toIp: IntIPv4, toPort: Int,
               syn: Boolean = false, rst: Boolean = false, ack: Boolean = false) {
         val tcp = new TCP()
         tcp.setSourcePort(fromPort)

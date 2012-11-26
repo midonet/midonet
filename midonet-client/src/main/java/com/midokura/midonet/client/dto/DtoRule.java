@@ -51,11 +51,11 @@ public class DtoRule {
     private String nwDstAddress;
     private int nwDstLength;
     private boolean invNwDst;
-    private short tpSrcStart;
-    private short tpSrcEnd;
+    private int tpSrcStart;
+    private int tpSrcEnd;
     private boolean invTpSrc;
-    private short tpDstStart;
-    private short tpDstEnd;
+    private int tpDstStart;
+    private int tpDstEnd;
     private boolean invTpDst;
     private String type;
     private String jumpChainName;
@@ -289,19 +289,19 @@ public class DtoRule {
         this.invNwDst = invNwDst;
     }
 
-    public short getTpSrcStart() {
+    public int getTpSrcStart() {
         return tpSrcStart;
     }
 
-    public void setTpSrcStart(short tpSrcStart) {
+    public void setTpSrcStart(int tpSrcStart) {
         this.tpSrcStart = tpSrcStart;
     }
 
-    public short getTpSrcEnd() {
+    public int getTpSrcEnd() {
         return tpSrcEnd;
     }
 
-    public void setTpSrcEnd(short tpSrcEnd) {
+    public void setTpSrcEnd(int tpSrcEnd) {
         this.tpSrcEnd = tpSrcEnd;
     }
 
@@ -313,19 +313,19 @@ public class DtoRule {
         this.invTpSrc = invTpSrc;
     }
 
-    public short getTpDstStart() {
+    public int getTpDstStart() {
         return tpDstStart;
     }
 
-    public void setTpDstStart(short tpDstStart) {
+    public void setTpDstStart(int tpDstStart) {
         this.tpDstStart = tpDstStart;
     }
 
-    public short getTpDstEnd() {
+    public int getTpDstEnd() {
         return tpDstEnd;
     }
 
-    public void setTpDstEnd(short tpDstEnd) {
+    public void setTpDstEnd(int tpDstEnd) {
         this.tpDstEnd = tpDstEnd;
     }
 

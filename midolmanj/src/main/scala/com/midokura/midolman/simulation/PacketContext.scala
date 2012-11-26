@@ -175,7 +175,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
 }
 
 object PacketContext {
-    def connectionKey(ip1: Int, port1: Short, ip2: Int, port2: Short,
+    def connectionKey(ip1: Int, port1: Int, ip2: Int, port2: Int,
                       proto: Short, deviceID: UUID): String = {
         new StringBuilder(Net.convertIntAddressToString(ip1))
                 .append('|').append(port1).append('|')

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura
+ * Copyright 2012 Midokura Pte. Ltd.
  */
 package com.midokura.midolman
 

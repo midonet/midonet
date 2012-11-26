@@ -146,8 +146,8 @@ public class MockPacketContext implements ChainPacketContext {
         return flowMatch;
     }
 
-    public static String connectionKey(int ip1, short port1, int ip2,
-                                       short port2, short proto, UUID fe) {
+    public static String connectionKey(int ip1, int port1, int ip2,
+                                       int port2, short proto, UUID fe) {
         return new StringBuilder(Net.convertIntAddressToString(ip1))
                              .append('|').append(port1).append('|')
                              .append(Net.convertIntAddressToString(ip2))

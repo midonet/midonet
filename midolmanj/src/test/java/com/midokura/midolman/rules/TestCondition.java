@@ -63,8 +63,8 @@ public class TestCondition {
         pktMatch.setNetworkDestination(0x0a000b22, 32);
         pktMatch.setNetworkProtocol((byte) 6);
         pktMatch.setNetworkTypeOfService((byte) 34);
-        pktMatch.setTransportSource((short) 4321);
-        pktMatch.setTransportDestination((short) 1234);
+        pktMatch.setTransportSource(4321);
+        pktMatch.setTransportDestination(1234);
         rand = new Random();
     }
 
@@ -288,7 +288,43 @@ public class TestCondition {
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
         cond.tpSrcEnd = 4322;
-        cond.tpSrcStart = null;
+        cond.tpSrcStart = 0;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testTpSrc_upperPorts() {
+        pktMatch.setTransportSource(40000);
+
+        Condition cond = new Condition();
+        fwdInfo.inPortId = UUID.randomUUID();
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcStart = 30000;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = false;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcStart = 45000;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcStart = 35000;
+        cond.tpSrcEnd = 34000;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcEnd = 45000;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpSrcInv = false;
+        cond.tpSrcEnd = 65535;
+        cond.tpSrcStart = 0;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -317,7 +353,43 @@ public class TestCondition {
         cond.tpDstInv = false;
         cond.tpDstStart = 1235;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstStart = null;
+        cond.tpDstStart = 0;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testTpDst_upperPorts() {
+        pktMatch.setTransportDestination(50000);
+
+        Condition cond = new Condition();
+        fwdInfo.inPortId = UUID.randomUUID();
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstStart = 40000;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = false;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstStart = 55000;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstStart = 45000;
+        cond.tpDstEnd = 44000;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = false;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstEnd = 55000;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.tpDstInv = false;
+        cond.tpDstEnd = 65535;
+        cond.tpDstStart = 0;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -362,6 +434,13 @@ public class TestCondition {
         ids.add(UUID.randomUUID());
         cond.inPortIds = ids;
         cond.portGroup = UUID.randomUUID();
+        cond.tpSrcStart = 40000;
+        cond.tpSrcEnd = 41000;
+        cond.tpSrcInv = false;
+        cond.tpDstStart = 42000;
+        cond.tpDstEnd = 43000;
+        cond.tpDstInv = true;
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);
         JsonGenerator jsonGenerator =

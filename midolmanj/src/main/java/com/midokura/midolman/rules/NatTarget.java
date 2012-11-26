@@ -11,10 +11,10 @@ public class NatTarget {
 
     public int nwStart;
     public int nwEnd;
-    public short tpStart;
-    public short tpEnd;
+    public int tpStart;
+    public int tpEnd;
 
-    public NatTarget(int nwStart, int nwEnd, short tpStart, short tpEnd) {
+    public NatTarget(int nwStart, int nwEnd, int tpStart, int tpEnd) {
         this.nwStart = nwStart;
         this.nwEnd = nwEnd;
         this.tpStart = tpStart;

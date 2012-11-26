@@ -76,25 +76,25 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         def revInFromIp: IntIPv4 = fwdOutToIp
         def revInToIp: IntIPv4 = fwdOutFromIp
 
-        def fwdInFromPort: Short =
+        def fwdInFromPort: Int =
             fwdInPacket.getPayload.asInstanceOf[IPv4].
                         getPayload.asInstanceOf[TCP].getSourcePort
-        def fwdInToPort: Short =
+        def fwdInToPort: Int =
             fwdInPacket.getPayload.asInstanceOf[IPv4].
                         getPayload.asInstanceOf[TCP].getDestinationPort
 
-        def revOutFromPort: Short = fwdInToPort
-        def revOutToPort: Short = fwdInFromPort
+        def revOutFromPort: Int = fwdInToPort
+        def revOutToPort: Int = fwdInFromPort
 
-        def fwdOutFromPort: Short =
+        def fwdOutFromPort: Int =
             fwdOutPacket.getPayload.asInstanceOf[IPv4].
                          getPayload.asInstanceOf[TCP].getSourcePort
-        def fwdOutToPort: Short =
+        def fwdOutToPort: Int =
             fwdOutPacket.getPayload.asInstanceOf[IPv4].
                          getPayload.asInstanceOf[TCP].getDestinationPort
 
-        def revInFromPort: Short = fwdOutToPort
-        def revInToPort: Short = fwdOutFromPort
+        def revInFromPort: Int = fwdOutToPort
+        def revInToPort: Int = fwdOutFromPort
 
         def matchForwardOutPacket(eth: Ethernet) {
             val ip = eth.getPayload.asInstanceOf[IPv4]
@@ -160,8 +160,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         dnatCond.nwSrcIp = vmNetworkIp
         dnatCond.nwSrcInv = true
         dnatCond.nwDstIp = dnatAddress
-        dnatCond.tpDstStart = 80.toShort
-        dnatCond.tpDstEnd = 80.toShort
+        dnatCond.tpDstStart = 80.toInt
+        dnatCond.tpDstEnd = 80.toInt
         val dnatTarget =  new NatTarget(vmIps.head, vmIps.last, 80, 80)
         val dnatRule = newForwardNatRuleOnChain(rtrInChain, 2, dnatCond,
                 RuleResult.Action.CONTINUE, Set(dnatTarget), isDnat = true)

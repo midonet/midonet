@@ -4,6 +4,7 @@
 
 package com.midokura.packets;
 
+import javax.annotation.Signed;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -13,8 +14,8 @@ public class TCP extends BasePacket implements Transport {
     public static final int MIN_HEADER_LEN = 20;
     public static final int MIN_DATA_OFFSET = 5;
 
-    protected short sourcePort;
-    protected short destinationPort;
+    protected int sourcePort;
+    protected int destinationPort;
     protected int seqNo;
     protected int ackNo;
     protected short flags;
@@ -75,8 +76,8 @@ public class TCP extends BasePacket implements Transport {
                 + (null == payloadData ? 0 : payloadData.length);
         byte[] data = new byte[length];
         ByteBuffer bb = ByteBuffer.wrap(data);
-        bb.putShort(sourcePort);
-        bb.putShort(destinationPort);
+        bb.putShort((short)sourcePort);
+        bb.putShort((short)destinationPort);
         bb.putInt(seqNo);
         bb.putInt(ackNo);
         // Set dataOffset in flags if it hasn't already been set.
@@ -103,8 +104,8 @@ public class TCP extends BasePacket implements Transport {
                 + bb.remaining());
         }
 
-        sourcePort = bb.getShort();
-        destinationPort = bb.getShort();
+        sourcePort = Unsigned.unsign(bb.getShort());
+        destinationPort = Unsigned.unsign(bb.getShort());
         seqNo = bb.getInt();
         ackNo = bb.getInt();
         flags = bb.getShort(); //TODO: parse flags
@@ -196,22 +197,28 @@ public class TCP extends BasePacket implements Transport {
     }
 
     @Override
-    public void setSourcePort(short sourcePort) {
+    public void setSourcePort(int sourcePort) {
+        if (sourcePort < 0 || sourcePort > 65535)
+            throw new IllegalArgumentException("TCP port out of range");
+
         this.sourcePort = sourcePort;
     }
 
     @Override
-    public void setDestinationPort(short destinationPort) {
+    public void setDestinationPort(int destinationPort) {
+        if (destinationPort < 0 || destinationPort > 65535)
+            throw new IllegalArgumentException("TCP port out of range");
+
         this.destinationPort = destinationPort;
     }
 
     @Override
-    public short getSourcePort() {
+    public int getSourcePort() {
         return sourcePort;
     }
 
     @Override
-    public short getDestinationPort() {
+    public int getDestinationPort() {
         return destinationPort;
     }
 

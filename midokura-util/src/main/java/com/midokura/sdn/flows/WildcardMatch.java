@@ -66,8 +66,8 @@ public class WildcardMatch implements Cloneable {
     private Byte networkTTL;
     private Byte networkTOS;
     private Boolean isIPv4Fragment;
-    private Short transportSource;
-    private Short transportDestination;
+    private Integer transportSource;
+    private Integer transportDestination;
     private IntIPv4 arpSip;
     private IntIPv4 arpTip;
 
@@ -419,7 +419,11 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setTransportSource(short transportSource) {
+    public WildcardMatch setTransportSource(int transportSource) {
+        if (transportSource < 0 || transportSource > 65535)
+            throw new IllegalArgumentException(
+                    "Transport source port out of range");
+
         usedFields.add(Field.TransportSource);
         this.transportSource = transportSource;
         return this;
@@ -433,17 +437,21 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportSourceObject() {
+    public Integer getTransportSourceObject() {
         return transportSource;
     }
 
     @Deprecated
-    public short getTransportSource() {
-        return transportSource.shortValue();
+    public int getTransportSource() {
+        return transportSource;
     }
 
     @Nonnull
-    public WildcardMatch setTransportDestination(short transportDestination) {
+    public WildcardMatch setTransportDestination(int transportDestination) {
+        if (transportDestination < 0 || transportDestination > 65535)
+            throw new IllegalArgumentException(
+                    "Transport destination port out of range");
+
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;
         return this;
@@ -457,13 +465,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportDestinationObject() {
+    public Integer getTransportDestinationObject() {
         return transportDestination;
     }
 
     @Deprecated
-    public short getTransportDestination() {
-        return transportDestination.shortValue();
+    public int getTransportDestination() {
+        return transportDestination;
     }
 
     @Nonnull

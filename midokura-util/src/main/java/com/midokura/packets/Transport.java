@@ -5,10 +5,10 @@ package com.midokura.packets;
 
 public interface Transport {
 
-    short getSourcePort();
-    short getDestinationPort();
-    void setSourcePort(short port);
-    void setDestinationPort(short port);
+    int getSourcePort();
+    int getDestinationPort();
+    void setSourcePort(int port);
+    void setDestinationPort(int port);
 
     IPacket getPayload();
 }

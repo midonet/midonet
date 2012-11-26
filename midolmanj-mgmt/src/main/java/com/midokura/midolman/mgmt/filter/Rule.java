@@ -92,11 +92,23 @@ public abstract class Rule extends UriResource {
     private boolean invNwSrc = false;
     private boolean invNwDst = false;
 
-    private short tpSrcStart;
-    private short tpSrcEnd;
+    @Min(0)
+    @Max(65535)
+    private int tpSrcStart;
+
+    @Min(0)
+    @Max(65535)
+    private int tpSrcEnd;
+
+    @Min(0)
+    @Max(65535)
+    private int tpDstStart;
+
+    @Min(0)
+    @Max(65535)
+    private int tpDstEnd;
+
     private boolean invTpSrc = false;
-    private short tpDstStart;
-    private short tpDstEnd;
     private boolean invTpDst = false;
 
     /**
@@ -581,7 +593,7 @@ public abstract class Rule extends UriResource {
     /**
      * @return the tpSrcStart
      */
-    public short getTpSrcStart() {
+    public int getTpSrcStart() {
         return tpSrcStart;
     }
 
@@ -589,14 +601,14 @@ public abstract class Rule extends UriResource {
      * @param tpSrcStart
      *            the tpSrcStart to set
      */
-    public void setTpSrcStart(short tpSrcStart) {
+    public void setTpSrcStart(int tpSrcStart) {
         this.tpSrcStart = tpSrcStart;
     }
 
     /**
      * @return the tpSrcEnd
      */
-    public short getTpSrcEnd() {
+    public int getTpSrcEnd() {
         return tpSrcEnd;
     }
 
@@ -604,7 +616,7 @@ public abstract class Rule extends UriResource {
      * @param tpSrcEnd
      *            the tpSrcEnd to set
      */
-    public void setTpSrcEnd(short tpSrcEnd) {
+    public void setTpSrcEnd(int tpSrcEnd) {
         this.tpSrcEnd = tpSrcEnd;
     }
 
@@ -626,7 +638,7 @@ public abstract class Rule extends UriResource {
     /**
      * @return the tpDstStart
      */
-    public short getTpDstStart() {
+    public int getTpDstStart() {
         return tpDstStart;
     }
 
@@ -634,14 +646,14 @@ public abstract class Rule extends UriResource {
      * @param tpDstStart
      *            the tpDstStart to set
      */
-    public void setTpDstStart(short tpDstStart) {
+    public void setTpDstStart(int tpDstStart) {
         this.tpDstStart = tpDstStart;
     }
 
     /**
      * @return the tpDstEnd
      */
-    public short getTpDstEnd() {
+    public int getTpDstEnd() {
         return tpDstEnd;
     }
 
@@ -649,7 +661,7 @@ public abstract class Rule extends UriResource {
      * @param tpDstEnd
      *            the tpDstEnd to set
      */
-    public void setTpDstEnd(short tpDstEnd) {
+    public void setTpDstEnd(int tpDstEnd) {
         this.tpDstEnd = tpDstEnd;
     }
 
@@ -778,13 +790,13 @@ public abstract class Rule extends UriResource {
             this.setNwProto(unsign(c.nwProto));
         if (null != c.nwTos)
             this.setNwTos(unsign(c.nwTos));
-        if (null != c.tpDstEnd)
+        if (0 != c.tpDstEnd)
             this.setTpDstEnd(c.tpDstEnd);
-        if (null != c.tpDstStart)
+        if (0 != c.tpDstStart)
             this.setTpDstStart(c.tpDstStart);
-        if (null != c.tpSrcEnd)
+        if (0 != c.tpSrcEnd)
             this.setTpSrcEnd(c.tpSrcEnd);
-        if (null != c.tpSrcStart)
+        if (0 != c.tpSrcStart)
             this.setTpSrcStart(c.tpSrcStart);
     }
 

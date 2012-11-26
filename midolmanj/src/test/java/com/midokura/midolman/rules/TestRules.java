@@ -57,8 +57,8 @@ public class TestRules {
         pktMatch.setNetworkDestination(0x0a000b22, 32);
         pktMatch.setNetworkProtocol((byte) 6); // TCP
         pktMatch.setNetworkTypeOfService((byte) 34);
-        pktMatch.setTransportSource((short) 4321);
-        pktMatch.setTransportDestination((short) 1234);
+        pktMatch.setTransportSource(4321);
+        pktMatch.setTransportDestination(1234);
         pktResponseMatch = new WildcardMatch();
         pktResponseMatch.setInputPort((short) 5);
         pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
@@ -67,8 +67,8 @@ public class TestRules {
         pktResponseMatch.setNetworkSource(0x0a000b22, 32);
         pktResponseMatch.setNetworkProtocol((byte) 6); // TCP
         pktResponseMatch.setNetworkTypeOfService((byte) 34);
-        pktResponseMatch.setTransportDestination((short) 4321);
-        pktResponseMatch.setTransportSource((short) 1234);
+        pktResponseMatch.setTransportDestination(4321);
+        pktResponseMatch.setTransportSource(1234);
         rand = new Random();
         inPort = new UUID(rand.nextLong(), rand.nextLong());
         ownerId = new UUID(rand.nextLong(), rand.nextLong());
@@ -88,8 +88,8 @@ public class TestRules {
         cond.tpDstEnd = 2000;
 
         nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0a090807, 0x0a090810, (short) 21333,
-                (short) 32999));
+        nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
+                32999));
 
         Directory dir = new MockDirectory();
         ZkPathManager pathMgr = new ZkPathManager("");
@@ -197,8 +197,7 @@ public class TestRules {
     @Test
     public void testSnatAndReverseRules() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0b000102, 0x0b00010a, (short) 3366,
-                (short) 3399));
+        nats.add(new NatTarget(0x0b000102, 0x0b00010a, 3366, 3399));
         Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
                 nats);
         // If the condition doesn't match the result is not modified.
@@ -216,7 +215,7 @@ public class TestRules {
         int newNwSrc = argRes.pmatch.getNetworkSource();
         Assert.assertTrue(0x0b000102 <= newNwSrc);
         Assert.assertTrue(newNwSrc <= 0x0b00010a);
-        short newTpSrc = argRes.pmatch.getTransportSource();
+        int newTpSrc = argRes.pmatch.getTransportSource();
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         Assert.assertTrue(argRes.trackConnection);
@@ -247,8 +246,8 @@ public class TestRules {
     @Test
     public void testDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (short) 1030,
-                (short) 1050));
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
+                (int) 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
         // If the condition doesn't match the result is not modified.
@@ -266,7 +265,7 @@ public class TestRules {
         int newNwDst = argRes.pmatch.getNetworkDestination();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
-        short newTpDst = argRes.pmatch.getTransportDestination();
+        int newTpDst = argRes.pmatch.getTransportDestination();
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         Assert.assertTrue(argRes.trackConnection);
