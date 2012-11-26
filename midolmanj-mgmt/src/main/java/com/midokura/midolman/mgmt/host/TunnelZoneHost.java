@@ -11,6 +11,7 @@ import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
 import com.midokura.packets.IntIPv4;
 import com.midokura.util.StringUtil;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
@@ -28,6 +29,7 @@ public abstract class TunnelZoneHost extends UriResource {
     @IsValidHostId
     private UUID hostId;
 
+    @NotNull
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
             message = "is an invalid IP format")
     private String ipAddress;
