@@ -262,9 +262,11 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             DHCPOption.Code.SERVER_ID.value,
             DHCPOption.Code.SERVER_ID.length,
             IPv4.toIPv4AddressBytes(serverAddr.getAddress)))
-        options.add(new DHCPOption(DHCPOption.Code.DNS.value,
-            DHCPOption.Code.DNS.length,
-            IPv4.toIPv4AddressBytes(dnsServerAddr.getAddress)))
+        if (dnsServerAddr != null) {
+            options.add(new DHCPOption(DHCPOption.Code.DNS.value,
+                                       DHCPOption.Code.DNS.length,
+                                       IPv4.toIPv4AddressBytes(dnsServerAddr.getAddress)))
+        }
         // If there are classless static routes, add the option.
         if (null != opt121Routes && opt121Routes.length > 0) {
             val bytes = mutable.ListBuffer[Byte]()

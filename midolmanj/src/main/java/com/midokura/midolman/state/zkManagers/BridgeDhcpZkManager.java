@@ -40,10 +40,18 @@ public class BridgeDhcpZkManager extends ZkManager {
                       IntIPv4 serverAddr, IntIPv4 dnsServerAddr,
                       List<Opt121> opt121Routes) {
             this.subnetAddr = subnetAddr;
-            // TODO(pino): remove this hard-coded server IP. Make configurable.
-            //this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
-            //        subnetAddr.getMaskLength());
-            this.serverAddr = serverAddr;
+            if (serverAddr != null) {
+                this.serverAddr = serverAddr;
+            } else {
+                // If not configured, first attempt to set it to the default GW
+                if (defaultGateway != null) {
+                    this.serverAddr = defaultGateway;
+                } else {
+                    // hard-code it to some arbituary value
+                    this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
+                                                  subnetAddr.getMaskLength());
+                }
+            }
             this.dnsServerAddr = dnsServerAddr;
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
