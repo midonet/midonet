@@ -202,10 +202,9 @@ public abstract class AbstractNetlinkConnection {
     private synchronized void processReadFromChannel(SelectionKey key) throws IOException {
 
         if (key != null) {
-            log.debug("Handling event with key: {key:{}, ops:{}}", key.isValid(), key.readyOps());
+            log.debug("Handling event with key: {valid:{}, ops:{}}",
+                      key.isValid(), key.readyOps());
         }
-
-        log.warn("Pending requests: {}" , pendingRequests);
 
         // allocate buffer for the reply
         ByteBuffer reply = ByteBuffer.allocate(cLibrary.PAGE_SIZE);

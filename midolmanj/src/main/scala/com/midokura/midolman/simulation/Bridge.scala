@@ -11,7 +11,8 @@ import java.util.UUID
 
 import com.midokura.midolman.rules.RuleResult.Action
 import com.midokura.midolman.simulation.Coordinator._
-import com.midokura.midolman.topology.{FlowTagger, MacFlowCount, RemoveFlowCallbackGenerator}
+import com.midokura.midolman.topology.{FlowTagger, MacFlowCount,
+                                       RemoveFlowCallbackGenerator}
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
@@ -33,7 +34,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
-        log.info("Bridge's process method called.")
+        log.debug("Bridge's process method called.")
         // Drop the packet if its L2 source is a multicast address.
         if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
@@ -56,7 +57,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         packetContext.setOutputPort(null)
         val preBridgeResult = Chain.apply(inFilter, packetContext,
                                           packetContext.getMatch, id, false)
-        log.info("The ingress chain returned {}", preBridgeResult)
+        log.debug("The ingress chain returned {}", preBridgeResult)
 
         if (preBridgeResult.action == Action.DROP ||
                 preBridgeResult.action == Action.REJECT) {
@@ -85,7 +86,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     packetContext.getMatch.getEtherType == ARP.ETHERTYPE &&
                     rtrIpToMac.contains(nwDst)) {
                 // Forward broadcast ARPs to their routers if we know how.
-                log.info("The packet is intended for an interior router port.")
+                log.debug("The packet is intended for an interior router port.")
                 val rtrPortID = rtrMacToLogicalPortId.get(
                     rtrIpToMac.get(nwDst).get).get
                 action = Promise.successful(
@@ -93,22 +94,21 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             } else {
                 // Not an ARP request for a router's port's address.
                 // Flood to materialized ports only.
-                log.info("flooding to port set {}", id)
+                log.debug("flooding to port set {}", id)
                 action = Promise.successful(ToPortSetAction(id))
-                // add tag
-                packetContext.addFlowTag(FlowTagger.invalidateBroadcastFlows(id, id))
+                packetContext.addFlowTag(
+                    FlowTagger.invalidateBroadcastFlows(id, id))
             }
           case false =>
             // L2 unicast
-            log.info("The packet has a unicast L2 dst address.")
             rtrMacToLogicalPortId.get(dstDlAddress) match {
                 case Some(logicalPort: UUID) =>
                     // dstMAC is a logical port's MAC.
-                    log.info("The packet is intended for an interior router " +
+                    log.debug("The packet is intended for an interior router " +
                         "port.")
                     action = Promise.successful(ToPortAction(logicalPort))
-                    packetContext.addFlowTag(FlowTagger.invalidateFlowsByLogicalPort(
-                    id, logicalPort))
+                    packetContext.addFlowTag(
+                        FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
                 case None =>
                     // Not a logical port's MAC.  Is dst MAC in
                     // macPortMap? (ie, learned)
