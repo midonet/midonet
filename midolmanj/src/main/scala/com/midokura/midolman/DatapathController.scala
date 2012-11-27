@@ -1070,8 +1070,9 @@ class DatapathController() extends Actor with ActorLogging {
                     port, k, localPorts, tunnelPorts)
 
             case None =>
-                log.debug("Translating output action for vport {}, " +
-                    "corresponding to local dp port {}", port, localPorts)
+                log.debug("No tunnel key provided. Translating output " +
+                    "action for vport {}, corresponding to local dp port {}",
+                    port, localPorts)
         }
         // TODO(pino): when we detect the flow won't have output actions,
         // set the flow to expire soon so that we can retry.
