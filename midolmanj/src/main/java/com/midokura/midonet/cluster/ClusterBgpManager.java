@@ -7,14 +7,11 @@ package com.midokura.midonet.cluster;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.zkManagers.AdRouteZkManager;
 import com.midokura.midolman.state.zkManagers.BgpZkManager;
 import com.midokura.midonet.cluster.client.*;
 import com.midokura.midonet.cluster.data.AdRoute;
 import com.midokura.midonet.cluster.data.BGP;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +97,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         adRouteMgr.getAdRouteAsync(adRouteId, adRouteCallback, adRouteCallback);
     }
 
-    private class BgpCallback implements DirectoryCallback<BGP>,
-                Directory.TypedWatcher {
+    private class BgpCallback extends CallbackWithWatcher<BGP> {
 
         //TODO(abel) consider having one callback for all BGPS instead
         // of one callback per BGP.
@@ -109,6 +105,11 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         public BgpCallback(UUID bgpID) {
             this.bgpID = bgpID;
+        }
+
+        @Override
+        protected String describe() {
+            return "BGP:" + bgpID;
         }
 
         /*
@@ -139,13 +140,13 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         @Override
-        public void onTimeout() {
-            log.warn("timeout getting BGPs from cluster");
-        }
-
-        @Override
-        public void onError(KeeperException e) {
-            log.error("Error getting BGPs from cluster: " + e);
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    bgpMgr.getBGPAsync(bgpID, BgpCallback.this, BgpCallback.this);
+                }
+            };
         }
 
         /*
@@ -160,45 +161,24 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         @Override
-        public void pathCreated(String path) {
-            // Should never happen.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
-        public void pathChildrenUpdated(String path) {
-            // Should never happen. We didn't subscribe to the children.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
         public void pathDataChanged(String path) {
             // The BGP node has changed, fetch it again asynchronously.
             bgpMgr.getBGPAsync(bgpID, this, this);
         }
-
-        @Override
-        public void pathNoChange(String path) {
-            // do nothing
-        }
-
-        @Override
-        public void run() {
-            // The BGP node has changed, fetch it again asynchronously.
-            log.debug("BgpCallback - get bgp info");
-            bgpMgr.getBGPAsync(bgpID, this, this);
-        }
     }
 
-    private class BgpsCallback implements DirectoryCallback<Set<UUID>>,
-                                                   Directory.TypedWatcher {
-
+    private class BgpsCallback extends CallbackWithWatcher<Set<UUID>> {
         //TODO(abel) consider having one callback for all Port IDs instead
         //of one callback per each port ID.
         UUID bgpPortID;
 
         public BgpsCallback(UUID bgpPortID) {
             this.bgpPortID = bgpPortID;
+        }
+
+        @Override
+        protected String describe() {
+            return "BGPs:" + bgpPortID;
         }
 
         /*
@@ -209,18 +189,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             log.debug("begin");
             update(data.getData());
             log.debug("end");
-        }
-
-        @Override
-        public void onTimeout() {
-            //TODO(abel) how to deal with this? Schedule a retry later?
-            log.error("timeout getting BGPs from cluster");
-        }
-
-        @Override
-        public void onError(KeeperException e) {
-            //TODO(abel) how to deal with this? Schedule a retry later?
-            log.error("Error getting BGPs from cluster: " + e);
         }
 
         /*
@@ -235,12 +203,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         @Override
-        public void pathCreated(String path) {
-            // Should never happen.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
         public void pathChildrenUpdated(String path) {
             // The list of bgp's for this port has changed. Fetch it again
             // asynchronously.
@@ -248,25 +210,14 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         @Override
-        public void pathDataChanged(String path) {
-            // Our watcher is on the children, so this shouldn't be called.
-            // Also, we don't use the data part of this path so it should
-            // never change.
-            log.error("This shouldn't have been triggered.");
-        }
-
-        @Override
-        public void pathNoChange(String path) {
-            // do nothing
-            // TODO(pino): when is this triggered?
-        }
-
-        @Override
-        public void run() {
-            // The list of bgp's for this port has changed. Fetch it again
-            // asynchronously.
-            log.debug("BgpsCallback - get list of bgp's");
-            bgpMgr.getBgpListAsync(bgpPortID, this, this);
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    bgpMgr.getBgpListAsync(bgpPortID, BgpsCallback.this,
+                            BgpsCallback.this);
+                }
+            };
         }
 
         /*
@@ -296,8 +247,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
     }
 
-    private class AdRouteCallback implements DirectoryCallback<AdRouteZkManager.AdRouteConfig>,
-            Directory.TypedWatcher {
+    private class AdRouteCallback extends
+            CallbackWithWatcher<AdRouteZkManager.AdRouteConfig> {
 
         //TODO(abel) consider having one callback for all AdRoutes instead
         // of one callback per AdRoute.
@@ -305,6 +256,11 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         public AdRouteCallback(UUID adRouteId) {
             this.adRouteId = adRouteId;
+        }
+
+        @Override
+        protected String describe() {
+            return "AdRoute:" + adRouteId;
         }
 
         /*
@@ -330,16 +286,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             }
         }
 
-        @Override
-        public void onTimeout() {
-            log.warn("timeout getting AdRoute from cluster");
-        }
-
-        @Override
-        public void onError(KeeperException e) {
-            log.error("Error getting AdRoute from cluster: " + e);
-        }
-
         /*
         * TypedWatcher overrides
         */
@@ -349,39 +295,25 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         @Override
-        public void pathCreated(String path) {
-            // Should never happen.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
-        public void pathChildrenUpdated(String path) {
-            // Should never happen. We didn't subscribe to the children.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
         public void pathDataChanged(String path) {
-            // The AdRoute node has changed, fetch it again asynchronously.
-            adRouteMgr.getAdRouteAsync(adRouteId, this, this);
-        }
-
-        @Override
-        public void pathNoChange(String path) {
-            // do nothing
-        }
-
-        @Override
-        public void run() {
             // The AdRoute node has changed, fetch it again asynchronously.
             log.debug("AdRouteCallback - begin");
             adRouteMgr.getAdRouteAsync(adRouteId, this, this);
         }
 
+        @Override
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    adRouteMgr.getAdRouteAsync(adRouteId,
+                            AdRouteCallback.this, AdRouteCallback.this);
+                }
+            };
+        }
     }
 
-    private class AdRoutesCallback implements DirectoryCallback<Set<UUID>>,
-            Directory.TypedWatcher {
+    private class AdRoutesCallback extends CallbackWithWatcher<Set<UUID>> {
 
         //TODO(abel) consider having one callback for all BGP IDs, instead
         // of one callback per BGP.
@@ -389,6 +321,11 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         public AdRoutesCallback(UUID bgpID) {
             this.bgpID = bgpID;
+        }
+
+        @Override
+        protected String describe() {
+            return "AdRoutes:" + bgpID;
         }
 
         /*
@@ -400,61 +337,25 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             update(data.getData());
         }
 
-        @Override
-        public void onTimeout() {
-            //TODO(abel) how to deal with this? Schedule a retry later?
-            log.error("timeout getting AdRoutes from cluster");
-        }
-
-        @Override
-        public void onError(KeeperException e) {
-            //TODO(abel) how to deal with this? Schedule a retry later?
-            log.error("Error getting AdRoutes from cluster: " + e);
-        }
-
         /*
          * TypedWatcher overrides
          */
-        @Override
-        public void pathDeleted(String path) {
-            // The port-id/bgps path has been deleted
-            log.error("BGP list was deleted at {}", path);
-            // TODO(pino): Should probably call Builder.delete()
-            //getBuilder(bgpPortID).delete();
-        }
-
-        @Override
-        public void pathCreated(String path) {
-            // Should never happen.
-            log.error("This shouldn't have been triggered");
-        }
 
         @Override
         public void pathChildrenUpdated(String path) {
             log.debug("AdRoutesCallback - begin");
-            run();
-        }
-
-        @Override
-        public void pathDataChanged(String path) {
-            // Our watcher is on the children, so this shouldn't be called.
-            // Also, we don't use the data part of this path so it should
-            // never change.
-            log.error("This shouldn't have been triggered.");
-        }
-
-        @Override
-        public void pathNoChange(String path) {
-            // do nothing
-            // TODO(pino): when is this triggered?
-        }
-
-        @Override
-        public void run() {
-            // The list of AdRoutes for this BGP has changed. Fetch it again
-            // asynchronously.
-            log.debug("AdRoutesCallback - begin");
             adRouteMgr.getAdRouteListAsync(bgpID, this, this);
+        }
+
+        @Override
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    adRouteMgr.getAdRouteListAsync(bgpID,
+                            AdRoutesCallback.this, AdRoutesCallback.this);
+                }
+            };
         }
 
         /*
@@ -484,5 +385,4 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             }
         }
     }
-
 }

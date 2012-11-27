@@ -9,6 +9,7 @@ import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
+import org.apache.zookeeper.Watcher;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -252,7 +253,7 @@ public class TestMockDirectory {
         }
 
         @Override
-        public void pathNoChange(String path) {
+        public void connectionStateChanged(Watcher.Event.KeeperState state) {
             noChanges++;
         }
 

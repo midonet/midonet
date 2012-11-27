@@ -3,16 +3,15 @@
 */
 package com.midokura.midolman.guice.zookeeper;
 
-import com.google.inject.Inject;
-import com.google.inject.Key;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
+import com.google.inject.*;
 import com.google.inject.name.Names;
 
 import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
+import com.midokura.midolman.state.ZookeeperConnectionWatcher;
 import com.midokura.util.eventloop.Reactor;
 
 /**
@@ -20,7 +19,6 @@ import com.midokura.util.eventloop.Reactor;
  * by zookeeper.
  */
 public class ZookeeperConnectionModule extends PrivateModule {
-
     @Override
     protected void configure() {
 
@@ -40,6 +38,11 @@ public class ZookeeperConnectionModule extends PrivateModule {
                        Names.named(
                            ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
         expose(Directory.class);
+
+        bind(ZkConnectionAwareWatcher.class)
+                .to(ZookeeperConnectionWatcher.class)
+                .asEagerSingleton();
+        expose(ZkConnectionAwareWatcher.class);
     }
 
     protected void bindDirectory() {

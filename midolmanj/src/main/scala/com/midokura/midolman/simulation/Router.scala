@@ -441,7 +441,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             case rp: RouterPort[_] =>
                 rp.portMac
             case nrp =>
-                log.error("getPeerMac asked for MAC of non-router port {}", nrp)
+                log.debug("getPeerMac asked for MAC of non-router port {}", nrp)
                 null
         }
     }

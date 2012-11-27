@@ -16,11 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedSet<T> {
-
     private final static Logger log = LoggerFactory.getLogger(ReplicatedSet.class);
+
+    ZkConnectionAwareWatcher connectionWatcher;
 
     public interface Watcher<T1> {
         void process(Collection<T1> added, Collection<T1> removed);
+    }
+
+    public void setConnectionWatcher(ZkConnectionAwareWatcher watcher) {
+        connectionWatcher = watcher;
     }
 
     private void updateItems(Set<String> newStrings){
@@ -130,11 +135,24 @@ public abstract class ReplicatedSet<T> {
         @Override
         public void onTimeout() {
             log.error("ReplicatedSet getChildren {} timed out.");
+            if (connectionWatcher != null)
+                connectionWatcher.handleTimeout(makeRetry());
         }
 
         @Override
         public void onError(KeeperException e) {
             log.error("ReplicatedSet GetChildren {} failed", e);
+            if (connectionWatcher != null)
+                connectionWatcher.handleError("ReplicatedSet", makeRetry(), e);
+        }
+
+        private Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    dir.asyncGetChildren("", GetItemsCallback.this, myWatcher);
+                }
+            };
         }
     }
 

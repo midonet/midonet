@@ -5,15 +5,18 @@ package com.midokura.midolman.mgmt.zookeeper;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.midokura.midolman.state.ZkConnection;
-import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.state.ZkConnection;
+import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 
 /**
  * ZkConnection provider
  */
 public class ZkConnectionProvider implements Provider<ZkConnection>  {
+    @Inject
+    ZkConnectionAwareWatcher connWatcher;
 
     private final static Logger log = LoggerFactory
             .getLogger(ZkConnectionProvider.class);
@@ -32,8 +35,8 @@ public class ZkConnectionProvider implements Provider<ZkConnection>  {
 
         ZkConnection conn = new ZkConnection(config.getZooKeeperHosts(),
             config.getZooKeeperSessionTimeout(), null);
-        Watcher watcher = new ZookeeperConnWatcher(conn, config);
-        conn.setWatcher(watcher);
+        conn.setWatcher(connWatcher);
+        connWatcher.setZkConnection(conn);
 
         // When mocking, don't open the connection.  Can't return null here
         // because other modules don't allow null.

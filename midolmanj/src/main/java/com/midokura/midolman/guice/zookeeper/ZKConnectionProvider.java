@@ -3,11 +3,9 @@
 */
 package com.midokura.midolman.guice.zookeeper;
 
-import javax.inject.Named;
-
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.apache.zookeeper.Watcher;
+import com.google.inject.name.Named;
 
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.ZkConnection;
@@ -20,8 +18,6 @@ import com.midokura.util.eventloop.Reactor;
  */
 public class ZKConnectionProvider implements Provider<ZkConnection> {
 
-    public static final String WATCHER_NAME_TAG = "ZookeeperConnectionWatcher";
-
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
 
@@ -33,7 +29,6 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
     Reactor reactorLoop;
 
     @Inject(optional = true)
-    @Named(WATCHER_NAME_TAG)
     ZkConnectionAwareWatcher watcher;
 
     @Override
@@ -44,7 +39,8 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
                     config.getZooKeeperHosts(),
                     config.getZooKeeperSessionTimeout(), watcher, reactorLoop);
 
-            watcher.setZkConnection(zkConnection);
+            if (watcher != null)
+                watcher.setZkConnection(zkConnection);
             zkConnection.open();
 
             return zkConnection;

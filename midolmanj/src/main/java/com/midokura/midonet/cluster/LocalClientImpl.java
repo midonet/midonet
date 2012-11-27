@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.midokura.midolman.state.*;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.host.state.HostZkManager;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.DirectoryCallback;
-import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midolman.state.ZkDirectory;
 import com.midokura.midolman.state.zkManagers.PortSetZkManager;
 import com.midokura.midolman.state.zkManagers.TunnelZoneZkManager;
 import com.midokura.midonet.cluster.client.BGPListBuilder;
@@ -78,6 +75,9 @@ public class LocalClientImpl implements Client {
     @Inject
     ClusterPortsManager portsManager;
 
+    @Inject
+    ZkConnectionAwareWatcher connectionWatcher;
+
     /**
      * We inject it because we want to use the same {@link Reactor} as {@link ZkDirectory}
      */
@@ -124,11 +124,16 @@ public class LocalClientImpl implements Client {
         reactorLoop.submit(new Runnable() {
             @Override
             public void run() {
-                TunnelZone<?, ?> zone = readTunnelZone(zoneID, builders);
+                try {
+                    TunnelZone<?, ?> zone = readTunnelZone(zoneID, builders);
+                    readHosts(zone,
+                            new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
+                            builders);
 
-                readHosts(zone,
-                        new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
-                        builders);
+                } catch (StateAccessException e) {
+                    connectionWatcher.handleError(
+                            "TunnelZone:" + zoneID.toString(), this, e);
+                }
             }
         });
     }
@@ -140,19 +145,27 @@ public class LocalClientImpl implements Client {
                 new DirectoryCallback<Set<UUID>>() {
                     @Override
                     public void onSuccess(Result<Set<UUID>> result) {
-                        builder
-                                .setHosts(result.getData())
-                                .build();
+                        builder.setHosts(result.getData()).build();
                     }
 
                     @Override
                     public void onTimeout() {
-
+                        connectionWatcher.handleTimeout(makeRetry());
                     }
 
                     @Override
                     public void onError(KeeperException e) {
+                        connectionWatcher.handleError(
+                                "PortSet:" + uuid, makeRetry(), e);
+                    }
 
+                    private Runnable makeRetry() {
+                        return new Runnable() {
+                            @Override
+                            public void run() {
+                                getPortSet(uuid, builder);
+                            }
+                        };
                     }
                 },
                 new Directory.DefaultTypedWatcher() {
@@ -174,8 +187,10 @@ public class LocalClientImpl implements Client {
                            final Map<UUID, TunnelZone.HostConfig<?, ?>> zoneHosts,
                            final TunnelZones.BuildersProvider builders) {
 
+        Set<UUID> currentList = null;
+
         try {
-            Set<UUID> currentList =
+            currentList =
                     tunnelZoneZkManager.getZoneMemberships(zone.getId(),
                             new Directory.DefaultTypedWatcher() {
                                 @Override
@@ -186,7 +201,19 @@ public class LocalClientImpl implements Client {
                                             builders);
                                 }
                             });
+        } catch (StateAccessException e) {
+            log.error("Exception while reading hosts", e);
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    readHosts(zone, zoneHosts, builders);
+                }
+            };
+            connectionWatcher.handleError("HostsForZone:" + zone.getId(), retry, e);
+            return;
+        }
 
+        try {
             Set<TunnelZone.HostConfig<?, ?>> newMemberships =
                     new HashSet<TunnelZone.HostConfig<?, ?>>();
 
@@ -218,6 +245,13 @@ public class LocalClientImpl implements Client {
             }
 
         } catch (StateAccessException e) {
+            // XXX(guillermo) I don't see how this block could be retried
+            // without racing with the watcher installed by the first try{}
+            // block or blocking the reactor by retrying in a loop right here.
+            // The latter solution would only apply for timeout errors, not
+            // disconnections.
+            //
+            // For now, this error is left unhandled.
             log.error("Exception while reading hosts", e);
         }
     }
@@ -264,66 +298,84 @@ public class LocalClientImpl implements Client {
     }
 
     private TunnelZone<?, ?> readTunnelZone(final UUID zoneID,
-                                            final TunnelZones.BuildersProvider builders) {
+            final TunnelZones.BuildersProvider builders) throws StateAccessException {
 
+        TunnelZone<?, ?> zone;
         try {
-            TunnelZone<?, ?> zone =
-                    tunnelZoneZkManager.getZone(
-                            zoneID,
-                            new Directory.DefaultTypedWatcher() {
-                                @Override
-                                public void pathDataChanged(String path) {
-                                    readTunnelZone(zoneID, builders);
-                                }
-                            });
+            zone = tunnelZoneZkManager.getZone(
+                    zoneID,
+                    new Directory.DefaultPersistentWatcher(connectionWatcher) {
+                        @Override
+                        public void pathDataChanged(String path) {
+                            run();
+                        }
 
-            if (zone instanceof GreTunnelZone) {
-                final GreTunnelZone greZone = (GreTunnelZone) zone;
-                builders.getGreZoneBuilder()
-                        .setConfiguration(
-                                new GreBuilder.ZoneConfig() {
-                                    @Override
-                                    public GreTunnelZone getTunnelZoneConfig() {
-                                        return greZone;
-                                    }
-                                });
-            } else if (zone instanceof CapwapTunnelZone) {
-                final CapwapTunnelZone capwapZone = (CapwapTunnelZone) zone;
-                builders.getCapwapZoneBuilder()
-                        .setConfiguration(
-                                new CapwapBuilder.ZoneConfig() {
-                                    @Override
-                                    public CapwapTunnelZone getTunnelZoneConfig() {
-                                        return capwapZone;
-                                    }
-                                });
-            }
+                        @Override
+                        public String describe() {
+                            return "TunnelZone:" + zoneID.toString();
+                        }
 
-            return zone;
+                        @Override
+                        public void _run() throws StateAccessException {
+                            readTunnelZone(zoneID, builders);
+                        }
+                    });
         } catch (StateAccessException e) {
-            log.error("Exception retrieving availability zone with id: {}",
+            log.warn("Exception retrieving availability zone with id: {}",
                     zoneID, e);
-            return null;
+            throw e;
         }
+
+        if (zone instanceof GreTunnelZone) {
+            final GreTunnelZone greZone = (GreTunnelZone) zone;
+            builders.getGreZoneBuilder()
+                    .setConfiguration(
+                            new GreBuilder.ZoneConfig() {
+                        @Override
+                        public GreTunnelZone getTunnelZoneConfig() {
+                                    return greZone;
+                            }
+                        });
+        } else if (zone instanceof CapwapTunnelZone) {
+            final CapwapTunnelZone capwapZone = (CapwapTunnelZone) zone;
+            builders.getCapwapZoneBuilder()
+                    .setConfiguration(
+                            new CapwapBuilder.ZoneConfig() {
+                        @Override
+                        public CapwapTunnelZone getTunnelZoneConfig() {
+                                    return capwapZone;
+                            }
+                        });
+        }
+
+        return zone;
     }
 
     private HostDirectory.Metadata retrieveHostMetadata(final UUID hostId,
-                                                        final HostBuilder builder,
-                                                        final boolean isUpdate) {
+            final HostBuilder builder, final boolean isUpdate) throws StateAccessException {
         try {
-            HostDirectory.Metadata metadata =
-                    hostManager.getHostMetadata(
-                            hostId, new Directory.DefaultTypedWatcher() {
+            HostDirectory.Metadata metadata = hostManager.getHostMetadata(hostId,
+                    new Directory.DefaultPersistentWatcher(connectionWatcher) {
                         @Override
                         public void pathDataChanged(String path) {
+                            run();
+                        }
+
+                        @Override
+                        public void _run() throws StateAccessException {
                             retrieveHostMetadata(hostId, builder, true);
                         }
 
                         @Override
-                        public void pathDeleted(String path) {
-//                        builder.deleted();
+                        public String describe() {
+                            return "HostMetadata:" + hostId.toString();
                         }
-                    });
+
+                        @Override
+                        public void pathDeleted(String path) {
+                            //builder.deleted();
+                        }
+                });
 
             if (isUpdate)
                 builder.build();
@@ -332,7 +384,7 @@ public class LocalClientImpl implements Client {
         } catch (StateAccessException e) {
             log.error("Exception: ", e);
             // trigger delete if that's the case.
-            return null;
+            throw e;
         }
     }
 
@@ -357,7 +409,16 @@ public class LocalClientImpl implements Client {
             return datapath;
         } catch (StateAccessException e) {
             log.error("Exception: ", e);
-            // trigger delete if that's the case.
+            // TODO trigger delete if that's the case.
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    retrieveHostDatapathName(hostId, builder, isUpdate);
+                }
+            };
+
+            connectionWatcher.handleError(
+                    "HostDatapathName" + hostId.toString(), retry, e);
             return null;
         }
     }
@@ -367,6 +428,7 @@ public class LocalClientImpl implements Client {
                                     final HostBuilder builder,
                                     final Set<HostDirectory.VirtualPortMapping> oldMappings,
                                     boolean isUpdate) {
+        Set<HostDirectory.VirtualPortMapping> newMappings = null;
         try {
             // We are running in the same thread as the one which is going to
             // run the watcher below. This implies the following set of
@@ -383,12 +445,12 @@ public class LocalClientImpl implements Client {
             //      installing the watcher and said watcher gets the newMappings
             //      reference which should contain the list of old mappings.
             //
-            //  So make sure we are consistent in teh face of intermittent
+            //  So make sure we are consistent in the face of intermittent
             //     failures to load a port mapping we will first install the
             //     oldMappings into the newMappings and only after we return
             //     successfully from the getVirtualPortMappings we have sent the
             //     updates to the callers
-            final Set<HostDirectory.VirtualPortMapping> newMappings =
+            newMappings =
                     hostManager
                             .getVirtualPortMappings(
                                     hostId, new Directory.DefaultTypedWatcher() {
@@ -398,34 +460,43 @@ public class LocalClientImpl implements Client {
                                             oldMappings, true);
                                 }
                             });
-
-            for (HostDirectory.VirtualPortMapping mapping : oldMappings) {
-                if (!newMappings.contains(mapping)) {
-                    builder.delMaterializedPortMapping(
-                            mapping.getVirtualPortId(),
-                            mapping.getLocalDeviceName());
-                }
-            }
-            for (HostDirectory.VirtualPortMapping mapping : newMappings) {
-                if (!oldMappings.contains(mapping)) {
-                    builder.addMaterializedPortMapping(
-                            mapping.getVirtualPortId(),
-                            mapping.getLocalDeviceName()
-                    );
-                }
-            }
-
-            if (isUpdate)
-                builder.build();
-
-            oldMappings.clear();
-            oldMappings.addAll(newMappings);
-
-            return newMappings;
         } catch (StateAccessException e) {
-            // trigger delete if that's the case.
+            // TODO trigger delete if that's the case.
+
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    retrieveHostVirtualPortMappings(hostId, builder, oldMappings, true);
+                }
+            };
+            connectionWatcher.handleError(
+                    "HostVirtualPortMappings:" + hostId.toString(), retry, e);
             return null;
         }
+
+        for (HostDirectory.VirtualPortMapping mapping : oldMappings) {
+            if (!newMappings.contains(mapping)) {
+                builder.delMaterializedPortMapping(
+                        mapping.getVirtualPortId(),
+                        mapping.getLocalDeviceName());
+            }
+        }
+        for (HostDirectory.VirtualPortMapping mapping : newMappings) {
+            if (!oldMappings.contains(mapping)) {
+                builder.addMaterializedPortMapping(
+                        mapping.getVirtualPortId(),
+                        mapping.getLocalDeviceName()
+                );
+            }
+        }
+
+        if (isUpdate)
+            builder.build();
+
+        oldMappings.clear();
+        oldMappings.addAll(newMappings);
+
+        return newMappings;
     }
 
     private void getHostConfig(final UUID hostId,
@@ -434,8 +505,20 @@ public class LocalClientImpl implements Client {
 
         log.info("Updating host information for host {}", hostId);
 
-        HostDirectory.Metadata metadata =
-                retrieveHostMetadata(hostId, builder, isUpdate);
+        HostDirectory.Metadata metadata;
+        try {
+            metadata = retrieveHostMetadata(hostId, builder, isUpdate);
+        } catch (StateAccessException e) {
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    getHostConfig(hostId, builder, isUpdate);
+                }
+            };
+            connectionWatcher.handleError(
+                    "HostConfig:" + hostId.toString(), retry, e);
+            return;
+        }
 
         if (metadata != null) {
             retrieveTunnelZoneConfigs(hostId, new HashSet<UUID>(), builder);
@@ -451,15 +534,13 @@ public class LocalClientImpl implements Client {
         }
     }
 
-    private Map<UUID, TunnelZone.HostConfig<?, ?>>
-    retrieveTunnelZoneConfigs(final UUID hostId,
-                              final Set<UUID> oldZones,
-                              final HostBuilder builder) {
-        try {
-            Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
-                    new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
+    private void retrieveTunnelZoneConfigs(final UUID hostId,
+                                           final Set<UUID> oldZones,
+                                           final HostBuilder builder) {
+        Set<UUID> newZones = null;
 
-            Set<UUID> newZones =
+        try {
+            newZones =
                 hostManager.getTunnelZoneIds(
                     hostId,
                     new Directory.DefaultTypedWatcher() {
@@ -470,7 +551,22 @@ public class LocalClientImpl implements Client {
                             builder.build();
                         }
                     });
+        } catch (StateAccessException e) {
+            log.error("Exception", e);
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    retrieveTunnelZoneConfigs(hostId, oldZones, builder);
+                }
+            };
+            connectionWatcher.handleError(
+                    "TunnelZoneConfigs:" + hostId.toString(), retry, e);
+            return;
+        }
 
+        try {
+            Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
+                    new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
             for (UUID uuid : newZones) {
                 hostTunnelZones.put(
                         uuid,
@@ -482,10 +578,15 @@ public class LocalClientImpl implements Client {
             oldZones.clear();
             oldZones.addAll(newZones);
 
-            return hostTunnelZones;
         } catch (StateAccessException e) {
+            // XXX(guillermo) I don't see how this block could be retried
+            // without racing with the watcher installed by the first try{}
+            // block or blocking the reactor by retrying in a loop right here.
+            // The latter solution would only apply for timeout errors, not
+            // disconnections.
+            //
+            // For now, this error is left unhandled.
             log.error("Exception", e);
-            return null;
         }
     }
 }

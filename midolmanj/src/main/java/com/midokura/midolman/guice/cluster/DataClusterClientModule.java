@@ -18,11 +18,7 @@ import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.host.state.HostZkManager;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.PathBuilder;
-import com.midokura.midolman.state.PortConfigCache;
-import com.midokura.midolman.state.ZkConfigSerializer;
-import com.midokura.midolman.state.ZkManager;
+import com.midokura.midolman.state.*;
 import com.midokura.midolman.state.zkManagers.*;
 import com.midokura.midolman.util.JSONSerializer;
 import com.midokura.midonet.cluster.ClusterBgpManager;
@@ -48,6 +44,7 @@ public class DataClusterClientModule extends PrivateModule {
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class, Names.named(
             ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+        requireBinding(ZkConnectionAwareWatcher.class);
         requireBinding(Store.class);
 
         bind(PathBuilder.class);
@@ -159,9 +156,13 @@ public class DataClusterClientModule extends PrivateModule {
         @Inject
         Reactor reactor;
 
+        @Inject
+        ZkConnectionAwareWatcher connWatcher;
+
         @Override
         public PortConfigCache get() {
-            return new PortConfigCache(reactor, directory, config.getMidolmanRootKey());
+            return new PortConfigCache(reactor, directory,
+                                       config.getMidolmanRootKey(), connWatcher);
         }
     }
 }

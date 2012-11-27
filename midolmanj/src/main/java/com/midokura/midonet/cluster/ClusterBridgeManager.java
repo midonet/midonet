@@ -65,59 +65,68 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         BridgeZkManager.BridgeConfig config = null;
+
+        MacPortMap macPortMap = null;
         try {
-            config = bridgeMgr.get(id, watchBridge(id));
-        } catch (StateAccessException e) {
-            // TODO send error message?
-            log.error("Cannot retrieve the configuration for bridge {}",
-                      id, e);
-        }
-
-        if (config != null) {
-            MacPortMap macPortMap = null;
-
             // we don't need to get the macPortMap again if it's an
             // update nor to create the logical port table.
             // For detecting changes to these maps we did set watchers.
             if (!isUpdate) {
-                try {
-                    ZkPathManager pathManager = new ZkPathManager(
+                ZkPathManager pathManager = new ZkPathManager(
                         zkConfig.getMidolmanRootKey());
-                    macPortMap = new MacPortMap(dir.getSubDirectory(
+                macPortMap = new MacPortMap(dir.getSubDirectory(
                         pathManager.getBridgeMacPortsPath(id)));
-                } catch (KeeperException e) {
-                    log.error(
-                        "Error retrieving MacPortTable for bridge {}",
-                        id, e);
-                }
-                if (macPortMap != null) {
-                    macPortMap.start();
-                    builder.setMacLearningTable(
+                macPortMap.setConnectionWatcher(connectionWatcher);
+
+                macPortMap.start();
+                builder.setMacLearningTable(
                         new MacLearningTableImpl(id, macPortMap));
-                }
                 updateLogicalPorts(builder, id, false);
+
             }
 
-            log.debug("Populating builder for bridge {}", id);
-            builder.setInFilter(config.inboundFilter)
-                .setOutFilter(config.outboundFilter);
-            builder.setTunnelKey(config.tunnelKey);
-            builder.build();
+            /* NOTE(guillermo) this the last zk-related call in this block
+             * so that the watcher is not added in an undefined state.
+             * We would not want to add the watcher (with update=true) and
+             * then find that the ZK calls for the rest of the data fail. */
+            config = bridgeMgr.get(id, watchBridge(id, true));
+        } catch (StateAccessException e) {
+            log.warn("Cannot retrieve the configuration for bridge {}", id, e);
+            connectionWatcher.handleError(
+                    id.toString(), watchBridge(id, isUpdate), e);
+            return;
+        } catch (KeeperException e) {
+            log.warn("Cannot retrieve the configuration for bridge {}", id, e);
+            connectionWatcher.handleError(
+                    id.toString(), watchBridge(id, isUpdate), e);
+            return;
         }
+
+        if (config == null) {
+            log.warn("Received null bridge config for {}", id);
+            return;
+        }
+
+        log.debug("Populating builder for bridge {}", id);
+        builder.setInFilter(config.inboundFilter)
+                .setOutFilter(config.outboundFilter);
+        builder.setTunnelKey(config.tunnelKey);
+        builder.build();
+        log.info("Added watcher for bridge {}", id);
     }
 
-    Runnable watchBridge(final UUID id) {
+    Runnable watchBridge(final UUID id, final boolean isUpdate) {
         return new Runnable() {
             @Override
             public void run() {
                 // return fast and update later
-                getBridgeConf(id, true);
-                log.info("Added watcher for bridge {}", id);
+                getBridgeConf(id, isUpdate);
             }
         };
     }
 
-    void updateLogicalPorts(BridgeBuilder builder, UUID bridgeId, boolean isUpdate){
+    void updateLogicalPorts(BridgeBuilder builder, UUID bridgeId, boolean isUpdate)
+            throws StateAccessException {
 
         // This implementation won't keep the old tables and compute a diff
         // on the contrary it will create new tables every time
@@ -131,7 +140,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         } catch (StateAccessException e) {
             log.error("Failed to retrieve the logical port IDs for bridge {}",
                       bridgeId);
-            return;
+            throw e;
         }
 
         for (UUID id : logicalPortIDs) {
@@ -259,8 +268,16 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             this.builder = builder;
         }
 
+        public String describe() {
+            return "BridgeLogicalPorts:" + bridgeID;
+        }
+
         public void run() {
-            updateLogicalPorts(builder, bridgeID, true);
+            try {
+                updateLogicalPorts(builder, bridgeID, true);
+            } catch (StateAccessException e) {
+                connectionWatcher.handleError(describe(), this, e);
+            }
         }
     }
 

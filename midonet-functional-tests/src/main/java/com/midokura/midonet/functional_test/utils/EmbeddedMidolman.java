@@ -4,18 +4,19 @@
 
 package com.midokura.midonet.functional_test.utils;
 
+import akka.actor.ActorRef;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import com.midokura.midolman.guice.FlowStateCacheModule;
-import com.midokura.midolman.guice.InterfaceScannerModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorSystem;
 
 import com.midokura.midolman.guice.MidolmanActorsModule;
+import com.midokura.midolman.guice.FlowStateCacheModule;
+import com.midokura.midolman.guice.InterfaceScannerModule;
 import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.guice.MonitoringStoreModule;
 import com.midokura.midolman.guice.cluster.ClusterClientModule;
@@ -27,6 +28,7 @@ import com.midokura.midolman.host.guice.HostModule;
 import com.midokura.midolman.monitoring.MonitoringAgent;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.services.MidolmanService;
+import com.midokura.midolman.FlowController;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.services.MidostoreSetupService;
 import com.midokura.remote.RemoteHost;
@@ -101,5 +103,9 @@ public class EmbeddedMidolman {
 
     public DataClient getDataClient() {
         return injector.getInstance(DataClient.class);
+    }
+
+    public ActorRef getFlowController() {
+        return FlowController.getRef(this.getActorSystem());
     }
 }

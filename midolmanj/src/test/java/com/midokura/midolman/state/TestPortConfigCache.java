@@ -38,7 +38,8 @@ public class TestPortConfigCache {
         Setup.createZkDirectoryStructure(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
         reactor = new MockReactor();
-        portCache = new PortConfigCache(reactor, dir, basePath);
+        portCache = new PortConfigCache(reactor, dir, basePath,
+                                        new MockZookeeperConnectionWatcher());
 
         BridgeZkManager bridgeMgr = new BridgeZkManager(dir, basePath);
         BridgeZkManager.BridgeConfig bridgeConfig =

@@ -7,10 +7,7 @@ package com.midokura.midolman.state;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.*;
 
 public interface Directory {
 
@@ -69,7 +66,7 @@ public interface Directory {
         void pathCreated(String path);
         void pathChildrenUpdated(String path);
         void pathDataChanged(String path);
-        void pathNoChange(String path);
+        void connectionStateChanged(Watcher.Event.KeeperState state);
     }
 
     public static class DefaultTypedWatcher implements TypedWatcher {
@@ -94,12 +91,51 @@ public interface Directory {
         }
 
         @Override
-        public void pathNoChange(String path) {
-            run();
+        public void connectionStateChanged(Watcher.Event.KeeperState state) {
+            // do nothing
         }
 
         @Override
         public void run() {
         }
+    }
+
+    public abstract static class DefaultPersistentWatcher implements TypedWatcher {
+        protected ZkConnectionAwareWatcher connectionWatcher;
+
+        public DefaultPersistentWatcher(ZkConnectionAwareWatcher watcher) {
+            this.connectionWatcher = watcher;
+        }
+
+        protected abstract void _run() throws StateAccessException, KeeperException;
+
+        public abstract String describe();
+
+        @Override
+        public final void run() {
+            try {
+                _run();
+            } catch (StateAccessException e) {
+                connectionWatcher.handleError(describe(), this, e);
+            } catch (KeeperException e) {
+                connectionWatcher.handleError(describe(), this, e);
+            }
+        }
+
+        @Override
+        public void pathDeleted(String path) { }
+
+        @Override
+        public void pathCreated(String path) { }
+
+        @Override
+        public void pathChildrenUpdated(String path) { }
+
+        @Override
+        public void pathDataChanged(String path) { }
+
+        @Override
+        public void connectionStateChanged(Watcher.Event.KeeperState state) { }
+
     }
 }

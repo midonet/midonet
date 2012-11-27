@@ -15,13 +15,10 @@ import java.util.UUID;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.rules.Rule;
-import com.midokura.midolman.state.Directory;
-import com.midokura.midolman.state.DirectoryCallback;
 import com.midokura.midolman.state.zkManagers.RuleZkManager;
 import com.midokura.midonet.cluster.client.ChainBuilder;
 
@@ -53,8 +50,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         ruleMgr.getRuleAsync(ruleID, ruleCallback);
     }
 
-    private class RuleListCallback implements DirectoryCallback<Set<UUID>>,
-            Directory.TypedWatcher {
+    private class RuleListCallback extends CallbackWithWatcher<Set<UUID>> {
         private UUID chainId;
 
         private RuleListCallback(UUID chainId) {
@@ -62,13 +58,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void run() {
-            log.error("Should NEVER be called");
-        }
-
-        @Override
-        public void onError(KeeperException e) {
-            log.error("Error getting Chain's Rule Id list from cluster");
+        protected String describe() {
+            return "RuleList:" + chainId;
         }
 
         @Override
@@ -101,25 +92,6 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onTimeout() {
-            log.error("Timeout getting Chain's Rule Id list from cluster");
-        }
-
-        @Override
-        public void pathDeleted(String path) {
-            // The chain has been deleted.
-            log.error("Chain was deleted at {}", path);
-            // TODO(pino): Should probably call Builder.delete()
-            //getBuilder(chainId).delete();
-        }
-
-        @Override
-        public void pathCreated(String path) {
-            // Should never happen.
-            log.error("This shouldn't have been triggered");
-        }
-
-        @Override
         public void pathChildrenUpdated(String path) {
             // The list of bgp's for this port has changed. Fetch it again
             // asynchronously.
@@ -127,20 +99,18 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void pathDataChanged(String path) {
-            // Our watcher is on the children, so this shouldn't be called.
-            // Also, we don't use the data part of this path so it should
-            // never change.
-            log.error("This shouldn't have been triggered.");
-        }
-
-        @Override
-        public void pathNoChange(String path) {
-            // Do nothing.
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    ruleMgr.getRuleIdListAsync(chainId,
+                            RuleListCallback.this, RuleListCallback.this);
+                }
+            };
         }
     }
 
-    private class RuleCallback implements DirectoryCallback<Rule> {
+    private class RuleCallback extends RetryCallback<Rule> {
         private UUID ruleId;
 
         private RuleCallback(UUID ruleId) {
@@ -148,8 +118,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onError(KeeperException e) {
-            log.error("Error getting Rule from cluster");
+        protected String describe() {
+            return "Rule:" + ruleId;
         }
 
         @Override
@@ -170,8 +140,13 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onTimeout() {
-            log.error("Timeout getting Rule from cluster");
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    ruleMgr.getRuleAsync(ruleId, RuleCallback.this);
+                }
+            };
         }
     }
 }

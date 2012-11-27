@@ -61,60 +61,73 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
      * @return
      */
     public void getRouterConf(final UUID id, final boolean isUpdate) {
+
         log.debug("Updating configuration for router {}", id);
         RouterBuilder builder = getBuilder(id);
 
-        if(builder == null){
+        if (builder == null) {
             log.error("Null builder for router {}", id.toString());
             return;
         }
 
         RouterZkManager.RouterConfig config = null;
+        ArpTable arpTable = null;
+        ReplicatedRouteSet routeSet = null;
+
         try {
-            config = routerMgr.get(id, watchRouter(id));
+            if (!isUpdate) {
+                arpTable = new ArpTable(routerMgr.getArpTableDirectory(id));
+                arpTable.setConnectionWatcher(connectionWatcher);
+                routeSet = new ReplicatedRouteSet(
+                            routerMgr.getRoutingTableDirectory(id),
+                            CreateMode.EPHEMERAL, builder);
+                routeSet.setConnectionWatcher(connectionWatcher);
+                mapRouterIdToRoutes.put(id, routeSet);
+            }
+            /* NOTE(guillermo) this the last zk-related call in this block
+             * so that the watcher is not added in an undefined state.
+             * We would not want to add the watcher (with update=true) and
+             * then find that the ZK calls for the rest of the data fail. */
+             config = routerMgr.get(id, watchRouter(id, true));
         } catch (StateAccessException e) {
-            log.error("Cannot retrieve the configuration for bridge {}",
-                      id, e);
+            if (routeSet != null)
+                mapRouterIdToRoutes.remove(id);
+            log.warn("Cannot retrieve the configuration for router {}", id, e);
+            connectionWatcher.handleError(id.toString(), watchRouter(id, isUpdate), e);
             return;
         }
 
-        if (!isUpdate) {
-            try {
-                ArpTable arpTable = new ArpTable(
-                    routerMgr.getArpTableDirectory(id));
-                arpTable.start();
-                builder.setArpCache(new ArpCacheImpl(arpTable));
-            } catch (StateAccessException e) {
-                log.error(
-                    "Error retrieving ArpTable for router {}",
-                    id, e);
-            }
-            try {
-                ReplicatedRouteSet routeSet = new ReplicatedRouteSet(
-                    routerMgr.getRoutingTableDirectory(id),
-                    CreateMode.EPHEMERAL, builder);
-                mapRouterIdToRoutes.put(id, routeSet);
-                routeSet.start();
-                log.debug("Started Routing Table for router {}", id);
-            } catch (StateAccessException e) {
-                log.error("Couldn't retrieve the RoutingTableDirectory", e);
-            }
+        if (config == null) {
+            log.warn("Received null router config for {}", id);
+            return;
         }
+
         builder.setInFilter(config.inboundFilter)
-            .setOutFilter(config.outboundFilter);
+                .setOutFilter(config.outboundFilter);
+
+        if (!isUpdate) {
+            builder.setArpCache(new ArpCacheImpl(arpTable));
+            arpTable.start();
+            // note that the following may trigger a call to builder.build()
+            // it should be the last call in the !isUpdate code path.
+            routeSet.start();
+            log.debug("Started ARP Table for router {}", id);
+            log.debug("Started Routing Table for router {}", id);
+        }
+
         if (isUpdate) // Not first time we're building
             builder.build();
         // else no need to build - the ReplicatedRouteSet will build.
         log.debug("Update configuration for router {}", id);
+        log.debug("Added watcher for router {}", id);
     }
 
-    Runnable watchRouter(final UUID id) {
+    Runnable watchRouter(final UUID id, final boolean isUpdate) {
         return new Runnable() {
             @Override
             public void run() {
                 // return fast and update later
-                getRouterConf(id, true);
-                log.debug("Added watcher for router {}", id);
+                getRouterConf(id, isUpdate);
             }
         };
     }
@@ -127,7 +140,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     public void updateRoutesBecauseLocalPortChangedStatus(UUID routerId, UUID portId,
                                                           boolean active){
         log.debug("Port {} of router {} became active {}",
-            new Object[] {portId, routerId, active} );
+                new Object[]{portId, routerId, active});
         try {
             if (active) {
                 if(mapPortIdToRoutes.containsKey(portId)){
@@ -157,9 +170,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             if (!isCancelled()) {
                 try {
                     handlePortRoutes(routeId, portId, true);
-                } catch (Exception e) {
+                } catch (KeeperException e) {
                     log.error("Got exception when running watcher for the routes of " +
                             "port {}", portId.toString(), e);
+                    connectionWatcher.handleError(portId.toString(), this, e);
+                } catch (StateAccessException e) {
+                    log.error("Got exception when running watcher for the routes of " +
+                            "port {}", portId.toString(), e);
+                    connectionWatcher.handleError(portId.toString(), this, e);
                 }
             }
         }
@@ -246,8 +264,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
      * @param portId
      * @param newRoutes
      */
-    private void updateRoutingTableAfterGettingRoutes(UUID routerId, UUID portId,
-                                                      Set<Route> newRoutes){
+    private void updateRoutingTableAfterGettingRoutes(final UUID routerId,
+                  final UUID portId, final Set<Route> newRoutes) {
 
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
         Directory dir = null;
@@ -255,7 +273,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             dir = routerMgr.getRoutingTableDirectory(routerId);
         } catch (StateAccessException e) {
             log.error("Error when trying to get the routing table for router {}",
-                      routerId, e);
+                    routerId, e);
+            // TODO(guillermo) should we handleError() here?
             return;
         }
         log.debug("Updating routes for port {} of router {}. Old routes {} " +
@@ -285,8 +304,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         mapPortIdToRoutes.put(portId, newRoutes);
     }
 
-
-    class PortRoutesCallback implements DirectoryCallback<Set<UUID>>{
+    class PortRoutesCallback extends RetryCallback<Set<UUID>> {
 
         UUID routerId;
         UUID portId;
@@ -296,6 +314,23 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             log.debug("Creating a PortRouteCallback for: "+routerId.toString() + " - " + portId.toString());
             this.routerId = routerId;
             this.portId = portId;
+        }
+
+        @Override
+        protected String describe() {
+            return "PortRoutes:" + portId;
+        }
+
+        @Override
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    routeManager.listPortRoutesAsync(portId,
+                            portIdCallback.get(portId),
+                            portIdWatcher.get(portId));
+                }
+            };
         }
 
         @Override
@@ -328,6 +363,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             if (!isCancelled()) {
                 log.error("Callback timeout when trying to get routes for port {}",
                         portId);
+                connectionWatcher.handleTimeout(makeRetry());
             }
         }
 
@@ -339,8 +375,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                     // the port routes. Remove all routes
                     updateRoutingTableAfterGettingRoutes(routerId, portId,
                             Collections.<Route>emptySet());
-                }
-                else {
+                } else {
+                    connectionWatcher.handleError(portId.toString(), makeRetry(), e);
                     log.error("Callback error when trying to get routes for port {}",
                             portId, e);
                 }
