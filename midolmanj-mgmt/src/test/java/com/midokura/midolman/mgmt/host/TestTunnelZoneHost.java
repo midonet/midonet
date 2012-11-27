@@ -33,6 +33,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.*;
 
+import javax.ws.rs.core.UriBuilder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -126,6 +128,24 @@ public class TestTunnelZoneHost {
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
                 DtoTunnelZoneHost[].class);
             Assert.assertEquals(1, tzHosts.length);
+
+            // Get the single host using the specific media type.
+            DtoTunnelZoneHost h = dtoResource.getAndVerifyOk(
+                UriBuilder.fromUri(tz.getHosts())
+                    .path(tzHost.getHostId().toString()).build(),
+                tzhMediaType,
+                DtoTunnelZoneHost.class);
+            Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
+            Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
+
+            // Now get the single host using the untyped tz-host media type.
+            h = dtoResource.getAndVerifyOk(
+                UriBuilder.fromUri(tz.getHosts())
+                    .path(tzHost.getHostId().toString()).build(),
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                DtoTunnelZoneHost.class);
+            Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
+            Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
 
             // Remove mapping
             dtoResource.deleteAndVerifyNoContent(tzHost.getUri(), tzhMediaType);
