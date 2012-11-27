@@ -92,7 +92,11 @@ class FlowController extends Actor with ActorLogging {
         new mutable.HashMap[WildcardFlow, ROSet[Callback0]]
 
     var flowExpirationCheckInterval: Duration = null
-    private val flowsInFlight= new mutable.HashSet[FlowMatch]()
+
+    // When a packet arrives, and while the datapath is creating the flow
+    // mark the flow as inflight. This way we can prevent two consecutive
+    // and matching packets to request the datapath to add the same flow.
+    private val flowsInFlight = new mutable.HashSet[FlowMatch]()
 
 
     override def preStart() {
@@ -155,8 +159,9 @@ class FlowController extends Actor with ActorLogging {
             log.debug("DP confirmed that flow was updated: {}", flow)
             flowManager.updateFlowLastUsedTimeCompleted(flow)
 
-        case flowAdded(flow, packetNumber) =>
-            log.debug("DP confirmed that flow for packet {} was added: {}", packetNumber, flow)
+        case flowAddedInflight(flow, packetNumber) =>
+            log.debug("DP confirmed that flow for packet {} was added: {}",
+                packetNumber, flow)
             if (flowsInFlight.contains(flow.getMatch)) {
                 log.debug("there was a flow in flight {}", flow)
                 flowsInFlight.remove(flow.getMatch)
@@ -166,6 +171,13 @@ class FlowController extends Actor with ActorLogging {
         case flowRemoved(flow) =>
             log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
+
+        case flowInflightRemove(flowMatch, packetNumber) =>
+            log.debug("Removing inflight flow for packet {} with match {}",
+                packetNumber, flowMatch)
+            if(flowsInFlight.contains(flowMatch)) {
+                flowsInFlight.remove(flowMatch)
+            }
     }
 
     private def freePendedPackets(cookieOpt: Option[Cookie]): Unit = {
@@ -185,8 +197,10 @@ class FlowController extends Actor with ActorLogging {
      */
     case class packetIn(packet: Packet)
     case class flowUpdated(flow: Flow)
-    case class flowAdded(flow: Flow, packetNumber: Int)
+    case class flowAdded(flow: Flow)
+    case class flowAddedInflight(flow: Flow, packetNumber: Int)
     case class flowRemoved(flow: Flow)
+    case class flowInflightRemove(flowMatch: FlowMatch, packetNumber: Int)
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
@@ -220,7 +234,7 @@ class FlowController extends Actor with ActorLogging {
 
         // In case the PacketIn notify raced a flow rule installation, see if
         // the flowManager already has a match.
-        var actions = flowManager.getActionsForDpFlow(packet.getMatch, packetNumber)
+        var actions = flowManager.getActionsForDpFlow(packet.getMatch)
         if (actions != null) {
             // This should only happen as a race condition.
             // TODO(pino): detect if this is happening a lot, it implies a
@@ -234,7 +248,7 @@ class FlowController extends Actor with ActorLogging {
         } else {
             // Otherwise, try to create a datapath flow based on an existing
             // wildcard flow.
-            val dpFlow = flowManager.createDpFlow(packet.getMatch, packetNumber)
+            val dpFlow = flowManager.createDpFlow(packet.getMatch)
             if (dpFlow != null) {
                 log.debug("A matching wildcard flow for packet {} returned actions {}",
                     packetNumber, dpFlow.getActions)
@@ -247,19 +261,19 @@ class FlowController extends Actor with ActorLogging {
                 log.debug("adding flow in flight {}", packet.getMatch)
                 flowsInFlight.add(packet.getMatch)
 
-
-                    datapathConnection.flowsCreate(datapath, dpFlow,
+                datapathConnection.flowsCreate(datapath, dpFlow,
                 new ErrorHandlingCallback[Flow] {
                     def onSuccess(data: Flow) {
                         log.debug("success for packetNumber {}", packetNumber)
-                        self ! flowAdded(data, packetNumber)
+                        self ! flowAddedInflight(data, packetNumber)
                     }
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error("error for packetNumber {}", packetNumber)
-                            log.error("Got an exception {} or timeout {} when "+
-                                "trying to add flow with flow match {}",
-                                ex, timeout, dpFlow.getMatch)
+                        log.error("error for packetNumber {}", packetNumber)
+                        log.error("Got an exception {} or timeout {} when "+
+                            "trying to add flow with flow match {}",
+                            ex, timeout, dpFlow.getMatch)
+                        self ! flowInflightRemove(dpFlow.getMatch, packetNumber)
                     }
                 })
                 actions = dpFlow.getActions
@@ -371,7 +385,7 @@ class FlowController extends Actor with ActorLogging {
                 datapathConnection.flowsCreate(datapath, dpFlow,
                 new ErrorHandlingCallback[Flow] {
                     def onSuccess(data: Flow) {
-                        self ! flowAdded(data, 0)
+                        self ! flowAdded(data)
                     }
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {

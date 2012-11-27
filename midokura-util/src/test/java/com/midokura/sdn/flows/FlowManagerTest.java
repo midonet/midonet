@@ -154,7 +154,7 @@ public class FlowManagerTest {
         // value > timeOut/2
         FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10L))
                                       .addKey(FlowKeys.tcp(1000, 1002));
-        Flow flow2 = flowManager.createDpFlow(flowMatch1, 0);
+        Flow flow2 = flowManager.createDpFlow(flowMatch1);
         assertThat("Flow didn't match", flow2, notNullValue());
         // create the flow
         flowManagerHelper.addFlow(flow2);
