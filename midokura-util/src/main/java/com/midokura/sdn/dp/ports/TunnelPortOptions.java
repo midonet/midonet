@@ -70,18 +70,8 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     Integer srcIPv4;
     Long outKey;
     Long inKey;
-    private String name;
     private Byte tos;
     private Byte ttl;
-
-    public Options setName(String name) {
-        this.name = name;
-        return self();
-    }
-
-    public String getName() {
-        return name;
-    }
 
     public Options setDestinationIPv4(int destinationIPv4) {
         this.dstIPv4 = destinationIPv4;
@@ -235,8 +225,6 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
             return false;
         if (inKey != null ? !inKey.equals(that.inKey) : that.inKey != null)
             return false;
-        if (name != null ? !name.equals(that.name) : that.name != null)
-            return false;
         if (outKey != null ? !outKey.equals(that.outKey) : that.outKey != null)
             return false;
         if (srcIPv4 != null ? !srcIPv4.equals(
@@ -257,7 +245,6 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         result = 31 * result + (srcIPv4 != null ? srcIPv4.hashCode() : 0);
         result = 31 * result + (outKey != null ? outKey.hashCode() : 0);
         result = 31 * result + (inKey != null ? inKey.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (tos != null ? tos.hashCode() : 0);
         result = 31 * result + (ttl != null ? ttl.hashCode() : 0);
         return result;
@@ -271,7 +258,6 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
             ", srcIPv4=" + Net.convertIntAddressToString(srcIPv4 != null ? srcIPv4 : 0) +
             ", outKey=" + outKey +
             ", inKey=" + inKey +
-            ", name='" + name + '\'' +
             ", tos=" + tos +
             ", ttl=" + ttl +
             '}';

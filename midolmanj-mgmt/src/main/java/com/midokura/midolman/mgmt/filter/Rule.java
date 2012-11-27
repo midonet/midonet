@@ -91,6 +91,7 @@ public abstract class Rule extends UriResource {
     private boolean invNwProto = false;
     private boolean invNwSrc = false;
     private boolean invNwDst = false;
+
     private short tpSrcStart;
     private short tpSrcEnd;
     private boolean invTpSrc = false;
