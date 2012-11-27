@@ -133,11 +133,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val localPortNumber1 = dpController().underlyingActor
-            .localPorts("port1a").getPortNo
+            .localDatapathPorts("port1a").getPortNo
         val localPortNumber2 = dpController().underlyingActor
-            .localPorts("port1b").getPortNo
+            .localDatapathPorts("port1b").getPortNo
         val localPortNumber3 = dpController().underlyingActor
-            .localPorts("port1c").getPortNo
+            .localDatapathPorts("port1c").getPortNo
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
                                          .setEthernetSource(srcMAC))
@@ -222,11 +222,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val localPortNumber1 = dpController().underlyingActor
-            .localPorts("port1a").getPortNo
+            .localDatapathPorts("port1a").getPortNo
         val localPortNumber2 = dpController().underlyingActor
-            .localPorts("port1b").getPortNo
+            .localDatapathPorts("port1b").getPortNo
         val localPortNumber3 = dpController().underlyingActor
-            .localPorts("port1c").getPortNo
+            .localDatapathPorts("port1c").getPortNo
         val dpMatch = new FlowMatch().addKey(ethernet(srcMAC.getAddress,
                                                       dstMAC.getAddress))
         val wcMatch = new WildcardMatch().setInputPortNumber(tunnelId1)

@@ -62,7 +62,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
 
         val tunnelId = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
 
-        val inputPortNo = dpController().underlyingActor.localPorts("port1").getPortNo
+        val inputPortNo = dpController().underlyingActor.localDatapathPorts("port1").getPortNo
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
