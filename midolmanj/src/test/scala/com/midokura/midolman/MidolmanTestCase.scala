@@ -200,7 +200,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def getPortNumber(portName: String): Int = {
-        dpController().underlyingActor.localPorts(portName).getPortNo
+        dpController().underlyingActor.localDatapathPorts(portName).getPortNo
     }
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {

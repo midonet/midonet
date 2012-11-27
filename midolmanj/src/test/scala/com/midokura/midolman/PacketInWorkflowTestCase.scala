@@ -43,7 +43,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val portNo = dpController().underlyingActor.localPorts("port").getPortNo
+        val portNo = dpController().underlyingActor.localDatapathPorts("port").getPortNo
         triggerPacketIn(
             new Packet()
                 .setData(

@@ -108,10 +108,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         // check the internal data in the datapath controller is correct
         // the host peer contains a map which maps the zone to the tunnel name
-        dpc.peerPorts should contain key (host2.getId)
-        dpc.peerPorts should contain value (
-            scala.collection.mutable.Map(greZone.getId -> "tngreC0A8C801")
-        )
+        dpc.peerToTunnels should contain key (host2.getId)
+        dpc.peerToTunnels(host2.getId).size should be(1)
+        dpc.peerToTunnels(host2.getId) should contain key (greZone.getId)
+        dpc.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8C801")
 
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
@@ -146,10 +146,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         grePort.getOptions.getDestinationIPv4 should be(herSecondGreConfig.getIp.addressAsInt())
 
         // assert the internal state of the datapath controller vas fired
-        dpc.peerPorts should contain key (host2.getId)
-        dpc.peerPorts should contain value (
-            scala.collection.mutable.Map(greZone.getId -> "tngreC0A8D201")
-        )
+        dpc.peerToTunnels should contain key (host2.getId)
+        dpc.peerToTunnels(host2.getId).size should be(1)
+        dpc.peerToTunnels(host2.getId) should contain key (greZone.getId)
+        dpc.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8D201")
 
         val dp = dpConn().datapathsGet("midonet").get()
         dp should not be (null)
