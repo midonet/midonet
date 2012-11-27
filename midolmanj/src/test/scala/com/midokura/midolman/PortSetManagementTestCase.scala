@@ -31,25 +31,25 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         initializeDatapath() should not be null
 
+        // make two probes and make them listen DatapathController events
+        val portChangedProbe = newProbe()
+        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
+        val portActiveProbe = newProbe()
+        actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
+
         // make the bridge port to a local interface
         clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "port1")
 
-        // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
-        val eventProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
+        portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
 
-        eventProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
-        actors().eventStream.unsubscribe(eventProbe.ref)
-
-        actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
-        eventProbe.expectMsgClass(classOf[LocalPortActive])
+        portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 
         var set = clusterDataClient().portSetsGet(bridge.getId).toSet
         set should contain (hostId())
         set should have size (1)
 
         clusterDataClient().hostsDelVrnPortMapping(hostId(), inputPort.getId)
-        eventProbe.expectMsgClass(classOf[LocalPortActive])
+        portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 
         set = clusterDataClient().portSetsGet(bridge.getId).toSet
         set should have size (0)
@@ -75,13 +75,13 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         initializeDatapath() should not be null
 
-        // make the bridge port to a local interface (this should cause the local host to register as a member of the bridge port set).
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort1.getId, "port1")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort2.getId, "port2")
-
         // make a probe to listen to events
         val eventProbe = newProbe()
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
+
+        // make the bridge port to a local interface (this should cause the local host to register as a member of the bridge port set).
+        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort1.getId, "port1")
+        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort2.getId, "port2")
 
         // we should see two LocalPortActive events on the bus (fired by the
         // VTPMapper)
