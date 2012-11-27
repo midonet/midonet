@@ -1029,8 +1029,23 @@ class DatapathController() extends Actor with ActorLogging {
                            localPorts: Seq[Short],
                            tunnelKey: Option[Long], tunnelPorts: Seq[Short],
                            dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
-        log.debug("Translating port {}, ports in the same set {}, tunnelkey {}, " +
-                  "tunnelports {}", port, localPorts, tunnelKey, tunnelPorts)
+        tunnelKey match {
+            case Some(k) =>
+                log.debug("Translating output actions for vport (or set) {}," +
+                    " having tunnel key {}, and corresponding to local dp " +
+                    "ports {}, and tunnel ports {}",
+                    port, k, localPorts, tunnelPorts)
+
+            case None =>
+                log.debug("No tunnel key provided. Translating output " +
+                    "action for vport {}, corresponding to local dp port {}",
+                    port, localPorts)
+        }
+        // TODO(pino): when we detect the flow won't have output actions,
+        // set the flow to expire soon so that we can retry.
+        if (localPorts.length == 0 && tunnelPorts.length == 0)
+            log.error("No local datapath ports or tunnels found. This flow " +
+                "will be dropped because we cannot make Output actions.")
         val newActs = ListBuffer[FlowAction[_]]()
         var newTags = new mutable.HashSet[Any]
 
