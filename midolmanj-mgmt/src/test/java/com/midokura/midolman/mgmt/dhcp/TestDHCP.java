@@ -68,6 +68,7 @@ public class TestDHCP extends JerseyTest {
         subnet1.setSubnetPrefix("172.31.0.0");
         subnet1.setSubnetLength(24);
         subnet1.setDefaultGateway("172.31.0.1");
+        subnet1.setServerAddr("172.31.0.118");
         response = resource().uri(bridge.getDhcpSubnets())
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
@@ -89,6 +90,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
         subnet1.setSubnetPrefix("172.31.0.0");
         subnet1.setSubnetLength(24);
+        subnet1.setServerAddr("172.31.0.118");
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
@@ -104,6 +106,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet subnet2 = new DtoDhcpSubnet();
         subnet2.setSubnetPrefix("172.31.1.0");
         subnet2.setSubnetLength(24);
+        subnet2.setServerAddr("172.31.1.118");
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet2);
@@ -154,6 +157,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet subnet = new DtoDhcpSubnet();
         subnet.setSubnetPrefix("172.31.0.0");
         subnet.setSubnetLength(24);
+        subnet.setServerAddr("172.31.0.118");
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
@@ -201,6 +205,7 @@ public class TestDHCP extends JerseyTest {
         subnet1.setSubnetPrefix("172.0.0.0");
         subnet1.setSubnetLength(24);
         subnet1.setDefaultGateway("172.0.0.254");
+        subnet1.setServerAddr("172.0.0.118");
         subnet1.getOpt121Routes().add(
                 new DtoDhcpOption121("172.31.1.0", 24, "172.0.0.253"));
         subnet1.getOpt121Routes().add(
@@ -262,6 +267,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet subnet = new DtoDhcpSubnet();
         subnet.setSubnetPrefix("172.31.0.0");
         subnet.setSubnetLength(24);
+        subnet.setServerAddr("172.31.0.118");
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
