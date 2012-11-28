@@ -76,7 +76,7 @@
                 </dependencies>
                 <configuration>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
-                    <argLine>-XX:-UseSplitVerifier
+                    <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
                         -Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <org.newsclub.net.unix.library.path>
