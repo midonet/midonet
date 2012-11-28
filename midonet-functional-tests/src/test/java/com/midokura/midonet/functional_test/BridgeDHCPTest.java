@@ -48,7 +48,7 @@ import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMid
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 11/24/11
  */
-@Ignore
+//@Ignore
 public class BridgeDHCPTest {
 
     private final static Logger log = LoggerFactory.getLogger(

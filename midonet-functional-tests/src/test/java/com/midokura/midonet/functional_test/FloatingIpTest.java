@@ -58,7 +58,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore
+@Ignore
 public class FloatingIpTest {
 
     private final static Logger log = LoggerFactory

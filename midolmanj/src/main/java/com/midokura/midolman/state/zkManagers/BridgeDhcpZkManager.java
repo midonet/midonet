@@ -47,9 +47,10 @@ public class BridgeDhcpZkManager extends ZkManager {
                 if (defaultGateway != null) {
                     this.serverAddr = defaultGateway;
                 } else {
-                    // hard-code it to some arbituary value
-                    this.serverAddr = new IntIPv4(subnetAddr.getAddress() + 123,
-                                                  subnetAddr.getMaskLength());
+                    // hard-code it to network bcast addr - 1
+                    this.serverAddr = new IntIPv4(
+                            subnetAddr.toBroadcastAddress().addressAsInt() - 1,
+                            subnetAddr.getMaskLength());
                 }
             }
             this.dnsServerAddr = dnsServerAddr;
