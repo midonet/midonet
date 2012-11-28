@@ -70,6 +70,15 @@ public class IntIPv4 implements Cloneable {
         return new IntIPv4(address & mask, maskLength);
     }
 
+    public IntIPv4 toBroadcastAddress() {
+        int mask;
+        if (maskLength == 0)
+            mask = 0;
+        else
+            mask = -1 << (32 - maskLength);
+        return new IntIPv4(address | ~(mask), maskLength);
+    }
+
     public IntIPv4 toHostAddress() {
         if (maskLength != 32) {
             return new IntIPv4(address, 32);

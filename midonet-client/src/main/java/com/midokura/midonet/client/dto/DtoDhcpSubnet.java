@@ -14,6 +14,8 @@ public class DtoDhcpSubnet {
     private String subnetPrefix;
     private int subnetLength;
     private String defaultGateway;
+    private String serverAddr;
+    private String dnsServerAddr;
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
     private URI uri;
@@ -44,6 +46,22 @@ public class DtoDhcpSubnet {
 
     public void setDefaultGateway(String defaultGateway) {
         this.defaultGateway = defaultGateway;
+    }
+
+    public String getServerAddr() {
+        return serverAddr;
+    }
+
+    public void setServerAddr(String serverAddr) {
+        this.serverAddr = serverAddr;
+    }
+
+    public String getDnsServerAddr() {
+        return dnsServerAddr;
+    }
+
+    public void setDnsServerAddr(String dnsServerAddr) {
+        this.dnsServerAddr = dnsServerAddr;
     }
 
     public List<DtoDhcpOption121> getOpt121Routes() {
@@ -98,6 +116,14 @@ public class DtoDhcpSubnet {
                 ? !uri.equals(that.uri)
                 : that.uri != null)
             return false;
+        if (serverAddr != null
+                ? !serverAddr.equals(that.serverAddr)
+                : that.serverAddr != null)
+            return false;
+        if (dnsServerAddr != null
+                ? !dnsServerAddr.equals(that.dnsServerAddr)
+                : that.dnsServerAddr!= null)
+            return false;
 
         return true;
     }
@@ -108,6 +134,10 @@ public class DtoDhcpSubnet {
         result = 31 * result + subnetLength;
         result = 31 * result + (defaultGateway != null
                 ? defaultGateway.hashCode() : 0);
+        result = 31 * result + (serverAddr != null
+                ? serverAddr.hashCode() : 0);
+        result = 31 * result + (dnsServerAddr != null
+                ? dnsServerAddr.hashCode() : 0);
         result = 31 * result + (opt121Routes != null
                 ? opt121Routes.hashCode() : 0);
         result = 31 * result + (hosts != null ? hosts.hashCode() : 0);
@@ -120,7 +150,9 @@ public class DtoDhcpSubnet {
         return "DtoDhcpSubnet{" +
                 "defaultGateway='" + defaultGateway + '\'' +
                 ", subnetPrefix='" + subnetPrefix + '\'' +
-                ", subnetLength=" + subnetLength +
+                ", subnetLength=" + subnetLength + '\'' + 
+                ", serverAddr='" + serverAddr + '\'' +
+                ", dnsServerAddr='" + dnsServerAddr +
                 ", opt121Routes=" + opt121Routes +
                 ", hosts=" + hosts +
                 ", uri=" + uri +

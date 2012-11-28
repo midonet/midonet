@@ -37,6 +37,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private var routerAddr: IntIPv4 = null
     private var yiaddr: IntIPv4 = null
     private var opt121Routes: mutable.Seq[Opt121] = null;
+    private var dnsServerAddr : IntIPv4 = null
 
     def handleDHCP : Future[Boolean] = {
         // These fields are decided based on the port configuration.
@@ -84,6 +85,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     serverAddr = sub.getServerAddr
                     // TODO(pino): the server MAC should be in configuration.
                     serverMac = MAC.fromString("02:a8:9c:de:39:27")
+                    dnsServerAddr = sub.getDnsServerAddr
                     routerAddr = sub.getDefaultGateway
                     yiaddr = host.getIp.clone.setMaskLength(
                         sub.getSubnetAddr.getMaskLength)
@@ -260,6 +262,11 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             DHCPOption.Code.SERVER_ID.value,
             DHCPOption.Code.SERVER_ID.length,
             IPv4.toIPv4AddressBytes(serverAddr.getAddress)))
+        if (dnsServerAddr != null) {
+            options.add(new DHCPOption(DHCPOption.Code.DNS.value,
+                                       DHCPOption.Code.DNS.length,
+                                       IPv4.toIPv4AddressBytes(dnsServerAddr.getAddress)))
+        }
         // If there are classless static routes, add the option.
         if (null != opt121Routes && opt121Routes.length > 0) {
             val bytes = mutable.ListBuffer[Byte]()

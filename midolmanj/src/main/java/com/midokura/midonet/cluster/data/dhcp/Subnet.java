@@ -44,6 +44,15 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return self();
     }
 
+    public IntIPv4 getDnsServerAddr() {
+        return getData().dnsServerAddr;
+    }
+
+    public Subnet setDnsServerAddr(IntIPv4 dnsServerAddr) {
+        getData().dnsServerAddr = dnsServerAddr;
+        return self();
+    }
+
     public IntIPv4 getDefaultGateway() {
         return getData().defaultGateway;
     }
@@ -65,7 +74,8 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
     public static class Data {
 
         public IntIPv4 subnetAddr;
-        public IntIPv4 serverAddr; // TODO: implement this.
+        public IntIPv4 serverAddr;
+        public IntIPv4 dnsServerAddr;
         public IntIPv4 defaultGateway;
         public List<Opt121> opt121Routes;
 
@@ -74,6 +84,7 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
             return "Subnet{" +
                     "subnetAddr=" + subnetAddr +
                     ", serverAddr=" + serverAddr +
+                    ", dnsServerAddr=" + dnsServerAddr +
                     ", defaultGateway=" + defaultGateway +
                     ", opt121Routes=" + opt121Routes +
                     '}';
