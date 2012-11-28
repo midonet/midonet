@@ -97,12 +97,10 @@ public class TestHost extends JerseyTest {
         assertThat("We should have a proper response",
                    response, is(notNullValue()));
 
-        //NOTE: shouldn't this return empty list instead of NO_CONTENT
-        //      to be consistent with other APIs?
         assertThat(
-            "When no hosts are registered we should return an HTTP NO_RESPONSE code",
+            "No hosts is not an error situation",
             response.getClientResponseStatus(),
-            equalTo(ClientResponse.Status.NO_CONTENT));
+            equalTo(ClientResponse.Status.OK));
 
         ClientResponse clientResponse = resource()
             .path("hosts/" + UUID.randomUUID().toString())
@@ -119,9 +117,12 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("semporiki");
 
+        ResourceCollection<Host> hosts = mgmt.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
         hostManager.createHost(hostId, metadata);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        hosts = mgmt.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",

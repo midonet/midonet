@@ -73,7 +73,7 @@ public class HostResource {
             host.setBaseUri(uriInfo.getBaseUri());
             hosts.add(host);
         }
-        return hosts.size() > 0 ? hosts : null;
+        return hosts;
     }
 
     /**
