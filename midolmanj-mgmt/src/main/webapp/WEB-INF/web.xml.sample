@@ -76,7 +76,7 @@
   </context-param>
 
   <!-- Zookeeper configuration -->
-  <!-- The following parameters should match the ones in midolman.conf 
+  <!-- The following parameters should match the ones in midolman.conf
        except 'use_mock' -->
   <context-param>
     <param-name>zookeeper-use_mock</param-name>
@@ -99,7 +99,7 @@
   <!-- The following parameters should match the ones in midolman.conf -->
   <context-param>
     <param-name>cassandra-servers</param-name>
-    <param-value>localhost:9160</param-value>
+    <param-value>localhost:9160,localhost:10619</param-value>
   </context-param>
   <context-param>
     <param-name>cassandra-cluster</param-name>
