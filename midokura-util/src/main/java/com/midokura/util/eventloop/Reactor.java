@@ -19,4 +19,8 @@ public interface Reactor {
     ScheduledFuture<?> schedule(Runnable runnable, long delay, TimeUnit unit);
 
     <V> ScheduledFuture<V> schedule(Callable<V> work, long delay, TimeUnit unit);
+
+    void shutDownNow();
+
+    boolean isShutDownOrTerminated();
 }

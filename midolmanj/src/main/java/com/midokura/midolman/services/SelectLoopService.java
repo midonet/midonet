@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectLoop;
 
 /**
@@ -22,6 +23,9 @@ public class SelectLoopService extends AbstractService {
 
     @Inject
     SelectLoop selectLoop;
+
+    @Inject
+    Reactor reactor;
 
     Thread selectLoopThread;
 
@@ -53,8 +57,9 @@ public class SelectLoopService extends AbstractService {
     protected void doStop() {
         // TODO: change the SelectLoop to support shutdown and use it here to stop the thread
         // cleanly
-        selectLoopThread.stop();
+        reactor.shutDownNow();
         selectLoop.shutdown();
+        selectLoopThread.stop();
         notifyStopped();
     }
 }

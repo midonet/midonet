@@ -122,10 +122,10 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(flowControllerActor);
             stopActor(simulationControllerActor);
             stopActor(routingManagerActor);
-
             if (config.getMidolmanEnableMonitoring()) {
                 stopActor(monitoringActor);
             }
+            stopActor(supervisorActor);
 
             log.debug("Stopping the actor system");
             actorSystem.shutdown();
@@ -144,7 +144,7 @@ public class MidolmanActorsService extends AbstractService {
         log.debug("Stopping actor: {}", actorRef.toString());
         try {
             Future<Boolean> stopFuture =
-                    gracefulStop(virtualTopologyActor,
+                    gracefulStop(actorRef,
                             Duration.create(100, TimeUnit.MILLISECONDS),
                             actorSystem);
             Await.result(stopFuture,
