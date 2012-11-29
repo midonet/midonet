@@ -66,6 +66,7 @@ class FlowController extends Actor with ActorLogging {
 
     var datapath: Datapath = null
     var maxDpFlows = 0
+    var maxWildcardFlows = 0
     var dpFlowRemoveBatchSize = 0
     var cookieCounter = 0 // Every PacketIn we send up gets a unique cookie
 
@@ -97,12 +98,13 @@ class FlowController extends Actor with ActorLogging {
     override def preStart() {
         super.preStart()
         maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
+        maxWildcardFlows = midolmanConfig.getDatapathMaxWildcardFlowCount
 
         flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
             TimeUnit.MILLISECONDS)
 
 
-        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows)
+        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows, maxWildcardFlows)
     }
 
     def receive = LoggingReceive {

@@ -50,11 +50,13 @@ import com.midokura.util.profiling.ProfilingTimer;
 public class FlowManager {
 
     private static final Logger log = LoggerFactory.getLogger(FlowManager.class);
+    private static final int NO_LIMIT = 0;
 
     private ProfilingTimer profiler = new ProfilingTimer(log);
 
     private FlowManagerHelper flowManagerHelper;
     private long maxDpFlows;
+    private long maxWildcardFlows;
     //TODO(ross) is this a reasonable value? Take it from conf file?
     private int dpFlowRemoveBatchSize = 100;
 
@@ -65,16 +67,16 @@ public class FlowManager {
      */
     //private List<WildcardFlow> wildcardFlowsToUpdate = new ArrayList<WildcardFlow>();
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows) {
+    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows, long maxWildcardFlows) {
         this.maxDpFlows = maxDpFlows;
+        this.maxWildcardFlows = maxWildcardFlows;
         this.flowManagerHelper = flowManagerHelper;
         if (dpFlowRemoveBatchSize > maxDpFlows)
             dpFlowRemoveBatchSize = 1;
     }
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
-                       int dpFlowRemoveBatchSize) {
-        this(flowManagerHelper, maxDpFlows);
+    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows, long maxWildcardFlows, int dpFlowRemoveBatchSize) {
+        this(flowManagerHelper, maxDpFlows, maxWildcardFlows);
         this.dpFlowRemoveBatchSize = dpFlowRemoveBatchSize;
     }
 
@@ -123,6 +125,10 @@ public class FlowManager {
         return dpFlowTable.size();
     }
 
+    public long getNumWildcardFlows() {
+        return wildFlowToDpFlows.size();
+    }
+
     /**
      * Add a new wildcard flow.
      *
@@ -132,6 +138,27 @@ public class FlowManager {
      *         match.
      */
     public boolean add(WildcardFlow wildFlow) {
+
+        // check the wildcard flows limit
+        if (maxWildcardFlows != NO_LIMIT && getNumWildcardFlows() >= maxWildcardFlows) {
+            // if there are too many try to do some cleanup.
+            WildcardFlow toDelete = null;
+
+            // need to delete a wildcarflow, first priority are the ones that have an idle timeout.
+            if (idleTimeOutQueue.size() > 0) {
+               toDelete = idleTimeOutQueue.poll();
+            } else {
+               // if there are none, delete one of the wildcarflows that contain a hard timeout.
+               toDelete = hardTimeOutQueue.poll();
+            }
+
+            if (toDelete != null) {
+                remove(toDelete);
+            } else {
+                log.error("Could not add the new wildcardflow as the system reached its maximum.");
+                return false;
+            }
+        }
 
         // Get the WildcardFlowTable for this wild flow's pattern.
         Set<WildcardMatch.Field> pattern =
