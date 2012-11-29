@@ -33,7 +33,6 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
                                                             PortRequest}
 import com.midokura.midolman.simulation.Bridge
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
-import com.midokura.midolman.guice.MidolmanActorsModule
 
 
 object HostConfigOperation extends Enumeration {
@@ -215,8 +214,10 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
     private lazy val tunnelZones: DeviceHandlersManager[TunnelZone[_, _], TunnelZoneManager] =
         new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
-    private lazy val localActivePortSets = mutable.Map[UUID, mutable.Set[UUID]]()
-    private val localActivePortSetsToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
+    // Map a PortSet ID to the vports in the set that are local to this host.
+    private val psetIdToLocalVports = mutable.Map[UUID, mutable.Set[UUID]]()
+    // Map a PortSet ID to the hosts that have vports in the set.
+    private val psetIdToHosts = mutable.Map[UUID, immutable.Set[UUID]]()
     private var activatingLocalPorts = false
 
     private lazy val tunnelKeyToPortSet = mutable.Map[Long, UUID]()
@@ -239,28 +240,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 }
 
             case portSet: rcu.PortSet =>
-                val updatedPortSet = localActivePortSets.get(portSet.id) match
-                {
-                    case None => portSet
-                    case Some(ports) =>
-                        // if this host has ports belonging to this portSet we need
-                        // to invalidate the flows
-                        // 1) a new host is added to the set, invalidate all flows
-                        // we need to include the tunnel to the new host
-                        // 2) same for delete
-                        if (localActivePortSetsToHosts.contains(portSet.id) &&
-                            localActivePortSetsToHosts(portSet.id) != portSet.hosts) {
-                            FlowController.getRef() ! InvalidateFlowsByTag(
-                                // the portSet id is the same as the bridge id
-                                FlowTagger.invalidateBroadcastFlows(portSet.id, portSet.id)
-                            )
-                        }
-                        localActivePortSetsToHosts += portSet.id -> portSet.hosts
-                        rcu.PortSet(portSet.id, portSet.hosts, ports.toSet)
-
-                }
-
-                portSets.updateAndNotifySubscribers(portSet.id, updatedPortSet)
+                psetIdToHosts += portSet.id -> portSet.hosts
+                portSetUpdate(portSet.id)
 
             case HostRequest(hostId) =>
                 hosts.addSubscriber(hostId, sender, updates = true)
@@ -297,7 +278,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                     case Right(port) =>
                         if (port.isInstanceOf[BridgePort[_]]){
                             log.debug("LocalPortActive, it's a bridge port")
-                            localActivePortSets.get(port.deviceID) match {
+                            psetIdToLocalVports.get(port.deviceID) match {
                                 case Some(_) =>
                                     self ! _PortSetMembershipUpdated(
                                         vifId, port.deviceID, state = true)
@@ -342,7 +323,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         self ! _ActivatedLocalPort(
                             vifId, active = false, success = false)
                     case Right(port) =>
-                        localActivePortSets.get(port.deviceID) match {
+                        psetIdToLocalVports.get(port.deviceID) match {
                             case Some(ports) if ports.contains(vifId) =>
                                 val future = Promise[Void]()
                                 if (ports.size > 1) {
@@ -370,19 +351,17 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
 
             case _ActivatedLocalPortSet(portSetId, tunKey, false) =>
                 tunnelKeyToPortSet.remove(tunKey)
-                localActivePortSets.remove(portSetId)
-                localActivePortSetsToHosts.remove(portSetId)
+                psetIdToLocalVports.remove(portSetId)
+                psetIdToHosts.remove(portSetId)
 
             case _PortSetMembershipUpdated(vifId, portSetId, true) =>
                 log.debug("Port {} in PortSet {} is up.", vifId, portSetId)
-                localActivePortSets.get(portSetId) match {
+                psetIdToLocalVports.get(portSetId) match {
                     case Some(ports) =>
                         ports.add(vifId)
+                        portSetUpdate(portSetId)
                         completeLocalPortActivation(vifId, active = true,
                                                            success = true)
-                        // invalidate all the flows of this port set
-                        FlowController.getRef() ! InvalidateFlowsByTag(
-                            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId))
                     case None =>
 
                         val bridgeFuture =
@@ -394,7 +373,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                                 self ! _ActivatedLocalPort(vifId, active = true,
                                                                   success = true)
                             case Right(bridge) =>
-                                localActivePortSets.put(portSetId, mutable.Set(vifId))
+                                psetIdToLocalVports.put(portSetId, mutable.Set(vifId))
                                 self ! _ActivatedLocalPortSet(portSetId,
                                                               bridge.tunnelKey,
                                                               active = true)
@@ -406,14 +385,14 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                         }
                 }
 
-
             case _PortSetMembershipUpdated(vifId, portSetId, false) =>
                 // We don't need to invalidate flows because the DatapathCtrl's
                 // tag by ShortPortNo will invalidate all relevant flows anyway.
                 log.debug("Port {} in PortSet {} is down.", vifId, portSetId)
-                localActivePortSets.get(portSetId) match {
+                psetIdToLocalVports.get(portSetId) match {
                     case Some(ports) =>
                         ports.remove(vifId)
+                        portSetUpdate(portSetId)
 
                         if (ports.size == 0) {
                             val bridgeFuture =
@@ -449,6 +428,29 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
                 log.error("Unknown message: " + value)
 
         }
+    }
+
+    private def portSetUpdate(portSetId: UUID) {
+        // Invalidate the flows that were going to this port set so that their
+        // output datapath ports can be recomputed. This is true regardless
+        // of whether the remote hosts or the local vports in the set changed.
+        FlowController.getRef() ! InvalidateFlowsByTag(
+            // the portSet id is the same as the bridge id
+            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId)
+        )
+
+        val hosts: Set[UUID] = psetIdToHosts.get(portSetId) match {
+            case Some(hostSet) => hostSet
+            case None => immutable.Set()
+        }
+
+        val localVPorts: Set[UUID] = psetIdToLocalVports.get(portSetId) match {
+            case Some(ports) => ports.toSet[UUID]
+            case None => immutable.Set()
+        }
+
+        portSets.updateAndNotifySubscribers(portSetId,
+            rcu.PortSet(portSetId, hosts, localVPorts))
     }
 
     /* must be called from the actor's thread
@@ -501,4 +503,3 @@ class PromisingDirectoryCallback[T](val promise:Promise[T]) extends DirectoryCal
         promise.failure(e)
     }
 }
-

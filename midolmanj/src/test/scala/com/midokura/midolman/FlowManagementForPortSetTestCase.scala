@@ -339,8 +339,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
-        // expect flow invalidation for the flow tagged using the bridge id and portSet id,
-        // which are the same
+        // expect flow invalidation for the flow tagged using the bridge id and
+        // portSet id, which are the same
         val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(FlowTagger.invalidateBroadcastFlows(bridge.getId,
             bridge.getId)) )
@@ -386,18 +386,30 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         val flowToInvalidate = fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         val port2OnHost1 = newExteriorBridgePort(bridge)
+        port2OnHost1.getTunnelKey should be (5)
         materializePort(port2OnHost1, host1, "port1b")
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
-        // invalidation with tag port datapath short id
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        // flow installed for tunnel key = port
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        var numPort2OnHost1: Short = 0
+        dpController().underlyingActor.vifToLocalPortNumber(
+                port2OnHost1.getId) match {
+            case Some(portNo : Short) => numPort2OnHost1 = portNo
+            case None =>
+                fail("Short data port number for port2OnHost1 not found.")
+        }
         // flow invalidation tag = port id
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        var msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        assert(msg.tag.equals(port2OnHost1.getId))
+        // invalidation with tag datapath port short id
+        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        assert(msg.tag.equals(FlowTagger.invalidateDPPort(numPort2OnHost1)))
+        // flow installed for tunnel key = port
+        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        assert(msg.tag.equals(
+            FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey)))
 
         // expect flow invalidation for the flow tagged using the bridge id and portSet id,
         // which are the same
-        val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(FlowTagger.invalidateBroadcastFlows(bridge.getId,
             bridge.getId)))
 
