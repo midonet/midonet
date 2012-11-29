@@ -7,11 +7,11 @@ package com.midokura.midolman.layer4;
 public class PacketSignature {
 
     public int nwSrc;
-    public short tpSrc;
+    public int tpSrc;
     public int nwDst;
-    public short tpDst;
+    public int tpDst;
 
-    public PacketSignature(int nwSrc, short tpSrc, int nwDst, short tpDst) {
+    public PacketSignature(int nwSrc, int tpSrc, int nwDst, int tpDst) {
         super();
         this.nwSrc = nwSrc;
         this.tpSrc = tpSrc;

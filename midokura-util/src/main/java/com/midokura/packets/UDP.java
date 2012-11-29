@@ -38,16 +38,16 @@ public class UDP extends BasePacket implements Transport {
      */
     public static final int MAX_PACKET_LEN = 0xFFFF;
 
-    public static Map<Short, Class<? extends IPacket>> decodeMap;
+    public static Map<Integer, Class<? extends IPacket>> decodeMap;
 
     static {
-        decodeMap = new HashMap<Short, Class<? extends IPacket>>();
-        UDP.decodeMap.put((short)67, DHCP.class);
-        UDP.decodeMap.put((short)68, DHCP.class);
+        decodeMap = new HashMap<Integer, Class<? extends IPacket>>();
+        UDP.decodeMap.put((int)67, DHCP.class);
+        UDP.decodeMap.put((int)68, DHCP.class);
     }
 
-    protected short sourcePort;
-    protected short destinationPort;
+    protected int sourcePort;
+    protected int destinationPort;
     protected int length;
     protected short checksum;
 
@@ -68,7 +68,7 @@ public class UDP extends BasePacket implements Transport {
      * @return the sourcePort
      */
     @Override
-    public short getSourcePort() {
+    public int getSourcePort() {
         return sourcePort;
     }
 
@@ -76,7 +76,10 @@ public class UDP extends BasePacket implements Transport {
      * @param sourcePort the sourcePort to set
      */
     @Override
-    public void setSourcePort(short sourcePort) {
+    public void setSourcePort(int sourcePort) {
+        if (sourcePort < 0 || sourcePort > 65535)
+            throw new IllegalArgumentException("UDP port out of range");
+
         this.sourcePort = sourcePort;
     }
 
@@ -84,7 +87,7 @@ public class UDP extends BasePacket implements Transport {
      * @return the destinationPort
      */
     @Override
-    public short getDestinationPort() {
+    public int getDestinationPort() {
         return destinationPort;
     }
 
@@ -92,7 +95,10 @@ public class UDP extends BasePacket implements Transport {
      * @param destinationPort the destinationPort to set
      */
     @Override
-    public void setDestinationPort(short destinationPort) {
+    public void setDestinationPort(int destinationPort) {
+        if (destinationPort < 0 || destinationPort > 65535)
+            throw new IllegalArgumentException("UDP port out of range");
+
         this.destinationPort = destinationPort;
     }
 
@@ -150,8 +156,8 @@ public class UDP extends BasePacket implements Transport {
         byte[] data = new byte[this.length & 0xffff];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.putShort(this.sourcePort);
-        bb.putShort(this.destinationPort);
+        bb.putShort((short)this.sourcePort);
+        bb.putShort((short)this.destinationPort);
         bb.putShort((short) this.length);
         bb.putShort(this.checksum);
         if (payloadData != null)
@@ -237,8 +243,8 @@ public class UDP extends BasePacket implements Transport {
                     + bb.remaining());
         }
 
-        this.sourcePort = bb.getShort();
-        this.destinationPort = bb.getShort();
+        this.sourcePort = Unsigned.unsign(bb.getShort());
+        this.destinationPort = Unsigned.unsign(bb.getShort());
         this.length = bb.getShort();
         this.checksum = bb.getShort();
 
