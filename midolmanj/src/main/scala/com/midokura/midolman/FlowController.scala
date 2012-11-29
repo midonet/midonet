@@ -159,9 +159,8 @@ class FlowController extends Actor with ActorLogging {
             log.debug("DP confirmed that flow was updated: {}", flow)
             flowManager.updateFlowLastUsedTimeCompleted(flow)
 
-        case flowAddedInflight(flow, packetNumber) =>
-            log.debug("DP confirmed that flow for packet {} was added: {}",
-                packetNumber, flow)
+        case flowAdded(flow) =>
+            log.debug("DP confirmed that flow was added: {}", flow)
             if (flowsInFlight.contains(flow.getMatch)) {
                 log.debug("there was a flow in flight {}", flow)
                 flowsInFlight.remove(flow.getMatch)
@@ -172,9 +171,8 @@ class FlowController extends Actor with ActorLogging {
             log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
 
-        case flowInflightRemove(flowMatch, packetNumber) =>
-            log.debug("Removing inflight flow for packet {} with match {}",
-                packetNumber, flowMatch)
+        case flowInflightRemove(flowMatch) =>
+            log.debug("Removing inflight flow with match {}", flowMatch)
             if(flowsInFlight.contains(flowMatch)) {
                 flowsInFlight.remove(flowMatch)
             }
@@ -198,9 +196,8 @@ class FlowController extends Actor with ActorLogging {
     case class packetIn(packet: Packet)
     case class flowUpdated(flow: Flow)
     case class flowAdded(flow: Flow)
-    case class flowAddedInflight(flow: Flow, packetNumber: Int)
     case class flowRemoved(flow: Flow)
-    case class flowInflightRemove(flowMatch: FlowMatch, packetNumber: Int)
+    case class flowInflightRemove(flowMatch: FlowMatch)
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
@@ -220,11 +217,8 @@ class FlowController extends Actor with ActorLogging {
         context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
     }
 
-    var packetInCount: Int = 0
     private def handlePacketIn(packet: Packet) {
-        packetInCount = packetInCount + 1
-        val packetNumber = packetInCount
-        log.debug("Received packet number {}, {}", packetNumber, packet)
+        log.debug("Received packet {}", packet)
 
 
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
@@ -239,8 +233,8 @@ class FlowController extends Actor with ActorLogging {
             // This should only happen as a race condition.
             // TODO(pino): detect if this is happening a lot, it implies a
             // TODO: badly installed dp flow. Try to re-install it.
-            log.debug("We have a matching cached DP flow with actions {} for packet {}",
-                actions, packetNumber)
+            log.debug("We have a matching cached DP flow with actions {}",
+                actions)
             if (actions.size() == 0) {
                 // Empty action list means DROP. Do nothing.
                 return
@@ -250,32 +244,33 @@ class FlowController extends Actor with ActorLogging {
             // wildcard flow.
             val dpFlow = flowManager.createDpFlow(packet.getMatch)
             if (dpFlow != null) {
-                log.debug("A matching wildcard flow for packet {} returned actions {}",
-                    packetNumber, dpFlow.getActions)
+                log.debug("A matching wildcard flow returned actions {}",
+                    dpFlow.getActions)
 
-                if (flowsInFlight.contains(packet.getMatch)) {
+                if (!flowsInFlight.contains(packet.getMatch)) {
+
+                    log.debug("adding flow in flight {}", packet.getMatch)
+                    flowsInFlight.add(packet.getMatch)
+
+                    datapathConnection.flowsCreate(datapath, dpFlow,
+                    new ErrorHandlingCallback[Flow] {
+                        def onSuccess(data: Flow) {
+                            log.debug("succes")
+                            self ! flowAdded(data)
+                        }
+
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error("Got an exception {} or timeout {} when "+
+                                "trying to add flow with flow match {}",
+                                ex, timeout, dpFlow.getMatch)
+                            self ! flowInflightRemove(dpFlow.getMatch)
+                        }
+                    })
+
+                } else {
                     log.debug("flow already requested to dataplane {}", packet.getMatch)
-                    return
                 }
 
-                log.debug("adding flow in flight {}", packet.getMatch)
-                flowsInFlight.add(packet.getMatch)
-
-                datapathConnection.flowsCreate(datapath, dpFlow,
-                new ErrorHandlingCallback[Flow] {
-                    def onSuccess(data: Flow) {
-                        log.debug("success for packetNumber {}", packetNumber)
-                        self ! flowAddedInflight(data, packetNumber)
-                    }
-
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error("error for packetNumber {}", packetNumber)
-                        log.error("Got an exception {} or timeout {} when "+
-                            "trying to add flow with flow match {}",
-                            ex, timeout, dpFlow.getMatch)
-                        self ! flowInflightRemove(dpFlow.getMatch, packetNumber)
-                    }
-                })
                 actions = dpFlow.getActions
                 // Empty action list means DROP. Do nothing.
                 if (actions.size == 0)
@@ -296,11 +291,10 @@ class FlowController extends Actor with ActorLogging {
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
                     def onSuccess(data: java.lang.Boolean) {
-                        log.debug("execute actions success for packetNumber {}", packetNumber)
+                        log.debug("execute actions success")
                     }
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.debug("execute actions error for packetNumber {}", packetNumber)
                         log.error(ex,
                             "Failed to send a packet {} due to {}", packet,
                             if (timeout) "timeout" else "error")
@@ -382,18 +376,28 @@ class FlowController extends Actor with ActorLogging {
                     setActions(wildcardFlow.getActions).
                     setLastUsedTime(System.currentTimeMillis())
 
-                datapathConnection.flowsCreate(datapath, dpFlow,
-                new ErrorHandlingCallback[Flow] {
-                    def onSuccess(data: Flow) {
-                        self ! flowAdded(data)
-                    }
+                if (!flowsInFlight.contains(packet.getMatch)) {
 
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error("Got an exception {} or timeout {} when trying to add flow" +
-                            "with flow match {}", ex, timeout, dpFlow.getMatch)
-                    }
-                })
-                log.debug("Flow created {}", dpFlow)
+                    log.debug("adding flow in flight {}", packet.getMatch)
+                    flowsInFlight.add(packet.getMatch)
+
+                    datapathConnection.flowsCreate(datapath, dpFlow,
+                    new ErrorHandlingCallback[Flow] {
+                        def onSuccess(data: Flow) {
+                            self ! flowAdded(data)
+                        }
+
+                        def handleError(ex: NetlinkException, timeout: Boolean) {
+                            log.error("Got an exception {} or timeout {} when trying to add flow" +
+                                "with flow match {}", ex, timeout, dpFlow.getMatch)
+                            self ! flowInflightRemove(dpFlow.getMatch)
+                        }
+                    })
+                    log.debug("Flow created {}", dpFlow)
+
+                } else {
+                    log.debug("flow already requested to dataplane {}", packet.getMatch)
+                }
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
