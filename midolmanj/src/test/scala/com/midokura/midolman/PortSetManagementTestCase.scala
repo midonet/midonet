@@ -3,14 +3,22 @@
 */
 package com.midokura.midolman
 
+import scala.collection.JavaConversions._
+import akka.pattern.Patterns
+import akka.dispatch.Await
+import akka.util.Duration
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
+
 import com.midokura.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
-import topology.LocalPortActive
-import scala.collection.JavaConversions._
+import com.midokura.midolman.topology.rcu.PortSet
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 
 @RunWith(classOf[JUnitRunner])
 class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
@@ -55,6 +63,12 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         set should have size (0)
     }
 
+    private def fetchRcuPortSet(id: UUID) : PortSet = {
+        val psFuture = Patterns.ask(
+            virtualToPhysicalMapper(), new PortSetRequest(id, false), 3000)
+        Await.result(psFuture.mapTo[PortSet], Duration.parse("3 seconds"))
+    }
+
     def testMultiplePortSetRegistrationDeregistration() {
 
         // make a bridge
@@ -92,6 +106,19 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         var portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
         portSet should contain (hostId())
         portSet should have size (1)
+        fetchRcuPortSet(bridge.getId).localPorts should have size (2)
+
+        // make a third port
+        val inputPort3 = Ports.materializedBridgePort(bridge)
+        inputPort3.setId(clusterDataClient().portsCreate(inputPort3))
+        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort3.getId, "port3")
+
+        // block until the remove event was processed
+        eventProbe.expectMsgClass(classOf[LocalPortActive])
+        portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
+        portSet should contain (hostId())
+        portSet should have size (1)
+        fetchRcuPortSet(bridge.getId).localPorts should have size (3)
 
         // remove a port
         clusterDataClient().hostsDelVrnPortMapping(hostId(), inputPort1.getId)
@@ -103,13 +130,24 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
         portSet should contain (hostId())
         portSet should have size (1)
+        fetchRcuPortSet(bridge.getId).localPorts should have size (2)
 
-        // remove the last port
+        // remove another port
         clusterDataClient().hostsDelVrnPortMapping(hostId(), inputPort2.getId)
         eventProbe.expectMsgClass(classOf[LocalPortActive])
 
         // check the port set contents
         portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
+        portSet should have size (1)
+        fetchRcuPortSet(bridge.getId).localPorts should have size (1)
+
+        // remove another port
+        clusterDataClient().hostsDelVrnPortMapping(hostId(), inputPort3.getId)
+        eventProbe.expectMsgClass(classOf[LocalPortActive])
+
+        // check the port set contents
+        portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
         portSet should have size (0)
+        fetchRcuPortSet(bridge.getId).localPorts should have size (0)
     }
 }
