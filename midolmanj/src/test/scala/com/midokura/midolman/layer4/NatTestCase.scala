@@ -9,17 +9,19 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.UUID
+import java.{util => ju}
 
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, DiscardPacket, WildcardFlowRemoved, WildcardFlowAdded}
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag,
+                                             DiscardPacket, WildcardFlowRemoved}
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.layer3.Route.NextHop
 import com.midokura.midolman.rules.{NatTarget, RuleResult, Condition}
 import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.packets._
-import com.midokura.midonet.cluster.data.ports.{MaterializedRouterPort, MaterializedBridgePort}
+import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.midolman.util.AddressConversions._
 import com.midokura.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
-import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -214,6 +216,41 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         log.info("packet translated: {}", eth)
         log.info("packet ports: {}", getOutPacketPorts(pktOut))
         eth
+    }
+
+    def testConntrack() {
+        log.info("creating chains")
+        val brChain = newInboundChainOnBridge("brChain", bridge)
+        brChain should not be null
+
+        val vmPortIds: ju.Set[UUID] = new ju.HashSet[UUID]()
+        vmPortIds ++= vmPorts.map { p => p.getId }.toSet
+
+        val returnCond = new Condition()
+        returnCond.matchReturnFlow = true
+        returnCond.inPortIds = vmPortIds
+        returnCond.inPortInv = true
+        val returnRule = newLiteralRuleOnChain(
+            brChain, 1, returnCond, RuleResult.Action.ACCEPT)
+        returnRule should not be null
+
+        val dropIncomingCond = new Condition()
+        dropIncomingCond.inPortIds = vmPortIds
+        dropIncomingCond.inPortInv = true
+        val dropIncomingRule = newLiteralRuleOnChain(
+            brChain, 2, dropIncomingCond, RuleResult.Action.DROP)
+        dropIncomingRule should not be null
+
+        val forwardCond = new Condition()
+        forwardCond.inPortIds = vmPortIds
+        forwardCond.matchForwardFlow = true
+        val forwardRule = newLiteralRuleOnChain(
+            brChain, 3, forwardCond, RuleResult.Action.ACCEPT)
+        forwardRule should not be null
+
+        clusterDataClient().bridgesUpdate(bridge)
+
+        testSnat()
     }
 
     def testDnat() {
