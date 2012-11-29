@@ -116,7 +116,7 @@ class Coordinator(val origMatch: WildcardMatch,
     private val devicesSimulated = mutable.Map[UUID, Int]()
     private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
                                        connectionCache)
-    pktContext.setMatch(origMatch.clone)
+    pktContext.setMatch(origMatch)
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
         // If the packet is from the datapath, install a temporary Drop flow.

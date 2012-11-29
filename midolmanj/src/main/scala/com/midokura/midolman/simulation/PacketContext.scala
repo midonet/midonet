@@ -43,6 +43,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     // read-only.
     private var frozen = false
     private var wcmatch: WildcardMatch = null
+    private var origMatch: WildcardMatch = null
     //ingressFE for generated packet is null, provide a cleaner way
     private var ingressFE: UUID = null
     private var portGroups: JSet[UUID] = null
@@ -57,11 +58,23 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
 
     def getExpiry: Long = expiry
 
+    /**
+     * Sets the WildcardMatch for this packet context. The passed object is
+     * guaranteed not to be modified, all modify operations will be done
+     * on a copy.
+     *
+     * @param m
+     * @return
+     */
     def setMatch(m: WildcardMatch): PacketContext = {
-        wcmatch = m
+        wcmatch = m.clone
+        origMatch = m
         this
     }
 
+    /**
+     * @return The modifiable WildcardMatch for this context.
+     */
     def getMatch: WildcardMatch = wcmatch
 
     def setIngressFE(fe: UUID): PacketContext = {
@@ -161,11 +174,11 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
             return forwardFlow
 
         connectionTracked = true
-        val key = connectionKey(wcmatch.getNetworkSource(),
-                                wcmatch.getTransportSource(),
-                                wcmatch.getNetworkDestination(),
-                                wcmatch.getTransportDestination(),
-                                wcmatch.getNetworkProtocol(), ingressFE)
+        val key = connectionKey(origMatch.getNetworkSource(),
+                                origMatch.getTransportSource(),
+                                origMatch.getNetworkDestination(),
+                                origMatch.getTransportDestination(),
+                                origMatch.getNetworkProtocol(), ingressFE)
         // TODO(jlm): Finish com.midokura.cassandra.AsyncCassandraCache
         //            and use it instead.
         val value = connectionCache.get(key)
