@@ -4,7 +4,6 @@
 
 package com.midokura.packets;
 
-import javax.annotation.Signed;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 

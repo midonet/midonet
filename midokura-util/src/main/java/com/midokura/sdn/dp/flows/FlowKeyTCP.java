@@ -7,22 +7,23 @@ import java.nio.ByteOrder;
 
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
+import com.midokura.packets.Unsigned;
 
 public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
-    /*__be16*/ short tcp_src;
-    /*__be16*/ short tcp_dst;
+    /*__be16*/ int tcp_src;
+    /*__be16*/ int tcp_dst;
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(tcp_src, ByteOrder.BIG_ENDIAN);
-        builder.addValue(tcp_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue((short)tcp_src, ByteOrder.BIG_ENDIAN);
+        builder.addValue((short)tcp_dst, ByteOrder.BIG_ENDIAN);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            tcp_src = message.getShort(ByteOrder.BIG_ENDIAN);
-            tcp_dst = message.getShort(ByteOrder.BIG_ENDIAN);
+            tcp_src = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
+            tcp_dst = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
             return true;
         } catch (Exception e) {
             return false;
@@ -40,20 +41,24 @@ public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
     }
 
 
-    public short getSrc() {
+    public int getSrc() {
         return tcp_src;
     }
 
-    public FlowKeyTCP setSrc(short src) {
+    public FlowKeyTCP setSrc(int src) {
+        if (src < 0 || src > 0xffff)
+            throw new IllegalArgumentException("TCP port out of range");
         this.tcp_src = src;
         return this;
     }
 
-    public short getDst() {
+    public int getDst() {
         return tcp_dst;
     }
 
-    public FlowKeyTCP setDst(short dst) {
+    public FlowKeyTCP setDst(int dst) {
+        if (dst < 0 || dst > 0xffff)
+            throw new IllegalArgumentException("TCP port out of range");
         this.tcp_dst = dst;
         return this;
     }
@@ -73,8 +78,8 @@ public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
 
     @Override
     public int hashCode() {
-        int result = (int) tcp_src;
-        result = 31 * result + (int) tcp_dst;
+        int result = tcp_src;
+        result = 31 * result + tcp_dst;
         return result;
     }
 

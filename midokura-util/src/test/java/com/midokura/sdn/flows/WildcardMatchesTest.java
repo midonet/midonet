@@ -9,6 +9,12 @@ import java.util.Map;
 import static java.util.EnumSet.of;
 
 import org.junit.Test;
+
+import com.midokura.packets.Unsigned;
+import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.FlowMatches;
+
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -69,5 +75,19 @@ public class WildcardMatchesTest {
         assertThat(
             "We should be able to retrieve a wildcard flow by projection",
             map.get(projection), is(true));
+    }
+
+    @Test
+    public void testFromFlowMatch() {
+        FlowMatch fm = FlowMatches.tcpFlow(
+            "02:aa:dd:dd:aa:01", "02:bb:ee:ee:ff:01",
+            "192.168.100.2", "192.168.100.3",
+            40000, 50000);
+        WildcardMatch wcm = WildcardMatches.fromFlowMatch(fm);
+        assertThat(wcm.getTransportSourceObject(),
+            equalTo(40000));
+        assertThat(wcm.getTransportDestinationObject(),
+            equalTo(50000));
+
     }
 }
