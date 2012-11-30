@@ -42,8 +42,8 @@ public class UDP extends BasePacket implements Transport {
 
     static {
         decodeMap = new HashMap<Integer, Class<? extends IPacket>>();
-        UDP.decodeMap.put((int)67, DHCP.class);
-        UDP.decodeMap.put((int)68, DHCP.class);
+        UDP.decodeMap.put(67, DHCP.class);
+        UDP.decodeMap.put(68, DHCP.class);
     }
 
     protected int sourcePort;

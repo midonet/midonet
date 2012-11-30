@@ -38,7 +38,7 @@ public class MockNatMapping implements NatMapping {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        int newTpDst = (int) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
         dnatFwdMap.put(new PacketSignature(nwSrc, tpSrc, oldNwDst, oldTpDst),
                 newDst);
@@ -67,7 +67,7 @@ public class MockNatMapping implements NatMapping {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        int newTpSrc = (int) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);
         snatFwdMap.put(new PacketSignature(oldNwSrc, oldTpSrc, nwDst, tpDst),
                 newSrc);

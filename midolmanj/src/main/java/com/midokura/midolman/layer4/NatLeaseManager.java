@@ -160,7 +160,7 @@ public class NatLeaseManager implements NatMapping {
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
         scheduleRefresh(fwdKey, revKey);
-        return new NwTpPair(newNwDst, (int)newTpDst, fwdKey);
+        return new NwTpPair(newNwDst, newTpDst, fwdKey);
     }
 
     private void scheduleRefresh(String fwdKey, String revKey) {
