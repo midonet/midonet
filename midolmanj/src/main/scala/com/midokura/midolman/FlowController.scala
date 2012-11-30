@@ -159,6 +159,7 @@ class FlowController extends Actor with ActorLogging {
 
         case flowUpdated(flow) =>
             log.debug("DP confirmed that flow was updated: {}", flow)
+            context.system.eventStream.publish(new FlowUpdateCompleted(flow))
             flowManager.updateFlowLastUsedTimeCompleted(flow)
 
         case flowAdded(flow) =>
