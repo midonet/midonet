@@ -10,6 +10,7 @@
   * [Request Headers](#requestheaders)
   * [Response Headers](#responseheaders)
   * [HTTP Status Codes](#statuscodes)
+  * [URI Templates](#uritemplates)
 
 [Resource Models](#resourcemodels)
   * [Router](#router)
@@ -45,31 +46,41 @@ resources.  The API uses JSON as its format.
 
 This section is intended to help users get started on using the API.  It assumes
 that the MidoNet Management REST API host is known.  This host is represented
-as ‘test.com’ in this document.  The following GET request to the base URL of
+as ‘example.org’ in this document.  The following GET request to the base URL of
 the API reveals the locations of the available resources.
 
     GET /
-    Host: test.com
-    Accept: application/vnd.com.midokura.midolman.mgmt+json
+    Host: example.org
+    Accept: application/vnd.com.midokura.midolman.mgmt.Application+json
 
 The request above may yield the following output:
 
 
     HTTP/1.1 200 OK
-    Content-Type: application/vnd.com.midokura.midolman.mgmt+json
+    Content-Type: application/vnd.com.midokura.midolman.mgmt.Application+json
     {
-        “version“: “1“,
-        “routers“: “http://test.com/routers“,
-        “bridges“: “http://test.com/bridges“,
-        “chains“: “http://test.com/chains“,
-        “port_groups“: “http://test.com/port_groups“,
-        “hosts”: “http://test.com/hosts”,
-        “uri“: “http://test.com/“
+        "version": "1",
+        "bgp": "http://example.org/bgps/{id}",
+        "ad_route": "http://example.org/ad_routes/{id}",
+        "bridge": "http://example.org/bridges/{id}",
+        "bridges": "http://example.org/bridges",
+        "chain": "http://example.org/chains/{id}",
+        "chains": "http://example.org/chains",
+        "host": "http://example.org/hosts/{id}",
+        "hosts": "http://example.org/hosts",
+        "port": "http://example.org/ports/{id}",
+        "port_group": "http://example.org/port_groups/{id}",
+        "port_groups": "http://example.org/port_groups",
+        "route": "http://example.org/routes/{id}",
+        "router": "http://example.org/routers/{id}",
+        "routers": "http://example.org/routers",
+        "rule": "http://example.org/rules/{id}",
+        "uri": "http://example.org/"
     }
 
 This reveals that users can access the router resources using the URI
-“/routers“.  Host resources are accessible with the URI “/hosts”.  The response
-also includes information about the API version
+"/routers".  Host resources are accessible with the URI "/hosts".  The response
+also includes information about the API version.  The URIs with "{id}" in them are [URI templates](#uritemplates), and they are explained later in this document.
 
 <a name="commonbehaviors"/>
 ## Common Behaviors
@@ -216,6 +227,30 @@ The following HTTP status codes are returned from MidoNet REST API:
         <td>503 Service Unavailable</td>
         <td>The server is currently unable to handle the request due to
         temporary overloading or maintenance of the server.</td>
+    </tr>
+</table>
+
+<a name="uritemplates"/>
+### URI Templates
+
+A URI may contain a part that is left out to the client to fill.  These parts
+are enclosed inside '{' and '}'.  
+</br>
+For example, given a URI template, 'http://example.org/routers/{id}' and a
+router ID 'd7435bb0-3bc8-11e2-81c1-0800200c9a66', after doing the replacement,
+the final URI becomes:
+'http://example.org/routers/d7435bb0-3bc8-11e2-81c1-0800200c9a66'.
+</br></br>
+The following table lists the existing expressions in the URI templates and what they should be replaced with.
+
+<table>
+    <tr>
+        <th>Expression</th>
+        <th>Replace with</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>Unique identifier of resource.</td>
     </tr>
 </table>
 

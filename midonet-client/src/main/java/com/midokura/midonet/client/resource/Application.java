@@ -5,20 +5,15 @@
 package com.midokura.midonet.client.resource;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoBridge;
-import com.midokura.midonet.client.dto.DtoGreTunnelZone;
-import com.midokura.midonet.client.dto.DtoCapwapTunnelZone;
-import com.midokura.midonet.client.dto.DtoHost;
-import com.midokura.midonet.client.dto.DtoPortGroup;
-import com.midokura.midonet.client.dto.DtoRouter;
-import com.midokura.midonet.client.dto.DtoRuleChain;
-import com.midokura.midonet.client.dto.DtoTunnelZone;
+import com.midokura.midonet.client.dto.*;
+import com.sun.net.httpserver.Filter;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -29,6 +24,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
 
     DtoApplication app;
     WebResource resource;
+    private static String ID_TOKEN = "{id}";
 
     public Application(WebResource resource, DtoApplication app) {
         super(resource, null, app, VendorMediaType.APPLICATION_JSON);
@@ -188,7 +184,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 principalDto.getTunnelZones(),
                 new DtoGreTunnelZone(),
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                VendorMediaType
+                        .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 
     /**
@@ -201,7 +198,180 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 principalDto.getTunnelZones(),
                 new DtoCapwapTunnelZone(),
                 VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                VendorMediaType
+                        .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 
+    /**
+     * Returns an ad route
+     *
+     * @param id ID of ad route
+     * @return AdRoute
+     */
+    public AdRoute getAdRoute(UUID id) {
+        URI uri = createUriFromTemplate(app.getAdRoute(), ID_TOKEN, id);
+        DtoAdRoute adRoute = resource.get(uri, null, DtoAdRoute.class,
+                VendorMediaType.APPLICATION_AD_ROUTE_JSON);
+        return new AdRoute(resource, null, adRoute);
+    }
+
+    /**
+     * Returns BGP object
+     *
+     * @param id ID of BGP
+     * @return BGP
+     */
+    public Bgp getBgp(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getBgp(), ID_TOKEN, id);
+        DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
+                VendorMediaType.APPLICATION_BGP_JSON);
+        return new Bgp(resource, null, bgp);
+    }
+
+    /**
+     * Returns Bridge object
+     *
+     * @param id ID of bridge
+     * @return Bridge
+     */
+    public Bridge getBridge(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getBridge(), ID_TOKEN, id);
+        DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
+                VendorMediaType.APPLICATION_BRIDGE_JSON);
+        return new Bridge(resource, null, bridge);
+    }
+
+    /**
+     * Returns Host object
+     *
+     * @param id ID of host
+     * @return Host
+     */
+    public Host getHost(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getHost(), ID_TOKEN, id);
+        DtoHost host = resource.get(uri, null, DtoHost.class,
+                VendorMediaType.APPLICATION_HOST_JSON);
+        return new Host(resource, null, host);
+    }
+
+    /**
+     * Returns Port object
+     *
+     * @param id ID of port
+     * @return Port
+     */
+    public Port getPort(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getPort(), ID_TOKEN, id);
+        DtoPort port = resource.get(uri, null, DtoPort.class,
+                VendorMediaType.APPLICATION_PORT_JSON);
+        if (port instanceof DtoBridgePort) {
+            return new BridgePort(resource, null, (DtoBridgePort) port);
+        } else if (port instanceof  DtoRouterPort) {
+            return new RouterPort(resource, null, (DtoRouterPort) port);
+        } else {
+            throw new IllegalArgumentException(
+                    "No port with ID (" + id + ") exists.");
+        }
+    }
+
+    /**
+     * Returns PortGroup object
+     *
+     * @param id ID of port group
+     * @return PortGroup
+     * */
+    public PortGroup getPortGroup(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getPortGroup(), ID_TOKEN,
+                id);
+        DtoPortGroup portGroup = resource.get(uri, null, DtoPortGroup.class,
+                VendorMediaType.APPLICATION_PORTGROUP_JSON);
+        return new PortGroup(resource, null, portGroup);
+    }
+
+    /**
+     * Returns Route object
+     *
+     * @param id ID of route
+     * @return Route
+     * */
+    public Route getRoute(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getRoute(), ID_TOKEN, id);
+        DtoRoute route = resource.get(uri, null, DtoRoute.class,
+                VendorMediaType.APPLICATION_ROUTE_JSON);
+        return new Route(resource, null, route);
+    }
+
+    /**
+     * Returns Router object
+     *
+     * @param id ID of router
+     * @return Router
+     * */
+    public Router getRouter(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getRouter(), ID_TOKEN, id);
+        DtoRouter router = resource.get(uri, null, DtoRouter.class,
+                VendorMediaType.APPLICATION_ROUTER_JSON);
+        return new Router(resource, null, router);
+    }
+
+    /**
+     * Returns Rule object
+     *
+     * @param id ID of rule
+     * @return Rule
+     */
+    public Rule getRule(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getRule(), ID_TOKEN,
+                id);
+        DtoRule rule = resource.get(uri, null, DtoRule.class,
+                VendorMediaType.APPLICATION_RULE_JSON);
+        return new Rule(resource, null, rule);
+    }
+
+    /**
+     * Returns RuleChain object
+     *
+     * @param id ID of chain
+     * @return RuleChain
+     */
+    public RuleChain getRuleChain(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getChain(), ID_TOKEN, id);
+        DtoRuleChain chain = resource.get(uri, null, DtoRuleChain.class,
+                VendorMediaType.APPLICATION_CHAIN_JSON);
+        return new RuleChain(resource, null, chain);
+    }
+
+    /**
+     * Returns TunnelZone object
+     *
+     * @param id ID of tunnel zone
+     * @return TunnelZone
+     */
+    public TunnelZone getTunnelZone(UUID id) {
+        URI uri = createUriFromTemplate(principalDto.getTunnelZone(), ID_TOKEN,
+                id);
+        DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
+        if (tunnelZone instanceof DtoGreTunnelZone) {
+            return new TunnelZone(resource, null, (DtoGreTunnelZone) tunnelZone,
+                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                    VendorMediaType
+                            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+        } else if (tunnelZone instanceof DtoCapwapTunnelZone) {
+            return new TunnelZone(resource, null,
+                    (DtoCapwapTunnelZone) tunnelZone,
+                    VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
+                    VendorMediaType
+                          .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+        } else if (tunnelZone instanceof DtoIpsecTunnelZone) {
+            return new TunnelZone(resource, null,
+                    (DtoIpsecTunnelZone) tunnelZone,
+                    VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON,
+                    VendorMediaType
+                           .APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+        } else {
+            throw new IllegalArgumentException(
+                    "No tunnel zone with ID (" + id + ") exists.");
+        }
+    }
 }

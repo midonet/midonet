@@ -110,6 +110,127 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the Ad route URI template
+     */
+    public String getAdRoute() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getAdRouteTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the BGP URI template
+     */
+    public String getBgp() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getBgpTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the bridge URI template
+     */
+    public String getBridge() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getBridgeTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the chain URI template
+     */
+    public String getChain() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getChainTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the host URI template
+     */
+    public String getHost() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getHostTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the port URI template
+     */
+    public String getPort() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPortTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the port group URI template
+     */
+    public String getPortGroup() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPortGroupTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the route URI template
+     */
+    public String getRoute() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getRouteTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the router URI template
+     */
+    public String getRouter() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getRouterTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the rule URI template
+     */
+    public String getRule() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getRuleTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the tunnel zone URI template
+     */
+    public String getTunnelZone() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTunnelZoneTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the self URI
      */
     @Override
