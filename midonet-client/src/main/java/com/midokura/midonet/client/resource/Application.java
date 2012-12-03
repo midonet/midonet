@@ -4,16 +4,14 @@
 
 package com.midokura.midonet.client.resource;
 
-import java.net.URI;
-import java.util.UUID;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.*;
-import com.sun.net.httpserver.Filter;
+
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.UUID;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -373,5 +371,22 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             throw new IllegalArgumentException(
                     "No tunnel zone with ID (" + id + ") exists.");
         }
+    }
+
+
+    /**
+     * Create a URI object from a URI template, token string and the replacement
+     * value.
+     *
+     * @param template URI template string
+     * @param token Token to replace
+     * @param value Value to replace the token with
+     * @param <T> Type of the value
+     * @return URI with token replaced with value
+     */
+    protected <T> URI createUriFromTemplate(String template, String token,
+                                            T value) {
+        return UriBuilder.fromUri(
+                template.replace(token, value.toString())).build();
     }
 }
