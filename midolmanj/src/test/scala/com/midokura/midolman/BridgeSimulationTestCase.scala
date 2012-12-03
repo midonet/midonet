@@ -149,7 +149,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         //verifyMacLearned("0a:fe:88:70:44:55", inputPort)
     }
 
-    def testBcastArpBridgeSim () {
+    def testBcastArpBridgeSim() {
         val inputPort = "port1"
         val ethPkt = Packets.arpRequest(
                 MAC.fromString("0a:fe:88:90:22:33"),

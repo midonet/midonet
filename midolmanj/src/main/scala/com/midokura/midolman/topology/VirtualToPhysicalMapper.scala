@@ -142,6 +142,10 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
                 }
         }
 
+        makeHandler(deviceId)
+    }
+
+    private def makeHandler(deviceId: UUID): Unit = {
         if (!deviceHandlers.contains(deviceId)) {
             val manager =
                 context.actorOf(
@@ -164,6 +168,8 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     }
 
     def notifySubscribers(uuid: UUID)(code: (ActorRef, T) => Unit) {
+        makeHandler(uuid)
+
         devices.get(uuid) match {
             case None =>
             case Some(device) =>
@@ -447,6 +453,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
             case None => immutable.Set()
         }
 
+        log.debug("Sending updated PortSet for {} with local ports {} and " +
+            "remote hosts {}", portSetId, localVPorts, hosts)
         portSets.updateAndNotifySubscribers(portSetId,
             rcu.PortSet(portSetId, hosts, localVPorts))
     }
