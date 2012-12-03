@@ -115,7 +115,7 @@ class Coordinator(val origMatch: WildcardMatch,
     private var numDevicesSimulated = 0
     private val devicesSimulated = mutable.Map[UUID, Int]()
     private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
-                                       connectionCache)
+            connectionCache, generatedPacketEgressPort.isDefined)
     pktContext.setMatch(origMatch)
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
@@ -224,12 +224,6 @@ class Coordinator(val origMatch: WildcardMatch,
                     log.error("VirtualTopologyManager didn't return a device!")
                     dropFlow(temporary = true)
                 } else {
-                    pktContext.setInputPort(port.id)
-                    if(numDevicesSimulated == 0 && !generatedPacketEgressPort.isDefined) {
-                        // add ingressFE only at the beginning of the simulation
-                        // and only if it's not a generated packet
-                        pktContext.setIngressFE(port.deviceID)
-                    }
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",
@@ -357,6 +351,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             port.asInstanceOf[ExteriorPort[_]].portGroups)
                     }
 
+                    pktContext.setInputPort(port)
                     applyPortFilter(port, port.inFilterID,
                                     packetIngressesDevice _)
                     // add tag for flow invalidation
@@ -377,7 +372,6 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(temporary = true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
-                    pktContext.setInputPort(null).setOutputPort(null)
                     // add ChainID for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
                     pktContext.addFlowTag(
@@ -415,6 +409,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 case port: Port[_] =>
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+                    pktContext.setOutputPort(port.id)
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
                             emit(portID, false, port)
@@ -495,6 +490,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         flowMatch.getTransportSource(),
                         flowMatch.getNetworkProtocol(),
                         deviceID)
+        log.debug("Installing conntrack entry: key:{}", key)
         connectionCache.set(key, "r")
     }
 

@@ -7,6 +7,7 @@ package com.midokura.midolman.simulation
 import collection.{Set => ROSet, mutable}
 
 import java.util.{Set => JSet, UUID}
+import org.slf4j.LoggerFactory
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
@@ -14,6 +15,7 @@ import com.midokura.midolman.util.Net
 import com.midokura.packets._
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
+import com.midokura.midonet.cluster.client.Port
 
 
 /**
@@ -35,16 +37,23 @@ import com.midokura.util.functors.Callback0
  */
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Object, val frame: Ethernet,
-                    val expiry: Long, val connectionCache: Cache)
+                    val expiry: Long, val connectionCache: Cache,
+                    val isGenerated: Boolean)
          extends ChainPacketContext {
     import PacketContext._
+
+    private val log = LoggerFactory.getLogger(classOf[PacketContext])
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
     private var frozen = false
     private var wcmatch: WildcardMatch = null
     private var origMatch: WildcardMatch = null
-    //ingressFE for generated packet is null, provide a cleaner way
+    // ingressFE is used for connection tracking. conntrack keys use the 
+    // forward flow's egress device id. For return packets, symmetrically,
+    // the ingress device is used to lookup the conntrack key that would have
+    // been written by the forward packet. PacketContext needs to now 
+    // the ingress device to do this lookup in isForwardFlow()
     private var ingressFE: UUID = null
     private var portGroups: JSet[UUID] = null
     private var connectionTracked = false
@@ -77,18 +86,17 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
      */
     def getMatch: WildcardMatch = wcmatch
 
-    def setIngressFE(fe: UUID): PacketContext = {
-        ingressFE = fe
-        this
-    }
-
     def setPortGroups(groups: JSet[UUID]): PacketContext = {
         portGroups = groups
         this
     }
 
-    def setInputPort(id: UUID): PacketContext = {
-        inPortID = id
+    def setInputPort(port: Port[_]): PacketContext = {
+        inPortID = if (port == null) null else port.id
+        // ingressFE is set only once, so it always points to the
+        // first device that saw this packet, null for generated packets.
+        if (port != null && ingressFE == null && !isGenerated)
+            ingressFE = port.deviceID
         this
     }
 
@@ -162,8 +170,12 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         // Generated packets have ingressFE == null. We will treat all generated
         // tcp udp packets as return flows TODO(rossella) is that
         // enough to determine that it's a return flow?
-        if (ingressFE == null) {
+        if (isGenerated) {
             return false
+        } else if (ingressFE == null) {
+            throw new IllegalArgumentException(
+                    "isForwardFlow cannot be calculated because the ingress " +
+                    "device is not set")
         }
 
         // Connection tracking:  connectionTracked starts out as false.
@@ -183,6 +195,7 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         //            and use it instead.
         val value = connectionCache.get(key)
         forwardFlow = (value != "r")
+        log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
         forwardFlow
     }
 }

@@ -557,7 +557,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatches.fromEthernetPacket(eth)
-                    val egrPktContext = new PacketContext(null, eth, 0, null)
+                    val egrPktContext = new PacketContext(null, eth, 0, null, true)
                     egrPktContext.setOutputPort(outPort.id)
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
