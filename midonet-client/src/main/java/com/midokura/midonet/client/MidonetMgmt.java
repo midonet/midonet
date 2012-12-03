@@ -1,21 +1,13 @@
 package com.midokura.midonet.client;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 
-import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoGreTunnelZone;
-import com.midokura.midonet.client.dto.DtoCapwapTunnelZone;
-import com.midokura.midonet.client.dto.DtoTunnelZone;
-import com.midokura.midonet.client.resource.Application;
-import com.midokura.midonet.client.resource.Bridge;
-import com.midokura.midonet.client.resource.Host;
-import com.midokura.midonet.client.resource.PortGroup;
-import com.midokura.midonet.client.resource.ResourceCollection;
-import com.midokura.midonet.client.resource.Router;
-import com.midokura.midonet.client.resource.RuleChain;
-import com.midokura.midonet.client.resource.TunnelZone;
+import com.midokura.midonet.client.dto.*;
+import com.midokura.midonet.client.resource.*;
 
 
 /**
@@ -167,6 +159,127 @@ public class MidonetMgmt {
         getTunnelZones() {
         ensureApplication();
         return application.getTunnelZones(null);
+    }
+
+    /**
+     * Returns an ad route
+     *
+     * @param id ID of ad route
+     * @return AdRoute
+     */
+    public AdRoute getAdRoute(UUID id) {
+        ensureApplication();
+        return application.getAdRoute(id);
+    }
+
+    /**
+     * Returns BGP object
+     *
+     * @param id ID of BGP
+     * @return BGP
+     */
+    public Bgp getBgp(UUID id) {
+        ensureApplication();
+        return application.getBgp(id);
+    }
+
+    /**
+     * Returns Bridge object
+     *
+     * @param id ID of bridge
+     * @return Bridge
+     */
+    public Bridge getBridge(UUID id) {
+        ensureApplication();
+        return application.getBridge(id);
+    }
+
+    /**
+     * Returns RuleChain object
+     *
+     * @param id ID of chain
+     * @return RuleChain
+     */
+    public RuleChain getChain(UUID id) {
+        ensureApplication();
+        return application.getRuleChain(id);
+    }
+
+    /**
+     * Returns Host object
+     *
+     * @param id ID of host
+     * @return Host
+     */
+    public Host getHost(UUID id) {
+        ensureApplication();
+        return application.getHost(id);
+    }
+
+    /**
+     * Returns Port object
+     *
+     * @param id ID of port
+     * @return Port
+     */
+    public Port getPort(UUID id) {
+        ensureApplication();
+        return application.getPort(id);
+    }
+
+    /**
+     * Returns PortGroup object
+     *
+     * @param id ID of port group
+     * @return PortGroup
+     * */
+    public PortGroup getPortGroup(UUID id) {
+        ensureApplication();
+        return application.getPortGroup(id);
+    }
+
+    /**
+     * Returns Route object
+     *
+     * @param id ID of route
+     * @return Route
+     * */
+    public Route getRoute(UUID id) {
+        ensureApplication();
+        return application.getRoute(id);
+    }
+
+    /**
+     * Returns Router object
+     *
+     * @param id ID of router
+     * @return Router
+     * */
+    public Router getRouter(UUID id) {
+        ensureApplication();
+        return application.getRouter(id);
+    }
+
+    /**
+     * Returns Rule object
+     *
+     * @param id ID of rule
+     * @return Rule
+     */
+    public Rule getRule(UUID id) {
+        ensureApplication();
+        return application.getRule(id);
+    }
+
+    /**
+     * Returns TunnelZone object
+     *
+     * @param id ID of tunnel zone
+     * @return TunnelZone
+     */
+    public TunnelZone getTunnelZone(UUID id) {
+        ensureApplication();
+        return application.getTunnelZone(id);
     }
 
     private void ensureApplication() {
