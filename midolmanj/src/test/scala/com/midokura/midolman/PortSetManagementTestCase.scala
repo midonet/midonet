@@ -17,7 +17,7 @@ import com.midokura.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.DatapathController.DatapathPortChangedEvent
 import com.midokura.midolman.topology.rcu.PortSet
-import com.midokura.midolman.topology.LocalPortActive
+import topology.LocalPortActive
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 
 @RunWith(classOf[JUnitRunner])
@@ -113,7 +113,6 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         inputPort3.setId(clusterDataClient().portsCreate(inputPort3))
         clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort3.getId, "port3")
 
-        // block until the remove event was processed
         eventProbe.expectMsgClass(classOf[LocalPortActive])
         portSet = clusterDataClient().portSetsGet(bridge.getId).toSet
         portSet should contain (hostId())

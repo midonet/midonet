@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.DatapathController.{PacketIn, TunnelChangeEvent}
 import com.midokura.midolman.FlowController.{AddWildcardFlow,
-        InvalidateFlowsByTag, RemoveWildcardFlow, WildcardFlowRemoved}
+        InvalidateFlowsByTag, WildcardFlowRemoved}
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
 import com.midokura.midolman.rules.{Condition, RuleResult}
 import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
@@ -26,6 +26,8 @@ import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.dp.flows.FlowKeys.ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.scalatest.Ignore
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 
 
 @RunWith(classOf[JUnitRunner])
@@ -387,6 +389,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         val port2OnHost1 = newExteriorBridgePort(bridge)
         port2OnHost1.getTunnelKey should be (5)
+        // Drain the flowProbe
+        while(flowProbe().msgAvailable)
+            flowProbe().receiveOne(Duration(10, TimeUnit.MILLISECONDS))
         materializePort(port2OnHost1, host1, "port1b")
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         var numPort2OnHost1: Short = 0
@@ -396,9 +401,10 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             case None =>
                 fail("Short data port number for port2OnHost1 not found.")
         }
-        // flow invalidation tag = port id
+        // Expect various invalidation messages
         var msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        assert(msg.tag.equals(port2OnHost1.getId))
+        assert(msg.tag.equals(
+            FlowTagger.invalidateFlowsByDevice(port2OnHost1.getId)))
         // invalidation with tag datapath port short id
         msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(FlowTagger.invalidateDPPort(numPort2OnHost1)))
@@ -406,16 +412,12 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(
             FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey)))
-
-        // expect flow invalidation for the flow tagged using the bridge id and portSet id,
-        // which are the same
         msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         assert(msg.tag.equals(FlowTagger.invalidateBroadcastFlows(bridge.getId,
             bridge.getId)))
 
         val flowInvalidated = flowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         assert(flowInvalidated.f.equals(flowToInvalidate.flow))
-
     }
 
     def testInvalidationRemovePortFromPortSet() {
