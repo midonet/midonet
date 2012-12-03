@@ -249,7 +249,13 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         pktInMsg should not be null
         pktInMsg.pktBytes should not be null
         pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
+        // We're racing with DatapathController here. DC's job is to remove
+        // the inputPortUUID field and set the corresponding inputPort (short).
+        if (pktInMsg.wMatch.getInputPortUUID != null)
+            pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
+        else
+            pktInMsg.wMatch.getInputPort should
+                be(getPortNumber(ingressPortName))
 
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
