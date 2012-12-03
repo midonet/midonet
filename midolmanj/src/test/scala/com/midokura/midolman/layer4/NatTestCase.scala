@@ -17,7 +17,7 @@ import com.midokura.midolman.FlowController.{InvalidateFlowsByTag,
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.layer3.Route.NextHop
 import com.midokura.midolman.rules.{NatTarget, RuleResult, Condition}
-import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
 import com.midokura.packets._
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.midolman.util.AddressConversions._
@@ -300,7 +300,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (2)
 
         drainProbe(flowEventsProbe)
-        flowController() ! InvalidateFlowsByTag(router.getId)
+        flowController() ! InvalidateFlowsByTag(
+            FlowTagger.invalidateFlowsByDevice(router.getId))
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
@@ -358,7 +359,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (2)
 
         drainProbe(flowEventsProbe)
-        flowController() ! InvalidateFlowsByTag(router.getId)
+        flowController() ! InvalidateFlowsByTag(
+            FlowTagger.invalidateFlowsByDevice(router.getId))
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)

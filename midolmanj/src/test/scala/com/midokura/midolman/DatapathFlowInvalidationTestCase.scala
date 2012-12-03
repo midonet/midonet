@@ -20,7 +20,6 @@ import com.midokura.sdn.dp.Datapath
 import java.util.UUID
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import collection.immutable.HashMap
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow, WildcardFlowRemoved, WildcardFlowAdded}
 import com.midokura.packets.{IntIPv4, MAC}
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
@@ -39,7 +38,6 @@ import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.WildcardFlowRemoved
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
-import akka.event.{LogSource, Logging}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders
@@ -234,7 +232,8 @@ with RouterHelper{
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
 
-        clusterDataClient().portSetsAddHost(bridge.getId, host1.getId)
+        // The local MM adds the local host to the PortSet. We add the remote.
+        //clusterDataClient().portSetsAddHost(bridge.getId, host1.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
 
         // flows installed for tunnel key = port when the port becomes active.
