@@ -15,7 +15,8 @@
 # limitations under the License.
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-sun"
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
+                 /usr/lib/jvm/java-7-sun"
 
 # If JAVA_HOME has not been set, try to determine it.
 if [ -z "$JAVA_HOME" ]; then
