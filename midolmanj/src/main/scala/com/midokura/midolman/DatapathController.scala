@@ -1301,9 +1301,7 @@ class DatapathController() extends Actor with ActorLogging {
                                         portSet.id, wMatch,
                                         { portIDs =>
                                           val tags = mutable.Set[Any]()
-                                          addTaggedFlow(new WildcardMatch()
-                                                .setTunnelID(wMatch.getTunnelID)
-                                                .setInputPort(port),
+                                          addTaggedFlow(wMatch,
                                              translateToDpPorts(List(action),
                                                 portSet.id,
                                                 portsForLocalPorts(portIDs),
