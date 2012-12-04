@@ -82,7 +82,7 @@ public class TestWildcardMatch {
             "02:aa:dd:dd:aa:01", "02:bb:ee:ee:ff:01",
             "192.168.100.2", "192.168.100.3",
             40000, 50000);
-        WildcardMatch wcm = WildcardMatches.fromFlowMatch(fm);
+        WildcardMatch wcm = WildcardMatch.fromFlowMatch(fm);
         assertThat(wcm.getTransportSourceObject(),
             equalTo(40000));
         assertThat(wcm.getTransportDestinationObject(),

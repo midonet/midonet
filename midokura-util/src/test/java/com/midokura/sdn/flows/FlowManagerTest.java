@@ -317,7 +317,7 @@ public class FlowManagerTest {
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
-            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+            WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             flows.add(new WildcardFlow().setMatch(wildcardMatch).setActions(new ArrayList<FlowAction<?>>()));
 
         }
@@ -343,7 +343,7 @@ public class FlowManagerTest {
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
-            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+            WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             flows.add(new WildcardFlow()
                     .setMatch(wildcardMatch)
                     .setActions(new ArrayList<FlowAction<?>>())
