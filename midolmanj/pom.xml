@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>12.12.1-SNAPSHOT</version>
+        <version>13.06-SNAPSHOT</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>12.12.1-SNAPSHOT</version>
+    <version>13.06-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <artifactId>midolmanj</artifactId>
@@ -373,7 +373,7 @@
                     <executable>sudo</executable>
                     <arguments>
                         <argument>java</argument>
-                        <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-12.12-SNAPSHOT.jar</argument>
+                        <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-13.06-SNAPSHOT.jar</argument>
                         <argument>-cp</argument>
                         <classpath />
                         <!--<argument>com.midokura.midolman.Midolman</argument>-->
@@ -616,13 +616,13 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
-            <version>12.12.1-SNAPSHOT</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-jdk-bootstrap</artifactId>
-            <version>12.12.1-SNAPSHOT</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>

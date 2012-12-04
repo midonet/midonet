@@ -3,7 +3,7 @@
     <parent>
         <artifactId>midonet-parent</artifactId>
         <groupId>com.midokura</groupId>
-        <version>12.12.1-SNAPSHOT</version>
+        <version>13.06-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
