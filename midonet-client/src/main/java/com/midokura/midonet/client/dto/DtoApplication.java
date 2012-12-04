@@ -17,17 +17,17 @@ public class DtoApplication {
     private URI chains;
     private URI portGroups;
     private URI routers;
-    private String adRoute;
-    private String bgp;
-    private String bridge;
-    private String chain;
-    private String rule;
-    private String host;
-    private String port;
-    private String portGroup;
-    private String route;
-    private String router;
-    private String tunnelZone;
+    private String adRouteTemplate;
+    private String bgpTemplate;
+    private String bridgeTemplate;
+    private String chainTemplate;
+    private String ruleTemplate;
+    private String hostTemplate;
+    private String portTemplate;
+    private String portGroupTemplate;
+    private String routeTemplate;
+    private String routerTemplate;
+    private String tunnelZoneTemplate;
 
     public String getVersion() {
         return version;
@@ -93,91 +93,91 @@ public class DtoApplication {
         this.tunnelZones = tunnelZones;
     }
 
-    public String getAdRoute() {
-        return adRoute;
+    public String getAdRouteTemplate() {
+        return adRouteTemplate;
     }
 
-    public void setAdRoute(String adRoute) {
-        this.adRoute = adRoute;
+    public void setAdRoute(String adRouteTemplate) {
+        this.adRouteTemplate = adRouteTemplate;
     }
 
-    public String getBgp() {
-        return bgp;
+    public String getBgpTemplate() {
+        return bgpTemplate;
     }
 
-    public void setBgp(String bgp) {
-        this.bgp = bgp;
+    public void setBgpTemplate(String bgpTemplate) {
+        this.bgpTemplate = bgpTemplate;
     }
 
-    public String getBridge() {
-        return bridge;
+    public String getBridgeTemplate() {
+        return bridgeTemplate;
     }
 
-    public void setBridge(String bridge) {
-        this.bridge = bridge;
+    public void setBridgeTemplate(String bridgeTemplate) {
+        this.bridgeTemplate = bridgeTemplate;
     }
 
-    public String getChain() {
-        return chain;
+    public String getChainTemplate() {
+        return chainTemplate;
     }
 
-    public void setChain(String chain) {
-        this.chain = chain;
+    public void setChainTemplate(String chainTemplate) {
+        this.chainTemplate = chainTemplate;
     }
 
-    public String getRule() {
-        return rule;
+    public String getRuleTemplate() {
+        return ruleTemplate;
     }
 
-    public void setRule(String rule) {
-        this.rule = rule;
+    public void setRuleTemplate(String ruleTemplate) {
+        this.ruleTemplate = ruleTemplate;
     }
 
-    public String getHost() {
-        return host;
+    public String getHostTemplate() {
+        return hostTemplate;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setHostTemplate(String hostTemplate) {
+        this.hostTemplate = hostTemplate;
     }
 
-    public String getPort() {
-        return port;
+    public String getPortTemplate() {
+        return portTemplate;
     }
 
-    public void setPort(String port) {
-        this.port = port;
+    public void setPortTemplate(String portTemplate) {
+        this.portTemplate = portTemplate;
     }
 
-    public String getPortGroup() {
-        return portGroup;
+    public String getPortGroupTemplate() {
+        return portGroupTemplate;
     }
 
-    public void setPortGroup(String portGroup) {
-        this.portGroup = portGroup;
+    public void setPortGroupTemplate(String portGroupTemplate) {
+        this.portGroupTemplate = portGroupTemplate;
     }
 
-    public String getRoute() {
-        return route;
+    public String getRouteTemplate() {
+        return routeTemplate;
     }
 
-    public void setRoute(String route) {
-        this.route = route;
+    public void setRoute(String routeTemplate) {
+        this.routeTemplate = routeTemplate;
     }
 
-    public String getRouter() {
-        return router;
+    public String getRouterTemplate() {
+        return routerTemplate;
     }
 
-    public void setRouter(String router) {
-        this.router = router;
+    public void setRouterTemplate(String routerTemplate) {
+        this.routerTemplate = routerTemplate;
     }
 
-    public String getTunnelZone() {
-        return tunnelZone;
+    public String getTunnelZoneTemplate() {
+        return tunnelZoneTemplate;
     }
 
-    public void setTunnelZone(String tunnelZone) {
-        this.tunnelZone = tunnelZone;
+    public void setTunnelZoneTemplate(String tunnelZoneTemplate) {
+        this.tunnelZoneTemplate = tunnelZoneTemplate;
     }
 }
