@@ -9,8 +9,9 @@ import java.util.UUID;
 
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
-import com.midokura.midolman.util.Net;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.Net;
+
 
 @JsonPropertyOrder(alphabetic=true)
 public class Route implements Serializable {

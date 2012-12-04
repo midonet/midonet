@@ -3,6 +3,8 @@
  */
 package com.midokura.midonet.cluster.data;
 
+import java.util.*;
+
 import com.midokura.midolman.host.state.HostDirectory;
 import com.midokura.midolman.state.PortConfig;
 import com.midokura.midolman.state.PortDirectory.LogicalBridgePortConfig;
@@ -16,7 +18,6 @@ import com.midokura.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import com.midokura.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import com.midokura.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import com.midokura.midolman.state.zkManagers.VpnZkManager.VpnConfig;
-import com.midokura.midolman.util.Net;
 import com.midokura.midonet.cluster.data.dhcp.Opt121;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.midonet.cluster.data.host.*;
@@ -28,8 +29,7 @@ import com.midokura.midonet.cluster.data.rules.ForwardNatRule;
 import com.midokura.midonet.cluster.data.rules.JumpRule;
 import com.midokura.midonet.cluster.data.rules.LiteralRule;
 import com.midokura.midonet.cluster.data.rules.ReverseNatRule;
-
-import java.util.*;
+import com.midokura.packets.Net;
 
 
 /**

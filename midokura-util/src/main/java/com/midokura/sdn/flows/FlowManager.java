@@ -27,15 +27,17 @@ import com.midokura.util.profiling.ProfilingTimer;
 /**
  * Hard Time-out
  * This class guarantees that every wildcard flow that has an hard time-out set
- * will be evicted after hard time-out + delta, where delta depends on how frequently the
- * Scheduler triggers the check for flow expiration and how long the operation takes.
- * We will test that and provide an estimation.
+ * will be evicted after hard time-out + delta, where delta depends on how
+ * frequently the Scheduler triggers the check for flow expiration and how
+ * long the operation takes.
+ * We will test that and provide an estimate.
+ *
  * Idle Time-out
  * This class guarantees that every wildcard flow that has an idle time-out set
  * will be evicted after idle time-out + delta.
- * We have two priorities queues, one for hard time-out expiration and the other for
- * idle time-out expiration. They are ordered according to the time that each flow
- * has to live.
+ * We have two priority queues, one for hard time-out expiration and the other
+ * for idle time-out expiration. They are ordered according to the time that
+ * each flow has remaining.
  * For idle time-out before deleting a wildcard flow, we get from the datapath
  * connection the lastUsedTime of each microflow until we find one whose
  * lastUsedTime < now - timeout. If that's the case, we extend the life of the
@@ -45,8 +47,9 @@ import com.midokura.util.profiling.ProfilingTimer;
  * idle time-out < 5 s.
  */
 
-//TODO(ross) create a priority queue of micro flows ordered according to the lastUsedTime
-// we got from the kernel. When we have to free space we will delete the oldest one.
+//TODO(ross) create a priority queue of micro flows ordered according to the
+// lastUsedTime we got from the kernel. When we have to free space we will
+// delete the oldest one.
 public class FlowManager {
 
     private static final Logger log = LoggerFactory.getLogger(FlowManager.class);
@@ -276,14 +279,13 @@ public class FlowManager {
             return new Flow().setMatch(flowMatch).setActions(actions);
         // Iterate through the WildcardFlowTables to find candidate wild flows.
         WildcardFlow wFlowCandidate = null;
-        WildcardMatch flowWildMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch flowWildMatch = WildcardMatch.fromFlowMatch(flowMatch);
         for (Map.Entry<Set<WildcardMatch.Field>,
             Map<WildcardMatch, WildcardFlow>> wTableEntry :
             wildcardTables.entrySet()) {
             Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
             Set<WildcardMatch.Field> pattern = wTableEntry.getKey();
-            WildcardMatch projectedFlowMatch = WildcardMatches.project(
-                pattern, flowWildMatch);
+            WildcardMatch projectedFlowMatch = flowWildMatch.project(pattern);
             WildcardFlow nextWFlowCandidate = table.get(projectedFlowMatch);
             if (null != nextWFlowCandidate) {
                 if (null == wFlowCandidate)

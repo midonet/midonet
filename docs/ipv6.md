@@ -32,25 +32,46 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
 
 ### Behavior changes to MidoNet Core
 
+In general, behavior should be to handle the IPv4 and IPv6 packets identically
+where possible, and try to isolate the v4/v6 semantic differences away from
+the networking logic shared between them.  (I.e., MidoNet's IPv4 and IPv6
+are handled by a "single stack", not a "dual stack".  E.g., the DHCPv4 handler
+will check for DHCPv4 packets and the DHCPv6 handler for DHCPv6 packets, rather
+than having separate IPv4 and IPv6 code paths which both checked for DHCP
+packets.)
+
  * For the address range checks (eg, for IPv4 multicast), also check
 	IPv6 addresses against the IPv6 ranges.
- * The `Port` classes will have to know the IPv6 address as well as the IPv4
-	address of a port (for supporting dual stacks).  They also should
-	support having multiple IPv6 addresses, as IPv6 nodes are expected
-	to have multiple addresses (a link-local address at the least, and
-	multiple global addresses in other situations, such as addresses
-	provisioned from multiple upstreams, or IP mobility).
+ * The `Port` types which have an address associated will need to support
+        having multiple addresses (eg, IPv4 global address, IPv6 link-local
+        address, IPv6 global address).  This means there will have to be
+        logic to decide which address to use when.  (For the example, this
+        can be using the IPv4 address in response to IPv4, IPv6 link-local
+        in response to IPv6 link-local, IPv6 global in response IPv6 not
+        link-local; but for supporting multiple network ranges or mobile
+        IP this can get more complicated.)
  * The `Bridge` should recognize the all-routers IPv6 address, and send
 	such packets to all connected virtual routers to be consumed, and
 	out all materialized ports (except the ingress port) which are
-	connected to routers.  This should probably be done using a flag
-	in the `Port` specifying whether it connects to a router.
- * Support DHCPv6
+	connected to routers.  This should probably be done by having the
+        `Bridge` listen specially for Router Advertisement packets and send
+        all-routers traffic to ports from which there's been a recent
+        advertisement (in addition to the virtual routers).
+ * Support DHCPv6.
 
 ### Behavior changes to the simulated Router
 
+ * Make `Route` a trait (interface) with twin implementations `IPv4Route`
+        and `IPv6Route`.  Have the Routing Table have separate tries for
+        `IPv4Route`s and `IPv6Route`s; it will take an `IPAddr` and return
+        the `Route` to use to forward it.  Note that because a Routing Table
+        will never return a route for a IPv6Addr if it has no IPv6Routes (and
+        ditto for IPv4), a router can be made effectively IPv4-only (or
+        IPv6-only) by providing it no routes for the unsupported address
+        family.
  * Create an `ICMPv6` packet type in `com.midokura.packets`.
- * Implement neighbor discovery (RFC 5942).
+ * Implement neighbor discovery (RFC 5942).  (TODO: This needs to be
+        expanded upon.)
  * Use ICMPv6 for pings and non-delivery messages of IPv6 packets.
  * Implement router advertisement.
  * Support the IPv6 node requirements (RFC 6434), though the IPSec and
@@ -61,6 +82,12 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
  * Get some dual-stack and IPv6-only machines in a data center for testing our
 	services and our dependencies running in an IPv6 environment.
  * Run an IPv6 conformance suite.
+ * IPv6 hosts are more "aware" of path MTU issues, as IPv6 routers don't
+        auto-fragment packets the way IPv4 routers do.  However, MidoNet
+        virtual routers don't support auto-fragmentation, so there's nothing
+        IPv6-specific we'll need to do.  Nonetheless, there are a number
+        of issues around MTU which MidoNet should address, so we should
+        write another document which goes into them.
 
 ### Enhanced support for the future
 

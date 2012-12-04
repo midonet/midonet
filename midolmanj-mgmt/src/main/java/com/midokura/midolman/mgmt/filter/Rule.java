@@ -4,16 +4,6 @@
  */
 package com.midokura.midolman.mgmt.filter;
 
-import com.midokura.midolman.mgmt.UriResource;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
-import com.midokura.midolman.rules.Condition;
-import com.midokura.midolman.util.Net;
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
-import com.midokura.util.StringUtil;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -21,6 +11,17 @@ import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.*;
+
+import com.midokura.midolman.mgmt.UriResource;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.rules.Condition;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.Net;
+import com.midokura.util.StringUtil;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
 
 
 import static com.midokura.packets.Unsigned.unsign;

@@ -5,20 +5,31 @@
 package com.midokura.sdn.flows;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.midokura.packets.ARP;
 import com.midokura.packets.Ethernet;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.IPAddr;
 import com.midokura.packets.IPv4;
+import com.midokura.packets.IPv4Addr;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
+import com.midokura.packets.TCP;
 import com.midokura.packets.Transport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.midokura.packets.UDP;
+import com.midokura.sdn.dp.FlowMatch;
+import com.midokura.sdn.dp.FlowMatches;
+import com.midokura.sdn.dp.flows.*;
+
 
 public class WildcardMatch implements Cloneable {
 
@@ -288,6 +299,10 @@ public class WildcardMatch implements Cloneable {
         return networkSource.addressAsInt();
     }
 
+    public IPAddr getSourceIPAddress() {
+        return new IPv4Addr().setIntAddress(networkSource.addressAsInt());
+    }
+
     /**
      *
      * @param addr doesn't support network range, just host IP
@@ -331,6 +346,10 @@ public class WildcardMatch implements Cloneable {
     @Deprecated
     public int getNetworkDestination() {
         return networkDestination.addressAsInt();
+    }
+
+    public IPAddr getDestinationIPAddress() {
+        return new IPv4Addr().setIntAddress(networkDestination.addressAsInt());
     }
 
     @Nonnull
@@ -910,4 +929,107 @@ public class WildcardMatch implements Cloneable {
 
         return newClone;
     }
+
+    @Nullable
+    public ProjectedWildcardMatch project(Set<WildcardMatch.Field> fields) {
+        if (!getUsedFields().containsAll(fields))
+            return null;
+
+        return new ProjectedWildcardMatch(fields, this);
+    }
+
+    public static WildcardMatch fromFlowMatch(FlowMatch match) {
+        WildcardMatch wildcardMatch = new WildcardMatch();
+        List<FlowKey<?>> flowKeys = match.getKeys();
+        wildcardMatch.processMatchKeys(flowKeys);
+        return wildcardMatch;
+    }
+
+    public static WildcardMatch fromEthernetPacket(Ethernet ethPkt) {
+        return fromFlowMatch(FlowMatches.fromEthernetPacket(ethPkt));
+    }
+
+    private void processMatchKeys(List<FlowKey<?>> flowKeys) {
+        for (FlowKey<?> flowKey : flowKeys) {
+            switch (flowKey.getKey().getId()) {
+                case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
+                    // TODO(pino)
+                    break;
+                case 2: // FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
+                    // TODO(pino)
+                    break;
+                case 3: // FlowKeyAttr<FlowKeyInPort> IN_PORT = attr(3);
+                    FlowKeyInPort inPort = as(flowKey, FlowKeyInPort.class);
+                    setInputPortNumber((short) inPort.getInPort());
+                    break;
+                case 4: // FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
+                    FlowKeyEthernet ethernet = as(flowKey,
+                                                  FlowKeyEthernet.class);
+                    setEthernetSource(new MAC(ethernet.getSrc()));
+                    setEthernetDestination(new MAC(ethernet.getDst()));
+                    break;
+                case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
+                    // TODO(pino)
+                    break;
+                case 6: // FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
+                    FlowKeyEtherType etherType = as(flowKey,
+                                                    FlowKeyEtherType.class);
+                    setEtherType(etherType.getEtherType());
+                    break;
+                case 7: // FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
+                    FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
+                    setNetworkSource(new IntIPv4(ipv4.getSrc()));
+                    setNetworkDestination(new IntIPv4(ipv4.getDst()));
+                    setNetworkProtocol(ipv4.getProto());
+                    setIsIPv4Fragment(ipv4.getFrag() == 1);
+                    setNetworkTTL(ipv4.getTtl());
+                    break;
+                case 8: // FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
+                    // XXX(jlm, s3wong)
+                    break;
+                case 9: //FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
+                    FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
+                    setTransportSource(tcp.getSrc());
+                    setTransportDestination(tcp.getDst());
+                    setNetworkProtocol(TCP.PROTOCOL_NUMBER);
+                    break;
+                case 10: // FlowKeyAttr<FlowKeyUDP> UDP = attr(10);
+                    FlowKeyUDP udp = as(flowKey, FlowKeyUDP.class);
+                    setTransportSource(udp.getUdpSrc());
+                    setTransportDestination(udp.getUdpDst());
+                    setNetworkProtocol(UDP.PROTOCOL_NUMBER);
+                    break;
+                case 11: // FlowKeyAttr<FlowKeyICMP> ICMP = attr(11);
+                    FlowKeyICMP icmp = as(flowKey, FlowKeyICMP.class);
+                    setTransportSource(icmp.getType());
+                    setTransportDestination(icmp.getCode());
+                    setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
+                    break;
+                case 12: // FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);
+                    // XXX(jlm, s3wong)
+                    break;
+                case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
+                    FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
+                    setNetworkSource(new IntIPv4(arp.getSip()));
+                    setNetworkDestination(new IntIPv4(arp.getTip()));
+                    setEtherType(ARP.ETHERTYPE);
+                    setNetworkProtocol((byte)(arp.getOp() & 0xff));
+                    break;
+                case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
+                    // XXX(jlm, s3wong): Neighbor Discovery
+                    break;
+                case 63: // FlowKeyAttr<FlowKeyTunnelID> TUN_ID = attr(63);
+                    FlowKeyTunnelID tunnelID = as(flowKey,
+                                                  FlowKeyTunnelID.class);
+                    setTunnelID(tunnelID.getTunnelID());
+                    break;
+            }
+        }
+    }
+
+    private static <Key extends FlowKey<Key>>
+                   Key as(FlowKey<?> flowKey, Class<Key> type) {
+        return type.cast(flowKey.getValue());
+    }
+
 }

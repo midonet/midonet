@@ -3,10 +3,7 @@
  */
 package com.midokura.packets;
 
-import com.midokura.midolman.util.Net;
 
-
-// TODO(pino): this class should be renamed IPv4Addr.
 public class IntIPv4 implements Cloneable {
     private int address;
     private int maskLength;

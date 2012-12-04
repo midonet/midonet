@@ -24,10 +24,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static com.midokura.sdn.dp.FlowMatches.tcpFlow;
 import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetDestination;
 import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetSource;
-import static com.midokura.sdn.flows.WildcardMatches.fromFlowMatch;
-import static com.midokura.sdn.flows.WildcardMatches.project;
+import static com.midokura.sdn.flows.WildcardMatch.fromFlowMatch;
 
-public class WildcardMatchesTest {
+
+public class TestWildcardMatch {
 
     @Test
     public void testEqualityRelationByProjection() {
@@ -39,7 +39,7 @@ public class WildcardMatchesTest {
                         8096, 1025));
 
         WildcardMatch projection =
-            project(of(EthernetSource, EthernetDestination), wildcard);
+            wildcard.project(of(EthernetSource, EthernetDestination));
 
         assertThat("A wildcard should not match a projection smaller than it",
                    wildcard, not(equalTo(projection)));
@@ -57,8 +57,7 @@ public class WildcardMatchesTest {
                         8096, 1025));
 
         WildcardMatch projection =
-            project(
-                EnumSet.of(EthernetSource, EthernetDestination), wildcard);
+            wildcard.project(EnumSet.of(EthernetSource, EthernetDestination));
 
         // make a simple wildcard that is a copy of the projection
         WildcardMatch copy = new WildcardMatch();

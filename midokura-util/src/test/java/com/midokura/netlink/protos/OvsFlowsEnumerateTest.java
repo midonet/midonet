@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.flows.FlowStats;

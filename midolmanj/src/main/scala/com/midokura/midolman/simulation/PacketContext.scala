@@ -11,8 +11,7 @@ import org.slf4j.LoggerFactory
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
-import com.midokura.midolman.util.Net
-import com.midokura.packets._
+import com.midokura.packets.{Ethernet, IPv4, Net, TCP, UDP}
 import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
 import com.midokura.midonet.cluster.client.Port

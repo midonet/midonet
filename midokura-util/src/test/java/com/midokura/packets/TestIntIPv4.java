@@ -4,13 +4,9 @@
 
 package com.midokura.packets;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-
-import com.midokura.midolman.util.Net;
-
-
-import static org.junit.Assert.assertEquals;
 
 public class TestIntIPv4 {
 

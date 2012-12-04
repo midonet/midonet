@@ -5,7 +5,7 @@
 package com.midokura.midolman.rules;
 
 import com.midokura.packets.IPv4;
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 
 public class NatTarget {
 

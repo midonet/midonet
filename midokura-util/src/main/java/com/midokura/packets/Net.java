@@ -3,7 +3,7 @@
  *
  * Copyright 2011 Midokura KK
  */
-package com.midokura.midolman.util;
+package com.midokura.packets;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;

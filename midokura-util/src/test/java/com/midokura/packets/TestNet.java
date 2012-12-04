@@ -1,4 +1,6 @@
-package com.midokura.midolman.util;
+// Copyright 2012 Midokura Inc.
+
+package com.midokura.packets;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,7 +13,8 @@ public class TestNet {
     public void testConvertInetAddressToInt() throws UnknownHostException {
         Assert.assertEquals(0xc0a801f2, 
                 Net.convertInetAddressToInt(InetAddress.getByAddress(
-                        new byte[] { (byte)0xc0, (byte)0xa8, (byte)0x01, (byte)0xf2 }
+                        new byte[] { (byte)0xc0, (byte)0xa8,
+                                     (byte)0x01, (byte)0xf2 }
         )));
     }
 

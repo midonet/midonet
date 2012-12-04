@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.sdn.dp.Datapath;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.flows.FlowKeys;

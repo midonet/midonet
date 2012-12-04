@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.midokura.midolman.util.Net;
 
 /**
  * @author David Erickson (daviderickson@cs.stanford.edu)

@@ -22,9 +22,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.midokura.midolman.util.Net;
-
-
 import static com.midokura.packets.Unsigned.unsign;
 
 

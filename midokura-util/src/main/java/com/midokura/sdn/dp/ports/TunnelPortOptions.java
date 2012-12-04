@@ -7,7 +7,7 @@ import java.nio.ByteOrder;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 

@@ -9,7 +9,8 @@ package com.midokura.midolman.layer3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
+
 
 public class MockServiceFlowController implements ServiceFlowController {
 

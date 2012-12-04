@@ -18,7 +18,7 @@ import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction}
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
-                               WildcardMatches}
+                               WildcardMatch}
 import com.midokura.util.functors.Callback0
 import akka.event.LoggingReceive
 
@@ -324,7 +324,7 @@ class FlowController extends Actor with ActorLogging {
                 dpMatchToCookie.put(packet.getMatch, cookie)
                 DatapathController.getRef().tell(
                     DatapathController.PacketIn(
-                        WildcardMatches.fromFlowMatch(packet.getMatch),
+                        WildcardMatch.fromFlowMatch(packet.getMatch),
                         packet.getData, packet.getMatch, packet.getReason,
                         Some(cookie)))
                 cookieToPendedPackets.addBinding(cookie, packet)

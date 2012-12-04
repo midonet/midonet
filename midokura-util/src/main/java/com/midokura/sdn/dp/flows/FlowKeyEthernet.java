@@ -5,7 +5,7 @@ package com.midokura.sdn.dp.flows;
 
 import java.util.Arrays;
 
-import com.midokura.midolman.util.Net;
+import com.midokura.packets.Net;
 import com.midokura.netlink.NetlinkMessage;
 import com.midokura.netlink.messages.BaseBuilder;
 
