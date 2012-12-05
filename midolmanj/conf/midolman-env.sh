@@ -46,44 +46,6 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 JAVA="$JAVA_HOME/bin/java"
 
-calculate_heap_sizes()
-{
-    case "`uname`" in
-        Linux)
-            system_memory_in_mb=`free -m | awk '/Mem:/ {print $2}'`
-            system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
-            break
-        ;;
-        FreeBSD)
-            system_memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
-            system_memory_in_mb=$((system_memory_in_bytes / 1024 / 1024))
-            system_cpu_cores=`sysctl hw.ncpu | awk '{print $2}'`
-            break
-        ;;
-        *)
-            # assume reasonable defaults for e.g. a modern desktop or
-            # cheap server
-            system_memory_in_mb="2048"
-            system_cpu_cores="2"
-        ;;
-    esac
-    max_heap_size_in_mb=$((system_memory_in_mb / 2))
-    MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
-
-    # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
-    max_sensible_yg_per_core_in_mb="100"
-    max_sensible_yg_in_mb=$((max_sensible_yg_per_core_in_mb * system_cpu_cores))
-
-    desired_yg_in_mb=$((max_heap_size_in_mb / 4))
-
-    if [ "$desired_yg_in_mb" -gt "$max_sensible_yg_in_mb" ]
-    then
-        HEAP_NEWSIZE="${max_sensible_yg_in_mb}M"
-    else
-        HEAP_NEWSIZE="${desired_yg_in_mb}M"
-    fi
-}
-
 # Override these to set the amount of memory to allocate to the JVM at
 # start-up. For production use you almost certainly want to adjust
 # this for your environment. MAX_HEAP_SIZE is the total amount of
@@ -98,9 +60,8 @@ calculate_heap_sizes()
 # The example HEAP_NEWSIZE assumes a modern 8-core+ machine for decent pause
 # times. If in doubt, and if you do not particularly want to tweak, go with
 # 100 MB per physical CPU core.
-
-#MAX_HEAP_SIZE="4G"
-#HEAP_NEWSIZE="800M"
+MAX_HEAP_SIZE="300M"
+HEAP_NEWSIZE="64M"
 
 if [ "x$MAX_HEAP_SIZE" = "x" ] && [ "x$HEAP_NEWSIZE" = "x" ]; then
     calculate_heap_sizes
@@ -115,20 +76,12 @@ fi
 # JMX connections.
 JMX_PORT="7200"
 
-
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
 
 # enable assertions.  disabling this in production will give a modest
 # performance benefit (around 5%).
 JVM_OPTS="$JVM_OPTS -ea"
-
-# add the jamm javaagent
-check_openjdk=$(java -version 2>&1 | awk '{if (NR == 2) {print $1}}')
-if [ "$check_openjdk" != "OpenJDK" ]
-then
-    JVM_OPTS="$JVM_OPTS -javaagent:$MIDOLMAN_HOME/lib/jamm-0.2.2.jar"
-fi
 
 # enable thread priorities, primarily so we can give periodic tasks
 # a lower priority to avoid interfering with client workload
@@ -145,14 +98,6 @@ JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError" 
-
-if [ "`uname`" = "Linux" ] ; then
-    # reduce the per-thread stack size to minimize the impact of Thrift
-    # thread-per-client.  (Best practice is for client connections to
-    # be pooled anyway.) Only do so on Linux where it is known to be
-    # supported.
-    JVM_OPTS="$JVM_OPTS -Xss128k"
-fi
 
 # GC tuning options
 JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC" 
@@ -177,7 +122,10 @@ JVM_OPTS="$JVM_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
 # Prefer binding to IPv4 network intefaces (when net.ipv6.bindv6only=1). See 
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
 # comment out this entry to enable IPv6 support).
-JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
+# JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
+
+# uncomment to disable JMX
+# JMXDISABLE=true
 
 # jmx: metrics and administration interface
 # 
@@ -188,9 +136,13 @@ JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 # http://blogs.sun.com/jmxetc/entry/troubleshooting_connection_problems_in_jconsole
 # for more on configuring JMX through firewalls, etc. (Short version:
 # get it working with no firewall first.)
-JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT" 
-JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false" 
-JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false" 
+if [ "x$JMXDISABLE" = "x" ] ; then
+    JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote"
+    JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.local.only=$JMXLOCALONLY"
+    JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
+    JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+    JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
+fi
 
 # Environment varibales for /etc/init.d/midomanj
 NAME=midolmanj
