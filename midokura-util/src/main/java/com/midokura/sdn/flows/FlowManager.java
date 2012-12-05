@@ -300,7 +300,8 @@ public class FlowManager {
         else {
             Flow dpFlow = new Flow().setMatch(flowMatch)
                                     .setActions(wFlowCandidate.getActions());
-            assert(add(flowMatch, wFlowCandidate));
+            boolean addFlowMatchResult = add(flowMatch, wFlowCandidate);
+            assert(addFlowMatchResult);
             log.debug("FlowMatch {} matched wildcard flow {} ", flowMatch,
                       wFlowCandidate);
             return dpFlow;
