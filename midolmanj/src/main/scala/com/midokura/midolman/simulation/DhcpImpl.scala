@@ -25,7 +25,7 @@ import com.midokura.midonet.cluster.data.dhcp.Opt121
 
 class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
-                  val cookie: Option[Int], val mtu: Int)
+                  val cookie: Option[Int])
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
@@ -38,6 +38,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private var yiaddr: IntIPv4 = null
     private var opt121Routes: mutable.Seq[Opt121] = null;
     private var dnsServerAddr : IntIPv4 = null
+    private var interfaceMTU : Short = 0
 
     def handleDHCP : Future[Boolean] = {
         // These fields are decided based on the port configuration.
@@ -87,6 +88,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     serverMac = MAC.fromString("02:a8:9c:de:39:27")
                     dnsServerAddr = sub.getDnsServerAddr
                     routerAddr = sub.getDefaultGateway
+                    interfaceMTU = sub.getInterfaceMTU
                     yiaddr = host.getIp.clone.setMaskLength(
                         sub.getSubnetAddr.getMaskLength)
                     opt121Routes = sub.getOpt121Routes
@@ -248,9 +250,11 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             DHCPOption.Code.IP_LEASE_TIME.length,
             // This is in seconds.  One day is more than enough.
             IPv4.toIPv4AddressBytes((1 day).toSeconds.toInt)))
-        options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
-            DHCPOption.Code.INTERFACE_MTU.length,
-            Array[Byte]((mtu/256).toByte, (mtu%256).toByte)))
+        if (interfaceMTU != 0) {
+            options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
+                DHCPOption.Code.INTERFACE_MTU.length,
+                Array[Byte]((interfaceMTU/256).toByte, (interfaceMTU%256).toByte)))
+        }
         if (routerAddr != null) {
             options.add(new DHCPOption(
                 DHCPOption.Code.ROUTER.value,
