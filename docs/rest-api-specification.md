@@ -25,7 +25,7 @@
   * [Host](#host)
   * [Interface](#interface)
   * [Host Command](#hostcommand)
-  * [Host-Interface-Port Binding] (#hostinterfaceport")
+  * [Host-Interface-Port Binding] (#hostinterfaceport)
   * [Tunnel Zone](#tunnelzone)
   * [Tunnel Zone Host](#tunnelzonehost)
   * [Metric Target](#metrictarget)
