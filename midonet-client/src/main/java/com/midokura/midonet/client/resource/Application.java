@@ -207,7 +207,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return AdRoute
      */
     public AdRoute getAdRoute(UUID id) {
-        URI uri = createUriFromTemplate(app.getAdRoute(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                app.getAdRouteTemplate(), ID_TOKEN, id);
         DtoAdRoute adRoute = resource.get(uri, null, DtoAdRoute.class,
                 VendorMediaType.APPLICATION_AD_ROUTE_JSON);
         return new AdRoute(resource, null, adRoute);
@@ -220,7 +221,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return BGP
      */
     public Bgp getBgp(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getBgp(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getBgpTemplate(), ID_TOKEN, id);
         DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
                 VendorMediaType.APPLICATION_BGP_JSON);
         return new Bgp(resource, null, bgp);
@@ -233,7 +235,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Bridge
      */
     public Bridge getBridge(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getBridge(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getBridgeTemplate(), ID_TOKEN, id);
         DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
                 VendorMediaType.APPLICATION_BRIDGE_JSON);
         return new Bridge(resource, null, bridge);
@@ -246,7 +249,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Host
      */
     public Host getHost(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getHost(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getHostTemplate(), ID_TOKEN, id);
         DtoHost host = resource.get(uri, null, DtoHost.class,
                 VendorMediaType.APPLICATION_HOST_JSON);
         return new Host(resource, null, host);
@@ -259,7 +263,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Port
      */
     public Port getPort(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getPort(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getPortTemplate(), ID_TOKEN, id);
         DtoPort port = resource.get(uri, null, DtoPort.class,
                 VendorMediaType.APPLICATION_PORT_JSON);
         if (port instanceof DtoBridgePort) {
@@ -279,8 +284,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return PortGroup
      * */
     public PortGroup getPortGroup(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getPortGroup(), ID_TOKEN,
-                id);
+        URI uri = createUriFromTemplate(
+                principalDto.getPortGroupTemplate(), ID_TOKEN, id);
         DtoPortGroup portGroup = resource.get(uri, null, DtoPortGroup.class,
                 VendorMediaType.APPLICATION_PORTGROUP_JSON);
         return new PortGroup(resource, null, portGroup);
@@ -293,7 +298,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Route
      * */
     public Route getRoute(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getRoute(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getRouteTemplate(), ID_TOKEN, id);
         DtoRoute route = resource.get(uri, null, DtoRoute.class,
                 VendorMediaType.APPLICATION_ROUTE_JSON);
         return new Route(resource, null, route);
@@ -306,7 +312,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Router
      * */
     public Router getRouter(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getRouter(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getRouterTemplate(), ID_TOKEN, id);
         DtoRouter router = resource.get(uri, null, DtoRouter.class,
                 VendorMediaType.APPLICATION_ROUTER_JSON);
         return new Router(resource, null, router);
@@ -319,8 +326,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return Rule
      */
     public Rule getRule(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getRule(), ID_TOKEN,
-                id);
+        URI uri = createUriFromTemplate(
+                principalDto.getRuleTemplate(), ID_TOKEN, id);
         DtoRule rule = resource.get(uri, null, DtoRule.class,
                 VendorMediaType.APPLICATION_RULE_JSON);
         return new Rule(resource, null, rule);
@@ -333,7 +340,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return RuleChain
      */
     public RuleChain getRuleChain(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getChain(), ID_TOKEN, id);
+        URI uri = createUriFromTemplate(
+                principalDto.getChainTemplate(), ID_TOKEN, id);
         DtoRuleChain chain = resource.get(uri, null, DtoRuleChain.class,
                 VendorMediaType.APPLICATION_CHAIN_JSON);
         return new RuleChain(resource, null, chain);
@@ -346,7 +354,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return TunnelZone
      */
     public TunnelZone getTunnelZone(UUID id) {
-        URI uri = createUriFromTemplate(principalDto.getTunnelZone(), ID_TOKEN,
+        URI uri = createUriFromTemplate(
+                principalDto.getTunnelZoneTemplate(), ID_TOKEN,
                 id);
         DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
@@ -372,7 +381,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                     "No tunnel zone with ID (" + id + ") exists.");
         }
     }
-
 
     /**
      * Create a URI object from a URI template, token string and the replacement

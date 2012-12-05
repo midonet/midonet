@@ -13,6 +13,7 @@
   * [URI Templates](#uritemplates)
 
 [Resource Models](#resourcemodels)
+  * [Application](#application)
   * [Router](#router)
   * [Bridge](#bridge)
   * [Port](#port)
@@ -59,28 +60,30 @@ The request above may yield the following output:
     HTTP/1.1 200 OK
     Content-Type: application/vnd.com.midokura.midolman.mgmt.Application+json
     {
+        "uri": "http://example.org/",
         "version": "1",
-        "bgp": "http://example.org/bgps/{id}",
-        "ad_route": "http://example.org/ad_routes/{id}",
-        "bridge": "http://example.org/bridges/{id}",
         "bridges": "http://example.org/bridges",
-        "chain": "http://example.org/chains/{id}",
         "chains": "http://example.org/chains",
-        "host": "http://example.org/hosts/{id}",
         "hosts": "http://example.org/hosts",
-        "port": "http://example.org/ports/{id}",
-        "port_group": "http://example.org/port_groups/{id}",
-        "port_groups": "http://example.org/port_groups",
-        "route": "http://example.org/routes/{id}",
-        "router": "http://example.org/routers/{id}",
+        "portGroups": "http://example.org/port_groups",
         "routers": "http://example.org/routers",
-        "rule": "http://example.org/rules/{id}",
-        "uri": "http://example.org/"
+        "bgpTemplate": "http://example.org/bgps/{id}",
+        "adRouteTemplate": "http://example.org/ad_routes/{id}",
+        "bridgeTemplate": "http://example.org/bridges/{id}",
+        "chainTemplate": "http://example.org/chains/{id}",
+        "hostTemplate": "http://example.org/hosts/{id}",
+        "portTemplate": "http://example.org/ports/{id}",
+        "portGroupTemplate": "http://example.org/port_groups/{id}",
+        "routeTemplate": "http://example.org/routes/{id}",
+        "routerTemplate": "http://example.org/routers/{id}",
+        "ruleTemplate": "http://example.org/rules/{id}"
     }
 
 This reveals that users can access the router resources using the URI
 "/routers".  Host resources are accessible with the URI "/hosts".  The response
-also includes information about the API version.  The URIs with "{id}" in them are [URI templates](#uritemplates), and they are explained later in this document.
+also includes information about the API version.  The URIs with "{id}" in them
+are [URI templates](#uritemplates), and they are explained later in this
+document.
 
 <a name="commonbehaviors"/>
 ## Common Behaviors
@@ -241,7 +244,8 @@ router ID 'd7435bb0-3bc8-11e2-81c1-0800200c9a66', after doing the replacement,
 the final URI becomes:
 'http://example.org/routers/d7435bb0-3bc8-11e2-81c1-0800200c9a66'.
 </br></br>
-The following table lists the existing expressions in the URI templates and what they should be replaced with.
+The following table lists the existing expressions in the URI templates and
+what they should be replaced with.
 
 <table>
     <tr>
@@ -264,6 +268,167 @@ resource is included in square brackets in the corresponding section header.
 The POST/PUT column indicates whether the field can be included in the request
 with these verbs.  If they are not specified, the field should not be included
 in the request.
+
+<a name="application"/>
+### Application [application/vnd.com.midokura.midolman.mgmt.Application+json]
+
+This is the root object in MidoNet REST API.  From this object, clients can
+traverse the URIs to discover all the available services.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>Integer</td>
+        <td></td>
+        <td></td>
+        <td>The version of MidoNet REST API.</td>
+    </tr>
+    <tr>
+        <td>bridges</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of bridges.</td>
+    </tr>
+    <tr>
+        <td>chains</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of chains.</td>
+    </tr>
+    <tr>
+        <td>hosts</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of hosts.</td>
+    </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of port groups.</td>
+    </tr>
+    <tr>
+        <td>routers</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of routers.</td>
+    </tr>
+    <tr>
+        <td>tunnelZones</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of tunnel zones.</td>
+    </tr>
+    <tr>
+        <td>adRouteTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of ad route with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bgpTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of BGP with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bridgeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of bridge with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>chainTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of chain with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>hostTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of host with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portGroupTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port group with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>routeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of route with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>routerTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of router with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>ruleTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of rule with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>tunnelZoneTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of tunnel zone
+        with the provided ID.</td>
+    </tr>
+</table>
 
 <a name="router"/>
 ### Router [application/vnd.com.midokura.midolman.mgmt.Router+json]
