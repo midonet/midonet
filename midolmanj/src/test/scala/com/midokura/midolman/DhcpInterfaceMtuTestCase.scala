@@ -3,7 +3,6 @@
  */
 package com.midokura.midolman
 
-import scala.Some
 import scala.collection.JavaConversions._
 import scala.sys.process._
 import java.nio.ByteBuffer
@@ -12,7 +11,6 @@ import collection.mutable
 import akka.testkit.TestProbe
 import akka.util.duration._
 import org.junit.runner.RunWith
-import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import guice.actors.OutgoingMessage
@@ -38,8 +36,8 @@ import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, Material
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions, FlowAction}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import host.interfaces.InterfaceDescription
 
-@Ignore
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
           VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
@@ -103,6 +101,12 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         vmIP = IntIPv4.fromString(ipString, 24)
 
+        // add this interface in MockInterfaceScanner list
+        val intf = new InterfaceDescription("My Interface")
+        intf.setInetAddress(ipString)
+        intf.setMtu(intfMtu)
+        interfaceScanner.addInterface(intf)
+
         val greZone = greTunnelZone("default")
 
         val myGreConfig = new GreTunnelZoneHost(host.getId)
@@ -150,9 +154,6 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be === greZone.getId
-
-        fishForReplyOfType[GreTunnelZone](vtpProbe())
-        fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         var tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
         tunnelEvent.op should be(TunnelChangeEventOperation.Established)

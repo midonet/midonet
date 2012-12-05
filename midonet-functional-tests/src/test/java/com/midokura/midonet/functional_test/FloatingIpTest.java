@@ -185,7 +185,7 @@ public class FloatingIpTest {
             .subnetLength(rtrPort3.getNetworkLength())
             .serverAddr("192.168.77.118")
             .dnsServerAddr("192.168.77.128")
-            .interfaceMTU((short)1400)
+            .interfaceMTU(1400)
             .opt121Routes(opt121Routes)
             .create();
         dhcpSubnet.addDhcpHost()

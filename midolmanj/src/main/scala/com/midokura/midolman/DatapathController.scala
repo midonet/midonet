@@ -48,7 +48,7 @@ import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, Flo
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import akka.event.LoggingAdapter
-
+import com.midokura.packets.IntIPv4
 
 /**
  * Holder object that keeps the external message definitions
@@ -400,18 +400,18 @@ object DatapathController extends Referenceable {
 
     /**
      * This message is sent when the DHCP handler needs to get information
-     * on local interfaces that are used for tunnels, what it returns is
-     * { source IP address, tunnel type } where the source IP address
-     * correspond to the source IP address of the tunnel type
+     * on local interfaces that are used for tunnels, what it returns is 
+     * { interface description , list of {tunnel type} } where the 
+     * interface description contains various information (including MTU)
      */
     case class LocalTunnelInterfaceInfo()
 
     /**
-     * This message is sent when the LocalTunnelInterfaceInfo handler
+     * This message is sent when the LocalTunnelInterfaceInfo handler 
      * completes the interface scan and pass the result as well as
      * original sender info
      */
-    case class LocalInterfaceTunnelInfoFinal(caller : ActorRef,
+    private case class LocalInterfaceTunnelInfoFinal(caller : ActorRef,
                                              interfaces: JList[InterfaceDescription])
 }
 
@@ -505,6 +505,8 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
             mutable.MultiMap[UUID, Port[_,_]]
     val tunnelsToHosts = mutable.Map[JInteger, TZHostConfig[_,_]]()
     val localTunnelPorts: mutable.Set[JInteger] = mutable.Set()
+
+    var recentInterfacesScanned = new java.util.ArrayList[InterfaceDescription]()
 
     // peerHostId -> { ZoneID -> Port[_,_] }
     val peerToTunnels = mutable.Map[UUID, mutable.Map[UUID, Port[_,_]]]()
@@ -1530,40 +1532,50 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
     }
 
     private def getLocalInterfaceTunnelPhaseOne(caller : ActorRef) {
-        interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
-            def onError(e: NetlinkException) {
-                log.error("Error while retrieving the interface status:" + e.getMessage)
-            }
+        if (recentInterfacesScanned.isEmpty == false) {
+            log.debug("Interface Scanning took place and cache is hot")
+            getLocalInterfaceTunnelInfo(caller, recentInterfacesScanned)
+        } else {
+            log.debug("Interface Scanning has not taken place, trigger interface scan")
+            interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
+                def onError(e: NetlinkException) {
+                    log.error("Error while retrieving the interface status:" + e.getMessage)
+                }
 
-            def onTimeout() {
-                log.error("Timeout while retrieving the interface status.")
-            }
+                def onTimeout() {
+                    log.error("Timeout while retrieving the interface status.")
+                }
 
-            def onSuccess(data: JList[InterfaceDescription]) {
-                self ! LocalInterfaceTunnelInfoFinal(caller, data)
-            }
-        })
+                def onSuccess(data: JList[InterfaceDescription]) {
+                    self ! LocalInterfaceTunnelInfoFinal(caller, data)
+                }
+            })
+        }
     }
 
     private def getLocalInterfaceTunnelInfo(caller: ActorRef,
         interfaces : JList[InterfaceDescription]) {
         // First we would populate the data structure with tunnel info
         // on all local interfaces
-        var addrTunnelMapping = mutable.Map[Int, TunnelZone.Type]()
+        var addrTunnelMapping : mutable.MultiMap[Int, TunnelZone.Type] =
+            new mutable.HashMap[Int, mutable.Set[TunnelZone.Type]] with
+                mutable.MultiMap[Int, TunnelZone.Type]
         // This next variable is the structure for return message
         var retInterfaceTunnelMap : mutable.MultiMap[InterfaceDescription, TunnelZone.Type] =
             new mutable.HashMap[InterfaceDescription, mutable.Set[TunnelZone.Type]] with
                 mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
         for ((zoneId, zoneConfig) <- host.zones) {
             if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
-                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt,
-                                      TunnelZone.Type.Gre)
-            } else if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
-                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt,
-                                      TunnelZone.Type.Capwap)
-            } else if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
-                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt,
-                                      TunnelZone.Type.Ipsec)
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                                             TunnelZone.Type.Gre)
+            } 
+            if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                                             TunnelZone.Type.Capwap)
+            } 
+            if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                                             TunnelZone.Type.Ipsec)
             }
         }
 
@@ -1575,11 +1587,10 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
                     // IPv6 alert: this assumes only IPv4
                     if (inetAddress.getAddress().length == 4) {
                         ipAddr = ByteBuffer.wrap(inetAddress.getAddress()).getInt
-                        addrTunnelMapping.get(ipAddr) match {
-                            case Some(tunnelType : TunnelZone.Type) =>
+                        addrTunnelMapping.get(ipAddr) foreach { tunnelTypes =>
+                            for (tunnelType <- tunnelTypes) {
                                 retInterfaceTunnelMap.addBinding(interface, tunnelType)
-                            case _ =>
-                                log.debug("No match for any tunnel on local interface {}", inetAddress.toString())
+                            }   
                         }
                     }
                 }

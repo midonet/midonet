@@ -4,17 +4,21 @@
 
 package com.midokura.midolman.simulation
 
+import akka.actor.ActorSystem
+import akka.dispatch.{ExecutionContext, Future, Promise}
+import akka.pattern.ask
+import akka.util.duration._
 import collection.JavaConversions._
 import collection.mutable
 import akka.dispatch.{Promise, ExecutionContext, Future}
 import akka.actor.ActorSystem
 import akka.pattern.ask
-//import akka.util.Timeout
 import akka.util.duration._
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.packets._
 import java.util.UUID
-import com.midokura.midolman.{FlowController, SimulationController, DatapathController}
+
+import com.midokura.midolman.{DatapathController, FlowController, SimulationController}
 import com.midokura.midolman.host.interfaces.InterfaceDescription
 import com.midokura.midolman.topology.VirtualTopologyActor
 import com.midokura.midonet.cluster.client._
@@ -23,6 +27,7 @@ import com.midokura.midolman.util.Net
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.FlowController.DiscardPacket
+import com.midokura.packets._
 import com.midokura.midolman.DatapathController.LocalTunnelInterfaceInfo
 import com.midokura.midonet.cluster.data.dhcp.Opt121
 import com.midokura.midonet.cluster.data.TunnelZone
@@ -387,8 +392,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         intfMtu = interfaceDesc.getMtu().toShort
                         val tunnelMtu = (intfMtu - overhead).toShort
                         if (minMtu == 0) minMtu = tunnelMtu
-                        else {
-                            if (minMtu > tunnelMtu) minMtu = tunnelMtu
+                        else if (minMtu > tunnelMtu) {
+                            minMtu = tunnelMtu
                         }
                         log.info("Interface {}, tunnel type {}, minMtu is {}", interfaceDesc, tunnelType, minMtu)
                     }

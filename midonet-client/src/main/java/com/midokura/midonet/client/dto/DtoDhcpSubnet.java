@@ -16,7 +16,7 @@ public class DtoDhcpSubnet {
     private String defaultGateway;
     private String serverAddr;
     private String dnsServerAddr;
-    private short interfaceMTU;
+    private int interfaceMTU;
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
     private URI uri;
@@ -65,11 +65,11 @@ public class DtoDhcpSubnet {
         this.dnsServerAddr = dnsServerAddr;
     }
 
-    public short getInterfaceMTU() {
+    public int getInterfaceMTU() {
         return interfaceMTU;
     }
 
-    public void setInterfaceMTU(short interfaceMTU) {
+    public void setInterfaceMTU(int interfaceMTU) {
         this.interfaceMTU = interfaceMTU;
     }
 

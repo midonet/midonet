@@ -43,7 +43,11 @@ public class DhcpSubnet extends RelativeUriResource {
              message = "is an invalid IP format")
     private String dnsServerAddr;
 
-    private short interfaceMTU;
+    // Min has to be set to zero since default case, client sets
+    // interface MTU to zero, we have to be able to accept that
+    @Min(0)
+    @Max(65536)
+    private int interfaceMTU;
 
     private List<DhcpOption121> opt121Routes;
 
@@ -73,7 +77,7 @@ public class DhcpSubnet extends RelativeUriResource {
         if (null != dnsSrvAddr)
             this.setDnsServerAddr(dnsSrvAddr.toUnicastString());
 
-        short intfMTU = subnet.getInterfaceMTU();
+        int intfMTU = subnet.getInterfaceMTU();
         if (intfMTU != 0)
             this.setInterfaceMTU(intfMTU);
 
@@ -125,11 +129,11 @@ public class DhcpSubnet extends RelativeUriResource {
         this.dnsServerAddr = dnsServerAddr;
     }
 
-    public short getInterfaceMTU() {
+    public int getInterfaceMTU() {
         return interfaceMTU;
     }
 
-    public void setInterfaceMTU(short interfaceMTU) {
+    public void setInterfaceMTU(int interfaceMTU) {
         this.interfaceMTU = interfaceMTU;
     }
 
@@ -177,7 +181,7 @@ public class DhcpSubnet extends RelativeUriResource {
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
                 .setDnsServerAddr(dnsSrvAddr)
-                .setInterfaceMTU(interfaceMTU);
+                .setInterfaceMTU((short)interfaceMTU);
     }
 
     @Override

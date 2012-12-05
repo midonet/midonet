@@ -80,7 +80,7 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      *
      * @return
      */
-    public short getInterfaceMTU() {
+    public int getInterfaceMTU() {
         return principalDto.getInterfaceMTU();
     }
 
@@ -176,7 +176,7 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      * @param interfaceMTU
      * @return this
      */
-    public DhcpSubnet interfaceMTU(short interfaceMTU) {
+    public DhcpSubnet interfaceMTU(int interfaceMTU) {
         principalDto.setInterfaceMTU(interfaceMTU);
         return this;
     }
