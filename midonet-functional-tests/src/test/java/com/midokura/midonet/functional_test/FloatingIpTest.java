@@ -47,6 +47,7 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.util.lock.LockHelper;
+import com.midokura.util.process.ProcessHelper;
 
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
@@ -184,6 +185,7 @@ public class FloatingIpTest {
             .subnetLength(rtrPort3.getNetworkLength())
             .serverAddr("192.168.77.118")
             .dnsServerAddr("192.168.77.128")
+            .interfaceMTU(1400)
             .opt121Routes(opt121Routes)
             .create();
         dhcpSubnet.addDhcpHost()
@@ -307,6 +309,7 @@ public class FloatingIpTest {
     @Test
     public void testFloatingIp() throws MalformedPacketException {
         byte[] request;
+        String dhcpFile = "/var/lib/dhcp/dhclient.midonet.leases";
         PacketHelper helper1 = new PacketHelper(
             MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
         PacketHelper helper2 = new PacketHelper(
@@ -365,5 +368,31 @@ public class FloatingIpTest {
         // No other packets arrive at the tap ports.
         assertNoMorePacketsOnTap(tap1);
         assertNoMorePacketsOnTap(tap2);
+
+        // after the test, check all the parameters for DHCP
+        ProcessHelper.ProcessResult result;
+        String midnetDhcpFile = "/var/lib/dhcp/dhclient.midonet.leases";
+        String entryCmd = "grep -w midonet " + midnetDhcpFile;
+        result = ProcessHelper.executeCommandLine(entryCmd);
+        int numLines = result.consoleOutput.size();
+        numLines--;
+        String serverCmd = "grep -w dhcp-server-identifier " + midnetDhcpFile;
+        result = ProcessHelper.executeCommandLine(serverCmd);
+        log.debug("Server ID from DHCP file is {}", result.consoleOutput.get(numLines));
+        if (! result.consoleOutput.get(numLines).contains("192.168.77.118")) {
+            log.error("Server ID does NOT match: {} != {}", "192.168.77.118", result.consoleOutput.get(numLines));
+        }
+        serverCmd = "grep -w domain-name-servers " + midnetDhcpFile;
+        result = ProcessHelper.executeCommandLine(serverCmd);
+        log.debug("DNS Server ID from DHCP file is {}", result.consoleOutput.get(numLines));
+        if (! result.consoleOutput.get(numLines).contains("192.168.77.128")) {
+            log.error("DNS Server ID does NOT match: {} != {}", "192.168.77.128", result.consoleOutput.get(numLines));
+        }
+        serverCmd = "grep -w interface-mtu " + midnetDhcpFile;
+        result = ProcessHelper.executeCommandLine(serverCmd);
+        log.debug("Interface MTU from DHCP file is {}", result.consoleOutput.get(numLines));
+        if (! result.consoleOutput.get(numLines).contains("1400")) {
+            log.error("Interface MTU does NOT match: {} != {}", "1400", result.consoleOutput.get(numLines));
+        }
     }
 }

@@ -30,6 +30,7 @@ public class BridgeDhcpZkManager extends ZkManager {
         IntIPv4 serverAddr;
         IntIPv4 dnsServerAddr;
         IntIPv4 defaultGateway;
+        short interfaceMTU;
         List<Opt121> opt121Routes;
 
         /* Default constructor for deserialization. */
@@ -38,7 +39,7 @@ public class BridgeDhcpZkManager extends ZkManager {
 
         public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
                       IntIPv4 serverAddr, IntIPv4 dnsServerAddr,
-                      List<Opt121> opt121Routes) {
+                      short interfaceMTU, List<Opt121> opt121Routes) {
             this.subnetAddr = subnetAddr;
             if (serverAddr != null) {
                 this.serverAddr = serverAddr;
@@ -52,6 +53,9 @@ public class BridgeDhcpZkManager extends ZkManager {
                             subnetAddr.toBroadcastAddress().addressAsInt() - 1,
                             subnetAddr.getMaskLength());
                 }
+            }
+            if (interfaceMTU != 0) {
+                this.interfaceMTU = interfaceMTU;
             }
             this.dnsServerAddr = dnsServerAddr;
             this.defaultGateway = defaultGateway;
@@ -68,6 +72,10 @@ public class BridgeDhcpZkManager extends ZkManager {
 
         public IntIPv4 getDnsServerAddr() {
             return dnsServerAddr;
+        }
+
+        public short getInterfaceMTU() {
+            return interfaceMTU;
         }
 
         public List<Opt121> getOpt121Routes() {
@@ -98,6 +106,10 @@ public class BridgeDhcpZkManager extends ZkManager {
             this.dnsServerAddr = dnsServerAddr;
         }
 
+        public void setInterfaceMTU(short interfaceMTU) {
+            this.interfaceMTU = interfaceMTU;
+        }
+
         @Override
         public String toString() {
             return "Subnet{" +
@@ -105,6 +117,7 @@ public class BridgeDhcpZkManager extends ZkManager {
                 ", serverAddr=" + serverAddr +
                 ", dnsServerAddr=" + dnsServerAddr +
                 ", defaultGateway=" + defaultGateway +
+                ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
                 '}';
         }

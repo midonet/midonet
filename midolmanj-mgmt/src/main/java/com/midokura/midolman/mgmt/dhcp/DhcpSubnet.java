@@ -43,6 +43,12 @@ public class DhcpSubnet extends RelativeUriResource {
              message = "is an invalid IP format")
     private String dnsServerAddr;
 
+    // Min has to be set to zero since default case, client sets
+    // interface MTU to zero, we have to be able to accept that
+    @Min(0)
+    @Max(65536)
+    private int interfaceMTU;
+
     private List<DhcpOption121> opt121Routes;
 
     /* Default constructor is needed for parsing/unparsing. */
@@ -70,6 +76,10 @@ public class DhcpSubnet extends RelativeUriResource {
         IntIPv4 dnsSrvAddr = subnet.getDnsServerAddr();
         if (null != dnsSrvAddr)
             this.setDnsServerAddr(dnsSrvAddr.toUnicastString());
+
+        int intfMTU = subnet.getInterfaceMTU();
+        if (intfMTU != 0)
+            this.setInterfaceMTU(intfMTU);
 
         List<DhcpOption121> routes = new ArrayList<DhcpOption121>();
         if (null != subnet.getOpt121Routes()) {
@@ -119,6 +129,14 @@ public class DhcpSubnet extends RelativeUriResource {
         this.dnsServerAddr = dnsServerAddr;
     }
 
+    public int getInterfaceMTU() {
+        return interfaceMTU;
+    }
+
+    public void setInterfaceMTU(int interfaceMTU) {
+        this.interfaceMTU = interfaceMTU;
+    }
+
     public List<DhcpOption121> getOpt121Routes() {
         return opt121Routes;
     }
@@ -162,7 +180,8 @@ public class DhcpSubnet extends RelativeUriResource {
                 .setSubnetAddr(subnetAddr)
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
-                .setDnsServerAddr(dnsSrvAddr);
+                .setDnsServerAddr(dnsSrvAddr)
+                .setInterfaceMTU((short)interfaceMTU);
     }
 
     @Override
@@ -171,6 +190,7 @@ public class DhcpSubnet extends RelativeUriResource {
                 + ", subnetLength=" + subnetLength + ", defaultGateway='"
                 + defaultGateway + '\'' + ", serverAddr='" + serverAddr + '\''
                 + ", dnsServerAddr='" + dnsServerAddr + '\''
+                + ", interfaceMTU='" + interfaceMTU + '\''
                 + ", opt121Routes=" + opt121Routes
                 + '}';
     }

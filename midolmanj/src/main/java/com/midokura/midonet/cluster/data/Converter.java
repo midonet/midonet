@@ -467,7 +467,7 @@ public class Converter {
 
         return new BridgeDhcpZkManager.Subnet(subnet.getSubnetAddr(),
                 subnet.getDefaultGateway(), subnet.getServerAddr(),
-                subnet.getDnsServerAddr(), opt121Configs);
+                subnet.getDnsServerAddr(), subnet.getInterfaceMTU(), opt121Configs);
     }
 
     public static Subnet fromDhcpSubnetConfig(
@@ -484,6 +484,7 @@ public class Converter {
                 .setOpt121Routes(opt121s)
                 .setServerAddr(subnetConfig.getServerAddr())
                 .setDnsServerAddr(subnetConfig.getDnsServerAddr())
+                .setInterfaceMTU(subnetConfig.getInterfaceMTU())
                 .setSubnetAddr(subnetConfig.getSubnetAddr());
     }
 

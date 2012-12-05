@@ -40,7 +40,6 @@ class SimulationController() extends Actor with ActorLogWithoutPath {
     def timeout = config.getArpTimeoutSeconds * 1000
     @Inject @Nullable var connectionCache: Cache = null
     @Inject val clusterDataClient: DataClient = null
-    @Inject val midolmanConfig: MidolmanConfig = null
 
     val datapathController = DatapathController.getRef()
 
@@ -87,8 +86,7 @@ class SimulationController() extends Actor with ActorLogWithoutPath {
                         log.debug("Got a DHCP bootrequest");
                         return new DhcpImpl(
                             clusterDataClient, wMatch.getInputPortUUID, dhcp,
-                            ethPkt.getSourceMACAddress, cookie,
-                            midolmanConfig.getMidolmanDhcpMtu).handleDHCP
+                            ethPkt.getSourceMACAddress, cookie).handleDHCP
                     }
                 }
             }

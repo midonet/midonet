@@ -28,6 +28,17 @@ public class GreTunnelZone
         return Type.Gre;
     }
 
+    @Override
+    /*
+     * from OVS datapath/vport-gre.c:
+     * ethernet header length + IP header length + 
+     * sizeof(struct gre_base_hdr) + [if checksum] + [if out_key]
+     * 14 + 20 + 4 + 4 + 4 = 46
+     */
+    public short getTunnelOverhead() {
+        return ((short)46);
+    }
+
     public GreTunnelZone(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }
