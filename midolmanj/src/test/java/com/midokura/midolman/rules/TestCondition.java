@@ -25,7 +25,6 @@ import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.midokura.cache.Cache;
@@ -38,7 +37,7 @@ import com.midokura.util.functors.Callback1;
 
 public class TestCondition {
 
-    static WildcardMatch pktMatch;
+    private WildcardMatch pktMatch;
     static Random rand;
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -52,8 +51,8 @@ public class TestCondition {
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
-    @BeforeClass
-    public static void classSetup() {
+    @Before
+    public void setUp() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
@@ -66,10 +65,7 @@ public class TestCondition {
         pktMatch.setTransportSource(4321);
         pktMatch.setTransportDestination(1234);
         rand = new Random();
-    }
 
-    @Before
-    public void setUp() {
         connCache = new DummyCache();
         fwdInfo = new ForwardInfo(false, connCache, UUID.randomUUID());
         fwdInfo.flowMatch = pktMatch;
