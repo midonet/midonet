@@ -21,15 +21,12 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class DHCP extends BasePacket {
-    private static final Logger log = LoggerFactory.getLogger(DHCP.class);
     public static byte OPCODE_REQUEST = 0x1;
     public static byte OPCODE_REPLY = 0x2;
 
@@ -347,7 +344,6 @@ public class DHCP extends BasePacket {
         for (DHCPOption option : this.options) {
             byte code = option.getCode();
             bb.put(code);
-            log.debug("serialize writing option with code {}", code);
             if (code != 0 && code != DHCPOption.Code.END.value()) {
                 bb.put(option.getLength());
                 bb.put(option.getData());
@@ -442,7 +438,6 @@ public class DHCP extends BasePacket {
                 byte[] optionData = new byte[len];
                 bb.get(optionData);
                 option.setData(optionData);
-                log.debug("deserialize: found option with code {}", code & 0xff);
             }
             this.options.add(option);
             if (code == DHCPOption.Code.END.value()) {

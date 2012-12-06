@@ -15,6 +15,7 @@
         <module>midonet-client</module>
         <module>midonet-functional-tests</module>
         <module>midokura-jdk-bootstrap</module>
+        <module>packets</module>
     </modules>
 
     <scm>

@@ -615,6 +615,12 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
+            <artifactId>packets</artifactId>
+            <version>13.06-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
@@ -632,7 +638,7 @@
         </dependency>
 
         <dependency>
-            <groupId> com.google.inject.extensions</groupId>
+            <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
             <version>3.0</version>
         </dependency>

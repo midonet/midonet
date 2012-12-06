@@ -138,6 +138,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>packets</artifactId>
+            <version>13.06-SNAPSHOT</version>
+        </dependency>
+
         <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
         <dependency>
             <groupId>com.jcraft</groupId>
