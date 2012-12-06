@@ -248,7 +248,7 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>packets</artifactId>
-            <version>13.01-SNAPSHOT</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>
