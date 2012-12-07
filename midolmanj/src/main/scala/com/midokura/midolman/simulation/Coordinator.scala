@@ -2,7 +2,7 @@
 
 package com.midokura.midolman.simulation
 
-import collection.{Set => ROSet, mutable}
+import collection.mutable
 import collection.JavaConversions._
 import compat.Platform
 import java.util.concurrent.TimeoutException
@@ -14,7 +14,8 @@ import akka.pattern.ask
 import akka.util.duration._
 
 import com.midokura.cache.Cache
-import com.midokura.midolman.{DatapathController, FlowController}
+import com.midokura.midolman.{DatapathController, FlowController,
+                              SimulationController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
@@ -22,8 +23,9 @@ import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
     ChainRequest, RouterRequest, PortRequest}
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{Ethernet, TCP, UDP}
+import com.midokura.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.DatapathController.SendPacket
@@ -182,7 +184,8 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(temporary = true)
 
                     case id: UUID =>
-                        packetIngressesPort(id, true)
+                        if (!dropFragmentedPackets(id))
+                            packetIngressesPort(id, getPortGroups = true)
                 }
 
             case Some(egressID) =>
@@ -200,6 +203,57 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(temporary = true)
                 }
         }
+    }
+
+    private def dropFragmentedPackets(inPort: UUID): Boolean = {
+        origMatch.getIpFragmentType match {
+            case IPFragmentType.First =>
+                origMatch.getEtherType.shortValue match {
+                    case IPv4.ETHERTYPE =>
+                        sendIpv4FragNeeded(inPort)
+                        dropFlow(temporary = true)
+
+                    case ethertype =>
+                        log.info("Dropping fragmented packet of unsupported " +
+                                 "ethertype={}", ethertype)
+                        dropFlow(temporary = false)
+                }
+                true
+            case IPFragmentType.Later =>
+                log.info("Dropping non-first fragment at simulation layer")
+                val wMatch = new WildcardMatch().
+                    setIpFragmentType(IPFragmentType.Later)
+                val wFlow = new WildcardFlow().setMatch(wMatch)
+                datapathController.tell(
+                    AddWildcardFlow(wFlow, None, null, null, null))
+                true
+            case _ =>
+                false
+        }
+    }
+
+    private def sendIpv4FragNeeded(inPort: UUID) {
+        val origPkt: IPv4 = origEthernetPkt.getPayload match {
+            case ip: IPv4 => ip
+            case _ => null
+        }
+
+        if (origPkt == null)
+            return
+
+        val icmp = new ICMP()
+        icmp.setFragNeeded(origPkt.getTotalLength, origPkt)
+        val ip = new IPv4()
+        ip.setPayload(icmp)
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
+        ip.setSourceAddress(origPkt.getDestinationAddress)
+        ip.setDestinationAddress(origPkt.getSourceAddress)
+        val eth = new Ethernet()
+        eth.setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(ip)
+        eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
+        eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
+        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(inPort, eth)
     }
 
     private def packetIngressesDevice(port: Port[_]) {
