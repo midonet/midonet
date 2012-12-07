@@ -39,7 +39,6 @@
                         </goals>
                         <configuration>
                             <args>
-                                <arg>-P:continuations:enable</arg>
                                 <arg>-deprecation</arg>
                                 <arg>-unchecked</arg>
                                 <arg>-dependencyfile</arg>
