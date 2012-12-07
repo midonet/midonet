@@ -4,10 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 import akka.actor.ActorRef;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
@@ -22,9 +18,12 @@ import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
+import com.midokura.util.lock.LockHelper;
 import com.midokura.util.process.ProcessHelper;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -35,16 +34,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
-
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.util.lock.LockHelper;
 
 public class BgpTest {
 
@@ -82,17 +81,22 @@ public class BgpTest {
         String cmdLine;
 
         // Create network namespace
-        cmdLine = "/bin/sh -c \"sudo ip netns list | grep " + networkNamespace + "\"";
+        cmdLine = "sudo ip netns list";
         result = ProcessHelper.executeCommandLine(cmdLine);
         log.debug("result.consoleOutput: {}", result.consoleOutput);
         log.debug("result.consoleOutput.size: {}", result.consoleOutput.size());
-        if (result.consoleOutput.size() == 0) {
+        Boolean foundNamespace = false;
+        for (String line : result.consoleOutput) {
+            if (line.contains(networkNamespace)) {
+                foundNamespace = true;
+                break;
+            }
+        }
+
+        if (!foundNamespace) {
             cmdLine = "sudo ip netns add " + networkNamespace;
             ProcessHelper.executeCommandLine(cmdLine);
         } else {
-            cmdLine = "sudo ip link delete " + pairedInterfaceLocal;
-            ProcessHelper.executeCommandLine(cmdLine);
-
             cmdLine = "sudo killall bgpd";
             ProcessHelper.executeCommandLine(cmdLine);
         }
