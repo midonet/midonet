@@ -83,7 +83,8 @@ class SimulationController() extends Actor with ActorLogging {
                         log.debug("Got a DHCP bootrequest");
                         return new DhcpImpl(
                             clusterDataClient, wMatch.getInputPortUUID, dhcp,
-                            ethPkt.getSourceMACAddress, cookie).handleDHCP
+                            ethPkt.getSourceMACAddress, cookie,
+                            midolmanConfig.getMidolmanDhcpMtu).handleDHCP
                     }
                 }
             }

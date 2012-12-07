@@ -25,7 +25,7 @@ import com.midokura.midonet.cluster.data.dhcp.Opt121
 
 class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
-                  val cookie: Option[Int])
+                  val cookie: Option[Int], val mtu: Int)
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
@@ -250,11 +250,12 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             DHCPOption.Code.IP_LEASE_TIME.length,
             // This is in seconds.  One day is more than enough.
             IPv4.toIPv4AddressBytes((1 day).toSeconds.toInt)))
-        if (interfaceMTU != 0) {
-            options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
-                DHCPOption.Code.INTERFACE_MTU.length,
-                Array[Byte]((interfaceMTU/256).toByte, (interfaceMTU%256).toByte)))
-        }
+        if (interfaceMTU == 0) {
+            interfaceMTU = mtu.toShort
+        } 
+        options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
+            DHCPOption.Code.INTERFACE_MTU.length,
+            Array[Byte]((interfaceMTU/256).toByte, (interfaceMTU%256).toByte)))
         if (routerAddr != null) {
             options.add(new DHCPOption(
                 DHCPOption.Code.ROUTER.value,
@@ -340,4 +341,5 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         }
         return Promise.successful(true)
     }
+
 }
