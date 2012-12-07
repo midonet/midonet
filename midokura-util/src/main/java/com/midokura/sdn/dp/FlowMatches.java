@@ -12,6 +12,7 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.TCP;
 import com.midokura.packets.UDP;
 import com.midokura.sdn.dp.flows.FlowKeyEtherType;
+import com.midokura.sdn.dp.flows.IPFragmentType;
 import com.midokura.sdn.dp.flows.IpProtocol;
 
 
@@ -58,10 +59,14 @@ public class FlowMatches {
                 break;
             case IPv4.ETHERTYPE:
                 IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
+                IPFragmentType fragmentType =
+                    IPFragmentType.fromIPv4Flags(ipPkt.getFlags(),
+                                                 ipPkt.getFragmentOffset());
                 match.addKey(
                     ipv4(ipPkt.getSourceAddress(), ipPkt.getDestinationAddress(),
                         ipPkt.getProtocol())
                     .setTtl(ipPkt.getTtl())
+                    .setFrag(IPFragmentType.toByte(fragmentType))
                 );
                 switch (ipPkt.getProtocol()) {
                     case TCP.PROTOCOL_NUMBER:

@@ -3,6 +3,8 @@
 */
 package com.midokura.sdn.dp.flows;
 
+import com.midokura.packets.IPv4;
+
 /**
 * Enum that encapsulates the types of IP Fragments available. Can convert to
  * and from a byte value to be used in the FlowKeyIPv4, FlowKeyIPv6.
@@ -17,7 +19,7 @@ public enum IPFragmentType {
         this.value = (byte) value;
     }
 
-    static IPFragmentType fromByte(byte value) {
+    public static IPFragmentType fromByte(byte value) {
         switch (value) {
             case 0:
                 return None;
@@ -30,7 +32,16 @@ public enum IPFragmentType {
         }
     }
 
-    static byte toByte(IPFragmentType fragmentType) {
+    public static IPFragmentType fromIPv4Flags(byte flags, short offset) {
+        if (offset > 0)
+            return Later;
+        else if ((flags & IPv4.IP_FLAGS_MF) != 0)
+            return First;
+        else
+            return None;
+    }
+
+    public static byte toByte(IPFragmentType fragmentType) {
         if ( fragmentType == null )
             return 0;
 
