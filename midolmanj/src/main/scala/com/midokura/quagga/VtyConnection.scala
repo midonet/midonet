@@ -17,15 +17,14 @@ import java.net.{UnknownHostException, Socket}
 
 import org.slf4j.LoggerFactory
 import com.midokura.packets.IntIPv4
-import io.{BufferedSource, Source}
-import java.nio.charset.{CodingErrorAction, CharsetDecoder, StandardCharsets}
+import akka.dispatch.{ExecutionContext, Await, Future}
+import java.util.concurrent.Executors
+import akka.util.Duration
 
 /**
  * Static methods and constants for VtyConnection.
  */
 object VtyConnection {
-    private final val BufSize = 1024
-
     private final val Enable = "enable"
     private final val Disable = "disable"
     private final val ConfigureTerminal = "configure terminal"
@@ -48,9 +47,12 @@ abstract class VtyConnection(val addr: String, val port: Int,
     var in: BufferedReader = _
     var connected = false
 
+    // BufferSize overrideable for testing purposes
+    val BufferSize = 4096
+
     case class NotConnectedException() extends Exception
 
-    private def openConnection() {
+    protected def openConnection() {
         log.debug("begin, addr: {}, port: {}", addr, port)
         try {
             socket = new Socket(addr, port)
@@ -65,12 +67,13 @@ abstract class VtyConnection(val addr: String, val port: Int,
         log.debug("end")
     }
 
-    private def closeConnection() {
+    protected def closeConnection() {
         log.debug("begin")
 
         connected = false
         out.close()
         in.close()
+        log.debug("end")
     }
 
     private def sendMessage(command: String) {
@@ -85,44 +88,69 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     private def recvMessage(): Seq[String] = {
+        recvMessage(minLines = 0)
+    }
+
+    def recvMessage(minLines: Int): Seq[String] = {
         log.debug("begin")
         if (!connected) {
             log.error("VTY is not connected")
             throw new NotConnectedException
         }
 
-        var lines: List[String] = null
-        if(in.ready) {
-            val charBuffer = new Array[Char](4094)
-            val count = in.read(charBuffer)
+        implicit val ec = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
 
-            if (count > 0) {
-                //log.debug("received a buffer with {} chars.", count)
+        val future: Future[Seq[String]] = Future {
+            var lines: List[String] = List[String]("")
+            var lineContinues = false
+            do {
+                if(in.ready) {
+                    val charBuffer = new Array[Char](BufferSize)
+                    val count = in.read(charBuffer)
 
-                val limitedBuffer = charBuffer.take(count)
+                    if (count > 0) {
+                        //log.debug("received a buffer with {} chars.", count)
 
-                var stringBuffer = limitedBuffer.mkString
-                //log.debug("stringBuffer: {}", stringBuffer)
+                        val limitedBuffer = charBuffer.take(count)
 
-                val controlCode : (Char) => Boolean = (c:Char) => ((c < 32 || c == 127) && c != 13)
-                val filteredStringBuffer = stringBuffer.filterNot(controlCode)
-                //log.debug("filteredStringBuffer: {}", filteredStringBuffer)
+                        val stringBuffer = limitedBuffer.mkString
+                        //log.debug("stringBuffer: {}", stringBuffer)
 
-                val strings = filteredStringBuffer.split(13.toChar)
-                //log.debug("splitted buffer into {} strings.", strings.size)
+                        val controlCode : (Char) => Boolean = (c:Char) =>
+                            ((c < 32 || c == 127) &&
+                            !sys.props("line.separator").contains(c))
+                        val filteredStringBuffer = stringBuffer.filterNot(controlCode)
+                        //log.debug("filteredStringBuffer: {}", filteredStringBuffer)
 
-                //strings.foreach(line => log.debug("line {}", line))
-                lines = strings.toList
-            }
+                        val strings = filteredStringBuffer.split(sys.props("line.separator"), -1).toList
+                        //log.debug("splitted buffer into {} strings.", strings.size)
+
+                        //strings.foreach(line => log.debug("line {}", line))
+                        val fixedLines = lines.take(lines.size - 1)
+                        val fixedStrings = strings.takeRight(strings.toList.size - 1)
+                        val appendedLine: String = lines.last + strings.head
+                        lines = fixedLines ::: List(appendedLine) ::: fixedStrings
+
+                        if (count == BufferSize) {
+                            lineContinues = true
+                        } else {
+                            lineContinues = false
+                        }
+                    }
+                }
+            } while(
+                (lines.size < minLines) ||
+                ((lines.size == minLines) && lineContinues)
+            )
+
+            log.debug("end")
+            lines.toSeq
         }
 
-        if (lines == null) lines = new ListBuffer[String].toList
-
-        log.debug("end")
-        lines.toSeq
+        Await.result(future, Duration.apply("1 second"))
     }
 
-    private def dropMessage() {
+    protected def dropMessage() {
         if (!connected) {
             log.error("VTY is not connected")
             throw new NotConnectedException
@@ -132,11 +160,11 @@ abstract class VtyConnection(val addr: String, val port: Int,
         log.debug("droppedMessage: {}", droppedMessage)
     }
 
-    private def checkHello() {
+    protected def checkHello() {
         log.debug("begin")
         val PasswordRegex = ".*Password:.*".r
         var versionMatch = false
-        val messages = recvMessage()
+        val messages = recvMessage(minLines = 6)
         for(message <- messages) {
             message match {
                 case "" =>
@@ -148,11 +176,12 @@ abstract class VtyConnection(val addr: String, val port: Int,
                     log.debug("copyright match") // ok, do nothing
                 case "User Access Verification" =>
                     log.debug("UAV match")
+                    sendMessage(password) // don't wait for password message
                 case PasswordRegex() =>
                     log.debug("password match")
-                    sendMessage(password)
-                case _ =>
-                    log.error("bgpd hello message doesn't match expected.")
+                case s: String =>
+                    log.error("bgpd hello message doesn't match expected: \"" +
+                        s + "\" size: " + s.size)
             }
         }
 
