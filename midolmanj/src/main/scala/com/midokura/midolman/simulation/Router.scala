@@ -17,6 +17,8 @@ import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{IPacket, ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
