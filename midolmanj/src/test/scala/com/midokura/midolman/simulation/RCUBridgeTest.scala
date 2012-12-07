@@ -192,7 +192,6 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 private class MockMacFlowCount extends MacFlowCount {
     override def increment(mac: MAC, port: UUID) {}
     override def decrement(mac: MAC, port: UUID) {}
-    override def getCount(mac: MAC, port: UUID) = -1
 }
 
 private class MockMacLearningTable(val table: Map[MAC, UUID])
