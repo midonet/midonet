@@ -13,10 +13,9 @@ import com.midokura.util.functors.Callback2
 import com.midokura.midolman.config.MidolmanConfig
 import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort}
-import com.midokura.midolman.topology.{VirtualTopologyActor}
 import com.midokura.midolman.Referenceable
-import com.midokura.midolman.guice.MidolmanActorsModule
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midolman.topology.VirtualTopologyActor
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
