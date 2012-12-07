@@ -165,7 +165,7 @@ public class DtoDhcpSubnet {
                 ", subnetLength=" + subnetLength + '\'' + 
                 ", serverAddr='" + serverAddr + '\'' +
                 ", dnsServerAddr='" + dnsServerAddr + '\'' +
-                ", interfaceMTU='" + interfaceMTU +
+                ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
                 ", hosts=" + hosts +
                 ", uri=" + uri +
