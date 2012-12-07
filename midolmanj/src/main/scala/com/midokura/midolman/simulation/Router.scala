@@ -9,14 +9,12 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.SimulationController
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.topology._
-import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
+import com.midokura.packets.{IPacket, ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
@@ -50,6 +48,25 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
     }
 
+    private def processArp(pkt: IPacket, inPort: RouterPort[_])
+                          (implicit ec: ExecutionContext,
+                           actorSystem: ActorSystem): Action = pkt match {
+        case arp: ARP =>
+            arp.getOpCode match {
+                case ARP.OP_REQUEST =>
+                    processArpRequest(arp, inPort)
+                    new ConsumedAction
+                case ARP.OP_REPLY =>
+                    processArpReply(arp, inPort)
+                    new ConsumedAction
+                case _ =>
+                    new DropAction
+            }
+        case badType =>
+            log.warn("Non-ARP packet with ethertype ARP: {}", badType)
+            new DropAction
+    }
+
     /* Does pre-routing phase.  Delegates routing, post-routing, and emit
      * phases to routing() and postRouting().
      */
@@ -63,19 +80,10 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (Ethernet.isBroadcast(hwDst)) {
             log.debug("Received an L2 broadcast packet.")
             // Broadcast packet:  Handle if ARP, drop otherwise.
-            if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
-                pktContext.getFrame.getPayload match {
-                    case arp: ARP => arp.getOpCode match {
-                        case ARP.OP_REQUEST =>
-                            processArpRequest(arp, inPort)
-                        case ARP.OP_REPLY =>
-                            processArpReply(arp, inPort.id, inPort)
-                    }
-                    case pkt =>
-                        log.warn("Non-ARP packet with ethertype ARP: {}", pkt)
-                }
-                return Promise.successful(new ConsumedAction)(ec)
-            } else
+            val payload = pktContext.getFrame.getPayload
+            if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE)
+                return Promise.successful(processArp(payload, inPort))(ec)
+            else
                 return Promise.successful(new DropAction)(ec)
         }
 
@@ -88,19 +96,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
-            if (pktContext.getMatch.getNetworkProtocol == ARP.OP_REPLY) {
-                log.info("Processing ARP reply")
-                val arpPayload = pktContext.getFrame.getPayload
-                if (arpPayload.isInstanceOf[ARP]) {
-                    processArpReply(arpPayload.asInstanceOf[ARP],
-                                    pktContext.getInPortId, inPort)
-                } else {
-                    log.warn("Non-ARP packet with ethertype ARP: {}",
-                             arpPayload)
-                }
-                return Promise.successful(new ConsumedAction)(ec)
-            } else
-                return Promise.successful(new DropAction)(ec)
+            val payload = pktContext.getFrame.getPayload
+            return Promise.successful(processArp(payload, inPort))(ec)
         }
 
         // Apply the pre-routing (ingress) chain
@@ -350,7 +347,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             inPort.id, eth)
     }
 
-    private def processArpReply(pkt: ARP, portID: UUID, rtrPort: RouterPort[_])
+    private def processArpReply(pkt: ARP, port: RouterPort[_])
                                (implicit actorSystem: ActorSystem) {
         def isGratuitous(tha: MAC, tpa: IntIPv4,
                          sha: MAC, spa: IntIPv4): Boolean = {
@@ -358,7 +355,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         def isAddressedToThis(tha: MAC, tpa: IntIPv4): Boolean = {
-            (rtrPort.portAddr.unicastEquals(tpa) && tha == rtrPort.portMac)
+            (port.portAddr.unicastEquals(tpa) && tha == port.portMac)
         }
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -366,7 +363,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (pkt.getHardwareType != ARP.HW_TYPE_ETHERNET ||
                 pkt.getProtocolType != ARP.PROTO_TYPE_IP) {
             log.debug("Router {} ignoring ARP reply on port {} because hwtype "+
-                      "wasn't Ethernet or prototype wasn't IPv4.", id, portID)
+                      "wasn't Ethernet or prototype wasn't IPv4.", id, port.id)
             return
         }
 
@@ -380,7 +377,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         } else if (!isAddressedToThis(tha, tpa)) {
             // The ARP is not gratuitous, so it should be intended for us.
             log.debug("Router {} ignoring ARP reply on port {} because tpa or "+
-                      "tha doesn't match.", id, portID)
+                      "tha doesn't match.", id, port.id)
             return
         } else {
             log.debug("Router {} received an ARP reply from {}", id, spa)
@@ -388,9 +385,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-        if (!rtrPort.portAddr.subnetContains(spa.addressAsInt)) {
+        if (!port.portAddr.subnetContains(spa.addressAsInt)) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
-                "port network {}", spa, rtrPort.portAddr)
+                "port network {}", spa, port.portAddr)
             return
         }
 
