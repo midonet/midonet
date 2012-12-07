@@ -44,7 +44,7 @@ umask 022
 . $MIDO_ETC/midolman-env.sh
 
 #add log dir java env variable
-JAVA_OPTS="$JAVA_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR"
+JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
@@ -146,13 +146,8 @@ do_stop()
 
 case "$1" in
     start)
-        if [ "x$JMXDISABLE" = "x" ]
-        then
+        if [ "x$JMXDISABLE" = "x" ] ; then
             [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX enabled by default"
-            # for some reason these two options are necessary on jdk6 on Ubuntu
-            #   according to the docs they are not necessary, but otherwise
-            #   jconsole cannot do a local attach
-            JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=$JMXLOCALONLY"
         else
             [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX disabled by user request"
         fi
