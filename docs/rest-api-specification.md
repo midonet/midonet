@@ -527,7 +527,7 @@ contains the following fields:
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves the logical ports attached to this
+        <td>A GET against this URI retrieves the interior ports attached to this
          router.</td>
     </tr>
     <tr>
@@ -639,7 +639,7 @@ contains the following fields:
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves the logical ports attached to this
+        <td>A GET against this URI retrieves the interior ports attached to this
          bridge.</td>
     </tr>
     <tr>
@@ -724,30 +724,30 @@ in MidoNet.  It contains the following fields:
         <td>Yes</td>
         <td>Type of router port.  It must be one of:
 <ul>
-<li>MaterializedRouter</li>
-<li>LogicalRouter</li>
-<li>MaterializedBridge</li>
-<li>LogicalBridge</li>
+<li>ExteriorRouter</li>
+<li>InteriorRouter</li>
+<li>ExteriorBridge</li>
+<li>InteriorBridge</li>
 </ul>
 <p>
-Materialized router port is a virtual port that plugs into the VIF of an entity,
+Exterior router port is a virtual port that plugs into the VIF of an entity,
  such as a VM. It can also be a virtual port connected to a host physical port,
-  directly or after implementing tunnel encapsulation. Access to materialized
-   ports is managed by OpenVSwitch (OpenFlow switch).  Materialized bridge port
-    is the same as materialized router port but it is a port on a virtual
+  directly or after implementing tunnel encapsulation. Access to exterior
+   ports is managed by OpenVSwitch (OpenFlow switch).  Exterior bridge port
+    is the same as exterior router port but it is a port on a virtual
      bridge.
 </p>
 <p>
-Logical router port is a virtual port that only exists in the MidoNet virtual
+Interior router port is a virtual port that only exists in the MidoNet virtual
  router network abstraction. It refers to a logical connection to another
-  virtual networking device such as another router.  Logical bridge is the
+  virtual networking device such as another router.  Interior bridge is the
    equivalent port type on a virtual bridge.
 </p>
         </span></td>
     </tr>
     <tr>
         <td>peerId
-(Logical only)</td>
+(Interior only)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -755,7 +755,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>peer
-(Logical only)</td>
+(Interior only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -789,7 +789,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>vifId
-(Materialized only)</td>
+(Exterior only)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -797,7 +797,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>bgps
-(Materialized router only)</td>
+(Exterior router only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -805,7 +805,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>vpns
-(Materialized router only)</td>
+(Exterior router only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -814,12 +814,12 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>link
-(Logical only)</td>
+(Interior only)</td>
         <td>URI</td>
         <td/>
         <td/>
-        <td>POST against this URI links two logical ports.  In the body of the
-         request, ‘peerId’ must be specified to indicate the peer logical port
+        <td>POST against this URI links two interior ports.  In the body of the
+         request, ‘peerId’ must be specified to indicate the peer interior port
           ID.  Setting ‘peerId’ to null effectively unlinks the ports.</td>
     </tr>
     <tr>
@@ -1104,7 +1104,7 @@ It contains the following fields:
         <td>UUID</td>
         <td>POST</td>
         <td>No</td>
-        <td>The list of (logical or materialized) ingress port UUIDs to
+        <td>The list of (interior or exterior) ingress port UUIDs to
          match.</td>
     </tr>
     <tr>
@@ -1120,7 +1120,7 @@ It contains the following fields:
         <td>Array of UUID</td>
         <td>POST</td>
         <td>No</td>
-        <td>The list of (logical or materialized) egress port UUIDs to match.
+        <td>The list of (interior or exterior) egress port UUIDs to match.
         </td>
     </tr>
     <tr>
