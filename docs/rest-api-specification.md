@@ -454,8 +454,8 @@ traverse the URIs to discover all the available services.
 <a name="router"/>
 ### Router [application/vnd.com.midokura.midolman.mgmt.Router+json]
 
-    GET     /routers
     GET     /routers?tenant_id=:tenant_id
+    GET     /routers/:routerId
     POST    /routers
     PUT     /routers/:routerId
     DELETE  /routers/:routerId
@@ -573,8 +573,8 @@ contains the following fields:
 <a name="bridge"/>
 ### Bridge [application/vnd.com.midokura.midolman.mgmt.Bridge+json]
 
-    GET     /bridges
     GET     /bridges?tenant_id=:tenant_id
+    GET     /bridges/:bridgeId
     POST    /bridges
     PUT     /bridges/:bridgeId
     DELETE  /bridges/:bridgeId
@@ -689,14 +689,14 @@ contains the following fields:
 <a name="port"/>
 ### Port [application/vnd.com.midokura.midolman.mgmt.Port+json]
 
-    GET     /ports
     GET     /ports?tenant_id=:tenantId
     GET     /ports/:portId
     GET     /routers/:routerId/ports
     GET     /routers/:routerId/peer_ports
     GET     /bridges/:bridgeId/ports
     GET     /bridges/:bridgeId/peer_ports
-    POST    /ports
+    POST    /routers/:routerId/ports
+    POST    /bridges/:bridgeId/ports
     PUT     /ports/:portId
     DELETE  /ports/:portId
 
@@ -880,16 +880,11 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
 <a name="route"/>
 ### Route [application/vnd.com.midokura.midolman.mgmt.Route+json]
 
+    GET     /routes/:routeId
     GET     /routers/:routerId/routes
-    GET     /bridges/:bridgeId/routes
-    GET     /routers/:routerId/routes/:routeId
-    GET     /bridges/:bridgeId/routes/:routeId
     POST    /routers/:routerId/routes
-    POST    /bridges/:bridgeId/routes
     PUT     /routers/:routerId/routes/:routeId
-    PUT     /bridges/:bridgeId/routes/:routeId
-    DELETE  /routers/:bridgeId/routes/:routeId
-    DELETE  /bridges/:bridgeId/routes/:routeId
+    DELETE  /routers/:routerId/routes/:routeId
 
 Route is an entity that represents a route on a virtual router in MidoNet.  It
 contains the following fields:
@@ -1002,6 +997,7 @@ contains the following fields:
 
     GET     /port_groups?tenant_id=:tenantId
     GET     /port_groups/:portGroupId
+    GET     /port_groups/:name?tenant_id=:tenantId
     POST    /port_groups
     PUT     /port_groups/:portGroupId
     DELETE  /port_groups/:portGroupId
@@ -1050,12 +1046,9 @@ contains the following fields:
 
     GET     /chains
     GET     /chains?tenant_id=:tenantId
-    GET     /ports/:portId/inboundFilter
-    GET     /ports/:portId/outboundFilter
-    GET     /bridges/:bridgeId/inboundFilter
-    GET     /bridges/:bridgeId/outboundFilter
+    GET     /chains/:chainId
+    GET     /chains/:name?tenant_id=:tenantId
     POST    /chains
-    PUT     /chains/:chainId
     DELETE  /chains/:chainId
 
 Chain is an entity that represents a rule chain on a virtual router in MidoNet.
@@ -1112,10 +1105,9 @@ It contains the following fields:
 ### Rule [application/vnd.com.midokura.midolman.mgmt.Rule+json]
 
     GET     /chains/:chainId/rules
-    GET     /chains/:chainId/rules/:ruleId
+    GET     /rules/:ruleId
     POST    /chains/:chainId/rules
-    PUT     /chains/:chainId/rules/:ruleId
-    DELETE  /chains/:chainId/rules/:ruleId
+    DELETE  /rules/:ruleId
 
 Rule is an entity that represents a rule on a virtual router chain in MidoNet.
 It contains the following fields:
@@ -1368,10 +1360,9 @@ It contains the following fields:
 ### BGP [application/vnd.com.midokura.midolman.mgmt.Bgp+json]
 
     GET     /ports/:portId/bgps
-    GET     /ports/:portId/bgps/:bgpId
+    GET     /bgps/:bgpId
     POST    /ports/:portId/bgps
-    PUT     /ports/:portId/bgps/:bgpId
-    DELETE  /ports/:portId/bgps/:bgpId
+    DELETE  /bgps/:bgpId
 
 BGP is an entity that represents a single set of BGP configurations. It
 contains the following fields:
@@ -1448,10 +1439,9 @@ contains the following fields:
 ### Route Advertisement [application/vnd.com.midokura.midolman.mgmt.AdRoute+json]
 
     GET     /bgps/:bgpId/ad_routes
-    GET     /bgps/:bgpId/ad_routes/:adRouteId
+    GET     /ad_routes/:adRouteId
     POST    /bgps/:bgpId/ad_routes
-    PUT     /bgps/:bgpId/ad_routes/:adRouteId
-    DELETE  /bgps/:bgpId/ad_routes/:adRouteId
+    DELETE  /ad_routes/:adRouteId
 
 Advertised Route is an entity that represents an advertising route of BGP.  It
 contains the following fields:
@@ -1557,7 +1547,7 @@ contains the following fields:
 <a name="host"/>
 ### Host [application/vnd.com.midokura.midolman.mgmt.Host+json]
 
-    GET     /hosts?tenant_id=:tenantId
+    GET     /hosts
     GET     /hosts/:hostId
     PUT     /hosts/:hostId
     DELETE  /hosts/:hostId
@@ -1616,10 +1606,9 @@ contains the following fields:
 ### Interface [application/vnd.com.midokura.midolman.mgmt.Interface+json]
 
     GET     /hosts/:hostId/interfaces
-    GET     /hosts/:hostId/interfaces/:interfaceId
+    GET     /hosts/:hostId/interfaces/:interfaceName
     POST    /hosts/:hostId/interfaces
-    PUT     /hosts/:hostId/interfaces/:interfaceId
-    DELETE  /hosts/:hostId/interfaces/:interfaceId
+    PUT     /hosts/:hostId/interfaces/:interfaceName
 
 The interface is an entity abstracting information about a physical interface
 associated with a host.
@@ -1706,9 +1695,7 @@ Unknown | Physical | Virtual | Tunnel</td>
 ### HostCommand [application/vnd.com.midokura.midolman.mgmt.HostCommand+json]
 
     GET     /hosts/:hostId/hostCommands
-    GET     /hosts/:hostId/hostCommands
-    POST    /hosts/:hostId/hostCommands/:hostCommandId
-    PUT     /hosts/:hostId/hostCommands/:hostCommandId
+    GET     /hosts/:hostId/hostCommands/:hostCommandId
     DELETE  /hosts/:hostId/hostCommands/:hostCommandId
 
 This is the description of the command generated by an Interface PUT
@@ -1781,8 +1768,7 @@ The value is the value of the operation as a string.</td>
 
     GET     /hosts/:hostId/ports
     GET     /hosts/:hostId/ports/:portId
-    POST    /hosts/:hostId/ports/:portId
-    PUT     /hosts/:hostId/ports/:portId
+    POST    /hosts/:hostId/ports
     DELETE  /hosts/:hostId/ports/:portId
 
 The HostInterfacePort binding allows mapping a virtual network port to an
