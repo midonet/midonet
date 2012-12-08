@@ -1700,30 +1700,6 @@ Unknown | Physical | Virtual | Tunnel</td>
         <td/>
         <td>The list of inet addresses bound to this interface.</td>
     </tr>
-    <tr>
-        <td>properties</td>
-        <td>map&lt;string, string&gt;</td>
-        <td>POST / PUT</td>
-        <td/>
-        <td>A set of key / value pairs containing other information about the
-         interface: for example: ovs external id, etc.
-<p>
-The only known property that is updatable is the “midonet_port_id” property.
-</p>
-<p>
-When read it will be set to the midonet_port_id that this interface is
-associated with.
-</p>
-<p>
-When updated it will cause this interface to be reassociated
-with the new port_id.
-</p>
-<p>
-When cleared (set to “”) it will cause the interface to be become not
-associated with any midonet port.
-</p>
-        </td>
-    </tr>
 </table>
 
 <a name="hostcommand"/>
