@@ -20,7 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import com.midokura.packets.IntIPv4;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -65,12 +65,12 @@ public class VmSshTest {
         Router router = tenant.addRouter().setName("rtr1").build();
 
         IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-        MaterializedRouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
+        ExteriorRouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
         tapPort = new TapWrapper(tapPortName);
         //ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        MaterializedRouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
+        ExteriorRouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
         //ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
 
         tapPort.closeFd();

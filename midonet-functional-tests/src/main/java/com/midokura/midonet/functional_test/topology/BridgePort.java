@@ -40,7 +40,7 @@ public class BridgePort {
 
         public BridgePort build() {
             return new BridgePort(mgmt,
-                    mgmt.addMaterializedBridgePort(bridge, port));
+                    mgmt.addExteriorBridgePort(bridge, port));
         }
     }
 

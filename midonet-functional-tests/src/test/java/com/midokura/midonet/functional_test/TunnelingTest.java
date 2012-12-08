@@ -19,7 +19,7 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -71,7 +71,7 @@ public class TunnelingTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         ip1 = IntIPv4.fromString("192.168.231.2");
-        MaterializedRouterPort p1 = router1.addVmPort().setVMAddress(ip1).build();
+        ExteriorRouterPort p1 = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("tnlTestTap1");
         //ovsBridge1.addSystemPort(p1.port.getId(), tapPort1.getName());
 
@@ -79,7 +79,7 @@ public class TunnelingTest {
                 IntIPv4.fromString("192.168.231.1"));
 
         ip2 = IntIPv4.fromString("192.168.231.3");
-        MaterializedRouterPort p2 = router1.addVmPort().setVMAddress(ip2).build();
+        ExteriorRouterPort p2 = router1.addVmPort().setVMAddress(ip2).build();
         tapPort2 = new TapWrapper("tnlTestTap2");
         //ovsBridge2.addSystemPort(p2.port.getId(), tapPort2.getName());
 

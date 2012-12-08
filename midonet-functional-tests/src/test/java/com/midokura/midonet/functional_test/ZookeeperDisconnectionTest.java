@@ -108,14 +108,14 @@ public class ZookeeperDisconnectionTest {
                 name("router1").
                 create();
 
-        RouterPort routerToA = router.addLogicalRouterPort().
+        RouterPort routerToA = router.addInteriorRouterPort().
                 portAddress(rtrIpA.toUnicastString()).
                 networkAddress(rtrIpA.toNetworkAddress().toUnicastString()).
                 networkLength(rtrIpA.getMaskLength()).
                 portMac(rtrMacA.toString()).
                 create();
 
-        RouterPort routerToB = router.addLogicalRouterPort().
+        RouterPort routerToB = router.addInteriorRouterPort().
                 portAddress(rtrIpB.toUnicastString()).
                 networkAddress(rtrIpB.toNetworkAddress().toUnicastString()).
                 networkLength(rtrIpB.getMaskLength()).
@@ -139,14 +139,14 @@ public class ZookeeperDisconnectionTest {
                 weight(10).
                 create();
 
-        BridgePort aToRouter = bridgeA.addLogicalPort().create();
-        BridgePort bToRouter = bridgeB.addLogicalPort().create();
+        BridgePort aToRouter = bridgeA.addInteriorPort().create();
+        BridgePort bToRouter = bridgeB.addInteriorPort().create();
 
         routerToA.link(aToRouter.getId()).update();
         routerToB.link(bToRouter.getId()).update();
 
-        portA = bridgeA.addMaterializedPort().create();
-        portB = bridgeB.addMaterializedPort().create();
+        portA = bridgeA.addExteriorPort().create();
+        portB = bridgeB.addExteriorPort().create();
 
         ResourceCollection<Host> hosts = apiClient.getHosts();
         thisHost = null;

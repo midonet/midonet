@@ -184,38 +184,38 @@ public class BgpTest {
         router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
 
-        RouterPort materializedRouterPort1_vm = (RouterPort) router1.addMaterializedRouterPort()
+        RouterPort exteriorRouterPort1_vm = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("1.0.0.1")
                 .networkAddress("1.0.0.0")
                 .networkLength(24)
                 .portMac("02:00:00:00:01:01")
                 .create();
-        log.debug("Created materialized router port - VM: " + materializedRouterPort1_vm.toString());
+        log.debug("Created exterior router port - VM: " + exteriorRouterPort1_vm.toString());
 
         router1.addRoute()
                 .dstNetworkAddr("1.0.0.1")
                 .dstNetworkLength(24)
                 .srcNetworkAddr("0.0.0.0")
                 .srcNetworkLength(0)
-                .nextHopPort(materializedRouterPort1_vm.getId())
+                .nextHopPort(exteriorRouterPort1_vm.getId())
                 .type("Normal")
                 .create();
 
-        RouterPort materializedRouterPort1_bgp = (RouterPort) router1.addMaterializedRouterPort()
+        RouterPort exteriorRouterPort1_bgp = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)
                 .portMac("02:00:00:00:aa:01")
                 .create();
-        log.debug("Created materialized router port - BGP: " + materializedRouterPort1_bgp.toString());
+        log.debug("Created exterior router port - BGP: " + exteriorRouterPort1_bgp.toString());
 
-        bgp1 = materializedRouterPort1_bgp.addBgp()
+        bgp1 = exteriorRouterPort1_bgp.addBgp()
                 .localAS(1)
                 .peerAddr("100.0.0.2")
                 .peerAS(2)
                 .create();
-        log.debug("Created BGP {} in materialized router port {} ",
-                bgp1.toString(), materializedRouterPort1_bgp.toString());
+        log.debug("Created BGP {} in exterior router port {} ",
+                bgp1.toString(), exteriorRouterPort1_bgp.toString());
 
         bgp1.addAdRoute()
                 .nwPrefix("1.0.0.0")
@@ -241,13 +241,13 @@ public class BgpTest {
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
                 .interfaceName(tap1_vm.getName())
-                .portId(materializedRouterPort1_vm.getId())
+                .portId(exteriorRouterPort1_vm.getId())
                 .create();
 
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
                 .interfaceName(pairedInterfaceLocal)
-                .portId(materializedRouterPort1_bgp.getId())
+                .portId(exteriorRouterPort1_bgp.getId())
                 .create();
 
         // Wait for the ports to become active
