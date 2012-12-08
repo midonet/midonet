@@ -12,9 +12,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRouter;
@@ -160,16 +160,16 @@ public class Router extends ResourceBase<Router, DtoRouter> {
 
         for (DtoPort pp : dtoPeerPorts) {
             Port p = null;
-            if (pp instanceof DtoLogicalRouterPort) {
-                p = new RouterPort<DtoLogicalRouterPort>(
+            if (pp instanceof DtoInteriorRouterPort) {
+                p = new RouterPort<DtoInteriorRouterPort>(
                     resource,
                     principalDto.getPorts(),
-                    (DtoLogicalRouterPort) pp);
-            } else if (pp instanceof DtoLogicalBridgePort) {
-                p = new BridgePort<DtoLogicalBridgePort>(
+                    (DtoInteriorRouterPort) pp);
+            } else if (pp instanceof DtoInteriorBridgePort) {
+                p = new BridgePort<DtoInteriorBridgePort>(
                     resource,
                     principalDto.getPorts(),
-                    (DtoLogicalBridgePort) pp);
+                    (DtoInteriorBridgePort) pp);
 
             }
             peerPorts.add(p);
@@ -178,28 +178,28 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
-     * Returns materialized port resource for creation.
+     * Returns Exterior port resource for creation.
      *
-     * @return materialized port resource
+     * @return Exterior port resource
      */
-    public RouterPort<DtoMaterializedRouterPort> addMaterializedRouterPort() {
-        return new RouterPort<DtoMaterializedRouterPort>(
+    public RouterPort<DtoExteriorRouterPort> addExteriorRouterPort() {
+        return new RouterPort<DtoExteriorRouterPort>(
             resource,
             principalDto.getPorts(),
-            new DtoMaterializedRouterPort());
+            new DtoExteriorRouterPort());
     }
 
     /**
-     * Returns logical port resource for creation.
+     * Returns Interior port resource for creation.
      *
-     * @return logical port resource
+     * @return Interior port resource
      */
 
-    public RouterPort<DtoLogicalRouterPort> addLogicalRouterPort() {
-        return new RouterPort<DtoLogicalRouterPort>(
+    public RouterPort<DtoInteriorRouterPort> addInteriorRouterPort() {
+        return new RouterPort<DtoInteriorRouterPort>(
             resource,
             principalDto.getPorts(),
-            new DtoLogicalRouterPort());
+            new DtoInteriorRouterPort());
     }
 
     /**

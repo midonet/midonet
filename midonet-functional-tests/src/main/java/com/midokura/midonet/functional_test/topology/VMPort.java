@@ -4,12 +4,12 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 
 public class VMPort extends Port {
 
-    VMPort(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
+    VMPort(MidolmanMgmt mgmt, DtoExteriorRouterPort port, String name) {
         super(mgmt, port, name);
     }
 

@@ -51,8 +51,8 @@ public class Bridge {
         return new BridgePort.Builder(mgmt, dto);
     }
 
-    public LogicalBridgePort.Builder addLinkPort() {
-        return new LogicalBridgePort.Builder(mgmt, dto);
+    public InteriorBridgePort.Builder addLinkPort() {
+        return new InteriorBridgePort.Builder(mgmt, dto);
     }
 
     public Subnet.Builder newDhcpSubnet() {

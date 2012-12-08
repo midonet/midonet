@@ -9,7 +9,7 @@ import akka.util.Duration;
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
@@ -53,8 +53,8 @@ public class LinksTest {
 
     final String TENANT_NAME = "tenant-link";
 
-    RouterPort<DtoMaterializedRouterPort> rtrPort1;
-    RouterPort<DtoMaterializedRouterPort> rtrPort2;
+    RouterPort<DtoExteriorRouterPort> rtrPort1;
+    RouterPort<DtoExteriorRouterPort> rtrPort2;
 
     TapWrapper tap1;
     TapWrapper tap2;
@@ -95,8 +95,8 @@ public class LinksTest {
         //////////////////////////////////////////////////////////////////
         rtr = apiClient.addRouter().tenantId(TENANT_NAME)
                 .name("rtr1").create();
-        // Add a materialized port.
-        rtrPort1 = rtr.addMaterializedRouterPort()
+        // Add a exterior port.
+        rtrPort1 = rtr.addExteriorRouterPort()
                 .portAddress(rtrIp1.toUnicastString())
                 .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
                 .networkLength(rtrIp1.getMaskLength())
@@ -108,8 +108,8 @@ public class LinksTest {
                 .nextHopPort(rtrPort1.getId())
                 .type(DtoRoute.Normal).weight(10).create();
 
-        // Add a logical port to the router.
-        rtrPort2 = rtr.addMaterializedRouterPort()
+        // Add a interior port to the router.
+        rtrPort2 = rtr.addExteriorRouterPort()
                 .portAddress(rtrIp2.toUnicastString())
                 .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
                 .networkLength(rtrIp2.getMaskLength())
@@ -125,7 +125,7 @@ public class LinksTest {
         ResourceCollection<Route> routes = rtr.getRoutes(null);
         Assert.assertThat("Router doesn't contain the expected routes", routes.size(), equalTo(4));
 
-        // Now bind the materialized ports to interfaces on the local host.
+        // Now bind the exterior ports to interfaces on the local host.
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -142,7 +142,7 @@ public class LinksTest {
         tap1 = new TapWrapper(TAP1NAME);
         tap2 = new TapWrapper(TAP2NAME);
 
-        log.debug("Bind tap to router's materialized port.");
+        log.debug("Bind tap to router's exterior port.");
         host.addHostInterfacePort()
                 .interfaceName(tap1.getName())
                 .portId(rtrPort1.getId()).create();

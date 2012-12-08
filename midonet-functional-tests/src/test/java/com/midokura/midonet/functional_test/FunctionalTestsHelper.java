@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.*;
 
 
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Port;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.vm.VMController;
@@ -198,7 +198,7 @@ public class FunctionalTestsHelper {
             mgmt.stop();
     }
 
-    public static void removeVpn(MidolmanMgmt mgmt, MaterializedRouterPort vpn1) {
+    public static void removeVpn(MidolmanMgmt mgmt, ExteriorRouterPort vpn1) {
         if (mgmt != null && vpn1 != null) {
             mgmt.deleteVpn(vpn1.getVpn());
         }

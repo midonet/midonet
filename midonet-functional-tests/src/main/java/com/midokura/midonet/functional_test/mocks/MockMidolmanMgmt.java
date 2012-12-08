@@ -198,38 +198,38 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public void linkRouterToPeer(DtoLogicalRouterPort port) {
+    public void linkRouterToPeer(DtoInteriorRouterPort port) {
         resource().uri(port.getLink())
                 .type(MediaType.APPLICATION_JSON)
                 .post(port);
     }
 
     @Override
-    public DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
-                                                               DtoMaterializedRouterPort p) {
+    public DtoExteriorRouterPort addExteriorRouterPort(DtoRouter r,
+                                                               DtoExteriorRouterPort p) {
         URI uri = post(r.getPorts(), p);
-        return get(uri, DtoMaterializedRouterPort.class);
+        return get(uri, DtoExteriorRouterPort.class);
     }
 
     @Override
-    public DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
-                                                     DtoLogicalRouterPort p) {
+    public DtoInteriorRouterPort addInteriorRouterPort(DtoRouter r,
+                                                     DtoInteriorRouterPort p) {
         URI uri = post(r.getPorts(), p);
-        return get(uri, DtoLogicalRouterPort.class);
+        return get(uri, DtoInteriorRouterPort.class);
     }
 
     @Override
-    public DtoBridgePort addMaterializedBridgePort(DtoBridge b,
+    public DtoBridgePort addExteriorBridgePort(DtoBridge b,
                                                    DtoBridgePort p) {
         URI uri = post(b.getPorts(), p);
         return get(uri, DtoBridgePort.class);
     }
 
     @Override
-    public DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
-                                                     DtoLogicalBridgePort p) {
+    public DtoInteriorBridgePort addInteriorBridgePort(DtoBridge b,
+                                                     DtoInteriorBridgePort p) {
         URI uri = post(b.getPorts(), p);
-        return get(uri, DtoLogicalBridgePort.class);
+        return get(uri, DtoInteriorBridgePort.class);
     }
 
     @Override
@@ -239,7 +239,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public DtoBgp addBGP(DtoMaterializedRouterPort p, DtoBgp b) {
+    public DtoBgp addBGP(DtoExteriorRouterPort p, DtoBgp b) {
         URI uri = post(p.getBgps(), b);
         return get(uri, DtoBgp.class);
     }
@@ -326,7 +326,7 @@ public class MockMidolmanMgmt extends JerseyTest implements MidolmanMgmt {
     }
 
     @Override
-    public DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn) {
+    public DtoVpn addVpn(DtoExteriorRouterPort p, DtoVpn vpn) {
         URI uri = post(p.getVpns(), vpn);
         return get(uri, DtoVpn.class);
     }

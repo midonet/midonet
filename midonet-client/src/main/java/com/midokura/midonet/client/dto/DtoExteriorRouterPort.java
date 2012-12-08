@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 
 @XmlRootElement
-public class DtoMaterializedRouterPort extends DtoRouterPort {
+public class DtoExteriorRouterPort extends DtoRouterPort {
     private URI bgps;
     private URI vpns;
 
@@ -30,6 +30,6 @@ public class DtoMaterializedRouterPort extends DtoRouterPort {
 
     @Override
     public String getType() {
-        return PortType.MATERIALIZED_ROUTER;
+        return PortType.EXTERIOR_ROUTER;
     }
 }

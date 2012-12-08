@@ -5,18 +5,16 @@
 package com.midokura.midolman.mgmt.network;
 
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
-import com.midokura.packets.MAC;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
-import java.util.Random;
 import java.util.UUID;
 
 /**
- * Data transfer class for logical router port.
+ * Data transfer class for interior router port.
  */
 @XmlRootElement
-public class LogicalRouterPort extends RouterPort implements LogicalPort {
+public class InteriorRouterPort extends RouterPort implements InteriorPort {
 
     /**
      * Peer port ID
@@ -26,7 +24,7 @@ public class LogicalRouterPort extends RouterPort implements LogicalPort {
     /**
      * Constructor
      */
-    public LogicalRouterPort() {
+    public InteriorRouterPort() {
         super();
     }
 
@@ -35,7 +33,7 @@ public class LogicalRouterPort extends RouterPort implements LogicalPort {
      *
      * @param portData
      */
-    public LogicalRouterPort(
+    public InteriorRouterPort(
             com.midokura.midonet.cluster.data.ports.LogicalRouterPort
                     portData) {
         super(portData);
@@ -71,11 +69,6 @@ public class LogicalRouterPort extends RouterPort implements LogicalPort {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.LogicalPort#getLink()
-     */
     @Override
     public URI getLink() {
         if (id != null) {
@@ -94,52 +87,26 @@ public class LogicalRouterPort extends RouterPort implements LogicalPort {
         return data;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#getType()
-     */
     @Override
     public String getType() {
-        return PortType.LOGICAL_ROUTER;
+        return PortType.INTERIOR_ROUTER;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#isLogical()
-     */
     @Override
-    public boolean isLogical() {
+    public boolean isInterior() {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#attachmentId()
-     */
     @Override
     public UUID getAttachmentId() {
         return this.peerId;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.network.Port#setAttachmentId(java.util.UUID)
-     */
     @Override
     public void setAttachmentId(UUID id) {
         this.peerId = id;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return super.toString() + ", peerId=" + peerId;

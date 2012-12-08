@@ -10,24 +10,24 @@ public class PortFactory {
 
         if (data instanceof
                 com.midokura.midonet.cluster.data.ports.LogicalRouterPort) {
-            return new LogicalRouterPort(
+            return new InteriorRouterPort(
                     (com.midokura.midonet.cluster.data.ports.LogicalRouterPort)
                             data);
         } else if (data instanceof
                 com.midokura.midonet.cluster.data.ports.LogicalBridgePort) {
-            return new LogicalBridgePort(
+            return new InteriorBridgePort(
                     (com.midokura.midonet.cluster.data.ports.LogicalBridgePort)
                             data);
         } else if (data instanceof
                 com.midokura.midonet.cluster.data.ports
                         .MaterializedRouterPort) {
-            return new MaterializedRouterPort(
+            return new ExteriorRouterPort(
                     (com.midokura.midonet.cluster.data.ports
                             .MaterializedRouterPort) data);
         } else if (data instanceof
                 com.midokura.midonet.cluster.data.ports
                         .MaterializedBridgePort) {
-            return new MaterializedBridgePort(
+            return new ExteriorBridgePort(
                     (com.midokura.midonet.cluster.data.ports
                             .MaterializedBridgePort) data);
         } else {

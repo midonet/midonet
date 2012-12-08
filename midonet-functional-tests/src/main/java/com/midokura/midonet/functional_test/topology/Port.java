@@ -7,16 +7,16 @@ package com.midokura.midonet.functional_test.topology;
 import java.util.UUID;
 
 import com.midokura.midonet.client.dto.DtoBgp;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
 public class Port {
 
     MidolmanMgmt mgmt;
-    DtoMaterializedRouterPort port;
+    DtoExteriorRouterPort port;
     String name;
 
-    Port(MidolmanMgmt mgmt, DtoMaterializedRouterPort port, String name) {
+    Port(MidolmanMgmt mgmt, DtoExteriorRouterPort port, String name) {
         this.mgmt = mgmt;
         this.port = port;
         this.name = name;

@@ -178,7 +178,7 @@ public class Route extends ResourceBase<Route, DtoRoute> {
     /**
      * Sets next hope port for creation.
      *
-     * @param nextHopPort id of the next hop logical port
+     * @param nextHopPort id of the next hop interior port
      * @return this
      */
     public Route nextHopPort(UUID nextHopPort) {

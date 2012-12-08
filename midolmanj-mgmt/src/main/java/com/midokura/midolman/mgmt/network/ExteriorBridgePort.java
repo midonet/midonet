@@ -8,10 +8,9 @@ import com.midokura.midonet.cluster.data.Port.Property;
 
 import java.util.UUID;
 /**
- * DTO for materialized bridge port
+ * DTO for exterior bridge port
  */
-public class MaterializedBridgePort extends BridgePort implements
-        MaterializedPort {
+public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
 
     /**
      * VIF ID
@@ -21,7 +20,7 @@ public class MaterializedBridgePort extends BridgePort implements
     /**
      * Default constructor
      */
-    public MaterializedBridgePort() {
+    public ExteriorBridgePort() {
         super();
     }
 
@@ -33,7 +32,7 @@ public class MaterializedBridgePort extends BridgePort implements
      * @param deviceId
      *            ID of the device
      */
-    public MaterializedBridgePort(UUID id, UUID deviceId) {
+    public ExteriorBridgePort(UUID id, UUID deviceId) {
         super(id, deviceId);
     }
 
@@ -47,7 +46,7 @@ public class MaterializedBridgePort extends BridgePort implements
      * @param vifId
      *            ID of the VIF.
      */
-    public MaterializedBridgePort(UUID id, UUID deviceId, UUID vifId) {
+    public ExteriorBridgePort(UUID id, UUID deviceId, UUID vifId) {
         super(id, deviceId);
         this.vifId = vifId;
     }
@@ -56,9 +55,9 @@ public class MaterializedBridgePort extends BridgePort implements
      * Constructor
      *
      * @param portData
-     *            Materialized bridge port data object
+     *            Exterior bridge port data object
      */
-    public MaterializedBridgePort(
+    public ExteriorBridgePort(
             com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
                     portData) {
         super(portData);
@@ -74,7 +73,7 @@ public class MaterializedBridgePort extends BridgePort implements
      */
     @Override
     public String getType() {
-        return PortType.MATERIALIZED_BRIDGE;
+        return PortType.EXTERIOR_BRIDGE;
     }
 
     /**
@@ -94,32 +93,16 @@ public class MaterializedBridgePort extends BridgePort implements
         this.vifId = vifId;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#isLogical()
-     */
     @Override
-    public boolean isLogical() {
+    public boolean isInterior() {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#attachmentId()
-     */
     @Override
     public UUID getAttachmentId() {
         return this.vifId;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.network.Port#setAttachmentId(java.util.UUID)
-     */
     @Override
     public void setAttachmentId(UUID id) {
         this.vifId = id;
@@ -137,11 +120,6 @@ public class MaterializedBridgePort extends BridgePort implements
         return data;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return super.toString() + ", vifId=" + vifId;

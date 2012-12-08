@@ -8,10 +8,10 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * Logical port interface
+ * Interior port interface
  *
  */
-public interface LogicalPort {
+public interface InteriorPort {
 
     /**
      * @return　Peer port ID
