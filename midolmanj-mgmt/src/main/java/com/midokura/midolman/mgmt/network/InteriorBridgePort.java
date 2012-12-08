@@ -10,9 +10,9 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * DTO for logical bridge port.
+ * DTO for interior bridge port.
  */
-public class LogicalBridgePort extends BridgePort implements LogicalPort {
+public class InteriorBridgePort extends BridgePort implements InteriorPort {
 
     /**
      * Peer port ID
@@ -22,7 +22,7 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
     /**
      * Default constructor
      */
-    public LogicalBridgePort() {
+    public InteriorBridgePort() {
         super();
     }
 
@@ -31,18 +31,13 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
      *
      * @param portData
      */
-    public LogicalBridgePort(
+    public InteriorBridgePort(
             com.midokura.midonet.cluster.data.ports.LogicalBridgePort
                     portData) {
         super(portData);
         this.peerId = portData.getPeerId();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.LogicalPort#getPeerId()
-     */
     @Override
     public UUID getPeerId() {
         return peerId;
@@ -69,11 +64,6 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.LogicalPort#getLink()
-     */
     @Override
     public URI getLink() {
         if (id != null) {
@@ -83,42 +73,21 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#getType()
-     */
     @Override
     public String getType() {
-        return PortType.LOGICAL_BRIDGE;
+        return PortType.INTERIOR_BRIDGE;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#isLogical()
-     */
     @Override
-    public boolean isLogical() {
+    public boolean isInterior() {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#attachmentId()
-     */
     @Override
     public UUID getAttachmentId() {
         return this.peerId;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.network.Port#setAttachmentId(java.util.UUID)
-     */
     @Override
     public void setAttachmentId(UUID id) {
         this.peerId = id;
@@ -128,16 +97,11 @@ public class LogicalBridgePort extends BridgePort implements LogicalPort {
     public com.midokura.midonet.cluster.data.Port toData() {
         com.midokura.midonet.cluster.data.ports.LogicalBridgePort data =
                 new com.midokura.midonet.cluster.data.ports.LogicalBridgePort()
-                .setPeerId(this.peerId);
+                        .setPeerId(this.peerId);
         super.setConfig(data);
         return data;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return super.toString() + ", peerId=" + peerId;

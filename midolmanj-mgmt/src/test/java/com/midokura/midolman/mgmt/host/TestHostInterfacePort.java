@@ -97,7 +97,7 @@ public class TestHostInterfacePort {
         public void testCrud() throws Exception {
 
             DtoHost host = hostTopology.getHost(host1Id);
-            DtoBridgePort port1 = topology.getMatBridgePort("bridgePort1");
+            DtoBridgePort port1 = topology.getExtBridgePort("bridgePort1");
 
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
@@ -161,8 +161,8 @@ public class TestHostInterfacePort {
                             .name("bridge-1")
                             .create();
 
-            BridgePort bp1 = b1.addMaterializedPort().create();
-            BridgePort bp2 = b1.addMaterializedPort().create();
+            BridgePort bp1 = b1.addExteriorPort().create();
+            BridgePort bp2 = b1.addExteriorPort().create();
 
 
             HostInterfacePort hip1 = host.addHostInterfacePort()
