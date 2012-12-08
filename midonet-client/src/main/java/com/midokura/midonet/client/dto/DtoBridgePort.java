@@ -8,6 +8,6 @@ public class DtoBridgePort extends DtoPort {
 
     @Override
     public String getType() {
-        return PortType.MATERIALIZED_BRIDGE;
+        return PortType.EXTERIOR_BRIDGE;
     }
 }

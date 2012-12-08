@@ -10,7 +10,7 @@ import java.util.UUID;
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
+import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
 
 public class BridgePort<T extends DtoBridgePort> extends
         Port<BridgePort<T>, T> {
@@ -99,7 +99,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return uuid of the peer port
      */
     public UUID getPeerId() {
-        return ((DtoLogicalBridgePort) principalDto).getPeerId();
+        return ((DtoInteriorBridgePort) principalDto).getPeerId();
     }
 
     /**
@@ -155,7 +155,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      */
     public BridgePort<T> link(UUID id) {
         peerId(id);
-        resource.post(((DtoLogicalBridgePort) principalDto).getLink(),
+        resource.post(((DtoInteriorBridgePort) principalDto).getLink(),
                 principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         return get(getUri());
     }
@@ -167,7 +167,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      */
     public BridgePort<T> unlink() {
         peerId(null);
-        resource.post(((DtoLogicalBridgePort) principalDto).getLink(),
+        resource.post(((DtoInteriorBridgePort) principalDto).getLink(),
                 principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         return get(getUri());
     }
@@ -187,7 +187,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return
      */
     private BridgePort<T> peerId(UUID id) {
-        ((DtoLogicalBridgePort) principalDto).setPeerId(id);
+        ((DtoInteriorBridgePort) principalDto).setPeerId(id);
         return this;
     }
 

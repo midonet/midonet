@@ -15,10 +15,9 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * Data transfer class for materialized router port.
+ * Data transfer class for exterior router port.
  */
-public class MaterializedRouterPort extends RouterPort implements
-        MaterializedPort {
+public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
 
     /**
      * VIF ID
@@ -28,7 +27,7 @@ public class MaterializedRouterPort extends RouterPort implements
     /**
      * Constructor
      */
-    public MaterializedRouterPort() {
+    public ExteriorRouterPort() {
         super();
     }
 
@@ -40,7 +39,7 @@ public class MaterializedRouterPort extends RouterPort implements
      * @param deviceId
      *            ID of the device
      */
-    public MaterializedRouterPort(UUID id, UUID deviceId) {
+    public ExteriorRouterPort(UUID id, UUID deviceId) {
         super(id, deviceId);
     }
 
@@ -54,7 +53,7 @@ public class MaterializedRouterPort extends RouterPort implements
      * @param vifId
      *            ID of the VIF.
      */
-    public MaterializedRouterPort(UUID id, UUID deviceId, UUID vifId) {
+    public ExteriorRouterPort(UUID id, UUID deviceId, UUID vifId) {
         super(id, deviceId);
         this.vifId = vifId;
     }
@@ -63,9 +62,9 @@ public class MaterializedRouterPort extends RouterPort implements
      * Constructor
      *
      * @param portData
-     *            Materialized bridge port data object
+     *            Exterior bridge port data object
      */
-    public MaterializedRouterPort(
+    public ExteriorRouterPort(
             com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
                     portData) {
         super(portData);
@@ -126,52 +125,26 @@ public class MaterializedRouterPort extends RouterPort implements
         return data;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.data.dto.Port#getType()
-     */
     @Override
     public String getType() {
-        return PortType.MATERIALIZED_ROUTER;
+        return PortType.EXTERIOR_ROUTER;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#isLogical()
-     */
     @Override
-    public boolean isLogical() {
+    public boolean isInterior() {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.midokura.midolman.mgmt.network.Port#attachmentId()
-     */
     @Override
     public UUID getAttachmentId() {
         return this.vifId;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.midokura.midolman.mgmt.network.Port#setAttachmentId(java.util.UUID)
-     */
     @Override
     public void setAttachmentId(UUID id) {
         this.vifId = id;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return super.toString() + ", vifId=" + vifId;

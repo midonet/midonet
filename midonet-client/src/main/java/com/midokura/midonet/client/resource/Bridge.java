@@ -4,19 +4,13 @@
 
 package com.midokura.midonet.client.resource;
 
+import com.midokura.midonet.client.VendorMediaType;
+import com.midokura.midonet.client.WebResource;
+import com.midokura.midonet.client.dto.*;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
-
-import com.midokura.midonet.client.VendorMediaType;
-import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.DtoBridge;
-import com.midokura.midonet.client.dto.DtoBridgePort;
-import com.midokura.midonet.client.dto.DtoDhcpSubnet;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
-import com.midokura.midonet.client.dto.DtoPort;
 
 public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
@@ -157,14 +151,14 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
             VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
-            if (pp instanceof DtoLogicalRouterPort) {
-                RouterPort rp = new RouterPort<DtoLogicalRouterPort>(
+            if (pp instanceof DtoInteriorRouterPort) {
+                RouterPort rp = new RouterPort<DtoInteriorRouterPort>(
                     resource,
                     principalDto.getPorts(),
-                    (DtoLogicalRouterPort) pp);
+                    (DtoInteriorRouterPort) pp);
                 peerPorts.add(rp);
 
-            } else if (pp instanceof DtoLogicalBridgePort) {
+            } else if (pp instanceof DtoInteriorBridgePort) {
                 throw new IllegalStateException(
                     "MidoNet doesn't support linking bridge to brdige.");
             }
@@ -177,7 +171,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      *
      * @return bridge port object
      */
-    public BridgePort<DtoBridgePort> addMaterializedPort() {
+    public BridgePort<DtoBridgePort> addExteriorPort() {
         return new BridgePort<DtoBridgePort>(resource, principalDto.getPorts(),
                                              new DtoBridgePort());
     }
@@ -187,10 +181,9 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      *
      * @return bridge port object for
      */
-    public BridgePort<DtoLogicalBridgePort> addLogicalPort() {
-        return new BridgePort<DtoLogicalBridgePort>(resource,
-                                                    principalDto.getPorts(),
-                                                    new DtoLogicalBridgePort());
+    public BridgePort<DtoInteriorBridgePort> addInteriorPort() {
+        return new BridgePort<DtoInteriorBridgePort>(
+                resource, principalDto.getPorts(), new DtoInteriorBridgePort());
     }
 
     public DhcpSubnet addDhcpSubnet() {

@@ -12,12 +12,17 @@ import java.net.URI;
 import java.util.UUID;
 
 @XmlRootElement
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = DtoBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
-        @JsonSubTypes.Type(value = DtoLogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
-        @JsonSubTypes.Type(value = DtoMaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
-        @JsonSubTypes.Type(value = DtoLogicalRouterPort.class, name = PortType.LOGICAL_ROUTER)})
+        @JsonSubTypes.Type(value = DtoBridgePort.class,
+                name = PortType.EXTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = DtoInteriorBridgePort.class,
+                name = PortType.INTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = DtoExteriorRouterPort.class,
+                name = PortType.EXTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = DtoInteriorRouterPort.class,
+                name = PortType.INTERIOR_ROUTER)})
 public abstract class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;

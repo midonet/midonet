@@ -1,13 +1,13 @@
 /*
- * @(#)testVif        1.6 11/11/15
- *
  * Copyright 2011 Midokura KK
  */
 package com.midokura.midolman.mgmt.bgp;
 
-import java.net.URI;
-import java.util.UUID;
-
+import com.midokura.midolman.mgmt.rest_api.FuncTest;
+import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
+import com.midokura.midonet.client.dto.DtoBgp;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoRouter;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -16,17 +16,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.assertEquals;
 
-import com.midokura.midolman.mgmt.rest_api.FuncTest;
-import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
-import com.midokura.midonet.client.dto.DtoBgp;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
-import com.midokura.midonet.client.dto.DtoRouter;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BGP_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BGP_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTER_JSON;
+import java.net.URI;
+import java.util.UUID;
+
+import static com.midokura.midolman.mgmt.VendorMediaType.*;
+import static org.junit.Assert.assertEquals;
 
 public class TestBGP extends JerseyTest {
 
@@ -60,16 +55,17 @@ public class TestBGP extends JerseyTest {
         log.debug("router location: {}", response.getLocation());
         testRouterUri = response.getLocation();
 
-        // Create a materialized router port.
+        // Create a Exterior router port.
         URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
         log.debug("routerPortUri: {} ", routerPortUri);
-        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
+        DtoExteriorRouterPort port = new DtoExteriorRouterPort();
         port.setNetworkAddress("10.0.0.0");
         port.setNetworkLength(24);
         port.setPortAddress("10.0.0.1");
         port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
-        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON).post(ClientResponse.class, port);
+        response = resource().uri(routerPortUri).type(APPLICATION_PORT_JSON)
+                .post(ClientResponse.class, port);
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());
 
@@ -89,12 +85,14 @@ public class TestBGP extends JerseyTest {
         bgp.setPeerAddr("180.214.47.65");
 
         //Create bgp
-        response = resource().path("/ports/" + testRouterPortId + "/bgps").type(APPLICATION_BGP_JSON).post(ClientResponse.class, bgp);
+        response = resource().path("/ports/" + testRouterPortId + "/bgps")
+                .type(APPLICATION_BGP_JSON).post(ClientResponse.class, bgp);
         assertEquals(201, response.getStatus());
         URI bgpUri = response.getLocation();
 
         //Get the bgp
-        response = resource().uri(bgpUri).accept(APPLICATION_BGP_JSON).get(ClientResponse.class);
+        response = resource().uri(bgpUri).accept(APPLICATION_BGP_JSON)
+                .get(ClientResponse.class);
         bgp = response.getEntity(DtoBgp.class);
         assertEquals(200, response.getStatus());
         assertEquals(55394, bgp.getLocalAS());
@@ -104,7 +102,9 @@ public class TestBGP extends JerseyTest {
 
         //List bgps
 
-        response = resource().path("/ports/" + testRouterPortId + "/bgps").accept(APPLICATION_BGP_COLLECTION_JSON).get(ClientResponse.class);
+        response = resource().path("/ports/" + testRouterPortId + "/bgps")
+                .accept(APPLICATION_BGP_COLLECTION_JSON).get(
+                        ClientResponse.class);
         assertEquals(200, response.getStatus());
         log.debug("BODY: {}", response.getEntity(String.class));
 
