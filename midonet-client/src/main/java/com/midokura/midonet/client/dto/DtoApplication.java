@@ -15,6 +15,8 @@ public class DtoApplication {
     private URI tunnelZones;
     private URI bridges;
     private URI chains;
+    private URI metricsFilter;
+    private URI metricsQuery;
     private URI portGroups;
     private URI routers;
     private String adRouteTemplate;
@@ -59,6 +61,22 @@ public class DtoApplication {
 
     public void setChains(URI chains) {
         this.chains = chains;
+    }
+
+    public URI getMetricsFilter() {
+        return metricsFilter;
+    }
+
+    public void setMetricsFilter(URI metricsFilter) {
+        this.metricsFilter = metricsFilter;
+    }
+
+    public URI getMetricsQuery() {
+        return metricsQuery;
+    }
+
+    public void setMetricsQuery(URI metricsQuery) {
+        this.metricsQuery = metricsQuery;
     }
 
     public URI getPortGroups() {

@@ -26,7 +26,7 @@
   * [Host](#host)
   * [Interface](#interface)
   * [Host Command](#hostcommand)
-  * [Host-Interface-Port Binding] (#hostinterfaceport)
+  * [Host-Interface-Port Binding](#hostinterfaceport)
   * [Tunnel Zone](#tunnelzone)
   * [Tunnel Zone Host](#tunnelzonehost)
   * [Metric Target](#metrictarget)
@@ -66,6 +66,8 @@ The request above may yield the following output:
         "bridges": "http://example.org/bridges",
         "chains": "http://example.org/chains",
         "hosts": "http://example.org/hosts",
+        "metricsFilter": "http://example.org/metrics/filter",
+        "metricsQuery": "http://example.org/metrics/query",
         "portGroups": "http://example.org/port_groups",
         "routers": "http://example.org/routers",
         "bgpTemplate": "http://example.org/bgps/{id}",
@@ -319,6 +321,22 @@ traverse the URIs to discover all the available services.
         <td></td>
         <td></td>
         <td>A GET against this URI gets a list of hosts.</td>
+    </tr>
+    <tr>
+    <tr>
+        <td>metricsFilter</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metrics
+        available for a given metric target.</td>
+    </tr>
+        <td>metricsQuery</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metric
+        query responses for a given list of metric queries.</td> 
     </tr>
     <tr>
         <td>portGroups</td>
