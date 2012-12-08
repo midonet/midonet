@@ -55,20 +55,20 @@ public class Router {
         this.dto = router;
     }
 
-    public MaterializedRouterPort.VMPortBuilder addVmPort() {
-        return new MaterializedRouterPort.VMPortBuilder(mgmt, dto);
+    public ExteriorRouterPort.VMPortBuilder addVmPort() {
+        return new ExteriorRouterPort.VMPortBuilder(mgmt, dto);
     }
 
-    public MaterializedRouterPort.GWPortBuilder addGwPort() {
-        return new MaterializedRouterPort.GWPortBuilder(mgmt, dto);
+    public ExteriorRouterPort.GWPortBuilder addGwPort() {
+        return new ExteriorRouterPort.GWPortBuilder(mgmt, dto);
     }
 
-    public MaterializedRouterPort.VPNPortBuilder addVpnPort() {
-        return new MaterializedRouterPort.VPNPortBuilder(mgmt, dto);
+    public ExteriorRouterPort.VPNPortBuilder addVpnPort() {
+        return new ExteriorRouterPort.VPNPortBuilder(mgmt, dto);
     }
 
-    public LogicalRouterPort.Builder addLinkPort() {
-        return new LogicalRouterPort.Builder(mgmt, dto);
+    public InteriorRouterPort.Builder addLinkPort() {
+        return new InteriorRouterPort.Builder(mgmt, dto);
     }
 
     public String getName() {

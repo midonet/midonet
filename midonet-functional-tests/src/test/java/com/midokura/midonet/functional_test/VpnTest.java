@@ -26,8 +26,8 @@ import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
-import com.midokura.midonet.functional_test.topology.LogicalRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
+import com.midokura.midonet.functional_test.topology.InteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.topology.Tenant;
@@ -49,9 +49,9 @@ public class VpnTest {
     TapWrapper tapPort2;
     MidolmanMgmt mgmt;
     MidolmanLauncher midolman;
-    MaterializedRouterPort vpn1;
-    MaterializedRouterPort vpn2;
-    LogicalRouterPort uplinkPort;
+    ExteriorRouterPort vpn1;
+    ExteriorRouterPort vpn2;
+    InteriorRouterPort uplinkPort;
 
     static LockHelper.Lock lock;
 
@@ -76,7 +76,7 @@ public class VpnTest {
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         // Here's a VM on router1.
         IntIPv4 ip1 = IntIPv4.fromString("10.0.231.11");
-        MaterializedRouterPort p = router1.addVmPort().setVMAddress(ip1).build();
+        ExteriorRouterPort p = router1.addVmPort().setVMAddress(ip1).build();
         tapPort1 = new TapWrapper("vpnTestTap1");
         //ovsBridge.addSystemPort(p.port.getId(), tapPort1.getName());
 
@@ -94,7 +94,7 @@ public class VpnTest {
         uplinkPort = router1.addLinkPort()
                 .setNetworkAddress("169.254.1.0").setNetworkLength(30)
                 .setPortAddress("169.254.1.1").build();
-        LogicalRouterPort router2port1 = router2.addLinkPort()
+        InteriorRouterPort router2port1 = router2.addLinkPort()
                 .setNetworkAddress("169.254.1.0").setNetworkLength(30)
                 .setPortAddress("169.254.1.2").build();
         uplinkPort.link(router2port1, "192.168.231.0", "192.168.232.0");
@@ -102,7 +102,7 @@ public class VpnTest {
         // Router 1 has a port that leads to 10.0.232.0/24 via a VPN
         // and gateway (router2).
         // p1 private port of the VPN
-        MaterializedRouterPort p1 = router1
+        ExteriorRouterPort p1 = router1
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.1"),
                         IntIPv4.fromString("169.254.0.2"))
@@ -120,7 +120,7 @@ public class VpnTest {
 
         // Router 2 has a port that leads to 10.0.231.0/24 via a VPN
         // and gateway (router2).
-        MaterializedRouterPort p2 = router2
+        ExteriorRouterPort p2 = router2
                 .addGwPort()
                 .setLocalLink(IntIPv4.fromString("169.254.0.2"),
                         IntIPv4.fromString("169.254.0.1"))

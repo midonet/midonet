@@ -13,7 +13,7 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Rule;
 import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -245,7 +245,7 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         // Now we add a router port with a route to floatingIP1
         TapWrapper tapNew = new TapWrapper("newRouterPort");
         IntIPv4 gwIp = IntIPv4.fromString("172.16.1.2");
-        MaterializedRouterPort rtrNewPort = router1.addGwPort()
+        ExteriorRouterPort rtrNewPort = router1.addGwPort()
                 .setLocalMac(tapNew.getHwAddr())
                 .setLocalLink(IntIPv4.fromString("172.16.1.1"), gwIp)
                 .addRoute(pubNewIp).build();
@@ -258,7 +258,7 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         exchangeArpWithGw(epNew);
 
         // Now we resend the packet from endpoint0 to pubNewIp, it will go
-        // to the new materialized router port. This shows that the previous
+        // to the new exterior router port. This shows that the previous
         // flow was invalidated.
         packets = icmpTest(
                 vmEndpoints.get(0), pubNewIp, epNew, false);
