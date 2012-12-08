@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midonet.client.resource.Bridge;
@@ -57,7 +57,7 @@ import static org.junit.Assert.assertTrue;
 @Ignore
 public class L2FilteringTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
-    RouterPort<DtoLogicalRouterPort> rtrPort;
+    RouterPort<DtoInteriorRouterPort> rtrPort;
     MockMgmtStarter apiStarter;
     MidonetMgmt apiClient;
     Bridge bridge;
@@ -109,9 +109,9 @@ public class L2FilteringTest {
         // Build a router
         Router rtr =
             apiClient.addRouter().tenantId("L2filter_tnt").name("rtr1").create();
-        // Add a logical port to the router.
+        // Add a interior port to the router.
         rtrPort = rtr
-            .addLogicalRouterPort()
+            .addInteriorRouterPort()
             .portAddress(rtrIp.toUnicastString())
             .networkAddress(rtrIp.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp.getMaskLength())
@@ -127,8 +127,8 @@ public class L2FilteringTest {
         bridge = apiClient.addBridge()
             .tenantId("L2filter_tnt").name("br").create();
         // Link the bridge to the router.
-        BridgePort<DtoLogicalBridgePort> logBrPort =
-            bridge.addLogicalPort().create();
+        BridgePort<DtoInteriorBridgePort> logBrPort =
+            bridge.addInteriorPort().create();
         rtrPort.link(logBrPort.getId());
 
         tap1 = new TapWrapper("l2filterTap1");
@@ -137,7 +137,7 @@ public class L2FilteringTest {
         tap4 = new TapWrapper("l2filterTap4");
         tap5 = new TapWrapper("l2filterTap5");
 
-        // Now bind the taps to materialized bridge ports.
+        // Now bind the taps to exterior bridge ports.
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -151,16 +151,16 @@ public class L2FilteringTest {
         assertNotNull("Host is null", host);
 
         host.addHostInterfacePort().interfaceName(tap1.getName())
-            .portId(bridge.addMaterializedPort().create().getId()).create();
+            .portId(bridge.addExteriorPort().create().getId()).create();
         host.addHostInterfacePort().interfaceName(tap2.getName())
-            .portId(bridge.addMaterializedPort().create().getId()).create();
-        brPort3 = bridge.addMaterializedPort().create();
+            .portId(bridge.addExteriorPort().create().getId()).create();
+        brPort3 = bridge.addExteriorPort().create();
         host.addHostInterfacePort().interfaceName(tap3.getName())
             .portId(brPort3.getId()).create();
         host.addHostInterfacePort().interfaceName(tap4.getName())
-            .portId(bridge.addMaterializedPort().create().getId()).create();
+            .portId(bridge.addExteriorPort().create().getId()).create();
         host.addHostInterfacePort().interfaceName(tap5.getName())
-            .portId(bridge.addMaterializedPort().create().getId()).create();
+            .portId(bridge.addExteriorPort().create().getId()).create();
 
         log.info("Waiting for 5 LocalPortActive notifications");
         Set<UUID> activatedPorts = new HashSet<UUID>();
@@ -173,7 +173,7 @@ public class L2FilteringTest {
             assertTrue("The port should be active.", activeMsg.active());
             activatedPorts.add(activeMsg.portID());
         }
-        assertThat("The 5 materialized ports should be active.",
+        assertThat("The 5 exterior ports should be active.",
             activatedPorts, hasSize(5));
     }
 

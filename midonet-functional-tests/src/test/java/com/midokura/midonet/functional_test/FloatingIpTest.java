@@ -28,9 +28,9 @@ import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoDhcpOption121;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midonet.client.resource.Bridge;
@@ -119,8 +119,8 @@ public class FloatingIpTest {
         com.midokura.midonet.client.resource.Router rtr =
             apiClient.addRouter().tenantId("fl_ip_tnt").name("rtr1").create();
 
-        RouterPort<DtoMaterializedRouterPort> rtrPort1 = rtr
-            .addMaterializedRouterPort()
+        RouterPort<DtoExteriorRouterPort> rtrPort1 = rtr
+            .addExteriorRouterPort()
             .portAddress(rtrIp1.toUnicastString())
             .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp1.getMaskLength())
@@ -132,8 +132,8 @@ public class FloatingIpTest {
             .type(DtoRoute.Normal).weight(10)
             .create();
 
-        RouterPort<DtoMaterializedRouterPort> rtrPort2 = rtr
-            .addMaterializedRouterPort()
+        RouterPort<DtoExteriorRouterPort> rtrPort2 = rtr
+            .addExteriorRouterPort()
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp2.getMaskLength())
@@ -145,8 +145,8 @@ public class FloatingIpTest {
             .type(DtoRoute.Normal).weight(10)
             .create();
 
-        RouterPort<DtoLogicalRouterPort> rtrPort3 = rtr
-            .addLogicalRouterPort()
+        RouterPort<DtoInteriorRouterPort> rtrPort3 = rtr
+            .addInteriorRouterPort()
             .portAddress(rtrIp3.toUnicastString())
             .networkAddress(rtrIp3.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp3.getMaskLength())
@@ -158,16 +158,16 @@ public class FloatingIpTest {
             .type(DtoRoute.Normal).weight(10)
             .create();
 
-        // Build a bridge and link it to the router's logical port
+        // Build a bridge and link it to the router's interior port
         Bridge br = apiClient.addBridge().tenantId("fl_ip_tnt")
             .name("br").create();
-        BridgePort<DtoLogicalBridgePort> brPort1 =
-            br.addLogicalPort().create();
-        // Link the bridge to the router's third (logical) port.
+        BridgePort<DtoInteriorBridgePort> brPort1 =
+            br.addInteriorPort().create();
+        // Link the bridge to the router's third (interior) port.
         rtrPort3.link(brPort1.getId());
 
-        // Add a materialized port on the bridge.
-        BridgePort<DtoBridgePort> brPort2 = br.addMaterializedPort().create();
+        // Add a exterior port on the bridge.
+        BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort().create();
 
         // Add a DHCP static assignment for the VM on the bridge (vm3).
         // We need a DHCP option 121 fr a static route to the other VMs.
@@ -218,7 +218,7 @@ public class FloatingIpTest {
                         floatingIP.toUnicastString(), 0, 0)
                 }).create();
 
-        // Now bind the materialized ports to interfaces on the local host.
+        // Now bind the exterior ports to interfaces on the local host.
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -233,20 +233,20 @@ public class FloatingIpTest {
 
         log.debug("Creating TAP");
 
-        // Bind a tap to the router's first materialized port.
+        // Bind a tap to the router's first exterior port.
         tap1 = new TapWrapper("tapFL1");
         host.addHostInterfacePort()
             .interfaceName(tap1.getName())
             .portId(rtrPort1.getId()).create();
 
-        // Bind a tap to the router's second materialized port.
+        // Bind a tap to the router's second exterior port.
         tap2 = new TapWrapper("tapFL2");
         host.addHostInterfacePort()
             .interfaceName(tap2.getName())
             .portId(rtrPort2.getId()).create();
 
         // Bind the internal 'local' port to the bridge's second
-        // (materialized) port.
+        // (exterior) port.
         String localName = "midonet";
         host.addHostInterfacePort()
             .interfaceName(localName)
@@ -266,7 +266,7 @@ public class FloatingIpTest {
             assertTrue("The port should be active.", activeMsg.active());
             activatedPorts.add(activeMsg.portID());
         }
-        assertThat("The 3 materialized ports should be active.",
+        assertThat("The 3 exterior ports should be active.",
             activatedPorts,
             hasItems(rtrPort1.getId(), rtrPort2.getId(), brPort2.getId()));
 

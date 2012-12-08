@@ -27,10 +27,14 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = MaterializedBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
-        @JsonSubTypes.Type(value = LogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
-        @JsonSubTypes.Type(value = MaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
-        @JsonSubTypes.Type(value = LogicalRouterPort.class, name = PortType.LOGICAL_ROUTER) })
+        @JsonSubTypes.Type(value = ExteriorBridgePort.class,
+                name = PortType.EXTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = InteriorBridgePort.class,
+                name = PortType.INTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = ExteriorRouterPort.class,
+                name = PortType.EXTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = InteriorRouterPort.class,
+                name = PortType.INTERIOR_ROUTER) })
 public abstract class Port extends UriResource {
 
     /**
@@ -128,7 +132,7 @@ public abstract class Port extends UriResource {
     abstract public URI getDevice();
 
     /**
-     * logical Set device ID.
+     * Set device ID.
      *
      * @param deviceId
      *            ID of the device.
@@ -216,10 +220,10 @@ public abstract class Port extends UriResource {
     }
 
     /**
-     * @return whether this port is a logical port
+     * @return whether this port is a interior port
      */
     @XmlTransient
-    public abstract boolean isLogical();
+    public abstract boolean isInterior();
 
     /**
      * @return ID of the attached resource
@@ -238,8 +242,8 @@ public abstract class Port extends UriResource {
             throw new IllegalArgumentException("port cannot be null");
         }
 
-        // Must be two logical ports
-        if (!isLogical() || !port.isLogical()) {
+        // Must be two interior ports
+        if (!isInterior() || !port.isInterior()) {
             return false;
         }
 

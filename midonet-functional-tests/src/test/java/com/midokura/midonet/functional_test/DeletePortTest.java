@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.MaterializedRouterPort;
+import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
 import com.midokura.midonet.functional_test.topology.Router;
 import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
@@ -47,9 +47,9 @@ public class DeletePortTest {
 
     Router rtr;
     Tenant tenant1;
-    MaterializedRouterPort p1;
-    MaterializedRouterPort p2;
-    MaterializedRouterPort p3;
+    ExteriorRouterPort p1;
+    ExteriorRouterPort p2;
+    ExteriorRouterPort p3;
     TapWrapper tap1;
     TapWrapper tap2;
     PacketHelper helper1;

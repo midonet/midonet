@@ -7,9 +7,9 @@ package com.midokura.midolman.mgmt.network;
 import java.util.UUID;
 
 /**
- * Interface representing materialized port.
+ * Interface representing exterior port.
  */
-public interface MaterializedPort {
+public interface ExteriorPort {
 
     /**
      * @return VIF ID

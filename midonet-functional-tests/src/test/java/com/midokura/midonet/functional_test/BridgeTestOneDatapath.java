@@ -105,15 +105,15 @@ public class BridgeTestOneDatapath {
         // testing range 198.18.0.0/15.
         ip1 = IntIPv4.fromString("198.18.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
-        port1 = bridge.addMaterializedPort().create();
+        port1 = bridge.addExteriorPort().create();
 
         ip2 = IntIPv4.fromString("198.18.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
-        port2 = bridge.addMaterializedPort().create();
+        port2 = bridge.addExteriorPort().create();
 
         ip3 = IntIPv4.fromString("198.18.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
-        port3 = bridge.addMaterializedPort().create();
+        port3 = bridge.addExteriorPort().create();
 
         ResourceCollection<Host> hosts = apiClient.getHosts();
         Host host = null;

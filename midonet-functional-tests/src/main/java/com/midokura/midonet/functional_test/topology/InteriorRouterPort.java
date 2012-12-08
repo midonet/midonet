@@ -4,24 +4,24 @@
 
 package com.midokura.midonet.functional_test.topology;
 
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRouter;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 
-public class LogicalRouterPort {
+public class InteriorRouterPort {
 
     public static class Builder {
         private final MidolmanMgmt mgmt;
         private final DtoRouter router;
-        private final DtoLogicalRouterPort port;
+        private final DtoInteriorRouterPort port;
 
         public Builder(MidolmanMgmt mgmt, DtoRouter router) {
             this.mgmt = mgmt;
             this.router = router;
-            port = new DtoLogicalRouterPort();
+            port = new DtoInteriorRouterPort();
         }
 
         public Builder setNetworkAddress(String addr) {
@@ -39,24 +39,24 @@ public class LogicalRouterPort {
             return this;
         }
 
-        public LogicalRouterPort build() {
-            DtoLogicalRouterPort p = mgmt.addLogicalRouterPort(router, port);
-            return new LogicalRouterPort(mgmt, p, router);
+        public InteriorRouterPort build() {
+            DtoInteriorRouterPort p = mgmt.addInteriorRouterPort(router, port);
+            return new InteriorRouterPort(mgmt, p, router);
         }
     }
 
     MidolmanMgmt mgmt;
-    public DtoLogicalRouterPort port;
+    public DtoInteriorRouterPort port;
     public DtoRouter router;
 
-    LogicalRouterPort(MidolmanMgmt mgmt, DtoLogicalRouterPort port,
+    InteriorRouterPort(MidolmanMgmt mgmt, DtoInteriorRouterPort port,
             DtoRouter router) {
         this.mgmt = mgmt;
         this.port = port;
         this.router = router;
     }
 
-    public void link(LogicalRouterPort peerPort, String localPrefixIpv4,
+    public void link(InteriorRouterPort peerPort, String localPrefixIpv4,
             String peerPrefixIpv4) {
         port.setPeerId(peerPort.port.getId());
         mgmt.linkRouterToPeer(port);
@@ -82,7 +82,7 @@ public class LogicalRouterPort {
         mgmt.addRoute(peerPort.router, rt);
     }
 
-    public void link(LogicalBridgePort peerPort) {
+    public void link(InteriorBridgePort peerPort) {
         port.setPeerId(peerPort.port.getId());
         mgmt.linkRouterToPeer(port);
         DtoRoute rt = new DtoRoute();

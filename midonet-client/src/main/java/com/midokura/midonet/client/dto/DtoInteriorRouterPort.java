@@ -4,16 +4,17 @@
 
 package com.midokura.midonet.client.dto;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
 
-public class DtoLogicalBridgePort extends DtoBridgePort implements
-        DtoLogicalPort {
+@XmlRootElement
+public class DtoInteriorRouterPort extends DtoRouterPort implements
+        DtoInteriorPort {
 
     private UUID peerId = null;
     private URI peer = null;
     private URI link = null;
-    private URI unlink = null;
 
     @Override
     public UUID getPeerId() {
@@ -47,7 +48,7 @@ public class DtoLogicalBridgePort extends DtoBridgePort implements
 
     @Override
     public String getType() {
-        return PortType.LOGICAL_BRIDGE;
+        return PortType.INTERIOR_ROUTER;
     }
 
     @Override
@@ -55,9 +56,10 @@ public class DtoLogicalBridgePort extends DtoBridgePort implements
         if (!super.equals(other)) {
             return false;
         }
-        DtoLogicalBridgePort port = (DtoLogicalBridgePort) other;
+        DtoInteriorRouterPort port = (DtoInteriorRouterPort) other;
 
-        if (peerId != null ? !peerId.equals(port.peerId) : port.peerId != null) {
+        if (peerId != null
+                ? !peerId.equals(port.peerId) : port.peerId != null) {
             return false;
         }
 
@@ -66,10 +68,6 @@ public class DtoLogicalBridgePort extends DtoBridgePort implements
         }
 
         if (link != null ? !link.equals(port.link) : port.link != null) {
-            return false;
-        }
-
-        if (unlink != null ? !unlink.equals(port.unlink) : port.unlink != null) {
             return false;
         }
 
