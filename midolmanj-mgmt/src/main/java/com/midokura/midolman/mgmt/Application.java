@@ -88,6 +88,28 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the metrics filter URI
+     */
+    public URI getMetricsFilter() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getMetricsFilter(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the metrics query URI
+     */
+    public URI getMetricsQuery() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getMetricsQuery(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the port groups URI
      */
     public URI getPortGroups() {
