@@ -31,6 +31,8 @@ public class ResourceUriBuilder {
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
     public static final String METRICS = "/metrics";
+    public static final String FILTER = "/filter";
+    public static final String QUERY = "/query";
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
@@ -270,6 +272,14 @@ public class ResourceUriBuilder {
 
     public static URI getMetrics(URI baseUri){
         return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
+    }
+
+    public static URI getMetricsFilter(URI baseUri) {
+        return UriBuilder.fromUri(getMetrics(baseUri)).path(FILTER).build();
+    }
+
+    public static URI getMetricsQuery(URI baseUri) {
+        return UriBuilder.fromUri(getMetrics(baseUri)).path(QUERY).build();
     }
 
     public static URI getTunnelZones(URI baseUri) {
