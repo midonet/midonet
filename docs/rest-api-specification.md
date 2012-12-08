@@ -275,6 +275,8 @@ in the request.
 <a name="application"/>
 ### Application [application/vnd.com.midokura.midolman.mgmt.Application+json]
 
+    GET     /
+
 This is the root object in MidoNet REST API.  From this object, clients can
 traverse the URIs to discover all the available services.
 
@@ -452,6 +454,12 @@ traverse the URIs to discover all the available services.
 <a name="router"/>
 ### Router [application/vnd.com.midokura.midolman.mgmt.Router+json]
 
+    GET     /routers
+    GET     /routers?tenant_id=:tenant_id
+    POST    /routers
+    PUT     /routers/:routerId
+    DELETE  /routers/:routerId
+
 Router is an entity that represents a virtual router device in MidoNet. It
 contains the following fields:
 
@@ -565,6 +573,12 @@ contains the following fields:
 <a name="bridge"/>
 ### Bridge [application/vnd.com.midokura.midolman.mgmt.Bridge+json]
 
+    GET     /bridges
+    GET     /bridges?tenant_id=:tenant_id
+    POST    /bridges
+    PUT     /bridges/:bridgeId
+    DELETE  /bridges/:bridgeId
+
 Bridge is an entity that represents a virtual bridge device in MidoNet. It
 contains the following fields:
 
@@ -674,6 +688,17 @@ contains the following fields:
 
 <a name="port"/>
 ### Port [application/vnd.com.midokura.midolman.mgmt.Port+json]
+
+    GET     /ports
+    GET     /ports?tenant_id=:tenantId
+    GET     /ports/:portId
+    GET     /routers/:routerId/ports
+    GET     /routers/:routerId/peer_ports
+    GET     /bridges/:bridgeId/ports
+    GET     /bridges/:bridgeId/peer_ports
+    POST    /ports
+    PUT     /ports/:portId
+    DELETE  /ports/:portId
 
 Port is an entity that represents a port on a virtual device (bridge or router)
 in MidoNet.  It contains the following fields:
@@ -855,6 +880,17 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
 <a name="route"/>
 ### Route [application/vnd.com.midokura.midolman.mgmt.Route+json]
 
+    GET     /routers/:routerId/routes
+    GET     /bridges/:bridgeId/routes
+    GET     /routers/:routerId/routes/:routeId
+    GET     /bridges/:bridgeId/routes/:routeId
+    POST    /routers/:routerId/routes
+    POST    /bridges/:bridgeId/routes
+    PUT     /routers/:routerId/routes/:routeId
+    PUT     /bridges/:bridgeId/routes/:routeId
+    DELETE  /routers/:bridgeId/routes/:routeId
+    DELETE  /bridges/:bridgeId/routes/:routeId
+
 Route is an entity that represents a route on a virtual router in MidoNet.  It
 contains the following fields:
 
@@ -964,6 +1000,12 @@ contains the following fields:
 <a name="portgroup"/>
 ### PortGroup [application/vnd.com.midokura.midolman.mgmt.PortGroup+json]
 
+    GET     /port_groups?tenant_id=:tenantId
+    GET     /port_groups/:portGroupId
+    POST    /port_groups
+    PUT     /port_groups/:portGroupId
+    DELETE  /port_groups/:portGroupId
+
 <table>
     <tr>
         <th>Field Name</th>
@@ -1005,6 +1047,16 @@ contains the following fields:
 
 <a name="chain"/>
 ### Chain [application/vnd.com.midokura.midolman.mgmt.Chain+json]
+
+    GET     /chains
+    GET     /chains?tenant_id=:tenantId
+    GET     /ports/:portId/inboundFilter
+    GET     /ports/:portId/outboundFilter
+    GET     /bridges/:bridgeId/inboundFilter
+    GET     /bridges/:bridgeId/outboundFilter
+    POST    /chains
+    PUT     /chains/:chainId
+    DELETE  /chains/:chainId
 
 Chain is an entity that represents a rule chain on a virtual router in MidoNet.
 It contains the following fields:
@@ -1058,6 +1110,12 @@ It contains the following fields:
 
 <a name="rule"/>
 ### Rule [application/vnd.com.midokura.midolman.mgmt.Rule+json]
+
+    GET     /chains/:chainId/rules
+    GET     /chains/:chainId/rules/:ruleId
+    POST    /chains/:chainId/rules
+    PUT     /chains/:chainId/rules/:ruleId
+    DELETE  /chains/:chainId/rules/:ruleId
 
 Rule is an entity that represents a rule on a virtual router chain in MidoNet.
 It contains the following fields:
@@ -1309,6 +1367,12 @@ It contains the following fields:
 <a name="bgp"/>
 ### BGP [application/vnd.com.midokura.midolman.mgmt.Bgp+json]
 
+    GET     /ports/:portId/bgps
+    GET     /ports/:portId/bgps/:bgpId
+    POST    /ports/:portId/bgps
+    PUT     /ports/:portId/bgps/:bgpId
+    DELETE  /ports/:portId/bgps/:bgpId
+
 BGP is an entity that represents a single set of BGP configurations. It
 contains the following fields:
 
@@ -1382,6 +1446,12 @@ contains the following fields:
 
 <a name="routeadvertisement"/>
 ### Route Advertisement [application/vnd.com.midokura.midolman.mgmt.AdRoute+json]
+
+    GET     /bgps/:bgpId/ad_routes
+    GET     /bgps/:bgpId/ad_routes/:adRouteId
+    POST    /bgps/:bgpId/ad_routes
+    PUT     /bgps/:bgpId/ad_routes/:adRouteId
+    DELETE  /bgps/:bgpId/ad_routes/:adRouteId
 
 Advertised Route is an entity that represents an advertising route of BGP.  It
 contains the following fields:
@@ -1487,6 +1557,11 @@ contains the following fields:
 <a name="host"/>
 ### Host [application/vnd.com.midokura.midolman.mgmt.Host+json]
 
+    GET     /hosts?tenant_id=:tenantId
+    GET     /hosts/:hostId
+    PUT     /hosts/:hostId
+    DELETE  /hosts/:hostId
+
 Host is an entity that provides some information about a cluster node. It
 contains the following fields:
 
@@ -1539,6 +1614,12 @@ contains the following fields:
 
 <a name="interface"/>
 ### Interface [application/vnd.com.midokura.midolman.mgmt.Interface+json]
+
+    GET     /hosts/:hostId/interfaces
+    GET     /hosts/:hostId/interfaces/:interfaceId
+    POST    /hosts/:hostId/interfaces
+    PUT     /hosts/:hostId/interfaces/:interfaceId
+    DELETE  /hosts/:hostId/interfaces/:interfaceId
 
 The interface is an entity abstracting information about a physical interface
 associated with a host.
@@ -1648,6 +1729,12 @@ associated with any midonet port.
 <a name="hostcommand"/>
 ### HostCommand [application/vnd.com.midokura.midolman.mgmt.HostCommand+json]
 
+    GET     /hosts/:hostId/hostCommands
+    GET     /hosts/:hostId/hostCommands
+    POST    /hosts/:hostId/hostCommands/:hostCommandId
+    PUT     /hosts/:hostId/hostCommands/:hostCommandId
+    DELETE  /hosts/:hostId/hostCommands/:hostCommandId
+
 This is the description of the command generated by an Interface PUT
 operation. For each host there is going to be a list of HostCommand objects
 intended to be executed sequentially to make sure that the local host
@@ -1716,6 +1803,12 @@ The value is the value of the operation as a string.</td>
 <a name="hostinterfaceport"/>
 ### Host-Interface-Port Binding [application/vnd.com.midokura.midolman.mgmt.HostInterfacePort+json]
 
+    GET     /hosts/:hostId/ports
+    GET     /hosts/:hostId/ports/:portId
+    POST    /hosts/:hostId/ports/:portId
+    PUT     /hosts/:hostId/ports/:portId
+    DELETE  /hosts/:hostId/ports/:portId
+
 The HostInterfacePort binding allows mapping a virtual network port to an
 interface (virtual or physical) of a physical host where Midolman is running.
 It contains the following fields:
@@ -1763,6 +1856,12 @@ It contains the following fields:
 <a name="tunnelzone"/>
 ### TunnelZone [application/vnd.com.midokura.midolman.mgmt.TunnelZone+json]
 
+    GET     /tunnel_zones
+    GET     /tunnel_zones/:tunnelZoneId
+    POST    /tunnel_zones
+    PUT     /tunnel_zones/:tunnelZoneId
+    DELETE  /tunnel_zones/:tunnelZoneId
+
 Tunnel zone represents a group in which hosts can be included to form an
 isolated zone for tunneling. It contains the following fields:
 
@@ -1807,6 +1906,12 @@ isolated zone for tunneling. It contains the following fields:
 
 <a name="tunnelzonehost"/>
 ### TunnelZoneHost [application/vnd.com.midokura.midolman.mgmt.TunnelZoneHost+json]
+
+    GET     /tunnel_zones/:tunnelZoneId/hosts
+    GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
+    POST    /tunnel_zones/:tunnelZoneId/hosts
+    PUT     /tunnel_zones/:tunnelZoneId/hosts/:hostId
+    DELETE  /tunnel_zones/:tunnelZoneId/hosts/:hostId
 
 Represents a host's membership in a tunnel zone:
 
@@ -1873,6 +1978,8 @@ Represents a host's membership in a tunnel zone:
 <a name="metrictarget"/>
 ### Metric Target [application/vnd.com.midokura.midolman.mgmt.MetricTarget+json]
 
+    POST    /metrics/filter
+
 Represents an object that can be associated with a metric. POST a
 MetricTarget (uri: /filter) to get an array of Metric associated with this
 target.
@@ -1897,6 +2004,8 @@ target.
 
 <a name="metric"/>
 ### Metric [application/vnd.com.midokura.midolman.mgmt.collection.Metric+json]
+
+    POST    /metrics/filter
 
 It’s an entity representing a metric in the monitoring system.
 
@@ -1935,6 +2044,8 @@ It’s an entity representing a metric in the monitoring system.
 
 <a name="metricquery"/>
 ### Metric Query [application/vnd.com.midokura.midolman.mgmt.MetricQuery+json]
+
+    POST    /metrics/query
 
 It’s an entity that represent a query to the monitoring system. POST a
 collection of MetricQuery (uri: /query) to get a collection of
@@ -1987,6 +2098,8 @@ MetricQueryResponse containing the result of the queries.
 
 <a name="metricqueryresponse"/>
 ### Metric Query Response [application/vnd.com.midokura.midolman.mgmt.MetricQueryResponse+json]
+
+    POST    /metrics/query
 
 It represents the result of a query to the monitoring system.
 
