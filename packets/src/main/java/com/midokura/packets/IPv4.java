@@ -50,6 +50,9 @@ public class IPv4 extends BasePacket {
     public final static int MAX_HEADER_LEN = MAX_HEADER_WORD_NUM * 4;
     public final static int MAX_PACKET_LEN = 0xFFFF;
 
+    public final static int IP_FLAGS_DF = 0x02;
+    public final static int IP_FLAGS_MF = 0x01;
+
     protected byte version;
     protected byte headerLength;
     protected byte diffServ;

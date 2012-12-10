@@ -51,8 +51,8 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case EtherType:
                     setEtherType(source.getEtherType());
                     break;
-                case IsIPv4Fragment:
-                    setIsIPv4Fragment(source.getIsIPv4Fragment());
+                case FragmentType:
+                    setIpFragmentType(source.getIpFragmentType());
                     break;
                 case TunnelID:
                     setTunnelID(source.getTunnelID());

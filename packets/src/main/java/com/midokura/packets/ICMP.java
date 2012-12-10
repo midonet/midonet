@@ -13,7 +13,12 @@ public class ICMP extends BasePacket {
 
     public static final char TYPE_UNREACH = 3;
     public static enum UNREACH_CODE {
-        UNREACH_NET((char)0), UNREACH_HOST((char)1),
+        UNREACH_NET((char)0),
+        UNREACH_HOST((char)1),
+        UNREACH_PROTOCOL((char)2),
+        UNREACH_PORT((char)3),
+        UNREACH_FRAG_NEEDED((char)4),
+        UNREACH_SOURCE_ROUTE((char)5),
         UNREACH_FILTER_PROHIB((char)13);
 
         private final char value;
@@ -101,6 +106,11 @@ public class ICMP extends BasePacket {
         checksum = 0;
         quench = 0;
         setIPv4Packet(ipPkt);
+    }
+
+    public void setFragNeeded(int size, IPv4 ipPkt) {
+        setUnreachable(UNREACH_CODE.UNREACH_FRAG_NEEDED, ipPkt);
+        quench = size & 0xffff;
     }
 
     public void setTimeExceeded(EXCEEDED_CODE timeCode, IPv4 ipPkt) {
