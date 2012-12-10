@@ -138,7 +138,8 @@ public class PortGroupResource {
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
+                   MediaType.APPLICATION_JSON })
     public Response create(PortGroup group)
             throws StateAccessException, InvalidStateOperationException {
 
