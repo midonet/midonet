@@ -1,3 +1,6 @@
+/*
+* Copyright 2012 Midokura Europe SARL
+*/
 package com.midokura.mmdpctl;
 
 import com.midokura.mmdpctl.commands.*;
@@ -102,9 +105,6 @@ public class Mmdpctl {
                         "stop and return with an error code")
                 .create());
 
-        // TODO burn after using.
-        //options.addOption(OptionBuilder.withLongOpt("insert").create());
-
         CommandLineParser parser = new PosixParser();
         try {
             CommandLine cl = parser.parse(options, args);
@@ -123,18 +123,6 @@ public class Mmdpctl {
                     System.exit(-1);
                 }
             }
-
-            // WARN ugly dirty horrible hack to populate the flow table.
-            // TODO REMOVE THIS.
-            if (cl.hasOption("insert")) {
-                try {
-                new InsertFlows().run();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            ////////////////////////////////
-
 
             if (cl.hasOption("list-dps")) {
                 System.exit(mmdpctl.execute(new ListDatapathsCommand()));
