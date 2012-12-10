@@ -23,6 +23,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
@@ -70,7 +71,8 @@ public class TunnelZoneHostResource {
 
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                   MediaType.APPLICATION_JSON })
     public Response create(GreTunnelZoneHost tunnelZoneHost)
             throws StateAccessException {
 
@@ -79,7 +81,8 @@ public class TunnelZoneHostResource {
 
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
+                   MediaType.APPLICATION_JSON })
     public Response create(CapwapTunnelZoneHost tunnelZoneHost)
             throws StateAccessException {
 
