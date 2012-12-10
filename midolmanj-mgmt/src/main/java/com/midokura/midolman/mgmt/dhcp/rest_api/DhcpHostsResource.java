@@ -13,10 +13,12 @@ import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.dhcp.DhcpHost;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.dhcp.DhcpHost;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.dhcp.Host;
@@ -37,27 +39,24 @@ import java.util.List;
 import java.util.UUID;
 
 @RequestScoped
-public class DhcpHostsResource {
+public class DhcpHostsResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(DhcpHostsResource.class);
 
     private final UUID bridgeId;
     private final IntIPv4 subnet;
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
-    public DhcpHostsResource(UriInfo uriInfo,
+    public DhcpHostsResource(RestApiConfig config, UriInfo uriInfo,
                              SecurityContext context,
                              BridgeAuthorizer authorizer,
                              DataClient dataClient,
                              @Assisted UUID bridgeId,
                              @Assisted IntIPv4 subnet) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
         this.bridgeId = bridgeId;
@@ -85,7 +84,7 @@ public class DhcpHostsResource {
         }
 
         dataClient.dhcpHostsCreate(bridgeId, subnet, host.toData());
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(uriInfo.getBaseUri(),
+        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
                 bridgeId, subnet);
         return Response.created(
                 ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
@@ -124,7 +123,7 @@ public class DhcpHostsResource {
 
         DhcpHost host = new DhcpHost(hostConfig);
         host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
-              uriInfo.getBaseUri(), bridgeId, subnet));
+              getBaseUri(), bridgeId, subnet));
 
         return host;
     }
@@ -206,7 +205,7 @@ public class DhcpHostsResource {
                 subnet);
         List<DhcpHost> hosts = new ArrayList<DhcpHost>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                uriInfo.getBaseUri(), bridgeId, subnet);
+                getBaseUri(), bridgeId, subnet);
         for (Host hostConfig : hostConfigs) {
             DhcpHost host = new DhcpHost(hostConfig);
             host.setParentUri(dhcpUri);

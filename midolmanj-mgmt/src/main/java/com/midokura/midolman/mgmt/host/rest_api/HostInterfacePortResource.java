@@ -10,8 +10,10 @@ import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.host.HostInterfacePort;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
 import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.host.VirtualPortMapping;
@@ -21,6 +23,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,19 +34,20 @@ import java.util.UUID;
  * REST API handler for host interface port mapping.
  */
 @RequestScoped
-public class HostInterfacePortResource {
+public class HostInterfacePortResource extends AbstractResource {
 
     private final UUID hostId;
-    private final UriInfo uriInfo;
     private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
-    public HostInterfacePortResource(UriInfo uriInfo,
+    public HostInterfacePortResource(RestApiConfig config,
+                                     UriInfo uriInfo,
+                                     SecurityContext context,
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID hostId) {
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.validator = validator;
         this.dataClient = dataClient;
         this.hostId = hostId;
@@ -68,7 +72,7 @@ public class HostInterfacePortResource {
                 map.getInterfaceName());
 
         return Response.created(
-                ResourceUriBuilder.getHostInterfacePort(uriInfo.getBaseUri(),
+                ResourceUriBuilder.getHostInterfacePort(getBaseUri(),
                         hostId, map.getPortId()))
                 .build();
     }
@@ -98,7 +102,7 @@ public class HostInterfacePortResource {
         for (VirtualPortMapping mapConfig : mapConfigs) {
             HostInterfacePort map = new HostInterfacePort(
                     hostId, mapConfig);
-            map.setBaseUri(uriInfo.getBaseUri());
+            map.setBaseUri(getBaseUri());
             maps.add(map);
         }
 
@@ -118,7 +122,7 @@ public class HostInterfacePortResource {
         }
 
         HostInterfacePort map = new HostInterfacePort(hostId, data);
-        map.setBaseUri(uriInfo.getBaseUri());
+        map.setBaseUri(getBaseUri());
         return map;
     }
 }
