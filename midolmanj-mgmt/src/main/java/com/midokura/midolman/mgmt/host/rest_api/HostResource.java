@@ -11,49 +11,44 @@ import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.host.Host;
-import com.midokura.midolman.mgmt.host.HostInterfacePort;
-import com.midokura.midolman.mgmt.host.HostInterfacePort.HostInterfacePortCreateGroup;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
-import com.midokura.midonet.cluster.data.host.VirtualPortMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
  */
 @RequestScoped
-public class HostResource {
+public class HostResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(HostResource.class);
 
-    private final UriInfo uriInfo;
     private final DataClient dataClient;
-    private final Validator validator;
     private final ResourceFactory factory;
 
     @Inject
-    public HostResource(UriInfo uriInfo, DataClient dataClient,
-                        Validator validator, ResourceFactory factory) {
-        this.uriInfo = uriInfo;
+    public HostResource(RestApiConfig config, UriInfo uriInfo,
+                        SecurityContext context,
+                        DataClient dataClient,
+                        ResourceFactory factory) {
+        super(config, uriInfo, context);
         this.dataClient = dataClient;
-        this.validator = validator;
         this.factory = factory;
     }
 
@@ -70,7 +65,7 @@ public class HostResource {
         for (com.midokura.midonet.cluster.data.host.Host hostConfig :
                 hostConfigs) {
             Host host = new Host(hostConfig);
-            host.setBaseUri(uriInfo.getBaseUri());
+            host.setBaseUri(getBaseUri());
             hosts.add(host);
         }
         return hosts;
@@ -96,7 +91,7 @@ public class HostResource {
         Host host = null;
         if (hostConfig != null) {
             host = new Host(hostConfig);
-            host.setBaseUri(uriInfo.getBaseUri());
+            host.setBaseUri(getBaseUri());
         }
 
         return host;

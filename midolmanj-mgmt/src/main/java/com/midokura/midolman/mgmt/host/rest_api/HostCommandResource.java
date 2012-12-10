@@ -9,7 +9,8 @@ import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.host.HostCommand;
-import com.midokura.midolman.state.NoStatePathException;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.host.Command;
@@ -32,23 +33,20 @@ import java.util.UUID;
  *         Date: 2/23/12
  */
 @RequestScoped
-public class HostCommandResource {
+public class HostCommandResource extends AbstractResource {
 
     private final static Logger log =
         LoggerFactory.getLogger(HostCommandResource.class);
 
     private final UUID hostId;
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final DataClient dataClient;
 
     @Inject
-    public HostCommandResource(UriInfo uriInfo,
+    public HostCommandResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                DataClient dataClient,
                                @Assisted UUID hostId) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.dataClient = dataClient;
         this.hostId = hostId;
     }
@@ -64,7 +62,7 @@ public class HostCommandResource {
         List<HostCommand> commands = new ArrayList<HostCommand>();
         for (Command commandConfig : commandConfigs) {
             HostCommand command = new HostCommand(hostId, commandConfig);
-            command.setBaseUri(uriInfo.getBaseUri());
+            command.setBaseUri(getBaseUri());
             commands.add(command);
         }
 
@@ -90,7 +88,7 @@ public class HostCommandResource {
         HostCommand command = null;
         if (commandConfig != null) {
             command = new HostCommand(hostId, commandConfig);
-            command.setBaseUri(uriInfo.getBaseUri());
+            command.setBaseUri(getBaseUri());
         }
         return command;
     }

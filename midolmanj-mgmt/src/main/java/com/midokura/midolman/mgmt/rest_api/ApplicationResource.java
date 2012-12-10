@@ -26,6 +26,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -33,20 +34,18 @@ import javax.ws.rs.core.UriInfo;
  */
 @RequestScoped
 @Path(ResourceUriBuilder.ROOT)
-public class ApplicationResource {
+public class ApplicationResource extends AbstractResource {
 
     private final static Logger log =
             LoggerFactory.getLogger(ApplicationResource.class);
 
-    private final UriInfo uriInfo;
-    private final RestApiConfig config;
     private final ResourceFactory factory;
 
     @Inject
-    public ApplicationResource(UriInfo uriInfo, RestApiConfig config,
+    public ApplicationResource(RestApiConfig config, UriInfo uriInfo,
+                               SecurityContext context,
                                ResourceFactory factory) {
-        this.uriInfo = uriInfo;
-        this.config = config;
+        super(config, uriInfo, context);
         this.factory = factory;
     }
 
@@ -189,9 +188,9 @@ public class ApplicationResource {
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON })
     public Application get() {
-        log.debug("ApplicationResource: entered: " + uriInfo);
+        log.debug("ApplicationResource: entered");
 
-        Application a = new Application(uriInfo.getBaseUri());
+        Application a = new Application(getBaseUri());
         a.setVersion(config.getVersion());
 
         log.debug("ApplicationResource: existing: " + a);

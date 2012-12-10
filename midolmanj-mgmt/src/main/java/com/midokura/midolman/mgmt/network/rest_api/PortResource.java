@@ -20,9 +20,7 @@ import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.PortGroupAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.RouterAuthorizer;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.*;
 import com.midokura.midolman.mgmt.vpn.rest_api.VpnResource.PortVpnResource;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
@@ -48,24 +46,22 @@ import java.util.UUID;
  * Root resource class for ports.
  */
 @RequestScoped
-public class PortResource {
+public class PortResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
-    public PortResource(UriInfo uriInfo, SecurityContext context,
-                        PortAuthorizer authorizer, Validator validator,
-                        DataClient dataClient, ResourceFactory factory) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+    public PortResource(RestApiConfig config, UriInfo uriInfo,
+                        SecurityContext context, PortAuthorizer authorizer,
+                        Validator validator, DataClient dataClient,
+                        ResourceFactory factory) {
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.validator = validator;
         this.dataClient = dataClient;
@@ -137,7 +133,7 @@ public class PortResource {
         }
 
         Port port = PortFactory.createPort(portData);
-        port.setBaseUri(uriInfo.getBaseUri());
+        port.setBaseUri(getBaseUri());
 
         return port;
     }
@@ -251,24 +247,22 @@ public class PortResource {
      * Sub-resource class for bridge's ports.
      */
     @RequestScoped
-    public static class BridgePortResource {
+    public static class BridgePortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
-        public BridgePortResource(UriInfo uriInfo,
+        public BridgePortResource(RestApiConfig config,
+                                  UriInfo uriInfo,
                                   SecurityContext context,
                                   BridgeAuthorizer authorizer,
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID bridgeId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
+            super(config, uriInfo, context);
             this.authorizer = authorizer;
             this.validator = validator;
             this.dataClient = dataClient;
@@ -304,7 +298,7 @@ public class PortResource {
 
             UUID id = dataClient.portsCreate(port.toData());
             return Response.created(
-                    ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
+                    ResourceUriBuilder.getPort(getBaseUri(), id))
                     .build();
         }
 
@@ -333,7 +327,7 @@ public class PortResource {
                 for (com.midokura.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.createPort(portData);
-                    port.setBaseUri(uriInfo.getBaseUri());
+                    port.setBaseUri(getBaseUri());
                     ports.add(port);
                 }
             }
@@ -345,22 +339,20 @@ public class PortResource {
      * Sub-resource class for bridge's peer ports.
      */
     @RequestScoped
-    public static class BridgePeerPortResource {
+    public static class BridgePeerPortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
-        public BridgePeerPortResource(UriInfo uriInfo,
+        public BridgePeerPortResource(RestApiConfig config,
+                                      UriInfo uriInfo,
                                       SecurityContext context,
                                       BridgeAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID bridgeId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
+            super(config, uriInfo, context);
             this.authorizer = authorizer;
             this.dataClient = dataClient;
             this.bridgeId = bridgeId;
@@ -391,7 +383,7 @@ public class PortResource {
                 for (com.midokura.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.createPort(portData);
-                    port.setBaseUri(uriInfo.getBaseUri());
+                    port.setBaseUri(getBaseUri());
                     ports.add(port);
                 }
             }
@@ -403,24 +395,22 @@ public class PortResource {
      * Sub-resource class for router's ports.
      */
     @RequestScoped
-    public static class RouterPortResource {
+    public static class RouterPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
-        public RouterPortResource(UriInfo uriInfo,
+        public RouterPortResource(RestApiConfig config,
+                                  UriInfo uriInfo,
                                   SecurityContext context,
                                   RouterAuthorizer authorizer,
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID routerId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
+            super(config, uriInfo, context);
             this.authorizer = authorizer;
             this.validator = validator;
             this.dataClient = dataClient;
@@ -456,7 +446,7 @@ public class PortResource {
 
             UUID id = dataClient.portsCreate(port.toData());
             return Response.created(
-                    ResourceUriBuilder.getPort(uriInfo.getBaseUri(), id))
+                    ResourceUriBuilder.getPort(getBaseUri(), id))
                     .build();
         }
 
@@ -484,7 +474,7 @@ public class PortResource {
                 for (com.midokura.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.createPort(portData);
-                    port.setBaseUri(uriInfo.getBaseUri());
+                    port.setBaseUri(getBaseUri());
                     ports.add(port);
                 }
             }
@@ -496,22 +486,20 @@ public class PortResource {
      * Sub-resource class for router peer ports.
      */
     @RequestScoped
-    public static class RouterPeerPortResource {
+    public static class RouterPeerPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
-        public RouterPeerPortResource(UriInfo uriInfo,
+        public RouterPeerPortResource(RestApiConfig config,
+                                      UriInfo uriInfo,
                                       SecurityContext context,
                                       RouterAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID routerId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
+            super(config, uriInfo, context);
             this.authorizer = authorizer;
             this.dataClient = dataClient;
             this.routerId = routerId;
@@ -542,7 +530,7 @@ public class PortResource {
                 for (com.midokura.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.createPort(portData);
-                    port.setBaseUri(uriInfo.getBaseUri());
+                    port.setBaseUri(getBaseUri());
                     ports.add(port);
                 }
             }
@@ -554,26 +542,23 @@ public class PortResource {
      * Sub-resource class for port group ports.
      */
     @RequestScoped
-    public static class PortGroupPortResource {
+    public static class PortGroupPortResource extends AbstractResource {
 
         private final UUID portGroupId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer portGroupAuthorizer;
         private final Authorizer portAuthorizer;
         private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
-        public PortGroupPortResource(UriInfo uriInfo,
-                                      SecurityContext context,
-                                      PortGroupAuthorizer portGroupAuthorizer,
-                                      PortAuthorizer portAuthorizer,
-                                      Validator validator,
-                                      DataClient dataClient,
-                                      @Assisted UUID portGroupId) {
-            this.context = context;
-            this.uriInfo = uriInfo;
+        public PortGroupPortResource(RestApiConfig config, UriInfo uriInfo,
+                                     SecurityContext context,
+                                     PortGroupAuthorizer portGroupAuthorizer,
+                                     PortAuthorizer portAuthorizer,
+                                     Validator validator,
+                                     DataClient dataClient,
+                                     @Assisted UUID portGroupId) {
+            super(config, uriInfo, context);
             this.portGroupAuthorizer = portGroupAuthorizer;
             this.portAuthorizer = portAuthorizer;
             this.validator = validator;
@@ -614,7 +599,7 @@ public class PortResource {
                     portGroupPort.getPortId());
 
             return Response.created(
-                    ResourceUriBuilder.getPortGroupPort(uriInfo.getBaseUri(),
+                    ResourceUriBuilder.getPortGroupPort(getBaseUri(),
                             portGroupId, portGroupPort.getPortId()))
                     .build();
         }
@@ -670,7 +655,7 @@ public class PortResource {
             PortGroupPort portGroupPort = new PortGroupPort();
             portGroupPort.setPortGroupId(portGroupId);
             portGroupPort.setPortId(portId);
-            portGroupPort.setBaseUri(uriInfo.getBaseUri());
+            portGroupPort.setBaseUri(getBaseUri());
             return portGroupPort;
         }
 
@@ -696,7 +681,7 @@ public class PortResource {
                 PortGroupPort portGroupPort = new PortGroupPort();
                 portGroupPort.setPortGroupId(portGroupId);
                 portGroupPort.setPortId(portData.getId());
-                portGroupPort.setBaseUri(uriInfo.getBaseUri());
+                portGroupPort.setBaseUri(getBaseUri());
                 portGroupPorts.add(portGroupPort);
             }
 

@@ -7,14 +7,16 @@ package com.midokura.midolman.mgmt.vpn.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.mgmt.vpn.Vpn;
 import com.midokura.midolman.mgmt.vpn.auth.VpnAuthorizer;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -39,21 +41,19 @@ import java.util.UUID;
  * Root resource class for vpns.
  */
 @RequestScoped
-public class VpnResource {
+public class VpnResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(VpnResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
-    public VpnResource(UriInfo uriInfo, SecurityContext context,
+    public VpnResource(RestApiConfig config, UriInfo uriInfo,
+                       SecurityContext context,
                        VpnAuthorizer authorizer, DataClient dataClient) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
     }
@@ -114,7 +114,7 @@ public class VpnResource {
 
         // Convert to the REST API DTO
         Vpn vpn = new Vpn(vpnData);
-        vpn.setBaseUri(uriInfo.getBaseUri());
+        vpn.setBaseUri(getBaseUri());
 
         return vpn;
     }
@@ -123,23 +123,20 @@ public class VpnResource {
      * Sub-resource class for port's VPN.
      */
     @RequestScoped
-    public static class PortVpnResource {
+    public static class PortVpnResource extends AbstractResource {
 
         private final UUID portId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
-        public PortVpnResource(UriInfo uriInfo,
+        public PortVpnResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                PortAuthorizer authorizer,
                                DataClient dataClient,
                                @Assisted UUID portId) {
+            super(config, uriInfo, context);
             this.portId = portId;
-            this.context = context;
-            this.uriInfo = uriInfo;
             this.authorizer = authorizer;
             this.dataClient = dataClient;
         }
@@ -169,8 +166,7 @@ public class VpnResource {
 
             UUID id = dataClient.vpnCreate(vpn.toData());
             return Response.created(
-                    ResourceUriBuilder.getVpn(
-                            uriInfo.getBaseUri(), id)).build();
+                    ResourceUriBuilder.getVpn(getBaseUri(), id)).build();
         }
 
         /**
@@ -196,7 +192,7 @@ public class VpnResource {
             if (vpnDataList != null) {
                 for (VPN vpnData : vpnDataList) {
                     Vpn vpn = new Vpn(vpnData);
-                    vpn.setBaseUri(uriInfo.getBaseUri());
+                    vpn.setBaseUri(getBaseUri());
                     vpnList.add(vpn);
                 }
             }

@@ -8,6 +8,7 @@ import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.network.auth.RouterAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,9 @@ public class TestRouterResource {
     private RouterResource testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RestApiConfig config;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -48,7 +52,7 @@ public class TestRouterResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RouterResource(uriInfo, context, auth,
+        testObject = new RouterResource(config, uriInfo, context, auth,
                 validator, dataClient, factory);
     }
 

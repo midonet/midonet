@@ -5,8 +5,9 @@
 package com.midokura.midolman.mgmt.bgp.rest_api;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.bgp.auth.AdRouteAuthorizer;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.bgp.auth.AdRouteAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +28,9 @@ public class TestAdRouteResource {
     private AdRouteResource testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RestApiConfig config;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -40,7 +44,8 @@ public class TestAdRouteResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new AdRouteResource(uriInfo, context, auth, dataClient);
+        testObject = new AdRouteResource(config, uriInfo, context, auth,
+                dataClient);
     }
 
     @Test(expected = ForbiddenHttpException.class)
