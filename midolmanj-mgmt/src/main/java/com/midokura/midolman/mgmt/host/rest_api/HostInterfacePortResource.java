@@ -20,6 +20,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
@@ -51,7 +52,8 @@ public class HostInterfacePortResource {
 
     @POST
     @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({ VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
+                   MediaType.APPLICATION_JSON })
     public Response create(HostInterfacePort map)
             throws StateAccessException {
 
