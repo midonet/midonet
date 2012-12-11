@@ -95,7 +95,8 @@ public class ZkConnection implements Watcher {
             }
             // Don't reset zk to null. The class is not meant to be re-used.
         }
-        reactor.shutDownNow();
+        if (reactor != null)
+            reactor.shutDownNow();
         notifyAll();
     }
 
