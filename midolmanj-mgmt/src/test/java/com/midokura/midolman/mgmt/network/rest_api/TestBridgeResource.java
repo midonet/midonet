@@ -8,6 +8,7 @@ import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,9 @@ public class TestBridgeResource {
     private BridgeResource testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RestApiConfig config;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -48,8 +52,8 @@ public class TestBridgeResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new BridgeResource(uriInfo, context, auth, validator,
-                dataClient, factory);
+        testObject = new BridgeResource(config, uriInfo, context, auth,
+                validator, dataClient, factory);
     }
 
     @Test(expected = ForbiddenHttpException.class)

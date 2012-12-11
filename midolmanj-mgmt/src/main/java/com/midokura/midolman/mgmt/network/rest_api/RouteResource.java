@@ -7,18 +7,20 @@ package com.midokura.midolman.mgmt.network.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.network.Route;
 import com.midokura.midolman.mgmt.network.Route.RouteGroupSequence;
 import com.midokura.midolman.mgmt.network.auth.RouteAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.RouterAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -43,7 +45,7 @@ import java.util.UUID;
  * Root resource class for ports.
  */
 @RequestScoped
-public class RouteResource {
+public class RouteResource extends AbstractResource {
     /*
      * Implements REST API endpoints for routes.
      */
@@ -51,16 +53,14 @@ public class RouteResource {
     private final static Logger log = LoggerFactory
             .getLogger(RouteResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
-    public RouteResource(UriInfo uriInfo, SecurityContext context,
-                         RouteAuthorizer authorizer, DataClient dataClient) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+    public RouteResource(RestApiConfig config, UriInfo uriInfo,
+                         SecurityContext context, RouteAuthorizer authorizer,
+                         DataClient dataClient) {
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
     }
@@ -123,7 +123,7 @@ public class RouteResource {
 
         // Convert to the REST API DTO
         Route route = new Route(routeData);
-        route.setBaseUri(uriInfo.getBaseUri());
+        route.setBaseUri(getBaseUri());
 
         return route;
     }
@@ -132,25 +132,23 @@ public class RouteResource {
      * Sub-resource class for router's route.
      */
     @RequestScoped
-    public static class RouterRouteResource {
+    public static class RouterRouteResource extends AbstractResource {
 
         private final UUID routerId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
-        public RouterRouteResource(UriInfo uriInfo,
+        public RouterRouteResource(RestApiConfig config,
+                                   UriInfo uriInfo,
                                    SecurityContext context,
                                    RouterAuthorizer authorizer,
                                    Validator validator,
                                    DataClient dataClient,
                                    @Assisted UUID routerId) {
+            super(config, uriInfo, context);
             this.routerId = routerId;
-            this.context = context;
-            this.uriInfo = uriInfo;
             this.authorizer = authorizer;
             this.validator = validator;
             this.dataClient = dataClient;
@@ -187,7 +185,7 @@ public class RouteResource {
 
             UUID id = dataClient.routesCreate(route.toData());
             return Response.created(
-                    ResourceUriBuilder.getRoute(uriInfo.getBaseUri(), id))
+                    ResourceUriBuilder.getRoute(getBaseUri(), id))
                     .build();
         }
 
@@ -218,7 +216,7 @@ public class RouteResource {
                 for (com.midokura.midonet.cluster.data.Route routeData :
                         routeDataList) {
                     Route route = new Route(routeData);
-                    route.setBaseUri(uriInfo.getBaseUri());
+                    route.setBaseUri(getBaseUri());
                     routes.add(route);
                 }
 

@@ -10,6 +10,11 @@
     <param-name>rest_api-version</param-name>
     <param-value>1</param-value>
   </context-param>
+  <!-- This value overrides the default base URI -->
+  <!-- context-param>
+    <param-name>rest_api-base_uri</param-name>
+    <param-value>http://localhost:8080/</param-value>
+  </context-param -->
 
   <!-- CORS configuration -->
   <context-param>
