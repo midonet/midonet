@@ -63,13 +63,9 @@ JAVA="$JAVA_HOME/bin/java"
 MAX_HEAP_SIZE="300M"
 HEAP_NEWSIZE="64M"
 
-if [ "x$MAX_HEAP_SIZE" = "x" ] && [ "x$HEAP_NEWSIZE" = "x" ]; then
-    calculate_heap_sizes
-else
-    if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
-        echo "please set or unset MAX_HEAP_SIZE and HEAP_NEWSIZE in pairs (see midolman-env.sh)"
-        exit 1
-    fi
+if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
+    echo "please set or unset MAX_HEAP_SIZE and HEAP_NEWSIZE in pairs (see midolman-env.sh)"
+    exit 1
 fi
 
 # Specifies the default port over which Midolman will be available for
@@ -143,10 +139,3 @@ if [ "x$JMXDISABLE" = "x" ] ; then
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
 fi
-
-# Environment varibales for /etc/init.d/midomanj
-NAME=midolmanj
-PIDDIR=/var/run/midolman
-PIDFILE=$PIDDIR/midolmanj.pid
-USER=midolman
-GROUP=midokura
