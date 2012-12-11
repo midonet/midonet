@@ -273,9 +273,7 @@
         <profile>
             <id>use-tools-jar</id>
             <activation>
-                <os>
-                    <family>!mac</family>
-                </os>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>
