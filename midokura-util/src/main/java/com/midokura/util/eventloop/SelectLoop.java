@@ -125,12 +125,12 @@ public class SelectLoop {
         int nEvents;
 
         while (dontStop) {
-            log.debug("looping");
+            log.trace("looping");
 
             synchronized (registerLock) {
             }
             nEvents = selector.select(timeout);
-            log.debug("got {} events", nEvents);
+            log.trace("got {} events", nEvents);
             if (nEvents > 0) {
                 for (SelectionKey sk : selector.selectedKeys()) {
                     if (!sk.isValid())
