@@ -7,18 +7,20 @@ package com.midokura.midolman.mgmt.bgp.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.bgp.Bgp;
 import com.midokura.midolman.mgmt.bgp.auth.BgpAuthorizer;
 import com.midokura.midolman.mgmt.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -41,23 +43,20 @@ import java.util.UUID;
  * Root resource class for bgps.
  */
 @RequestScoped
-public class BgpResource {
+public class BgpResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(BgpResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
-    public BgpResource(UriInfo uriInfo, SecurityContext context,
-                       BgpAuthorizer authorizer, DataClient dataClient,
-                       ResourceFactory factory) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+    public BgpResource(RestApiConfig config, UriInfo uriInfo,
+                       SecurityContext context, BgpAuthorizer authorizer,
+                       DataClient dataClient, ResourceFactory factory) {
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
         this.factory = factory;
@@ -119,7 +118,7 @@ public class BgpResource {
 
         // Convert to the REST API DTO
         Bgp bgp = new Bgp(bgpData);
-        bgp.setBaseUri(uriInfo.getBaseUri());
+        bgp.setBaseUri(getBaseUri());
 
         return bgp;
     }
@@ -140,23 +139,22 @@ public class BgpResource {
      * Sub-resource class for port's BGP.
      */
     @RequestScoped
-    public static class PortBgpResource {
+    public static class PortBgpResource extends AbstractResource {
 
         private final UUID portId;
         private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
-        public PortBgpResource(UriInfo uriInfo,
+        public PortBgpResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                PortAuthorizer authorizer,
                                DataClient dataClient,
                                @Assisted UUID portId) {
+            super(config, uriInfo, context);
             this.portId = portId;
             this.context = context;
-            this.uriInfo = uriInfo;
             this.authorizer = authorizer;
             this.dataClient = dataClient;
         }
@@ -186,7 +184,7 @@ public class BgpResource {
 
             UUID id = dataClient.bgpCreate(bgp.toData());
             return Response.created(
-                    ResourceUriBuilder.getBgp(uriInfo.getBaseUri(), id))
+                    ResourceUriBuilder.getBgp(getBaseUri(), id))
                     .build();
         }
 
@@ -213,7 +211,7 @@ public class BgpResource {
             if (bgpDataList != null) {
                 for (BGP bgpData : bgpDataList) {
                     Bgp bgp = new Bgp(bgpData);
-                    bgp.setBaseUri(uriInfo.getBaseUri());
+                    bgp.setBaseUri(getBaseUri());
                     bgpList.add(bgp);
                 }
             }

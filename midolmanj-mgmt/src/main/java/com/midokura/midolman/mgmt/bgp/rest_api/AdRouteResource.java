@@ -7,16 +7,18 @@ package com.midokura.midolman.mgmt.bgp.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.bgp.AdRoute;
 import com.midokura.midolman.mgmt.bgp.auth.AdRouteAuthorizer;
 import com.midokura.midolman.mgmt.bgp.auth.BgpAuthorizer;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
 import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -38,22 +40,20 @@ import java.util.UUID;
  * Root resource class for advertising routes.
  */
 @RequestScoped
-public class AdRouteResource {
+public class AdRouteResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(AdRouteResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
-    public AdRouteResource(UriInfo uriInfo, SecurityContext context,
+    public AdRouteResource(RestApiConfig config, UriInfo uriInfo,
+                           SecurityContext context,
                            AdRouteAuthorizer authorizer,
                            DataClient dataClient) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
     }
@@ -116,7 +116,7 @@ public class AdRouteResource {
 
         // Convert to the REST API DTO
         AdRoute adRoute = new AdRoute(adRouteData);
-        adRoute.setBaseUri(uriInfo.getBaseUri());
+        adRoute.setBaseUri(getBaseUri());
 
         return adRoute;
     }
@@ -125,23 +125,20 @@ public class AdRouteResource {
      * Sub-resource class for bgp's advertising route.
      */
     @RequestScoped
-    public static class BgpAdRouteResource {
+    public static class BgpAdRouteResource extends AbstractResource {
 
         private final UUID bgpId;
-        private final SecurityContext context;
-        private final UriInfo uriInfo;
         private final Authorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
-        public BgpAdRouteResource(UriInfo uriInfo,
+        public BgpAdRouteResource(RestApiConfig config, UriInfo uriInfo,
                                   SecurityContext context,
                                   BgpAuthorizer authorizer,
                                   DataClient dataClient,
                                   @Assisted UUID bgpId) {
+            super(config, uriInfo, context);
             this.bgpId = bgpId;
-            this.context = context;
-            this.uriInfo = uriInfo;
             this.authorizer = authorizer;
             this.dataClient = dataClient;
         }
@@ -171,7 +168,7 @@ public class AdRouteResource {
 
             UUID id = dataClient.adRoutesCreate(adRoute.toData());
             return Response.created(
-                    ResourceUriBuilder.getAdRoute(uriInfo.getBaseUri(), id))
+                    ResourceUriBuilder.getAdRoute(getBaseUri(), id))
                     .build();
         }
 
@@ -200,7 +197,7 @@ public class AdRouteResource {
                 for (com.midokura.midonet.cluster.data.AdRoute adRouteData :
                         adRouteDataList) {
                     AdRoute adRoute = new AdRoute(adRouteData);
-                    adRoute.setBaseUri(uriInfo.getBaseUri());
+                    adRoute.setBaseUri(getBaseUri());
                     adRoutes.add(adRoute);
                 }
 

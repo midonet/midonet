@@ -10,11 +10,13 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.dhcp.FilteringDbEntry;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.dhcp.FilteringDbEntry;
 import com.midokura.midolman.mgmt.network.Port;
 import com.midokura.midolman.mgmt.network.PortFactory;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 
@@ -29,23 +31,20 @@ import java.util.List;
 import java.util.UUID;
 
 @RequestScoped
-public class BridgeFilterDbResource {
+public class BridgeFilterDbResource extends AbstractResource {
 
     private final UUID bridgeId;
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
-    public BridgeFilterDbResource(UriInfo uriInfo,
+    public BridgeFilterDbResource(RestApiConfig config, UriInfo uriInfo,
                                   SecurityContext context,
                                   BridgeAuthorizer authorizer,
                                   DataClient dataClient,
                                   @Assisted UUID bridgeId) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.dataClient = dataClient;
         this.bridgeId = bridgeId;
@@ -76,7 +75,7 @@ public class BridgeFilterDbResource {
         for(com.midokura.midonet.cluster.data.Port<?,?> portConfig :
                 portConfigs) {
             Port port = PortFactory.createPort(portConfig);
-            port.setBaseUri(uriInfo.getBaseUri());
+            port.setBaseUri(getBaseUri());
             ports.add(port);
         }
 

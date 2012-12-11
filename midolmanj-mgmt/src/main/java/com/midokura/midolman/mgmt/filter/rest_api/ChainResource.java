@@ -6,19 +6,17 @@ package com.midokura.midolman.mgmt.filter.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
+import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.filter.Chain;
 import com.midokura.midolman.mgmt.filter.Chain.ChainGroupSequence;
 import com.midokura.midolman.mgmt.filter.auth.ChainAuthorizer;
 import com.midokura.midolman.mgmt.filter.rest_api.RuleResource.ChainRuleResource;
-import com.midokura.midolman.mgmt.VendorMediaType;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
-import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.ResourceUriBuilder;
-import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.*;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -43,24 +41,22 @@ import java.util.UUID;
  * Root resource class for chains.
  */
 @RequestScoped
-public class ChainResource {
+public class ChainResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(ChainResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
-    public ChainResource(UriInfo uriInfo, SecurityContext context,
+    public ChainResource(RestApiConfig config, UriInfo uriInfo,
+                         SecurityContext context,
                          ChainAuthorizer authorizer, Validator validator,
                          DataClient dataClient, ResourceFactory factory) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.validator = validator;
         this.dataClient = dataClient;
@@ -126,7 +122,7 @@ public class ChainResource {
 
         // Convert to the REST API DTO
         Chain chain = new Chain(chainData);
-        chain.setBaseUri(uriInfo.getBaseUri());
+        chain.setBaseUri(getBaseUri());
 
         return chain;
     }
@@ -172,7 +168,7 @@ public class ChainResource {
 
         UUID id = dataClient.chainsCreate(chain.toData());
         return Response.created(
-                ResourceUriBuilder.getChain(uriInfo.getBaseUri(), id))
+                ResourceUriBuilder.getChain(getBaseUri(), id))
                 .build();
     }
 
@@ -204,7 +200,7 @@ public class ChainResource {
 
         // Convert to the REST API DTO
         Chain chain = new Chain(chainData);
-        chain.setBaseUri(uriInfo.getBaseUri());
+        chain.setBaseUri(getBaseUri());
         return chain;
     }
 
@@ -241,7 +237,7 @@ public class ChainResource {
             for (com.midokura.midonet.cluster.data.Chain dataChain :
                     dataChains) {
                 Chain chain = new Chain(dataChain);
-                chain.setBaseUri(uriInfo.getBaseUri());
+                chain.setBaseUri(getBaseUri());
                 chains.add(chain);
             }
         }

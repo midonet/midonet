@@ -13,9 +13,7 @@ import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.network.PortGroup;
 import com.midokura.midolman.mgmt.network.auth.PortGroupAuthorizer;
-import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
-import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.*;
 import com.midokura.midolman.state.InvalidStateOperationException;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
@@ -40,24 +38,23 @@ import java.util.UUID;
  * Root resource class for port groups.
  */
 @RequestScoped
-public class PortGroupResource {
+public class PortGroupResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupResource.class);
 
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
     private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
-    public PortGroupResource(UriInfo uriInfo, SecurityContext context,
-                          PortGroupAuthorizer authorizer, Validator validator,
-                          DataClient dataClient, ResourceFactory factory) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+    public PortGroupResource(RestApiConfig config, UriInfo uriInfo,
+                             SecurityContext context,
+                             PortGroupAuthorizer authorizer,
+                             Validator validator, DataClient dataClient,
+                             ResourceFactory factory) {
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
         this.validator = validator;
         this.dataClient = dataClient;
@@ -122,7 +119,7 @@ public class PortGroupResource {
 
         // Convert to the REST API DTO
         PortGroup portGroup = new PortGroup(portGroupData);
-        portGroup.setBaseUri(uriInfo.getBaseUri());
+        portGroup.setBaseUri(getBaseUri());
 
         return portGroup;
     }
@@ -156,7 +153,7 @@ public class PortGroupResource {
 
         UUID id = dataClient.portGroupsCreate(group.toData());
         return Response.created(
-                ResourceUriBuilder.getPortGroup(uriInfo.getBaseUri(), id))
+                ResourceUriBuilder.getPortGroup(getBaseUri(), id))
                 .build();
     }
 
@@ -188,7 +185,7 @@ public class PortGroupResource {
 
         // Convert to the REST API DTO
         PortGroup portGroup = new PortGroup(portGroupData);
-        portGroup.setBaseUri(uriInfo.getBaseUri());
+        portGroup.setBaseUri(getBaseUri());
         return portGroup;
     }
 
@@ -226,7 +223,7 @@ public class PortGroupResource {
             for (com.midokura.midonet.cluster.data.PortGroup portGroupData :
                     portGroupDataList) {
                 PortGroup portGroup = new PortGroup(portGroupData);
-                portGroup.setBaseUri(uriInfo.getBaseUri());
+                portGroup.setBaseUri(getBaseUri());
                 portGroups.add(portGroup);
             }
         }
