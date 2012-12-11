@@ -4,6 +4,8 @@
 
 package com.midokura.midonet.cluster;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
 
@@ -29,6 +31,9 @@ import com.midokura.util.functors.Callback1;
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     PortConfigCache portConfigCache;
+    // These watchers belong to classes of the cluster (eg ClusterBridgeManager)
+    // they don't implement the PortBuilder interface
+    Map<UUID, Runnable> clusterWatchers = new HashMap<UUID, Runnable>();
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
@@ -37,6 +42,13 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     public ClusterPortsManager(PortConfigCache configCache) {
         portConfigCache = configCache;
         configCache.addWatcher(getPortsWatcher());
+    }
+
+    protected <T extends PortConfig> T getPortConfigAndRegisterWatcher(final UUID id,
+                                               Class<T> clazz, Runnable watcher) {
+        T config = portConfigCache.get(id, clazz);
+        clusterWatchers.put(id, watcher);
+        return config;
     }
 
     @Override
@@ -91,9 +103,16 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         }
 
         PortBuilder builder = getBuilder(id);
-        builder.setPort(port);
-        log.debug("Build port {}", port);
-        builder.build();
+        if (builder != null) {
+            builder.setPort(port);
+            log.debug("Build port {}", port);
+            builder.build();
+        }
+        // this runnable notifies the classes in the cluster of a change in the
+        // port configuration
+        Runnable watcher = clusterWatchers.get(id);
+        if (watcher != null)
+            watcher.run();
     }
 
     void setInternalPortFields(InteriorPort port, LogicalPortConfig cfg){
