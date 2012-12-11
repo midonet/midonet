@@ -455,7 +455,7 @@ traverse the URIs to discover all the available services.
 <a name="router"/>
 ### Router [application/vnd.com.midokura.midolman.mgmt.Router+json]
 
-    GET     /routers?tenant_id=:tenant_id
+    GET     /routers?tenant_id=:tenantId
     GET     /routers/:routerId
     POST    /routers
     PUT     /routers/:routerId
@@ -574,7 +574,7 @@ contains the following fields:
 <a name="bridge"/>
 ### Bridge [application/vnd.com.midokura.midolman.mgmt.Bridge+json]
 
-    GET     /bridges?tenant_id=:tenant_id
+    GET     /bridges?tenant_id=:tenantId
     GET     /bridges/:bridgeId
     POST    /bridges
     PUT     /bridges/:bridgeId
