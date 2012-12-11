@@ -4,8 +4,8 @@
 
 case "$1" in
     remove)
-        if /etc/init.d/midolmanj status > /dev/null ; then
-            /etc/init.d/midolmanj stop 2>/dev/null >/dev/null
+        if initctl status midolman | grep running > /dev/null ; then
+            initctl stop midolman 2>/dev/null >/dev/null
         fi
         ;;
 esac
