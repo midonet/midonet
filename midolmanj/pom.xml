@@ -207,13 +207,13 @@
                                 </data>
                                 <data>
                                     <src>
-                                        ${project.basedir}/src/deb/init.d/midolmanj
+                                        ${project.basedir}/src/deb/init/midolman.conf
                                     </src>
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/etc/init.d</prefix>
-                                        <filemode>755</filemode>
+                                        <prefix>/etc/init</prefix>
+                                        <filemode>644</filemode>
                                     </mapper>
                                 </data>
                                 <data>
