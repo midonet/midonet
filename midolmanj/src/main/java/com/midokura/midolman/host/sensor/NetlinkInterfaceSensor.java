@@ -3,18 +3,20 @@
  */
 package com.midokura.midolman.host.sensor;
 
-import com.google.inject.Inject;
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.netlink.protos.OvsDatapathConnection;
-import com.midokura.sdn.dp.Port;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.odp.Port;
+import com.midokura.odp.protos.OvsDatapathConnection;
+
 
 /**
  * Interface sensor using Netlink.

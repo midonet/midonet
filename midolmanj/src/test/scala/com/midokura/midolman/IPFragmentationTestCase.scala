@@ -4,15 +4,17 @@
 package com.midokura.midolman
 
 import akka.util.Duration
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded,
                                              WildcardFlowRemoved}
+import com.midokura.midolman.util.SimulationHelper
+import com.midokura.odp.flows.IPFragmentType
 import com.midokura.packets._
-import util.SimulationHelper
-import com.midokura.sdn.dp.flows.IPFragmentType
+
 
 @RunWith(classOf[JUnitRunner])
 class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixture

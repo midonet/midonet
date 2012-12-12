@@ -14,9 +14,9 @@ import com.midokura.midolman.config.MidolmanConfig
 import com.midokura.midolman.datapath.ErrorHandlingCallback
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
-import com.midokura.netlink.protos.OvsDatapathConnection
-import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
-import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction}
+import com.midokura.odp.{Datapath, Flow, FlowMatch, Packet}
+import com.midokura.odp.flows.{FlowAction, FlowActionUserspace}
+import com.midokura.odp.protos.OvsDatapathConnection
 import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
                                WildcardMatch}
 import com.midokura.util.functors.Callback0

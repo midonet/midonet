@@ -3,7 +3,6 @@
 */
 package com.midokura.midolman
 
-import layer4.NatMappingFactory
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
@@ -23,15 +22,17 @@ import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
 
-import com.midokura.midolman.DatapathController.{DisablePortWatcher, InitializationComplete}
+import com.midokura.midolman.DatapathController.{DisablePortWatcher,
+                                                 InitializationComplete}
 import com.midokura.midolman.guice._
-import cluster.ClusterClientModule
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
+import com.midokura.midolman.guice.cluster.ClusterClientModule
 import com.midokura.midolman.guice.config.MockConfigProviderModule
 import com.midokura.midolman.guice.datapath.MockDatapathModule
 import com.midokura.midolman.guice.reactor.ReactorModule
 import com.midokura.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import com.midokura.midolman.layer4.NatMappingFactory
 import com.midokura.midolman.monitoring.{MonitoringActor, MonitoringAgent}
 import com.midokura.midolman.services.{HostIdProviderService,
         MidolmanActorsService, MidolmanService}
@@ -39,11 +40,11 @@ import com.midokura.midolman.topology.{VirtualTopologyActor,
         VirtualToPhysicalMapper}
 import com.midokura.midonet.cluster.{Client, DataClient}
 import com.midokura.midonet.cluster.services.MidostoreSetupService
-import com.midokura.netlink.protos.OvsDatapathConnection
-import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl
+import com.midokura.odp._
+import com.midokura.odp.flows.FlowKeyInPort
+import com.midokura.odp.protos.OvsDatapathConnection
+import com.midokura.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.packets.Ethernet
-import com.midokura.sdn.dp._
-import com.midokura.sdn.dp.flows.FlowKeyInPort
 import com.midokura.util.functors.callbacks.AbstractCallback
 
 

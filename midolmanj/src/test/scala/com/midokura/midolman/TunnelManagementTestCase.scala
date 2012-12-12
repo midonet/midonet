@@ -3,22 +3,25 @@
 */
 package com.midokura.midolman
 
+import scala.collection.mutable
 import java.util.UUID
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 import org.slf4j.{Logger, LoggerFactory}
-import scala.collection.mutable
 
-import com.midokura.midolman.DatapathController.{TunnelChangeEvent, DatapathPortChangedEvent}
+import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent,
+    TunnelChangeEvent}
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone,
                                                 GreTunnelZoneHost}
-import com.midokura.midolman.topology.rcu.{Host => RCUHost}
+import com.midokura.odp.ports.{NetDevPort, GreTunnelPort}
 import com.midokura.packets.IntIPv4
-import com.midokura.sdn.dp.ports.{NetDevPort, GreTunnelPort}
-import topology.LocalPortActive
+
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with VirtualConfigurationBuilders {

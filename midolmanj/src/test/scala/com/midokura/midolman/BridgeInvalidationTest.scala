@@ -4,23 +4,26 @@
 
 package com.midokura.midolman
 
-import akka.util.Duration
-import collection.mutable
-import com.midokura.midolman.FlowController.{RemoveWildcardFlow, WildcardFlowRemoved, WildcardFlowAdded}
-import com.midokura.midolman.topology.LocalPortActive
-import util.{TestHelpers, RouterHelper}
-import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
-import java.util.concurrent.TimeUnit
-import org.apache.commons.configuration.HierarchicalConfiguration
 import akka.testkit.TestProbe
-import com.midokura.sdn.dp.Datapath
+import akka.util.Duration
+import collection.JavaConversions._
+import collection.immutable.HashMap
+import collection.mutable
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import org.apache.commons.configuration.HierarchicalConfiguration
+
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController.{RemoveWildcardFlow,
+    WildcardFlowRemoved, WildcardFlowAdded}
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.util.{TestHelpers, RouterHelper}
 import com.midokura.midonet.cluster.data.Bridge
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import collection.immutable.HashMap
-import com.midokura.midolman.DatapathController.PacketIn
-import scala.collection.JavaConversions._
+import com.midokura.odp.Datapath
+import com.midokura.odp.flows.{FlowAction, FlowActions}
 import com.midokura.sdn.flows.WildcardFlow
 
 

@@ -5,17 +5,20 @@ package com.midokura.midolman
 
 import java.util.concurrent.TimeUnit
 import akka.util.Duration
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import com.midokura.midolman.DatapathController.TunnelChangeEvent
 import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
+import com.midokura.odp.flows.{FlowActionOutput, FlowActionSetKey,
+    FlowKeyTunnelID}
 import com.midokura.packets.IntIPv4
-import com.midokura.midolman.DatapathController.TunnelChangeEvent
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
-import topology.LocalPortActive
+import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase

@@ -3,27 +3,27 @@
  */
 package com.midokura.midolman.host;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import com.midokura.midolman.guice.MonitoringStoreModule;
-import com.midokura.midolman.guice.config.ConfigProviderModule;
-import com.midokura.midolman.guice.datapath.DatapathModule;
-import com.midokura.midolman.guice.reactor.ReactorModule;
-import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import com.midokura.midolman.host.guice.HostAgentModule;
-import com.midokura.midolman.host.services.HostAgentService;
-import com.midokura.midolman.guice.cluster.ClusterClientModule;
-
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import java.io.IOException;
-import java.util.Properties;
+import com.midokura.midolman.guice.MonitoringStoreModule;
+import com.midokura.midolman.guice.cluster.ClusterClientModule;
+import com.midokura.midolman.guice.config.ConfigProviderModule;
+import com.midokura.midolman.guice.datapath.DatapathModule;
+import com.midokura.midolman.guice.reactor.ReactorModule;
+import com.midokura.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import com.midokura.midolman.host.guice.HostAgentModule;
+import com.midokura.midolman.host.services.HostAgentService;
+
 
 /**
  * Main entry point for the Host Agent implementation. This class can start a

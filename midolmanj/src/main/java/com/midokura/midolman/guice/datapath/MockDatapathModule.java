@@ -5,7 +5,8 @@ package com.midokura.midolman.guice.datapath;
 
 import javax.inject.Singleton;
 
-import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.OvsDatapathConnection;
+
 
 public class MockDatapathModule extends DatapathModule {
     @Override

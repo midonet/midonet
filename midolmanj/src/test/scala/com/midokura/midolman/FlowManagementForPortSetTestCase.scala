@@ -6,8 +6,11 @@ package com.midokura.midolman
 
 import scala.collection.JavaConversions._
 import akka.testkit.TestProbe
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 
 import org.junit.runner.RunWith
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
@@ -21,13 +24,10 @@ import com.midokura.midonet.cluster.data.Bridge
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import com.midokura.packets.{IntIPv4, MAC}
-import com.midokura.sdn.dp.FlowMatch
-import com.midokura.sdn.dp.flows._
-import com.midokura.sdn.dp.flows.FlowKeys.ethernet
+import com.midokura.odp.FlowMatch
+import com.midokura.odp.flows._
+import com.midokura.odp.flows.FlowKeys.ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.scalatest.Ignore
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
 
 
 @RunWith(classOf[JUnitRunner])

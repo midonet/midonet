@@ -3,15 +3,18 @@
  */
 package com.midokura.midolman.util
 
+import collection.JavaConversions._
+import collection.mutable
 import java.util.concurrent.TimeUnit
+
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue
-import com.midokura.midolman.FlowController.{WildcardFlowAdded, WildcardFlowRemoved}
-import collection.mutable
-import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.packets.{Packets, MAC, IntIPv4, Ethernet}
-import scala.collection.JavaConversions._
+
+import com.midokura.midolman.FlowController.{WildcardFlowAdded,
+    WildcardFlowRemoved}
+import com.midokura.odp.flows.FlowAction
+import com.midokura.packets.{Ethernet, IntIPv4, MAC, Packets}
 
 
 /**

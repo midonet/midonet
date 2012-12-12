@@ -8,14 +8,15 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 
-import com.midokura.packets._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.midolman.MidolmanTestCase
-import com.midokura.midolman.util.AddressConversions._
-import com.midokura.sdn.dp.Packet
-import com.midokura.sdn.dp.flows._
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.MidolmanTestCase
+import com.midokura.midolman.util.AddressConversions._
+import com.midokura.odp.Packet
+import com.midokura.odp.flows._
+import com.midokura.packets._
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+
 
 trait SimulationHelper extends MidolmanTestCase {
 

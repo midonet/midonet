@@ -4,40 +4,39 @@
 
 package com.midokura.midolman
 
-import datapath.FlowActionOutputToVrnPortSet
-import layer3.Route
-import layer3.Route.NextHop
+import akka.testkit.TestProbe
+import akka.util.Duration
+import collection.JavaConversions._
+import collection.immutable.HashMap
+import collection.mutable
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import topology.LocalPortActive
-import topology.VirtualToPhysicalMapper.GreZoneChanged
-import topology.{FlowTagger, LocalPortActive}
-import topology.RouterManager.RouterInvTrieTagCountModified
-import topology.VirtualToPhysicalMapper.GreZoneChanged
-import util.{TestHelpers, RouterHelper}
-import akka.testkit.TestProbe
-import com.midokura.sdn.dp.Datapath
-import java.util.UUID
-import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
-import collection.immutable.HashMap
-import com.midokura.packets.{IntIPv4, MAC}
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
-import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
-import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent, PacketIn}
-import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import com.midokura.sdn.dp.ports.GreTunnelPort
-import com.midokura.midonet.cluster.data.host.Host
+
+import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent,
+    PacketIn, TunnelChangeEvent}
+import com.midokura.midolman.FlowController.{AddWildcardFlow,
+    InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
+import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.layer3.Route.NextHop
+import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
+import com.midokura.midolman.topology.RouterManager.RouterInvTrieTagCountModified
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
+import com.midokura.midolman.util.{TestHelpers, RouterHelper}
 import com.midokura.midonet.cluster.data.Router
-import scala.collection.mutable
-import collection.JavaConversions._
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.FlowController.WildcardFlowAdded
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.midolman.FlowController.WildcardFlowRemoved
-import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.midonet.cluster.data.host.Host
+import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
+import com.midokura.odp.Datapath
+import com.midokura.odp.flows.{FlowAction, FlowActions}
+import com.midokura.odp.ports.GreTunnelPort
+import com.midokura.packets.{IntIPv4, MAC}
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders

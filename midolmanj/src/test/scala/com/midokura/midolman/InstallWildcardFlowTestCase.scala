@@ -3,16 +3,19 @@
 */
 package com.midokura.midolman
 
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
-import com.midokura.sdn.dp.flows.FlowActions
-import datapath.FlowActionOutputToVrnPort
 import java.util.Arrays
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.midonet.cluster.data.host.Host
-import topology.LocalPortActive
+import com.midokura.odp.flows.FlowActions
+import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {

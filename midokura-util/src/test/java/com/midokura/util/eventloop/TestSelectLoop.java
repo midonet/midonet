@@ -33,26 +33,36 @@ public class TestSelectLoop {
     BooleanBox reactorFinished;
 
     @Before
-    public void setup() throws IOException {
-        loop = new SelectLoop();
-        reactor = new TryCatchReactor("test", 1);
-        pipe1 = Pipe.open();
-        pipe2 = Pipe.open();
-        channel1 = pipe1.source();
-        channel2 = pipe2.source();
-        channel1.configureBlocking(false);
-        channel2.configureBlocking(false);
-        message = ByteBuffer.allocate(8);
-        message.putLong(0x0F00BA44DEADBEEFL);
-        message.rewind();
-        reactorThrew = new BooleanBox();
-        reactorThrew.value = false;
-        reactorFinished = new BooleanBox();
-        reactorFinished.value = false;
+    public void setup() {
+        try {
+            log.info("Eventloop set-up starting.");
+            loop = new SelectLoop();
+            reactor = new TryCatchReactor("test", 1);
+            assertTrue(reactor != null);
+            pipe1 = Pipe.open();
+            pipe2 = Pipe.open();
+            channel1 = pipe1.source();
+            channel2 = pipe2.source();
+            channel1.configureBlocking(false);
+            channel2.configureBlocking(false);
+            message = ByteBuffer.allocate(8);
+            message.putLong(0x0F00BA44DEADBEEFL);
+            message.rewind();
+            reactorThrew = new BooleanBox();
+            reactorThrew.value = false;
+            reactorFinished = new BooleanBox();
+            reactorFinished.value = false;
+            log.info("Eventloop set-up complete.");
+        } catch (Throwable e) {
+            log.error("Aiee, exception setting up eventloop: ", e);
+            assertTrue(false);
+        }
     }
 
     @After
     public void teardown() throws IOException {
+        log.info("Eventloop tear-down starting.");
+        assertTrue(reactor != null);
         reactor.shutDownNow();
         loop.shutdown();
         pipe1.sink().close();

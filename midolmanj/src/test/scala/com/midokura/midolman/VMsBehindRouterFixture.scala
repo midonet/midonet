@@ -3,27 +3,27 @@
 */
 package com.midokura.midolman
 
-import scala.Some
 import scala.collection.JavaConversions._
-
 import akka.testkit.TestProbe
-import org.slf4j.LoggerFactory
-import guice.actors.OutgoingMessage
 
-import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
-                                             WildcardFlowAdded}
-import layer3.Route
-import layer3.Route.NextHop
-import topology.LocalPortActive
-import com.midokura.packets._
+import org.slf4j.LoggerFactory
+
+import com.midokura.midolman.FlowController.{WildcardFlowAdded,
+                                             WildcardFlowRemoved}
+import com.midokura.midolman.guice.actors.OutgoingMessage
+import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.layer3.Route.NextHop
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import com.midokura.midolman.util.SimulationHelper
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
                                           Router => ClusterRouter}
 import com.midokura.midonet.cluster.data.host.Host
-import topology.VirtualToPhysicalMapper.HostRequest
-import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowAction}
-import com.midokura.sdn.dp.Packet
+import com.midokura.odp.Packet
+import com.midokura.odp.flows.{FlowActionOutput, FlowAction}
+import com.midokura.packets._
+
 
 trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         VirtualConfigurationBuilders {

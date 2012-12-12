@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannel;
 import com.midokura.netlink.NetlinkSelectorProvider;
-import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.Reactor;
+
 
 /**
  * This will create a OvsDatapathConnection which is already connected to the

@@ -8,9 +8,10 @@ import javax.inject.Singleton;
 import com.google.inject.PrivateModule;
 
 import com.midokura.midolman.services.DatapathConnectionService;
-import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.Reactor;
 import com.midokura.util.eventloop.SelectLoop;
+
 
 /**
  *
