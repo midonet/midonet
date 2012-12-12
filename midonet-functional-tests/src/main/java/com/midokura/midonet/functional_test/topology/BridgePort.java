@@ -33,11 +33,6 @@ public class BridgePort {
             return this;
         }
 
-        public Builder setPortGroups(UUID[] groupIDs) {
-            port.setPortGroupIDs(groupIDs);
-            return this;
-        }
-
         public BridgePort build() {
             return new BridgePort(mgmt,
                     mgmt.addExteriorBridgePort(bridge, port));

@@ -76,15 +76,6 @@ public class BridgePort<T extends DtoBridgePort> extends
     }
 
     /**
-     * Gets array of portgroup Id that this port belongs to
-     *
-     * @return array of UUID of portgroup
-     */
-    public UUID[] getPortGroupIDs() {
-        return principalDto.getPortGroupIDs();
-    }
-
-    /**
      * Gets type of this bridge port
      *
      * @return type
@@ -133,17 +124,6 @@ public class BridgePort<T extends DtoBridgePort> extends
      */
     public BridgePort<T> vifId(UUID id) {
         principalDto.setVifId(id);
-        return this;
-    }
-
-    /**
-     * Set list of ids to principalDto group ids
-     *
-     * @param ids
-     * @return this
-     */
-    public BridgePort<T> portGroupIDs(UUID[] ids) {
-        principalDto.setPortGroupIDs(ids);
         return this;
     }
 

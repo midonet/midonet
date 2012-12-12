@@ -4,20 +4,16 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.UriResource;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.AssertTrue;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -57,10 +53,6 @@ public abstract class Port extends UriResource {
      */
     protected UUID outboundFilterId;
 
-    /**
-     * List of Port Groups to which this port belongs.
-     */
-    protected UUID[] portGroupIDs;
 
     /**
      * Default constructor
@@ -91,11 +83,6 @@ public abstract class Port extends UriResource {
                 portData.getDeviceId());
         this.inboundFilterId = portData.getInboundFilter();
         this.outboundFilterId = portData.getOutboundFilter();
-        Set<UUID> portGroupIds = portData.getPortGroups();
-        if (portGroupIds != null && portGroupIds.size() > 0) {
-            this.portGroupIDs = portGroupIds.toArray(
-                    new UUID[portGroupIds.size()]);
-        }
     }
 
     /**
@@ -173,14 +160,6 @@ public abstract class Port extends UriResource {
         }
     }
 
-    public UUID[] getPortGroupIDs() {
-        return portGroupIDs;
-    }
-
-    public void setPortGroupIDs(UUID[] portGroupIDs) {
-        this.portGroupIDs = portGroupIDs;
-    }
-
     /**
      * @return the self URI
      */
@@ -211,12 +190,6 @@ public abstract class Port extends UriResource {
         data.setDeviceId(this.deviceId);
         data.setInboundFilter(this.inboundFilterId);
         data.setOutboundFilter(this.outboundFilterId);
-        if (this.portGroupIDs != null) {
-            data.setPortGroups(
-                    new HashSet<UUID>(Arrays.asList(this.portGroupIDs)));
-        } else {
-            data.setPortGroups(new HashSet<UUID>());
-        }
     }
 
     /**

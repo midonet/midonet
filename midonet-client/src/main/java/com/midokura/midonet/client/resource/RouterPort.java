@@ -100,15 +100,6 @@ public class RouterPort<T extends DtoRouterPort> extends
     }
 
     /**
-     * Gets arrays of ID of port groups for this router ports
-     *
-     * @return array of port group UUIDs
-     */
-    public UUID[] getPortGroupIDs() {
-        return principalDto.getPortGroupIDs();
-    }
-
-    /**
      * Gets mac address of the port.
      *
      * @return mac address
@@ -152,17 +143,6 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public RouterPort<T> networkLength(int networkLength) {
         ((DtoRouterPort) principalDto).setNetworkLength(networkLength);
-        return this;
-    }
-
-    /**
-     * Sets port group IDs to the local DTO.
-     *
-     * @param portGroupIDs
-     * @return this
-     */
-    public RouterPort<T> portGroupIDs(UUID[] portGroupIDs) {
-        principalDto.setPortGroupIDs(portGroupIDs);
         return this;
     }
 
