@@ -93,7 +93,7 @@
   </context-param>
   <context-param>
     <param-name>zookeeper-session_timeout</param-name>
-    <param-value>3000</param-value>
+    <param-value>30000</param-value>
   </context-param>
   <context-param>
     <param-name>zookeeper-midolman_root_key</param-name>
