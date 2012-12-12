@@ -25,6 +25,7 @@ public class ZkConnection implements Watcher {
     private Watcher watcher;
     private boolean connecting;
     private boolean connected;
+    private boolean terminated;
 
     public ZkConnection(String zkHosts, int sessionTimeoutMillis, Watcher watcher) {
         this.zkHosts = zkHosts;
@@ -32,6 +33,7 @@ public class ZkConnection implements Watcher {
         this.watcher = watcher;
         connecting = false;
         connected = false;
+        terminated = false;
     }
 
     public ZkConnection(String zkHosts, int sessionTimeoutMillis,
@@ -42,6 +44,7 @@ public class ZkConnection implements Watcher {
         this.reactor = reactor;
         connecting = false;
         connected = false;
+        terminated = false;
     }
 
     public void open() throws Exception {
@@ -64,7 +67,14 @@ public class ZkConnection implements Watcher {
     }
 
     public void reopen() throws Exception {
+        if (terminated) {
+            throw new Exception("Cannot reopen ZooKeeper session, "+
+                                "instance has been shutdown");
+        }
         synchronized (this) {
+            _close();
+            notifyAll();
+
             if (null == zk || zk.getState() != ZooKeeper.States.CLOSED)
                 return;
             connecting = true;
@@ -82,9 +92,10 @@ public class ZkConnection implements Watcher {
                 throw new Exception("Cannot reopen ZooKeeper session.");
         }
         log.info("Reconnected to ZooKeeper with session {}", zk.getSessionId());
+        notifyAll();
     }
 
-    public synchronized void close() {
+    private void _close() {
         connecting = false;
         connected = false;
         if (null != zk) {
@@ -95,6 +106,11 @@ public class ZkConnection implements Watcher {
             }
             // Don't reset zk to null. The class is not meant to be re-used.
         }
+    }
+
+    public synchronized void close() {
+        _close();
+        terminated = true;
         if (reactor != null)
             reactor.shutDownNow();
         notifyAll();
