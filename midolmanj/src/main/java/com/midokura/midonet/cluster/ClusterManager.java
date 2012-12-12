@@ -5,6 +5,13 @@
 package com.midokura.midonet.cluster;
 
 import java.util.UUID;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
 import com.midokura.midolman.state.Directory;
@@ -13,13 +20,6 @@ import com.midokura.midolman.state.ZkConnectionAwareWatcher;
 import com.midokura.util.collections.TypedHashMap;
 import com.midokura.util.collections.TypedMap;
 import com.midokura.util.eventloop.Reactor;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
 
 abstract class ClusterManager<T> {
     private static final Logger log = LoggerFactory
@@ -35,7 +35,6 @@ abstract class ClusterManager<T> {
     @Inject
     ZkConnectionAwareWatcher connectionWatcher;
 
-    private TypedMap<UUID, T> stagingMap = new TypedHashMap<UUID, T>();
     private TypedMap<UUID, T> builderMap = new TypedHashMap<UUID, T>();
 
     public void registerNewBuilder(final UUID id, final T builder) {
