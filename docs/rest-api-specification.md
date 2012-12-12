@@ -19,6 +19,7 @@
   * [Port](#port)
   * [Route](#route)
   * [Port Group](#portgroup)
+  * [Port Group Port](#portgroupport)
   * [Chain](#chain)
   * [Rule](#rule)
   * [BGP](#bgp)
@@ -1039,6 +1040,68 @@ contains the following fields:
         <td>Yes</td>
         <td>Name of the port group.  Unique per tenant.</td>
     </tr>
+    <tr>
+        <td>ports</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI for port membership operations.</td>
+</table>
+
+<a name="portgroupport"/>
+### PortGroupPort [application/vnd.com.midokura.midolman.mgmt.PortGroupPort+json]
+
+    GET     /port_groups/:portGroupId/ports
+    GET     /port_groups/:portGroupId/ports/:portId
+    POST    /port_groups/:portGroupId/ports
+    DELETE  /port_groups/:portGroupId/ports/:portId
+
+PortGroupPort represents membership of ports in port groups.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>portGroupId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>ID of the port group that a port is a member of.</td>
+    </tr>
+    <tr>
+        <td>portGroup</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI to fetch the port group.</td>
+     </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>ID of the port in a port group membership.</td>
+     </tr>
+    <tr>
+        <td>port</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI to fetch the port.</td>
+     </tr>
 </table>
 
 <a name="chain"/>

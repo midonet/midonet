@@ -30,7 +30,6 @@ public abstract class DtoPort {
     private UUID outboundFilterId = null;
     private URI inboundFilter = null;
     private URI outboundFilter = null;
-    private UUID[] portGroupIDs = null;
     private UUID vifId = null;
     private URI uri;
 
@@ -82,14 +81,6 @@ public abstract class DtoPort {
         this.outboundFilter = outboundFilter;
     }
 
-    public UUID[] getPortGroupIDs() {
-        return portGroupIDs;
-    }
-
-    public void setPortGroupIDs(UUID[] portGroupIDs) {
-        this.portGroupIDs = portGroupIDs;
-    }
-
     public UUID getVifId() {
         return vifId;
     }
@@ -135,11 +126,6 @@ public abstract class DtoPort {
 
         if (outboundFilterId != null ? !outboundFilterId
                 .equals(that.outboundFilterId) : that.outboundFilterId != null) {
-            return false;
-        }
-
-        if (portGroupIDs != null ? !portGroupIDs.equals(that.portGroupIDs)
-                : that.portGroupIDs != null) {
             return false;
         }
 
