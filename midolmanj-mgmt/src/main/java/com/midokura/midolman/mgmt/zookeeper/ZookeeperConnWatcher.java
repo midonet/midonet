@@ -41,8 +41,7 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
         // create a new session.
         if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired
                 && conn != null) {
-            conn.close();
-
+            log.info("Session expired, reconnecting to ZK with a new session");
             try {
                 conn.reopen();
             } catch (Exception e) {
