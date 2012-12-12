@@ -71,8 +71,7 @@ public class TunnelZoneHostResource {
 
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
-                   MediaType.APPLICATION_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
     public Response create(GreTunnelZoneHost tunnelZoneHost)
             throws StateAccessException {
 
@@ -81,8 +80,7 @@ public class TunnelZoneHostResource {
 
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-                   MediaType.APPLICATION_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
     public Response create(CapwapTunnelZoneHost tunnelZoneHost)
             throws StateAccessException {
 
