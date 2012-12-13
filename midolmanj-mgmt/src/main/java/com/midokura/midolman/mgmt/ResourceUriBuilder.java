@@ -36,6 +36,7 @@ public class ResourceUriBuilder {
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
+    public static final String PORT_ID_QS = "port_id";
 
     private ResourceUriBuilder() {
     }
@@ -253,6 +254,11 @@ public class ResourceUriBuilder {
 
     public static URI getPortGroups(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORT_GROUPS).build();
+    }
+
+    public static URI getPortGroups(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
+                PORT_ID_QS, portId).build();
     }
 
     public static URI getPortGroup(URI baseUri, UUID id) {
