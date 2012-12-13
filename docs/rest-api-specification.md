@@ -876,6 +876,14 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td/>
         <td>A GET against this URI retrieves the outbound filter chain.</td>
     </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the port groups that this port
+        is a member of.</td>
+    </tr>
 </table>
 
 <a name="route"/>
@@ -997,6 +1005,7 @@ contains the following fields:
 ### PortGroup [application/vnd.com.midokura.midolman.mgmt.PortGroup+json]
 
     GET     /port_groups?tenant_id=:tenantId
+    GET     /port_groups?port_id=:portId
     GET     /port_groups/:portGroupId
     GET     /port_groups/:name?tenant_id=:tenantId
     POST    /port_groups

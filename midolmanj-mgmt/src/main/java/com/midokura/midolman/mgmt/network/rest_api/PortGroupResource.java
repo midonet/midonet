@@ -12,6 +12,7 @@ import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.network.PortGroup;
+import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
 import com.midokura.midolman.mgmt.network.auth.PortGroupAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.*;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -43,7 +44,8 @@ public class PortGroupResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupResource.class);
 
-    private final Authorizer authorizer;
+    private final PortGroupAuthorizer authorizer;
+    private final PortAuthorizer portAuthorizer;
     private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
@@ -52,10 +54,12 @@ public class PortGroupResource extends AbstractResource {
     public PortGroupResource(RestApiConfig config, UriInfo uriInfo,
                              SecurityContext context,
                              PortGroupAuthorizer authorizer,
+                             PortAuthorizer portAuthorizer,
                              Validator validator, DataClient dataClient,
                              ResourceFactory factory) {
         super(config, uriInfo, context);
         this.authorizer = authorizer;
+        this.portAuthorizer = portAuthorizer;
         this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
@@ -190,7 +194,8 @@ public class PortGroupResource extends AbstractResource {
     }
 
     /**
-     * Handler to getting a collection of PortGroups.
+     * Handler to getting a collection of PortGroups.  Port groups can be
+     * filtered by tenant or port.
      *
      * @throws com.midokura.midolman.state.StateAccessException
      *             Data access error.
@@ -200,23 +205,35 @@ public class PortGroupResource extends AbstractResource {
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<PortGroup> list(@QueryParam("tenant_id") String tenantId)
+    public List<PortGroup> list(@QueryParam("tenant_id") String tenantId,
+                                @QueryParam("port_id") UUID portId)
             throws StateAccessException {
 
-        if (tenantId == null) {
+        if (tenantId == null && portId == null) {
             throw new BadRequestHttpException(
-                    "Currently tenant_id is required for search.");
-        }
-
-        // Tenant ID query string is a special parameter that is used to check
-        // authorization.
-        if (!Authorizer.isAdminOrOwner(context, tenantId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view port group of this request.");
+                    "tenant_id or port_id is required for search.");
         }
 
         List<com.midokura.midonet.cluster.data.PortGroup> portGroupDataList =
-                dataClient.portGroupsFindByTenant(tenantId);
+                null;
+
+        // Port ID filter is more restrictive so handle that if portId is set.
+        if (portId != null) {
+
+            // If portId is provided, check the owner.
+            if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view port groups for this port.");
+            }
+            portGroupDataList = dataClient.portGroupsFindByPort(portId);
+
+        } else {
+            if (!Authorizer.isAdminOrOwner(context, tenantId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view port group for this tenant.");
+            }
+            portGroupDataList = dataClient.portGroupsFindByTenant(tenantId);
+        }
 
         List<PortGroup> portGroups = new ArrayList<PortGroup>();
         if (portGroupDataList != null) {

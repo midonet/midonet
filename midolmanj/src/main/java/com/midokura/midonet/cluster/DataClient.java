@@ -271,6 +271,9 @@ public interface DataClient {
     @CheckForNull PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException;
 
+    List<PortGroup> portGroupsFindByPort(UUID portId)
+            throws StateAccessException;
+
     List<PortGroup> portGroupsFindByTenant(String tenantId)
             throws StateAccessException;
 

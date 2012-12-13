@@ -1061,6 +1061,28 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public List<PortGroup> portGroupsFindByPort(UUID portId)
+            throws StateAccessException  {
+        log.debug("portGroupsFindByPort entered: portId={}", portId);
+
+        List<PortGroup> portGroups = new ArrayList<PortGroup>();
+
+        if (portsExists(portId)) {
+            Port port = portsGet(portId);
+            Set<UUID> portGroupIds = port.getPortGroups();
+            for (UUID portGroupId : portGroupIds) {
+                PortGroup portGroup = portGroupsGet(portGroupId);
+                if (portGroup != null) {
+                    portGroups.add(portGroup);
+                }
+            }
+        }
+
+        log.debug("portGroupsFindByPort exiting: {} portGroups found",
+                portGroups.size());
+        return portGroups;
+    }
+    @Override
     public boolean portGroupsIsPortMember(@Nonnull UUID id,
                                           @Nonnull UUID portId)
         throws StateAccessException {

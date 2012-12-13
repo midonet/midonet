@@ -721,6 +721,13 @@ public class TestPort {
                     DtoPortGroupPort[].class);
             assertEquals(1, portGroupPorts.length);
 
+            // List from port's URI
+            DtoPortGroup[] portGroups = dtoResource.getAndVerifyOk(
+                    port1.getPortGroups(),
+                    VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+                    DtoPortGroup[].class);
+            assertEquals(1, portGroups.length);
+
             // Delete the membership
             dtoResource.deleteAndVerifyNoContent(portGroupPort.getUri(),
                     VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON);
