@@ -114,14 +114,28 @@ public class TestPortGroup {
             // Create a port on Bridge1 that belongs to both of Tenant1's
             // PortGroups
             DtoBridgePort port = new DtoBridgePort();
-            port.setPortGroupIDs(new UUID[] { group1.getId(), group2.getId() });
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
                     APPLICATION_PORT_JSON, port, DtoBridgePort.class);
             assertEquals("Bridge1", bridge.getName());
-            assertEquals(bridge.getId(), port.getDeviceId());
-            assertThat("The port's groups should be group1 and group2",
-                    port.getPortGroupIDs(),
-                    arrayContainingInAnyOrder(group1.getId(), group2.getId()));
+            assertEquals(bridge.getId(), port.getDeviceId());;
+
+            // Add this port to a port group and verify that it exists
+            DtoPortGroupPort portGroupPort = new DtoPortGroupPort();
+            portGroupPort.setPortId(port.getId());
+            portGroupPort = dtoResource.postAndVerifyCreated(group1.getPorts(),
+                    APPLICATION_PORTGROUP_PORT_JSON, portGroupPort,
+                    DtoPortGroupPort.class);
+            DtoPortGroupPort[] portGroupPorts = dtoResource.getAndVerifyOk(
+                    group1.getPorts(),
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    DtoPortGroupPort[].class);
+            assertThat("Port group has one port", portGroupPorts,
+                    arrayWithSize(1));
+            assertThat("Port is a member of port group",
+                    portGroupPorts[0].getPortId(), equalTo(port.getId()));
+            assertThat("Port group ID is correct",
+                    portGroupPorts[0].getPortGroupId(),
+                    equalTo(group1.getId()));
 
             // Now add the rule.
             DtoRule rule = new DtoRule();
