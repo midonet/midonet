@@ -100,10 +100,10 @@ public class TestPortGroup {
             assertEquals("tenant2-id", group3.getTenantId());
 
             // List tenant1's groups
-            URI searchUri = UriBuilder.fromUri(app.getPortGroups()).queryParam(
-                    "tenant_id", "tenant1-id").build();
+            URI tenantSearchUri = UriBuilder.fromUri(app.getPortGroups())
+                    .queryParam("tenant_id", "tenant1-id").build();
             DtoPortGroup[] groups = dtoResource
-                    .getAndVerifyOk(searchUri,
+                    .getAndVerifyOk(tenantSearchUri,
                             APPLICATION_PORTGROUP_COLLECTION_JSON,
                             DtoPortGroup[].class);
             assertThat("Tenant1 has 2 groups.", groups, arrayWithSize(2));
@@ -117,7 +117,7 @@ public class TestPortGroup {
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
                     APPLICATION_PORT_JSON, port, DtoBridgePort.class);
             assertEquals("Bridge1", bridge.getName());
-            assertEquals(bridge.getId(), port.getDeviceId());;
+            assertEquals(bridge.getId(), port.getDeviceId());
 
             // Add this port to a port group and verify that it exists
             DtoPortGroupPort portGroupPort = new DtoPortGroupPort();
@@ -136,6 +136,18 @@ public class TestPortGroup {
             assertThat("Port group ID is correct",
                     portGroupPorts[0].getPortGroupId(),
                     equalTo(group1.getId()));
+
+            // Retrieve port groups by port Id
+            URI portSearchUri = UriBuilder.fromUri(app.getPortGroups())
+                    .queryParam("port_id", port.getId()).build();
+            groups = dtoResource
+                    .getAndVerifyOk(portSearchUri,
+                            APPLICATION_PORTGROUP_COLLECTION_JSON,
+                            DtoPortGroup[].class);
+            assertThat("Port has 1 groups.", groups, arrayWithSize(1));
+            assertThat(
+                    "We expect the listed groups to match those we created.",
+                    groups, arrayContainingInAnyOrder(group1));
 
             // Now add the rule.
             DtoRule rule = new DtoRule();
@@ -165,7 +177,7 @@ public class TestPortGroup {
 
             // There should now be only the second group.
             groups = dtoResource
-                    .getAndVerifyOk(searchUri,
+                    .getAndVerifyOk(tenantSearchUri,
                             APPLICATION_PORTGROUP_COLLECTION_JSON,
                             DtoPortGroup[].class);
             assertThat("We expect 1 listed group after the delete", groups,

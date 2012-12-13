@@ -32,6 +32,7 @@ public abstract class DtoPort {
     private URI outboundFilter = null;
     private UUID vifId = null;
     private URI uri;
+    private URI portGroups;
 
     public UUID getId() {
         return id;
@@ -97,6 +98,14 @@ public abstract class DtoPort {
         this.uri = uri;
     }
 
+    public URI getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(URI portGroups) {
+        this.portGroups = portGroups;
+    }
+
     public abstract String getType();
 
     @Override
@@ -130,6 +139,11 @@ public abstract class DtoPort {
         }
 
         if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
+            return false;
+        }
+
+        if (portGroups != null ? !portGroups.equals(that.portGroups)
+                : that.portGroups != null) {
             return false;
         }
 
