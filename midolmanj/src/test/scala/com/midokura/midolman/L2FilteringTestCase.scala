@@ -178,7 +178,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         log.info("waiting for the return drop flows to timeout")
         // Flow expiration is checked every 10 seconds. The DROP flows should
         // expire in 3 seconds, but we wait 11 seconds for expiration to run.
-        flowEventsProbe.within (11 seconds) {
+        flowEventsProbe.within (15 seconds) {
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
         }
