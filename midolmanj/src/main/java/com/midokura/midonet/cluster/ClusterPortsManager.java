@@ -4,12 +4,11 @@
 
 package com.midokura.midonet.cluster;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     PortConfigCache portConfigCache;
     // These watchers belong to classes of the cluster (eg ClusterBridgeManager)
     // they don't implement the PortBuilder interface
-    ListMultimap<UUID, Runnable> clusterWatchers = ArrayListMultimap.create();
+    Map<UUID, Runnable> clusterWatchers = new HashMap<UUID, Runnable>();
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
@@ -45,8 +44,8 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         configCache.addWatcher(getPortsWatcher());
     }
 
-    protected <T extends PortConfig> T getPortConfigAndRegisterWatcher(final UUID id,
-                                               Class<T> clazz, Runnable watcher) {
+    protected <T extends PortConfig> T getPortConfigAndRegisterWatcher(
+            final UUID id, Class<T> clazz, Runnable watcher) {
         T config = portConfigCache.get(id, clazz);
         clusterWatchers.put(id, watcher);
         return config;
@@ -111,17 +110,17 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         }
         // this runnable notifies the classes in the cluster of a change in the
         // port configuration
-        List<Runnable> watchers = clusterWatchers.get(id);
-        for (Runnable runnable : watchers) {
-            runnable.run();
-        }
+        Runnable watcher = clusterWatchers.get(id);
+        if (null != watcher)
+            watcher.run();
     }
 
     void setInternalPortFields(InteriorPort port, LogicalPortConfig cfg){
         port.setPeerID(cfg.peerId());
     }
 
-    void setExteriorPortFieldsRouter(ExteriorPort port, PortDirectory.MaterializedRouterPortConfig cfg){
+    void setExteriorPortFieldsRouter(
+            ExteriorPort port, PortDirectory.MaterializedRouterPortConfig cfg){
 
         port.setHostID(cfg.getHostId());
         port.setInterfaceName(cfg.getInterfaceName());
@@ -132,7 +131,8 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         port.setTunnelKey(cfg.tunnelKey);
     }
 
-    void setExteriorPortFieldsBridge(ExteriorPort port, PortDirectory.MaterializedBridgePortConfig cfg){
+    void setExteriorPortFieldsBridge(
+            ExteriorPort port, PortDirectory.MaterializedBridgePortConfig cfg){
 
         port.setHostID(cfg.getHostId());
         port.setInterfaceName(cfg.getInterfaceName());
@@ -150,7 +150,8 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         port.setID(id);
     }
 
-    void setRouterPortFields(RouterPort port, PortDirectory.RouterPortConfig cfg){
+    void setRouterPortFields(RouterPort port,
+                             PortDirectory.RouterPortConfig cfg){
         port.setPortAddr(IntIPv4.fromString(cfg.getPortAddr(), cfg.nwLength));
         port.setPortMac(cfg.getHwAddr());
     }
