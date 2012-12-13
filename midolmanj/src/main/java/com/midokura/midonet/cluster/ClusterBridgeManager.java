@@ -150,9 +150,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
             // Find the peer of the new logical port.
             PortDirectory.LogicalBridgePortConfig bridgePort =
-                portsManager.getPortConfigAndRegisterWatcher(id,
-                                                             PortDirectory.LogicalBridgePortConfig.class,
-                                                             watcher);
+                portsManager.getPortConfigAndRegisterWatcher(
+                    id, PortDirectory.LogicalBridgePortConfig.class, watcher);
             if (null == bridgePort) {
                 log.error("Failed to find the logical bridge port's config {}",
                           id);
@@ -163,9 +162,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 continue;
             }
             PortDirectory.LogicalRouterPortConfig routerPort =
-                portsManager.getPortConfigAndRegisterWatcher(id,
-                                                             PortDirectory.LogicalRouterPortConfig.class,
-                                                             watcher);
+                portsManager.getPortConfigAndRegisterWatcher(
+                    bridgePort.peerId(),
+                    PortDirectory.LogicalRouterPortConfig.class,
+                    watcher);
 
             if (null == routerPort) {
                 log.error("Failed to get the config for the bridge's peer {}",

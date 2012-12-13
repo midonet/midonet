@@ -176,11 +176,15 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         requestOfType[WildcardFlowAdded](flowEventsProbe)
 
         log.info("waiting for the return drop flows to timeout")
-        flowEventsProbe.within (30 seconds) {
-            requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        // Flow expiration is checked every 10 seconds. The DROP flows should
+        // expire in 3 seconds, but we wait 11 seconds for expiration to run.
+        flowEventsProbe.within (15 seconds) {
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
             requestOfType[WildcardFlowRemoved](flowEventsProbe)
         }
+        // The remaining (allowed) LLDP flow has an idle expiration of 60
+        // seconds. We don't bother waiting for it because we're not testing
+        // expiration here. The flow won't conflict with the following UDPs.
 
         drainProbe(flowEventsProbe)
         log.info("sending two packets that should install conntrack entries")
