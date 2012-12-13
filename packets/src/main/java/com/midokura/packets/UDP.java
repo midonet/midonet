@@ -148,12 +148,13 @@ public class UDP extends BasePacket implements Transport {
             payloadData = payload.serialize();
         }
 
-        if (this.length == 0) {
-            this.length = (HEADER_LEN + ((payloadData == null) ? 0
-                    : payloadData.length));
-        }
+        int actualLength = (HEADER_LEN + ((payloadData == null) ? 0
+                        : payloadData.length));
 
-        byte[] data = new byte[this.length & 0xffff];
+        if (this.length == 0)
+            this.length = actualLength;
+
+        byte[] data = new byte[actualLength & 0xffff];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.putShort((short)this.sourcePort);
