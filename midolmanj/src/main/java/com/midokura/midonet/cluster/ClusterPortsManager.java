@@ -4,9 +4,12 @@
 
 package com.midokura.midonet.cluster;
 
+import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +32,9 @@ import com.midokura.util.functors.Callback1;
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     PortConfigCache portConfigCache;
+    // These watchers belong to classes of the cluster (eg ClusterBridgeManager)
+    // they don't implement the PortBuilder interface
+    ListMultimap<UUID, Runnable> clusterWatchers = ArrayListMultimap.create();
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
@@ -37,6 +43,13 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     public ClusterPortsManager(PortConfigCache configCache) {
         portConfigCache = configCache;
         configCache.addWatcher(getPortsWatcher());
+    }
+
+    protected <T extends PortConfig> T getPortConfigAndRegisterWatcher(final UUID id,
+                                               Class<T> clazz, Runnable watcher) {
+        T config = portConfigCache.get(id, clazz);
+        clusterWatchers.put(id, watcher);
+        return config;
     }
 
     @Override
@@ -91,9 +104,17 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         }
 
         PortBuilder builder = getBuilder(id);
-        builder.setPort(port);
-        log.debug("Build port {}", port);
-        builder.build();
+        if (builder != null) {
+            builder.setPort(port);
+            log.debug("Build port {}", port);
+            builder.build();
+        }
+        // this runnable notifies the classes in the cluster of a change in the
+        // port configuration
+        List<Runnable> watchers = clusterWatchers.get(id);
+        for (Runnable runnable : watchers) {
+            runnable.run();
+        }
     }
 
     void setInternalPortFields(InteriorPort port, LogicalPortConfig cfg){
