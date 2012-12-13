@@ -182,8 +182,8 @@ public class PortGroupTest {
             .jumpChainName("SG1").jumpChainId(secG1.getId()).create();
         portOutChain1.addRule().type(DtoRule.Drop).position(3).create();
         BridgePort<DtoBridgePort> brPort1 = br.addExteriorPort()
-            .outboundFilterId(portOutChain1.getId())
-            .portGroupIDs(new UUID[] {portG1.getId()}).create();
+            .outboundFilterId(portOutChain1.getId()).create();
+        // XXX: Add the port to portG1 port group.
 
         // The bridge's 2nd exterior port is in Group2.
         RuleChain portOutChain2 = apiClient.addChain()
@@ -195,8 +195,8 @@ public class PortGroupTest {
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain2.addRule().type(DtoRule.Drop).position(3).create();
         BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort()
-            .outboundFilterId(portOutChain2.getId())
-            .portGroupIDs(new UUID[] {portG2.getId()}).create();
+            .outboundFilterId(portOutChain2.getId()).create();
+        // XXX: Add the port to portG2 port group.
 
         // The bridge's 3rd exterior port is in Group1 and Group2.
         RuleChain portOutChain3 = apiClient.addChain()
@@ -210,9 +210,8 @@ public class PortGroupTest {
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
         BridgePort<DtoBridgePort> brPort3 = br.addExteriorPort()
-            .outboundFilterId(portOutChain3.getId())
-            .portGroupIDs(new UUID[] {portG1.getId(), portG2.getId()})
-            .create();
+            .outboundFilterId(portOutChain3.getId()).create();
+        // XXX: Add the port to portG1 and portG2 port groups.
 
         // The bridge's 4th exterior port is not in any security groups.
         BridgePort<DtoBridgePort> brPort4 = br.addExteriorPort().create();
