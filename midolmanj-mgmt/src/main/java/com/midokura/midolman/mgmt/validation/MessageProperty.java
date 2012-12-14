@@ -16,7 +16,7 @@ public class MessageProperty {
     public static final String IS_UNIQUE_CHAIN_NAME =
             "{midokura.javarx.IsUniqueChainName.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =
-            "{midokura.javarx.RouteNextHopPortNotNull}";
+            "{midokura.javarx.RouteNextHopPortValid}";
     public static final String PORT_ID_IS_INVALID =
             "{midokura.javarx.PortIdIsInvalid}";
     public static final String PORT_GROUP_ID_IS_INVALID =
