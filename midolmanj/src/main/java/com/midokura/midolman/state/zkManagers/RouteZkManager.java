@@ -78,7 +78,7 @@ public class RouteZkManager extends ZkManager {
         // Router routes and logical port routes should also be added to the
         // routing table.
         List<String> ret = new ArrayList<String>();
-        if (config.nextHop.equals(Route.NextHop.PORT)) {
+        if (config.nextHop.toPort()) {
             // Check what kind of port this is.
             PortZkManager portZkManager = new PortZkManager(zk,
                     paths.getBasePath());
