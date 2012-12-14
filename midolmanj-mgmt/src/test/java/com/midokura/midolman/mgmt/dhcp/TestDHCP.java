@@ -61,6 +61,51 @@ public class TestDHCP extends JerseyTest {
     }
 
     @Test
+    public void testBadRequests() {
+        // Test some bad network lengths
+        DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
+        subnet1.setSubnetPrefix("172.31.0.0");
+        subnet1.setSubnetLength(-3);
+        subnet1.setDefaultGateway("172.31.0.1");
+        subnet1.setServerAddr("172.31.0.118");
+        ClientResponse response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+        subnet1.setSubnetLength(33);
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+
+        // Test some bad network addresses
+        subnet1.setSubnetLength(24);
+        subnet1.setSubnetPrefix("10.0.0");
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+        subnet1.setSubnetPrefix("321.4.5.6");
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+
+        // Test some bad default gateways.
+        subnet1.setSubnetPrefix("172.31.0.0");
+        subnet1.setDefaultGateway("nonsense");
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+        subnet1.setDefaultGateway("1.2.3.4.5");
+        response = resource().uri(bridge.getDhcpSubnets())
+            .type(APPLICATION_DHCP_SUBNET_JSON)
+            .post(ClientResponse.class, subnet1);
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
     public void testGatewaySetting() throws Exception {
         ClientResponse response;
 
