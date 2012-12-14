@@ -241,8 +241,20 @@ class Coordinator(val origMatch: WildcardMatch,
         if (origPkt == null)
             return
 
+        /* Certain versions of Linux try to guess a lower MTU value if the MTU
+         * suggested by the ICMP FRAG_NEEDED error is equal or bigger than the
+         * size declared in the IP header found in the ICMP data. This happens
+         * when it's the sender host who is fragmenting.
+         *
+         * In those cases, we can at least prevent the sender from lowering
+         * the PMTU by increasing the length in the IP header.
+         */
+        val mtu = origPkt.getTotalLength
+        origPkt.setTotalLength(mtu + 1)
+        origPkt.setChecksum(0)
+
         val icmp = new ICMP()
-        icmp.setFragNeeded(origPkt.getTotalLength, origPkt)
+        icmp.setFragNeeded(mtu, origPkt)
         val ip = new IPv4()
         ip.setPayload(icmp)
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
