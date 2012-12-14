@@ -6,14 +6,21 @@ package com.midokura.midolman.mgmt.network.validation;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import com.google.inject.Inject;
+
 import com.midokura.midolman.mgmt.network.Route;
 import com.midokura.midolman.mgmt.validation.MessageProperty;
+import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midonet.cluster.DataClient;
+import com.midokura.midonet.cluster.data.Port;
 
 public class RouteNextHopPortConstraintValidator implements
-        ConstraintValidator<NextHopPortNotNull, Route> {
+        ConstraintValidator<NextHopPortValid, Route> {
+    @Inject
+    DataClient dataClient;
 
     @Override
-    public void initialize(NextHopPortNotNull constraintAnnotation) {
+    public void initialize(NextHopPortValid constraintAnnotation) {
     }
 
     @Override
@@ -29,6 +36,14 @@ public class RouteNextHopPortConstraintValidator implements
             return true;
         }
 
-        return (value.getNextHopPort() != null);
+        if (value.getNextHopPort() == null)
+            return false;
+
+        try {
+            Port<?, ?> p = dataClient.portsGet(value.getNextHopPort());
+            return p != null && p.getDeviceId().equals(value.getRouterId());
+        } catch (StateAccessException e) {
+            return false;
+        }
     }
 }
