@@ -9,7 +9,12 @@ import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midonet.cluster.data.dhcp.Opt121;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
 import com.midokura.packets.IntIPv4;
+import com.midokura.util.StringUtil;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
@@ -17,11 +22,27 @@ import java.util.List;
 
 @XmlRootElement
 public class DhcpSubnet extends RelativeUriResource {
+    @NotNull
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+             message = "is an invalid IP format")
     private String subnetPrefix;
+
+    @Min(0)
+    @Max(32)
     private int subnetLength;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+             message = "is an invalid IP format")
     private String defaultGateway;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+             message = "is an invalid IP format")
     private String serverAddr;
+
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+             message = "is an invalid IP format")
     private String dnsServerAddr;
+
     private List<DhcpOption121> opt121Routes;
 
     /* Default constructor is needed for parsing/unparsing. */
