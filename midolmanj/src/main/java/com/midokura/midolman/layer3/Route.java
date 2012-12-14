@@ -20,7 +20,11 @@ public class Route implements Serializable {
     public static final int NO_GATEWAY = 0xffffffff;
 
     public enum NextHop {
-        BLACKHOLE, REJECT, PORT, LOCAL
+        BLACKHOLE, REJECT, PORT, LOCAL;
+
+        public boolean toPort() {
+            return this.equals(PORT) || this.equals(LOCAL);
+        }
     }
 
     public int srcNetworkAddr;
@@ -110,7 +114,7 @@ public class Route implements Serializable {
                 return false;
         } else if (!routerId.equals(rt.routerId))
             return false;
-        
+
         return dstNetworkAddr == rt.dstNetworkAddr
                 && dstNetworkLength == rt.dstNetworkLength
                 && srcNetworkAddr == rt.srcNetworkAddr
@@ -127,7 +131,7 @@ public class Route implements Serializable {
         hash = 23 * hash + dstNetworkLength;
         hash = 37 * hash + nextHopGateway;
         hash = 11 * hash + weight;
-        
+
         if (null != routerId)
             hash = 47 * hash + routerId.hashCode();
         if (null != nextHop)
