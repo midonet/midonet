@@ -17,6 +17,7 @@ import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.dhcp.DhcpSubnet;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
 import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
 import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -37,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RequestScoped
@@ -47,6 +51,7 @@ public class BridgeDhcpResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final Authorizer authorizer;
+    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -54,11 +59,13 @@ public class BridgeDhcpResource extends AbstractResource {
     public BridgeDhcpResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context,
                               BridgeAuthorizer authorizer,
+                              Validator validator,
                               DataClient dataClient,
                               ResourceFactory factory,
                               @Assisted UUID bridgeId) {
         super(config, uriInfo, context);
         this.authorizer = authorizer;
+        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
         this.bridgeId = bridgeId;
@@ -93,6 +100,12 @@ public class BridgeDhcpResource extends AbstractResource {
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to configure DHCP for this bridge.");
+        }
+
+        Set<ConstraintViolation<DhcpSubnet>> violations =
+            validator.validate(subnet);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
         }
 
         dataClient.dhcpSubnetsCreate(bridgeId, subnet.toData());
