@@ -3,7 +3,7 @@
 # Midokura
 
 if [ "$1" = purge ]; then
-    update-rc.d midolmanj remove
+    test -h /etc/init.d/midolman && rm /etc/init.d/midolman
     /usr/sbin/userdel midonet 2> /dev/null >/dev/null
 fi
 

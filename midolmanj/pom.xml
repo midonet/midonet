@@ -194,6 +194,7 @@
                         </goals>
                         <configuration>
                             <timestamped>true</timestamped>
+                            <deb>[[buildDir]]/midolman_[[version]].[[extension]]</deb>
                             <dataSet>
                                 <data>
                                     <src>
