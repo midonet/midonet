@@ -3,6 +3,8 @@
 */
 package com.midokura.midolman
 
+import flows.{WildcardMatches, WildcardMatch, WildcardFlow}
+import logging.ActorLogWithoutPath
 import scala.collection.JavaConversions._
 import scala.collection.{Set => ROSet, immutable, mutable}
 import scala.collection.mutable.ListBuffer
@@ -39,7 +41,6 @@ import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.packets.Ethernet
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
@@ -378,6 +379,7 @@ object DatapathController extends Referenceable {
         override def getFlowCookie() = null
         override def addFlowTag(tag: Any) {}
         override def addFlowRemovedCallback(cb: Callback0) {}
+        override def getParentCookie = null
     }
 
     /**
@@ -443,7 +445,7 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController() extends Actor with ActorLogging {
+class DatapathController() extends Actor with ActorLogWithoutPath {
 
     import DatapathController._
     import VirtualToPhysicalMapper._

@@ -5,6 +5,7 @@
 package com.midokura.midolman
 
 import datapath.FlowActionOutputToVrnPortSet
+import flows.{WildcardFlow, WildcardMatch}
 import layer3.Route
 import layer3.Route.NextHop
 import org.junit.runner.RunWith
@@ -27,7 +28,6 @@ import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
 import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent, PacketIn}
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
 import com.midokura.sdn.dp.ports.GreTunnelPort
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.Router

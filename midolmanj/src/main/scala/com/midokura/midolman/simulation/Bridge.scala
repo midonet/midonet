@@ -5,7 +5,7 @@ package com.midokura.midolman.simulation
 
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.event.Logging
+import akka.event.{Logging, LoggingAdapter, LogSource}
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 
@@ -16,6 +16,7 @@ import com.midokura.midolman.topology.{FlowTagger, MacFlowCount,
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, Ethernet, IntIPv4, MAC}
 import com.midokura.util.functors.Callback1
+import com.midokura.midolman.logging.LoggerFactory
 
 
 class Bridge(val id: UUID, val tunnelKey: Long,
@@ -27,15 +28,15 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              val rtrIpToMac: ROMap[IntIPv4, MAC])
             (implicit val actorSystem: ActorSystem) extends Device {
 
-    val log = Logging(actorSystem, this.getClass)
-    log.info("Bridge being built.")
+    var log =  LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
 
     override def process(packetContext: PacketContext)
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
-        log.debug("Bridge's process method called.")
+        implicit val pktContext = packetContext
         // Drop the packet if its L2 source is a multicast address.
+        log.debug("Bridge's process method called.")
         if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
             Promise.successful(DropAction())
@@ -46,6 +47,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     def normalProcess(packetContext: PacketContext)
                      (implicit ec: ExecutionContext)
     : Future[Coordinator.Action] = {
+        implicit val pktContext = packetContext
         val srcDlAddress = packetContext.getMatch.getEthernetSource
         val dstDlAddress = packetContext.getMatch.getEthernetDestination
 
@@ -137,11 +139,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             }
         }
 
-        return action map doPostBridging(packetContext)
+        action map doPostBridging(packetContext)
     }
 
     private def doPostBridging(packetContext: PacketContext)
                               (act: Coordinator.Action): Coordinator.Action = {
+        implicit val pktContext = packetContext
         // First, learn the mac-port entry.
         // TODO(pino): what if the filters can modify the L2 addresses?
         updateFlowCount(packetContext.getMatch.getEthernetSource, packetContext)
@@ -164,23 +167,24 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
             log.debug("Dropping the packet due to egress filter.")
-            return DropAction()
+            DropAction()
         } else if (postBridgeResult.action != Action.ACCEPT) {
             log.error("Post-bridging for {} returned an action which was {}, " +
                       "not ACCEPT, DROP, or REJECT.", id,
                       postBridgeResult.action)
             // TODO(pino): decrement the mac-port reference count?
             // TODO(pino): remove the flow tag?
-            return ErrorDropAction()
+            ErrorDropAction()
         } else {
             log.debug("Forwarding the packet with action {}", act)
             // Note that the filter is not permitted to change the output port.
-            return act
+            act
         }
     }
 
     private def updateFlowCount(srcDlAddress: MAC,
                                 packetContext: PacketContext) {
+        implicit val pktContext = packetContext
         // Learn the src MAC unless it's a logical port's.
         if (!rtrMacToLogicalPortId.contains(srcDlAddress)) {
             log.debug("Increasing the reference count for MAC {} on port {}",

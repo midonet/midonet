@@ -25,7 +25,7 @@ import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.util.lock.LockHelper;
 
 

@@ -31,7 +31,7 @@ import com.midokura.cache.Cache;
 import com.midokura.midolman.vrn.ForwardInfo;
 import com.midokura.packets.IPv4;
 import com.midokura.packets.IntIPv4;
-import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.util.functors.Callback1;
 
 

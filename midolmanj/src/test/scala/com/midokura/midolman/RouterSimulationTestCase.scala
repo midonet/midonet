@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman
 
+import flows.WildcardMatch
 import scala.collection.mutable
 import scala.compat.Platform
 import annotation.tailrec
@@ -23,7 +24,7 @@ import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import simulation.{LoadBalancer, ArpTableImpl}
+import simulation.{PacketContext, LoadBalancer, ArpTableImpl}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
@@ -33,7 +34,6 @@ import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets._
 import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
                                   FlowKeyEthernet, FlowKeyIPv4}
-import com.midokura.sdn.flows.WildcardMatch
 import topology.LocalPortActive
 import util.RouterHelper
 
@@ -347,7 +347,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(
             IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
         requestOfType[EmitGeneratedPacket](simProbe())
 
         feedArpCache("uplinkPort",
@@ -370,7 +370,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val arpCache = arpTable.arpCache.asInstanceOf[Watcher[IntIPv4,
                                                               ArpCacheEntry]]
         val macFuture = router.arpTable.get(ip, port,
-            Platform.currentTime + 30*1000)(actors().dispatcher, actors())
+            Platform.currentTime + 30*1000)(actors().dispatcher, actors(), null)
         requestOfType[EmitGeneratedPacket](simProbe())
 
         val now = Platform.currentTime
@@ -387,7 +387,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val toIp = IntIPv4.fromString(uplinkGatewayAddr)
 
         val arpPromise = router.arpTable.get(toIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, fromIp, toIp)
         try {
             Await.result(arpPromise, Timeout(100 milliseconds).duration)
@@ -442,7 +442,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // the arp cache should be updated without generating a request
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
         val t = Timeout(1 second)
         val arpResult = Await.result(arpPromise, t.duration)
         arpResult should be === hisMac
@@ -574,7 +574,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
         val expiry = Platform.currentTime + ARP_TIMEOUT_SECS * 1000 + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
@@ -594,7 +594,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
         val expiry = Platform.currentTime + ARP_TIMEOUT_SECS * 1000 + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         feedArpCache("uplinkPort", hisIp.addressAsInt, hisMac,
@@ -614,7 +614,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         var expiry = Platform.currentTime + 1000
         var arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
 
         feedArpCache("uplinkPort",
             hisIp.addressAsInt, mac,
@@ -633,7 +633,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         drainProbes()
         expiry = Platform.currentTime + 1000
         arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
         arpResult = Await.result(arpPromise, Timeout(1 second).duration)
         arpResult should be === mac
 
@@ -642,7 +642,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         drainProbes()
         expiry = Platform.currentTime + 1000
         arpPromise = router.arpTable.get(hisIp, port, expiry)(
-            actors().dispatcher, actors())
+            actors().dispatcher, actors(), null)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         try {
             Await.result(arpPromise, Timeout(100 milliseconds).duration)

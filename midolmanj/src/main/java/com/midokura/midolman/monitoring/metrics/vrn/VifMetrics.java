@@ -3,17 +3,19 @@
 */
 package com.midokura.midolman.monitoring.metrics.vrn;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-import com.midokura.sdn.dp.Port;
+import akka.event.LoggingAdapter;
+import akka.event.LoggingBus;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.logging.LoggerFactory;
 import com.midokura.midolman.monitoring.MidoReporter;
-//import com.midokura.midolman.vrn.VRNController;
+import com.midokura.sdn.dp.Port;
 
 /**
  * Class that can add/delete Counters for different virtual ports on demand.
@@ -25,21 +27,19 @@ import com.midokura.midolman.monitoring.MidoReporter;
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date: 5/2/12
  */
-public class VifMetrics  {
+public class VifMetrics {
 
     Map<UUID, Counters> countersMap;
+    private LoggingAdapter log;
 
-    public VifMetrics() {
+
+    public VifMetrics(LoggingBus loggingBus) {
         countersMap = new HashMap<UUID, Counters>();
+        log =
+            LoggerFactory.getActorSystemThreadLog(this.getClass(), loggingBus);
     }
 
-    private static final Logger log = LoggerFactory
-        .getLogger(VifMetrics.class);
-
-
-    public void enableVirtualPortMetrics(
-                                                final UUID portId
-                                                ) {
+    public void enableVirtualPortMetrics(final UUID portId) {
 
         countersMap.put(portId, new Counters(portId));
 

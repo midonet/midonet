@@ -327,13 +327,13 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
 
         // Emit our DHCP reply packet
         SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
-            inPortId, eth)
+            inPortId, eth, cookie)
         // Tell the FlowController not to track the packet anymore.
         cookie match {
             case None => // Do nothing
             case Some(c) =>
                 flowController.tell(DiscardPacket(cookie))
         }
-        return Promise.successful(true)
+        Promise.successful(true)
     }
 }

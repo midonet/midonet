@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import java.util.List;
 import java.util.Set;

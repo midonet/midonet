@@ -3,4 +3,4 @@
 .settings
 target
 web.xml
-log4j.xml
+logback.xml

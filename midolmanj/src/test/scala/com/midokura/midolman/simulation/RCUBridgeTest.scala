@@ -19,15 +19,17 @@ import org.scalatest.matchers.ShouldMatchers
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client.MacLearningTable
 import com.midokura.packets.{ARP, IntIPv4, MAC}
-import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.{Callback0, Callback1, Callback3}
+import com.midokura.midolman.flows.WildcardMatch
 
 
 @RunWith(classOf[JUnitRunner])
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     implicit val system = ActorSystem.create("RCUBridgeTest")
-    val log = Logging(system, getClass)
+    implicit val code = "Sim #: " + scala.util.Random.nextInt().toString
+    implicit val ec = system.dispatcher
 
+    val log = Logging(system, getClass)
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
@@ -89,10 +91,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000, null, true)
+                                        Platform.currentTime + 10000, null, true, None)
         //context.setInputPort(rtr1port)
         context.setMatch(ingressMatch)
-        val future = bridge.process(context)(system.dispatcher, system)
+        val future = bridge.process(context)
 
         ingressMatch should be === origMatch
 
@@ -112,10 +114,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(learnedMac))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000, null, true)
+                                        Platform.currentTime + 10000, null, true, None)
         //context.setInputPort(rtr2port)
         context.setMatch(ingressMatch)
-        val future = bridge.process(context)(system.dispatcher, system)
+        val future = bridge.process(context)
 
         ingressMatch should be === origMatch
 
@@ -135,9 +137,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000, null, true)
+                                        Platform.currentTime + 10000, null, true, None)
         context.setMatch(ingressMatch)
-        val future = bridge.process(context)(system.dispatcher, system)
+        val future = bridge.process(context)
 
         ingressMatch should be === origMatch
 
@@ -158,9 +160,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000, null, true)
+                                        Platform.currentTime + 10000, null, true, None)
         context.setMatch(ingressMatch)
-        val future = bridge.process(context)(system.dispatcher, system)
+        val future = bridge.process(context)
 
         ingressMatch should be === origMatch
 
@@ -178,9 +180,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
-                                        Platform.currentTime + 10000, null, true)
+                                        Platform.currentTime + 10000, null, true, None)
         context.setMatch(ingressMatch)
-        val future = bridge.process(context)(system.dispatcher, system)
+        val future = bridge.process(context)
 
         ingressMatch should be === origMatch
 

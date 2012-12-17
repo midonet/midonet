@@ -3,10 +3,9 @@
  */
 package com.midokura.midolman.simulation
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import java.util.UUID
-import org.slf4j.LoggerFactory
 
 import com.midokura.midolman.SimulationController
 import com.midokura.midolman.layer3.Route
@@ -16,7 +15,7 @@ import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{IPacket, ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import com.midokura.sdn.flows.{WildcardMatch, WildcardMatches}
+import com.midokura.midolman.flows.{WildcardMatches, WildcardMatch}
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.simulation.Coordinator.ConsumedAction
 import com.midokura.midolman.simulation.Coordinator.DropAction
@@ -24,33 +23,41 @@ import com.midokura.midolman.simulation.Coordinator.ToPortAction
 import com.midokura.midolman.simulation.Coordinator.ErrorDropAction
 import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.logging.LoggerFactory
 
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
              val inFilter: Chain, val outFilter: Chain,
-             val routerMgrTagger: TagManager) extends Device {
-    private val log = LoggerFactory.getLogger(classOf[Router])
+             val routerMgrTagger: TagManager) (implicit context: ActorContext) extends Device {
+
+    val log =  LoggerFactory.getSimulationAwareLog(this.getClass)(context.system.eventStream)
+
     private val loadBalancer = new LoadBalancer(rTable)
 
     override def process(pktContext: PacketContext)
                         (implicit ec: ExecutionContext,
-                         actorSystem: ActorSystem): Future[Action] = {
+                         actorSystem: ActorSystem
+                         ): Future[Action] = {
+        implicit val packetContext = pktContext
+
         if (pktContext.getMatch.getEtherType != IPv4.ETHERTYPE &&
                 pktContext.getMatch.getEtherType != ARP.ETHERTYPE)
-            return Promise.successful(new NotIPv4Action)(ec)
+            Promise.successful(new NotIPv4Action)(ec)
 
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
             case null => log.debug("Router - in port {} was null",
                              pktContext.getInPortId())
-                          Promise.successful(new DropAction)(ec)
+                         Promise.successful(new DropAction)(ec)
             case inPort => preRouting(pktContext, inPort)
         }
     }
 
     private def processArp(pkt: IPacket, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,
-                           actorSystem: ActorSystem): Action = pkt match {
+                           actorSystem: ActorSystem,
+                           originalPktContex: PacketContext): Action = pkt match {
+
         case arp: ARP =>
             arp.getOpCode match {
                 case ARP.OP_REQUEST =>
@@ -63,7 +70,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     new DropAction
             }
         case badType =>
-            log.warn("Non-ARP packet with ethertype ARP: {}", badType)
+            log.warning("Non-ARP packet with ethertype ARP: {}", badType)(null)
             new DropAction
     }
 
@@ -74,6 +81,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem): Future[Action] = {
 
+        implicit val packetContext = pktContext
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
 
         val hwDst = pktContext.getMatch.getEthernetDestination
@@ -88,8 +96,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         if (hwDst != inPort.portMac) {
-            // Not addressed to us, log.warn and drop.
-            log.warn("{} neither broadcast nor inPort's MAC ({})", hwDst,
+            // Not addressed to us, log.warning and drop.
+            log.warning("{} neither broadcast nor inPort's MAC ({})", hwDst,
                      inPort.portMac)
             return Promise.successful(new DropAction)(ec)
         }
@@ -130,6 +138,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem): Future[Action] = {
 
+        implicit val packetContext = pktContext
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
          * so that there need only be one sim. run for different TTLs.  */
         if (pktContext.getMatch.getNetworkTTL != null) {
@@ -222,6 +231,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
 
+        implicit val packetContext = pktContext
         pktContext.setOutputPort(outPort.id)
         val postRoutingResult = Chain.apply(outFilter, pktContext,
                                             pktContext.getMatch, id, false)
@@ -279,7 +289,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
     }
 
     private def getRouterPort(portID: UUID, expiry: Long)
-            (implicit actorSystem: ActorSystem): Future[RouterPort[_]] = {
+            (implicit actorSystem: ActorSystem,
+             pktContext: PacketContext): Future[RouterPort[_]] = {
+
         val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
         expiringAsk(virtualTopologyManager, PortRequest(portID, false),
                     expiry).mapTo[RouterPort[_]] map {
@@ -292,7 +304,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def processArpRequest(pkt: ARP, inPort: RouterPort[_])
                                  (implicit ec: ExecutionContext,
-                                  actorSystem: ActorSystem) {
+                                  actorSystem: ActorSystem,
+                                  originalPktContex: PacketContext) {
+
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
 
@@ -344,11 +358,14 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setDestinationMACAddress(pkt.getSenderHardwareAddress)
         eth.setEtherType(ARP.ETHERTYPE)
         SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
-            inPort.id, eth)
+            inPort.id, eth,
+            if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort[_])
-                               (implicit actorSystem: ActorSystem) {
+                               (implicit actorSystem: ActorSystem,
+                                pktContext: PacketContext) {
+
         def isGratuitous(tha: MAC, tpa: IntIPv4,
                          sha: MAC, spa: IntIPv4): Boolean = {
             (tpa == spa && tha == sha)
@@ -402,7 +419,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def sendIcmpEchoReply(ingressMatch: WildcardMatch, packet: Ethernet,
                                   expiry: Long)
-                    (implicit ec: ExecutionContext, actorSystem: ActorSystem) {
+                    (implicit ec: ExecutionContext, actorSystem: ActorSystem,
+                     packetContext: PacketContext) {
         val echo = packet.getPayload match {
             case ip: IPv4 =>
                 ip.getPayload match {
@@ -427,7 +445,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def getPeerMac(rtrPort: InteriorRouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
-                           actorSystem: ActorSystem): Future[MAC] = {
+                           actorSystem: ActorSystem,
+                           pktContext: PacketContext): Future[MAC] = {
         val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
         val peerPortFuture = expiringAsk(virtualTopologyManager,
                 PortRequest(rtrPort.peerID, false), expiry).mapTo[Port[_]]
@@ -445,7 +464,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
     private def getMacForIP(port: RouterPort[_], nextHopIP: Int, expiry: Long)
                            (implicit ec: ExecutionContext,
-                            actorSystem: ActorSystem): Future[MAC] = {
+                            actorSystem: ActorSystem,
+                            pktContext: PacketContext): Future[MAC] = {
         val nwAddr = new IntIPv4(nextHopIP)
         port match {
             case extPort: ExteriorRouterPort =>
@@ -456,7 +476,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 if ((nextHopIP >>> shift) !=
                         (extPort.nwAddr.addressAsInt >>> shift) &&
                         shift != 32) {
-                    log.warn("getMacForIP: cannot get MAC for {} - address " +
+                    log.warning("getMacForIP: cannot get MAC for {} - address " +
                         "not in network segment of port {} ({}/{})",
                         Array[Object](nwAddr, port.id,
                             extPort.nwAddr.toString,
@@ -481,14 +501,15 @@ class Router(val id: UUID, val cfg: RouterConfig,
     private def getNextHopMac(outPort: RouterPort[_], rt: Route,
                               ipv4Dest: Int, expiry: Long)
                              (implicit ec: ExecutionContext,
-                              actorSystem: ActorSystem): Future[MAC] = {
+                              actorSystem: ActorSystem,
+                              pktContext: PacketContext): Future[MAC] = {
         if (outPort == null)
             return Promise.successful(null)(ec)
         var peerMacFuture: Future[MAC] = null
         outPort match {
             case interior: InteriorRouterPort =>
                 if (interior.peerID == null) {
-                    log.warn("Packet sent to dangling logical port {}",
+                    log.warning("Packet sent to dangling logical port {}",
                         rt.nextHopPort)
                     return Promise.successful(null)(ec)
                 }
@@ -502,7 +523,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             nextHopIP = ipv4Dest
         }
         peerMacFuture flatMap {
-            case null => getMacForIP(outPort, nextHopIP, expiry)(ec, actorSystem)
+            case null => getMacForIP(outPort, nextHopIP, expiry)
             case mac => Promise.successful(mac)
         }
     }
@@ -529,7 +550,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
      *        packet for simulation if successful.
      */
     def sendIPPacket(packet: IPv4, expiry: Long)
-                    (implicit ec: ExecutionContext, actorSystem: ActorSystem) {
+                    (implicit ec: ExecutionContext, actorSystem: ActorSystem,
+                     packetContext: PacketContext) {
         def _sendIPPacket(outPort: RouterPort[_], rt: Route) {
             if (packet.getDestinationAddress == outPort.portAddr.addressAsInt) {
                 /* should never happen: it means we are trying to send a packet
@@ -554,13 +576,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatches.fromEthernetPacket(eth)
-                    val egrPktContext = new PacketContext(null, eth, 0, null, true)
+                    val egrPktContext =
+                        new PacketContext(null, eth, 0, null, true, None)
                     egrPktContext.setOutputPort(outPort.id)
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
                     if (postRoutingResult.action == RuleAction.ACCEPT) {
                         SimulationController.getRef(actorSystem).tell(
-                            EmitGeneratedPacket(rt.nextHopPort, eth))
+                            EmitGeneratedPacket(rt.nextHopPort, eth,
+                                if (packetContext != null)
+                                    Option(packetContext.getFlowCookie) else None))
                     } else if (postRoutingResult.action != RuleAction.DROP &&
                                postRoutingResult.action != RuleAction.REJECT) {
                         log.error("Post-routing for {} returned an action " +
@@ -605,7 +630,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * @return True if-and-only-if the packet meets none of the above conditions
      *         - i.e. it can trigger an ICMP error message.
      */
-     def canSendIcmp(ethPkt: Ethernet, outPort: RouterPort[_]) : Boolean = {
+     def canSendIcmp(ethPkt: Ethernet, outPort: RouterPort[_])
+                    (implicit pktContext: PacketContext) : Boolean = {
         var ipPkt: IPv4 = null
         ethPkt.getPayload match {
             case ip: IPv4 => ipPkt = ip
@@ -697,7 +723,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
      def sendIcmpError(inPort: RouterPort[_], ingressMatch: WildcardMatch,
                        packet: Ethernet, icmpType: Char, icmpCode: Any)
                       (implicit ec: ExecutionContext,
-                       actorSystem: ActorSystem) {
+                       actorSystem: ActorSystem,
+                       pktContext: PacketContext) {
         log.debug("Prepare an ICMP in response to {}", packet)
         // Check whether the original packet is allowed to trigger ICMP.
         if (inPort == null) {
@@ -733,6 +760,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
         // TODO(pino): check with Guillermo about match's vs. device's inPort.
             //ingressMatch.getInputPortUUID, eth)
-            inPort.id, eth)
+            inPort.id, eth,
+            if (pktContext != null) Option(pktContext.getFlowCookie) else None)
     }
 }

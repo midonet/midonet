@@ -9,7 +9,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.midokura.packets._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.MidolmanTestCase
 import com.midokura.midolman.util.AddressConversions._
 import com.midokura.sdn.dp.Packet

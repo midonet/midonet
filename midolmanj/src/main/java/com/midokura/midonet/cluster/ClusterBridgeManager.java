@@ -221,10 +221,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                         log.error("Failed adding mac {} to port {}",
                                   new Object[]{mac, portID, e});
                     }
+                    log.info("Added mac {} to port {} for bridge {}",
+                             new Object[]{mac, portID, bridgeID});
                 }
             });
-            log.info("Added mac {} to port {} for bridge {}",
-                     new Object[]{mac, portID, bridgeID});
         }
 
         @Override

@@ -16,5 +16,6 @@ public interface ChainPacketContext {
     void addFlowTag(Object tag);
     boolean isConnTracked();
     boolean isForwardFlow();
-    Object getFlowCookie();
+    Integer getFlowCookie();
+    Integer getParentCookie();
 }

@@ -5,14 +5,12 @@ package com.midokura.midolman.simulation
 
 import collection.mutable
 import compat.Platform
-import akka.actor.ActorSystem
+import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.dispatch.Future.flow
 import akka.util.Duration
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
-import org.slf4j.LoggerFactory
-
+import com.midokura.midolman.logging.LoggerFactory
 import com.midokura.midolman.SimulationController
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.state.ArpCacheEntry
@@ -26,7 +24,8 @@ import com.midokura.midolman.config.MidolmanConfig
  * processes and schedules ARPs. */
 trait ArpTable {
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
-          (implicit ec: ExecutionContext, actorSystem: ActorSystem): Future[MAC]
+          (implicit ec: ExecutionContext, actorSystem: ActorSystem,
+           pktContext: PacketContext): Future[MAC]
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem)
     def start()
     def stop()
@@ -47,8 +46,10 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
     }
 }
 
-class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable {
-    private val log = LoggerFactory.getLogger(classOf[ArpTableImpl])
+class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig)
+                  (implicit context: ActorContext) extends ArpTable {
+    private val log =
+          LoggerFactory.getActorSystemThreadLog(this.getClass)(context.system.eventStream)
     private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
     private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
     private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
@@ -141,7 +142,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable
 
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
            (implicit ec: ExecutionContext,
-            actorSystem: ActorSystem): Future[MAC] = {
+            actorSystem: ActorSystem, pktContext: PacketContext): Future[MAC] = {
         log.debug("Resolving MAC for {}", ip)
         /*
          * We must invoke waitForArpEntry() before requesting the ArpCacheEntry.
@@ -236,7 +237,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable
     private def arpForAddress(ip: IntIPv4, entry: ArpCacheEntry,
                               port: RouterPort[_])
                              (implicit ec: ExecutionContext,
-                              actorSystem: ActorSystem) {
+                              actorSystem: ActorSystem,
+                              pktContext: PacketContext) {
         def retryLoopBottomHalf(cacheEntry: ArpCacheEntry, arp: Ethernet,
                                 previous: Long) {
             val now = Platform.currentTime
@@ -256,7 +258,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig) extends ArpTable
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
             SimulationController.getRef(actorSystem) !
-                EmitGeneratedPacket(port.id, arp)
+                EmitGeneratedPacket(port.id, arp,
+                      if (pktContext != null) Option(pktContext.getFlowCookie) else None)
             // we don't retry for stale entries.
             if (cacheEntry.macAddr == null) {
                 waitForArpEntry(ip, now + ARP_RETRY_MILLIS).future onComplete {

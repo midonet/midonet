@@ -17,10 +17,11 @@ import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.sdn.dp.{Datapath, Flow, FlowMatch, Packet}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction}
-import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
-                               WildcardMatches}
+import com.midokura.midolman.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
+                                    WildcardMatches}
 import com.midokura.util.functors.Callback0
 import akka.event.LoggingReceive
+import logging.ActorLogWithoutPath
 
 
 object FlowController extends Referenceable {
@@ -60,7 +61,7 @@ object FlowController extends Referenceable {
 }
 
 
-class FlowController extends Actor with ActorLogging {
+class FlowController extends Actor with ActorLogWithoutPath {
 
     import FlowController._
 
@@ -109,7 +110,8 @@ class FlowController extends Actor with ActorLogging {
             TimeUnit.MILLISECONDS)
 
 
-        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows, maxWildcardFlows)
+        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows,
+            maxWildcardFlows, context.system.eventStream)
     }
 
     def receive = LoggingReceive {

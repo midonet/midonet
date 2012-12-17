@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,13 +14,13 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import akka.event.LoggingAdapter;
+import akka.event.LoggingBus;
 
+import com.midokura.midolman.logging.LoggerFactory;
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.flows.FlowAction;
-import com.midokura.util.profiling.ProfilingTimer;
 
 // not thread-safe
 //TODO(ross) check the values mentioned in the doc below
@@ -49,10 +49,8 @@ import com.midokura.util.profiling.ProfilingTimer;
 // we got from the kernel. When we have to free space we will delete the oldest one.
 public class FlowManager {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowManager.class);
+    private LoggingAdapter log;
     private static final int NO_LIMIT = 0;
-
-    private ProfilingTimer profiler = new ProfilingTimer(log);
 
     private FlowManagerHelper flowManagerHelper;
     private long maxDpFlows;
@@ -67,16 +65,21 @@ public class FlowManager {
      */
     //private List<WildcardFlow> wildcardFlowsToUpdate = new ArrayList<WildcardFlow>();
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows, long maxWildcardFlows) {
+    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
+                       long maxWildcardFlows, LoggingBus loggingBus) {
         this.maxDpFlows = maxDpFlows;
         this.maxWildcardFlows = maxWildcardFlows;
         this.flowManagerHelper = flowManagerHelper;
         if (dpFlowRemoveBatchSize > maxDpFlows)
             dpFlowRemoveBatchSize = 1;
+        this.log = LoggerFactory.getActorSystemThreadLog(
+            this.getClass(), loggingBus);
     }
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows, long maxWildcardFlows, int dpFlowRemoveBatchSize) {
-        this(flowManagerHelper, maxDpFlows, maxWildcardFlows);
+    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
+                       long maxWildcardFlows, LoggingBus loggingBus,
+                       int dpFlowRemoveBatchSize) {
+        this(flowManagerHelper, maxDpFlows, maxWildcardFlows, loggingBus);
         this.dpFlowRemoveBatchSize = dpFlowRemoveBatchSize;
     }
 
@@ -309,7 +312,6 @@ public class FlowManager {
     }
 
     private void checkHardTimeOutExpiration(){
-        profiler.start();
         WildcardFlow flowToExpire;
         while((flowToExpire = hardTimeOutQueue.peek()) != null){
             // since we remove the element lazily let's check if this el
@@ -327,7 +329,6 @@ public class FlowManager {
             }else
                 return;
         }
-        profiler.end();
     }
 
     private void getKernelFlowsLastUsedTime(WildcardFlow flowToExpire){
@@ -339,20 +340,19 @@ public class FlowManager {
             // only if we didn't request the update already
             if(!flowUpdateRequests.containsKey(match)){
                 flowManagerHelper.getFlow(match);
-                log.trace("Request update for kernel flows corresponding to " +
-                              "wildcard flow {}", match);
+                /*log.trace("Request update for kernel flows corresponding to " +
+                              "wildcard flow {}", match);*/
             }
             flowUpdateRequests.put(match, true);
         }
     }
 
     private void checkIdleTimeExpiration(){
-        profiler.start();
         WildcardFlow flowToExpire;
         Iterator it = idleTimeOutQueue.iterator();
         while(it.hasNext()){
             flowToExpire = (WildcardFlow)it.next();
-            log.trace("Idle timeout queue size {}", idleTimeOutQueue.size());
+            //log.trace("Idle timeout queue size {}", idleTimeOutQueue.size());
             // since we remove the element lazily let's check if this element
             // has already been removed
             if(!wildFlowToDpFlows.containsKey(flowToExpire)){
@@ -378,7 +378,6 @@ public class FlowManager {
             }else
                 break;
         }
-        profiler.end();
     }
 
     private void manageDPFlowTableSpace() {
@@ -416,17 +415,14 @@ public class FlowManager {
     }
 
     public void checkFlowsExpiration(){
-        profiler.start();
         checkHardTimeOutExpiration();
         //updateWildcardLastUsedTime();
         checkIdleTimeExpiration();
         // check if there's enough space in the DP table
         manageDPFlowTableSpace();
-        profiler.end();
     }
 
     public void updateFlowLastUsedTimeCompleted(Flow flow){
-        //profiler.start();
         flowUpdateRequests.remove(flow.getMatch());
         WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
         // the wildcard flow was deleted
@@ -434,7 +430,7 @@ public class FlowManager {
             return;
         if (flow.getLastUsedTime() != null){
             if (flow.getLastUsedTime() > wcFlow.getLastUsedTimeMillis()) {
-                log.trace("Wildcard flow {} lastUsedTime updated to {}", wcFlow, flow.getLastUsedTime());
+                //log.trace("Wildcard flow {} lastUsedTime updated to {}", wcFlow, flow.getLastUsedTime());
                 // TODO(ross) this is not optimal because we can may get a series of updates
                 // of many kernel flows corresponding to this wc flow, we spend time
                 // repositioning this wc in the queue but this could be done once
@@ -456,7 +452,6 @@ public class FlowManager {
             log.error("getFlow, flow with match {} was null or had no lastUsedTime set "
                 , flow.getMatch());
         }
-        //profiler.end();
     }
 
     public void addFlowCompleted(Flow flow){
@@ -474,7 +469,7 @@ public class FlowManager {
                 wcFlow.setLastUsedTimeMillis(System.currentTimeMillis());
             else
                 wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
-            log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
+            //log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
         }
     }
 

@@ -13,9 +13,10 @@ import javax.annotation.Nullable
 import com.midokura.cache.Cache
 import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
 import com.midokura.packets._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
+import com.midokura.midolman.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
 import akka.dispatch.{Future, Promise}
 import com.midokura.midonet.cluster.DataClient
+import logging.ActorLogWithoutPath
 import scala.Left
 import com.midokura.midolman.DatapathController.PacketIn
 import scala.Right
@@ -26,10 +27,11 @@ import com.google.inject.Inject
 object SimulationController extends Referenceable {
     override val Name = "SimulationController"
 
-    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet)
+    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet,
+                                   parentCookie: Option[Int])
 }
 
-class SimulationController() extends Actor with ActorLogging {
+class SimulationController() extends Actor with ActorLogWithoutPath {
     import SimulationController._
     import context._
 
@@ -59,14 +61,14 @@ class SimulationController() extends Actor with ActorLogging {
                     new Coordinator(
                         wMatch, ethPkt, cookie, None,
                         Platform.currentTime + timeout,
-                        connectionCache).simulate
+                        connectionCache, None).simulate
             }
 
-        case EmitGeneratedPacket(egressPort, ethPkt) =>
+        case EmitGeneratedPacket(egressPort, ethPkt, parentCookie) =>
             new Coordinator(
                 WildcardMatches.fromEthernetPacket(ethPkt), ethPkt, None,
                 Some(egressPort), Platform.currentTime + timeout,
-                connectionCache).simulate
+                connectionCache, parentCookie).simulate()
     }
 
     private def handleDHCP(wMatch: WildcardMatch,

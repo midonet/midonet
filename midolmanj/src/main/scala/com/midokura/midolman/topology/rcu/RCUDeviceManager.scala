@@ -7,8 +7,9 @@ import akka.actor.{ActorLogging, ActorRef, Actor}
 import com.midokura.midonet.cluster.Client
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import java.util.UUID
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
-trait RCUDeviceManager extends Actor with ActorLogging {
+trait RCUDeviceManager extends Actor with ActorLogWithoutPath {
 
      def clusterClient: Client
 

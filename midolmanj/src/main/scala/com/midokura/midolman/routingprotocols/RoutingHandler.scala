@@ -16,7 +16,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 import com.midokura.quagga._
 import com.midokura.midolman.{PortOperation, DatapathController, FlowController}
 import com.midokura.sdn.dp.Ports
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.packets._
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowActions}
@@ -27,6 +27,7 @@ import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
 import com.midokura.util.process.ProcessHelper
 import scala.collection.JavaConversions._
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 
 /**
@@ -52,7 +53,7 @@ import scala.collection.JavaConversions._
  */
 class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient)
-    extends UntypedActorWithStash with ActorLogging {
+    extends UntypedActorWithStash with ActorLogWithoutPath {
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)

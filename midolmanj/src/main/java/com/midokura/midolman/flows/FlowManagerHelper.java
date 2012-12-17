@@ -2,7 +2,7 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import com.midokura.sdn.dp.Flow;
 import com.midokura.sdn.dp.FlowMatch;

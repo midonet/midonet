@@ -16,7 +16,7 @@ import com.midokura.packets.UDP;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.cache.Cache;
 import com.midokura.midolman.util.Net;
-import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.util.functors.Callback0;
 
 
@@ -35,6 +35,8 @@ public class MockPacketContext implements ChainPacketContext {
     public WildcardMatch matchIn; // the match as it enters the ForwardingElement
     public Set<UUID> portGroups = new HashSet<UUID>();
     public boolean internallyGenerated = false;
+    public Integer flowCookie = null;
+    public Integer generatedPacketCookie;
 
     public enum Action {
         DROP,
@@ -142,8 +144,8 @@ public class MockPacketContext implements ChainPacketContext {
     }
 
     @Override
-    public Object getFlowCookie() {
-        return flowMatch;
+    public Integer getFlowCookie() {
+        return flowCookie;
     }
 
     public static String connectionKey(int ip1, int port1, int ip2,
@@ -242,4 +244,9 @@ public class MockPacketContext implements ChainPacketContext {
 
     @Override
     public void addFlowRemovedCallback(Callback0 cb) {}
+
+    @Override
+    public Integer getParentCookie() {
+        return generatedPacketCookie;
+    }
 }

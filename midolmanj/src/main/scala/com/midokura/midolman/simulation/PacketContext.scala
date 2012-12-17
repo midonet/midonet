@@ -7,15 +7,17 @@ package com.midokura.midolman.simulation
 import collection.{Set => ROSet, mutable}
 
 import java.util.{Set => JSet, UUID}
-import org.slf4j.LoggerFactory
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.rules.ChainPacketContext
 import com.midokura.midolman.util.Net
 import com.midokura.packets._
-import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.util.functors.Callback0
 import com.midokura.midonet.cluster.client.Port
+import akka.dispatch.ExecutionContext
+import akka.actor.{ActorSystem, ActorContext}
+import com.midokura.midolman.flows.WildcardMatch
+import com.midokura.midolman.logging.LoggerFactory
 
 
 /**
@@ -36,13 +38,15 @@ import com.midokura.midonet.cluster.client.Port
  * a singleton-per-simulation token.  Investigate whether that'd be better.
  */
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
-class PacketContext(val flowCookie: Object, val frame: Ethernet,
+class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache,
-                    val isGenerated: Boolean)
+                    val isGenerated: Boolean,
+                    val parentCookie: Option[Int])(implicit actorSystem: ActorSystem)
          extends ChainPacketContext {
     import PacketContext._
 
-    private val log = LoggerFactory.getLogger(classOf[PacketContext])
+    private val log =
+          LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
@@ -154,7 +158,16 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
     override def getOutPortId: UUID = outPortID
     override def getPortGroups: JSet[UUID] = portGroups
     override def addTraversedElementID(id: UUID) { /* XXX */ }
-    override def getFlowCookie: Object = flowCookie
+    override def getFlowCookie: java.lang.Integer = {
+        if (flowCookie == null)
+            null
+        else {
+            flowCookie match {
+                case Some(number) => number
+                case None => null
+            }
+        }
+    }
     override def isConnTracked: Boolean = connectionTracked
 
     override def isForwardFlow: Boolean = {
@@ -197,6 +210,17 @@ class PacketContext(val flowCookie: Object, val frame: Ethernet,
         forwardFlow = (value != "r")
         log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
         forwardFlow
+    }
+
+    def getParentCookie: java.lang.Integer = {
+        if (parentCookie == null)
+            null
+        else {
+            parentCookie match {
+                case Some(cookie) => cookie
+                case None => null
+            }
+        }
     }
 }
 

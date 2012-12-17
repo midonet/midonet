@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatch;
 import static com.midokura.packets.Unsigned.unsign;
 
 

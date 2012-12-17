@@ -4,6 +4,7 @@
 
 package com.midokura.midolman
 
+import flows.{WildcardFlow, WildcardMatches, FlowManager}
 import org.junit.runner.RunWith
 import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
@@ -12,7 +13,6 @@ import scala.collection.JavaConversions._
 import org.apache.commons.configuration.HierarchicalConfiguration
 
 import com.midokura.midolman.FlowController._
-import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow, FlowManager}
 import com.midokura.sdn.dp._
 import akka.testkit.{TestKitExtension, TestKit, TestProbe}
 import com.midokura.packets.{IntIPv4, MAC, Packets}
@@ -23,7 +23,6 @@ import com.midokura.midolman.FlowController.WildcardFlowAdded
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.FlowController.WildcardFlowRemoved
-import org.apache.log4j.{Logger, Level}
 import akka.util.duration._
 import scala.Predef._
 import com.midokura.midolman.FlowController.FlowUpdateCompleted

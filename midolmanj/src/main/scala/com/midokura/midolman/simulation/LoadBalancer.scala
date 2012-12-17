@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.topology.RoutingTableWrapper
-import com.midokura.sdn.flows.WildcardMatch
+import com.midokura.midolman.flows.WildcardMatch
 
 class LoadBalancer(val rTable: RoutingTableWrapper) {
     val lookups: AtomicLong = new AtomicLong()

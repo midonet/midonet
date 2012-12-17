@@ -2,12 +2,13 @@
  * Copyright 2012 Midokura Europe SARL
  */
 
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.packets.IntIPv4;
 
 

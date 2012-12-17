@@ -61,7 +61,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
             Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
-            .toProvider(ZookeeperMgmtReactorProvider.class)
+            .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
     }
 
@@ -81,7 +81,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
         }
     }
 
-    public static class ZookeeperMgmtReactorProvider
+    public static class ZookeeperReactorProvider
         implements Provider<Reactor> {
 
         @Override

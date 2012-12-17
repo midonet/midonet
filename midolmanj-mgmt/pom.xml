@@ -35,12 +35,12 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml" />
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml.sample" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml.sample" />
                                 <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
                                 <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.sample" />
                                 <copy file="src/main/webapp/WEB-INF/web.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
-                                <copy file="conf/log4j.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/log4j.xml" />
+                                <copy file="conf/logback.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml" />
                             </tasks>
                         </configuration>
                         <goals>
@@ -162,8 +162,8 @@
                 <version>1.1</version>
                 <configuration>
                     <systemProperties>
-                        <log4j.configuration>file://${basedir}/conf/log4j.xml
-                        </log4j.configuration>
+                        <logback.configuration>file://${basedir}/conf/logback.xml
+                        </logback.configuration>
                     </systemProperties>
                 </configuration>
             </plugin>
@@ -249,18 +249,15 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.4</version>
         </dependency>
+
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.6.1</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${versions.logback}</version>
         </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${versions.log4j}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
@@ -406,6 +403,14 @@
                 <exclusion>
                     <groupId>junit</groupId>
                     <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

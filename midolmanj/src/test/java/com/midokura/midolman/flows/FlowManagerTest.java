@@ -2,15 +2,16 @@
  * Copyright 2012 Midokura Pte. Ltd.
  */
 
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,8 +35,13 @@ public class FlowManagerTest {
     @Before
     public void setUp() {
         flowManagerHelper = new FlowManagerHelperImpl();
+        // This is only used for loggging
+        ActorSystem actorSystem = ActorSystem.create("MidolmanActorsTest", ConfigFactory
+            .load().getConfig("midolman"));
+
         flowManager = new FlowManager(flowManagerHelper, maxDpFlowSize,
-                                                  maxWildcardFlowSize, dpFlowRemoveBatchSize);
+                                      maxWildcardFlowSize, actorSystem.eventStream(),
+                                      dpFlowRemoveBatchSize);
     }
 
 

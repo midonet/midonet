@@ -4,7 +4,7 @@
 package com.midokura.midolman
 
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
+import flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import com.midokura.sdn.dp.flows.FlowActions
 import datapath.FlowActionOutputToVrnPort

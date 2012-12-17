@@ -4,6 +4,7 @@
 package com.midokura.midolman
 
 
+import flows.{WildcardMatch, WildcardFlow}
 import scala.collection.JavaConversions._
 import akka.testkit.TestProbe
 
@@ -24,7 +25,6 @@ import com.midokura.packets.{IntIPv4, MAC}
 import com.midokura.sdn.dp.FlowMatch
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.dp.flows.FlowKeys.ethernet
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.scalatest.Ignore
 import akka.util.Duration
 import java.util.concurrent.TimeUnit

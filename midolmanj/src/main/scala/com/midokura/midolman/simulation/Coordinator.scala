@@ -27,9 +27,9 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midonet.cluster.client._
 import com.midokura.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
 import com.midokura.sdn.dp.flows._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.midolman.flows.{WildcardMatch, WildcardFlow}
 import com.midokura.midolman.DatapathController.SendPacket
-
+import com.midokura.midolman.logging.LoggerFactory
 
 object Coordinator {
     trait Action
@@ -51,6 +51,7 @@ object Coordinator {
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
 
     trait Device {
+
         /**
          * Process a packet described by the given match object. Note that the
          * Ethernet packet is the one originally ingressed the virtual network
@@ -77,6 +78,7 @@ object Coordinator {
         else
             actor.ask(message)(timeLeft milliseconds)
     }
+
 }
 
 /**
@@ -100,11 +102,12 @@ class Coordinator(val origMatch: WildcardMatch,
                   val cookie: Option[Int],
                   val generatedPacketEgressPort: Option[UUID],
                   val expiry: Long,
-                  val connectionCache: Cache)
+                  val connectionCache: Cache,
+                  val parentCookie: Option[Int])
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     import Coordinator._
-    val log = akka.event.Logging(actorSystem, "Coordinator.simulate")
+    val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
     private val datapathController = DatapathController.getRef(actorSystem)
     private val flowController = FlowController.getRef(actorSystem)
     private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
@@ -116,8 +119,8 @@ class Coordinator(val origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
     private val devicesSimulated = mutable.Map[UUID, Int]()
-    private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
-            connectionCache, generatedPacketEgressPort.isDefined)
+    implicit private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
+            connectionCache, generatedPacketEgressPort.isDefined, parentCookie)
     pktContext.setMatch(origMatch)
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
@@ -265,7 +268,8 @@ class Coordinator(val origMatch: WildcardMatch,
         eth.setPayload(ip)
         eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
         eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
-        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(inPort, eth)
+        SimulationController.getRef(actorSystem) !
+            EmitGeneratedPacket(inPort, eth, Option(pktContext.getFlowCookie))
     }
 
     private def packetIngressesDevice(port: Port[_]) {

@@ -68,8 +68,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
 
-        bind(VifMetrics.class).in(Singleton.class);
-
         /* NOTE(guillermo) In midolman's architecture these actors are all
          * singletons. However this constraint is enforced by
          * MidolmanActorsService, which launches them at the top level with

@@ -9,7 +9,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -17,9 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.midokura.packets.IntIPv4;
-import com.midokura.sdn.flows.WildcardMatch;
-import com.midokura.util.eventloop.MockReactor;
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.midolman.layer4.NatLeaseManager;
 import com.midokura.midolman.layer4.NatMapping;
 import com.midokura.midolman.rules.RuleResult.Action;
@@ -27,8 +24,11 @@ import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MockDirectory;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midolman.state.ZkPathManager;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
 import com.midokura.midolman.util.MockCache;
 import com.midokura.midolman.vrn.ForwardInfo;
+import com.midokura.packets.IntIPv4;
+import com.midokura.util.eventloop.MockReactor;
 
 
 public class TestRules {

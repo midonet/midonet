@@ -3,7 +3,7 @@
  */
 package com.midokura.midolman.monitoring
 
-import akka.actor.{Cancellable, Actor}
+import akka.actor.{ActorLogging, Cancellable, Actor}
 import akka.event.Logging
 import com.google.inject.Inject
 import com.midokura.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
@@ -13,6 +13,7 @@ import java.util.UUID
 import akka.util.FiniteDuration
 import metrics.vrn.VifMetrics
 import com.midokura.midolman.{Referenceable, DatapathController}
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 /**
  * This actor periodically sends requests to the DatapathController to get stats for the ports.
@@ -28,19 +29,16 @@ object MonitoringActor extends Referenceable {
 
 }
 
-class MonitoringActor extends Actor {
+class MonitoringActor extends Actor with ActorLogWithoutPath {
 
   import DatapathController._
   import VirtualToPhysicalMapper._
   import context._
 
-  val log = Logging(system, this)
-
   @Inject
   var configuration: MonitoringConfiguration = null
 
-  @Inject
-  var vifMetrics: VifMetrics = null
+  val vifMetrics: VifMetrics = new VifMetrics(context.system.eventStream)
 
   // monitored ports.
   val portsMap = new mutable.HashMap[UUID, Cancellable]
@@ -63,7 +61,7 @@ class MonitoringActor extends Actor {
       if (!portsMap.contains(portID)) {
 
         // create the metric for this port.
-        vifMetrics.enableVirtualPortMetrics(portID);
+        vifMetrics.enableVirtualPortMetrics(portID)
 
         val task = system.scheduler.schedule(
           new FiniteDuration(0, "milliseconds"),
@@ -79,7 +77,7 @@ class MonitoringActor extends Actor {
     case LocalPortActive(portID, false) =>
       if (portsMap.contains(portID)) {
         portsMap.get(portID).get.cancel()
-        portsMap.remove(portID);
+        portsMap.remove(portID)
       }
       vifMetrics.disableVirtualPortMetrics(portID)
 

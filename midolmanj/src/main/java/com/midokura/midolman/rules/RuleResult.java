@@ -6,7 +6,7 @@ package com.midokura.midolman.rules;
 
 import java.util.UUID;
 
-import com.midokura.sdn.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatch;
 
 
 public class RuleResult {

@@ -12,7 +12,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.midokura.midolman.flows.WildcardMatch;
 import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
 import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
 import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
@@ -24,14 +26,12 @@ import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.util.lock.LockHelper;
-
-
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 import static com.midokura.util.Waiters.sleepBecause;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 
 @Ignore
 public class DeletePortTest {

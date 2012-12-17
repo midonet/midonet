@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package com.midokura.sdn.flows;
+package com.midokura.midolman.flows;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -10,7 +10,8 @@ import static java.util.EnumSet.of;
 
 import org.junit.Test;
 
-import com.midokura.packets.Unsigned;
+import com.midokura.midolman.flows.WildcardMatch;
+import com.midokura.midolman.flows.WildcardMatches;
 import com.midokura.sdn.dp.FlowMatch;
 import com.midokura.sdn.dp.FlowMatches;
 
@@ -22,10 +23,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static com.midokura.sdn.dp.FlowMatches.tcpFlow;
-import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetDestination;
-import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetSource;
-import static com.midokura.sdn.flows.WildcardMatches.fromFlowMatch;
-import static com.midokura.sdn.flows.WildcardMatches.project;
+import static com.midokura.midolman.flows.WildcardMatch.Field.EthernetDestination;
+import static com.midokura.midolman.flows.WildcardMatch.Field.EthernetSource;
+import static com.midokura.midolman.flows.WildcardMatches.fromFlowMatch;
+import static com.midokura.midolman.flows.WildcardMatches.project;
 
 public class WildcardMatchesTest {
 
@@ -58,7 +59,7 @@ public class WildcardMatchesTest {
 
         WildcardMatch projection =
             project(
-                EnumSet.of(EthernetSource, EthernetDestination), wildcard);
+                of(EthernetSource, EthernetDestination), wildcard);
 
         // make a simple wildcard that is a copy of the projection
         WildcardMatch copy = new WildcardMatch();
@@ -83,7 +84,7 @@ public class WildcardMatchesTest {
             "02:aa:dd:dd:aa:01", "02:bb:ee:ee:ff:01",
             "192.168.100.2", "192.168.100.3",
             40000, 50000);
-        WildcardMatch wcm = WildcardMatches.fromFlowMatch(fm);
+        WildcardMatch wcm = fromFlowMatch(fm);
         assertThat(wcm.getTransportSourceObject(),
             equalTo(40000));
         assertThat(wcm.getTransportDestinationObject(),

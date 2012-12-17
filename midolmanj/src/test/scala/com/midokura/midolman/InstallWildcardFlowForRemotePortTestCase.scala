@@ -3,6 +3,7 @@
 */
 package com.midokura.midolman
 
+import flows.{WildcardFlow, WildcardMatch}
 import java.util.concurrent.TimeUnit
 import akka.util.Duration
 import org.junit.runner.RunWith
@@ -10,7 +11,6 @@ import org.scalatest.junit.JUnitRunner
 
 import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import com.midokura.midolman.datapath.FlowActionOutputToVrnPort
-import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
 import com.midokura.packets.IntIPv4
 import com.midokura.midolman.DatapathController.TunnelChangeEvent
