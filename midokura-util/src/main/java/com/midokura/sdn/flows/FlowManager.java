@@ -207,9 +207,9 @@ public class FlowManager {
         if (dpFlowTable.containsKey(flowMatch))
             return false;
         // check if there's enough space
-        if(howManyFlowsToRemoveToFreeSpace() > 0){
-            log.error("The flow table is full, cannot add flow with match {}",
-                      flowMatch);
+        if (howManyFlowsToRemoveToFreeSpace() > 0) {
+            log.info("The flow table is close to full capacity with {} dp flows",
+                      getNumDpFlows());
             // There's no point in trying to free space, because the remove
             // operation won't take place until the FlowController receives
             // and processes the RemoveFlow message.
