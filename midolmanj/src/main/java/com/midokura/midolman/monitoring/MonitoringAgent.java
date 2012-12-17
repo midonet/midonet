@@ -10,16 +10,15 @@ import static java.lang.String.format;
 
 import akka.actor.ActorRef;
 import com.google.inject.Inject;
-import com.midokura.midolman.monitoring.MonitoringActor;
-import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.services.MidolmanActorsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
+import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.Store;
+import com.midokura.midolman.services.MidolmanActorsService;
 
 /**
  * This is the main entry point to the monitoring functionality. It's called
@@ -38,9 +37,6 @@ public class MonitoringAgent {
     MidolmanConfig config;
 
     @Inject
-    MonitoringConfiguration configuration;
-
-    @Inject
     VMMetricsCollection vmMetrics;
 
     @Inject
@@ -52,12 +48,11 @@ public class MonitoringAgent {
     MidoReporter reporter;
 
     public void startMonitoringIfEnabled() {
-
-       if (config.getMidolmanEnableMonitoring()) {
+        if (!config.getMidolmanEnableMonitoring())
+            return;
 
         vmMetrics.registerMetrics();
-
-        int zkJmxPort = configuration.getMonitoringZookeeperJMXPort();
+        int zkJmxPort = config.getMonitoringZookeeperJMXPort();
 
         if (zkJmxPort != -1) {
             String zkJmxUrl =
@@ -71,16 +66,13 @@ public class MonitoringAgent {
             store.initialize();
             reporter = new MidoReporter(store, "MidonetMonitoring");
             reporter.start(
-                configuration.getMonitoringCassandraReporterPullTime(),
+                config.getMonitoringCassandraReporterPullTime(),
                 TimeUnit.MILLISECONDS);
         } else {
             log.warn("The metrics publisher to the data store didn't start " +
                          "because the store was not initialized. Most likely " +
                          "the connection to the store failed.");
         }
-
-
-       }
     }
 
     public void stop() {
