@@ -30,7 +30,7 @@ public class IpsecTunnelZone
 
     @Override
     public short getTunnelOverhead() {
-        return ((short)36);
+        return ((short)50);
     }
 
     public IpsecTunnelZone(UUID uuid, @Nonnull Data data) {

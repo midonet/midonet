@@ -30,7 +30,14 @@ public class CapwapTunnelZone
 
     @Override
     public short getTunnelOverhead() {
-        return ((short)10);
+        /*
+         * from OVS datapath/vport-capwap.c, overhead should be
+         * ethernet hdr size + IPv4 hdr size + UDP hdr size +
+         * sizeof(struct capwaphdr) + sizeof(struct capwaphdr_wsi) +
+         * sizeof(struct capwaphdr_wsi_key) ===
+         * 14 + 20 + 8 + 8 + 4 + 8 = 62
+         */
+        return ((short)62);
     }
 
     public CapwapTunnelZone(UUID zoneId, @Nonnull Data data) {
