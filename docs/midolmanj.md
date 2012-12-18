@@ -12,8 +12,8 @@ discussed below
 This component handles the collection and export of the metrics gathered by the
 system. It is explained at length inside the [Metrics & Monitoring document](monitoring.md).
 
-### PortService
+### BGP Service
 
-This component provides sets of interfaces that can be also used for
-supporting various network services.  It is explained at length inside the
-[PortService document](midolman-portservice.md).
+This component provides sets of interfaces for interacting with an external
+service which handles speaking BGP (border gateway protocol).  It is explained
+at length in the [BGP document](midolman-bgp.md).
