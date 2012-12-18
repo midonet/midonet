@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import static com.midokura.sdn.dp.FlowMatches.tcpFlow;
+import static com.midokura.odp.FlowMatches.tcpFlow;
 import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetDestination;
 import static com.midokura.sdn.flows.WildcardMatch.Field.EthernetSource;
 import static com.midokura.sdn.flows.WildcardMatch.fromFlowMatch;

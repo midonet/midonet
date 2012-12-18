@@ -654,13 +654,13 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>netlink</artifactId>
-            <version>13.01-SNAPSHOT</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>odp</artifactId>
-            <version>13.01-SNAPSHOT</version>
+            <version>13.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>
