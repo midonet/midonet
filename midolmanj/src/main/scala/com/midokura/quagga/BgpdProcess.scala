@@ -32,14 +32,8 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
         log.debug("bgpd command line: {}", bgpdCmdLine)
 
         val daemonRunConfig =
-            ProcessHelper.newDemonProcess(bgpdCmdLine)
+            ProcessHelper.newDemonProcess(bgpdCmdLine, log, "bgpd-" + vtyPortNumber)
                 .withSudo()
-
-        if (log.isDebugEnabled) {
-            daemonRunConfig.logOutput(log, "<bgpd>",
-                ProcessHelper.OutputStreams.StdError,
-                ProcessHelper.OutputStreams.StdOutput)
-        }
 
         bgpdProcess = daemonRunConfig.run()
 

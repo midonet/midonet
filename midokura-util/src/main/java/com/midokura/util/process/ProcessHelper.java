@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import static java.lang.String.format;
 
 import org.apache.commons.io.IOUtils;
@@ -38,6 +39,17 @@ public class ProcessHelper {
         RunnerConfiguration configuration = _newProcess(commandLine, true);
 
         configuration.setDrainTarget(DrainTargets.noneTarget());
+
+        return configuration;
+    }
+
+    public static RunnerConfiguration newDemonProcess(
+             @Nonnull String commandLine,
+             @Nonnull Logger logger,
+             @Nonnull String prefix) {
+        RunnerConfiguration configuration = _newProcess(commandLine, true);
+
+        configuration.setDrainTarget(DrainTargets.slf4jTarget(logger, prefix));
 
         return configuration;
     }
@@ -322,29 +334,50 @@ public class ProcessHelper {
     private static ProcessResult _executeCommandLine(String command,
                                                     boolean canBeRemote) {
         ProcessResult result = new ProcessResult();
-        try {
-            List<String> stringList = new ArrayList<String>();
+        List<String> outputList = new ArrayList<String>();
+        List<String> errorList = new ArrayList<String>();
 
-            RunnerConfiguration runner = _newProcess(command, canBeRemote);
+        RunnerConfiguration runner = _newProcess(command, canBeRemote);
 
-            runner.setDrainTarget(DrainTargets.stringCollector(stringList));
+        runner.setDrainTarget(DrainTargets.stringCollector(
+                outputList, errorList));
 
-            result.returnValue = runner.runAndWait();
-            result.consoleOutput = stringList;
-        } catch (Exception e) {
-            log.error("cannot execute command line " + e.toString());
-        }
+        result.returnValue = runner.runAndWait();
+        result.consoleOutput = outputList;
+        result.errorOutput = errorList;
+
+        return result;
+    }
+
+    private static ProcessResult _executeCommandLine(String command,
+            boolean canBeRemote, @Nonnull Logger logger,
+            @Nonnull String prefix) {
+        ProcessResult result = new ProcessResult();
+
+        List<String> outputList = new ArrayList<String>();
+        List<String> errorList = new ArrayList<String>();
+
+        RunnerConfiguration runner = _newProcess(command, canBeRemote);
+
+        runner.setDrainTarget(DrainTargets.collectorLogger(
+                outputList, errorList, logger, prefix));
+
+        result.returnValue = runner.runAndWait();
+        result.consoleOutput = outputList;
+        result.errorOutput = errorList;
 
         return result;
     }
 
     public static class ProcessResult {
         public List<String> consoleOutput;
+        public List<String> errorOutput;
         public int returnValue;
 
         public ProcessResult() {
             this.returnValue = 666;
             this.consoleOutput = Collections.emptyList();
+            this.errorOutput = Collections.emptyList();
         }
     }
 
