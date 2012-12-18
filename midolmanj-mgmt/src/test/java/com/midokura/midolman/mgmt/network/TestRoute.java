@@ -270,6 +270,17 @@ public class TestRoute {
             noNextHop.setWeight(100);
             params.add(new Object[] { noNextHop, "nextHopPort" });
 
+            // Normal type but next hop port is not a port on the router.
+            DtoRoute badNextHop = new DtoRoute();
+            badNextHop.setType(Route.Normal);
+            badNextHop.setNextHopPort(UUID.randomUUID());
+            badNextHop.setDstNetworkAddr("10.0.0.1");
+            badNextHop.setDstNetworkLength(24);
+            badNextHop.setSrcNetworkAddr("192.168.1.1");
+            badNextHop.setSrcNetworkLength(24);
+            badNextHop.setWeight(100);
+            params.add(new Object[] { badNextHop, "nextHopPort" });
+
             return params;
         }
 

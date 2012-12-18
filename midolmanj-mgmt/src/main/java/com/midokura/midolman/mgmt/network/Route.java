@@ -20,7 +20,7 @@ import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.validation.AllowedValue;
 import com.midokura.midolman.mgmt.network.Route.RouteExtended;
-import com.midokura.midolman.mgmt.network.validation.NextHopPortNotNull;
+import com.midokura.midolman.mgmt.network.validation.NextHopPortValid;
 import com.midokura.packets.Net;
 import com.midokura.util.StringUtil;
 
@@ -28,7 +28,7 @@ import com.midokura.util.StringUtil;
 /**
  * Class representing route.
  */
-@NextHopPortNotNull(groups = RouteExtended.class)
+@NextHopPortValid(groups = RouteExtended.class)
 @XmlRootElement
 public class Route extends UriResource {
 
