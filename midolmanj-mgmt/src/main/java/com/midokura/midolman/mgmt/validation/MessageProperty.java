@@ -23,6 +23,8 @@ public class MessageProperty {
             "{midokura.javarx.PortGroupIdIsInvalid}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid}";
+    public static final String TUNNEL_ZONE_MEMBER_EXISTS =
+            "{midokura.javarx.TunnelZoneMemberExists}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid}";
     public static final String PORTS_LINKABLE =

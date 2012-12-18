@@ -272,6 +272,8 @@ with RouterHelper{
         // update the gre ip of the second host
         val secondGreConfig = new GreTunnelZoneHost(host2.getId)
             .setIp(IntIPv4.fromString("192.168.210.1"))
+        clusterDataClient().tunnelZonesDeleteMembership(
+            tunnelZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId, secondGreConfig)
 

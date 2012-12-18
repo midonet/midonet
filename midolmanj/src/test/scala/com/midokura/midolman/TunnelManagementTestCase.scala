@@ -116,6 +116,8 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
             .setIp(IntIPv4.fromString("192.168.210.1"))
+        clusterDataClient().tunnelZonesDeleteMembership(
+            greZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(
             greZone.getId, herSecondGreConfig)
 
