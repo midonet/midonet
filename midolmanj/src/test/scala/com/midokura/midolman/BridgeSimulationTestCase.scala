@@ -3,21 +3,22 @@
 */
 package com.midokura.midolman
 
+import akka.testkit.TestProbe
+
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.midokura.midolman.DatapathController.{TunnelChangeEvent, PacketIn}
+import com.midokura.midolman.DatapathController.{PacketIn, TunnelChangeEvent}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
+import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import com.midokura.packets.{IntIPv4, MAC, Packets}
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
-import akka.testkit.TestProbe
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.sdn.dp.flows.{FlowActions, FlowActionOutput, FlowKeyTunnelID, FlowActionSetKey}
-import com.midokura.packets.Ethernet
-import org.junit.Test
-import topology.LocalPortActive
+import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
+import com.midokura.odp.flows.{FlowActionOutput, FlowActions, FlowActionSetKey,
+    FlowKeyTunnelID}
+import com.midokura.packets.{Ethernet, IntIPv4, MAC, Packets}
 
 
 @RunWith(classOf[JUnitRunner])

@@ -5,7 +5,6 @@ package com.midokura.midolman.monitoring.metrics.vrn;
 
 import java.util.*;
 
-import com.midokura.sdn.dp.Port;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -13,7 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.monitoring.MidoReporter;
-//import com.midokura.midolman.vrn.VRNController;
+import com.midokura.odp.Port;
+
 
 /**
  * Class that can add/delete Counters for different virtual ports on demand.

@@ -3,16 +3,18 @@
  */
 package com.midokura.midolman.host.sensor;
 
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.sdn.dp.Port;
-import com.midokura.sdn.dp.ports.InternalPort;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Test;
+
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.odp.Port;
+import com.midokura.odp.ports.InternalPort;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+
 
 /**
  * Netlink Interface sensor tests

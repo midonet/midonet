@@ -3,16 +3,18 @@
 */
 package com.midokura.midolman
 
-import com.midokura.sdn.dp.{FlowMatch, Packet}
-import com.midokura.midolman.DatapathController.PacketIn
-import com.midokura.sdn.dp.flows.FlowKeys
 import org.apache.commons.configuration.HierarchicalConfiguration
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
-import com.midokura.midonet.cluster.data.host.Host
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
+import com.midokura.midonet.cluster.data.host.Host
+import com.midokura.odp.{FlowMatch, Packet}
+import com.midokura.odp.flows.FlowKeys
 import com.midokura.packets.{IntIPv4, MAC, Packets}
-import topology.LocalPortActive
+
 
 @RunWith(classOf[JUnitRunner])
 class PacketInWorkflowTestCase extends MidolmanTestCase {

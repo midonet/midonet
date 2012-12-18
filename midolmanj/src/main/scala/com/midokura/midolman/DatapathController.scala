@@ -37,12 +37,13 @@ import com.midokura.midonet.cluster.data.zones.{IpsecTunnelZoneHost,
 import com.midokura.netlink.Callback
 import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
-import com.midokura.netlink.protos.OvsDatapathConnection
+import com.midokura.odp.{Flow => KernelFlow, _}
+import com.midokura.odp.flows.{FlowAction, FlowActions, FlowActionUserspace,
+                               FlowKeys}
+import com.midokura.odp.ports._
+import com.midokura.odp.protos.OvsDatapathConnection
 import com.midokura.packets.Ethernet
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.sdn.dp.{Flow => KernelFlow, _}
-import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
-import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 
 

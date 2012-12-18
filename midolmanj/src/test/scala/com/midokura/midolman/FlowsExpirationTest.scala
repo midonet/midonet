@@ -6,6 +6,7 @@ package com.midokura.midolman
 
 import scala.collection.JavaConversions._
 import java.util.concurrent.TimeUnit
+
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestKitExtension, TestProbe}
 import akka.util.Duration
@@ -19,10 +20,10 @@ import org.scalatest.junit.JUnitRunner
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.util.TestHelpers
+import com.midokura.odp._
+import com.midokura.odp.flows.FlowKeys
 import com.midokura.packets.{IntIPv4, MAC, Packets}
 import com.midokura.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
-import com.midokura.sdn.dp._
-import com.midokura.sdn.dp.flows.FlowKeys
 
 
 @RunWith(classOf[JUnitRunner])

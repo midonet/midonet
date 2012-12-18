@@ -16,6 +16,7 @@ import akka.util.duration._
 import com.midokura.cache.Cache
 import com.midokura.midolman.{DatapathController, FlowController,
                               SimulationController}
+import com.midokura.midolman.DatapathController.SendPacket
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
@@ -25,10 +26,9 @@ import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
     ChainRequest, RouterRequest, PortRequest}
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midonet.cluster.client._
+import com.midokura.odp.flows._
 import com.midokura.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
-import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.midokura.midolman.DatapathController.SendPacket
 
 
 object Coordinator {

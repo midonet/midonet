@@ -10,8 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.midokura.packets.MAC;
-import com.midokura.sdn.dp.Port;
-import com.midokura.sdn.dp.PortOptions;
+import com.midokura.odp.Port;
+import com.midokura.odp.PortOptions;
+
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com>

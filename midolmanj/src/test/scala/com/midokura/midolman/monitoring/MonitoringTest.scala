@@ -3,29 +3,30 @@
 */
 package com.midokura.midolman.monitoring
 
-import com.midokura.midolman._
+import collection.JavaConversions._
+import collection.{mutable, immutable}
+import java.util._
+
 import com.yammer.metrics.Metrics
 import com.yammer.metrics.core.Metric
 import com.yammer.metrics.core.MetricName
 import com.yammer.metrics.core.MetricsRegistry
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.is
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testng.annotations.Test
-import java.util._
-import org.hamcrest.MatcherAssert.assertThat
-import collection.{mutable, immutable}
-import scala.collection.JavaConversions._
-import store.{MockStore, Store}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
-Ports => ClusterPorts}
+
+import com.midokura.midolman._
+import com.midokura.midolman.monitoring.store.{MockStore, Store}
 import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.util.functors.Callback0
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
+    Ports => ClusterPorts}
 import com.midokura.tools.timed.Timed
 import com.midokura.util.Waiters.waitFor
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.midokura.util.functors.Callback0
 
-object MonitoringTest {
-}
 
 class MonitoringTest extends MidolmanTestCase {
 
@@ -33,6 +34,9 @@ class MonitoringTest extends MidolmanTestCase {
 
   var monitoringAgent: MonitoringAgent = null
   var registry: MetricsRegistry = null
+
+  private def assertTrue(msg: String, flag: Boolean) =
+      assertThat(msg, flag, is(true))
 
   override protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
     config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
@@ -51,7 +55,7 @@ class MonitoringTest extends MidolmanTestCase {
 
     val store : Store = injector.getInstance(classOf[Store])
     val cassandraStore = store.asInstanceOf[MockStore]
-    assertThat("Initial ports are empty", cassandraStore.getTargets.isEmpty);
+    assertTrue("Initial ports are empty", cassandraStore.getTargets.isEmpty);
 
     var called : Boolean = false;
     val host = new Host(hostId()).setName("myself")
@@ -86,7 +90,7 @@ class MonitoringTest extends MidolmanTestCase {
       }
     })
 
-    assertThat("Cassandra contains data about the port", called)
+    assertTrue("Cassandra contains data about the port", called)
 
     // get all the metrics names
     registry = Metrics.defaultRegistry;
@@ -97,7 +101,8 @@ class MonitoringTest extends MidolmanTestCase {
       names += metricName.getName
     }
 
-    assertThat("The registry contains all the expected metrics.", (names.diff(jvmNames)).isEmpty )
+    assertTrue("The registry contains all the expected metrics.",
+               (names.diff(jvmNames)).isEmpty)
 
     // clean stuff.
     registry.allMetrics().keys.foreach((arg: MetricName) => registry.removeMetric(arg))

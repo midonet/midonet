@@ -18,7 +18,8 @@ import java.util.UUID;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.midokura.midolman.host.commands.executors.CommandProperty;
-import com.midokura.sdn.dp.Port;
+import com.midokura.odp.Port;
+
 
 /**
  * ZooKeeper state objects definitions for Host and Interface data.

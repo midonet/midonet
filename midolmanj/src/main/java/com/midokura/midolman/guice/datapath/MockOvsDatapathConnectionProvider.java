@@ -13,9 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.netlink.Netlink;
 import com.midokura.netlink.NetlinkChannelImpl;
-import com.midokura.netlink.protos.OvsDatapathConnection;
-import com.midokura.netlink.protos.mocks.MockOvsDatapathConnectionImpl;
+import com.midokura.odp.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.mocks.MockOvsDatapathConnectionImpl;
 import com.midokura.util.eventloop.Reactor;
+
 
 /**
  * Will provide an {@link OvsDatapathConnection} instance that is handled via

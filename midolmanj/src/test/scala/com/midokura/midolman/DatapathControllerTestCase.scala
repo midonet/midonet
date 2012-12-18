@@ -3,25 +3,27 @@
 */
 package com.midokura.midolman
 
+import akka.testkit.TestProbe
+import akka.util.Duration
 import collection.mutable
+import java.util.concurrent.TimeUnit
+
+import org.junit.{Ignore, Test}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import com.midokura.sdn.dp.{Datapath, Ports}
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
-Ports => ClusterPorts}
-import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midolman.topology.rcu.{Host => RCUHost}
-import com.midokura.midolman.topology.VirtualToPhysicalMapper._
-import topology.LocalPortActive
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midonet.cluster.client.ExteriorBridgePort
-import org.junit.{Ignore, Test}
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
-import akka.testkit.TestProbe
+import com.midokura.midolman.topology.rcu.{Host => RCUHost}
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.VirtualToPhysicalMapper._
+import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
+import com.midokura.midonet.cluster.client.ExteriorBridgePort
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
+    Ports => ClusterPorts}
+import com.midokura.midonet.cluster.data.host.Host
+import com.midokura.odp.{Datapath, Ports}
+
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {

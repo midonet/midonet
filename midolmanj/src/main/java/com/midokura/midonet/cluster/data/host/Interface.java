@@ -3,14 +3,15 @@
  */
 package com.midokura.midonet.cluster.data.host;
 
-import com.midokura.midolman.host.state.HostDirectory.Interface.Type;
-import com.midokura.midonet.cluster.data.Entity;
-import com.midokura.sdn.dp.Port;
-
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.midokura.midolman.host.state.HostDirectory.Interface.Type;
+import com.midokura.midonet.cluster.data.Entity;
+import com.midokura.odp.Port;
+
 
 /**
  * Host interface

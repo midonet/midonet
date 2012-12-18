@@ -89,7 +89,6 @@
                         </goals>
                         <configuration>
                             <args>
-                                <arg>-P:continuations:enable</arg>
                                 <arg>-deprecation</arg>
                                 <arg>-unchecked</arg>
                                 <arg>-dependencyfile</arg>
@@ -397,6 +396,32 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>${versions.hamcrest}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${versions.powermock}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>${versions.powermock}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor</artifactId>
             <version>${versions.scala.akka}</version>
@@ -623,6 +648,18 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
+            <version>13.06-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>netlink</artifactId>
+            <version>13.06-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.midokura</groupId>
+            <artifactId>odp</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
 

@@ -3,33 +3,32 @@
  */
 package com.midokura.midolman
 
-import scala.Some
-import scala.collection.JavaConversions._
-
-import collection.mutable
 import akka.testkit.TestProbe
 import akka.util.duration._
+import collection.JavaConversions._
+import collection.mutable
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-import guice.actors.OutgoingMessage
 
-import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
-                                             WildcardFlowAdded, DiscardPacket}
-import layer3.Route
-import layer3.Route.NextHop
-import topology.LocalPortActive
-import com.midokura.packets._
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController.{DiscardPacket, WildcardFlowAdded,
+    WildcardFlowRemoved}
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.guice.actors.OutgoingMessage
+import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.layer3.Route.NextHop
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import com.midokura.midolman.util.{RouterHelper, SimulationHelper}
+import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import com.midokura.midonet.cluster.data.dhcp.Opt121
 import com.midokura.midonet.cluster.data.dhcp.Subnet
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import topology.VirtualToPhysicalMapper.HostRequest
-import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
-import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions, FlowAction}
-import util.RouterHelper
-import com.midokura.midolman.SimulationController.EmitGeneratedPacket
-import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
+import com.midokura.packets._
+
 
 @RunWith(classOf[JUnitRunner])
 class PingTestCase extends MidolmanTestCase with

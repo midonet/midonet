@@ -12,9 +12,10 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.OvsDatapathConnection;
 import com.midokura.util.eventloop.SelectListener;
 import com.midokura.util.eventloop.SelectLoop;
+
 
 /**
  * Service implementation that will open a connection to the local datapath when started.

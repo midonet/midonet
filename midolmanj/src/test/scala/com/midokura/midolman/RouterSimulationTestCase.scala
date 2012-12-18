@@ -3,9 +3,9 @@
 */
 package com.midokura.midolman
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
-import annotation.tailrec
 import java.util.UUID
 
 import akka.dispatch.Await
@@ -13,7 +13,6 @@ import akka.testkit.TestProbe
 import akka.util.duration._
 import akka.util.Timeout
 
-import guice.actors.OutgoingMessage
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -22,20 +21,22 @@ import org.slf4j.LoggerFactory
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController._
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
+import com.midokura.midolman.guice.actors.OutgoingMessage
 import com.midokura.midolman.layer3.Route.{NextHop, NO_GATEWAY}
-import simulation.{LoadBalancer, ArpTableImpl}
+import com.midokura.midolman.simulation.{ArpTableImpl, LoadBalancer}
 import com.midokura.midolman.state.ArpCacheEntry
 import com.midokura.midolman.state.ReplicatedMap.Watcher
+import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import com.midokura.midonet.cluster.data.{Router => ClusterRouter, Ports}
-import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedRouterPort}
+import com.midokura.midolman.util.RouterHelper
+import com.midokura.midonet.cluster.data.{Ports, Router => ClusterRouter}
+import com.midokura.midonet.cluster.data.ports.{LogicalRouterPort,
+    MaterializedRouterPort}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.packets._
-import com.midokura.sdn.dp.flows.{FlowActionSetKey, FlowActionOutput,
-                                  FlowKeyEthernet, FlowKeyIPv4}
+import com.midokura.odp.flows.{FlowActionSetKey, FlowActionOutput,
+                               FlowKeyEthernet, FlowKeyIPv4}
 import com.midokura.sdn.flows.WildcardMatch
-import topology.LocalPortActive
-import util.RouterHelper
 
 
 @RunWith(classOf[JUnitRunner])

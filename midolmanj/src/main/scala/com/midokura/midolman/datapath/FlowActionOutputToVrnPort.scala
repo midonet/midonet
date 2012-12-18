@@ -7,8 +7,8 @@ import java.util.UUID
 
 import com.midokura.netlink.NetlinkMessage
 import com.midokura.netlink.messages.BaseBuilder
-import com.midokura.sdn.dp.flows.FlowAction
-import com.midokura.sdn.dp.flows.FlowAction.FlowActionAttr
+import com.midokura.odp.flows.FlowAction
+import com.midokura.odp.flows.FlowAction.FlowActionAttr
 
 
 object FlowActionOutputToVrnPort {

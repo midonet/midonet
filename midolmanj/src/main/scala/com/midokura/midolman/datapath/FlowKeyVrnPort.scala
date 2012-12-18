@@ -3,11 +3,13 @@
 */
 package com.midokura.midolman.datapath
 
-import com.midokura.sdn.dp.flows.FlowKey
+import java.util.UUID
+
 import com.midokura.netlink.NetlinkMessage
 import com.midokura.netlink.messages.BaseBuilder
-import java.util.UUID
-import com.midokura.sdn.dp.flows.FlowKey.FlowKeyAttr
+import com.midokura.odp.flows.FlowKey
+import com.midokura.odp.flows.FlowKey.FlowKeyAttr
+
 
 object FlowKeyVrnPort {
     val key = new FlowKeyAttr[FlowKeyVrnPort](250)

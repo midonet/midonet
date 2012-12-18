@@ -29,7 +29,7 @@ import com.midokura.midolman.routingprotocols.RoutingManagerActor;
 import com.midokura.midolman.services.HostIdProviderService;
 import com.midokura.midolman.services.MidolmanActorsService;
 import com.midokura.midolman.topology.*;
-import com.midokura.netlink.protos.OvsDatapathConnection;
+import com.midokura.odp.protos.OvsDatapathConnection;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -38,6 +38,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
 import static akka.actor.SupervisorStrategy.escalate;
+
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so

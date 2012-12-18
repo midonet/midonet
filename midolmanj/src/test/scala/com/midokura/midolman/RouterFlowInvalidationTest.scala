@@ -4,29 +4,32 @@
 
 package com.midokura.midolman
 
-import layer3.Route._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import akka.testkit.TestProbe
-import com.midokura.sdn.dp.Datapath
-import com.midokura.packets._
-import org.apache.commons.configuration.HierarchicalConfiguration
-import java.util.UUID
-import topology.LocalPortActive
-import topology.RouterManager.RouterInvTrieTagCountModified
-import util.{TestHelpers, RouterHelper}
-import com.midokura.midonet.cluster.data.{Port, Router}
-import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midolman.DatapathController.{TunnelChangeEvent, PacketIn}
-import com.midokura.midolman.FlowController.{RemoveWildcardFlow, WildcardFlowRemoved, WildcardFlowAdded, DiscardPacket}
-import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import akka.util.Duration
-import java.util.concurrent.TimeUnit
-import com.midokura.sdn.dp.flows.{FlowActions, FlowAction}
 import collection.immutable.HashMap
 import collection.mutable
-import scala.collection.JavaConverters._
+import collection.JavaConverters._
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+import com.midokura.midolman.DatapathController.{PacketIn, TunnelChangeEvent}
+import com.midokura.midolman.FlowController.{DiscardPacket, RemoveWildcardFlow,
+    WildcardFlowAdded, WildcardFlowRemoved}
+import com.midokura.midolman.layer3.Route._
+import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.RouterManager.RouterInvTrieTagCountModified
+import com.midokura.midolman.util.{RouterHelper, TestHelpers}
+import com.midokura.midonet.cluster.data.host.Host
+import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
+import com.midokura.midonet.cluster.data.{Port, Router}
+import com.midokura.odp.Datapath
+import com.midokura.odp.flows.{FlowAction, FlowActions}
+import com.midokura.packets._
 
 
 @RunWith(classOf[JUnitRunner])
