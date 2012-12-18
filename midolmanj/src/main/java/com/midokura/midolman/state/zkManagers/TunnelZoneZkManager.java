@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.NoStatePathException;
 import com.midokura.midolman.state.StateAccessException;
+import com.midokura.midolman.state.StatePathExistsException;
 import com.midokura.midolman.state.ZkConfigSerializer;
 import com.midokura.midolman.state.ZkManager;
 import com.midokura.midolman.util.JSONSerializer;
@@ -226,9 +227,8 @@ public class TunnelZoneZkManager extends ZkManager {
         String membershipPath = paths.getTunnelZoneMembershipPath(zoneId,
                                                                         hostConfig
                                                                             .getId());
-        if (exists(membershipPath)) {
-            ops.add(getDeleteOp(membershipPath));
-        }
+        if (exists(membershipPath))
+            throw new StatePathExistsException();
 
         ops.add(
             getPersistentCreateOp(membershipPath,

@@ -7,12 +7,16 @@ import com.midokura.midolman.mgmt.ResourceUriBuilder;
 import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.host.validation.IsValidHostId;
 import com.midokura.midolman.mgmt.host.validation.IsValidTunnelZoneId;
+import com.midokura.midolman.mgmt.host.validation.IsUniqueTunnelZoneMember;
+import com.midokura.midolman.mgmt.host.TunnelZoneHost.TunnelZoneHostUnique;
 import com.midokura.midonet.cluster.data.TunnelZone.HostConfig;
 import com.midokura.packets.IntIPv4;
 import com.midokura.util.StringUtil;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -20,6 +24,7 @@ import java.util.UUID;
 /**
  * Class representing Tunnel zone - host mapping.
  */
+@IsUniqueTunnelZoneMember(groups = TunnelZoneHostUnique.class)
 @XmlRootElement
 public abstract class TunnelZoneHost extends UriResource {
 
@@ -128,5 +133,19 @@ public abstract class TunnelZoneHost extends UriResource {
     @Override
     public String toString() {
         return "tunnelZoneId=" + tunnelZoneId + ", hostId=" + hostId;
+    }
+
+    /**
+     * Interface used for validating a tunnel zone on creates.
+     */
+    public interface TunnelZoneHostUnique {
+    }
+
+    /**
+     * Interface that defines the ordering of validation groups for tunnel zone
+     * create.
+     */
+    @GroupSequence({ Default.class, TunnelZoneHostUnique.class })
+    public interface TunnelZoneHostCreateGroupSequence {
     }
 }
