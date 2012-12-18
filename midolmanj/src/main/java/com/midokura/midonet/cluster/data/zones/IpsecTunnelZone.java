@@ -28,6 +28,11 @@ public class IpsecTunnelZone
         return Type.Ipsec;
     }
 
+    @Override
+    public short getTunnelOverhead() {
+        return ((short)36);
+    }
+
     public IpsecTunnelZone(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }

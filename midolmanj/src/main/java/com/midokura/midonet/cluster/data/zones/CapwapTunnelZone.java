@@ -28,6 +28,11 @@ public class CapwapTunnelZone
         return Type.Capwap;
     }
 
+    @Override
+    public short getTunnelOverhead() {
+        return ((short)10);
+    }
+
     public CapwapTunnelZone(UUID zoneId, @Nonnull Data data) {
         super(zoneId, data);
     }

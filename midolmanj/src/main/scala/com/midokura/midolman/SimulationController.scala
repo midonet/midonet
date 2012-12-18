@@ -5,7 +5,6 @@ package com.midokura.midolman
 import compat.Platform
 import akka.actor.{Actor, ActorLogging}
 import akka.util.duration._
-import config.MidolmanConfig
 import java.util.UUID
 import javax.annotation.Nullable
 
@@ -36,7 +35,6 @@ class SimulationController() extends Actor with ActorLogging {
     val timeout = (5 minutes).toMillis
     @Inject @Nullable var connectionCache: Cache = null
     @Inject val clusterDataClient: DataClient = null
-    @Inject val midolmanConfig: MidolmanConfig = null
 
     val datapathController = DatapathController.getRef()
 
@@ -83,8 +81,7 @@ class SimulationController() extends Actor with ActorLogging {
                         log.debug("Got a DHCP bootrequest");
                         return new DhcpImpl(
                             clusterDataClient, wMatch.getInputPortUUID, dhcp,
-                            ethPkt.getSourceMACAddress, cookie,
-                            midolmanConfig.getMidolmanDhcpMtu).handleDHCP
+                            ethPkt.getSourceMACAddress, cookie).handleDHCP
                     }
                 }
             }

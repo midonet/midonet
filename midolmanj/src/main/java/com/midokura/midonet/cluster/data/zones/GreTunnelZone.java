@@ -28,6 +28,11 @@ public class GreTunnelZone
         return Type.Gre;
     }
 
+    @Override
+    public short getTunnelOverhead() {
+        return ((short)28);
+    }
+
     public GreTunnelZone(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }

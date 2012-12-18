@@ -22,6 +22,10 @@ public abstract class TunnelZone<
 
     public abstract Type getType();
 
+    // returns per-packet overhead for a particular tunnel type
+    // it better not be greater than 64K...
+    public abstract short getTunnelOverhead();
+
     protected TunnelZone(UUID uuid, @Nonnull ZoneData data) {
         super(uuid, data);
     }
