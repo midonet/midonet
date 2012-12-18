@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Enclosed.class)
 public class TestUDP {
 
-    private static byte[] sampleHeader = new byte[] { (byte) 0x00, (byte) 0x04,
+    private static byte[] sampleHeader = new byte[] { (byte) 0xA8, (byte) 0xCA,
             (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x08, (byte) 0x00,
             (byte) 0x00 };
 
@@ -31,8 +31,8 @@ public class TestUDP {
         public void testLargeDatagramSerialization()
                 throws MalformedPacketException {
             UDP udp = new UDP();
-            udp.setDestinationPort((short) 1234);
-            udp.setSourcePort((short) 4321);
+            udp.setDestinationPort(1234);
+            udp.setSourcePort(43210); // 0xA8CA
             Random rnd = new Random();
             byte[] payload = new byte[50000];
             rnd.nextBytes(payload);
@@ -91,8 +91,8 @@ public class TestUDP {
 
             // UDP with header only - use this for testing.
             UDP templateUdp = new UDP();
-            templateUdp.setSourcePort((short) 4);
-            templateUdp.setDestinationPort((short) 8);
+            templateUdp.setSourcePort(43210); //0xA8CA
+            templateUdp.setDestinationPort(8);
             templateUdp.setChecksum((short) 0);
             templateUdp.setLength(8);
             // TODO: Currently UDP always sets the payload to a Data object

@@ -9,17 +9,19 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.UUID
+import java.{util => ju}
 
-import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, DiscardPacket, WildcardFlowRemoved, WildcardFlowAdded}
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag,
+                                             DiscardPacket, WildcardFlowRemoved}
 import com.midokura.midolman.layer3.Route
 import com.midokura.midolman.layer3.Route.NextHop
 import com.midokura.midolman.rules.{NatTarget, RuleResult, Condition}
-import com.midokura.midolman.topology.LocalPortActive
+import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
 import com.midokura.packets._
-import com.midokura.midonet.cluster.data.ports.{MaterializedRouterPort, MaterializedBridgePort}
+import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.midolman.util.AddressConversions._
 import com.midokura.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
-import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -76,25 +78,25 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         def revInFromIp: IntIPv4 = fwdOutToIp
         def revInToIp: IntIPv4 = fwdOutFromIp
 
-        def fwdInFromPort: Short =
+        def fwdInFromPort: Int =
             fwdInPacket.getPayload.asInstanceOf[IPv4].
                         getPayload.asInstanceOf[TCP].getSourcePort
-        def fwdInToPort: Short =
+        def fwdInToPort: Int =
             fwdInPacket.getPayload.asInstanceOf[IPv4].
                         getPayload.asInstanceOf[TCP].getDestinationPort
 
-        def revOutFromPort: Short = fwdInToPort
-        def revOutToPort: Short = fwdInFromPort
+        def revOutFromPort: Int = fwdInToPort
+        def revOutToPort: Int = fwdInFromPort
 
-        def fwdOutFromPort: Short =
+        def fwdOutFromPort: Int =
             fwdOutPacket.getPayload.asInstanceOf[IPv4].
                          getPayload.asInstanceOf[TCP].getSourcePort
-        def fwdOutToPort: Short =
+        def fwdOutToPort: Int =
             fwdOutPacket.getPayload.asInstanceOf[IPv4].
                          getPayload.asInstanceOf[TCP].getDestinationPort
 
-        def revInFromPort: Short = fwdOutToPort
-        def revInToPort: Short = fwdOutFromPort
+        def revInFromPort: Int = fwdOutToPort
+        def revInToPort: Int = fwdOutFromPort
 
         def matchForwardOutPacket(eth: Ethernet) {
             val ip = eth.getPayload.asInstanceOf[IPv4]
@@ -160,8 +162,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         dnatCond.nwSrcIp = vmNetworkIp
         dnatCond.nwSrcInv = true
         dnatCond.nwDstIp = dnatAddress
-        dnatCond.tpDstStart = 80.toShort
-        dnatCond.tpDstEnd = 80.toShort
+        dnatCond.tpDstStart = 80.toInt
+        dnatCond.tpDstEnd = 80.toInt
         val dnatTarget =  new NatTarget(vmIps.head, vmIps.last, 80, 80)
         val dnatRule = newForwardNatRuleOnChain(rtrInChain, 2, dnatCond,
                 RuleResult.Action.CONTINUE, Set(dnatTarget), isDnat = true)
@@ -216,6 +218,41 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         eth
     }
 
+    def testConntrack() {
+        log.info("creating chains")
+        val brChain = newInboundChainOnBridge("brChain", bridge)
+        brChain should not be null
+
+        val vmPortIds: ju.Set[UUID] = new ju.HashSet[UUID]()
+        vmPortIds ++= vmPorts.map { p => p.getId }.toSet
+
+        val returnCond = new Condition()
+        returnCond.matchReturnFlow = true
+        returnCond.inPortIds = vmPortIds
+        returnCond.inPortInv = true
+        val returnRule = newLiteralRuleOnChain(
+            brChain, 1, returnCond, RuleResult.Action.ACCEPT)
+        returnRule should not be null
+
+        val dropIncomingCond = new Condition()
+        dropIncomingCond.inPortIds = vmPortIds
+        dropIncomingCond.inPortInv = true
+        val dropIncomingRule = newLiteralRuleOnChain(
+            brChain, 2, dropIncomingCond, RuleResult.Action.DROP)
+        dropIncomingRule should not be null
+
+        val forwardCond = new Condition()
+        forwardCond.inPortIds = vmPortIds
+        forwardCond.matchForwardFlow = true
+        val forwardRule = newLiteralRuleOnChain(
+            brChain, 3, forwardCond, RuleResult.Action.ACCEPT)
+        forwardRule should not be null
+
+        clusterDataClient().bridgesUpdate(bridge)
+
+        testSnat()
+    }
+
     def testDnat() {
         log.info("Sending a tcp packet that should be DNAT'ed")
         injectTcp("uplinkPort", uplinkGatewayMac, "62.72.82.1", 20301,
@@ -263,7 +300,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (2)
 
         drainProbe(flowEventsProbe)
-        flowController() ! InvalidateFlowsByTag(router.getId)
+        flowController() ! InvalidateFlowsByTag(
+            FlowTagger.invalidateFlowsByDevice(router.getId))
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
@@ -321,7 +359,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (2)
 
         drainProbe(flowEventsProbe)
-        flowController() ! InvalidateFlowsByTag(router.getId)
+        flowController() ! InvalidateFlowsByTag(
+            FlowTagger.invalidateFlowsByDevice(router.getId))
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)
         requestOfType[WildcardFlowRemoved](flowEventsProbe)

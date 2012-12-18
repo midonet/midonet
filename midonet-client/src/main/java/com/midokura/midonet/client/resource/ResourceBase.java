@@ -4,15 +4,14 @@
 
 package com.midokura.midonet.client.resource;
 
+import com.midokura.midonet.client.WebResource;
+
+import javax.ws.rs.core.MultivaluedMap;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
-
-import javax.ws.rs.core.MultivaluedMap;
-
-import com.midokura.midonet.client.WebResource;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -197,5 +196,4 @@ public abstract class ResourceBase<T extends ResourceBase, U> {
     public void delete() {
         resource.delete(getUri());
     }
-
 }

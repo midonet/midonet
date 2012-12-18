@@ -16,14 +16,14 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Enclosed.class)
 public class TestTCP {
 
-    private static byte[] sampleHeader = new byte[] { (byte) 0x00, (byte) 0x04,
+    private static byte[] sampleHeader = new byte[] { (byte) 0xA8, (byte) 0xCA,
             (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x02,
             (byte) 0x50, (byte) 0x02, (byte) 0x20, (byte) 0x00, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
-    private static byte[] sampleHeaderWithOptions = new byte[] { (byte) 0x00,
-            (byte) 0x04, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x00,
+    private static byte[] sampleHeaderWithOptions = new byte[] { (byte) 0xA8,
+            (byte) 0xCA, (byte) 0x00, (byte) 0x08, (byte) 0x00, (byte) 0x00,
             (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x02, (byte) 0x60, (byte) 0x02, (byte) 0x20, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
@@ -34,8 +34,8 @@ public class TestTCP {
         @Test
         public void test() throws MalformedPacketException {
             TCP tcp = new TCP();
-            tcp.setSourcePort((short) 4321);
-            tcp.setDestinationPort((short) 1234);
+            tcp.setSourcePort(43210); // 0xA8CA
+            tcp.setDestinationPort(1234);
             int seqNo = 1222333444;
             tcp.setSeqNo(seqNo);
             tcp.setAckNo(seqNo - 100);
@@ -119,7 +119,7 @@ public class TestTCP {
 
             // TCP object to use for testing.
             TCP templateTcp = new TCP();
-            templateTcp.setSourcePort((short) 4);
+            templateTcp.setSourcePort(43210);
             templateTcp.setDestinationPort((short) 8);
             templateTcp.setChecksum((short) 0);
             templateTcp.setSeqNo(1);

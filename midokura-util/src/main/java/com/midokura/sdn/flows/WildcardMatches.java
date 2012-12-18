@@ -26,6 +26,7 @@ import com.midokura.sdn.dp.flows.FlowKeyInPort;
 import com.midokura.sdn.dp.flows.FlowKeyTCP;
 import com.midokura.sdn.dp.flows.FlowKeyTunnelID;
 import com.midokura.sdn.dp.flows.FlowKeyUDP;
+import com.midokura.sdn.dp.flows.IPFragmentType;
 
 /**
  * Class that provides an easy ways of building WildcardFlow objects.
@@ -97,7 +98,7 @@ public class WildcardMatches {
                         .setNetworkSource(new IntIPv4(ipv4.getSrc()))
                         .setNetworkDestination(new IntIPv4(ipv4.getDst()))
                         .setNetworkProtocol(ipv4.getProto())
-                        .setIsIPv4Fragment(ipv4.getFrag() == 1)
+                        .setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()))
                         .setNetworkTTL(ipv4.getTtl());
 
                     break;

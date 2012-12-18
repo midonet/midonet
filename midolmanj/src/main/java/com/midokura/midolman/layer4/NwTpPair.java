@@ -7,16 +7,16 @@ package com.midokura.midolman.layer4;
 public class NwTpPair {
 
     public final int nwAddr;
-    public final short tpPort;
+    public final int tpPort;
     public final String unrefKey;
 
-    public NwTpPair(int nwAddr, short tpPort) {
+    public NwTpPair(int nwAddr, int tpPort) {
         this.nwAddr = nwAddr;
         this.tpPort = tpPort;
         this.unrefKey = null;
     }
 
-    public NwTpPair(int nwAddr, short tpPort, String unrefKey) {
+    public NwTpPair(int nwAddr, int tpPort, String unrefKey) {
         this.nwAddr = nwAddr;
         this.tpPort = tpPort;
         this.unrefKey = unrefKey;

@@ -10,13 +10,16 @@
   * [Request Headers](#requestheaders)
   * [Response Headers](#responseheaders)
   * [HTTP Status Codes](#statuscodes)
+  * [URI Templates](#uritemplates)
 
 [Resource Models](#resourcemodels)
+  * [Application](#application)
   * [Router](#router)
   * [Bridge](#bridge)
   * [Port](#port)
   * [Route](#route)
   * [Port Group](#portgroup)
+  * [Port Group Port](#portgroupport)
   * [Chain](#chain)
   * [Rule](#rule)
   * [BGP](#bgp)
@@ -24,6 +27,7 @@
   * [Host](#host)
   * [Interface](#interface)
   * [Host Command](#hostcommand)
+  * [Host-Interface-Port Binding](#hostinterfaceport)
   * [Tunnel Zone](#tunnelzone)
   * [Tunnel Zone Host](#tunnelzonehost)
   * [Metric Target](#metrictarget)
@@ -45,31 +49,45 @@ resources.  The API uses JSON as its format.
 
 This section is intended to help users get started on using the API.  It assumes
 that the MidoNet Management REST API host is known.  This host is represented
-as ‘test.com’ in this document.  The following GET request to the base URL of
+as ‘example.org’ in this document.  The following GET request to the base URL of
 the API reveals the locations of the available resources.
 
     GET /
-    Host: test.com
-    Accept: application/vnd.com.midokura.midolman.mgmt+json
+    Host: example.org
+    Accept: application/vnd.com.midokura.midolman.mgmt.Application+json
 
 The request above may yield the following output:
 
 
     HTTP/1.1 200 OK
-    Content-Type: application/vnd.com.midokura.midolman.mgmt+json
+    Content-Type: application/vnd.com.midokura.midolman.mgmt.Application+json
     {
-        “version“: “1“,
-        “routers“: “http://test.com/routers“,
-        “bridges“: “http://test.com/bridges“,
-        “chains“: “http://test.com/chains“,
-        “port_groups“: “http://test.com/port_groups“,
-        “hosts”: “http://test.com/hosts”,
-        “uri“: “http://test.com/“
+        "uri": "http://example.org/",
+        "version": "1",
+        "bridges": "http://example.org/bridges",
+        "chains": "http://example.org/chains",
+        "hosts": "http://example.org/hosts",
+        "metricsFilter": "http://example.org/metrics/filter",
+        "metricsQuery": "http://example.org/metrics/query",
+        "portGroups": "http://example.org/port_groups",
+        "routers": "http://example.org/routers",
+        "bgpTemplate": "http://example.org/bgps/{id}",
+        "adRouteTemplate": "http://example.org/ad_routes/{id}",
+        "bridgeTemplate": "http://example.org/bridges/{id}",
+        "chainTemplate": "http://example.org/chains/{id}",
+        "hostTemplate": "http://example.org/hosts/{id}",
+        "portTemplate": "http://example.org/ports/{id}",
+        "portGroupTemplate": "http://example.org/port_groups/{id}",
+        "routeTemplate": "http://example.org/routes/{id}",
+        "routerTemplate": "http://example.org/routers/{id}",
+        "ruleTemplate": "http://example.org/rules/{id}"
     }
 
 This reveals that users can access the router resources using the URI
-“/routers“.  Host resources are accessible with the URI “/hosts”.  The response
-also includes information about the API version
+"/routers".  Host resources are accessible with the URI "/hosts".  The response
+also includes information about the API version.  The URIs with "{id}" in them
+are [URI templates](#uritemplates), and they are explained later in this
+document.
 
 <a name="commonbehaviors"/>
 ## Common Behaviors
@@ -219,6 +237,31 @@ The following HTTP status codes are returned from MidoNet REST API:
     </tr>
 </table>
 
+<a name="uritemplates"/>
+### URI Templates
+
+A URI may contain a part that is left out to the client to fill.  These parts
+are enclosed inside '{' and '}'.
+</br>
+For example, given a URI template, 'http://example.org/routers/{id}' and a
+router ID 'd7435bb0-3bc8-11e2-81c1-0800200c9a66', after doing the replacement,
+the final URI becomes:
+'http://example.org/routers/d7435bb0-3bc8-11e2-81c1-0800200c9a66'.
+</br></br>
+The following table lists the existing expressions in the URI templates and
+what they should be replaced with.
+
+<table>
+    <tr>
+        <th>Expression</th>
+        <th>Replace with</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>Unique identifier of resource.</td>
+    </tr>
+</table>
+
 <a name="resourcemodels"/>
 ## Resource Models
 
@@ -230,8 +273,193 @@ The POST/PUT column indicates whether the field can be included in the request
 with these verbs.  If they are not specified, the field should not be included
 in the request.
 
+<a name="application"/>
+### Application [application/vnd.com.midokura.midolman.mgmt.Application+json]
+
+    GET     /
+
+This is the root object in MidoNet REST API.  From this object, clients can
+traverse the URIs to discover all the available services.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>Integer</td>
+        <td></td>
+        <td></td>
+        <td>The version of MidoNet REST API.</td>
+    </tr>
+    <tr>
+        <td>bridges</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of bridges.</td>
+    </tr>
+    <tr>
+        <td>chains</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of chains.</td>
+    </tr>
+    <tr>
+        <td>hosts</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of hosts.</td>
+    </tr>
+    <tr>
+    <tr>
+        <td>metricsFilter</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metrics
+        available for a given metric target.</td>
+    </tr>
+        <td>metricsQuery</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metric
+        query responses for a given list of metric queries.</td> 
+    </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of port groups.</td>
+    </tr>
+    <tr>
+        <td>routers</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of routers.</td>
+    </tr>
+    <tr>
+        <td>tunnelZones</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of tunnel zones.</td>
+    </tr>
+    <tr>
+        <td>adRouteTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of ad route with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bgpTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of BGP with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bridgeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of bridge with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>chainTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of chain with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>hostTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of host with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portGroupTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port group with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>routeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of route with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>routerTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of router with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>ruleTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of rule with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>tunnelZoneTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of tunnel zone
+        with the provided ID.</td>
+    </tr>
+</table>
+
 <a name="router"/>
 ### Router [application/vnd.com.midokura.midolman.mgmt.Router+json]
+
+    GET     /routers?tenant_id=:tenant_id
+    GET     /routers/:routerId
+    POST    /routers
+    PUT     /routers/:routerId
+    DELETE  /routers/:routerId
 
 Router is an entity that represents a virtual router device in MidoNet. It
 contains the following fields:
@@ -308,7 +536,7 @@ contains the following fields:
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves the logical ports attached to this
+        <td>A GET against this URI retrieves the interior ports attached to this
          router.</td>
     </tr>
     <tr>
@@ -345,6 +573,12 @@ contains the following fields:
 
 <a name="bridge"/>
 ### Bridge [application/vnd.com.midokura.midolman.mgmt.Bridge+json]
+
+    GET     /bridges?tenant_id=:tenant_id
+    GET     /bridges/:bridgeId
+    POST    /bridges
+    PUT     /bridges/:bridgeId
+    DELETE  /bridges/:bridgeId
 
 Bridge is an entity that represents a virtual bridge device in MidoNet. It
 contains the following fields:
@@ -420,7 +654,7 @@ contains the following fields:
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves the logical ports attached to this
+        <td>A GET against this URI retrieves the interior ports attached to this
          bridge.</td>
     </tr>
     <tr>
@@ -455,6 +689,17 @@ contains the following fields:
 
 <a name="port"/>
 ### Port [application/vnd.com.midokura.midolman.mgmt.Port+json]
+
+    GET     /ports?tenant_id=:tenantId
+    GET     /ports/:portId
+    GET     /routers/:routerId/ports
+    GET     /routers/:routerId/peer_ports
+    GET     /bridges/:bridgeId/ports
+    GET     /bridges/:bridgeId/peer_ports
+    POST    /routers/:routerId/ports
+    POST    /bridges/:bridgeId/ports
+    PUT     /ports/:portId
+    DELETE  /ports/:portId
 
 Port is an entity that represents a port on a virtual device (bridge or router)
 in MidoNet.  It contains the following fields:
@@ -505,30 +750,30 @@ in MidoNet.  It contains the following fields:
         <td>Yes</td>
         <td>Type of router port.  It must be one of:
 <ul>
-<li>MaterializedRouter</li>
-<li>LogicalRouter</li>
-<li>MaterializedBridge</li>
-<li>LogicalBridge</li>
+<li>ExteriorRouter</li>
+<li>InteriorRouter</li>
+<li>ExteriorBridge</li>
+<li>InteriorBridge</li>
 </ul>
 <p>
-Materialized router port is a virtual port that plugs into the VIF of an entity,
+Exterior router port is a virtual port that plugs into the VIF of an entity,
  such as a VM. It can also be a virtual port connected to a host physical port,
-  directly or after implementing tunnel encapsulation. Access to materialized
-   ports is managed by OpenVSwitch (OpenFlow switch).  Materialized bridge port
-    is the same as materialized router port but it is a port on a virtual
+  directly or after implementing tunnel encapsulation. Access to exterior
+   ports is managed by OpenVSwitch (OpenFlow switch).  Exterior bridge port
+    is the same as exterior router port but it is a port on a virtual
      bridge.
 </p>
 <p>
-Logical router port is a virtual port that only exists in the MidoNet virtual
+Interior router port is a virtual port that only exists in the MidoNet virtual
  router network abstraction. It refers to a logical connection to another
-  virtual networking device such as another router.  Logical bridge is the
+  virtual networking device such as another router.  Interior bridge is the
    equivalent port type on a virtual bridge.
 </p>
         </span></td>
     </tr>
     <tr>
         <td>peerId
-(Logical only)</td>
+(Interior only)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -536,7 +781,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>peer
-(Logical only)</td>
+(Interior only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -570,7 +815,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>vifId
-(Materialized only)</td>
+(Exterior only)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -578,7 +823,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>bgps
-(Materialized router only)</td>
+(Exterior router only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -586,7 +831,7 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>vpns
-(Materialized router only)</td>
+(Exterior router only)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -595,12 +840,12 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>link
-(Logical only)</td>
+(Interior only)</td>
         <td>URI</td>
         <td/>
         <td/>
-        <td>POST against this URI links two logical ports.  In the body of the
-         request, ‘peerId’ must be specified to indicate the peer logical port
+        <td>POST against this URI links two interior ports.  In the body of the
+         request, ‘peerId’ must be specified to indicate the peer interior port
           ID.  Setting ‘peerId’ to null effectively unlinks the ports.</td>
     </tr>
     <tr>
@@ -631,10 +876,24 @@ Logical router port is a virtual port that only exists in the MidoNet virtual
         <td/>
         <td>A GET against this URI retrieves the outbound filter chain.</td>
     </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the port groups that this port
+        is a member of.</td>
+    </tr>
 </table>
 
 <a name="route"/>
 ### Route [application/vnd.com.midokura.midolman.mgmt.Route+json]
+
+    GET     /routes/:routeId
+    GET     /routers/:routerId/routes
+    POST    /routers/:routerId/routes
+    PUT     /routers/:routerId/routes/:routeId
+    DELETE  /routers/:routerId/routes/:routeId
 
 Route is an entity that represents a route on a virtual router in MidoNet.  It
 contains the following fields:
@@ -745,6 +1004,14 @@ contains the following fields:
 <a name="portgroup"/>
 ### PortGroup [application/vnd.com.midokura.midolman.mgmt.PortGroup+json]
 
+    GET     /port_groups?tenant_id=:tenantId
+    GET     /port_groups?port_id=:portId
+    GET     /port_groups/:portGroupId
+    GET     /port_groups/:name?tenant_id=:tenantId
+    POST    /port_groups
+    PUT     /port_groups/:portGroupId
+    DELETE  /port_groups/:portGroupId
+
 <table>
     <tr>
         <th>Field Name</th>
@@ -782,10 +1049,79 @@ contains the following fields:
         <td>Yes</td>
         <td>Name of the port group.  Unique per tenant.</td>
     </tr>
+    <tr>
+        <td>ports</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI for port membership operations.</td>
+</table>
+
+<a name="portgroupport"/>
+### PortGroupPort [application/vnd.com.midokura.midolman.mgmt.PortGroupPort+json]
+
+    GET     /port_groups/:portGroupId/ports
+    GET     /port_groups/:portGroupId/ports/:portId
+    POST    /port_groups/:portGroupId/ports
+    DELETE  /port_groups/:portGroupId/ports/:portId
+
+PortGroupPort represents membership of ports in port groups.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>portGroupId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>ID of the port group that a port is a member of.</td>
+    </tr>
+    <tr>
+        <td>portGroup</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI to fetch the port group.</td>
+     </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>ID of the port in a port group membership.</td>
+     </tr>
+    <tr>
+        <td>port</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>URI to fetch the port.</td>
+     </tr>
 </table>
 
 <a name="chain"/>
 ### Chain [application/vnd.com.midokura.midolman.mgmt.Chain+json]
+
+    GET     /chains
+    GET     /chains?tenant_id=:tenantId
+    GET     /chains/:chainId
+    GET     /chains/:name?tenant_id=:tenantId
+    POST    /chains
+    DELETE  /chains/:chainId
 
 Chain is an entity that represents a rule chain on a virtual router in MidoNet.
 It contains the following fields:
@@ -840,6 +1176,11 @@ It contains the following fields:
 <a name="rule"/>
 ### Rule [application/vnd.com.midokura.midolman.mgmt.Rule+json]
 
+    GET     /chains/:chainId/rules
+    GET     /rules/:ruleId
+    POST    /chains/:chainId/rules
+    DELETE  /rules/:ruleId
+
 Rule is an entity that represents a rule on a virtual router chain in MidoNet.
 It contains the following fields:
 
@@ -885,7 +1226,7 @@ It contains the following fields:
         <td>UUID</td>
         <td>POST</td>
         <td>No</td>
-        <td>The list of (logical or materialized) ingress port UUIDs to
+        <td>The list of (interior or exterior) ingress port UUIDs to
          match.</td>
     </tr>
     <tr>
@@ -901,7 +1242,7 @@ It contains the following fields:
         <td>Array of UUID</td>
         <td>POST</td>
         <td>No</td>
-        <td>The list of (logical or materialized) egress port UUIDs to match.
+        <td>The list of (interior or exterior) egress port UUIDs to match.
         </td>
     </tr>
     <tr>
@@ -1090,6 +1431,11 @@ It contains the following fields:
 <a name="bgp"/>
 ### BGP [application/vnd.com.midokura.midolman.mgmt.Bgp+json]
 
+    GET     /ports/:portId/bgps
+    GET     /bgps/:bgpId
+    POST    /ports/:portId/bgps
+    DELETE  /bgps/:bgpId
+
 BGP is an entity that represents a single set of BGP configurations. It
 contains the following fields:
 
@@ -1163,6 +1509,11 @@ contains the following fields:
 
 <a name="routeadvertisement"/>
 ### Route Advertisement [application/vnd.com.midokura.midolman.mgmt.AdRoute+json]
+
+    GET     /bgps/:bgpId/ad_routes
+    GET     /ad_routes/:adRouteId
+    POST    /bgps/:bgpId/ad_routes
+    DELETE  /ad_routes/:adRouteId
 
 Advertised Route is an entity that represents an advertising route of BGP.  It
 contains the following fields:
@@ -1268,6 +1619,11 @@ contains the following fields:
 <a name="host"/>
 ### Host [application/vnd.com.midokura.midolman.mgmt.Host+json]
 
+    GET     /hosts
+    GET     /hosts/:hostId
+    PUT     /hosts/:hostId
+    DELETE  /hosts/:hostId
+
 Host is an entity that provides some information about a cluster node. It
 contains the following fields:
 
@@ -1320,6 +1676,11 @@ contains the following fields:
 
 <a name="interface"/>
 ### Interface [application/vnd.com.midokura.midolman.mgmt.Interface+json]
+
+    GET     /hosts/:hostId/interfaces
+    GET     /hosts/:hostId/interfaces/:interfaceName
+    POST    /hosts/:hostId/interfaces
+    PUT     /hosts/:hostId/interfaces/:interfaceName
 
 The interface is an entity abstracting information about a physical interface
 associated with a host.
@@ -1400,34 +1761,14 @@ Unknown | Physical | Virtual | Tunnel</td>
         <td/>
         <td>The list of inet addresses bound to this interface.</td>
     </tr>
-    <tr>
-        <td>properties</td>
-        <td>map&lt;string, string&gt;</td>
-        <td>POST / PUT</td>
-        <td/>
-        <td>A set of key / value pairs containing other information about the
-         interface: for example: ovs external id, etc.
-<p>
-The only known property that is updatable is the “midonet_port_id” property.
-</p>
-<p>
-When read it will be set to the midonet_port_id that this interface is
-associated with.
-</p>
-<p>
-When updated it will cause this interface to be reassociated
-with the new port_id.
-</p>
-<p>
-When cleared (set to “”) it will cause the interface to be become not
-associated with any midonet port.
-</p>
-        </td>
-    </tr>
 </table>
 
 <a name="hostcommand"/>
 ### HostCommand [application/vnd.com.midokura.midolman.mgmt.HostCommand+json]
+
+    GET     /hosts/:hostId/hostCommands
+    GET     /hosts/:hostId/hostCommands/:hostCommandId
+    DELETE  /hosts/:hostId/hostCommands/:hostCommandId
 
 This is the description of the command generated by an Interface PUT
 operation. For each host there is going to be a list of HostCommand objects
@@ -1494,8 +1835,66 @@ The value is the value of the operation as a string.</td>
     </tr>
 </table>
 
+<a name="hostinterfaceport"/>
+### Host-Interface-Port Binding [application/vnd.com.midokura.midolman.mgmt.HostInterfacePort+json]
+
+    GET     /hosts/:hostId/ports
+    GET     /hosts/:hostId/ports/:portId
+    POST    /hosts/:hostId/ports
+    DELETE  /hosts/:hostId/ports/:portId
+
+The HostInterfacePort binding allows mapping a virtual network port to an
+interface (virtual or physical) of a physical host where Midolman is running.
+It contains the following fields:
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>hostId</td>
+        <td>UUID</td>
+        <td>POST/PUT</td>
+        <td>Yes</td>
+        <td>A unique identifier of the host resource. It is usually
+        autogenerated by the daemon running on the host.</td>
+    </tr>
+    <tr>
+        <td>interfaceName</td>
+        <td>String</td>
+        <td>POST/PUT</td>
+        <td>Yes</td>
+        <td>The interface physical name.</td>
+    </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td>POST/PUT</td>
+        <td>Yes</td>
+        <td>A unique identifier of the port resource.</td>
+    </tr>
+</table>
+
 <a name="tunnelzone"/>
 ### TunnelZone [application/vnd.com.midokura.midolman.mgmt.TunnelZone+json]
+
+    GET     /tunnel_zones
+    GET     /tunnel_zones/:tunnelZoneId
+    POST    /tunnel_zones
+    PUT     /tunnel_zones/:tunnelZoneId
+    DELETE  /tunnel_zones/:tunnelZoneId
 
 Tunnel zone represents a group in which hosts can be included to form an
 isolated zone for tunneling. It contains the following fields:
@@ -1541,6 +1940,12 @@ isolated zone for tunneling. It contains the following fields:
 
 <a name="tunnelzonehost"/>
 ### TunnelZoneHost [application/vnd.com.midokura.midolman.mgmt.TunnelZoneHost+json]
+
+    GET     /tunnel_zones/:tunnelZoneId/hosts
+    GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
+    POST    /tunnel_zones/:tunnelZoneId/hosts
+    PUT     /tunnel_zones/:tunnelZoneId/hosts/:hostId
+    DELETE  /tunnel_zones/:tunnelZoneId/hosts/:hostId
 
 Represents a host's membership in a tunnel zone:
 
@@ -1607,6 +2012,8 @@ Represents a host's membership in a tunnel zone:
 <a name="metrictarget"/>
 ### Metric Target [application/vnd.com.midokura.midolman.mgmt.MetricTarget+json]
 
+    POST    /metrics/filter
+
 Represents an object that can be associated with a metric. POST a
 MetricTarget (uri: /filter) to get an array of Metric associated with this
 target.
@@ -1631,6 +2038,8 @@ target.
 
 <a name="metric"/>
 ### Metric [application/vnd.com.midokura.midolman.mgmt.collection.Metric+json]
+
+    POST    /metrics/filter
 
 It’s an entity representing a metric in the monitoring system.
 
@@ -1669,6 +2078,8 @@ It’s an entity representing a metric in the monitoring system.
 
 <a name="metricquery"/>
 ### Metric Query [application/vnd.com.midokura.midolman.mgmt.MetricQuery+json]
+
+    POST    /metrics/query
 
 It’s an entity that represent a query to the monitoring system. POST a
 collection of MetricQuery (uri: /query) to get a collection of
@@ -1721,6 +2132,8 @@ MetricQueryResponse containing the result of the queries.
 
 <a name="metricqueryresponse"/>
 ### Metric Query Response [application/vnd.com.midokura.midolman.mgmt.MetricQueryResponse+json]
+
+    POST    /metrics/query
 
 It represents the result of a query to the monitoring system.
 

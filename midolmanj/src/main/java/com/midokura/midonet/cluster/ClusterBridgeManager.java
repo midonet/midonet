@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.config.ZookeeperConfig;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.MacPortMap;
-import com.midokura.midolman.state.PortConfigCache;
 import com.midokura.midolman.state.PortDirectory;
 import com.midokura.midolman.state.ReplicatedMap;
 import com.midokura.midolman.state.StateAccessException;
@@ -46,7 +45,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     PortZkManager portMgr;
 
     @Inject
-    PortConfigCache portCache;
+    ClusterPortsManager portsManager;
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterBridgeManager.class);
@@ -134,9 +133,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
         Map<IntIPv4, MAC> rtrIpToMac =  new HashMap<IntIPv4, MAC>();
         Set<UUID> logicalPortIDs;
+        LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
-            logicalPortIDs = portMgr.getBridgeLogicalPortIDs(
-                bridgeId, new LogicalPortWatcher(bridgeId, builder));
+            logicalPortIDs = portMgr.getBridgeLogicalPortIDs(bridgeId, watcher);
         } catch (StateAccessException e) {
             log.error("Failed to retrieve the logical port IDs for bridge {}",
                       bridgeId);
@@ -145,9 +144,14 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         for (UUID id : logicalPortIDs) {
             log.debug("Found logical port {}", id);
+            // TODO(rossella) consider keeping in memory the old ports list so that
+            // the watcher can consider just the port whose configuration changed,
+            // not the whole list.
+
             // Find the peer of the new logical port.
             PortDirectory.LogicalBridgePortConfig bridgePort =
-                portCache.get(id, PortDirectory.LogicalBridgePortConfig.class);
+                portsManager.getPortConfigAndRegisterWatcher(
+                    id, PortDirectory.LogicalBridgePortConfig.class, watcher);
             if (null == bridgePort) {
                 log.error("Failed to find the logical bridge port's config {}",
                           id);
@@ -157,8 +161,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             if (null == bridgePort.peerId()) {
                 continue;
             }
-            PortDirectory.LogicalRouterPortConfig routerPort = portCache.get(
-                bridgePort.peerId(), PortDirectory.LogicalRouterPortConfig.class);
+            PortDirectory.LogicalRouterPortConfig routerPort =
+                portsManager.getPortConfigAndRegisterWatcher(
+                    bridgePort.peerId(),
+                    PortDirectory.LogicalRouterPortConfig.class,
+                    watcher);
+
             if (null == routerPort) {
                 log.error("Failed to get the config for the bridge's peer {}",
                           bridgePort);

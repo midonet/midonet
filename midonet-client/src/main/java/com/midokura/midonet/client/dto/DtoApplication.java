@@ -15,8 +15,21 @@ public class DtoApplication {
     private URI tunnelZones;
     private URI bridges;
     private URI chains;
+    private URI metricsFilter;
+    private URI metricsQuery;
     private URI portGroups;
     private URI routers;
+    private String adRouteTemplate;
+    private String bgpTemplate;
+    private String bridgeTemplate;
+    private String chainTemplate;
+    private String ruleTemplate;
+    private String hostTemplate;
+    private String portTemplate;
+    private String portGroupTemplate;
+    private String routeTemplate;
+    private String routerTemplate;
+    private String tunnelZoneTemplate;
 
     public String getVersion() {
         return version;
@@ -50,6 +63,22 @@ public class DtoApplication {
         this.chains = chains;
     }
 
+    public URI getMetricsFilter() {
+        return metricsFilter;
+    }
+
+    public void setMetricsFilter(URI metricsFilter) {
+        this.metricsFilter = metricsFilter;
+    }
+
+    public URI getMetricsQuery() {
+        return metricsQuery;
+    }
+
+    public void setMetricsQuery(URI metricsQuery) {
+        this.metricsQuery = metricsQuery;
+    }
+
     public URI getPortGroups() {
         return portGroups;
     }
@@ -80,5 +109,93 @@ public class DtoApplication {
 
     public void setTunnelZones(URI tunnelZones) {
         this.tunnelZones = tunnelZones;
+    }
+
+    public String getAdRouteTemplate() {
+        return adRouteTemplate;
+    }
+
+    public void setAdRoute(String adRouteTemplate) {
+        this.adRouteTemplate = adRouteTemplate;
+    }
+
+    public String getBgpTemplate() {
+        return bgpTemplate;
+    }
+
+    public void setBgpTemplate(String bgpTemplate) {
+        this.bgpTemplate = bgpTemplate;
+    }
+
+    public String getBridgeTemplate() {
+        return bridgeTemplate;
+    }
+
+    public void setBridgeTemplate(String bridgeTemplate) {
+        this.bridgeTemplate = bridgeTemplate;
+    }
+
+    public String getChainTemplate() {
+        return chainTemplate;
+    }
+
+    public void setChainTemplate(String chainTemplate) {
+        this.chainTemplate = chainTemplate;
+    }
+
+    public String getRuleTemplate() {
+        return ruleTemplate;
+    }
+
+    public void setRuleTemplate(String ruleTemplate) {
+        this.ruleTemplate = ruleTemplate;
+    }
+
+    public String getHostTemplate() {
+        return hostTemplate;
+    }
+
+    public void setHostTemplate(String hostTemplate) {
+        this.hostTemplate = hostTemplate;
+    }
+
+    public String getPortTemplate() {
+        return portTemplate;
+    }
+
+    public void setPortTemplate(String portTemplate) {
+        this.portTemplate = portTemplate;
+    }
+
+    public String getPortGroupTemplate() {
+        return portGroupTemplate;
+    }
+
+    public void setPortGroupTemplate(String portGroupTemplate) {
+        this.portGroupTemplate = portGroupTemplate;
+    }
+
+    public String getRouteTemplate() {
+        return routeTemplate;
+    }
+
+    public void setRoute(String routeTemplate) {
+        this.routeTemplate = routeTemplate;
+    }
+
+    public String getRouterTemplate() {
+        return routerTemplate;
+    }
+
+    public void setRouterTemplate(String routerTemplate) {
+        this.routerTemplate = routerTemplate;
+    }
+
+    public String getTunnelZoneTemplate() {
+        return tunnelZoneTemplate;
+    }
+
+    public void setTunnelZoneTemplate(String tunnelZoneTemplate) {
+        this.tunnelZoneTemplate = tunnelZoneTemplate;
     }
 }

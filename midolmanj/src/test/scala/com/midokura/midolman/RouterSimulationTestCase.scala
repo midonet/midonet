@@ -396,15 +396,24 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         }
     }
 
+    def testUnicastArpReceivedRequestProcessing() {
+        arpReceivedRequestProcessing(isUnicast = true)
+    }
+
     def testArpReceivedRequestProcessing() {
+        arpReceivedRequestProcessing(isUnicast = false)
+    }
+
+    private def arpReceivedRequestProcessing(isUnicast: Boolean) {
         val (router, port) = fetchRouterAndPort("uplinkPort")
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
         val myIp = IntIPv4.fromString(uplinkPortAddr)
         val hisMac = MAC.fromString("ab:cd:ef:ab:cd:ef")
         val myMac = uplinkMacAddr
+        val bcastMac = MAC.fromString("ff:ff:ff:ff:ff:ff")
         val eth = new Ethernet().setEtherType(ARP.ETHERTYPE).
             setSourceMACAddress(hisMac).
-            setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+            setDestinationMACAddress(if (isUnicast) myMac else bcastMac)
         eth.setPayload(new ARP().
             setHardwareType(ARP.HW_TYPE_ETHERNET).
             setProtocolType(ARP.PROTO_TYPE_IP).
@@ -414,7 +423,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setSenderHardwareAddress(hisMac).
             setSenderProtocolAddress(IPv4.toIPv4AddressBytes(hisIp.addressAsInt())).
             setTargetProtocolAddress(IPv4.toIPv4AddressBytes(myIp.addressAsInt())).
-            setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff")))
+            setTargetHardwareAddress(if (isUnicast) myMac else bcastMac))
         triggerPacketIn("uplinkPort", eth)
         requestOfType[PacketIn](simProbe())
         val msg = requestOfType[EmitGeneratedPacket](simProbe())

@@ -81,7 +81,8 @@ public class MonitoringResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_MONITORING_QUERY_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
-    @Produces({VendorMediaType.APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON,
+    @Produces({VendorMediaType
+            .APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<MetricQueryResponse> post(List<MetricQuery> queries)
         throws StateAccessException {

@@ -5,9 +5,10 @@
 package com.midokura.midolman.mgmt.filter.rest_api;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
-import com.midokura.midolman.mgmt.filter.auth.ChainAuthorizer;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.filter.auth.ChainAuthorizer;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,9 @@ public class TestChainResource {
     private ChainResource testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RestApiConfig config;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -48,8 +52,8 @@ public class TestChainResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new ChainResource(uriInfo, context, auth, validator,
-                dataClient, factory);
+        testObject = new ChainResource(config, uriInfo, context, auth,
+                validator, dataClient, factory);
     }
 
     @Test(expected = ForbiddenHttpException.class)

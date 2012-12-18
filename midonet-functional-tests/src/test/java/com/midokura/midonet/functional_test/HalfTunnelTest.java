@@ -48,7 +48,7 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
     @Before
     public void setup() throws Exception {
         // Create a second MM and OVS bridge that will have a single
-        // materialized port. The first and second MM will open GRE tunnels
+        // exterior port. The first and second MM will open GRE tunnels
         // to each other when they discover each other in the PortLocMap.
         midolman2 = MidolmanLauncher.start(Without_Bgp, "RouterBridgeBaseTest");
 
@@ -113,7 +113,7 @@ public class HalfTunnelTest  extends RouterBridgeBaseTest {
 
         // TODO(pino): properly find the GRE key of the bridge's 1st vport.
         // The GRE key should be 3 since bPort0 was created after the router's
-        // materialized port and the bridge itself.
+        // exterior port and the bridge itself.
         verifyGreMM2to1(sent, 3);
 
         // Resend the packet.

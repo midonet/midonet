@@ -346,7 +346,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      *
      * @return
      */
-    public short getTpDstEnd() {
+    public int getTpDstEnd() {
         return principalDto.getTpDstEnd();
     }
 
@@ -355,7 +355,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      *
      * @return
      */
-    public short getTpDstStart() {
+    public int getTpDstStart() {
         return principalDto.getTpDstStart();
     }
 
@@ -364,7 +364,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      *
      * @return
      */
-    public short getTpSrcEnd() {
+    public int getTpSrcEnd() {
         return principalDto.getTpSrcEnd();
     }
 
@@ -373,7 +373,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      *
      * @return
      */
-    public short getTpSrcStart() {
+    public int getTpSrcStart() {
         return principalDto.getTpSrcStart();
     }
 
@@ -491,7 +491,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      * @param tpSrcStart
      * @return this
      */
-    public Rule tpSrcStart(short tpSrcStart) {
+    public Rule tpSrcStart(int tpSrcStart) {
         principalDto.setTpSrcStart(tpSrcStart);
         return this;
     }
@@ -513,7 +513,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      * @param tpDstStart
      * @return this
      */
-    public Rule tpDstStart(short tpDstStart) {
+    public Rule tpDstStart(int tpDstStart) {
         principalDto.setTpDstStart(tpDstStart);
         return this;
     }
@@ -667,7 +667,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      * @param tpSrcEnd
      * @return this
      */
-    public Rule tpSrcEnd(short tpSrcEnd) {
+    public Rule tpSrcEnd(int tpSrcEnd) {
         principalDto.setTpSrcEnd(tpSrcEnd);
         return this;
     }
@@ -788,7 +788,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      * @param tpDstEnd
      * @return this
      */
-    public Rule tpDstEnd(short tpDstEnd) {
+    public Rule tpDstEnd(int tpDstEnd) {
         principalDto.setTpDstEnd(tpDstEnd);
         return this;
     }

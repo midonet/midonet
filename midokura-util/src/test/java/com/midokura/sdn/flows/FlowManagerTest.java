@@ -6,6 +6,7 @@ package com.midokura.sdn.flows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -24,6 +25,7 @@ import com.midokura.sdn.dp.flows.FlowKeys;
 public class FlowManagerTest {
 
     long maxDpFlowSize = 5;
+    long maxWildcardFlowSize = 5;
     int dpFlowRemoveBatchSize = 2;
     FlowManagerHelperImpl flowManagerHelper;
     FlowManager flowManager;
@@ -33,12 +35,11 @@ public class FlowManagerTest {
     public void setUp() {
         flowManagerHelper = new FlowManagerHelperImpl();
         flowManager = new FlowManager(flowManagerHelper, maxDpFlowSize,
-                                                  dpFlowRemoveBatchSize);
+                                                  maxWildcardFlowSize, dpFlowRemoveBatchSize);
     }
 
 
     @Test
-    @Ignore
     public void testHardTimeExpiration() throws InterruptedException {
 
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
@@ -307,6 +308,65 @@ public class FlowManagerTest {
                    flowManager.getDpFlowToWildFlow().size(),
                    equalTo(maxAcceptedDpFlows));
 
+    }
+
+    @Test
+    public void testMaximumWildcardFlows() {
+        int testSize = 6;
+        List<WildcardFlow> flows = new ArrayList<WildcardFlow>(testSize);
+
+        for (int counter = 0; counter < testSize; counter++) {
+            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
+            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+            flows.add(new WildcardFlow().setMatch(wildcardMatch).setActions(new ArrayList<FlowAction<?>>()));
+
+        }
+
+        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1l));
+        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2l));
+        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3l));
+        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4l));
+        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("FlowManager didn't reject the last wildcard flow", !flowManager.add(flows.get(5)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+    }
+
+    @Test
+    public void testMaximumWildcardFlowsWithExpiration() throws InterruptedException {
+        int testSize = 6;
+        List<WildcardFlow> flows = new ArrayList<WildcardFlow>(testSize);
+
+        for (int counter = 0; counter < testSize; counter++) {
+            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
+            WildcardMatch wildcardMatch = WildcardMatches.fromFlowMatch(flowMatch);
+            flows.add(new WildcardFlow()
+                    .setMatch(wildcardMatch)
+                    .setActions(new ArrayList<FlowAction<?>>())
+                    .setHardExpirationMillis(timeOut));
+        }
+
+        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1l));
+        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2l));
+        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3l));
+        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4l));
+        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+
+        Thread.sleep(timeOut);
+        // all wildcardflows should have been expired now, but they will be there.
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        // when adding a new wildcard flow it will clean the expired flows.
+        assertThat("FlowManager didn't accept the new wildcard flow", flowManager.add(flows.get(5)));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
     }
 
     // Implementation of the FlowManagerHelper for this test

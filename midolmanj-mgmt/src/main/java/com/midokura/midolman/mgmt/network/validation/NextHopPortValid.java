@@ -20,7 +20,7 @@ import com.midokura.midolman.mgmt.validation.MessageProperty;
 @Retention(RUNTIME)
 @Constraint(validatedBy = RouteNextHopPortConstraintValidator.class)
 @Documented
-public @interface NextHopPortNotNull {
+public @interface NextHopPortValid {
 
     String message() default MessageProperty.ROUTE_NEXT_HOP_PORT_NOT_NULL;
 

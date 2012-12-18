@@ -151,4 +151,13 @@ public class MockReactor implements Reactor {
         return currentTimeMillis;
     }
 
+    @Override
+    public void shutDownNow() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public boolean isShutDownOrTerminated() {
+        return false;
+    }
 }

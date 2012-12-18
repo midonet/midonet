@@ -9,6 +9,7 @@ import com.midokura.midolman.mgmt.network.validation.*;
 import com.midokura.midolman.mgmt.validation.AllowedValueConstraintValidator;
 import com.midokura.midolman.mgmt.validation.GuiceConstraintValidatorFactory;
 import com.midokura.midolman.mgmt.validation.ValidatorProvider;
+import com.midokura.midonet.cluster.DataClient;
 
 import javax.validation.Validator;
 
@@ -22,7 +23,10 @@ public class NetworkModule extends AbstractModule {
 
         bind(BridgeNameConstraintValidator.class).asEagerSingleton();
         bind(ChainNameConstraintValidator.class).asEagerSingleton();
+
+        requireBinding(DataClient.class);
         bind(RouteNextHopPortConstraintValidator.class).asEagerSingleton();
+
         bind(RouterNameConstraintValidator.class).asEagerSingleton();
         bind(PortsLinkableConstraintValidator.class).asEagerSingleton();
         bind(PortIdValidator.class).asEagerSingleton();

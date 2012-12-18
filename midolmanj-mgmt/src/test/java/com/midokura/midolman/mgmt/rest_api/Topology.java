@@ -8,12 +8,15 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import com.midokura.midonet.client.dto.*;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType
+        .APPLICATION_BRIDGE_JSON;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_CHAIN_JSON;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType
+        .APPLICATION_PORTGROUP_JSON;
 import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType
+        .APPLICATION_ROUTER_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -52,10 +55,10 @@ public class Topology {
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
         private final Map<String, DtoRuleChain> chains;
-        private final Map<String, DtoMaterializedRouterPort> matRouterPorts;
-        private final Map<String, DtoLogicalRouterPort> logRouterPorts;
-        private final Map<String, DtoBridgePort> matBridgePorts;
-        private final Map<String, DtoLogicalBridgePort> logBridgePorts;
+        private final Map<String, DtoExteriorRouterPort> extRouterPorts;
+        private final Map<String, DtoInteriorRouterPort> intRouterPorts;
+        private final Map<String, DtoBridgePort> extBridgePorts;
+        private final Map<String, DtoInteriorBridgePort> intBridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
 
         private final Map<String, String> tagToInChains;
@@ -69,10 +72,10 @@ public class Topology {
             this.routers = new HashMap<String, DtoRouter>();
             this.bridges = new HashMap<String, DtoBridge>();
             this.chains = new HashMap<String, DtoRuleChain>();
-            this.matRouterPorts = new HashMap<String, DtoMaterializedRouterPort>();
-            this.logRouterPorts = new HashMap<String, DtoLogicalRouterPort>();
-            this.matBridgePorts = new HashMap<String, DtoBridgePort>();
-            this.logBridgePorts = new HashMap<String, DtoLogicalBridgePort>();
+            this.extRouterPorts = new HashMap<String, DtoExteriorRouterPort>();
+            this.intRouterPorts = new HashMap<String, DtoInteriorRouterPort>();
+            this.extBridgePorts = new HashMap<String, DtoBridgePort>();
+            this.intBridgePorts = new HashMap<String, DtoInteriorBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
 
             this.links = new HashMap<String, String>();
@@ -102,28 +105,28 @@ public class Topology {
         }
 
         public Builder create(String routerTag, String tag,
-                DtoMaterializedRouterPort obj) {
-            this.matRouterPorts.put(tag, obj);
+                DtoExteriorRouterPort obj) {
+            this.extRouterPorts.put(tag, obj);
             this.tagToRouters.put(tag, routerTag);
             return this;
         }
 
         public Builder create(String routerTag, String tag,
-                DtoLogicalRouterPort obj) {
-            this.logRouterPorts.put(tag, obj);
+                DtoInteriorRouterPort obj) {
+            this.intRouterPorts.put(tag, obj);
             this.tagToRouters.put(tag, routerTag);
             return this;
         }
 
         public Builder create(String bridgeTag, String tag, DtoBridgePort obj) {
-            this.matBridgePorts.put(tag, obj);
+            this.extBridgePorts.put(tag, obj);
             this.tagToBridges.put(tag, bridgeTag);
             return this;
         }
 
         public Builder create(String bridgeTag, String tag,
-                DtoLogicalBridgePort obj) {
-            this.logBridgePorts.put(tag, obj);
+                DtoInteriorBridgePort obj) {
+            this.intBridgePorts.put(tag, obj);
             this.tagToBridges.put(tag, bridgeTag);
             return this;
         }
@@ -135,16 +138,16 @@ public class Topology {
 
         public Builder link(String portTag1, String portTag2) {
 
-            if (!this.logRouterPorts.containsKey(portTag1)
-                    && !this.logBridgePorts.containsKey(portTag1)) {
+            if (!this.intRouterPorts.containsKey(portTag1)
+                    && !this.intBridgePorts.containsKey(portTag1)) {
                 throw new IllegalArgumentException(
-                        "portTag1 is not a valid logical port");
+                        "portTag1 is not a valid interior port");
             }
 
-            if (!this.logRouterPorts.containsKey(portTag2)
-                    && !this.logBridgePorts.containsKey(portTag2)) {
+            if (!this.extRouterPorts.containsKey(portTag2)
+                    && !this.extBridgePorts.containsKey(portTag2)) {
                 throw new IllegalArgumentException(
-                        "portTag2 is not a valid logical port");
+                        "portTag2 is not a valid interior port");
             }
 
             this.links.put(portTag1, portTag2);
@@ -161,23 +164,23 @@ public class Topology {
             return this;
         }
 
-        private DtoLogicalPort findLogicalPort(String tag) {
-            if (logRouterPorts.containsKey(tag)) {
-                return logRouterPorts.get(tag);
+        private DtoInteriorPort findInteriorPort(String tag) {
+            if (intRouterPorts.containsKey(tag)) {
+                return intRouterPorts.get(tag);
             } else {
-                return logBridgePorts.get(tag);
+                return intBridgePorts.get(tag);
             }
         }
 
         private DtoPort findPort(String tag) {
-            if (logRouterPorts.containsKey(tag)) {
-                return logRouterPorts.get(tag);
-            } else if (logBridgePorts.containsKey(tag)) {
-                return logBridgePorts.get(tag);
-            } else if (matRouterPorts.containsKey(tag)) {
-                return matRouterPorts.get(tag);
+            if (intRouterPorts.containsKey(tag)) {
+                return intRouterPorts.get(tag);
+            } else if (intBridgePorts.containsKey(tag)) {
+                return intBridgePorts.get(tag);
+            } else if (extRouterPorts.containsKey(tag)) {
+                return extRouterPorts.get(tag);
             } else {
-                return matBridgePorts.get(tag);
+                return extBridgePorts.get(tag);
             }
         }
 
@@ -238,7 +241,8 @@ public class Topology {
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoPortGroup> entry : portGroups.entrySet()) {
+            for (Map.Entry<String, DtoPortGroup> entry
+                    : portGroups.entrySet()) {
 
                 DtoPortGroup obj = entry.getValue();
 
@@ -247,10 +251,10 @@ public class Topology {
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoMaterializedRouterPort> entry :
-                    matRouterPorts.entrySet()) {
+            for (Map.Entry<String, DtoExteriorRouterPort> entry :
+                    extRouterPorts.entrySet()) {
 
-                DtoMaterializedRouterPort obj = entry.getValue();
+                DtoExteriorRouterPort obj = entry.getValue();
 
                 // Set the router ID
                 String tag = tagToRouters.get(entry.getKey());
@@ -273,11 +277,11 @@ public class Topology {
 
                 obj = resource.postAndVerifyCreated(r.getPorts(),
                         APPLICATION_PORT_JSON, entry.getValue(),
-                        DtoMaterializedRouterPort.class);
+                        DtoExteriorRouterPort.class);
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoBridgePort> entry : matBridgePorts
+            for (Map.Entry<String, DtoBridgePort> entry : extBridgePorts
                     .entrySet()) {
 
                 DtoBridgePort obj = entry.getValue();
@@ -307,10 +311,10 @@ public class Topology {
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoLogicalRouterPort> entry : logRouterPorts
+            for (Map.Entry<String, DtoInteriorRouterPort> entry : intRouterPorts
                     .entrySet()) {
 
-                DtoLogicalRouterPort obj = entry.getValue();
+                DtoInteriorRouterPort obj = entry.getValue();
 
                 // Set the router ID
                 String tag = tagToRouters.get(entry.getKey());
@@ -333,14 +337,14 @@ public class Topology {
 
                 obj = resource.postAndVerifyCreated(r.getPorts(),
                         APPLICATION_PORT_JSON, entry.getValue(),
-                        DtoLogicalRouterPort.class);
+                        DtoInteriorRouterPort.class);
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoLogicalBridgePort> entry : logBridgePorts
+            for (Map.Entry<String, DtoInteriorBridgePort> entry : intBridgePorts
                     .entrySet()) {
 
-                DtoLogicalBridgePort obj = entry.getValue();
+                DtoInteriorBridgePort obj = entry.getValue();
 
                 // Set the router ID
                 String tag = tagToBridges.get(entry.getKey());
@@ -363,13 +367,13 @@ public class Topology {
 
                 obj = resource.postAndVerifyCreated(b.getPorts(),
                         APPLICATION_PORT_JSON, entry.getValue(),
-                        DtoLogicalBridgePort.class);
+                        DtoInteriorBridgePort.class);
                 entry.setValue(obj);
             }
 
             for (Map.Entry<String, String> entry : links.entrySet()) {
-                // Get the logical ports
-                DtoLogicalPort port1 = findLogicalPort(entry.getKey());
+                // Get the Interior ports
+                DtoInteriorPort port1 = findInteriorPort(entry.getKey());
                 DtoPort port2 = findPort(entry.getValue());
 
                 resource.postAndVerifyStatus(port1.getLink(),
@@ -406,19 +410,19 @@ public class Topology {
         return this.builder.chains.get(tag);
     }
 
-    public DtoMaterializedRouterPort getMatRouterPort(String tag) {
-        return this.builder.matRouterPorts.get(tag);
+    public DtoExteriorRouterPort getExtRouterPort(String tag) {
+        return this.builder.extRouterPorts.get(tag);
     }
 
-    public DtoBridgePort getMatBridgePort(String tag) {
-        return this.builder.matBridgePorts.get(tag);
+    public DtoBridgePort getExtBridgePort(String tag) {
+        return this.builder.extBridgePorts.get(tag);
     }
 
-    public DtoLogicalRouterPort getLogRouterPort(String tag) {
-        return this.builder.logRouterPorts.get(tag);
+    public DtoInteriorRouterPort getIntRouterPort(String tag) {
+        return this.builder.intRouterPorts.get(tag);
     }
 
-    public DtoLogicalBridgePort getLogBridgePort(String tag) {
-        return this.builder.logBridgePorts.get(tag);
+    public DtoInteriorBridgePort getIntBridgePort(String tag) {
+        return this.builder.intBridgePorts.get(tag);
     }
 }

@@ -37,11 +37,6 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * <p/>
  * Originally from org.openflowj.examples
  */
-public class SelectLoop implements Reactor {
+public class SelectLoop {
 
     private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
 
@@ -63,59 +58,10 @@ public class SelectLoop implements Reactor {
     protected long timeout;
     protected final Object registerLock = new Object();
 
-    protected ScheduledExecutorService executor;
-
-    public SelectLoop(ScheduledExecutorService executor) throws IOException {
+    public SelectLoop() throws IOException {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
         this.timeout = 0;
-        this.executor = executor;
-    }
-
-    @Override
-    public Future<?> submit(final Runnable runnable) {
-        return submit(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                runnable.run();
-                return null;
-            }
-        });
-    }
-
-  //  @Override
-    public ScheduledFuture<?> schedule(final Runnable runnable,
-                                       long delay, TimeUnit unit) {
-        return schedule(
-            new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    runnable.run();
-                    return null;
-                }
-            }, delay, unit);
-    }
-
-    @Override
-    public <V> Future<V> submit(final Callable<V> work) {
-        return executor.submit(wrapWithLock(work));
-    }
-
-    @Override
-    public <V> ScheduledFuture<V> schedule(final Callable<V> work,
-                                           long delay, TimeUnit unit) {
-        return executor.schedule(wrapWithLock(work), delay, unit);
-    }
-
-    private <V> Callable<V> wrapWithLock(final Callable<V> work) {
-        return new Callable<V>() {
-            @Override
-            public V call() throws Exception {
-                synchronized (SelectLoop.this) {
-                    return work.call();
-                }
-            }
-        };
     }
 
     /**
@@ -179,21 +125,19 @@ public class SelectLoop implements Reactor {
         int nEvents;
 
         while (dontStop) {
-            log.debug("looping");
+            log.trace("looping");
 
             synchronized (registerLock) {
             }
             nEvents = selector.select(timeout);
-            log.debug("got {} events", nEvents);
+            log.trace("got {} events", nEvents);
             if (nEvents > 0) {
                 for (SelectionKey sk : selector.selectedKeys()) {
                     if (!sk.isValid())
                         continue;
 
                     SelectListener callback = (SelectListener) sk.attachment();
-                    synchronized (this) {
-                        callback.handleEvent(sk);
-                    }
+                    callback.handleEvent(sk);
                 }
                 selector.selectedKeys().clear();
             }
@@ -218,16 +162,5 @@ public class SelectLoop implements Reactor {
     public void shutdown() {
         this.dontStop = false;
         wakeup();
-        try {
-            executor.shutdown();
-            executor.awaitTermination(200, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            log.error("InterruptedException while shutting down the SelectLoop executor thread");
-        }
-    }
-
-    @Override
-    public long currentTimeMillis() {
-        return System.currentTimeMillis();
     }
 }

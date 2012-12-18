@@ -102,4 +102,32 @@ public class DrainTargets {
             }
         };
     }
+
+    /**
+     * A drain target that stores the output as well as log it
+     */
+    public static DrainTarget collectorLogger(
+            final List<String> stdOutStrList,
+            final List<String> stdErrStrList,
+            final Logger logger,
+            final String prefix) {
+
+        return new DrainTarget() {
+            @Override
+            public void outLine(String line) {
+                if (stdOutStrList != null) {
+                    stdOutStrList.add(line);
+                }
+                logger.debug("{}:<stdout> {}", prefix, line);
+            }
+
+            @Override
+            public void errLine(String line) {
+                if (stdErrStrList != null) {
+                    stdErrStrList.add(line);
+                }
+                logger.debug("{}:<stderr> {}", prefix, line);
+            }
+        };
+    }
 }

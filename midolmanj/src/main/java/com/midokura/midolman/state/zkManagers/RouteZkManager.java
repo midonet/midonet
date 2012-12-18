@@ -72,27 +72,40 @@ public class RouteZkManager extends ZkManager {
         super(zk, basePath);
     }
 
-    private List<String> getSubDirectoryRoutePaths(UUID id, Route config)
+    /**
+     *
+     * @param id         The UUID of the route
+     * @param rtConfig   The configuration of the route
+     * @param portConfig If the route is LOCAL, the port has not been created
+     *                   yet, but the config is needed because it determines
+     *                   where the route is stored.
+     * @return
+     * @throws StateAccessException
+     */
+    private List<String> getSubDirectoryRoutePaths(
+            UUID id, Route rtConfig, PortDirectory.RouterPortConfig portConfig)
             throws StateAccessException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
         // routing table.
         List<String> ret = new ArrayList<String>();
-        if (config.nextHop.equals(Route.NextHop.PORT)) {
+        if (rtConfig.nextHop.toPort()) {
             // Check what kind of port this is.
-            PortZkManager portZkManager = new PortZkManager(zk,
-                    paths.getBasePath());
-            PortDirectory.RouterPortConfig port = portZkManager.get(
-                    config.nextHopPort, PortDirectory.RouterPortConfig.class);
+            if (null == portConfig) {
+                PortZkManager portZkManager = new PortZkManager(zk,
+                        paths.getBasePath());
+                portConfig = portZkManager.get(
+                    rtConfig.nextHopPort, PortDirectory.RouterPortConfig.class);
+            }
 
-            ret.add(paths.getPortRoutePath(config.nextHopPort, id));
+            ret.add(paths.getPortRoutePath(rtConfig.nextHopPort, id));
             // If it's a logical port, add the route to the routing table.
-            if (port instanceof PortDirectory.LogicalRouterPortConfig)
-                ret.add(getRouteInRoutingTable(config));
+            if (portConfig instanceof PortDirectory.LogicalRouterPortConfig)
+                ret.add(getRouteInRoutingTable(rtConfig));
         } else {
-            ret.add(paths.getRouterRoutePath(config.routerId, id));
+            ret.add(paths.getRouterRoutePath(rtConfig.routerId, id));
             // Add the route to the routing table.
-            ret.add(getRouteInRoutingTable(config));
+            ret.add(getRouteInRoutingTable(rtConfig));
         }
         return ret;
     }
@@ -119,17 +132,38 @@ public class RouteZkManager extends ZkManager {
      */
     public List<Op> prepareRouteCreate(UUID id, Route config, boolean persistent)
             throws StateAccessException {
+        return prepareRouteCreate(id, config, persistent, null);
+    }
+
+    /**
+     *
+     * @param id         The UUID of the new route.
+     * @param rtConfig   The new route to be added.
+     * @param persistent Should the route be deleted when this Midolman fails.
+     * @param portConfig A LOCAL route is created at the same time as the port.
+     *                   Therefore there's no port config in ZK. However, the
+     *                   portConfig is available because of the create op, and
+     *                   can be used to determine the type of port.
+     * @return           The list of operations to install the route in all the
+     *                   right places.
+     * @throws StateAccessException
+     */
+    public List<Op> prepareRouteCreate(
+            UUID id, Route rtConfig, boolean persistent,
+            PortDirectory.RouterPortConfig portConfig)
+        throws StateAccessException {
         CreateMode mode = persistent ? CreateMode.PERSISTENT
-                : CreateMode.EPHEMERAL;
+            : CreateMode.EPHEMERAL;
         // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
         // Add to root
         ops.add(Op.create(paths.getRoutePath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE, mode));
+            serializer.serialize(rtConfig), Ids.OPEN_ACL_UNSAFE, mode));
 
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
-        for (String path : getSubDirectoryRoutePaths(id, config)) {
+        for (String path :
+                getSubDirectoryRoutePaths(id, rtConfig, portConfig)) {
             ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
         return ops;
@@ -140,12 +174,7 @@ public class RouteZkManager extends ZkManager {
         UUID routeId = UUID.randomUUID();
         Route route = new Route(0, 0, config.portAddr, 32, Route.NextHop.LOCAL,
                                 portId, 0, 0, null, config.device_id);
-        return prepareRouteCreate(routeId, route, true);
-    }
-
-    public List<Op> prepareRouteCreate(UUID id, Route config)
-            throws StateAccessException {
-        return prepareRouteCreate(id, config, true);
+        return prepareRouteCreate(routeId, route, true, config);
     }
 
     /**
@@ -163,7 +192,7 @@ public class RouteZkManager extends ZkManager {
         log.debug("Preparing to delete: " + routePath);
         ops.add(Op.delete(routePath, -1));
         Route config = get(id);
-        for (String path : getSubDirectoryRoutePaths(id, config)) {
+        for (String path : getSubDirectoryRoutePaths(id, config, null)) {
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
         }

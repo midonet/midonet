@@ -4,20 +4,16 @@
  */
 package com.midokura.midolman.mgmt.network;
 
-import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.UriResource;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.AssertTrue;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -27,10 +23,14 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = MaterializedBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
-        @JsonSubTypes.Type(value = LogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
-        @JsonSubTypes.Type(value = MaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
-        @JsonSubTypes.Type(value = LogicalRouterPort.class, name = PortType.LOGICAL_ROUTER) })
+        @JsonSubTypes.Type(value = ExteriorBridgePort.class,
+                name = PortType.EXTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = InteriorBridgePort.class,
+                name = PortType.INTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = ExteriorRouterPort.class,
+                name = PortType.EXTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = InteriorRouterPort.class,
+                name = PortType.INTERIOR_ROUTER) })
 public abstract class Port extends UriResource {
 
     /**
@@ -53,10 +53,6 @@ public abstract class Port extends UriResource {
      */
     protected UUID outboundFilterId;
 
-    /**
-     * List of Port Groups to which this port belongs.
-     */
-    protected UUID[] portGroupIDs;
 
     /**
      * Default constructor
@@ -87,11 +83,6 @@ public abstract class Port extends UriResource {
                 portData.getDeviceId());
         this.inboundFilterId = portData.getInboundFilter();
         this.outboundFilterId = portData.getOutboundFilter();
-        Set<UUID> portGroupIds = portData.getPortGroups();
-        if (portGroupIds != null && portGroupIds.size() > 0) {
-            this.portGroupIDs = portGroupIds.toArray(
-                    new UUID[portGroupIds.size()]);
-        }
     }
 
     /**
@@ -128,7 +119,7 @@ public abstract class Port extends UriResource {
     abstract public URI getDevice();
 
     /**
-     * logical Set device ID.
+     * Set device ID.
      *
      * @param deviceId
      *            ID of the device.
@@ -169,12 +160,12 @@ public abstract class Port extends UriResource {
         }
     }
 
-    public UUID[] getPortGroupIDs() {
-        return portGroupIDs;
-    }
-
-    public void setPortGroupIDs(UUID[] portGroupIDs) {
-        this.portGroupIDs = portGroupIDs;
+    public URI getPortGroups() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getPortGroups(getBaseUri(), id);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -207,19 +198,13 @@ public abstract class Port extends UriResource {
         data.setDeviceId(this.deviceId);
         data.setInboundFilter(this.inboundFilterId);
         data.setOutboundFilter(this.outboundFilterId);
-        if (this.portGroupIDs != null) {
-            data.setPortGroups(
-                    new HashSet<UUID>(Arrays.asList(this.portGroupIDs)));
-        } else {
-            data.setPortGroups(new HashSet<UUID>());
-        }
     }
 
     /**
-     * @return whether this port is a logical port
+     * @return whether this port is a interior port
      */
     @XmlTransient
-    public abstract boolean isLogical();
+    public abstract boolean isInterior();
 
     /**
      * @return ID of the attached resource
@@ -238,8 +223,8 @@ public abstract class Port extends UriResource {
             throw new IllegalArgumentException("port cannot be null");
         }
 
-        // Must be two logical ports
-        if (!isLogical() || !port.isLogical()) {
+        // Must be two interior ports
+        if (!isInterior() || !port.isInterior()) {
             return false;
         }
 

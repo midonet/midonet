@@ -3,21 +3,25 @@
  */
 package com.midokura.midolman.host.scanner;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.midokura.midolman.guice.zookeeper.ZKConnectionProvider;
-import com.midokura.midolman.host.interfaces.InterfaceDescription;
-import com.midokura.midolman.host.sensor.*;
-import com.midokura.netlink.Callback;
-import com.midokura.util.eventloop.Reactor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.inject.Named;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.midokura.midolman.host.interfaces.InterfaceDescription;
+import com.midokura.midolman.host.sensor.DmesgInterfaceSensor;
+import com.midokura.midolman.host.sensor.InterfaceSensor;
+import com.midokura.midolman.host.sensor.IpAddrInterfaceSensor;
+import com.midokura.midolman.host.sensor.IpTuntapInterfaceSensor;
+import com.midokura.midolman.host.sensor.NetlinkInterfaceSensor;
+import com.midokura.netlink.Callback;
+import com.midokura.util.eventloop.Reactor;
 
 /**
  * Default implementation for the interface scanning component.
@@ -68,14 +72,22 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
 
     @Override
     public void scanInterfaces(final Callback<List<InterfaceDescription>> callback) {
-        reactor.submit(
-            new Runnable() {
-                @Override
-                public void run() {
-                    List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
-                    callback.onSuccess(list);
+        if (!reactor.isShutDownOrTerminated()) {
+            reactor.submit(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        List<InterfaceDescription> list = Arrays.asList(scanInterfaces());
+                        callback.onSuccess(list);
+                    }
                 }
-            }
-        );
+            );
+        } else {
+            log.error("Failure, couldn't submit the task {}, executor stopped", callback);
+        }
+    }
+
+    public void shutDownNow() {
+        reactor.shutDownNow();
     }
 }

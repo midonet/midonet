@@ -17,6 +17,7 @@ import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.packets.Transport;
+import com.midokura.sdn.dp.flows.IPFragmentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class WildcardMatch implements Cloneable {
         NetworkProtocol,
         NetworkTTL,
         NetworkTOS,
-        IsIPv4Fragment,
+        FragmentType,
         TransportSource,
         TransportDestination,
         ArpSip,
@@ -65,9 +66,9 @@ public class WildcardMatch implements Cloneable {
     private Byte networkProtocol;
     private Byte networkTTL;
     private Byte networkTOS;
-    private Boolean isIPv4Fragment;
-    private Short transportSource;
-    private Short transportDestination;
+    private IPFragmentType ipFragmentType;
+    private Integer transportSource;
+    private Integer transportDestination;
     private IntIPv4 arpSip;
     private IntIPv4 arpTip;
 
@@ -400,26 +401,30 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setIsIPv4Fragment(boolean isFragment) {
-        usedFields.add(Field.IsIPv4Fragment);
-        this.isIPv4Fragment = isFragment;
+    public WildcardMatch setIpFragmentType(IPFragmentType fragmentType) {
+        usedFields.add(Field.FragmentType);
+        this.ipFragmentType = fragmentType;
         return this;
     }
 
     @Nonnull
-    public WildcardMatch unsetIsIPv4Fragment() {
-        usedFields.remove(Field.IsIPv4Fragment);
-        this.isIPv4Fragment = null;
+    public WildcardMatch unsetIpFragmentType() {
+        usedFields.remove(Field.FragmentType);
+        this.ipFragmentType = null;
         return this;
     }
 
     @Nullable
-    public Boolean getIsIPv4Fragment() {
-        return isIPv4Fragment;
+    public IPFragmentType getIpFragmentType() {
+        return ipFragmentType;
     }
 
     @Nonnull
-    public WildcardMatch setTransportSource(short transportSource) {
+    public WildcardMatch setTransportSource(int transportSource) {
+        if (transportSource < 0 || transportSource > 65535)
+            throw new IllegalArgumentException(
+                    "Transport source port out of range");
+
         usedFields.add(Field.TransportSource);
         this.transportSource = transportSource;
         return this;
@@ -433,17 +438,21 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportSourceObject() {
+    public Integer getTransportSourceObject() {
         return transportSource;
     }
 
     @Deprecated
-    public short getTransportSource() {
-        return transportSource.shortValue();
+    public int getTransportSource() {
+        return transportSource;
     }
 
     @Nonnull
-    public WildcardMatch setTransportDestination(short transportDestination) {
+    public WildcardMatch setTransportDestination(int transportDestination) {
+        if (transportDestination < 0 || transportDestination > 65535)
+            throw new IllegalArgumentException(
+                    "Transport destination port out of range");
+
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;
         return this;
@@ -457,13 +466,13 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getTransportDestinationObject() {
+    public Integer getTransportDestinationObject() {
         return transportDestination;
     }
 
     @Deprecated
-    public short getTransportDestination() {
-        return transportDestination.shortValue();
+    public int getTransportDestination() {
+        return transportDestination;
     }
 
     @Nonnull
@@ -582,7 +591,7 @@ public class WildcardMatch implements Cloneable {
                         ipv4.setTtl(networkTTL);
                     break;
 
-                case IsIPv4Fragment:
+                case FragmentType:
                     // XXX guillermo (does it make sense to make changes to
                     // this? it would be useless without changing the offset
                     // accordingly.
@@ -614,8 +623,8 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
-                case IsIPv4Fragment:
-                    if (!isEqual(isIPv4Fragment, that.isIPv4Fragment))
+                case FragmentType:
+                    if (!isEqual(ipFragmentType, that.ipFragmentType))
                         return false;
                     break;
 
@@ -702,8 +711,8 @@ public class WildcardMatch implements Cloneable {
                 case EtherType:
                     result = 31 * result + etherType.hashCode();
                     break;
-                case IsIPv4Fragment:
-                    result = 31 * result + isIPv4Fragment.hashCode();
+                case FragmentType:
+                    result = 31 * result + ipFragmentType.hashCode();
                     break;
                 case EthernetDestination:
                     result = 31 * result + ethernetDestination.hashCode();
@@ -761,8 +770,8 @@ public class WildcardMatch implements Cloneable {
                     output += etherType.toString();
                     break;
 
-                case IsIPv4Fragment:
-                    output += isIPv4Fragment.toString();
+                case FragmentType:
+                    output += ipFragmentType.toString();
                     break;
 
                 case EthernetDestination:
@@ -831,8 +840,8 @@ public class WildcardMatch implements Cloneable {
                         newClone.etherType = etherType;
                         break;
 
-                    case IsIPv4Fragment:
-                        newClone.isIPv4Fragment = isIPv4Fragment;
+                    case FragmentType:
+                        newClone.ipFragmentType = ipFragmentType;
                         break;
 
                     case EthernetDestination:

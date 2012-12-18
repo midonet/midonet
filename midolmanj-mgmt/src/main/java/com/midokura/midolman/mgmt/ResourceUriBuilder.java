@@ -31,8 +31,12 @@ public class ResourceUriBuilder {
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
     public static final String METRICS = "/metrics";
+    public static final String FILTER = "/filter";
+    public static final String QUERY = "/query";
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
+    public static final String ID_TOKEN = "/{id}";
+    public static final String PORT_ID_QS = "port_id";
 
     private ResourceUriBuilder() {
     }
@@ -252,6 +256,11 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORT_GROUPS).build();
     }
 
+    public static URI getPortGroups(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
+                PORT_ID_QS, portId).build();
+    }
+
     public static URI getPortGroup(URI baseUri, UUID id) {
         return UriBuilder.fromUri(getPortGroups(baseUri)).path(id.toString())
                 .build();
@@ -269,6 +278,14 @@ public class ResourceUriBuilder {
 
     public static URI getMetrics(URI baseUri){
         return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
+    }
+
+    public static URI getMetricsFilter(URI baseUri) {
+        return UriBuilder.fromUri(getMetrics(baseUri)).path(FILTER).build();
+    }
+
+    public static URI getMetricsQuery(URI baseUri) {
+        return UriBuilder.fromUri(getMetrics(baseUri)).path(QUERY).build();
     }
 
     public static URI getTunnelZones(URI baseUri) {
@@ -289,5 +306,131 @@ public class ResourceUriBuilder {
                                         UUID hostId) {
         return UriBuilder.fromUri(getTunnelZoneHosts(baseUri, tunnelZoneId
         )).path(hostId.toString()).build();
+    }
+
+    private static String buildIdTemplateUri(URI uri) {
+        StringBuilder template = new StringBuilder(
+                UriBuilder.fromUri(uri).build().toString());
+        return template.append(ID_TOKEN).toString();
+    }
+
+    /**
+     * Generate an ad route URI template
+     *
+     * @param baseUri Base URI
+     * @return Ad route template URI
+     */
+    public static String getAdRouteTemplate(URI baseUri) {
+        return buildIdTemplateUri(getAdRoutes(baseUri));
+    }
+
+    /**
+     * Generate a BGP URI template
+     *
+     * @param baseUri Base URI
+     * @return BGP template URI
+     */
+    public static String getBgpTemplate(URI baseUri) {
+        return buildIdTemplateUri(getBgps(baseUri));
+    }
+
+    /**
+     * Generate a bridge URI template
+     *
+     * @param baseUri Base URI
+     * @return Bridge template URI
+     */
+    public static String getBridgeTemplate(URI baseUri) {
+        return buildIdTemplateUri(getBridges(baseUri));
+    }
+
+    /**
+     * Generate a chain URI template
+     *
+     * @param baseUri Base URI
+     * @return Chain template URI
+     */
+    public static String getChainTemplate(URI baseUri) {
+        return buildIdTemplateUri(getChains(baseUri));
+    }
+
+    /**
+     * Generate a host URI template
+     *
+     * @param baseUri Base URI
+     * @return Host template URI
+     */
+    public static String getHostTemplate(URI baseUri) {
+        return buildIdTemplateUri(getHosts(baseUri));
+    }
+
+    /**
+     * Generate a port URI template
+     *
+     * @param baseUri Base URI
+     * @return Porttemplate URI
+     */
+    public static String getPortTemplate(URI baseUri) {
+        return buildIdTemplateUri(getPorts(baseUri));
+    }
+
+    /**
+     * Generate a port group URI template
+     *
+     * @param baseUri Base URI
+     * @return Port group template URI
+     */
+    public static String getPortGroupTemplate(URI baseUri) {
+        return buildIdTemplateUri(getPortGroups(baseUri));
+    }
+
+    /**
+     * Generate a route URI template
+     *
+     * @param baseUri Base URI
+     * @return Route template URI
+     */
+    public static String getRouteTemplate(URI baseUri) {
+        return buildIdTemplateUri(getRoutes(baseUri));
+    }
+
+    /**
+     * Generate a router URI template
+     *
+     * @param baseUri Base URI
+     * @return Router template URI
+     */
+    public static String getRouterTemplate(URI baseUri) {
+        return buildIdTemplateUri(getRouters(baseUri));
+    }
+
+    /**
+     * Generate a rule URI template
+     *
+     * @param baseUri Base URI
+     * @return Rule template URI
+     */
+    public static String getRuleTemplate(URI baseUri) {
+        return buildIdTemplateUri(getRules(baseUri));
+    }
+
+    /**
+     * Generate a tunnel zone URI template
+     *
+     * @param baseUri Base URI
+     * @return Tunnel zone template URI
+     */
+    public static String getTunnelZoneTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTunnelZones(baseUri));
+    }
+
+    /**
+     * Generate a VPN URI template
+     *
+     * @param baseUri Base URI
+     * @return VPN template URI
+     */
+    public static String getVpnTemplate(URI baseUri) {
+        return buildIdTemplateUri(getVpns(baseUri));
     }
 }

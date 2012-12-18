@@ -6,7 +6,7 @@ package com.midokura.midonet.client.dto;
 import java.net.URI;
 import java.util.UUID;
 
-public interface DtoLogicalPort {
+public interface DtoInteriorPort {
 
     /**
      * @return Peer port ID

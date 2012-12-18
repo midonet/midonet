@@ -10,6 +10,11 @@
     <param-name>rest_api-version</param-name>
     <param-value>1</param-value>
   </context-param>
+  <!-- This value overrides the default base URI -->
+  <!-- context-param>
+    <param-name>rest_api-base_uri</param-name>
+    <param-value>http://localhost:8080/</param-value>
+  </context-param -->
 
   <!-- CORS configuration -->
   <context-param>
@@ -88,7 +93,7 @@
   </context-param>
   <context-param>
     <param-name>zookeeper-session_timeout</param-name>
-    <param-value>3000</param-value>
+    <param-value>30000</param-value>
   </context-param>
   <context-param>
     <param-name>zookeeper-midolman_root_key</param-name>

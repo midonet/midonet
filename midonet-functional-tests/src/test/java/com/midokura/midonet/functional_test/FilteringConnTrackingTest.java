@@ -43,8 +43,8 @@ public class FilteringConnTrackingTest {
     BridgePort bPort3;
     BridgePort bPort4;
     BridgePort bPort5;
-    LogicalBridgePort bPort6;
-    LogicalRouterPort rPort1;
+    InteriorBridgePort bPort6;
+    InteriorRouterPort rPort1;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;

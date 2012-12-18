@@ -31,9 +31,9 @@ install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
 usermod -G quagga $USER
 
 # make a symlink for the package
-MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolmanj.list  | grep midolmanj.*\.jar | awk -F'/' '{if (NF <= 1) printf "."; else {OFS="/"; $NF=""; printf "%s", substr($0, 1, length($0) - 1);}}'`
+MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolman.list  | grep midolmanj.*\.jar | awk -F'/' '{if (NF <= 1) printf "."; else {OFS="/"; $NF=""; printf "%s", substr($0, 1, length($0) - 1);}}'`
 
-ln -sf `cat $POST_DIR/midolmanj.list | grep midolmanj.*\.jar` "$MIDOLMAN_JAR_DIR/midolmanj.jar"
-ln -sf `cat $POST_DIR/midolmanj.list | grep midokura-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midokura-jdk-bootstrap.jar"
+ln -sf `cat $POST_DIR/midolman.list | grep midolmanj.*\.jar` "$MIDOLMAN_JAR_DIR/midolmanj.jar"
+ln -sf `cat $POST_DIR/midolman.list | grep midokura-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midokura-jdk-bootstrap.jar"
 
-update-rc.d midolmanj defaults 98 02 >/dev/null
+test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman

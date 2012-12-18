@@ -84,7 +84,7 @@ public class WildcardMatchTest {
     @Test
     public void testSetTpDest() {
         WildcardMatch wmatch = new WildcardMatch();
-        short tpDest = 0x11ee;
+        int tpDest = 0x11ee;
         wmatch.setTransportDestination(tpDest);
         Assert.assertEquals(tpDest, wmatch.getTransportDestination());
         assertThat(wmatch.getUsedFields(), hasSize(1));
@@ -93,14 +93,36 @@ public class WildcardMatchTest {
     }
 
     @Test
+    public void testSetTpDestHigh() {
+        WildcardMatch wmatch = new WildcardMatch();
+        int tpDest = 0xA8CA;
+        wmatch.setTransportDestination(tpDest);
+        Assert.assertEquals(tpDest, wmatch.getTransportDestination());
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+                contains(WildcardMatch.Field.TransportDestination));
+    }
+
+    @Test
     public void testSetTpSource() {
         WildcardMatch wmatch = new WildcardMatch();
-        short tpSource = 0x11ee;
+        int tpSource = 0x11ee;
         wmatch.setTransportSource(tpSource);
         Assert.assertEquals(tpSource, wmatch.getTransportSource());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.TransportSource));
+    }
+
+    @Test
+    public void testSetTpSourceHigh() {
+        WildcardMatch wmatch = new WildcardMatch();
+        int tpSource = 0xA8CA;
+        wmatch.setTransportSource(tpSource);
+        Assert.assertEquals(tpSource, wmatch.getTransportSource());
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+                contains(WildcardMatch.Field.TransportSource));
     }
 
     @Test

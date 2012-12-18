@@ -61,7 +61,7 @@ public class FlowKeys {
     }
 
     public static FlowKeyUDP udp(int src, int dst) {
-        return new FlowKeyUDP().setUdpSrc((short) src).setUdpDst((short) dst);
+        return new FlowKeyUDP().setUdpSrc(src).setUdpDst(dst);
     }
 
     public static FlowKeyARP arp(byte[] sourceAddress, byte[] targetAddress) {
@@ -72,7 +72,7 @@ public class FlowKeys {
     }
 
     public static FlowKeyTCP tcp(int src, int dst) {
-        return new FlowKeyTCP().setSrc((short) src).setDst((short) dst);
+        return new FlowKeyTCP().setSrc(src).setDst(dst);
     }
 
     public static FlowKeyND neighborDiscovery(int[] target) {

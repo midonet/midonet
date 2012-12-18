@@ -12,8 +12,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
 import com.midokura.midonet.client.dto.DtoBgp;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRouterPort;
 import com.midokura.midonet.client.dto.PortType;
 
@@ -100,15 +100,6 @@ public class RouterPort<T extends DtoRouterPort> extends
     }
 
     /**
-     * Gets arrays of ID of port groups for this router ports
-     *
-     * @return array of port group UUIDs
-     */
-    public UUID[] getPortGroupIDs() {
-        return principalDto.getPortGroupIDs();
-    }
-
-    /**
      * Gets mac address of the port.
      *
      * @return mac address
@@ -141,7 +132,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return port UUID
      */
     public UUID getPeerId() {
-        return ((DtoLogicalRouterPort) principalDto).getPeerId();
+        return ((DtoInteriorRouterPort) principalDto).getPeerId();
     }
 
     /**
@@ -152,17 +143,6 @@ public class RouterPort<T extends DtoRouterPort> extends
      */
     public RouterPort<T> networkLength(int networkLength) {
         ((DtoRouterPort) principalDto).setNetworkLength(networkLength);
-        return this;
-    }
-
-    /**
-     * Sets port group IDs to the local DTO.
-     *
-     * @param portGroupIDs
-     * @return this
-     */
-    public RouterPort<T> portGroupIDs(UUID[] portGroupIDs) {
-        principalDto.setPortGroupIDs(portGroupIDs);
         return this;
     }
 
@@ -239,7 +219,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return this
      */
     public RouterPort<T> peerId(UUID id) {
-        ((DtoLogicalRouterPort) principalDto).setPeerId(id);
+        ((DtoInteriorRouterPort) principalDto).setPeerId(id);
         return this;
     }
 
@@ -249,12 +229,12 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return collection of bgps
      */
     public ResourceCollection<Bgp> getBgps(MultivaluedMap queryParams) {
-        if (!principalDto.getType().equals(PortType.MATERIALIZED_ROUTER)) {
+        if (!principalDto.getType().equals(PortType.EXTERIOR_ROUTER)) {
             throw new IllegalArgumentException("bgp must be added to " +
-                                                   "materialized router port");
+                                                   "exterior router port");
         }
         return getChildResources(
-            ((DtoMaterializedRouterPort) principalDto).getBgps(),
+            ((DtoExteriorRouterPort) principalDto).getBgps(),
             queryParams,
             VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
             Bgp.class, DtoBgp.class);
@@ -266,38 +246,38 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return new Bgp()
      */
     public Bgp addBgp() {
-        if (!principalDto.getType().equals(PortType.MATERIALIZED_ROUTER)) {
+        if (!principalDto.getType().equals(PortType.EXTERIOR_ROUTER)) {
             throw new IllegalArgumentException("bgp must be added to " +
-                                                   "materialized router port");
+                                                   "exterior router port");
         }
         return new Bgp(resource,
-                       ((DtoMaterializedRouterPort) principalDto).getBgps(),
+                       ((DtoExteriorRouterPort) principalDto).getBgps(),
                        new DtoBgp());
     }
 
     /**
-     * Creates a link to a logical port
+     * Creates a link to a interior port
      *
-     * @param id the logical port id to connect
+     * @param id the interior port id to connect
      * @return this
      */
-    // TODO(pino): this should be defined in a logical port subtype.
+    // TODO(pino): this should be defined in a interior port subtype.
     public RouterPort link(UUID id) {
         peerId(id);
-        resource.post(((DtoLogicalRouterPort) principalDto).getLink(),
+        resource.post(((DtoInteriorRouterPort) principalDto).getLink(),
                       principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         get(getUri());
         return this;
     }
 
     /**
-     * Remove the link on the logical port
+     * Remove the link on the interior port
      *
      * @return this
      */
     public RouterPort unlink() {
         peerId(null);
-        resource.post(((DtoLogicalRouterPort) principalDto).getLink(),
+        resource.post(((DtoInteriorRouterPort) principalDto).getLink(),
                       principalDto, VendorMediaType.APPLICATION_PORT_JSON);
         get(getUri());
         return this;

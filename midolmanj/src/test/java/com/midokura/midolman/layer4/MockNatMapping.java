@@ -33,12 +33,12 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair allocateDnat(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst, Set<NatTarget> nats) {
+    public NwTpPair allocateDnat(int nwSrc, int tpSrc, int oldNwDst,
+            int oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        short newTpDst = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
         dnatFwdMap.put(new PacketSignature(nwSrc, tpSrc, oldNwDst, oldTpDst),
                 newDst);
@@ -48,26 +48,26 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, short tpSrc, int oldNwDst,
-            short oldTpDst) {
+    public NwTpPair lookupDnatFwd(int nwSrc, int tpSrc, int oldNwDst,
+            int oldTpDst) {
         return dnatFwdMap.get(new PacketSignature(nwSrc, tpSrc, oldNwDst,
                 oldTpDst));
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, short tpSrc, int newNwDst,
-            short newTpDst) {
+    public NwTpPair lookupDnatRev(int nwSrc, int tpSrc, int newNwDst,
+            int newTpDst) {
         return dnatRevMap.get(new PacketSignature(nwSrc, tpSrc, newNwDst,
                 newTpDst));
     }
 
     @Override
-    public NwTpPair allocateSnat(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst, Set<NatTarget> nats) {
+    public NwTpPair allocateSnat(int oldNwSrc, int oldTpSrc, int nwDst,
+            int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        short newTpSrc = (short) (rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart);
+        int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);
         snatFwdMap.put(new PacketSignature(oldNwSrc, oldTpSrc, nwDst, tpDst),
                 newSrc);
@@ -77,15 +77,15 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, short oldTpSrc, int nwDst,
-            short tpDst) {
+    public NwTpPair lookupSnatFwd(int oldNwSrc, int oldTpSrc, int nwDst,
+            int tpDst) {
         return snatFwdMap.get(new PacketSignature(oldNwSrc, oldTpSrc, nwDst,
                 tpDst));
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, short newTpSrc, int nwDst,
-            short tpDst) {
+    public NwTpPair lookupSnatRev(int newNwSrc, int newTpSrc, int nwDst,
+            int tpDst) {
         return snatRevMap.get(new PacketSignature(newNwSrc, newTpSrc, nwDst,
                 tpDst));
     }

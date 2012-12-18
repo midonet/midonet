@@ -4,13 +4,13 @@
  */
 package com.midokura.midolman.mgmt.vpn;
 
-import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoMaterializedRouterPort;
-import com.midokura.midonet.client.dto.DtoRouter;
-import com.midokura.midonet.client.dto.DtoVpn;
 import com.midokura.midolman.mgmt.rest_api.FuncTest;
 import com.midokura.midolman.mgmt.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.zkManagers.VpnZkManager;
+import com.midokura.midonet.client.dto.DtoApplication;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoRouter;
+import com.midokura.midonet.client.dto.DtoVpn;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -63,7 +63,7 @@ public class TestVpn extends JerseyTest {
         router = resource().uri(testRouterUri).accept(
                 APPLICATION_ROUTER_JSON).get(DtoRouter.class);
 
-        DtoMaterializedRouterPort port = new DtoMaterializedRouterPort();
+        DtoExteriorRouterPort port = new DtoExteriorRouterPort();
         String portAddress = "180.214.47.66";
         port.setNetworkAddress("180.214.47.64");
         port.setNetworkLength(30);
@@ -76,8 +76,8 @@ public class TestVpn extends JerseyTest {
         portUri = response.getLocation();
         log.debug("port location: {}", portUri);
 
-        // Add a materialized router port for private port of VPN.
-        port = new DtoMaterializedRouterPort();
+        // Add a Exterior router port for private port of VPN.
+        port = new DtoExteriorRouterPort();
         portAddress = "192.168.10.1";
         port.setNetworkAddress("192.168.10.0");
         port.setNetworkLength(30);

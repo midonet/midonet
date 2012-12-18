@@ -4,10 +4,6 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 import akka.actor.ActorRef;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
@@ -22,9 +18,12 @@ import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
+import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
+import com.midokura.util.lock.LockHelper;
 import com.midokura.util.process.ProcessHelper;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -35,16 +34,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
-
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.util.lock.LockHelper;
 
 public class BgpTest {
 
@@ -82,17 +81,22 @@ public class BgpTest {
         String cmdLine;
 
         // Create network namespace
-        cmdLine = "/bin/sh -c \"sudo ip netns list | grep " + networkNamespace + "\"";
+        cmdLine = "sudo ip netns list";
         result = ProcessHelper.executeCommandLine(cmdLine);
         log.debug("result.consoleOutput: {}", result.consoleOutput);
         log.debug("result.consoleOutput.size: {}", result.consoleOutput.size());
-        if (result.consoleOutput.size() == 0) {
+        Boolean foundNamespace = false;
+        for (String line : result.consoleOutput) {
+            if (line.contains(networkNamespace)) {
+                foundNamespace = true;
+                break;
+            }
+        }
+
+        if (!foundNamespace) {
             cmdLine = "sudo ip netns add " + networkNamespace;
             ProcessHelper.executeCommandLine(cmdLine);
         } else {
-            cmdLine = "sudo ip link delete " + pairedInterfaceLocal;
-            ProcessHelper.executeCommandLine(cmdLine);
-
             cmdLine = "sudo killall bgpd";
             ProcessHelper.executeCommandLine(cmdLine);
         }
@@ -184,38 +188,38 @@ public class BgpTest {
         router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
 
-        RouterPort materializedRouterPort1_vm = (RouterPort) router1.addMaterializedRouterPort()
+        RouterPort exteriorRouterPort1_vm = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("1.0.0.1")
                 .networkAddress("1.0.0.0")
                 .networkLength(24)
                 .portMac("02:00:00:00:01:01")
                 .create();
-        log.debug("Created materialized router port - VM: " + materializedRouterPort1_vm.toString());
+        log.debug("Created exterior router port - VM: " + exteriorRouterPort1_vm.toString());
 
         router1.addRoute()
                 .dstNetworkAddr("1.0.0.1")
                 .dstNetworkLength(24)
                 .srcNetworkAddr("0.0.0.0")
                 .srcNetworkLength(0)
-                .nextHopPort(materializedRouterPort1_vm.getId())
+                .nextHopPort(exteriorRouterPort1_vm.getId())
                 .type("Normal")
                 .create();
 
-        RouterPort materializedRouterPort1_bgp = (RouterPort) router1.addMaterializedRouterPort()
+        RouterPort exteriorRouterPort1_bgp = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)
                 .portMac("02:00:00:00:aa:01")
                 .create();
-        log.debug("Created materialized router port - BGP: " + materializedRouterPort1_bgp.toString());
+        log.debug("Created exterior router port - BGP: " + exteriorRouterPort1_bgp.toString());
 
-        bgp1 = materializedRouterPort1_bgp.addBgp()
+        bgp1 = exteriorRouterPort1_bgp.addBgp()
                 .localAS(1)
                 .peerAddr("100.0.0.2")
                 .peerAS(2)
                 .create();
-        log.debug("Created BGP {} in materialized router port {} ",
-                bgp1.toString(), materializedRouterPort1_bgp.toString());
+        log.debug("Created BGP {} in exterior router port {} ",
+                bgp1.toString(), exteriorRouterPort1_bgp.toString());
 
         bgp1.addAdRoute()
                 .nwPrefix("1.0.0.0")
@@ -241,13 +245,13 @@ public class BgpTest {
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
                 .interfaceName(tap1_vm.getName())
-                .portId(materializedRouterPort1_vm.getId())
+                .portId(exteriorRouterPort1_vm.getId())
                 .create();
 
         log.debug("Adding interface to host.");
         host.addHostInterfacePort()
                 .interfaceName(pairedInterfaceLocal)
-                .portId(materializedRouterPort1_bgp.getId())
+                .portId(exteriorRouterPort1_bgp.getId())
                 .create();
 
         // Wait for the ports to become active

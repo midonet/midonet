@@ -13,11 +13,14 @@ import com.midokura.midolman.mgmt.VendorMediaType;
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.Authorizer;
-import com.midokura.midolman.mgmt.dhcp.DhcpSubnet;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
-import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
+import com.midokura.midolman.mgmt.dhcp.DhcpSubnet;
 import com.midokura.midolman.mgmt.network.auth.BridgeAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.BadRequestHttpException;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
+import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.StateAccessException;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.cluster.data.dhcp.Subnet;
@@ -27,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -35,31 +40,32 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RequestScoped
-public class BridgeDhcpResource {
+public class BridgeDhcpResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeDhcpResource.class);
 
     private final UUID bridgeId;
-    private final SecurityContext context;
-    private final UriInfo uriInfo;
     private final Authorizer authorizer;
+    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
-    public BridgeDhcpResource(UriInfo uriInfo,
+    public BridgeDhcpResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context,
                               BridgeAuthorizer authorizer,
+                              Validator validator,
                               DataClient dataClient,
                               ResourceFactory factory,
                               @Assisted UUID bridgeId) {
-        this.context = context;
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context);
         this.authorizer = authorizer;
+        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
         this.bridgeId = bridgeId;
@@ -96,9 +102,15 @@ public class BridgeDhcpResource {
                     "Not authorized to configure DHCP for this bridge.");
         }
 
+        Set<ConstraintViolation<DhcpSubnet>> violations =
+            validator.validate(subnet);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
         dataClient.dhcpSubnetsCreate(bridgeId, subnet.toData());
 
-        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(uriInfo.getBaseUri(),
+        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
                 bridgeId);
         return Response.created(
                 ResourceUriBuilder.getBridgeDhcp(
@@ -167,8 +179,8 @@ public class BridgeDhcpResource {
         }
 
         DhcpSubnet subnet = new DhcpSubnet(subnetConfig);
-        subnet.setParentUri(ResourceUriBuilder.getBridgeDhcps(
-                uriInfo.getBaseUri(), bridgeId));
+        subnet.setParentUri(ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
+                bridgeId));
 
         return subnet;
     }
@@ -215,8 +227,8 @@ public class BridgeDhcpResource {
                 dataClient.dhcpSubnetsGetByBridge(bridgeId);
 
         List<DhcpSubnet> subnets = new ArrayList<DhcpSubnet>();
-        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(
-                uriInfo.getBaseUri(), bridgeId);
+        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
+                bridgeId);
         for (Subnet subnetConfig : subnetConfigs) {
             DhcpSubnet subnet = new DhcpSubnet(subnetConfig);
             subnet.setParentUri(dhcpsUri);

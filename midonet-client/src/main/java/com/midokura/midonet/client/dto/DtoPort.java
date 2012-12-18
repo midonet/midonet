@@ -12,12 +12,17 @@ import java.net.URI;
 import java.util.UUID;
 
 @XmlRootElement
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = DtoBridgePort.class, name = PortType.MATERIALIZED_BRIDGE),
-        @JsonSubTypes.Type(value = DtoLogicalBridgePort.class, name = PortType.LOGICAL_BRIDGE),
-        @JsonSubTypes.Type(value = DtoMaterializedRouterPort.class, name = PortType.MATERIALIZED_ROUTER),
-        @JsonSubTypes.Type(value = DtoLogicalRouterPort.class, name = PortType.LOGICAL_ROUTER)})
+        @JsonSubTypes.Type(value = DtoBridgePort.class,
+                name = PortType.EXTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = DtoInteriorBridgePort.class,
+                name = PortType.INTERIOR_BRIDGE),
+        @JsonSubTypes.Type(value = DtoExteriorRouterPort.class,
+                name = PortType.EXTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = DtoInteriorRouterPort.class,
+                name = PortType.INTERIOR_ROUTER)})
 public abstract class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;
@@ -25,9 +30,9 @@ public abstract class DtoPort {
     private UUID outboundFilterId = null;
     private URI inboundFilter = null;
     private URI outboundFilter = null;
-    private UUID[] portGroupIDs = null;
     private UUID vifId = null;
     private URI uri;
+    private URI portGroups;
 
     public UUID getId() {
         return id;
@@ -77,14 +82,6 @@ public abstract class DtoPort {
         this.outboundFilter = outboundFilter;
     }
 
-    public UUID[] getPortGroupIDs() {
-        return portGroupIDs;
-    }
-
-    public void setPortGroupIDs(UUID[] portGroupIDs) {
-        this.portGroupIDs = portGroupIDs;
-    }
-
     public UUID getVifId() {
         return vifId;
     }
@@ -99,6 +96,14 @@ public abstract class DtoPort {
 
     public void setUri(URI uri) {
         this.uri = uri;
+    }
+
+    public URI getPortGroups() {
+        return portGroups;
+    }
+
+    public void setPortGroups(URI portGroups) {
+        this.portGroups = portGroups;
     }
 
     public abstract String getType();
@@ -133,12 +138,12 @@ public abstract class DtoPort {
             return false;
         }
 
-        if (portGroupIDs != null ? !portGroupIDs.equals(that.portGroupIDs)
-                : that.portGroupIDs != null) {
+        if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
             return false;
         }
 
-        if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
+        if (portGroups != null ? !portGroups.equals(that.portGroups)
+                : that.portGroups != null) {
             return false;
         }
 

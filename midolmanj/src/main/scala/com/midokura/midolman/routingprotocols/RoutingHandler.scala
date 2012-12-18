@@ -26,6 +26,7 @@ import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
 import com.midokura.util.process.ProcessHelper
+import scala.collection.JavaConversions._
 
 
 /**
@@ -106,6 +107,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     case class BGPD_READY()
 
     case class BGPD_DEAD()
+
+    // For testing
+    case class BGPD_STATUS(port: UUID, isActive: Boolean)
 
     /**
      * This actor can be in these phases:
@@ -336,9 +340,15 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                             // Use the bgpVty to set up sessions with all these peers
                             create(rport.portAddr, bgp)
                         }
-                        for (route <- adRoutes) {
-                            // Use the bgpVty to add all these routes/networks
-                        }
+
+                        // BGP routes are added on:
+                        // - create method
+                        // - received from BGPListBuilder
+
+                        log.debug("announcing we are BGPD_STATUS active")
+                        context.system.eventStream.publish(
+                            new BGPD_STATUS(rport.id, isActive = true))
+
                     case _ =>
                         log.error("BGP_READY expected only while " +
                             "Starting - we're now in {}", phase)
@@ -474,11 +484,28 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             BGP_NETDEV_PORT_NAME,
             BGP_NETDEV_PORT_MIRROR_NAME,
             BGP_VTY_PORT_NAME,
-            BGP_VTY_PORT_MIRROR_NAME)
+            BGP_VTY_PORT_MIRROR_NAME
+        )
+
         interfaces.foreach(interface => if (interface.length > 15) {
             log.error("Interface name can be at most 15 characters: {}", interface)
             return
         })
+
+        // If there was a bgpd running in a previous execution and wasn't
+        // properly stopped, it may still be running -> kill it
+        val bgpdPidFile = "/var/run/quagga/bgpd." + BGP_VTY_PORT + ".pid"
+        val file = new File(bgpdPidFile)
+        if (file.exists()) {
+            val source = scala.io.Source.fromFile(bgpdPidFile)
+            val lines = source.getLines()
+
+            // we only expect one pid stored here
+            if (lines.hasNext) {
+                val cmdLine = "sudo kill -9 " + lines.next()
+                ProcessHelper.executeCommandLine(cmdLine)
+            }
+        }
 
         val socketFile = new File(ZSERVE_API_SOCKET)
         val socketDir = socketFile.getParentFile
@@ -497,9 +524,27 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             socketAddress, handler, rport.portAddr.toHostAddress, BGP_NETDEV_PORT_MIRROR_NAME)
         zebra.start()
 
+        // Does the namespace exist?
+        var cmdLine = "sudo ip netns list"
+        val foundNamespace = ProcessHelper.executeCommandLine(cmdLine)
+            .consoleOutput.exists(line => line.contains(BGP_NETWORK_NAMESPACE))
+
+        if (foundNamespace == false) {
+            // Create the network namespace
+            cmdLine = "sudo ip netns add " + BGP_NETWORK_NAMESPACE
+            ProcessHelper.executeCommandLine(cmdLine)
+        } else {
+            // do not try to delete the old network namespace, because trying
+            // to do so when there's a process still running or interfaces
+            // still using it, it can lead to namespace corruption
+        }
+
         // does the bgp interface already exist?
-        var cmdLine = "/bin/sh -c \"sudo ip link | grep " + BGP_NETDEV_PORT_NAME + "\""
-        if (ProcessHelper.executeCommandLine(cmdLine).consoleOutput.size() > 0) {
+        cmdLine = "sudo ip link"
+        val foundBgpPort = ProcessHelper.executeCommandLine(cmdLine)
+            .consoleOutput.exists(line => line.contains(BGP_NETDEV_PORT_NAME))
+
+        if (foundBgpPort) {
             // It already existed: delete it
             cmdLine = "sudo ip link delete " + BGP_NETDEV_PORT_NAME
             log.debug("cmdLine: {}", cmdLine)
@@ -509,19 +554,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // Create the interface bgpd will run on.
         cmdLine = "sudo ip link add name " + BGP_NETDEV_PORT_NAME +
             " type veth peer name " + BGP_NETDEV_PORT_MIRROR_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
-
-        // Does the namespace exist?
-        cmdLine = "/bin/sh -c \"sudo ip netns list | grep -w " + BGP_NETWORK_NAMESPACE + "\""
-        if (ProcessHelper.executeCommandLine(cmdLine).consoleOutput.size() > 0) {
-            // It already existed: delete it
-            cmdLine = "sudo ip netns delete " + BGP_NETWORK_NAMESPACE
-            log.debug("cmdLine: {}", cmdLine)
-            ProcessHelper.executeCommandLine(cmdLine)
-        }
-
-        // Create the network namespace
-        cmdLine = "sudo ip netns add " + BGP_NETWORK_NAMESPACE
         ProcessHelper.executeCommandLine(cmdLine)
 
         // Move the mirror interface inside the network namespace
@@ -632,6 +664,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // delete network namespace
         cmdLine = "sudo ip netns del " + BGP_NETWORK_NAMESPACE
         ProcessHelper.executeCommandLine(cmdLine)
+
+        log.debug("announcing BGPD_STATUS inactive")
+        context.system.eventStream.publish(
+            new BGPD_STATUS(rport.id, isActive = false))
 
         log.debug("stopBGP - end")
     }

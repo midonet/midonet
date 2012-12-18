@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.client.MidonetMgmt;
 import com.midokura.midonet.client.dto.DtoBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalBridgePort;
-import com.midokura.midonet.client.dto.DtoLogicalRouterPort;
+import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
+import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.dto.DtoRule;
 import com.midokura.midonet.client.resource.Bridge;
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
 @Ignore
 public class PortGroupTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
-    RouterPort<DtoLogicalRouterPort> rtrPort;
+    RouterPort<DtoInteriorRouterPort> rtrPort;
     MockMgmtStarter apiStarter;
     TapWrapper tap1;
     TapWrapper tap2;
@@ -108,9 +108,9 @@ public class PortGroupTest {
         // Build a router
         Router rtr =
             apiClient.addRouter().tenantId("pgroup_tnt").name("rtr1").create();
-        // Add a logical port to the router.
+        // Add a interior port to the router.
         rtrPort = rtr
-            .addLogicalRouterPort()
+            .addInteriorRouterPort()
             .portAddress(rtrIp.toUnicastString())
             .networkAddress(rtrIp.toNetworkAddress().toUnicastString())
             .networkLength(rtrIp.getMaskLength())
@@ -126,8 +126,8 @@ public class PortGroupTest {
         Bridge br =
             apiClient.addBridge().tenantId("pgroup_tnt").name("br").create();
         // Link the bridge to the router.
-        BridgePort<DtoLogicalBridgePort> logBrPort =
-            br.addLogicalPort().create();
+        BridgePort<DtoInteriorBridgePort> logBrPort =
+            br.addInteriorPort().create();
         rtrPort.link(logBrPort.getId());
 
         // A port group is basically a tag that can be attached to a vport.
@@ -172,7 +172,7 @@ public class PortGroupTest {
         secG2.addRule().type(DtoRule.Accept).position(3)
             .nwSrcAddress("10.2.2.0").nwSrcLength(24).create();
 
-        // Create the bridge's 1st materialized port. It's in Group1.
+        // Create the bridge's 1st exterior port. It's in Group1.
         RuleChain portOutChain1 = apiClient.addChain()
             .name("port1_out").tenantId("pgroup_tnt").create();
         log.debug("ChainID for port1_out is {}", portOutChain1.getId());
@@ -181,11 +181,11 @@ public class PortGroupTest {
         portOutChain1.addRule().type(DtoRule.Jump).position(2)
             .jumpChainName("SG1").jumpChainId(secG1.getId()).create();
         portOutChain1.addRule().type(DtoRule.Drop).position(3).create();
-        BridgePort<DtoBridgePort> brPort1 = br.addMaterializedPort()
-            .outboundFilterId(portOutChain1.getId())
-            .portGroupIDs(new UUID[] {portG1.getId()}).create();
+        BridgePort<DtoBridgePort> brPort1 = br.addExteriorPort()
+            .outboundFilterId(portOutChain1.getId()).create();
+        // XXX: Add the port to portG1 port group.
 
-        // The bridge's 2nd materialized port is in Group2.
+        // The bridge's 2nd exterior port is in Group2.
         RuleChain portOutChain2 = apiClient.addChain()
             .name("port2_out").tenantId("pgroup_tnt").create();
         log.debug("ChainID for port2_out is {}", portOutChain2.getId());
@@ -194,11 +194,11 @@ public class PortGroupTest {
         portOutChain2.addRule().type(DtoRule.Jump).position(2)
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain2.addRule().type(DtoRule.Drop).position(3).create();
-        BridgePort<DtoBridgePort> brPort2 = br.addMaterializedPort()
-            .outboundFilterId(portOutChain2.getId())
-            .portGroupIDs(new UUID[] {portG2.getId()}).create();
+        BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort()
+            .outboundFilterId(portOutChain2.getId()).create();
+        // XXX: Add the port to portG2 port group.
 
-        // The bridge's 3rd materialized port is in Group1 and Group2.
+        // The bridge's 3rd exterior port is in Group1 and Group2.
         RuleChain portOutChain3 = apiClient.addChain()
             .name("port3_out").tenantId("pgroup_tnt").create();
         log.debug("ChainID for port3_out is {}", portOutChain3.getId());
@@ -209,20 +209,19 @@ public class PortGroupTest {
         portOutChain3.addRule().type(DtoRule.Jump).position(3)
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
-        BridgePort<DtoBridgePort> brPort3 = br.addMaterializedPort()
-            .outboundFilterId(portOutChain3.getId())
-            .portGroupIDs(new UUID[] {portG1.getId(), portG2.getId()})
-            .create();
+        BridgePort<DtoBridgePort> brPort3 = br.addExteriorPort()
+            .outboundFilterId(portOutChain3.getId()).create();
+        // XXX: Add the port to portG1 and portG2 port groups.
 
-        // The bridge's 4th materialized port is not in any security groups.
-        BridgePort<DtoBridgePort> brPort4 = br.addMaterializedPort().create();
+        // The bridge's 4th exterior port is not in any security groups.
+        BridgePort<DtoBridgePort> brPort4 = br.addExteriorPort().create();
 
         tap1 = new TapWrapper("sgTap1");
         tap2 = new TapWrapper("sgTap2");
         tap3 = new TapWrapper("sgTap3");
         tap4 = new TapWrapper("sgTap4");
 
-        // Now bind the materialized ports to the taps.
+        // Now bind the exterior ports to the taps.
         log.debug("Getting host from REST API");
         ResourceCollection<Host> hosts = apiClient.getHosts();
 
@@ -263,7 +262,7 @@ public class PortGroupTest {
             assertTrue("The port should be active.", activeMsg.active());
             activatedPorts.add(activeMsg.portID());
         }
-        assertThat("The 4 materialized ports should be active.",
+        assertThat("The 4 exterior ports should be active.",
             activatedPorts,
             hasItems(brPort1.getId(), brPort2.getId(),
                 brPort3.getId(), brPort4.getId()));

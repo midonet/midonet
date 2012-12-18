@@ -991,9 +991,10 @@ class DatapathController() extends Actor with ActorLogging {
                             // port set.
                             var outPorts = set.localPorts
                             inPortUUID foreach { p => outPorts -= p }
-                            log.info("inPort: {}", inPortUUID)
-                            log.info("local ports: {}", set.localPorts)
-                            log.info("local ports minus inPort: {}", outPorts)
+                            log.debug("Flooding on bridge {}. inPort: {}, " +
+                                "local bridge ports: {}, " +
+                                "remote hosts having ports on this bridge: {}",
+                                br.id, inPortUUID, set.localPorts, set.hosts)
                             // add tag for flow invalidation
                             dpTags foreach { tags =>
                                 tags += FlowTagger.invalidateBroadcastFlows(
@@ -1325,9 +1326,7 @@ class DatapathController() extends Actor with ActorLogging {
                                         portSet.id, wMatch,
                                         { portIDs =>
                                           val tags = mutable.Set[Any]()
-                                          addTaggedFlow(new WildcardMatch()
-                                                .setTunnelID(wMatch.getTunnelID)
-                                                .setInputPort(port),
+                                          addTaggedFlow(wMatch,
                                              translateToDpPorts(List(action),
                                                 portSet.id,
                                                 portsForLocalPorts(portIDs),

@@ -37,11 +37,11 @@ public class Condition {
     public boolean nwSrcInv;
     public IntIPv4 nwDstIp;
     public boolean nwDstInv;
-    public Short tpSrcStart;
-    public Short tpSrcEnd;
+    public int tpSrcStart;
+    public int tpSrcEnd;
     public boolean tpSrcInv;
-    public Short tpDstStart;
-    public Short tpDstEnd;
+    public int tpDstStart;
+    public int tpDstEnd;
     public boolean tpDstInv;
 
     // Default constructor for the Jackson deserialization.
@@ -132,21 +132,21 @@ public class Condition {
         return negate? !cond : cond;
     }
 
-    private boolean matchRange(Short start, Short end, Short pktField,
+    private boolean matchRange(int start, int end, Integer pktField,
                                boolean negate) {
         // Packet is considered to match if the condField is not specified.
-        if (null == start && null == end)
+        if (start == 0 && end == 0)
             return true;
         boolean cond = false;
         if (null != pktField) {
             cond = true;
             // If the lower bound of the range is specified and the pkt field
             // is below it, the condition is false.
-            if (null != start && unsign(pktField) < unsign(start))
+            if (start != 0 && unsign(pktField) < start)
                 cond = false;
             // If the upper bound of the range is specified and the pkt field
             // is above it, the condition is false.
-            if (null != end && unsign(end) < unsign(pktField))
+            if (end != 0 && end < unsign(pktField))
                 cond = false;
         }
         return negate? !cond : cond;
@@ -219,13 +219,13 @@ public class Condition {
             if(nwDstInv)
                 sb.append("nwDstInv").append(nwDstInv).append(",");
         }
-        if (null != tpSrcStart || null != tpSrcEnd) {
+        if (0 != tpSrcStart || 0 != tpSrcEnd) {
             sb.append("tpSrcStart=").append(tpSrcStart).append(",");
             sb.append("tpSrcEnd=").append(tpSrcEnd).append(",");
             if(tpSrcInv)
                 sb.append("tpSrcInv").append(tpSrcInv).append(",");
         }
-        if (null != tpDstStart || null != tpDstEnd) {
+        if (0 != tpDstStart || 0 != tpDstEnd) {
             sb.append("tpDstStart=").append(tpDstStart).append(",");
             sb.append("tpDstEnd=").append(tpDstEnd).append(",");
             if(tpDstInv)
@@ -277,13 +277,13 @@ public class Condition {
             return false;
         if (portGroup != null ? !portGroup.equals(condition.portGroup) : condition.portGroup != null)
             return false;
-        if (tpDstEnd != null ? !tpDstEnd.equals(condition.tpDstEnd) : condition.tpDstEnd != null)
+        if (tpDstEnd != 0 ? !(tpDstEnd == condition.tpDstEnd) : condition.tpDstEnd != 0)
             return false;
-        if (tpDstStart != null ? !tpDstStart.equals(condition.tpDstStart) : condition.tpDstStart != null)
+        if (tpDstStart != 0 ? !(tpDstStart == condition.tpDstStart) : condition.tpDstStart != 0)
             return false;
-        if (tpSrcEnd != null ? !tpSrcEnd.equals(condition.tpSrcEnd) : condition.tpSrcEnd != null)
+        if (tpSrcEnd != 0 ? !(tpSrcEnd == condition.tpSrcEnd) : condition.tpSrcEnd != 0)
             return false;
-        if (tpSrcStart != null ? !tpSrcStart.equals(condition.tpSrcStart) : condition.tpSrcStart != null)
+        if (tpSrcStart != 0 ? !(tpSrcStart == condition.tpSrcStart) : condition.tpSrcStart != 0)
             return false;
 
         return true;
@@ -314,11 +314,11 @@ public class Condition {
         result = 31 * result + (nwSrcInv ? 1 : 0);
         result = 31 * result + (nwDstIp != null ? nwDstIp.hashCode() : 0);
         result = 31 * result + (nwDstInv ? 1 : 0);
-        result = 31 * result + (tpSrcStart != null ? tpSrcStart.hashCode() : 0);
-        result = 31 * result + (tpSrcEnd != null ? tpSrcEnd.hashCode() : 0);
+        result = 31 * result + tpSrcStart;
+        result = 31 * result + tpSrcEnd;
         result = 31 * result + (tpSrcInv ? 1 : 0);
-        result = 31 * result + (tpDstStart != null ? tpDstStart.hashCode() : 0);
-        result = 31 * result + (tpDstEnd != null ? tpDstEnd.hashCode() : 0);
+        result = 31 * result + tpDstStart;
+        result = 31 * result + tpDstEnd;
         result = 31 * result + (tpDstInv ? 1 : 0);
         return result;
     }

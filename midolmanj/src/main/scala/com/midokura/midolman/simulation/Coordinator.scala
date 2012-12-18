@@ -2,7 +2,7 @@
 
 package com.midokura.midolman.simulation
 
-import collection.{Set => ROSet, mutable}
+import collection.mutable
 import collection.JavaConversions._
 import compat.Platform
 import java.util.concurrent.TimeoutException
@@ -14,7 +14,8 @@ import akka.pattern.ask
 import akka.util.duration._
 
 import com.midokura.cache.Cache
-import com.midokura.midolman.{DatapathController, FlowController}
+import com.midokura.midolman.{DatapathController, FlowController,
+                              SimulationController}
 import com.midokura.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import com.midokura.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
@@ -22,8 +23,9 @@ import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.topology._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
     ChainRequest, RouterRequest, PortRequest}
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{Ethernet, TCP, UDP}
+import com.midokura.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
 import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.midolman.DatapathController.SendPacket
@@ -115,8 +117,8 @@ class Coordinator(val origMatch: WildcardMatch,
     private var numDevicesSimulated = 0
     private val devicesSimulated = mutable.Map[UUID, Int]()
     private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
-                                       connectionCache)
-    pktContext.setMatch(origMatch.clone)
+            connectionCache, generatedPacketEgressPort.isDefined)
+    pktContext.setMatch(origMatch)
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
         // If the packet is from the datapath, install a temporary Drop flow.
@@ -182,7 +184,8 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(temporary = true)
 
                     case id: UUID =>
-                        packetIngressesPort(id, true)
+                        if (!dropFragmentedPackets(id))
+                            packetIngressesPort(id, getPortGroups = true)
                 }
 
             case Some(egressID) =>
@@ -200,6 +203,69 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(temporary = true)
                 }
         }
+    }
+
+    private def dropFragmentedPackets(inPort: UUID): Boolean = {
+        origMatch.getIpFragmentType match {
+            case IPFragmentType.First =>
+                origMatch.getEtherType.shortValue match {
+                    case IPv4.ETHERTYPE =>
+                        sendIpv4FragNeeded(inPort)
+                        dropFlow(temporary = true)
+
+                    case ethertype =>
+                        log.info("Dropping fragmented packet of unsupported " +
+                                 "ethertype={}", ethertype)
+                        dropFlow(temporary = false)
+                }
+                true
+            case IPFragmentType.Later =>
+                log.info("Dropping non-first fragment at simulation layer")
+                val wMatch = new WildcardMatch().
+                    setIpFragmentType(IPFragmentType.Later)
+                val wFlow = new WildcardFlow().setMatch(wMatch)
+                datapathController.tell(
+                    AddWildcardFlow(wFlow, None, null, null, null))
+                true
+            case _ =>
+                false
+        }
+    }
+
+    private def sendIpv4FragNeeded(inPort: UUID) {
+        val origPkt: IPv4 = origEthernetPkt.getPayload match {
+            case ip: IPv4 => ip
+            case _ => null
+        }
+
+        if (origPkt == null)
+            return
+
+        /* Certain versions of Linux try to guess a lower MTU value if the MTU
+         * suggested by the ICMP FRAG_NEEDED error is equal or bigger than the
+         * size declared in the IP header found in the ICMP data. This happens
+         * when it's the sender host who is fragmenting.
+         *
+         * In those cases, we can at least prevent the sender from lowering
+         * the PMTU by increasing the length in the IP header.
+         */
+        val mtu = origPkt.getTotalLength
+        origPkt.setTotalLength(mtu + 1)
+        origPkt.setChecksum(0)
+
+        val icmp = new ICMP()
+        icmp.setFragNeeded(mtu, origPkt)
+        val ip = new IPv4()
+        ip.setPayload(icmp)
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
+        ip.setSourceAddress(origPkt.getDestinationAddress)
+        ip.setDestinationAddress(origPkt.getSourceAddress)
+        val eth = new Ethernet()
+        eth.setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(ip)
+        eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
+        eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
+        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(inPort, eth)
     }
 
     private def packetIngressesDevice(port: Port[_]) {
@@ -224,12 +290,6 @@ class Coordinator(val origMatch: WildcardMatch,
                     log.error("VirtualTopologyManager didn't return a device!")
                     dropFlow(temporary = true)
                 } else {
-                    pktContext.setInputPort(port.id)
-                    if(numDevicesSimulated == 0 && !generatedPacketEgressPort.isDefined) {
-                        // add ingressFE only at the beginning of the simulation
-                        // and only if it's not a generated packet
-                        pktContext.setIngressFE(port.deviceID)
-                    }
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",
@@ -357,6 +417,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             port.asInstanceOf[ExteriorPort[_]].portGroups)
                     }
 
+                    pktContext.setInputPort(port)
                     applyPortFilter(port, port.inFilterID,
                                     packetIngressesDevice _)
                     // add tag for flow invalidation
@@ -377,7 +438,6 @@ class Coordinator(val origMatch: WildcardMatch,
             case Left(err) => dropFlow(temporary = true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
-                    pktContext.setInputPort(null).setOutputPort(null)
                     // add ChainID for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
                     pktContext.addFlowTag(
@@ -415,6 +475,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 case port: Port[_] =>
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+                    pktContext.setOutputPort(port.id)
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
                             emit(portID, false, port)
@@ -495,6 +556,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         flowMatch.getTransportSource(),
                         flowMatch.getNetworkProtocol(),
                         deviceID)
+        log.debug("Installing conntrack entry: key:{}", key)
         connectionCache.set(key, "r")
     }
 

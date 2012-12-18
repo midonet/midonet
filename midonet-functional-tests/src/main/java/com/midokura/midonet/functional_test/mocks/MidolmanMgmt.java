@@ -19,23 +19,23 @@ public interface MidolmanMgmt {
 
     void updatePort(DtoPort p);
 
-    void linkRouterToPeer(DtoLogicalRouterPort peerPort);
+    void linkRouterToPeer(DtoInteriorRouterPort peerPort);
 
-    DtoMaterializedRouterPort addMaterializedRouterPort(DtoRouter r,
-                                                        DtoMaterializedRouterPort p);
+    DtoExteriorRouterPort addExteriorRouterPort(DtoRouter r,
+                                                DtoExteriorRouterPort p);
 
-    DtoLogicalRouterPort addLogicalRouterPort(DtoRouter r,
-                                              DtoLogicalRouterPort p);
+    DtoInteriorRouterPort addInteriorRouterPort(DtoRouter r,
+                                              DtoInteriorRouterPort p);
 
-    DtoBridgePort addMaterializedBridgePort(DtoBridge b,
+    DtoBridgePort addExteriorBridgePort(DtoBridge b,
                                             DtoBridgePort p);
 
-    DtoLogicalBridgePort addLogicalBridgePort(DtoBridge b,
-                                              DtoLogicalBridgePort p);
+    DtoInteriorBridgePort addInteriorBridgePort(DtoBridge b,
+                                              DtoInteriorBridgePort p);
 
     DtoRoute addRoute(DtoRouter r, DtoRoute rt);
 
-    DtoBgp addBGP(DtoMaterializedRouterPort p, DtoBgp b);
+    DtoBgp addBGP(DtoExteriorRouterPort p, DtoBgp b);
 
     <T> T get(String path, Class<T> clazz);
 
@@ -49,7 +49,7 @@ public interface MidolmanMgmt {
 
     DtoRule addRule(DtoRuleChain chain, DtoRule rule);
 
-    DtoVpn addVpn(DtoMaterializedRouterPort p, DtoVpn vpn);
+    DtoVpn addVpn(DtoExteriorRouterPort p, DtoVpn vpn);
 
     DtoDhcpSubnet addDhcpSubnet(DtoBridge dtoBridge, DtoDhcpSubnet dhcpSubnet);
 
