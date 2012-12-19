@@ -14,9 +14,8 @@ to represent an internet address.
 There are some legacy uses of `int` in the codebase also, but that is rare.
 
  * Make a trait (interface) `IPAddr` in `com.midokura.packets`, with two
-	implementations, `IPv4Addr` and `IPv6Addr`.  It may also be desirable
-	to split out a parallel trait for IP subnets,
- 	`IPSubnet`/`IPv4Subnet`/`IPv6Subnet`.
+	implementations, `IPv4Addr` and `IPv6Addr` and a parallel trait for
+        IP subnets, `IPSubnet`/`IPv4Subnet`/`IPv6Subnet`.
  * For parsing IPv6 packets, we'll have to make an `IPv6` class in
 	`com.midokura.packets`.  IPv6 can have several layer 3 payloads
 	until it gets to layer 4, which can even be hidden by IPSec.  We
@@ -42,6 +41,10 @@ packets.)
 
  * For the address range checks (eg, for IPv4 multicast), also check
 	IPv6 addresses against the IPv6 ranges.
+ * For `Chain` predicates, be able to match on IPv6 address as well as IPv4
+        address.  We may want a check for the unsatisfiable condition of
+        matching both an IPv6 address and an IPv4 address in a conjunctive
+        ("and"-type) predicate.
  * The `Port` types which have an address associated will need to support
         having multiple addresses (eg, IPv4 global address, IPv6 link-local
         address, IPv6 global address).  This means there will have to be
