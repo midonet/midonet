@@ -1947,6 +1947,23 @@ isolated zone for tunneling. It contains the following fields:
     PUT     /tunnel_zones/:tunnelZoneId/hosts/:hostId
     DELETE  /tunnel_zones/:tunnelZoneId/hosts/:hostId
 
+Especially the following two `GET` requests are allowed to specify the media types to filter the responses.
+
+    GET     /tunnel_zones/:tunnelZoneId/hosts
+    GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
+
+The media types below are available for each URI:
+
+* `"application/vnd.com.midokura.midolman.mgmt.collection.CapwapTunnelZoneHost+json"`
+* `"application/vnd.com.midokura.midolman.mgmt.collection.GreTunnelZoneHost+json"`
+* `"application/vnd.com.midokura.midolman.mgmt.collection.IpsecTunnelZoneHost+json"`
+
+and
+
+* `"application/vnd.com.midokura.midolman.mgmt.CapwapTunnelZoneHost+json"`
+* `"application/vnd.com.midokura.midolman.mgmt.GreTunnelZoneHost+json"`
+* `"application/vnd.com.midokura.midolman.mgmt.IpsecTunnelZoneHost+json"`
+
 Represents a host's membership in a tunnel zone:
 
 <table>
