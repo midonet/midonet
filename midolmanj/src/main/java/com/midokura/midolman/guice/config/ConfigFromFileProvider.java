@@ -27,9 +27,11 @@ public class ConfigFromFileProvider implements Provider<ConfigProvider> {
     @Override
     public ConfigProvider get() {
         try {
-            return
-                ConfigProvider.providerForIniConfig(
-                    new HierarchicalINIConfiguration(configFilePath));
+            HierarchicalINIConfiguration config = new HierarchicalINIConfiguration();
+            config.setDelimiterParsingDisabled(true);
+            config.setFileName(configFilePath);
+            config.load();
+            return ConfigProvider.providerForIniConfig(config);
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
         }
