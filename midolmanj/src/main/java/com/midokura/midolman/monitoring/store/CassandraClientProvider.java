@@ -7,17 +7,17 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.config.MidolmanConfig;
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 
 /**
  * Providers CassandraClient
  */
 public class CassandraClientProvider implements Provider<CassandraClient> {
 
-    private final MidolmanConfig config;
+    private final MonitoringConfiguration config;
 
     @Inject
-    public CassandraClientProvider(MidolmanConfig config) {
+    public CassandraClientProvider(MonitoringConfiguration config) {
         this.config = config;
     }
 

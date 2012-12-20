@@ -3,10 +3,11 @@
 */
 package com.midokura.midolman.monitoring.config;
 
+import com.midokura.config.ConfigBool;
 import com.midokura.config.ConfigGroup;
 import com.midokura.config.ConfigInt;
-import com.midokura.config.ConfigBool;
 import com.midokura.config.ConfigString;
+import com.midokura.midolman.config.CassandraConfig;
 
 /**
  * Interface that explains properly all the parameters that we are expecting
@@ -16,7 +17,7 @@ import com.midokura.config.ConfigString;
  *         Date: 5/30/12
  */
 @ConfigGroup(MonitoringConfiguration.GROUP_NAME)
-public interface MonitoringConfiguration {
+public interface MonitoringConfiguration extends CassandraConfig {
 
     public final static String GROUP_NAME = "monitoring";
 
