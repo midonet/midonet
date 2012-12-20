@@ -15,5 +15,5 @@ system. It is explained at length inside the [Metrics & Monitoring document](mon
 ### BGP Service
 
 This component provides sets of interfaces for interacting with an external
-service which handles speaking BGP (border gateway protocol).  It is explained
+program which handles speaking BGP (border gateway protocol).  It is explained
 at length in the [BGP document](midolman-bgp.md).
