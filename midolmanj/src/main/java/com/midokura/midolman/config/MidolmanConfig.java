@@ -7,6 +7,7 @@ import com.midokura.config.ConfigBool;
 import com.midokura.config.ConfigGroup;
 import com.midokura.config.ConfigInt;
 import com.midokura.config.ConfigString;
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 
 /**
  * Configuration entries belonging to the midolman stanza.
@@ -16,8 +17,8 @@ import com.midokura.config.ConfigString;
  */
 @ConfigGroup(MidolmanConfig.GROUP_NAME)
 public interface MidolmanConfig
-    extends ZookeeperConfig,
-            CassandraConfig, DatapathConfig, ArpTableConfig
+    extends ZookeeperConfig, CassandraConfig, DatapathConfig,
+            ArpTableConfig, MonitoringConfiguration
 {
     public final static String GROUP_NAME = "midolman";
 
@@ -38,9 +39,6 @@ public interface MidolmanConfig
 
     @ConfigString(key = "top_level_actors_supervisor", defaultValue = "resume")
     public String getMidolmanTopLevelActorsSupervisor();
-
-    @ConfigBool(key = "enable_monitoring", defaultValue = true)
-    public boolean getMidolmanEnableMonitoring();
 
     @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
