@@ -17,7 +17,7 @@ we use Hector to handle automatic failover of Cassandra servers, and
 Hector provides only synchronous methods.
 
 Outside of the network simulation itself, the most common technique for
-asynchronous programming it to use callbacks.  This works by passing
+asynchronous programming is to use callbacks.  This works by passing
 a callback object to the asynchronous call.  Conceptually, the next part 
 of the computation consists of the callback's body.  The call will stash the
 callback and immediately return with its task undone, but in progress or
