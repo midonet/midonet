@@ -5,7 +5,7 @@
     <groupId>com.midokura</groupId>
     <artifactId>midonet-parent</artifactId>
     <packaging>pom</packaging>
-    <version>12.12.1-SNAPSHOT</version>
+    <version>12.12.1</version>
     <name>Midokura MidoNet aggregator project</name>
 
     <modules>
@@ -156,5 +156,13 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${versions.scala.library}</version>
+        </dependency>
+    </dependencies>
 
 </project>
