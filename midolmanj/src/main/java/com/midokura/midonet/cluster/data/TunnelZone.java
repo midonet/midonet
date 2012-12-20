@@ -82,6 +82,20 @@ public abstract class TunnelZone<
             return getData().ip;
         }
 
+        @Override
+        public int hashCode() {
+            return getData().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            HostConfig hostConfig = (HostConfig) o;
+            return getData().equals(hostConfig.getData());
+        }
+
         public static class Data {
             IntIPv4 ip;
 
