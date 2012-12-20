@@ -4,39 +4,40 @@
 
 package com.midokura.midolman
 
-import akka.testkit.TestProbe
-import akka.util.Duration
-import collection.JavaConversions._
-import collection.immutable.HashMap
-import collection.mutable
+import scala.collection.mutable
+import scala.collection.immutable.HashMap
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
+import akka.util.Duration
+import akka.testkit.TestProbe
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent,
-    PacketIn, TunnelChangeEvent}
-import com.midokura.midolman.FlowController.{AddWildcardFlow,
-    InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
-import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
-import com.midokura.midolman.layer3.Route
-import com.midokura.midolman.layer3.Route.NextHop
-import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
-import com.midokura.midolman.topology.RouterManager.RouterInvTrieTagCountModified
-import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
-import com.midokura.midolman.util.{TestHelpers, RouterHelper}
+import com.midokura.odp.Datapath
+import com.midokura.odp.flows.{FlowActions, FlowAction}
+import com.midokura.odp.ports.GreTunnelPort
+import com.midokura.packets.{IntIPv4, MAC}
+import com.midokura.sdn.flows.{WildcardMatch, WildcardFlow}
 import com.midokura.midonet.cluster.data.Router
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
 import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import com.midokura.odp.Datapath
-import com.midokura.odp.flows.{FlowAction, FlowActions}
-import com.midokura.odp.ports.GreTunnelPort
-import com.midokura.packets.{IntIPv4, MAC}
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
-
+import com.midokura.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent, PacketIn}
+import com.midokura.midolman.DatapathController.PacketIn
+import com.midokura.midolman.FlowController.AddWildcardFlow
+import com.midokura.midolman.FlowController.WildcardFlowAdded
+import com.midokura.midolman.FlowController.WildcardFlowRemoved
+import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.midolman.datapath.FlowActionOutputToVrnPortSet
+import com.midokura.midolman.layer3.Route
+import com.midokura.midolman.layer3.Route.NextHop
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
+import com.midokura.midolman.topology.VirtualToPhysicalMapper.GreZoneMembers
+import com.midokura.midolman.topology.{FlowTagger, LocalPortActive}
+import com.midokura.midolman.util.{TestHelpers, RouterHelper}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders
@@ -243,7 +244,7 @@ with RouterHelper{
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
 
-        fishForReplyOfType[GreTunnelZone](vtpProbe())
+        fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.

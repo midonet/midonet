@@ -92,7 +92,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         tzRequest.zoneId should be === greZone.getId
 
-        fishForReplyOfType[GreTunnelZone](vtpProbe())
+        fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the creation event for the tunnel was fired.

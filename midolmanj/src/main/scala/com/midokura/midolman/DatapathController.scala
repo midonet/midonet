@@ -592,15 +592,34 @@ class DatapathController() extends Actor with ActorLogging {
         }
         initializer ! InitializationComplete()
         log.info("Process the host's zones and vport bindings.")
-        doDatapathPortsUpdate
+        doDatapathPortsUpdate()
     }
 
-    private def processNextHost {
+    private def processNextHost() {
         if (null != nextHost && pendingUpdateCount == 0) {
+            val oldZones = host.zones
+            val newZones = nextHost.zones
+
             host = nextHost
             nextHost = null
-            doDatapathPortsUpdate
-            doDatapathZonesReply(host.zones)
+
+            doDatapathPortsUpdate()
+            doDatapathZonesUpdate(oldZones, newZones)
+        }
+    }
+
+    private def doDatapathZonesUpdate(
+            oldZones: Map[UUID, TZHostConfig[_, _]],
+            newZones: Map[UUID, TZHostConfig[_, _]]) {
+        val dropped = oldZones.keySet.diff(newZones.keySet)
+        for (zone <- dropped) {
+            VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone)
+            dropTunnelsInZone(zone)
+        }
+
+        val added = newZones.keySet.diff(oldZones.keySet)
+        for (zone <- added) {
+            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
         }
     }
 
@@ -621,16 +640,19 @@ class DatapathController() extends Actor with ActorLogging {
 
         case h: Host =>
             this.nextHost = h
-            processNextHost
+            processNextHost()
 
-        case zone: TunnelZone[_, _] =>
-            if (!host.zones.contains(zone.getId)) {
-                zones.remove(zone.getId)
-                VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone.getId)
-                log.debug("Removing zone {}", zone)
+        case zoneMembers: ZoneMembers[_] =>
+            if (!host.zones.contains(zoneMembers.zone)) {
+                log.debug("Got ZoneMembers for zone:{} but I'm no " +
+                    "longer subscribed", zoneMembers.zone)
             } else {
-                zones.put(zone.getId, zone)
-                log.debug("Adding zone {}", zone)
+                log.debug("ZoneMembers: {}", zoneMembers)
+                for (member <- zoneMembers.members) {
+                    handleZoneChange(zoneMembers.zone,
+                                     member.asInstanceOf[TZHostConfig[_,_]],
+                                     HostConfigOperation.Added)
+                }
             }
 
         case m: ZoneChanged[_] =>
@@ -808,72 +830,63 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     def handleZoneChange(m: ZoneChanged[_]) {
+        val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
+        handleZoneChange(m.zone, hostConfig, m.op)
+    }
+
+    def handleZoneChange(zone: UUID,
+                         hostConfig: TZHostConfig[_,_],
+                         op: HostConfigOperation.Value) {
         def _closeTunnel[HostType <: TZHostConfig[_,_]](peerConf: HostType) {
             peerToTunnels.get(peerConf.getId).foreach {
-                mapping => mapping.get(m.zone).foreach {
+                mapping => mapping.get(zone).foreach {
                     case tunnelPort: Port[_,_] =>
                         log.debug("Need to close the tunnel with name: {}",
                             tunnelPort.getName)
-                        deleteDatapathPort(self, tunnelPort, Some((peerConf, m.zone)))
+                        deleteDatapathPort(self, tunnelPort, Some((peerConf, zone)))
                 }
             }
         }
 
         def _openTunnel[HostType <: TZHostConfig[_,_]](peerConf: HostType) {
-            val myConfig = host.zones(m.zone)
+            val myConfig = host.zones(zone)
             val tunnelPort = newTunnelPort(myConfig, peerConf)
             tunnelPort.setOptions()
             val options = tunnelPort.getOptions.asInstanceOf[TunnelPortOptions[_]]
             options.setSourceIPv4(myConfig.getIp.addressAsInt())
             options.setDestinationIPv4(peerConf.getIp.addressAsInt())
-            createDatapathPort(self, tunnelPort, Some((peerConf, m.zone)))
+            createDatapathPort(self, tunnelPort, Some((peerConf, zone)))
         }
 
-        val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
+        if (hostConfig.getId == host.id)
+            return
+        if (!host.zones.contains(zone))
+            return
 
-        if (!zones.contains(m.zone)) {
-            log.debug("a zone changed that this host does not belong to, " +
-                      "unsubscribing and ignoring")
-            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
-        } else if (hostConfig.getId == host.id &&
-                   m.op == HostConfigOperation.Deleted) {
-            VirtualToPhysicalMapper.getRef ! TunnelZoneUnsubscribe(m.zone)
-            dropTunnelsInZone(m.zone)
-            zones.remove(m.zone)
-        } else if (hostConfig.getId != host.id && zones.contains(m.zone)) {
-            m match {
-                case GreZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
-                    log.info("Opening a tunnel port to {}", m.hostConfig)
-                    _openTunnel(peerConf)
+        hostConfig match {
+            case peer: GreTunnelZoneHost if op == HostConfigOperation.Added =>
+                log.info("Opening a tunnel port to {}", hostConfig)
+                _openTunnel(peer)
 
-                case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Added) =>
-                    log.info("Opening a tunnel port to {}", m.hostConfig)
-                    _openTunnel(peerConf)
+            case peer: CapwapTunnelZoneHost if op == HostConfigOperation.Added =>
+                log.info("Opening a tunnel port to {}", hostConfig)
+                _openTunnel(peer)
 
-                case GreZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
-                    log.info("Closing a tunnel port to {}", m.hostConfig)
-                    _closeTunnel(peerConf)
+            case peer: GreTunnelZoneHost if op == HostConfigOperation.Deleted =>
+                log.info("Closing a tunnel port to {}", hostConfig)
+                _closeTunnel(peer)
 
-                case CapwapZoneChanged(zone, peerConf, HostConfigOperation.Deleted) =>
-                    log.info("Closing a tunnel port to {}", m.hostConfig)
-                    _closeTunnel(peerConf)
+            case peer: CapwapTunnelZoneHost if op == HostConfigOperation.Deleted =>
+                log.info("Closing a tunnel port to {}", hostConfig)
+                _closeTunnel(peer)
 
-                case _ =>
-
-            }
-        }
-    }
-
-    def doDatapathZonesReply(newZones: immutable.Map[UUID, TZHostConfig[_, _]]) {
-        log.debug("Local Zone list updated {}", newZones)
-        for (zone <- newZones.keys) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
+            case _ =>
         }
     }
 
     def dropTunnelsInZone(zoneId: UUID) {
-        log.info("dropping all tunnels in zone: {}", zoneId)
         zonesToTunnels.get(zoneId) foreach { tunnels =>
+            log.info("dropping all tunnels in zone: {}", zoneId)
             for (port <- tunnels) {
                 tunnelsToHosts.get(port.getPortNo) match {
                     case Some(tzhost: GreTunnelZoneHost) =>
@@ -1543,7 +1556,7 @@ class DatapathController() extends Actor with ActorLogging {
             if (!initialized)
                 completeInitialization
             else
-                processNextHost
+                processNextHost()
         }
     }
 
@@ -1551,7 +1564,7 @@ class DatapathController() extends Actor with ActorLogging {
      * Avoid calling this when there are already pending updates.
      * Don't call this during initialization.
      */
-    private def doDatapathPortsUpdate {
+    private def doDatapathPortsUpdate() {
         val ports: Map[UUID, String] = host.ports
         log.info("Migrating local datapath to configuration {}", ports)
         log.info("Current known local ports: {}", localDatapathPorts)
@@ -1602,7 +1615,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         log.info("Pending updates {}", pendingUpdateCount)
         if (pendingUpdateCount == 0)
-                processNextHost
+                processNextHost()
     }
 
     def createDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {

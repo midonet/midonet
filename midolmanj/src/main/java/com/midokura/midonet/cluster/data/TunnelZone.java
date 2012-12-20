@@ -8,9 +8,6 @@ import com.midokura.packets.IntIPv4;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
-/**
- *
- */
 public abstract class TunnelZone<
     Zone extends TunnelZone<Zone, ZoneData>,
     ZoneData extends TunnelZone.Data
