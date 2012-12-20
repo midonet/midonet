@@ -1,27 +1,40 @@
 ## Organization of the project
 
-The **MidoNet** project is split into 4 submodules:
+The **MidoNet** project is split into several submodules:
+
+### packets
+
+This holds basic classes for parsing, building, and manipulating packets
+of various network protocol types.
 
 ### midokura-util
 
-It contains basic utilities used by the other modules. For a more detailed
-explanation please consult the following file.
-
-Description of the module [contents](docs/midokura-util.md).
+Contains basic utilities used by the other modules, and is described
+[here](docs/midokura-util.md).
 
 ### midolmanj
 
-Contains the *MidoNet* edge controller code.
-
-Description of the module [contents](docs/midolmanj.md).
+Contains the *MidoNet* edge controller code, as described [here](docs/midolmanj.md).
 
 ### midolmanj-mgmt
 
 Contains the implementation of the *MidoNet* REST API.
 
+### netlink
+
+Code for speaking the netlink protocol over a netlink socket, generally
+for communicating with the OS kernel.
+
+### odp
+
+Code for interacting (receiving notifications and sending commands) to
+the kernel's Open Datapath module.
+
 ### midonet-functional-tests
 
-Contains a set of functional tests that validate the basic functionality of *MidoNet*.
+Contains a set of functional tests that validate the basic functionality of
+*MidoNet*.  There is significant setup needed to create an environment where
+the functional tests can run.
 
 ## Building the project
 ### Complete build
@@ -29,7 +42,6 @@ Contains a set of functional tests that validate the basic functionality of *Mid
     ~/midonet$ mvn
 
 This will build all the modules while running all the tests from all the modules.
-This requires that the *functional tests environment* is already set-up on the machine.
 
 ### Complete build (skipping the tests)
 
@@ -102,13 +114,6 @@ The port fowarding ensure that the local controller can communicate with remote
 services and viceversa and the remote execution ensure that what we want to be
 executed and needs access to the remote machine actually has access to it by the
 virtue of being executed remotely.
-
-## Subsystems documentation
-
-### Metrics & Monitoring subsystem.
-
-See the [Metrics & Monitoring document](docs/monitoring.md) for details on the
-metrics monitoring subsystem.
 
 ## Intellij Tips
 If you use Intellij the following variables can be useful
