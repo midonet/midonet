@@ -5,18 +5,19 @@ package com.midokura.midolman.monitoring.store;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
+import com.midokura.midolman.config.MidolmanConfig;
 
 /**
  * Providers CassandraClient
  */
 public class CassandraClientProvider implements Provider<CassandraClient> {
 
-    private final MonitoringConfiguration config;
+    private final MidolmanConfig config;
 
     @Inject
-    public CassandraClientProvider(MonitoringConfiguration config) {
+    public CassandraClientProvider(MidolmanConfig config) {
         this.config = config;
     }
 
@@ -27,7 +28,7 @@ public class CassandraClientProvider implements Provider<CassandraClient> {
                 config.getCassandraCluster(),
                 config.getMonitoringCassandraKeyspace(),
                 config.getMonitoringCassandraColumnFamily(),
-                config.getMonitoringCassandraReplicationFactor(),
+                config.getCassandraReplicationFactor(),
                 config.getMonitoringCassandraExpirationTimeout()
         );
     }
