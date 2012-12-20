@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>12.12.1</version>
+        <version>12.12.2-SNAPSHOT</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>12.12.1</version>
+    <version>12.12.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <artifactId>midolmanj</artifactId>
@@ -617,13 +617,13 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-util</artifactId>
-            <version>12.12.1</version>
+            <version>12.12.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midokura-jdk-bootstrap</artifactId>
-            <version>12.12.1</version>
+            <version>12.12.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
