@@ -1,11 +1,20 @@
 ## Introduction
 
-Midolmanj is the controller for the *MidoNet* SDN system.
+Midolman is the controller for the *MidoNet* SDN system.  The core function
+of Midolman is to receive notifications of new, unhandled network flows
+(generally TCP connections) from the kernel's Open Datapath (ODP) module
+and instruct the kernel how to handle them.  The datapath communication is
+described in the [flow installation document](flow-installation.md).  To
+figure out how to handle the flows, Midolman runs a simulation of the MidoNet
+virtual topology, described in [the design overview](design-overview.md).
+The state of the virtual network is kept in actors, and made available to
+other actors running the simulations in RCU copies, as described in the
+[actor model](actors-model.md).
 
 ## Subsystems
 
-There are multiple logical components inside the *MidoNet* controller that are
-discussed below
+There are multiple logical components of Midolman not directly related to
+the network simulation discussed below.
 
 ### Monitoring
 
