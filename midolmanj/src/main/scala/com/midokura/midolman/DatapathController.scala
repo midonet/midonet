@@ -791,7 +791,7 @@ class DatapathController() extends Actor with ActorLogging {
             source: HostType, target: HostType): Port[_,_] = {
         source match {
             case capwap: CapwapTunnelZoneHost =>
-                val name = "tncpw%08X" format source.getIp.addressAsInt()
+                val name = "tncpw%08X" format target.getIp.addressAsInt()
                 Ports.newCapwapTunnelPort(name)
             case gre: GreTunnelZoneHost =>
                 val name = "tngre%08X" format target.getIp.addressAsInt()
