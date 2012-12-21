@@ -37,7 +37,6 @@ import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, Material
 import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions, FlowAction}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
-//import com.midokura.util.process.ProcessHelper
 
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
@@ -81,7 +80,9 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        var testString = ("ifconfig" #| "grep -w inet" #| "grep -vw 127.0.0.1" #| "sed -n 1p" #| "cut -d: -f2").!!
+        var cmdline = "ifconfig | grep -w inet | grep -vw 127.0.0.1 | sed -n 1p | cut -d: -f2"
+        var testString = Seq("sh", "-c", cmdline).!!
+        //var testString = ("ifconfig" #| "grep -w inet" #| "grep -vw 127.0.0.1" #| "sed -n 1p" #| "cut -d: -f2").!!
         log.debug("testString is {}", testString)
 
         var strArray : Array[String] = testString.split("  ")
@@ -90,7 +91,9 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         log.debug("ipString is {}", ipString)
 
-        testString = ("ifconfig" #| "grep -w MTU" #| "grep -vw LOOPBACK" #| "sed -n 1p" #| "cut -d: -f2").!!
+        cmdline = "ifconfig | grep -w MTU | grep -vw LOOPBACK | sed -n 1p | cut -d: -f2"
+        testString = Seq("sh", "-c", cmdline).!!
+        //testString = ("ifconfig" #| "grep -w MTU" #| "grep -vw LOOPBACK" #| "sed -n 1p" #| "cut -d: -f2").!!
 
         log.debug("testString for MTU is {}", testString)
 
