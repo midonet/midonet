@@ -8,11 +8,14 @@ import collection.JavaConversions._
 import collection.mutable
 import akka.dispatch.{Promise, ExecutionContext, Future}
 import akka.actor.ActorSystem
+import akka.pattern.ask
+//import akka.util.Timeout
 import akka.util.duration._
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.packets._
 import java.util.UUID
-import com.midokura.midolman.{FlowController, SimulationController}
+import com.midokura.midolman.{FlowController, SimulationController, DatapathController}
+import com.midokura.midolman.host.interfaces.InterfaceDescription
 import com.midokura.midolman.topology.VirtualTopologyActor
 import com.midokura.midonet.cluster.client._
 import compat.Platform
@@ -20,17 +23,21 @@ import com.midokura.midolman.util.Net
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.FlowController.DiscardPacket
+import com.midokura.midolman.DatapathController.LocalTunnelInterfaceInfo
 import com.midokura.midonet.cluster.data.dhcp.Opt121
+import com.midokura.midonet.cluster.data.TunnelZone
+import com.midokura.midonet.cluster.data.zones.{GreTunnelZone, CapwapTunnelZone, IpsecTunnelZone}
 
 
 class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
-                  val cookie: Option[Int], val mtu: Int)
+                  val cookie: Option[Int])
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
     private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
     private val flowController = FlowController.getRef(actorSystem)
+    private val datapathController = DatapathController.getRef(actorSystem)
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null
@@ -38,6 +45,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private var yiaddr: IntIPv4 = null
     private var opt121Routes: mutable.Seq[Opt121] = null;
     private var dnsServerAddr : IntIPv4 = null
+    private var interfaceMTU : Short = 0
 
     def handleDHCP : Future[Boolean] = {
         // These fields are decided based on the port configuration.
@@ -90,7 +98,24 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     yiaddr = host.getIp.clone.setMaskLength(
                         sub.getSubnetAddr.getMaskLength)
                     opt121Routes = sub.getOpt121Routes
-                    return makeDhcpReply
+                    interfaceMTU = sub.getInterfaceMTU
+                    if (interfaceMTU == 0) {
+                        var interfaceMTUFuture : Future[Short] = null
+                        interfaceMTUFuture = calculateInterfaceMTU
+                        return (interfaceMTUFuture flatMap {
+                            case mtu => 
+                                if (mtu == 0) {
+                                    log.error("Fail to calculate interface MTU");
+                                    Promise.successful(false)
+                                } else {
+                                    log.debug("Future returned, mtu is {}", mtu);
+                                    interfaceMTU = mtu
+                                    makeDhcpReply
+                                }
+                        })
+                    } else {
+                        return makeDhcpReply
+                    }
                 }
             }
         }
@@ -250,7 +275,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             IPv4.toIPv4AddressBytes((1 day).toSeconds.toInt)))
         options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
             DHCPOption.Code.INTERFACE_MTU.length,
-            Array[Byte]((mtu/256).toByte, (mtu%256).toByte)))
+            Array[Byte]((interfaceMTU/256).toByte, (interfaceMTU%256).toByte)))
         if (routerAddr != null) {
             options.add(new DHCPOption(
                 DHCPOption.Code.ROUTER.value,
@@ -335,5 +360,42 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                 flowController.tell(DiscardPacket(cookie))
         }
         Promise.successful(true)
+    }
+
+    private def calculateInterfaceMTU : Future[Short] = {
+        var minMtu : Short = 0
+        var overhead : Short = 0
+        var intfMtu : Short = 0
+        Coordinator.expiringAsk(
+            datapathController,
+            LocalTunnelInterfaceInfo(),
+            Platform.currentTime + (3 seconds).toMillis)
+        .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
+        .map {
+            interfaceTunnelList : 
+                mutable.MultiMap[InterfaceDescription, TunnelZone.Type] => {
+                for ((interfaceDesc, tunnelTypeList) <- interfaceTunnelList) {
+                    for (tunnelType <- tunnelTypeList) {
+                        tunnelType match {
+                            case TunnelZone.Type.Gre =>
+                                overhead = (new GreTunnelZone).getTunnelOverhead()
+                            case TunnelZone.Type.Capwap => 
+                                overhead = (new CapwapTunnelZone).getTunnelOverhead()
+                            case TunnelZone.Type.Ipsec => 
+                                overhead = (new IpsecTunnelZone).getTunnelOverhead()
+                        }
+                        intfMtu = interfaceDesc.getMtu().toShort
+                        val tunnelMtu = (intfMtu - overhead).toShort
+                        if (minMtu == 0) minMtu = tunnelMtu
+                        else {
+                            if (minMtu > tunnelMtu) minMtu = tunnelMtu
+                        }
+                        log.info("Interface {}, tunnel type {}, minMtu is {}", interfaceDesc, tunnelType, minMtu)
+                    }
+                }
+                if (minMtu == 0) 1500
+                else minMtu
+            }
+         }
     }
 }

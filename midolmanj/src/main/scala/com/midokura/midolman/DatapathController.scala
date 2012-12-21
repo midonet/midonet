@@ -15,6 +15,7 @@ import akka.util.Timeout
 import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Short => JShort}
 import java.util.{HashSet, Set => JSet, UUID, List => JList}
+import java.nio.ByteBuffer
 
 import com.google.inject.Inject
 
@@ -45,6 +46,7 @@ import com.midokura.sdn.dp.{Flow => KernelFlow, _}
 import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
+import com.midokura.packets.IntIPv4
 
 
 /**
@@ -400,6 +402,22 @@ object DatapathController extends Referenceable {
      * This message is sent when the separate thread has succesfully retrieved all information about the interfaces.
      */
     case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
+
+    /**
+     * This message is sent when the DHCP handler needs to get information
+     * on local interfaces that are used for tunnels, what it returns is 
+     * { source IP address, tunnel type } where the source IP address
+     * correspond to the source IP address of the tunnel type
+     */
+    case class LocalTunnelInterfaceInfo()
+
+    /**
+     * This message is sent when the LocalTunnelInterfaceInfo handler 
+     * completes the interface scan and pass the result as well as
+     * original sender info
+     */
+    case class LocalInterfaceTunnelInfoFinal(caller : ActorRef,
+                                             interfaces: JList[InterfaceDescription])
 }
 
 
@@ -686,6 +704,12 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
         case InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
             updateInterfaces(interfaces)
 
+        case LocalTunnelInterfaceInfo() =>
+            getLocalInterfaceTunnelPhaseOne(sender)
+
+        case LocalInterfaceTunnelInfoFinal(caller : ActorRef, 
+                interfaces: JList[InterfaceDescription]) =>
+            getLocalInterfaceTunnelInfo(caller, interfaces)
 
     }
 
@@ -1653,6 +1677,65 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
             case p: CapWapTunnelPort =>
                 actor ! TunnelCapwapOpReply(p, op, timeout, ex, tag)
         }
+    }
+
+    private def getLocalInterfaceTunnelPhaseOne(caller : ActorRef) {
+        interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
+            def onError(e: NetlinkException) {
+                log.error("Error while retrieving the interface status:" + e.getMessage)
+            }
+
+            def onTimeout() {
+                log.error("Timeout while retrieving the interface status.")
+            }
+
+            def onSuccess(data: JList[InterfaceDescription]) {
+                self ! LocalInterfaceTunnelInfoFinal(caller, data)
+            }
+        })
+    }
+
+    private def getLocalInterfaceTunnelInfo(caller: ActorRef, 
+        interfaces : JList[InterfaceDescription]) {
+        // First we would populate the data structure with tunnel info 
+        // on all local interfaces
+        var addrTunnelMapping = mutable.Map[Int, TunnelZone.Type]()
+        // This next variable is the structure for return message
+        var retInterfaceTunnelMap : mutable.MultiMap[InterfaceDescription, TunnelZone.Type] = 
+            new mutable.HashMap[InterfaceDescription, mutable.Set[TunnelZone.Type]] with 
+                mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
+        for ((zoneId, zoneConfig) <- host.zones) {
+            if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
+                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt, 
+                                      TunnelZone.Type.Gre)
+            } else if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
+                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt, 
+                                      TunnelZone.Type.Capwap)
+            } else if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
+                addrTunnelMapping.put(zoneConfig.getIp.addressAsInt, 
+                                      TunnelZone.Type.Ipsec)
+            }
+        }
+
+        if (addrTunnelMapping.isEmpty == false) {
+            var ipAddr : Int = 0
+            log.debug("Host has some tunnel zone(s) configured")
+            for (interface <- interfaces) {
+                for (inetAddress <- interface.getInetAddresses()) {
+                    // IPv6 alert: this assumes only IPv4
+                    if (inetAddress.getAddress().length == 4) {
+                        ipAddr = ByteBuffer.wrap(inetAddress.getAddress()).getInt
+                        addrTunnelMapping.get(ipAddr) match {
+                            case Some(tunnelType : TunnelZone.Type) =>
+                                retInterfaceTunnelMap.addBinding(interface, tunnelType) 
+                            case _ =>
+                                log.debug("No match for any tunnel on local interface {}", inetAddress.toString())
+                        }   
+                    }
+                }
+            }
+        }
+        caller ! retInterfaceTunnelMap
     }
 
     /**

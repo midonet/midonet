@@ -76,6 +76,15 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
     }
 
     /**
+     * Gets interface MTU.
+     *
+     * @return
+     */
+    public short getInterfaceMTU() {
+        return principalDto.getInterfaceMTU();
+    }
+
+    /**
      * Gets length of the subnet address.
      *
      * @return
@@ -153,11 +162,22 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
     /**
      * Sets DNS Server IP.
      *
-     * @param serverAddr
+     * @param dnsServerAddr
      * @return this
      */
     public DhcpSubnet dnsServerAddr(String dnsServerAddr) {
         principalDto.setDnsServerAddr(dnsServerAddr);
+        return this;
+    }
+
+    /**
+     * Sets Interface MTU.
+     *
+     * @param interfaceMTU
+     * @return this
+     */
+    public DhcpSubnet interfaceMTU(short interfaceMTU) {
+        principalDto.setInterfaceMTU(interfaceMTU);
         return this;
     }
 

@@ -16,6 +16,7 @@ public class DtoDhcpSubnet {
     private String defaultGateway;
     private String serverAddr;
     private String dnsServerAddr;
+    private short interfaceMTU;
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
     private URI uri;
@@ -62,6 +63,14 @@ public class DtoDhcpSubnet {
 
     public void setDnsServerAddr(String dnsServerAddr) {
         this.dnsServerAddr = dnsServerAddr;
+    }
+
+    public short getInterfaceMTU() {
+        return interfaceMTU;
+    }
+
+    public void setInterfaceMTU(short interfaceMTU) {
+        this.interfaceMTU = interfaceMTU;
     }
 
     public List<DtoDhcpOption121> getOpt121Routes() {
@@ -124,6 +133,8 @@ public class DtoDhcpSubnet {
                 ? !dnsServerAddr.equals(that.dnsServerAddr)
                 : that.dnsServerAddr!= null)
             return false;
+        if (interfaceMTU != that.interfaceMTU)
+            return false;
 
         return true;
     }
@@ -138,6 +149,7 @@ public class DtoDhcpSubnet {
                 ? serverAddr.hashCode() : 0);
         result = 31 * result + (dnsServerAddr != null
                 ? dnsServerAddr.hashCode() : 0);
+        result = 31 * result + interfaceMTU;
         result = 31 * result + (opt121Routes != null
                 ? opt121Routes.hashCode() : 0);
         result = 31 * result + (hosts != null ? hosts.hashCode() : 0);
@@ -152,7 +164,8 @@ public class DtoDhcpSubnet {
                 ", subnetPrefix='" + subnetPrefix + '\'' +
                 ", subnetLength=" + subnetLength + '\'' + 
                 ", serverAddr='" + serverAddr + '\'' +
-                ", dnsServerAddr='" + dnsServerAddr +
+                ", dnsServerAddr='" + dnsServerAddr + '\'' +
+                ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
                 ", hosts=" + hosts +
                 ", uri=" + uri +

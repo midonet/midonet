@@ -62,6 +62,15 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return self();
     }
 
+    public short getInterfaceMTU() {
+        return getData().interfaceMTU;
+    }
+
+    public Subnet setInterfaceMTU(short interfaceMTU) {
+        getData().interfaceMTU = interfaceMTU;
+        return self();
+    }
+
     public List<Opt121> getOpt121Routes() {
         return getData().opt121Routes;
     }
@@ -77,6 +86,7 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         public IntIPv4 serverAddr;
         public IntIPv4 dnsServerAddr;
         public IntIPv4 defaultGateway;
+        short interfaceMTU;
         public List<Opt121> opt121Routes;
 
         @Override
@@ -85,6 +95,7 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
                     "subnetAddr=" + subnetAddr +
                     ", serverAddr=" + serverAddr +
                     ", dnsServerAddr=" + dnsServerAddr +
+                    ", interfaceMTU=" + interfaceMTU +
                     ", defaultGateway=" + defaultGateway +
                     ", opt121Routes=" + opt121Routes +
                     '}';
