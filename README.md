@@ -1,3 +1,29 @@
+## Precis
+
+**MidoNet** is a system which implements an abstract, software-defined
+virtual network atop an existing IP fabric.  That means that packets that
+enter a MidoNet deloyment will then leave it at the location and with the
+alterations they would have had if they'd actually traversed the networking
+equipment defined in the deployment's virtual topology, or as close to it
+as we can manage.
+
+## Overview
+
+A MidoNet deployment consists a few kinds of nodes, all connected in
+an IP network.  Many nodes run **Midolman**, and are where traffic enters
+and leaves.  Traffic is sent from its entry point (the *ingress node*) to
+its exit point (the *egress node*) via tunnels; see [the tunnel management
+document](docs/tunnel-management.md).  The network's virtual topology
+and associated information is stored in ZooKeeper, and per-connection
+state which is shared between nodes is stored in Cassandra -- all the
+Midolman nodes which compose a virtual network must have connectivity to
+the ZooKeeper and Cassandra clusters, as that's how they coordinate.
+The web-based REST API described [here](docs/rest-api-specification.md)
+is provided by nodes running MidoNet's API service in a webserver.  These
+API server nodes will read and modify the virtual topology configuration,
+so they need to have connectivity to the ZooKeeper cluster, but not
+necessarialy any other node types.
+
 ## Organization of the project
 
 The **MidoNet** project is split into several submodules:
