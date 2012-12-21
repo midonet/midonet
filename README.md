@@ -2,7 +2,7 @@
 
 **MidoNet** is a system which implements an abstract, software-defined
 virtual network atop an existing IP fabric.  That means that packets that
-enter a MidoNet deloyment will then leave it at the location and with the
+enter a MidoNet deployment will then leave it at the location and with the
 alterations they would have had if they'd actually traversed the networking
 equipment defined in the deployment's virtual topology, or as close to it
 as we can manage.

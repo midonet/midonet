@@ -2,7 +2,7 @@
 
 Midolman is the controller for the *MidoNet* SDN system.  The core function
 of Midolman is to receive notifications of new, unhandled network flows
-(generally TCP connections) from the kernel's Open Datapath (ODP) module
+(often TCP connections) from the kernel's Open Datapath (ODP) module
 and instruct the kernel how to handle them.  The datapath communication is
 described in the [flow installation document](flow-installation.md).  To
 figure out how to handle the flows, Midolman runs a simulation of the MidoNet
