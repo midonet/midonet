@@ -80,7 +80,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        var cmdline = "ifconfig | grep -w inet | grep -vw 127.0.0.1 | sed -n 1p | cut -d: -f2"
+        var cmdline = "/sbin/ifconfig | grep -w inet | grep -vw 127.0.0.1 | sed -n 1p | cut -d: -f2"
         var testString = Seq("sh", "-c", cmdline).!!
         //var testString = ("ifconfig" #| "grep -w inet" #| "grep -vw 127.0.0.1" #| "sed -n 1p" #| "cut -d: -f2").!!
         log.debug("testString is {}", testString)
@@ -91,7 +91,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         log.debug("ipString is {}", ipString)
 
-        cmdline = "ifconfig | grep -w MTU | grep -vw LOOPBACK | sed -n 1p | cut -d: -f2"
+        cmdline = "/sbin/ifconfig | grep -w MTU | grep -vw LOOPBACK | sed -n 1p | cut -d: -f2"
         testString = Seq("sh", "-c", cmdline).!!
         //testString = ("ifconfig" #| "grep -w MTU" #| "grep -vw LOOPBACK" #| "sed -n 1p" #| "cut -d: -f2").!!
 
