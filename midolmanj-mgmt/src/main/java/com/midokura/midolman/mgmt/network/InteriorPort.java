@@ -33,5 +33,4 @@ public interface InteriorPort {
      * @return URI to link
      */
     URI getLink();
-
 }

@@ -3,20 +3,13 @@
  */
 package com.midokura.midolman.mgmt.rest_api;
 
+import com.midokura.midonet.client.dto.*;
+
+import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.Response;
 
-import com.midokura.midonet.client.dto.*;
-import static com.midokura.midolman.mgmt.VendorMediaType
-        .APPLICATION_BRIDGE_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType
-        .APPLICATION_PORTGROUP_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType
-        .APPLICATION_ROUTER_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.*;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -376,10 +369,11 @@ public class Topology {
                 DtoInteriorPort port1 = findInteriorPort(entry.getKey());
                 DtoPort port2 = findPort(entry.getValue());
 
+                DtoLink link = new DtoLink();
+                link.setPeerId(port2.getId());
                 resource.postAndVerifyStatus(port1.getLink(),
-                        APPLICATION_PORT_JSON,
-                        "{\"peerId\": \"" + port2.getId() + "\"}",
-                        Response.Status.NO_CONTENT.getStatusCode());
+                        APPLICATION_PORT_LINK_JSON, link,
+                        Response.Status.CREATED.getStatusCode());
             }
 
             return new Topology(this);

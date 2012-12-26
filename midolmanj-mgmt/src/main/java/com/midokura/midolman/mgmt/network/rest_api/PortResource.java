@@ -184,21 +184,15 @@ public class PortResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}/link")
-    @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
+    @Consumes({ VendorMediaType.APPLICATION_PORT_LINK_JSON,
             MediaType.APPLICATION_JSON })
-    public void link(@PathParam("id") UUID id, Link link)
+    public Response link(@PathParam("id") UUID id, Link link)
             throws StateAccessException {
 
         link.setPortId(id);
 
-        Set<ConstraintViolation<Link>> violations = null;
-        if (link.isUnlink()) {
-            violations = validator.validate(link,
-                    Link.LinkDeleteGroupSequence.class);
-        } else {
-            violations = validator.validate(link,
+        Set<ConstraintViolation<Link>> violations = validator.validate(link,
                     Link.LinkCreateGroupSequence.class);
-        }
 
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
@@ -212,11 +206,31 @@ public class PortResource extends AbstractResource {
                     "Not authorized to link these ports.");
         }
 
-        if (link.isUnlink()) {
-            dataClient.portsUnlink(link.getPortId());
-        } else {
-            dataClient.portsLink(link.getPortId(), link.getPeerId());
+        dataClient.portsLink(link.getPortId(), link.getPeerId());
+
+        return Response.created(
+                ResourceUriBuilder.getPortLink(getBaseUri(), id))
+                .build();
+    }
+
+    @DELETE
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("{id}/link")
+    public void unlink(@PathParam("id") UUID id) throws StateAccessException {
+
+        // Idempotent operation: if the port does not exists, just return.
+        com.midokura.midonet.cluster.data.Port portData =
+                dataClient.portsGet(id);
+        if (portData == null) {
+            return;
         }
+
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to unlink these ports.");
+        }
+
+        dataClient.portsUnlink(id);
     }
 
     /**

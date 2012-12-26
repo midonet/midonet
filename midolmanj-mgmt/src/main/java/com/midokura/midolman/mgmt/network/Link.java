@@ -3,13 +3,15 @@
 */
 package com.midokura.midolman.mgmt.network;
 
+import com.midokura.midolman.mgmt.ResourceUriBuilder;
+import com.midokura.midolman.mgmt.UriResource;
 import com.midokura.midolman.mgmt.network.validation.IsValidPortId;
 import com.midokura.midolman.mgmt.network.validation.PortsLinkable;
 
 import javax.validation.GroupSequence;
-import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -17,12 +19,12 @@ import java.util.UUID;
  */
 @PortsLinkable(groups = Link.LinkCreateGroupExtended.class)
 @XmlRootElement
-public class Link {
+public class Link extends UriResource {
 
     @IsValidPortId
     private UUID portId;
 
-    @IsValidPortId(groups = LinkCreateGroup.class)
+    @IsValidPortId
     private UUID peerId;
 
     public Link() {
@@ -49,16 +51,33 @@ public class Link {
         this.peerId = peerId;
     }
 
-    public boolean isUnlink() {
-        return this.peerId == null;
+    public URI getPort() {
+        if (getBaseUri() != null && portId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), portId);
+        } else {
+            return null;
+        }
+    }
+
+    public URI getPeer() {
+        if (getBaseUri() != null && peerId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        } else {
+            return null;
+        }
     }
 
     /**
-     * Interface used for validating a link on create.
+     * @return the self URI
      */
-    public interface LinkCreateGroup {
+    @Override
+    public URI getUri() {
+        if (getBaseUri() != null && portId != null) {
+            return ResourceUriBuilder.getPortLink(getBaseUri(), portId);
+        } else {
+            return null;
+        }
     }
-
 
     /**
      * Interface used for validating a link on create.
@@ -71,16 +90,8 @@ public class Link {
      * Interface that defines the ordering of validation groups for link
      * create.
      */
-    @GroupSequence({ Default.class, LinkCreateGroup.class,
-            LinkCreateGroupExtended.class})
+    @GroupSequence({ Default.class, LinkCreateGroupExtended.class})
     public interface LinkCreateGroupSequence {
     }
 
-    /**
-     * Interface that defines the ordering of validation groups for link
-     * delete.
-     */
-    @GroupSequence({ Default.class })
-    public interface LinkDeleteGroupSequence {
-    }
 }

@@ -17,6 +17,7 @@
   * [Router](#router)
   * [Bridge](#bridge)
   * [Port](#port)
+  * [Port Link](#portlink)
   * [Route](#route)
   * [Port Group](#portgroup)
   * [Port Group Port](#portgroupport)
@@ -844,9 +845,10 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td>URI</td>
         <td/>
         <td/>
-        <td>POST against this URI links two interior ports.  In the body of the
-         request, ‘peerId’ must be specified to indicate the peer interior port
-          ID.  Setting ‘peerId’ to null effectively unlinks the ports.</td>
+        <td>Location of the port link resource.
+         A POST against this URI links two interior ports.  In the body of the
+         request, 'peerId' must be specified to indicate the peer interior port
+         ID.  A DELETE against this URI removes the link.</td>
     </tr>
     <tr>
         <td>inboundFilterId</td>
@@ -883,6 +885,61 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td/>
         <td>A GET against this URI retrieves the port groups that this port
         is a member of.</td>
+    </tr>
+</table>
+
+<a name="portlink"/>
+### PortLink [application/vnd.com.midokura.midolman.mgmt.PortLink+json]
+
+    POST     /ports/:portId/link
+    DELETE   /ports/:portId/link
+
+Represents a link between two interior ports.  It contains the following
+fields:
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>A unique identifier of the port</td>
+    </tr>
+    <tr>
+        <td>port</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the port.</td>
+    </tr>
+    <tr>
+        <td>peerId</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>yes</td>
+        <td>A unique identifier of the peer port</td>
+    </tr>
+    <tr>
+        <td>peer</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the peer port.</td>
     </tr>
 </table>
 

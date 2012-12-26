@@ -4,18 +4,13 @@
 
 package com.midokura.midonet.client.resource;
 
-import java.net.URI;
-import java.util.UUID;
-
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.midokura.midonet.client.VendorMediaType;
 import com.midokura.midonet.client.WebResource;
-import com.midokura.midonet.client.dto.DtoBgp;
-import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
-import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
-import com.midokura.midonet.client.dto.DtoRouterPort;
-import com.midokura.midonet.client.dto.PortType;
+import com.midokura.midonet.client.dto.*;
+
+import javax.ws.rs.core.MultivaluedMap;
+import java.net.URI;
+import java.util.UUID;
 
 public class RouterPort<T extends DtoRouterPort> extends
                                                  Port<RouterPort<T>, T> {
@@ -265,7 +260,7 @@ public class RouterPort<T extends DtoRouterPort> extends
     public RouterPort link(UUID id) {
         peerId(id);
         resource.post(((DtoInteriorRouterPort) principalDto).getLink(),
-                      principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+                      principalDto, VendorMediaType.APPLICATION_PORT_LINK_JSON);
         get(getUri());
         return this;
     }
@@ -276,9 +271,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return this
      */
     public RouterPort unlink() {
-        peerId(null);
-        resource.post(((DtoInteriorRouterPort) principalDto).getLink(),
-                      principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+        resource.delete(((DtoInteriorRouterPort) principalDto).getLink());
         get(getUri());
         return this;
     }

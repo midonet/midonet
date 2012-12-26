@@ -136,7 +136,7 @@ public class BridgePort<T extends DtoBridgePort> extends
     public BridgePort<T> link(UUID id) {
         peerId(id);
         resource.post(((DtoInteriorBridgePort) principalDto).getLink(),
-                principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+                principalDto, VendorMediaType.APPLICATION_PORT_LINK_JSON);
         return get(getUri());
     }
 
@@ -146,9 +146,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return this
      */
     public BridgePort<T> unlink() {
-        peerId(null);
-        resource.post(((DtoInteriorBridgePort) principalDto).getLink(),
-                principalDto, VendorMediaType.APPLICATION_PORT_JSON);
+        resource.delete(((DtoInteriorBridgePort) principalDto).getLink());
         return get(getUri());
     }
 

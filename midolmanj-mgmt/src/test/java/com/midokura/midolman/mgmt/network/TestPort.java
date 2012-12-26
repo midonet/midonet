@@ -23,8 +23,7 @@ import org.junit.runners.Parameterized.Parameters;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_COLLECTION_JSON;
-import static com.midokura.midolman.mgmt.VendorMediaType.APPLICATION_PORT_JSON;
+import static com.midokura.midolman.mgmt.VendorMediaType.*;
 import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
@@ -519,22 +518,28 @@ public class TestPort {
                     .getIntBridgePort("bridge1Port2");
 
             // Link router1 and router2
+            DtoLink link = new DtoLink();
+            link.setPeerId(r2p1.getId());
             dtoResource
-                    .postAndVerifyStatus(r1p1.getLink(), APPLICATION_PORT_JSON,
-                            "{\"peerId\": \"" + r2p1.getId() + "\"}",
-                            Response.Status.NO_CONTENT.getStatusCode());
+                    .postAndVerifyStatus(r1p1.getLink(),
+                            APPLICATION_PORT_LINK_JSON, link,
+                            Response.Status.CREATED.getStatusCode());
 
             // Link router1 and bridge1
+            link = new DtoLink();
+            link.setPeerId(b1p1.getId());
             dtoResource
-                    .postAndVerifyStatus(r1p2.getLink(), APPLICATION_PORT_JSON,
-                            "{\"peerId\": \"" + b1p1.getId() + "\"}",
-                            Response.Status.NO_CONTENT.getStatusCode());
+                    .postAndVerifyStatus(r1p2.getLink(),
+                            APPLICATION_PORT_LINK_JSON, link,
+                            Response.Status.CREATED.getStatusCode());
 
             // Link bridge1 and router2
+            link = new DtoLink();
+            link.setPeerId(r2p2.getId());
             dtoResource
-                    .postAndVerifyStatus(b1p2.getLink(), APPLICATION_PORT_JSON,
-                            "{\"peerId\": \"" + r2p2.getId() + "\"}",
-                            Response.Status.NO_CONTENT.getStatusCode());
+                    .postAndVerifyStatus(b1p2.getLink(),
+                            APPLICATION_PORT_LINK_JSON, link,
+                            Response.Status.CREATED.getStatusCode());
 
             // Get the peers
             DtoPort[] ports = dtoResource.getAndVerifyOk(
@@ -556,12 +561,14 @@ public class TestPort {
             assertEquals(2, ports.length);
 
             // Cannot link already linked ports
+            link = new DtoLink();
+            link.setPeerId(r2p1.getId());
             dtoResource.postAndVerifyBadRequest(r1p1.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": \"" + r2p1.getId()
-                            + "\"}");
-            dtoResource.postAndVerifyBadRequest(r2p2.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": \"" + b1p2.getId()
-                            + "\"}");
+                    APPLICATION_PORT_LINK_JSON, link);
+            link = new DtoLink();
+            link.setPeerId(r2p1.getId());
+            dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON, link);
 
             // Cannot delete linked ports
             dtoResource.deleteAndVerifyBadRequest(r1p1.getUri(),
@@ -570,23 +577,23 @@ public class TestPort {
                     APPLICATION_PORT_JSON);
 
             // Unlink
-            dtoResource.postAndVerifyStatus(r1p1.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.postAndVerifyStatus(r1p2.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(r1p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.postAndVerifyStatus(b1p1.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(b1p1.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.postAndVerifyStatus(b1p2.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(b1p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.postAndVerifyStatus(r2p1.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(r2p1.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.postAndVerifyStatus(r2p2.getLink(),
-                    APPLICATION_PORT_JSON, "{\"peerId\": " + null + "}",
+            dtoResource.deleteAndVerifyStatus(r2p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
 
             // Delete all the ports
