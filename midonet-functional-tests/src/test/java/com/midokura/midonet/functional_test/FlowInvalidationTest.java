@@ -4,18 +4,22 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.client.resource.Rule;
+import com.midokura.midonet.client.resource.RuleChain;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.Rule;
-import com.midokura.midonet.functional_test.topology.RuleChain;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 
 
@@ -27,15 +31,53 @@ import static org.hamcrest.Matchers.*;
 @Ignore
 public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
-    @After
-    public void tearDown() throws InterruptedException {
-        router1.removeFilters();
-        bridge1.removeFilters();
+    RuleChain inChain;
+    RuleChain outChain;
+    Map<IntIPv4, Rule> floatingIpDnats = new HashMap<IntIPv4, Rule>();
+    Map<IntIPv4, Rule> floatingIpSnats = new HashMap<IntIPv4, Rule>();
+
+    @Override
+    public void teardown() {
+        super.teardown();
+        router1.inboundFilterId(null).outboundFilterId(null).update();
+        bridge1.inboundFilterId(null).outboundFilterId(null).update();
         for (BridgePort bport : bports)
-            bport.removeFilters();
+            bport.inboundFilterId(null).outboundFilterId(null).update();
         for (EndPoint ep : vmEndpoints)
             ep.floatingIp = null;
-        sleepBecause("We need the all the chains/filters to be unloaded", 2);
+    }
+
+    private void addFloatingIp(
+        IntIPv4 privAddr, IntIPv4 floatingIP, UUID uplinkId) {
+        Rule r = inChain.addRule()
+            .type(DtoRule.DNAT).flowAction(DtoRule.Accept)
+            .natTargets(new DtoRule.DtoNatTarget[]{
+                new DtoRule.DtoNatTarget(
+                    privAddr.toUnicastString(), privAddr.toUnicastString(),
+                    0, 0)})
+            .nwDstAddress(floatingIP.toUnicastString())
+            .nwDstLength(32)
+            .inPorts(new UUID[]{uplinkId}).create();
+        floatingIpDnats.put(floatingIP, r);
+        // Add a SNAT to the post-routing chain.
+        r = outChain.addRule().type(DtoRule.SNAT).flowAction(DtoRule.Accept)
+            .natTargets(new DtoRule.DtoNatTarget[] {
+                new DtoRule.DtoNatTarget(
+                    floatingIP.toUnicastString(), floatingIP.toUnicastString(),
+                    0, 0) })
+            .nwSrcAddress(privAddr.toUnicastString())
+            .nwDstLength(32)
+            .outPorts(new UUID[] { uplinkId }).create();
+        floatingIpSnats.put(floatingIP, r);
+    }
+
+    public void removeFloatingIp(IntIPv4 floatingIP) {
+        Rule r = floatingIpDnats.get(floatingIP);
+        if (null != r)
+            r.delete();
+        r = floatingIpSnats.get(floatingIP);
+        if (null != r)
+            r.delete();
     }
 
     @Test
@@ -53,8 +95,13 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         retrySentPacket(vmEndpoints.get(0), rtrUplinkEndpoint, packets1);
 
         // Now assign a floatingIP to endpoint0.
-        router1.addFilters();
-        router1.addFloatingIp(vmEndpoints.get(0).ip, floatingIP0, null);
+        RuleChain inChain = apiClient.addChain().name("in").create();
+        RuleChain outChain = apiClient.addChain().name("out").create();
+        router1.inboundFilterId(inChain.getId())
+            .outboundFilterId(outChain.getId()).update();
+
+        // Add a DNAT to the pre-routing chain.
+        addFloatingIp(vmEndpoints.get(0).ip, floatingIP0, null);
         vmEndpoints.get(0).floatingIp = floatingIP0;
         sleepBecause("The filter has to be loaded", 1);
 
@@ -66,7 +113,7 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         retrySentPacket(vmEndpoints.get(0), rtrUplinkEndpoint, packets2);
 
         // Now assign floatingIP1 to endpoint1.
-        router1.addFloatingIp(vmEndpoints.get(1).ip, floatingIP1, null);
+        addFloatingIp(vmEndpoints.get(1).ip, floatingIP1, null);
         vmEndpoints.get(1).floatingIp = floatingIP1;
         sleepBecause("we need the new filters to be loaded", 2);
 
@@ -78,7 +125,7 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
                 rtrUplinkEndpoint.tap.recv(), nullValue());
 
         // Now remove floatingIP1 from endpoint1.
-        router1.removeFloatingIp(floatingIP1);
+        removeFloatingIp(floatingIP1);
         vmEndpoints.get(1).floatingIp = null;
         sleepBecause("The network must process the rule deletion", 1);
 
@@ -92,7 +139,8 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         // Stop NAT (including floatingIP0) by removing the router's filters.
         // This has the same effect as removing the rule, but shows that changes
         // to the router's configuration are detected and trigger invalidation.
-        router1.removeFilters();
+        router1.inboundFilterId(null).outboundFilterId(null).update();
+
         sleepBecause("The network must process the filter removal.", 1);
 
         // Now endpoint0 sends the same ICMP to floatingIP1. The packet goes
@@ -116,11 +164,14 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
         // Now add an inbound filter on the bridge and a rule that drops
         // traffic from endpoint0's ip to endpoint1's ip.
-        RuleChain inFilter = bridge1.addInboundFilter();
+        RuleChain inFilter = apiClient.addChain().name("in").create();
+        bridge1.inboundFilterId(inFilter.getId()).update();
         Rule rule1 = inFilter.addRule()
-                .matchNwSrc(vmEndpoints.get(0).ip, 32)
-                .matchNwDst(vmEndpoints.get(1).ip, 32)
-                .setSimpleType(DtoRule.Drop).build();
+            .nwSrcAddress(vmEndpoints.get(0).ip.toUnicastString())
+            .nwSrcLength(32)
+            .nwDstAddress(vmEndpoints.get(1).ip.toUnicastString())
+            .nwDstLength(32)
+            .type(DtoRule.Drop).create();
         sleepBecause("we need the new filters to be loaded", 1);
 
         // Endpoint0 can no longer send that ICMP to endpoint1. This shows
@@ -155,11 +206,12 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
         // Now add an outbound filter for endpoint1 and a rule that drops all
         // traffic from endpoint0's mac.
-        RuleChain outFilter = bports.get(1)
-                .addOutboundFilter("bport1_outfilter", tenant1.dto);
+        RuleChain outFilter = null; //bports.get(1)
+                //.addOutboundFilter("bport1_outfilter", tenant1.dto);
         Rule rule1 = outFilter.addRule()
-                .matchNwSrc(vmEndpoints.get(0).ip, 32)
-                .setSimpleType(DtoRule.Drop).build();
+                .nwSrcAddress(vmEndpoints.get(0).ip.toUnicastString())
+                .nwSrcLength(32)
+                .type(DtoRule.Drop).create();
         sleepBecause("we need the new filters to be loaded", 1);
 
         // Endpoint0 can no longer send that ICMP to endpoint1. This shows
@@ -245,12 +297,13 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         // Now we add a router port with a route to floatingIP1
         TapWrapper tapNew = new TapWrapper("newRouterPort");
         IntIPv4 gwIp = IntIPv4.fromString("172.16.1.2");
-        ExteriorRouterPort rtrNewPort = router1.addGwPort()
-                .setLocalMac(tapNew.getHwAddr())
-                .setLocalLink(IntIPv4.fromString("172.16.1.1"), gwIp)
-                .addRoute(pubNewIp).build();
+        RouterPort rtrNewPort = router1.addExteriorRouterPort()
+                .portMac(tapNew.getHwAddr().toString()).create();
+                //.setLocalLink(IntIPv4.fromString("172.16.1.1"), gwIp)
+                //.addRoute(pubNewIp).build();
         EndPoint epNew = new EndPoint(gwIp, MAC.random(),
-                rtrNewPort.getIpAddr(), rtrNewPort.getMacAddr(), tapNew);
+                IntIPv4.fromString(rtrNewPort.getPortAddress()),
+                MAC.fromString(rtrNewPort.getPortMac()), tapNew);
         //ovsBridge1.addSystemPort(
         //        rtrNewPort.port.getId(),
         //        tapNew.getName());

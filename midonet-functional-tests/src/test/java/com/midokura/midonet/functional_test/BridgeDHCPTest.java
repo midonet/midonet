@@ -6,91 +6,83 @@ package com.midokura.midonet.functional_test;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import akka.util.Duration;
 import org.hamcrest.Matcher;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.DhcpSubnet;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.midonet.functional_test.vm.HypervisorType;
+import com.midokura.midonet.functional_test.vm.VMController;
+import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
+import com.midokura.packets.IntIPv4;
+import com.midokura.tools.timed.Timed;
+import com.midokura.util.lock.LockHelper;
+import com.midokura.util.ssh.SshHelper;
+
+
+import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.util.Waiters.sleepBecause;
 import static com.midokura.util.Waiters.waitFor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import com.midokura.packets.IntIPv4;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.Subnet;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.midonet.functional_test.vm.HypervisorType;
-import com.midokura.midonet.functional_test.vm.VMController;
-import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import com.midokura.tools.timed.Timed;
-import com.midokura.util.lock.LockHelper;
-import com.midokura.util.ssh.SshHelper;
-import static com.midokura.hamcrest.RegexMatcher.matchesRegex;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-
 /**
  * Test suite that exercises the DHCP options configuration across a LAN.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 11/24/11
  */
 @Ignore
-public class BridgeDHCPTest {
+public class BridgeDHCPTest extends TestBase {
 
-    private final static Logger log = LoggerFactory.getLogger(
-        BridgeDHCPTest.class);
-
-    static Tenant tenant;
-    static TapWrapper tapPort;
-
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
+    static TapWrapper tap;
     static Bridge bridge;
 
-    static String tapPortName = "brDhcpTestTap";
     static String vmHostName = "br-dhcp-test-host";
 
     static VMController vm;
 
     static LockHelper.Lock lock;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+    @Override
+    protected void setup() {
+        bridge = apiClient.addBridge()
+            .tenantId("bridge-dhcp-test").name("br1").create();
+        BridgePort port1 = bridge.addExteriorPort().create();
+        tap = new TapWrapper("vmTap");
+        thisHost.addHostInterfacePort()
+            .interfaceName(tap.getName())
+            .portId(port1.getId()).create();
 
-        mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start("BridgeDHCPTest");
+        probe.expectMsgClass(Duration.create(10, TimeUnit.SECONDS),
+            LocalPortActive.class);
 
-        tenant = new Tenant.Builder(mgmt).setName("tenant-br-dhcp").build();
+        BridgePort port2 = bridge.addExteriorPort().create();
+        // Bind the internal 'local' port to the second exterior port.
+        String localName = "midonet";
+        log.debug("Bind datapath's local port to bridge's exterior port.");
+        thisHost.addHostInterfacePort()
+            .interfaceName(localName)
+            .portId(port2.getId()).create();
 
-        bridge = tenant.addBridge().setName("bridge1").build();
+        DhcpSubnet dhcpSubnet = bridge.addDhcpSubnet()
+            .defaultGateway("192.168.231.3")
+            .subnetPrefix("192.168.231.1")
+            .subnetLength(24)
+            .create();
+        dhcpSubnet.addDhcpHost()
+            .ipAddr("192.168.231.10")
+            .macAddr("02:AA:BB:BB:AA:02")
+            .create();
 
-        BridgePort vmPort = bridge.addPort().build();
-        tapPort = new TapWrapper(tapPortName);
-        //ovsBridge.addSystemPort(vmPort.getId(), tapPortName);
-
-        BridgePort internalPort = bridge.addPort().build();
-
+        // XXX TODO(pino): assing an IP address to the internal port.
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        //ovsBridge.addInternalPort(internalPort.getId(),
-                                  //"brDhcpPortInt", ip2, 24);
 
-        tapPort.closeFd();
-        Thread.sleep(1000);
+        tap.closeFd();
 
         LibvirtHandler handler =
             LibvirtHandler.forHypervisor(HypervisorType.Qemu);
@@ -100,59 +92,40 @@ public class BridgeDHCPTest {
         vm = handler.newDomain()
                     .setDomainName("test_br_dhcp")
                     .setHostName(vmHostName)
-                    .setNetworkDevice(tapPort.getName())
+                    .setNetworkDevice(tap.getName())
                     .build();
 
-        Subnet subnet = bridge.newDhcpSubnet()
-                              .havingSubnet("192.168.231.1", 24)
-                              .havingGateway("192.168.231.3")
-                              .build();
-
-        subnet.newHostMapping("192.168.231.10",
-                              vm.getNetworkMacAddress())
-              .build();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        destroyVM(vm);
-
-        removeTapWrapper(tapPort);
-        stopMidolman(midolman);
-        removeTenant(tenant);
-        //stopMidolmanMgmt(mgmt);
-
-        lock.release();
-    }
-
-    @Before
-    public void startVm() throws InterruptedException {
         vm.startup();
-        sleepBecause("Give the machine a little bit of time to bootup", 5);
+        try {
+            sleepBecause("Give the machine a little bit of time to bootup", 5);
+        } catch (Exception e){
+
+        }
     }
 
-    @After
-    public void shutdownVm() throws Exception {
+    @Override
+    protected void teardown() {
         vm.shutdown();
-        waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 50,
+        try {
+            waitFor("the VM to shutdown", TimeUnit.SECONDS.toMillis(3), 50,
                 new Timed.Execution<Object>() {
                     @Override
                     protected void _runOnce() throws Exception {
                         setCompleted(!vm.isRunning());
                     }
                 });
-    }
+        } catch (Exception e) {
 
-    @Test
-    public void testSampleTest() throws Exception {
-
-        assertThatCommandOutput("the host should have our chosen name",
-                                "hostname", is(vmHostName));
-
+        }
+        destroyVM(vm);
+        removeTapWrapper(tap);
     }
 
     @Test
     public void testMtu() throws Exception {
+        assertThatCommandOutput("the host should have our chosen name",
+            "hostname", is(vmHostName));
+
         assertThatCommandOutput("displays the new MTU value",
                                 "ip link show eth0 | grep mtu",
                                 matchesRegex(".+mtu 1450.+"));

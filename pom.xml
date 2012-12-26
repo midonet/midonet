@@ -157,4 +157,11 @@
         </plugins>
     </reporting>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${versions.scala.library}</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -24,9 +24,8 @@ import org.slf4j.LoggerFactory;
 import com.midokura.midolman.util.Sudo;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoInterface;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.tools.timed.Timed;
@@ -45,96 +44,30 @@ import static org.hamcrest.Matchers.*;
 
 /**
  * Test Suite that will exercise the interface management subsystem.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/27/12
  */
 @Ignore
-public class InterfaceManagementTest {
+public class InterfaceManagementTest extends TestBase {
 
     private static final Logger log = LoggerFactory
         .getLogger(InterfaceManagementTest.class);
 
-    MidolmanMgmt api;
-    static ZKLauncher zookeeper;
+    @Override
+    public void setup() {}
 
-    static LockHelper.Lock lock;
-
-    @BeforeClass
-    public static void checkLock() throws IOException, InterruptedException {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-
-        try {
-            zookeeper = ZKLauncher.start(Default);
-        } catch (Exception e) {
-            log.error("error while starting new zookeeper", e);
-        }
-    }
-
-    @AfterClass
-    public static void releaseLock() throws IOException, InterruptedException {
-        try {
-            stopZookeeperService(zookeeper);
-        } finally {
-            lock.release();
-        }
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        WebAppDescriptor.Builder builder = MockMidolmanMgmt.getAppDescriptorBuilder(false);
-        builder.contextParam("zk_conn_string", "127.0.0.1:2182");
-        api = new MockMidolmanMgmt(builder.build());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-      //  stopMidolmanMgmt(api);
-        cleanupZooKeeperServiceData(ZKLauncher.ConfigType.Default);
-    }
+    @Override
+    public void teardown() {}
 
     @Test
     public void testNewHostAppearsWhenTheAgentIsExecuted() throws Exception {
 
-        DtoHost[] hosts = api.getHosts();
+        ResourceCollection<Host> hosts = apiClient.getHosts();
         assertThat("We didn't start with no hosts registered",
-                   hosts, allOf(notNullValue(), arrayWithSize(0)));
-
-        // create a new one
-        // start the agent / or midolman1
-        MidolmanLauncher launcher =
-            MidolmanLauncher.start(With_Node_Agent,
-                                   "InterfaceManagementTest.testNewHostAppears" +
-                                       "WhenTheAgentIsExecuted");
-
-        try {
-            hosts =
-                waitFor("a new host should come up",
-                        TimeUnit.SECONDS.toMillis(10),
-                        TimeUnit.MILLISECONDS.toMillis(500),
-                        new Timed.Execution<DtoHost[]>() {
-                            @Override
-                            protected void _runOnce() throws Exception {
-                                setResult(api.getHosts());
-
-                                // check for early finish
-                                setCompleted(getResult().length == 1);
-                            }
-                        });
-
-            assertThat("there is one more host now",
-                       hosts, allOf(notNullValue(), arrayWithSize(1)));
-
-            assertThat("the new host is marked as active",
-                       hosts[0].isAlive(), equalTo(true));
-        } finally {
-            launcher.stop();
-        }
+                   hosts, allOf(notNullValue(), hasSize(1)));
     }
 
     @Test
     public void testHostIsMarkedAsDownWhenTheAgentDies() throws Exception {
-        DtoHost[] hosts = api.getHosts();
+        /*DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
                    hosts, allOf(notNullValue(), arrayWithSize(0)));
 
@@ -180,12 +113,12 @@ public class InterfaceManagementTest {
 
         } finally {
             launcher.stop();
-        }
+        }*/
     }
 
     @Test
     public void testHostIsMarkedAsAliveAfterAgentRestarts() throws Exception {
-        DtoHost[] hosts = api.getHosts();
+        /*DtoHost[] hosts = api.getHosts();
         assertThat("No hosts should be visible now",
                    hosts, allOf(notNullValue(), arrayWithSize(0)));
 
@@ -245,9 +178,10 @@ public class InterfaceManagementTest {
 
         } finally {
             launcher.stop();
-        }
+        }*/
     }
 
+    /*
     @Test
     public void testNewInterfaceBecomesVisible() throws Exception {
 
@@ -654,7 +588,7 @@ public class InterfaceManagementTest {
         final DtoHost host = hosts[0];
         assertThat("The new host should be alive!", host.isAlive());
         return host;
-    }
+    }*/
 
     private static int tapInterfaceId = 1;
 

@@ -4,87 +4,62 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.io.IOException;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midonet.client.dto.DtoRule;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.client.resource.Rule;
+import com.midokura.midonet.client.resource.RuleChain;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.*;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.util.lock.LockHelper;
 
 
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static com.midokura.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @Ignore
-public class FilteringConnTrackingTest {
-    MidolmanMgmt mgmt;
-    MidolmanLauncher midolman1;
-    Tenant tenant1;
-
+public class FilteringConnTrackingTest extends TestBase {
     Bridge bridge1;
     BridgePort bPort1;
     BridgePort bPort2;
     BridgePort bPort3;
     BridgePort bPort4;
     BridgePort bPort5;
-    InteriorBridgePort bPort6;
-    InteriorRouterPort rPort1;
+    BridgePort interiorBrPort;
+    RouterPort rPort1;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
     TapWrapper tap4;
     TapWrapper tap5;
 
-    static LockHelper.Lock lock;
+    @Override
+    public void setup() {
+        bridge1 = apiClient.addBridge().name("br1").create();
 
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
-
-    @Before
-    public void setUp() throws IOException, InterruptedException {
-        mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "FilteringConTrackTest");
-
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant-l2filtering").build();
-        bridge1 = tenant1.addBridge().setName("br1").build();
-        Router rtr = tenant1.addRouter().setName("rtr1").build();
+        Router rtr = apiClient.addRouter().name("rtr1").create();
         // Link the Bridge and Router
-        rPort1 = rtr.addLinkPort()
-                    .setNetworkAddress("10.0.0.0")
-                    .setNetworkLength(24)
-                    .setPortAddress("10.0.0.1").build();
-        bPort6 = bridge1.addLinkPort().build();
-        rPort1.link(bPort6);
+        rPort1 = rtr.addInteriorRouterPort()
+                    .networkAddress("10.0.0.0")
+                    .networkLength(24)
+                    .portAddress("10.0.0.1").create();
+        interiorBrPort = bridge1.addInteriorPort().create();
+        rPort1.link(interiorBrPort.getId());
 
         // Add ports to the bridge.
-        bPort1 = bridge1.addPort().build();
-        bPort2 = bridge1.addPort().build();
-        bPort3 = bridge1.addPort().build();
-        bPort4 = bridge1.addPort().build();
-        bPort5 = bridge1.addPort().build();
+        bPort1 = bridge1.addExteriorPort().create();
+        bPort2 = bridge1.addExteriorPort().create();
+        bPort3 = bridge1.addExteriorPort().create();
+        bPort4 = bridge1.addExteriorPort().create();
+        bPort5 = bridge1.addExteriorPort().create();
 
         tap1 = new TapWrapper("l2filterTap1");
         //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
@@ -96,24 +71,18 @@ public class FilteringConnTrackingTest {
         //ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
         tap5 = new TapWrapper("l2filterTap5");
         //ovsBridge1.addSystemPort(bPort5.getId(), tap5.getName());
-
-        sleepBecause("we need the network to boot up", 10);
     }
 
-    @After
-    public void tearDown() {
+    @Override
+    public void teardown() {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
         removeTapWrapper(tap4);
         removeTapWrapper(tap5);
 
-        stopMidolman(midolman1);
-
         if (null != rPort1)
             rPort1.unlink();
-        removeTenant(tenant1);
-    //    stopMidolmanMgmt(mgmt);
     }
 
     public MAC arpFromTapAndGetReply(
@@ -184,22 +153,24 @@ public class FilteringConnTrackingTest {
                                "three => two".getBytes());
 
         // Now create a chain for the L2 virtual bridge's inbound filter.
-        RuleChain brInFilter = tenant1.addChain().setName("brInFilter").build();
+        RuleChain brInFilter = apiClient.addChain().name("brInFilter").create();
         // Add a rule that accepts all return packets.
-        Rule rule0 = brInFilter.addRule().setPosition(1).matchReturnFlow()
-                               .setSimpleType(DtoRule.Accept).build();
+        Rule rule0 = brInFilter.addRule().position(1).matchReturnFlow(true)
+                               .type(DtoRule.Accept).create();
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
-        Rule rule1 = brInFilter.addRule().setPosition(2)
-                               .matchNwSrc(ip4, 32).matchNwDst(ip1, 32)
-                               .setSimpleType(DtoRule.Drop).build();
+        Rule rule1 = brInFilter.addRule().position(2)
+            .nwSrcAddress(ip4.toUnicastString()).nwSrcLength(32)
+            .nwDstAddress(ip1.toUnicastString()).nwDstLength(32)
+            .type(DtoRule.Drop) .create();
+
         // Add a rule that drops packets from mac5 to mac2. Because of the
         // initial conn-tracking rule, return pkts from mac5 to mac2 still pass.
-        Rule rule2 = brInFilter.addRule().setPosition(3)
-                               .matchDlSrc(mac5).matchDlDst(mac2)
-                               .setSimpleType(DtoRule.Drop).build();
+        Rule rule2 = brInFilter.addRule().position(3)
+            .dlSrc(mac5.toString()).dlDst(mac2.toString())
+            .type(DtoRule.Drop).create();
         // Set this chain as the bridge's inbound filter.
-        bridge1.setInboundFilter(brInFilter.chain.getId());
+        bridge1.inboundFilterId(brInFilter.getId()).update();
 
         sleepBecause("we need the network to process the new filter", 2);
 

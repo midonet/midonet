@@ -8,73 +8,50 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.packets.IntIPv4;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.Router;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.vm.HypervisorType;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import com.midokura.util.lock.LockHelper;
 import com.midokura.util.ssh.SshHelper;
 import com.midokura.util.ssh.commands.SshSession;
+
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.destroyVM;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Ignore
-public class VmSshTest {
+public class VmSshTest extends TestBase {
 
-    private final static Logger log = LoggerFactory.getLogger(VmSshTest.class);
-
-    static Tenant tenant;
     static TapWrapper tapPort;
-
-    static MidolmanMgmt mgmt;
-    static MidolmanLauncher midolman;
-
     static String tapPortName = "vmSshTestTap1";
     static VMController vm;
     static SshSession sshSession;
 
-    static LockHelper.Lock lock;
+    @Override
+    public void setup() {
+        Router router = apiClient.addRouter().name("rtr1").create();
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, IOException {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-
-        mgmt = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start("VmSshTest");
-
-        tenant = new Tenant.Builder(mgmt).setName("tenant-vm-ssh").build();
-
-        Router router = tenant.addRouter().setName("rtr1").build();
-
-        IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-        ExteriorRouterPort p1 = router.addVmPort().setVMAddress(ip1).build();
+        RouterPort p1 = router.addExteriorRouterPort()
+            .portAddress("192.168.231.1")
+            .networkAddress("192.168.231.0").networkLength(24)
+            .create();
         tapPort = new TapWrapper(tapPortName);
         //ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
-        IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        ExteriorRouterPort p2 = router.addVmPort().setVMAddress(ip2).build();
+        RouterPort p2 = router.addExteriorRouterPort()
+            .portAddress("192.168.232.1")
+            .networkAddress("192.168.232.0").networkLength(24)
+            .create();
         //ovsBridge.addInternalPort(p2.port.getId(), "vmSshTestInt", ip2, 24);
 
         tapPort.closeFd();
-        Thread.sleep(1000);
 
         LibvirtHandler handler =
             LibvirtHandler.forHypervisor(HypervisorType.Qemu);
@@ -86,18 +63,12 @@ public class VmSshTest {
                     .setHostName("test")
                     .setNetworkDevice(tapPort.getName())
                     .build();
-
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @Override
+    public void teardown() {
         removeTapWrapper(tapPort);
-        stopMidolman(midolman);
-        removeTenant(tenant);
-      //  stopMidolmanMgmt(mgmt);
-
         destroyVM(vm);
-        lock.release();
     }
 
     @Test

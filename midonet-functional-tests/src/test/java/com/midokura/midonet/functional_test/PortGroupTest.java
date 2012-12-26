@@ -35,7 +35,6 @@ import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.client.resource.RuleChain;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.ARP;
@@ -61,7 +60,7 @@ import static org.junit.Assert.assertTrue;
 public class PortGroupTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     TapWrapper tap1;
     TapWrapper tap2;
     TapWrapper tap3;
@@ -95,7 +94,7 @@ public class PortGroupTest {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
@@ -275,7 +274,7 @@ public class PortGroupTest {
         removeTapWrapper(tap3);
         removeTapWrapper(tap4);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

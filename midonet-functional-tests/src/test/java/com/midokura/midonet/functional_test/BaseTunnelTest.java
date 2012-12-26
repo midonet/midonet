@@ -18,28 +18,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.resource.*;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.cluster.DataClient;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
-import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.IPacket;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.packets.Ethernet;
-import com.midokura.packets.IPv4;
-import com.midokura.packets.UDP;
-import com.midokura.packets.IPacket;
 import com.midokura.packets.MalformedPacketException;
 
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.util.Waiters.sleepBecause;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 
 public abstract class BaseTunnelTest {
@@ -67,7 +61,7 @@ public abstract class BaseTunnelTest {
     Host thisHost, remoteHost;
     UUID thisHostId, remoteHostId;
 
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     MidonetMgmt apiClient;
     EmbeddedMidolman midolman;
 
@@ -83,7 +77,7 @@ public abstract class BaseTunnelTest {
         log.info("Starting cassandra");
         startCassandra();
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zkPort);
+        apiStarter = new ApiServer(zkPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
         log.info("Starting midolman");
         midolman = startEmbeddedMidolman(testConfigFile.getAbsolutePath());
@@ -160,7 +154,7 @@ public abstract class BaseTunnelTest {
         removeTapWrapper(vmTap);
         removeTapWrapper(physTap);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

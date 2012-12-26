@@ -3,61 +3,42 @@
  */
 package com.midokura.midonet.functional_test;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import com.sun.jersey.test.framework.WebAppDescriptor;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-
-import static com.midokura.util.Waiters.sleepBecause;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
 
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
 import com.midokura.midolman.monitoring.store.CassandraStore;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
-import com.midokura.midonet.functional_test.utils.ZKLauncher;
 import com.midokura.util.lock.LockHelper;
 
+
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeCassandraFolder;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.*;
-import static com.midokura.midonet.functional_test.utils.ZKLauncher.ConfigType.Jmx_Enabled;
+import static com.midokura.util.Waiters.sleepBecause;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 
 @Ignore
-public class MonitoringTest {
+public class MonitoringTest extends TestBase {
 
     static int replicationFactor = 1;
     static int ttlInSecs = 1000;
     CassandraStore store;
-    MidolmanLauncher midolman;
-    MidolmanMgmt api;
-    ZKLauncher zkLauncher;
 
     private Bridge bridge;
-    private Tenant tenant;
     private BridgePort intBridgePort;
     private BridgePort tapBridgePort;
     private PacketHelper helperTap_int;
@@ -68,41 +49,20 @@ public class MonitoringTest {
     private static LockHelper.Lock lock;
 
 
-    @Before
-    public void setUp() throws Exception {
-
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-
-        zkLauncher = ZKLauncher.start(Jmx_Enabled);
-
-        WebAppDescriptor webAppDescriptor =
-                MockMidolmanMgmt.getAppDescriptorBuilder(false)
-                        .contextParam("zk_conn_string", "127.0.0.1:2182")
-                        .build();
-
-        api = new MockMidolmanMgmt(webAppDescriptor);
-
-        midolman = MidolmanLauncher.start(Monitoring, "MonitoringTest");
-
-        sleepBecause("Give ten seconds to midolman to startup", 10);
-
-
-        tenant = new Tenant.Builder(api).setName("tenant-metrics").build();
-
-        bridge = tenant.addBridge()
-                .setName("bridge-metrics")
-                .build();
+    @Override
+    public void setup() {
+        bridge = apiClient.addBridge().name("bridge-metrics").create();
 
         ipInt = IntIPv4.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
-        intBridgePort = bridge.addPort().build();
+        intBridgePort = bridge.addExteriorPort().create();
         //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
         //        ipInt, 24);
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
 
-        tapBridgePort = bridge.addPort().build();
+        tapBridgePort = bridge.addExteriorPort().create();
         metricsTap = new TapWrapper("metricsTap");
         //ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
 
@@ -118,15 +78,9 @@ public class MonitoringTest {
 
     }
 
-    @After
-    public void tearDown() throws IOException, InterruptedException {
+    @Override
+    public void teardown() {
         removeTapWrapper(metricsTap);
-        stopMidolman(midolman);
-        removeTenant(tenant);
-     //   stopMidolmanMgmt(api);
-        FunctionalTestsHelper.stopZookeeperService(zkLauncher);
-        removeCassandraFolder();
-        lock.release();
     }
 
     @Test
