@@ -16,7 +16,6 @@ import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -56,7 +55,7 @@ public class BgpTest {
     static final String pairedInterfacePeer  = "bgptest1";
     static final String peerVm = "peerVmPort";
 
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     MidonetMgmt apiClient;
     MidolmanLauncher midolman;
 
@@ -175,7 +174,7 @@ public class BgpTest {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
         log.info("Starting midolman");
@@ -293,7 +292,7 @@ public class BgpTest {
     public void tearDown() {
         removeTapWrapper(tap1_vm);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

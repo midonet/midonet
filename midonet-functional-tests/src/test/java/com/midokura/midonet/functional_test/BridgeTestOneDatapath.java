@@ -24,7 +24,6 @@ import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.BridgePort;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
@@ -51,7 +50,7 @@ public class BridgeTestOneDatapath {
     PacketHelper helper1_3;
     PacketHelper helper3_1;
 
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     MidonetMgmt apiClient;
     MidolmanLauncher midolman;
 
@@ -88,7 +87,7 @@ public class BridgeTestOneDatapath {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
         log.info("Starting midolman");
@@ -164,7 +163,7 @@ public class BridgeTestOneDatapath {
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }
