@@ -107,7 +107,7 @@ public class TestHost extends JerseyTest {
             .type(APPLICATION_HOST_JSON).get(ClientResponse.class);
 
         assertThat(clientResponse.getClientResponseStatus(),
-                   equalTo(ClientResponse.Status.NO_CONTENT));
+                   equalTo(ClientResponse.Status.NOT_FOUND));
     }
 
     @Test
