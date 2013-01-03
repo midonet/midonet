@@ -29,7 +29,7 @@
 
     <properties>
         <versions.jackson>1.9.3</versions.jackson>
-        <versions.log4j>1.2.16</versions.log4j>
+        <versions.logback>1.0.1</versions.logback>
         <versions.jersey>1.10</versions.jersey>
         <versions.jetty>6.1.26</versions.jetty>
         <versions.powermock>1.4.11</versions.powermock>

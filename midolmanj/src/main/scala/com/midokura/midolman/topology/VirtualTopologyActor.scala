@@ -15,6 +15,7 @@ import com.midokura.midolman.guice.MidolmanActorsModule
 import com.midokura.midolman.simulation.{Bridge, Chain, Router}
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.Port
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
@@ -59,7 +60,7 @@ object VirtualTopologyActor extends Referenceable {
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 }
 
-class VirtualTopologyActor extends Actor with ActorLogging {
+class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
     // dir: Directory, zkBasePath: String, val hostIp: IntIPv4
 

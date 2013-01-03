@@ -1,2 +1,2 @@
 /usr/share/midolmanj-mgmt/WEB-INF/web.xml
-/usr/share/midolmanj-mgmt/WEB-INF/classes/log4j.xml
+/usr/share/midolmanj-mgmt/WEB-INF/classes/logback.xml

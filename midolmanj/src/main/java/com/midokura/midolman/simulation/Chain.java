@@ -4,29 +4,29 @@ package com.midokura.midolman.simulation;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import akka.event.LoggingBus;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.Option;
 import scala.Some;
 import scala.collection.Map;
 
+import com.midokura.sdn.flows.WildcardMatch;
 import com.midokura.midolman.layer4.NatMappingFactory;
+import com.midokura.midolman.logging.LoggerFactory;
+import com.midokura.midolman.logging.SimulationAwareBusLogging;
 import com.midokura.midolman.rules.ChainPacketContext;
 import com.midokura.midolman.rules.Rule;
 import com.midokura.midolman.rules.RuleResult;
 import com.midokura.midolman.topology.FlowTagger;
-import com.midokura.sdn.flows.WildcardMatch;
 
 public class Chain {
-    private final static Logger log = LoggerFactory.getLogger(Chain.class);
+    private SimulationAwareBusLogging log;
 
     public UUID id;
     private List<Rule> rules;
@@ -37,12 +37,14 @@ public class Chain {
     private static NatMappingFactory natMappingFactory;
 
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
-                 String name_) {
+                 String name_, LoggingBus loggingBus) {
         id = id_;
         rules = new ArrayList<Rule>(rules_);
         Collections.sort(rules);
         jumpTargets = jumpTargets_;
         name = name_;
+        log = LoggerFactory.getSimulationAwareLog(this.getClass(),
+                                                  loggingBus);
     }
 
     public int hashCode() {
@@ -64,6 +66,10 @@ public class Chain {
             return ((Some<Chain>) match).get();
         else
             return null;
+    }
+
+    private SimulationAwareBusLogging getLog() {
+        return log;
     }
 
     /**
@@ -92,8 +98,8 @@ public class Chain {
         fwdInfo.addFlowTag(FlowTagger.invalidateFlowsByDevice(currentChain.id));
         fwdInfo.addFlowTag(
             FlowTagger.invalidateFlowsByDeviceFilter(ownerId, currentChain.id));
-        log.debug("Processing chain with name {} and ID {}",
-                  currentChain.name, currentChain.id);
+        currentChain.getLog().debug("Processing chain with name {} and ID {}",
+                                    currentChain.name, currentChain.id, fwdInfo);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
         chainStack.push(new ChainPosition(currentChain.id,
                                           currentChain.rules, 0));
@@ -113,7 +119,7 @@ public class Chain {
                 res.jumpToChain = null;
                 Rule r = cp.rules.get(cp.position);
                 cp.position++;
-                log.debug("Process rule {}", r);
+                currentChain.getLog().debug("Process rule {}", r, fwdInfo);
                 r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)
@@ -124,18 +130,20 @@ public class Chain {
                                             res.jumpToChain);
                     if (null == nextChain) {
                         // Let's just ignore jumps to non-existent chains.
-                        log.warn("ignoring jump to chain {} -- not found.",
-                                 res.jumpToChain);
+                        currentChain.getLog().warning(
+                            "ignoring jump to chain {} -- not found.",
+                            res.jumpToChain, fwdInfo);
                         continue;
                     }
 
                     UUID nextID = nextChain.id;
                     if (traversedChains.contains(nextID)) {
                         // Avoid jumping to chains we've already seen.
-                        log.warn("applyChain {} cannot jump from chain " +
-                                 "{} to chain {} -- already visited",
-                                new Object[] { origChain, currentChain,
-                                               nextChain });
+                        currentChain.getLog().warning(
+                            "applyChain {} cannot jump from chain " +
+                                "{} to chain {} -- already visited",
+                            new Object[]{origChain, currentChain,
+                                nextChain}, fwdInfo);
                         continue;
                     }
                     // Keep track of the traversed chains to detect loops.
@@ -152,8 +160,9 @@ public class Chain {
                     // Move on to the next rule in the same chain.
                     continue;
                 } else {
-                    log.error("Unknown action type {} in rule chain {}",
-                              res.action, cp.id);
+                    currentChain.getLog().error(
+                        "Unknown action type {} in rule chain {}",
+                        res.action, cp.id, fwdInfo);
                     // TODO: Should we throw an exception?
                     continue;
                 }

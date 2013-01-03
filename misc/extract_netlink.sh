@@ -27,7 +27,7 @@ UNUSED_FOLDERS="src conf conf2 err.txt \
 	midokura-util/src/test/java/com/midokura/{config,packets,remote,sdn} \
 	midokura-util/src/test/java/com/midokura/util/{TestPercentile,TestStringUtil}.java \
 	midokura-util/src/test/java/com/midokura/util/process/TestProcessHelper.java \
-	midokura-util/src/test/resources/log4j.properties \
+	midokura-util/src/test/resources/logback.xml \
 	midokura-util/{pom.xml,.classpath,.project,README} \
 	midonet-smoketest
 "

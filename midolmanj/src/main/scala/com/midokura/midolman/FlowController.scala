@@ -17,10 +17,11 @@ import com.midokura.netlink.exceptions.NetlinkException
 import com.midokura.odp.{Datapath, Flow, FlowMatch, Packet}
 import com.midokura.odp.flows.{FlowAction, FlowActionUserspace}
 import com.midokura.odp.protos.OvsDatapathConnection
-import com.midokura.sdn.flows.{FlowManager, FlowManagerHelper, WildcardFlow,
-                               WildcardMatch}
+import com.midokura.sdn.flows._
 import com.midokura.util.functors.Callback0
 import akka.event.LoggingReceive
+import logging.ActorLogWithoutPath
+import scala.Some
 
 
 object FlowController extends Referenceable {
@@ -60,7 +61,7 @@ object FlowController extends Referenceable {
 }
 
 
-class FlowController extends Actor with ActorLogging {
+class FlowController extends Actor with ActorLogWithoutPath {
 
     import FlowController._
 
@@ -109,7 +110,8 @@ class FlowController extends Actor with ActorLogging {
             TimeUnit.MILLISECONDS)
 
 
-        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows, maxWildcardFlows)
+        flowManager = new FlowManager(new FlowManagerInfoImpl(), maxDpFlows,
+            maxWildcardFlows, context.system.eventStream)
     }
 
     def receive = LoggingReceive {
@@ -324,7 +326,7 @@ class FlowController extends Actor with ActorLogging {
                 dpMatchToCookie.put(packet.getMatch, cookie)
                 DatapathController.getRef().tell(
                     DatapathController.PacketIn(
-                        WildcardMatch.fromFlowMatch(packet.getMatch),
+                        WildcardMatches.fromFlowMatch(packet.getMatch),
                         packet.getData, packet.getMatch, packet.getReason,
                         Some(cookie)))
                 cookieToPendedPackets.addBinding(cookie, packet)

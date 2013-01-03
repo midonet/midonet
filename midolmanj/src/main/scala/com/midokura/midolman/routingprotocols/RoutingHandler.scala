@@ -29,6 +29,7 @@ import com.midokura.quagga.ZebraProtocol.RIBType
 import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.midokura.util.process.ProcessHelper
 import scala.collection.JavaConversions._
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 
 /**
@@ -54,7 +55,7 @@ import scala.collection.JavaConversions._
  */
 class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient)
-    extends UntypedActorWithStash with ActorLogging {
+    extends UntypedActorWithStash with ActorLogWithoutPath {
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)

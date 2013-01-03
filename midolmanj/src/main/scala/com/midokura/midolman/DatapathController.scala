@@ -379,6 +379,7 @@ object DatapathController extends Referenceable {
         override def getFlowCookie() = null
         override def addFlowTag(tag: Any) {}
         override def addFlowRemovedCallback(cb: Callback0) {}
+        override def getParentCookie = null
     }
 
     /**

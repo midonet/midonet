@@ -8,8 +8,9 @@ import akka.actor.{ActorLogging, Actor}
 import com.midokura.midolman.simulation.Chain
 import com.midokura.midolman.topology.VirtualTopologyActor.{ChainRequest,
                                                             ChainUnsubscribe}
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
-abstract class DeviceManager(val id: UUID) extends Actor with ActorLogging {
+abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPath {
     var inFilter: Chain = null;
     var outFilter: Chain = null;
 

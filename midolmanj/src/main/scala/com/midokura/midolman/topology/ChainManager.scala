@@ -18,13 +18,14 @@ import java.util
 import com.midokura.midolman.topology.ChainManager.TriggerUpdate
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.FlowController.InvalidateFlowsByTag
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 object ChainManager {
     case class TriggerUpdate(rules: util.Collection[Rule])
 }
 
 class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
-        with ActorLogging {
+        with ActorLogWithoutPath {
     import ChainManager._
 
     override def preStart() {
@@ -102,7 +103,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
         if (0 == waitingForChains) {
             context.actorFor("..").tell(
                 new Chain(id, rules.toBuffer[Rule], idToChain.toMap,
-                    "TODO: need name"))
+                    "TODO: need name", context.system.eventStream))
         // invalidate all flow for this chain
         FlowController.getRef() !
             InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
@@ -122,7 +123,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
                 if (0 == waitingForChains) {
                     context.actorFor("..").tell(
                         new Chain(id, rules.toList, idToChain.toMap,
-                            "TODO: need name"))
+                            "TODO: need name", context.system.eventStream))
                     // invalidate all flow for this chain
                     FlowController.getRef() ! InvalidateFlowsByTag(
                         FlowTagger.invalidateFlowsByDevice(id))

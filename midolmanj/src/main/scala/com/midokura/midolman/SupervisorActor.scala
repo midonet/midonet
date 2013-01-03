@@ -5,6 +5,7 @@ package com.midokura.midolman
 
 import akka.actor.{Props, SupervisorStrategy, Actor, ActorLogging}
 import com.google.inject.Inject
+import logging.ActorLogWithoutPath
 
 /**
  * This actor is responsible for the supervision strategy of all the
@@ -19,7 +20,7 @@ object SupervisorActor extends Referenceable {
     case class StartChild(props: Props, name: String)
 }
 
-class SupervisorActor extends Actor with ActorLogging {
+class SupervisorActor extends Actor with ActorLogWithoutPath {
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null

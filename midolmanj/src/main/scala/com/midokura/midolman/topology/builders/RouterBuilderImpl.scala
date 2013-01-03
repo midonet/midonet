@@ -9,7 +9,6 @@ import com.midokura.midonet.cluster.client.{ArpCache, SourceNatResource, RouterB
 import akka.actor.{ActorRef, ActorContext}
 import com.midokura.midolman.layer3.{RoutingTable, Route}
 import com.midokura.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
-import com.midokura.sdn.flows.WildcardMatch
 import collection.immutable
 import collection.mutable
 import com.midokura.midolman.topology.{RoutingTableWrapper, RouterManager, RouterConfig}

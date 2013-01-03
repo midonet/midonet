@@ -16,12 +16,13 @@ import com.midokura.midonet.cluster.client.{Port, ExteriorRouterPort}
 import com.midokura.midolman.Referenceable
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.topology.VirtualTopologyActor
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
 }
 
-class RoutingManagerActor extends Actor with ActorLogging {
+class RoutingManagerActor extends Actor with ActorLogWithoutPath {
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null

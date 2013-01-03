@@ -13,7 +13,6 @@ import akka.util.Duration
 import akka.util.duration._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
-import org.apache.log4j.{Level, Logger}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

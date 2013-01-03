@@ -18,13 +18,14 @@ import com.midokura.midolman.FlowController.AddWildcardFlow
 import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
 import com.midokura.midonet.cluster.DataClient
 import com.midokura.packets._
-import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow, WildcardMatch}
 
 
 object SimulationController extends Referenceable {
     override val Name = "SimulationController"
 
-    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet)
+    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet,
+                                   parentCookie: Option[Int])
 }
 
 class SimulationController() extends Actor with ActorLogging {
@@ -57,14 +58,14 @@ class SimulationController() extends Actor with ActorLogging {
                     new Coordinator(
                         wMatch, ethPkt, cookie, None,
                         Platform.currentTime + timeout,
-                        connectionCache).simulate
+                        connectionCache, None).simulate
             }
 
-        case EmitGeneratedPacket(egressPort, ethPkt) =>
+        case EmitGeneratedPacket(egressPort, ethPkt, parentCookie) =>
             new Coordinator(
-                WildcardMatch.fromEthernetPacket(ethPkt), ethPkt, None,
+                WildcardMatches.fromEthernetPacket(ethPkt), ethPkt, None,
                 Some(egressPort), Platform.currentTime + timeout,
-                connectionCache).simulate
+                connectionCache, parentCookie).simulate()
     }
 
     private def handleDHCP(wMatch: WildcardMatch,

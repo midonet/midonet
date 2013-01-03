@@ -11,7 +11,6 @@ import com.midokura.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import com.midokura.midolman.topology.builders.RouterBuilderImpl
 import com.midokura.midonet.cluster.Client
 import com.midokura.midonet.cluster.client.ArpCache
-import com.midokura.sdn.flows.WildcardMatch
 import com.midokura.midolman.FlowController
 import com.midokura.midolman.topology.RouterManager._
 import com.midokura.midolman.config.MidolmanConfig
@@ -22,6 +21,7 @@ import com.midokura.midolman.topology.RouterManager.InvalidateFlows
 import com.midokura.midolman.topology.RouterManager.RemoveTag
 import com.midokura.midolman.topology.RouterManager.TriggerUpdate
 import com.midokura.midolman.topology.RouterManager.AddTag
+import com.midokura.sdn.flows.WildcardMatch
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._

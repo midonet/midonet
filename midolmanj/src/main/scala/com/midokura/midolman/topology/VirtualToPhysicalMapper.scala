@@ -32,6 +32,7 @@ import com.midokura.midolman.FlowController.InvalidateFlowsByTag
 import com.midokura.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import com.midokura.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
+import com.midokura.midolman.logging.ActorLogWithoutPath
 
 
 object HostConfigOperation extends Enumeration {
@@ -191,7 +192,7 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     def getById(uuid: UUID): Option[T] = devices.get(uuid)
 }
 
-class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogging {
+class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
 

@@ -7,15 +7,11 @@
 package com.midokura.cassandra;
 
 import me.prettyprint.hector.api.exceptions.HectorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.midokura.cache.Cache;
 
 
 public class CassandraCache implements Cache {
-    private static final Logger log =
-                         LoggerFactory.getLogger(CassandraCache.class);
 
     private final String column = "target";
     private CassandraClient client;
