@@ -6,7 +6,11 @@ package com.midokura.midolman.mgmt.network.rest_api;
 
 import com.midokura.midolman.mgmt.auth.AuthAction;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
+import com.midokura.midolman.mgmt.network.ExteriorRouterPort;
+import com.midokura.midolman.mgmt.network.RouterPort;
 import com.midokura.midolman.mgmt.network.auth.PortAuthorizer;
+import com.midokura.midolman.mgmt.network.auth.RouterAuthorizer;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
 import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midonet.cluster.DataClient;
@@ -40,6 +44,9 @@ public class TestPortResource {
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private PortAuthorizer auth;
+
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private RouterAuthorizer routerAuth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Validator validator;
@@ -89,4 +96,18 @@ public class TestPortResource {
         // Execute
         testObject.get(id);
     }
+
+    @Test(expected = NotFoundHttpException.class)
+    public void testCreateBadRouterUUID() throws Exception {
+        // Set up
+        UUID id = UUID.randomUUID();
+        doReturn(null).when(dataClient).routersGet(id);
+
+        // Execute
+        PortResource.RouterPortResource portResource = new PortResource.RouterPortResource(config, uriInfo, context, routerAuth, validator,
+                dataClient, id);
+        RouterPort routerPort = new ExteriorRouterPort(UUID.randomUUID(), id);
+        portResource.create(routerPort);
+    }
+
 }
