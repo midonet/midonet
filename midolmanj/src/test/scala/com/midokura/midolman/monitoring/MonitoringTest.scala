@@ -77,7 +77,7 @@ class MonitoringTest extends MidolmanTestCase {
       }
     })
 
-    clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, "tapDevice")
+    materializePort(port, host, "tapDevice")
 
     // make sure the monitoring agent receives data for the expected port.
     probeByName(MonitoringActor.Name).expectMsgType[DatapathController.PortStats].portID.toString should be (port.getId.toString)

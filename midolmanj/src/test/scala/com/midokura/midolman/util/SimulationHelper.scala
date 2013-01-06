@@ -196,9 +196,7 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def localPortNumberToName(portNo: Short): Option[String] = {
-        dpController().underlyingActor.localToVifPorts.get(portNo) match {
-            case Some(id) => dpController().underlyingActor.vifPorts.get(id)
-            case None => None
-        }
+        dpController().underlyingActor.vportMgr.getDpPortName(
+            Unsigned.unsign(portNo))
     }
 }

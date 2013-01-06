@@ -174,7 +174,7 @@ with RouterHelper{
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
     }
 
-    def atestDpOutPortDeleted() {
+    def testDpOutPortDeleted() {
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
@@ -220,15 +220,6 @@ with RouterHelper{
         val port1OnHost1 = newExteriorBridgePort(bridge)
         val portOnHost2 = newExteriorBridgePort(bridge)
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
 
@@ -243,6 +234,15 @@ with RouterHelper{
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
+
+        clusterDataClient().tunnelZonesAddMembership(
+            tunnelZone.getId,
+            new GreTunnelZoneHost(host1.getId)
+                .setIp(IntIPv4.fromString("192.168.100.1")))
+        clusterDataClient().tunnelZonesAddMembership(
+            tunnelZone.getId,
+            new GreTunnelZoneHost(host2.getId)
+                .setIp(IntIPv4.fromString("192.168.125.1")))
 
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())

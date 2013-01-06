@@ -3,6 +3,8 @@
 */
 package com.midokura.midolman
 
+import host.interfaces.InterfaceDescription
+import host.scanner.InterfaceScanner
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
@@ -16,14 +18,12 @@ import akka.testkit._
 import akka.util.{Duration, Timeout}
 import akka.util.duration._
 
-import com.google.inject.{AbstractModule, Module, Guice, Injector}
+import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
 
-import com.midokura.midolman.DatapathController.{DisablePortWatcher,
-                                                 InitializationComplete}
 import com.midokura.midolman.guice._
 import com.midokura.midolman.guice.actors.{OutgoingMessage,
                                            TestableMidolmanActorsModule}
@@ -46,6 +46,10 @@ import com.midokura.odp.protos.OvsDatapathConnection
 import com.midokura.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import com.midokura.packets.Ethernet
 import com.midokura.util.functors.callbacks.AbstractCallback
+import com.midokura.midolman.DatapathController.InitializationComplete
+import scala.List
+import com.midokura.midonet.cluster.data.{Port => VPort}
+import com.midokura.midonet.cluster.data.host.Host
 
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
@@ -55,6 +59,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
+    var interfaceScanner: MockInterfaceScanner = null
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -100,6 +105,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         injector.getInstance(classOf[MidolmanService]).startAndWait()
         mAgent = injector.getInstance(classOf[MonitoringAgent])
         mAgent.startMonitoringIfEnabled()
+        interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
+            .asInstanceOf[MockInterfaceScanner]
 
         dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].
             packetsExecuteSubscribe(new AbstractCallback[Packet, Exception] {
@@ -154,15 +161,31 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
             new MidolmanModule(),
-            new InterfaceScannerModule()
+            new PrivateModule {
+                override def configure() {
+                    bind(classOf[InterfaceScanner])
+                        .to(classOf[MockInterfaceScanner]).asEagerSingleton()
+                    expose(classOf[InterfaceScanner])
+                }
+            }
         )
     }
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
-        val t = Timeout(1 second)
+        val t = Timeout(3 second)
         val promise = akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
 
         Await.result(promise, t.duration)
+    }
+
+    def materializePort(port: VPort[_, _], host: Host, name: String): Unit = {
+        clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
+        if (host.getId == hostId()) {
+            val itf = new InterfaceDescription(name)
+            itf.setHasLink(true)
+            itf.setUp(true)
+            interfaceScanner.addInterface(itf)
+        }
     }
 
     def datapathPorts(datapath: Datapath): mutable.Map[String, Port[_, _]] = {
@@ -188,12 +211,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def initializeDatapath(): DatapathController.InitializationComplete = {
 
-        DatapathController.getRef(actors()).tell(DisablePortWatcher())
-
         val result = ask[InitializationComplete](
             DatapathController.getRef(actors()), Initialize())
 
-        dpProbe().expectMsgType[DisablePortWatcher] should not be null
         dpProbe().expectMsgType[Initialize] should not be null
         dpProbe().expectMsgType[OutgoingMessage] should not be null
 
@@ -201,7 +221,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def getPortNumber(portName: String): Int = {
-        dpController().underlyingActor.localDatapathPorts(portName).getPortNo
+        dpController().underlyingActor.ifaceNameToDpPort(portName).getPortNo
     }
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
@@ -339,7 +359,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         drainProbe(dpProbe())
     }
 }
-
 
 trait Dilation {
 

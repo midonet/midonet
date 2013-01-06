@@ -650,6 +650,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>packets</artifactId>
             <version>13.06-SNAPSHOT</version>

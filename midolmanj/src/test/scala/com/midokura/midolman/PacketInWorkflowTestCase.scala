@@ -35,7 +35,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         val vifPort = Ports.materializedBridgePort(bridge)
         vifPort.setId(clusterDataClient().portsCreate(vifPort))
 
-        clusterDataClient().hostsAddVrnPortMapping(hostId, vifPort.getId, "port")
+        materializePort(vifPort, host, "port")
 
         val portEventsProbe = newProbe()
         actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
@@ -45,7 +45,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val portNo = dpController().underlyingActor.localDatapathPorts("port").getPortNo
+        val portNo = dpController().underlyingActor.ifaceNameToDpPort("port").getPortNo
         triggerPacketIn(
             new Packet()
                 .setData(

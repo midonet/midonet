@@ -4,6 +4,7 @@
 package com.midokura.midolman
 
 import scala.collection.JavaConversions._
+import scala.Some
 import akka.testkit.TestProbe
 
 import org.slf4j.LoggerFactory
@@ -20,10 +21,7 @@ import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
                                           Router => ClusterRouter}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
-import com.midokura.odp.Packet
-import com.midokura.odp.flows.{FlowActionOutput, FlowAction}
 import com.midokura.packets._
-
 
 trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         VirtualConfigurationBuilders {
@@ -95,6 +93,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         vmPorts = vmPortNames map { _ => newExteriorBridgePort(bridge) }
         vmPorts zip vmPortNames foreach {
             case (port, name) =>
+                log.debug("Materializing port {}", name)
                 materializePort(port, host, name)
                 requestOfType[LocalPortActive](portEventsProbe)
         }
