@@ -165,10 +165,6 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[LogicalBridgePort]
     }
 
-    def materializePort(port: Port[_, _], host: Host, name: String) {
-        clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
-    }
-
     def deletePort(port: Port[_, _], host: Host){
         clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
     }

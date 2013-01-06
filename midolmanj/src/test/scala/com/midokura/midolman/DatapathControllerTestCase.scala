@@ -72,7 +72,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     val port = ClusterPorts.materializedBridgePort(bridge)
     port.setId(clusterDataClient().portsCreate(port))
 
-    clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, "tapDevice")
+    materializePort(port, host, "tapDevice")
 
     val eventProbe = newProbe()
     actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
@@ -124,7 +124,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     port.setId(clusterDataClient().portsCreate(port))
 
     clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-    clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
+    materializePort(port, host, "port1")
 
     dpConn().datapathsEnumerate().get() should have size 0
 
@@ -156,7 +156,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     port.setId(clusterDataClient().portsCreate(port))
 
     clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-    clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, "port1")
+    materializePort(port, host, "port1")
 
     val dp = dpConn().datapathsCreate("test").get()
     dpConn().portsCreate(dp, Ports.newNetDevPort("port2")).get()
@@ -231,13 +231,13 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     val port1 = ClusterPorts.materializedBridgePort(bridge)
     port1.setId(clusterDataClient().portsCreate(port1))
 
-    clusterDataClient().hostsAddVrnPortMapping(hostId, port1.getId, "port1")
+    materializePort(port1, host, "port1")
 
     initializeDatapath() should not be (null)
     portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-    dpController().underlyingActor.vifPorts should contain key(port1.getId)
-    dpController().underlyingActor.vifPorts should contain value ("port1")
+    dpController().underlyingActor.vportMgr
+        .getDpPortNumberForVport(port1.getId) should equal(Some(1))
 
     requestOfType[HostRequest](vtpProbe())
     val rcuHost = replyOfType[RCUHost](vtpProbe())
@@ -253,15 +253,14 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     val port2 = ClusterPorts.materializedBridgePort(bridge)
     port2.setId(clusterDataClient().portsCreate(port2))
 
-    clusterDataClient().hostsAddVrnPortMapping(hostId(), port2.getId, "port2")
+    materializePort(port2, host, "port2")
     replyOfType[RCUHost](vtpProbe())
     requestOfType[LocalPortActive](vtpProbe())
 
-    dpController().underlyingActor.vifPorts should contain key(port1.getId)
-    dpController().underlyingActor.vifPorts should contain key(port2.getId)
-
-    dpController().underlyingActor.vifPorts should contain value ("port2")
-    dpController().underlyingActor.vifPorts should contain value ("port1")
+    dpController().underlyingActor.vportMgr
+      .getDpPortNumberForVport(port1.getId) should equal(Some(1))
+    dpController().underlyingActor.vportMgr
+      .getDpPortNumberForVport(port2.getId) should equal(Some(2))
   }
 
 }

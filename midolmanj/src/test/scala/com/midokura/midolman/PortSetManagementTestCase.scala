@@ -46,7 +46,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
 
         // make the bridge port to a local interface
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "port1")
+        materializePort(inputPort, myHost, "port1")
 
         portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
 
@@ -94,8 +94,8 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
 
         // make the bridge port to a local interface (this should cause the local host to register as a member of the bridge port set).
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort1.getId, "port1")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort2.getId, "port2")
+        materializePort(inputPort1, myHost, "port1")
+        materializePort(inputPort2, myHost, "port2")
 
         // we should see two LocalPortActive events on the bus (fired by the
         // VTPMapper)
@@ -111,7 +111,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         // make a third port
         val inputPort3 = Ports.materializedBridgePort(bridge)
         inputPort3.setId(clusterDataClient().portsCreate(inputPort3))
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort3.getId, "port3")
+        materializePort(inputPort3, myHost, "port3")
 
         eventProbe.expectMsgClass(classOf[LocalPortActive])
         portSet = clusterDataClient().portSetsGet(bridge.getId).toSet

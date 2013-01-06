@@ -47,22 +47,28 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
 
 
         val tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref, classOf[TunnelChangeEvent])
+        actors().eventStream.subscribe(tunnelEventsProbe.ref,
+                                       classOf[TunnelChangeEvent])
 
         val flowEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+        actors().eventStream.subscribe(flowEventsProbe.ref,
+                                       classOf[WildcardFlowAdded])
 
         val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
+        actors().eventStream.subscribe(portEventsProbe.ref,
+                                       classOf[LocalPortActive])
 
         initializeDatapath() should not be (null)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        flowProbe().expectMsgType[
+            DatapathController.DatapathReady].datapath should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val tunnelId = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
+        val tunnelId = tunnelEventsProbe
+            .expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
 
-        val inputPortNo = dpController().underlyingActor.localDatapathPorts("port1").getPortNo
+        val inputPortNo = dpController().underlyingActor
+            .ifaceNameToDpPort("port1").getPortNo
 
         val wildcardFlow = new WildcardFlow()
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
@@ -87,7 +93,8 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         flowActs should have size(2)
 
         val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
-        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be (portOnHost2.getTunnelKey)
+        as[FlowKeyTunnelID](setKeyAction.getFlowKey)
+                .getTunnelID should be (portOnHost2.getTunnelKey)
 
         val outputActions = as[FlowActionOutput](flowActs.get(1))
         outputActions.getPortNumber should be (tunnelId)
