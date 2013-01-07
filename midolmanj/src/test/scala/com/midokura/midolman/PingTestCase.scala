@@ -352,26 +352,30 @@ class PingTestCase extends MidolmanTestCase with
         log.info("Check ICMP Echo Reply from Router port 2")
         expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
-        expectPacketOut(vm2PortNumber);
-        
+        expectPacketOut(vm2PortNumber)
+
         log.info("Ping Router port 1")
         injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
         requestOfType[PacketIn](simProbe())
         log.info("Check ICMP Echo Reply from Router port 1")
         expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
-        expectPacketOut(vm2PortNumber);
+        expectPacketOut(vm2PortNumber)
+        fishForRequestOfType[DiscardPacket](flowProbe())
 
         log.info("Ping VM1, not expecting any reply")
         injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
+        requestOfType[PacketIn](simProbe())
+        // this is an ARP request, the ICMP echo will not be delivered
+        // because this ARP will go unanswered
+        requestOfType[EmitGeneratedPacket](simProbe())
+        expectPacketOut(rtrPort1Num)
 
         log.info("Send Ping reply on behalf of VM1")
         sendEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 
                       16, 32,
                       routerMac1, vm2IP)
         requestOfType[PacketIn](simProbe())
-        fishForRequestOfType[DiscardPacket](flowProbe())
-        expectPacketOut(rtrPort1Num)
 
         log.info("Expecting packet out on VM2 port")
         val eth = expectRoutedPacketOut(vm2PortNumber)

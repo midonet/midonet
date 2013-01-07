@@ -159,8 +159,8 @@ with RouterHelper{
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        dpProbe().expectMsgClass(classOf[PacketIn])
-        dpProbe().expectMsgClass(classOf[PacketIn])
+        fishForRequestOfType[PacketIn](dpProbe())
+        fishForRequestOfType[PacketIn](dpProbe())
 
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 

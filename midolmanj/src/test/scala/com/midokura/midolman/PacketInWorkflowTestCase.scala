@@ -58,7 +58,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
                     ).serialize())
                 .setMatch(new FlowMatch().addKey(FlowKeys.inPort(portNo))))
 
-        val packetIn = requestOfType[PacketIn](dpProbe())
+        val packetIn = fishForRequestOfType[PacketIn](dpProbe())
 
         packetIn should not be null
         packetIn.cookie should not be None
