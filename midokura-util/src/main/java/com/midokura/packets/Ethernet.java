@@ -295,7 +295,7 @@ public class Ethernet extends BasePacket {
     }
 
     public static boolean isMcast(MAC mac) {
-        return isMcast(mac.getAddress());
+        return (mac == null) ? false : isMcast(mac.getAddress());
     }
 
     private static boolean isMcast(byte[] mac) {
