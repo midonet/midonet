@@ -148,7 +148,7 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def expectPacketOnPort(port: UUID): PacketIn = {
-        dpProbe().expectMsgClass(classOf[PacketIn])
+        fishForRequestOfType[PacketIn](dpProbe())
 
         val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
         pktInMsg should not be null
