@@ -96,7 +96,7 @@ class FlowsExpirationTest extends MidolmanTestCase
     def testHardTimeExpiration() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setActions(List().toList)
@@ -132,7 +132,7 @@ class FlowsExpirationTest extends MidolmanTestCase
     def testIdleTimeExpiration() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
@@ -166,7 +166,7 @@ class FlowsExpirationTest extends MidolmanTestCase
     def testIdleTimeExpirationUpdated() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val flowMatch = new FlowMatch().addKey(
                                 FlowKeys.etherType(ethPkt.getEtherType))
         val wFlow = new WildcardFlow()
@@ -204,7 +204,7 @@ class FlowsExpirationTest extends MidolmanTestCase
     def testIdleAndHardTimeOutOfTheSameFlow() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
@@ -236,7 +236,7 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
