@@ -36,20 +36,25 @@ public class MidoReporter extends AbstractPollingReporter
 
     /* List of the metrics recently added and that need to be registered in the store
      * Key is type + metricName */
-    private static List<MetricName> metricsToStore = new ArrayList<MetricName>();
+    private List<MetricName> metricsToStore;
     /* List of new metrics type activated for some target. We will store every metrics type
        available for every target in the store. We can then retrieve target-> type,
        type-> metrics.
      */
+     /*  TODO(rossella, guillermo): make this non-static. */
     private static List<MetricName> typeTargetToStore = new ArrayList<MetricName>();
     /* List of metrics already registered in the store */
-    private static Map<String, Integer> storedMetrics = new HashMap<String, Integer>();
+    private Map<String, Integer> storedMetrics;
 
     private Store store;
 
     public MidoReporter(Store store, String name) {
         // TODO(rossella) MetricsRegistry allow a maximum of 1024 items
         super(Metrics.defaultRegistry(), name);
+
+        metricsToStore = new ArrayList<MetricName>();
+        storedMetrics = new HashMap<String, Integer>();
+
         this.store = store;
         Metrics.defaultRegistry().addListener(this);
     }
@@ -80,14 +85,16 @@ public class MidoReporter extends AbstractPollingReporter
                         new Object[]{metric.getName(), metric.getType()});
             }
         }
-        for (MetricName metric : typeTargetToStore) {
-            store.addMetricTypeToTarget(metric.getScope(), metric.getType());
-            log.debug("Added type {} to target {}",
-                    new Object[]{metric.getType(), metric.getScope()});
+        synchronized (typeTargetToStore) {
+            for (MetricName metric : typeTargetToStore) {
+                store.addMetricTypeToTarget(metric.getScope(), metric.getType());
+                log.debug("Added type {} to target {}",
+                        new Object[]{metric.getType(), metric.getScope()});
+            }
+            // clear list
+            metricsToStore.clear();
+            typeTargetToStore.clear();
         }
-        // clear list
-        metricsToStore.clear();
-        typeTargetToStore.clear();
     }
 
     @Override
@@ -157,6 +164,8 @@ public class MidoReporter extends AbstractPollingReporter
     }
 
     public static void notifyNewMetricTypeForTarget(MetricName metricName) {
-        typeTargetToStore.add(metricName);
+        synchronized (typeTargetToStore) {
+            typeTargetToStore.add(metricName);
+        }
     }
 }
