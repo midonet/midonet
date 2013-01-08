@@ -321,7 +321,7 @@ public class FlowManager {
                 continue;
             }
             long timeLived = System.currentTimeMillis() - flowToExpire.getCreationTimeMillis();
-            if( timeLived > flowToExpire.getHardExpirationMillis()){
+            if( timeLived >= flowToExpire.getHardExpirationMillis()){
                 hardTimeOutQueue.poll();
                 flowManagerHelper.removeWildcardFlow(flowToExpire);
                 log.debug("Removing flow {} for hard expiration, expired {} ms ago", flowToExpire,
@@ -364,7 +364,7 @@ public class FlowManager {
             long timeLived = System.currentTimeMillis() - flowToExpire.getLastUsedTimeMillis();
             if(timeLived > flowToExpire.getIdleExpirationMillis()/2){
                 // these flows needs to be expired
-                if(timeLived > flowToExpire.getIdleExpirationMillis()){
+                if(timeLived >= flowToExpire.getIdleExpirationMillis()){
                     it.remove();
                     flowManagerHelper.removeWildcardFlow(flowToExpire);
                     log.debug("Removing flow {} for idle expiration, expired {} ms ago, now {}",
