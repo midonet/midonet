@@ -748,7 +748,7 @@ in MidoNet.  It contains the following fields:
         <td>String</td>
         <td>POST</td>
         <td>Yes</td>
-        <td>Type of router port.  It must be one of:
+        <td>Type of device port.  It must be one of:
 <ul>
 <li>ExteriorRouter</li>
 <li>InteriorRouter</li>
