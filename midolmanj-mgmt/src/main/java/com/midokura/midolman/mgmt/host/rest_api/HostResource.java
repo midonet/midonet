@@ -12,6 +12,7 @@ import com.midokura.midolman.mgmt.auth.AuthRole;
 import com.midokura.midolman.mgmt.auth.ForbiddenHttpException;
 import com.midokura.midolman.mgmt.host.Host;
 import com.midokura.midolman.mgmt.rest_api.AbstractResource;
+import com.midokura.midolman.mgmt.rest_api.NotFoundHttpException;
 import com.midokura.midolman.mgmt.rest_api.ResourceFactory;
 import com.midokura.midolman.mgmt.rest_api.RestApiConfig;
 import com.midokura.midolman.state.InvalidStateOperationException;
@@ -77,6 +78,7 @@ public class HostResource extends AbstractResource {
      * @param id         Host ID from the request.
      * @return A Host object.
      * @throws StateAccessException Data access error.
+     * @throws NotFoundHttpException Non existent UUID
      */
     @GET
     @RolesAllowed({AuthRole.ADMIN})
@@ -84,7 +86,7 @@ public class HostResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_HOST_JSON,
                   MediaType.APPLICATION_JSON})
     public Host get(@PathParam("id") UUID id)
-        throws StateAccessException {
+        throws NotFoundHttpException, StateAccessException {
 
         com.midokura.midonet.cluster.data.host.Host hostConfig =
                 dataClient.hostsGet(id);
@@ -92,6 +94,8 @@ public class HostResource extends AbstractResource {
         if (hostConfig != null) {
             host = new Host(hostConfig);
             host.setBaseUri(getBaseUri());
+        } else {
+            throw new NotFoundHttpException();
         }
 
         return host;
