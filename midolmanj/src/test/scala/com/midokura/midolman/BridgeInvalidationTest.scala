@@ -123,7 +123,7 @@ with RouterHelper{
     def testLearnMAC() {
         // this packet should be flooded
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
-        dpProbe().expectMsgClass(classOf[PacketIn])
+        fishForRequestOfType[PacketIn](dpProbe())
         val m = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
@@ -138,7 +138,7 @@ with RouterHelper{
 
     def testFlowCountZeroForgetMac() {
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
-        dpProbe().expectMsgClass(classOf[PacketIn])
+        fishForRequestOfType[PacketIn](dpProbe())
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
@@ -162,7 +162,7 @@ with RouterHelper{
 
     def testVmMigration() {
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
-        dpProbe().expectMsgClass(classOf[PacketIn])
+        fishForRequestOfType[PacketIn](dpProbe())
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))

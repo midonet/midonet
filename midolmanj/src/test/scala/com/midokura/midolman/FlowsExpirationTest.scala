@@ -104,7 +104,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     def testHardTimeExpiration() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setActions(List().toList)
@@ -140,7 +140,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     def testIdleTimeExpiration() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
@@ -174,7 +174,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     def testIdleTimeExpirationUpdated() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val flowMatch = new FlowMatch().addKey(
                                 FlowKeys.etherType(ethPkt.getEtherType))
         val wFlow = new WildcardFlow()
@@ -212,7 +212,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
     def testIdleAndHardTimeOutOfTheSameFlow() {
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
@@ -244,7 +244,7 @@ class FlowsExpirationTest extends MidolmanTestCase with VirtualConfigurationBuil
 
         triggerPacketIn("port1", ethPkt)
 
-        val pktInMsg = dpProbe().expectMsgType[PacketIn]
+        val pktInMsg = fishForRequestOfType[PacketIn](dpProbe())
         val wFlow = new WildcardFlow()
             .setMatch(pktInMsg.wMatch)
             .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
