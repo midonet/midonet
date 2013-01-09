@@ -38,15 +38,11 @@ public class VMMetricsCollection {
     @Inject
     HostKeyService hostKeyService;
 
-    String hostName;
+    private String hostName;
 
     public void registerMetrics() {
 
-        metricsCount = 0;
-
         hostName = hostKeyService.getHostId();
-
-        MidoReporter.notifyNewMetricTypeForTarget(new MetricName(VMMetricsCollection.class, "", hostName));
 
         addLocalJmxPoolingMetric("ThreadCount", Integer.class,
                 "java.lang:type=Threading", "ThreadCount");

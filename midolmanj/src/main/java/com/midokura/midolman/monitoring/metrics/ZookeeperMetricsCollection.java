@@ -50,11 +50,6 @@ public class ZookeeperMetricsCollection {
         }
 
         hostName = hostKeyService.getHostId();
-
-        MidoReporter.notifyNewMetricTypeForTarget(
-            new MetricName(ZookeeperMetricsCollection.class, "", hostName));
-
-
         registerMetric(serverConn, "ZKPacketsSent", Long.class, mBeanZkService,
                 "PacketsSent");
 
