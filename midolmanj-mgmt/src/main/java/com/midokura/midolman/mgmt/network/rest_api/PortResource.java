@@ -439,6 +439,10 @@ public class PortResource extends AbstractResource {
                 throw new BadRequestHttpException(violations);
             }
 
+            if (dataClient.routersGet(routerId) == null) {
+                throw new NotFoundHttpException("Cannot create port for non existent router");
+            }
+
             if (!authorizer.authorize(context, AuthAction.WRITE, routerId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add port to this router.");
