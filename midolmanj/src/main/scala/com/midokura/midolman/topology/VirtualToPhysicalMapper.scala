@@ -3,8 +3,8 @@
 */
 package com.midokura.midolman.topology
 
-import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
+import scala.collection.immutable.{Set => ROSet}
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -22,7 +22,7 @@ import com.midokura.midolman.services.{HostIdProviderService,
 import com.midokura.midolman.topology.rcu.Host
 import com.midokura.midolman.topology.rcu.RCUDeviceManager.Start
 import com.midokura.midonet.cluster.{Client, DataClient}
-import com.midokura.midonet.cluster.client.{BridgePort, Port, TunnelZones}
+import com.midokura.midonet.cluster.client.{BridgePort, Port}
 import com.midokura.midonet.cluster.data.TunnelZone
 import com.midokura.midonet.cluster.data.zones._
 import com.midokura.midolman.topology.VirtualTopologyActor.{BridgeRequest,
@@ -43,6 +43,18 @@ sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
     val zone: UUID
     val hostConfig: HostConfig
     val op: HostConfigOperation.Value
+}
+
+sealed trait ZoneMembers[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
+    val zone: UUID
+    val members: ROSet[HostConfig]
+
+    protected def changeMembers(change: ZoneChanged[HostConfig]): ROSet[HostConfig] = {
+        change.op match {
+            case HostConfigOperation.Added => members + change.hostConfig
+            case HostConfigOperation.Deleted => members - change.hostConfig
+        }
+    }
 }
 
 /**
@@ -71,8 +83,6 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class PortSetRequest(portSetId: UUID, update: Boolean)
 
-    case class TunnelZoneMembersUpdate(zoneId: UUID, hostId: UUID, hostConfig: Option[_ <: TunnelZones.Builder.HostConfig])
-
     case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
         extends ZoneChanged[GreTunnelZoneHost]
@@ -84,6 +94,27 @@ object VirtualToPhysicalMapper extends Referenceable {
     case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapTunnelZoneHost,
                               op: HostConfigOperation.Value)
         extends ZoneChanged[CapwapTunnelZoneHost]
+
+    case class GreZoneMembers(zone: UUID, members: ROSet[GreTunnelZoneHost])
+        extends ZoneMembers[GreTunnelZoneHost] {
+
+        def change(change: GreZoneChanged): GreZoneMembers =
+            copy(members = changeMembers(change))
+    }
+
+    case class CapwapZoneMembers(zone: UUID, members: ROSet[CapwapTunnelZoneHost])
+        extends ZoneMembers[CapwapTunnelZoneHost] {
+
+        def change(change: CapwapZoneChanged): CapwapZoneMembers =
+            copy(members = changeMembers(change))
+    }
+
+    case class IpsecZoneMembers(zone: UUID, members: ROSet[IpsecTunnelZoneHost])
+        extends ZoneMembers[IpsecTunnelZoneHost] {
+
+        def change(change: IpsecZoneChanged): IpsecZoneMembers =
+            copy(members = changeMembers(change))
+    }
 
     case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 }
@@ -116,6 +147,15 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
     val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     val deviceObservers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
+    def removeSubscriber(deviceId: UUID, subscriber: ActorRef) {
+        deviceSubscribers.get(deviceId) foreach {
+            subscribers => subscribers.remove(subscriber)
+        }
+        deviceObservers.get(deviceId) foreach {
+            observers => observers.remove(subscriber)
+        }
+    }
+
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
         if (updates) {
             deviceSubscribers.get(deviceId) match {
@@ -136,8 +176,8 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
                         deviceObservers.get(deviceId) match {
                             case None =>
                                 deviceObservers.put(deviceId, mutable.Set(subscriber))
-                            case Some(subscribers) =>
-                                subscribers + subscriber
+                            case Some(observers) =>
+                                observers + subscriber
                         }
                     case _ =>
                 }
@@ -158,9 +198,13 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
         }
     }
 
+    def updateAndNotifySubscribers(uuid: UUID, device: T, message: AnyRef) {
+        devices.put(uuid, device)
+        notifySubscribers(uuid, message)
+    }
+
     def updateAndNotifySubscribers(uuid: UUID, device: T ) {
         devices.put(uuid, device)
-
         notifySubscribers(uuid, device)
     }
 
@@ -220,8 +264,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
     private lazy val portSets: DeviceHandlersManager[rcu.PortSet, PortSetManager] =
         new DeviceHandlersManager[rcu.PortSet, PortSetManager](context, actorsService, "portset")
 
-    private lazy val tunnelZones: DeviceHandlersManager[TunnelZone[_, _], TunnelZoneManager] =
-        new DeviceHandlersManager[TunnelZone[_,_], TunnelZoneManager](context, actorsService, "tunnel_zone")
+    private lazy val tunnelZones: DeviceHandlersManager[ZoneMembers[_], TunnelZoneManager] =
+        new DeviceHandlersManager[ZoneMembers[_], TunnelZoneManager](context, actorsService, "tunnel_zone")
 
     // Map a PortSet ID to the vports in the set that are local to this host.
     private val psetIdToLocalVports = mutable.Map[UUID, mutable.Set[UUID]]()
@@ -262,11 +306,26 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case TunnelZoneRequest(zoneId) =>
                 tunnelZones.addSubscriber(zoneId, sender, updates = true)
 
-            case zone: TunnelZone[_, _] =>
-                tunnelZones.updateAndNotifySubscribers(zone.getId, zone)
+            case TunnelZoneUnsubscribe(zoneId) =>
+                tunnelZones.removeSubscriber(zoneId, sender)
 
             case zoneChanged: ZoneChanged[_] =>
-                tunnelZones.notifySubscribers(zoneChanged.zone, zoneChanged)
+                /* If this is the first time we get a ZoneChanged for this
+                 * tunnel zone we will send a complete list of members to our
+                 * observers. From the second time on we will just send diffs
+                 * and forward a ZoneChanged message to the observers so that
+                 * they can update the list of members they stored. */
+                val zoneMembers = applyZoneChangeOp(zoneChanged)
+
+                tunnelZones.devices.get(zoneChanged.zone) match {
+                    case None =>
+                        tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
+                                                               zoneMembers)
+                    case _ =>
+                        tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
+                                                               zoneMembers,
+                                                               zoneChanged)
+                }
 
             case LocalPortActive(vportID, active) =>
                 log.debug("Received a LocalPortActive {} for {}",
@@ -396,6 +455,36 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case value =>
                 log.error("Unknown message: " + value)
 
+        }
+    }
+
+    private def applyZoneChangeOp(zoneChanged: ZoneChanged[_]) : ZoneMembers[_] = {
+        val id = zoneChanged.zone
+        val oldZone = tunnelZones.devices.get(id)
+        zoneChanged match {
+            case greChange: GreZoneChanged =>
+                oldZone.getOrElse(GreZoneMembers(id, Set())) match {
+                    case members: GreZoneMembers => members.change(greChange)
+                    case _ => throw new IllegalArgumentException(
+                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
+                }
+
+            case capwapChange: CapwapZoneChanged =>
+                oldZone.getOrElse(CapwapZoneMembers(id, Set())) match {
+                    case members: CapwapZoneMembers => members.change(capwapChange)
+                    case _ => throw new IllegalArgumentException(
+                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
+                }
+
+            case ipsecChange: IpsecZoneChanged =>
+                oldZone.getOrElse(IpsecZoneMembers(id, Set())) match {
+                    case members: IpsecZoneMembers => members.change(ipsecChange)
+                    case _ => throw new IllegalArgumentException(
+                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
+                }
+
+            case _ => // Should never happen
+                throw new IllegalArgumentException()
         }
     }
 
