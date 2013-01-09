@@ -36,7 +36,6 @@ import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
@@ -64,7 +63,7 @@ public class PingTest {
     MAC vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03");
 
     TapWrapper tap1;
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID =
@@ -85,7 +84,7 @@ public class PingTest {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
@@ -224,7 +223,7 @@ public class PingTest {
     public void tearDown() throws Exception {
         removeTapWrapper(tap1);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

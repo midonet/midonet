@@ -19,43 +19,29 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.midokura.midolman.monitoring.metrics.vrn.VifMetrics;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
+import com.midokura.midonet.functional_test.TestBase;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.midonet.functional_test.FunctionalTestsHelper;
 import com.midokura.midonet.functional_test.PacketHelper;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
 import com.midokura.util.jmx.JMXAttributeAccessor;
 import com.midokura.util.jmx.JMXHelper;
 import com.midokura.util.lock.LockHelper;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.fixQuaggaFolderPermissions;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
 
 /**
  * Functional tests for the metrics and monitoring.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 5/4/12
  */
 @Ignore
-public class MetricsAndMonitoringTest {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(MetricsAndMonitoringTest.class);
-
-    MidolmanLauncher midolman;
-    MidolmanMgmt api;
+public class MetricsAndMonitoringTest extends TestBase {
 
     private Bridge bridge;
-    private Tenant tenant;
     private BridgePort intBridgePort;
     private BridgePort tapBridgePort;
     private PacketHelper helperTap_int;
@@ -63,54 +49,37 @@ public class MetricsAndMonitoringTest {
     private IntIPv4 ipTap;
     private TapWrapper metricsTap;
 
-    private static LockHelper.Lock lock;
+    @Override
+    public void setup() {
 
-    @BeforeClass
-    public void setUp() throws Exception {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
+        //fixQuaggaFolderPermissions();
 
-        fixQuaggaFolderPermissions();
-
-        midolman = MidolmanLauncher.start("MetricsAndMonitoringTest");
-        api = new MockMidolmanMgmt(false);
-
-        sleepBecause("Give ten seconds to midolman to startup", 10);
-
-        tenant = new Tenant.Builder(api).setName("tenant-metrics").build();
-
-        bridge = tenant.addBridge()
-                       .setName("bridge-metrics")
-                       .build();
-
+        bridge = apiClient.addBridge().name("bridge-metrics").create();
         ipInt = IntIPv4.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
-        intBridgePort = bridge.addPort().build();
+        intBridgePort = bridge.addExteriorPort().create();
         //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
                                   //ipInt, 24);
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
-        tapBridgePort = bridge.addPort().build();
+        tapBridgePort = bridge.addExteriorPort().create();
         metricsTap = new TapWrapper("metricsTap");
         //ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
     }
 
-    @AfterClass
-    public void tearDown() throws Exception {
+    @Override
+    public void teardown() {
         removeTapWrapper(metricsTap);
-        stopMidolman(midolman);
-        removeTenant(tenant);
-       // stopMidolmanMgmt(api);
-        lock.release();
     }
 
     @Test
     public void testRxMetrics() throws Exception {
 
         JMXConnector connector =
-            JMXHelper.newJvmJmxConnectorForPid(midolman.getPid());
+            JMXHelper.newJvmJmxConnectorForPid(1 /*midolman.getPid()*/);
 
         assertThat("The JMX connection should have been non-null.",
                    connector, notNullValue());

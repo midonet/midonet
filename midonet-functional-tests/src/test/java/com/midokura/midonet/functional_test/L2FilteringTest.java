@@ -35,7 +35,6 @@ import com.midokura.midonet.client.resource.Router;
 import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.client.resource.Rule;
 import com.midokura.midonet.client.resource.RuleChain;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IPv4;
@@ -58,7 +57,7 @@ import static org.junit.Assert.assertTrue;
 public class L2FilteringTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     MidonetMgmt apiClient;
     Bridge bridge;
     BridgePort<DtoBridgePort> brPort3;
@@ -96,7 +95,7 @@ public class L2FilteringTest {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
@@ -185,7 +184,7 @@ public class L2FilteringTest {
         removeTapWrapper(tap4);
         removeTapWrapper(tap5);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }
