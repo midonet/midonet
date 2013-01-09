@@ -213,7 +213,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // port (e.g. anything outside 10.  0.0.0/16).
         val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val onPort = 23
-        val ttl: Byte = 17
+        // use a large TTL to ensure that we don't get unsigned/signed issues
+        val ttl: Byte = (158).toByte
         val eth = Packets.udp(
             MAC.fromString("01:02:03:04:05:06"), portNumToMac(onPort),
             makeAddressInSegment(onPort), IntIPv4.fromString("45.44.33.22"),
@@ -651,7 +652,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             case e: java.util.concurrent.TimeoutException =>
         }
     }
-
 /*
     @Ignore def testFilterBadSrcForPort() {
     }
