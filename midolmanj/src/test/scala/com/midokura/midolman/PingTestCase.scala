@@ -8,7 +8,6 @@ import scala.collection.JavaConversions._
 
 import collection.mutable
 import akka.testkit.TestProbe
-import akka.util.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -22,7 +21,6 @@ import topology.LocalPortActive
 import com.midokura.packets._
 import com.midokura.midonet.cluster.data.dhcp.Opt121
 import com.midokura.midonet.cluster.data.dhcp.Subnet
-import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
 import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
 import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
@@ -32,8 +30,7 @@ import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.DatapathController.PacketIn
 
 @RunWith(classOf[JUnitRunner])
-class PingTestCase extends MidolmanTestCase with
-        VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
+class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[PingTestCase])
 
     // Router port one connecting to host VM1
@@ -190,21 +187,6 @@ class PingTestCase extends MidolmanTestCase with
         val pkt = expectPacketOut(portNum)
         log.debug("Packet out: {}", pkt)
         // TODO(guillermo) check the arp reply packet
-    }
-
-    private def injectIcmpEcho(portName : String, srcMac : MAC, srcIp : IntIPv4,
-                               dstMac : MAC, dstIp : IntIPv4) = {
-        val echo = new ICMP()
-        echo.setEchoRequest(16, 32, "My ICMP".getBytes)
-        val eth: Ethernet = new Ethernet().
-            setSourceMACAddress(srcMac).
-            setDestinationMACAddress(dstMac).
-            setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
-            setDestinationAddress(dstIp.addressAsInt).
-            setProtocol(ICMP.PROTOCOL_NUMBER).
-            setPayload(echo))
-        triggerPacketIn(portName, eth)
     }
 
     private def sendEchoReply(portName : String, srcMac : MAC, srcIp : IntIPv4,
