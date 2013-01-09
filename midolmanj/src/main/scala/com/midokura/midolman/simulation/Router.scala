@@ -13,13 +13,18 @@ import com.midokura.midolman.rules.RuleResult.{Action => RuleAction}
 import com.midokura.midolman.simulation.Coordinator._
 import com.midokura.midolman.topology._
 import com.midokura.midonet.cluster.client._
-import com.midokura.packets.{IPacket, ARP, Ethernet, ICMP, IntIPv4, IPv4, MAC}
+import com.midokura.packets._
 import com.midokura.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import com.midokura.sdn.flows.{WildcardMatches, WildcardMatch}
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import com.midokura.midolman.topology.VirtualTopologyActor.PortRequest
 import com.midokura.midolman.logging.LoggerFactory
-
+import com.midokura.midolman.simulation.Coordinator.ConsumedAction
+import com.midokura.midolman.simulation.Coordinator.DropAction
+import com.midokura.midolman.simulation.Coordinator.ToPortAction
+import com.midokura.midolman.simulation.Coordinator.ErrorDropAction
+import com.midokura.midolman.simulation.Coordinator.NotIPv4Action
+import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
@@ -135,7 +140,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
          * so that there need only be one sim. run for different TTLs.  */
         if (pktContext.getMatch.getNetworkTTL != null) {
-            val ttl: Byte = pktContext.getMatch.getNetworkTTL
+            val ttl = Unsigned.unsign(pktContext.getMatch.getNetworkTTL)
             if (ttl <= 1) {
                 sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                     ICMP.TYPE_TIME_EXCEEDED, EXCEEDED_CODE.EXCEEDED_TTL)
