@@ -12,7 +12,6 @@ import com.midokura.util.Waiters;
 import com.midokura.util.process.ProcessHelper;
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,7 +26,7 @@ public class MgmtZookeeperReconnection {
 
     Bridge bridge;
 
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     MidonetMgmt apiClient;
 
     int zkPort;
@@ -41,7 +40,7 @@ public class MgmtZookeeperReconnection {
         log.info("Starting cassandra");
         startCassandra();
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zkPort);
+        apiStarter = new ApiServer(zkPort);
         apiClient = new MidonetMgmt(apiStarter.getURI());
     }
 
@@ -49,7 +48,7 @@ public class MgmtZookeeperReconnection {
     public void tearDown() throws Exception {
         unblockCommunications();
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

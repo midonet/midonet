@@ -4,51 +4,26 @@
 
 package com.midokura.midonet.functional_test;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.midokura.packets.IntIPv4;
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.InteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.util.lock.LockHelper;
 
 @Ignore
-public class ConfigTearDownTest {
+public class ConfigTearDownTest extends TestBase {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ConfigTearDownTest.class);
+    @Override
+    protected void setup() {}
 
-    static MidolmanMgmt mgmt;
-    static LockHelper.Lock lock;
-
-    @BeforeClass
-    public static void setUp() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-        mgmt = new MockMidolmanMgmt(true);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        if (null != mgmt)
-            mgmt.stop();
-
-        lock.release();
-    }
+    @Override
+    protected void teardown() {}
 
     @Test
     public void test1() {
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-1")
+        /*Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-1")
                 .build();
         t.addRouter().setName("rtr1").build();
-        t.delete();
+        t.delete();*/
     }
 
     @Test
@@ -57,7 +32,8 @@ public class ConfigTearDownTest {
         IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
         IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
-        Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-2").build();
+        /*Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-2").build
+            ();
         Router rtr = t.addRouter().setName("rtr1").build();
 
         ExteriorRouterPort p1 = rtr.addVmPort().setVMAddress(ip1).build();
@@ -65,12 +41,13 @@ public class ConfigTearDownTest {
         rtr.addVmPort().setVMAddress(ip3).build();
 
         p1.delete();
-        t.delete();
+        t.delete();*/
     }
 
     @Test
     public void test3() {
-        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-3").build();
+        /*Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-3")
+            .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
         IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
@@ -88,13 +65,14 @@ public class ConfigTearDownTest {
         router1.addFilters();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());
 
-        tenant1.delete();
+        tenant1.delete();*/
     }
 
     @Test
     public void test4() {
 
-        Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-4").build();
+        /*Tenant tenant1 = new Tenant.Builder(mgmt).setName("tenant-config-4")
+            .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
         Router router2 = tenant1.addRouter().setName("rtr2").build();
 
@@ -109,6 +87,6 @@ public class ConfigTearDownTest {
         router1port1.link(router2port1, "192.168.231.0", "192.168.232.0");
         router1port1.unlink();
 
-        tenant1.delete();
+        tenant1.delete();*/
     }
 }

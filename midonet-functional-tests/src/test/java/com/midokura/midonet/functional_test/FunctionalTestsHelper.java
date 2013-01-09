@@ -15,7 +15,6 @@ import com.google.inject.*;
 import com.midokura.midolman.config.MidolmanConfig;
 import com.midokura.midolman.guice.MidolmanModule;
 import com.midokura.midolman.guice.config.ConfigProviderModule;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
 import com.midokura.midonet.functional_test.utils.*;
 
 import org.apache.commons.io.FileUtils;
@@ -25,11 +24,6 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.Port;
-import com.midokura.midonet.functional_test.topology.Tenant;
 import com.midokura.midonet.functional_test.vm.VMController;
 import com.midokura.packets.Ethernet;
 import com.midokura.packets.IntIPv4;
@@ -178,30 +172,6 @@ public class FunctionalTestsHelper {
                 .newProcess("chmod 777 /var/run/quagga")
                 .withSudo()
                 .runAndWait();
-    }
-
-    protected void removeMidoPort(Port port) {
-        if (port != null) {
-            port.delete();
-        }
-    }
-
-    public static void removeTenant(Tenant tenant) {
-        if (null != tenant)
-            tenant.delete();
-    }
-
-
-
-    public static void stopMidolmanMgmt(MockMgmtStarter mgmt) {
-        if (null != mgmt)
-            mgmt.stop();
-    }
-
-    public static void removeVpn(MidolmanMgmt mgmt, ExteriorRouterPort vpn1) {
-        if (mgmt != null && vpn1 != null) {
-            mgmt.deleteVpn(vpn1.getVpn());
-        }
     }
 
     public static void destroyVM(VMController vm) {

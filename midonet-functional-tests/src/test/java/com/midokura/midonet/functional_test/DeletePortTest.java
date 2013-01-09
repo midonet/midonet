@@ -4,37 +4,27 @@
 
 package com.midokura.midonet.functional_test;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.ExteriorRouterPort;
-import com.midokura.midonet.functional_test.topology.Router;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.ICMP;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
 import com.midokura.packets.MalformedPacketException;
 import com.midokura.sdn.flows.WildcardMatch;
-import com.midokura.util.lock.LockHelper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.removeTenant;
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.stopMidolman;
+
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper
+    .assertPacketWasSentOnTap;
 import static com.midokura.util.Waiters.sleepBecause;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Ignore
-public class DeletePortTest {
+public class DeletePortTest extends RouterBridgeBaseTest {
 
     private final static Logger log = LoggerFactory.getLogger(
         DeletePortTest.class);
@@ -46,81 +36,44 @@ public class DeletePortTest {
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
     Router rtr;
-    Tenant tenant1;
-    ExteriorRouterPort p1;
-    ExteriorRouterPort p2;
-    ExteriorRouterPort p3;
+    RouterPort p1;
+    RouterPort p2;
+    RouterPort p3;
     TapWrapper tap1;
     TapWrapper tap2;
     PacketHelper helper1;
     PacketHelper helper2;
-    MidolmanMgmt api;
-    MidolmanLauncher midolman;
 
-    static LockHelper.Lock lock;
-
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        api = new MockMidolmanMgmt(false);
-        midolman = MidolmanLauncher.start("DeletePortTest");
-
-        log.debug("Building tenant");
-        tenant1 = new Tenant.Builder(api).setName("tenant-port-delete").build();
-        rtr = tenant1.addRouter().setName("rtr1").build();
-        log.debug("Done building tenant");
-
-        p1 = rtr.addVmPort().setVMAddress(ip1).build();
-        tap1 = new TapWrapper("tapDelPort1");
-        //ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
-
-        p2 = rtr.addVmPort().setVMAddress(ip2).build();
-        tap2 = new TapWrapper("tapDelPort2");
-        //ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
-
-        p3 = rtr.addVmPort().setVMAddress(ip3).build();
-        //ovsBridge.addInternalPort(p3.port.getId(), INT_PORT_NAME, ip3, 24);
-
+    @Override
+    public void setup() {
+        super.setup();
         helper1 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
         helper2 = new PacketHelper(
                 MAC.fromString("02:00:00:aa:aa:02"), ip2, rtrIp);
 
-        sleepBecause("the network config should boot up", 5);
-
         // First arp for router's mac.
         assertThat("The ARP request was sent properly",
                    tap1.send(helper1.makeArpRequest()));
 
-        MAC rtrMac = helper1.checkArpReply(tap1.recv());
+        MAC rtrMac = null;
+        try {
+            rtrMac = helper1.checkArpReply(tap1.recv());
+        } catch (MalformedPacketException e) {
+            //assertFailed
+        }
         helper1.setGwMac(rtrMac);
 
         // First arp for router's mac.
         assertThat("The ARP request was sent properly",
                    tap2.send(helper2.makeArpRequest()));
 
-        rtrMac = helper2.checkArpReply(tap2.recv());
+        try {
+            rtrMac = helper2.checkArpReply(tap2.recv());
+        } catch (MalformedPacketException e) {
+            //assertFailed();
+        }
         helper2.setGwMac(rtrMac);
-    }
-
-
-
-    @After
-    public void tearDown() throws Exception {
-        removeTapWrapper(tap1);
-        removeTapWrapper(tap2);
-        stopMidolman(midolman);
-        removeTenant(tenant1);
-      //  stopMidolmanMgmt(api);
     }
 
     @Test

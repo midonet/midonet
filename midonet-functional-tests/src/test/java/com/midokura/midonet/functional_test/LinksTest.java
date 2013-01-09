@@ -4,22 +4,10 @@
 
 package com.midokura.midonet.functional_test;
 
+import java.util.concurrent.TimeUnit;
+
 import akka.testkit.TestProbe;
 import akka.util.Duration;
-import com.midokura.midolman.FlowController;
-import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
-import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
-import com.midokura.midonet.client.dto.DtoRoute;
-import com.midokura.midonet.client.resource.*;
-import com.midokura.midonet.functional_test.mocks.MockMgmtStarter;
-import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
-import com.midokura.midonet.functional_test.utils.TapWrapper;
-import com.midokura.packets.ICMP;
-import com.midokura.packets.IntIPv4;
-import com.midokura.packets.MAC;
-import com.midokura.packets.MalformedPacketException;
-import com.midokura.util.lock.LockHelper;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,9 +15,25 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.collection.Seq;
 
-import java.util.concurrent.TimeUnit;
+import com.midokura.midolman.FlowController;
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
+import com.midokura.midonet.client.dto.DtoRoute;
+import com.midokura.midonet.client.resource.Host;
+import com.midokura.midonet.client.resource.ResourceCollection;
+import com.midokura.midonet.client.resource.Route;
+import com.midokura.midonet.client.resource.Router;
+import com.midokura.midonet.client.resource.RouterPort;
+import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
+import com.midokura.midonet.functional_test.utils.TapWrapper;
+import com.midokura.packets.ICMP;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+import com.midokura.packets.MalformedPacketException;
+import com.midokura.util.lock.LockHelper;
+
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,7 +65,7 @@ public class LinksTest {
     private final String TAP1NAME = "tapLink1";
     private final String TAP2NAME = "tapLink2";
 
-    MockMgmtStarter apiStarter;
+    ApiServer apiStarter;
     Router rtr;
 
     static LockHelper.Lock lock;
@@ -82,7 +86,7 @@ public class LinksTest {
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new MockMgmtStarter(zookeeperPort);
+        apiStarter = new ApiServer(zookeeperPort);
         MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
 
         log.info("Starting midolman");
@@ -167,7 +171,7 @@ public class LinksTest {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         stopEmbeddedMidolman();
-        stopMidolmanMgmt(apiStarter);
+        apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
     }

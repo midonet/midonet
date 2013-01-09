@@ -4,50 +4,32 @@
 
 package com.midokura.midonet.functional_test;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import akka.util.Duration;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.midokura.midonet.functional_test.mocks.MidolmanMgmt;
-import com.midokura.midonet.functional_test.mocks.MockMidolmanMgmt;
-import com.midokura.midonet.functional_test.topology.Bridge;
-import com.midokura.midonet.functional_test.topology.BridgePort;
-import com.midokura.midonet.functional_test.topology.Tenant;
-import com.midokura.midonet.functional_test.utils.MidolmanLauncher;
+import com.midokura.midolman.topology.LocalPortActive;
+import com.midokura.midonet.client.resource.Bridge;
+import com.midokura.midonet.client.resource.BridgePort;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.packets.IntIPv4;
 import com.midokura.packets.MAC;
-import com.midokura.sdn.flows.WildcardMatch;
-import com.midokura.util.lock.LockHelper;
 
-
-import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
-import static com.midokura.midonet.functional_test.utils.MidolmanLauncher.ConfigType.Default;
-import static com.midokura.util.Waiters.sleepBecause;
+import static com.midokura.midonet.functional_test.FunctionalTestsHelper
+    .removeTapWrapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 @Ignore
-public class BridgePortDeleteTest {
+public class BridgePortDeleteTest extends TestBase {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(BridgePortDeleteTest.class);
-
-    Tenant tenant1;
+    //Tenant tenant1;
     IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
     IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
     IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
 
-    MidolmanMgmt mgmt;
-    MidolmanLauncher midolman1;
     BridgePort bPort1;
     BridgePort bPort2;
     BridgePort bPort3;
@@ -56,54 +38,52 @@ public class BridgePortDeleteTest {
     TapWrapper tap2;
     TapWrapper tap3;
 
-    static LockHelper.Lock lock;
-
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
-
-
-    @Before
-    public void setUp() throws Exception {
-
-        mgmt = new MockMidolmanMgmt(false);
-        midolman1 = MidolmanLauncher.start(Default, "BridgePortDeleteTest-smoke_br");
-
-        tenant1 = new Tenant.Builder(mgmt).setName("tenant-bridge").build();
-        bridge1 = tenant1.addBridge().setName("br1").build();
-
-
-        bPort1 = bridge1.addPort().build();
+    @Override
+    public void setup() {
+        bridge1 = apiClient.addBridge()
+            .tenantId("del-br-port-test").name("br1").create();
+        bPort1 = bridge1.addExteriorPort().create();
         tap1 = new TapWrapper("tapBridgeDel1");
-        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
+        thisHost.addHostInterfacePort()
+            .interfaceName(tap1.getName())
+            .portId(bPort1.getId()).create();
 
-        bPort2 = bridge1.addPort().build();
+        LocalPortActive msg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS),
+            LocalPortActive.class);
+        assertThat(msg.portID(), equalTo(bPort1.getId()));
+        assertThat(msg.active(), equalTo(true));
+
+        bPort2 = bridge1.addExteriorPort().create();
         tap2 = new TapWrapper("tapBridgeDel2");
-        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
+        thisHost.addHostInterfacePort()
+            .interfaceName(tap2.getName())
+            .portId(bPort2.getId()).create();
 
-        bPort3 = bridge1.addPort().build();
+        msg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS),
+            LocalPortActive.class);
+        assertThat(msg.portID(), equalTo(bPort2.getId()));
+        assertThat(msg.active(), equalTo(true));
+
+        bPort3 = bridge1.addExteriorPort().create();
         tap3 = new TapWrapper("tapBridgeDel3");
-        //ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
+        thisHost.addHostInterfacePort()
+            .interfaceName(tap3.getName())
+            .portId(bPort3.getId()).create();
 
-        sleepBecause("we want the network config to boot up properly", 5);
+        msg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS),
+            LocalPortActive.class);
+        assertThat(msg.portID(), equalTo(bPort3.getId()));
+        assertThat(msg.active(), equalTo(true));
     }
 
-    @After
-    public void tearDown() {
+    @Override
+    protected void teardown() {
         removeTapWrapper(tap1);
         removeTapWrapper(tap2);
         removeTapWrapper(tap3);
-
-        stopMidolman(midolman1);
-
-        removeTenant(tenant1);
-       // stopMidolmanMgmt(mgmt);
     }
 
     private void sendPacket(byte[] pkt, TapWrapper fromTap,
@@ -125,27 +105,6 @@ public class BridgePortDeleteTest {
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
 
-        // There should now be one flow that outputs to ALL.
-        Thread.sleep(1000);
-        WildcardMatch match1 = new WildcardMatch().setDataLayerSource(mac1);
-
-        //List<FlowStats> fstats = null; //svcController.getFlowStats(match1);
-        //assertThat("We should have only one FlowStats object.",
-        //           fstats, hasSize(1));
-
-        short portNum1 = 0;
-            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        short portNum2 = 0;
-            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short portNum3 = 0;
-            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap3.getName()));
-        //FlowStats flow1 = null; //fstats.get(0);
-        Set<Short> expectOutputActions = new HashSet<Short>();
-        // port 1 is the ingress port, so not output to.
-        expectOutputActions.add(portNum2);
-        expectOutputActions.add(portNum3);
-        //flow1.expectCount(1).expectOutputActions(expectOutputActions);
-
         // Send unicast from Mac2/port2 to mac1.
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
         assertThat(
@@ -157,38 +116,19 @@ public class BridgePortDeleteTest {
             String.format("We received the same packet on %s", tap1.getName()),
             tap1.recv(), equalTo(pkt));
 
-        // There should now be one flow that outputs to port 1.
-        Thread.sleep(1000);
-        WildcardMatch match2 = new WildcardMatch().setDataLayerSource(mac2);
-        //fstats = svcController.getFlowStats(match2);
-        //assertThat("Only one FlowStats object should be returned.",
-        //           fstats, hasSize(1));
-
-        //FlowStats flow2 = null; //fstats.get(0);
-        //flow2.expectCount(1).expectOutputAction(portNum1);
-
         // The last packet caused the bridge to learn the mapping Mac2->port2.
         // That also triggered invalidation of flooded flows: flow1.
-        //assertThat("There should be no flow match for the ARP.",
-        //        svcController.getFlowStats(match1), hasSize(0));
-
         // Resend the ARP to re-install the flooded flow.
         pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
-        //flow1.findSameInList(svcController.getFlowStats(match1))
-        //        .expectCount(1).expectOutputActions(expectOutputActions);
 
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
         //ovsBridge1.deletePort(tap1.getName());
-        sleepBecause("we want midolman to sense the port deletion", 1);
-
-        /*assertThat(
-            "No FlowStats object should be visible after we deleted a port",
-            svcController.getFlowStats(match1), hasSize(0));
-        assertThat(
-            "No FlowStats object should be visible after we deleted a port",
-            svcController.getFlowStats(match2), hasSize(0));
-        */
+        LocalPortActive msg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS),
+            LocalPortActive.class);
+        assertThat(msg.portID(), equalTo(bPort3.getId()));
+        assertThat(msg.active(), equalTo(false));
     }
 }
