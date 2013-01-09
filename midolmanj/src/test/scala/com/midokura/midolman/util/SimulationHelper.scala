@@ -31,6 +31,7 @@ trait SimulationHelper extends MidolmanTestCase {
         var ip: IPv4 = null
         var tcp: TCP = null
         var udp: UDP = null
+        var icmp: ICMP = null
         eth.getEtherType match {
             case IPv4.ETHERTYPE =>
                 ip = eth.getPayload.asInstanceOf[IPv4]
@@ -39,6 +40,8 @@ trait SimulationHelper extends MidolmanTestCase {
                         tcp = ip.getPayload.asInstanceOf[TCP]
                     case UDP.PROTOCOL_NUMBER =>
                         udp = ip.getPayload.asInstanceOf[UDP]
+                    case ICMP.PROTOCOL_NUMBER =>
+                        icmp = ip.getPayload.asInstanceOf[ICMP]
                 }
         }
 
@@ -198,5 +201,20 @@ trait SimulationHelper extends MidolmanTestCase {
     def localPortNumberToName(portNo: Short): Option[String] = {
         dpController().underlyingActor.vportMgr.getDpPortName(
             Unsigned.unsign(portNo))
+    }
+
+    def injectIcmpEcho(portName : String, srcMac : MAC, srcIp : IntIPv4,
+                       dstMac : MAC, dstIp : IntIPv4) = {
+        val echo = new ICMP()
+        echo.setEchoRequest(16, 32, "My ICMP".getBytes)
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(srcMac).
+            setDestinationMACAddress(dstMac).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
+            setDestinationAddress(dstIp.addressAsInt).
+            setProtocol(ICMP.PROTOCOL_NUMBER).
+            setPayload(echo))
+        triggerPacketIn(portName, eth)
     }
 }
