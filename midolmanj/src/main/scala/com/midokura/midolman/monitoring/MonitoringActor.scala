@@ -14,6 +14,7 @@ import akka.util.FiniteDuration
 import metrics.vrn.VifMetrics
 import com.midokura.midolman.{Referenceable, DatapathController}
 import com.midokura.midolman.logging.ActorLogWithoutPath
+import com.midokura.midolman.config.MidolmanConfig
 
 /**
  * This actor periodically sends requests to the DatapathController to get stats for the ports.
@@ -36,7 +37,7 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
   import context._
 
   @Inject
-  var configuration: MonitoringConfiguration = null
+  var configuration: MidolmanConfig = null
 
   val vifMetrics: VifMetrics = new VifMetrics(context.system.eventStream)
 
