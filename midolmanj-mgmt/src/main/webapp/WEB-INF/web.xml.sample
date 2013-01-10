@@ -36,24 +36,13 @@
 
   <!-- Auth configuration -->
   <context-param>
-    <param-name>auth-use_mock</param-name>
-    <param-value>false</param-value>
+    <param-name>auth-auth_provider</param-name>
+    <!-- Specify the class path of the auth client -->
+    <param-value>
+      com.midokura.midolman.mgmt.auth.MockAuthClient
+    </param-value>
   </context-param>
   <context-param>
-    <param-name>auth-admin_token</param-name>
-    <param-value>999888777666</param-value>
-  </context-param>
-  <context-param>
-    <param-name>auth-tenant_admin_token</param-name>
-    <param-value>999888777666</param-value>
-  </context-param>
-  <context-param>
-    <!-- For mock only -->
-    <param-name>auth-tenant_user_token</param-name>
-    <param-value>999888777666</param-value>
-  </context-param>
-  <context-param>
-    <!-- For mock only -->
     <param-name>auth-admin_role</param-name>
     <param-value>mido_admin</param-value>
   </context-param>
@@ -64,6 +53,20 @@
   <context-param>
     <param-name>auth-tenant_user_role</param-name>
     <param-value>mido_tenant_user</param-value>
+  </context-param>
+
+  <!-- Mock auth configuration -->
+  <context-param>
+    <param-name>mock_auth-admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mock_auth-tenant_admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mock_auth-tenant_user_token</param-name>
+    <param-value>999888777666</param-value>
   </context-param>
 
   <!-- Keystone configuration -->
@@ -78,6 +81,28 @@
   <context-param>
     <param-name>keystone-service_port</param-name>
     <param-value>35357</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+
+  <!-- CloudStack auth configuration -->
+  <context-param>
+    <param-name>cloudstack-api_base_uri</param-name>
+    <param-value>http://127.0.0.1:8080</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-api_path</param-name>
+    <param-value>/client/api?</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-api_key</param-name>
+    <param-value></param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-secret_key</param-name>
+    <param-value></param-value>
   </context-param>
 
   <!-- Zookeeper configuration -->

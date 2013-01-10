@@ -18,17 +18,17 @@ public final class MockAuthClient implements AuthClient {
 
     private final static Logger log = LoggerFactory
             .getLogger(MockAuthClient.class);
-    private final AuthConfig config;
+    private final MockAuthConfig config;
     private final Map<String, UserIdentity> tokenMap;
 
     /**
      * Create a MockAuthClient object.
      *
      * @param config
-     *            AuthConfig object.
+     *            MockAuthConfig object.
      */
     @Inject
-    public MockAuthClient(AuthConfig config) {
+    public MockAuthClient(MockAuthConfig config) {
 
         this.config = config;
         this.tokenMap = new HashMap<String, UserIdentity>();

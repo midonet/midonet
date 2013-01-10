@@ -16,9 +16,13 @@ public interface KeystoneConfig extends AuthConfig {
 
     String GROUP_NAME = "keystone";
 
+    public static final String ADMIN_TOKEN = "admin_token";
     public static final String SERVICE_PROTOCOL_KEY = "service_protocol";
     public static final String SERVICE_HOST_kEY = "service_host";
     public static final String SERVICE_PORT_KEY = "service_port";
+
+    @ConfigString(key = ADMIN_TOKEN, defaultValue = "")
+    public String getAdminToken();
 
     @ConfigString(key = SERVICE_PROTOCOL_KEY, defaultValue = "http")
     public String getServiceProtocol();

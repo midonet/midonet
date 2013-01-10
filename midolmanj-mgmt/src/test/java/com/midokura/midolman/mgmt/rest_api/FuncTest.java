@@ -77,7 +77,8 @@ public class FuncTest {
                                 CorsConfig.EXPOSE_HEADERS_KEY), "Location")
                 .contextParam(
                         getConfigKey(AuthConfig.GROUP_NAME,
-                                AuthConfig.USE_MOCK_KEY), "true")
+                                AuthConfig.AUTH_PROVIDER),
+                        "com.midokura.midolman.mgmt.auth.MockAuthClient")
                 .contextParam(
                         getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
                                 ExtendedZookeeperConfig.USE_MOCK_KEY), "true")

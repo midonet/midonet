@@ -1,0 +1,202 @@
+# MidoNet API: Authentication and Authorization
+
+## Motivation
+
+Through the MidoNet API, you can set ownership to MidoNet resources such as
+routers, bridges and chains, by supplying the owner ID when creating them (the
+field is named 'tenantId' for legacy reasons).  MidoNet, however, does not
+provide ways to manage these owners.  That is, it does not offer API to create
+or delete owners.  The owner ID is simply a string representation of a unique
+identifier of a user managed in an external service that MidoNet is integrated
+with, such as OpenStack and CloudStack.  These external services are typically
+cloud orchestration platforms, and they have their own identity services.
+To integrate MidoNet API with these cloud orchestration services, it is
+required that the API integrates with their identity services.
+
+For every HTTP request that comes to MidoNet API, it must perform authentication
+(validating the user making the call) and authorization (checking the access
+level of the user making the call).  Because MidoNet does not have records of
+these users in its data store (since it does not manage them itself), it must
+ask the external identity services to perform the user validation and to provide
+the user privilege information.
+
+This document attempts to describe the current design of MidoNet API that allows
+you to plug in different authentication/authorization (AuthN/AuthZ) mechanisms
+with simple configuration setting.  Note that all the classes mentioned exist
+under the package 'com.midokura.midolman.mgmt.auth' unless mentioned
+otherwise.
+
+
+## Unique user identifier('token') in the HTTP header
+
+To validate a user making the API request, the MidoNet API needs to be provided
+a token(or a key) in the request that can be used to uniquely identify the user.
+'X-Auth-Token' HTTP extension header is used for this purpose.  The calling user
+must set this header field to the user identifier string.  Not supplying this
+identifier results in the API responding with 401 UNAUTHORIZED status.
+
+## UserIdentity
+
+UserIdentity class represents a generic user in MidoNet that is making the API
+request.  The member fields include information about the user, such as its ID,
+name, roles, and the unique identifier('token') used to validate the user.  How
+this object is used for authentication and authorization is explained in the
+sections below.
+
+# Roles
+
+MidoNet API implements Role-Based Access Control (RBAC) mechanism to perform
+authorization. Defined in AuthRole class, the roles in MidoNet are:
+
+ * <b>Admin</b>:  The root administrator of the system.  The users with this
+ role are allowed to do all operations.
+ * <b>TenantAdmin</b>: The users with this role have write and read access to
+ their own resources.
+ * <b>TenantUser</b>: The users with this role only have read access to their
+ own resources.
+
+Because the roles defined in the external identity services may not match the
+roles in MidoNet, when the UserIdentity object is created during the
+successful attempt at authentication, the roles of this user from the external
+services must be converted to the roles in MidoNet.  This conversion is one of
+the responsibilities of the auth provider class described in the section below.
+
+## Authentication provider
+
+Authentication provider is a class that implements AuthClient interface.  In
+the current version of MidoNet API, it defines only one method:
+
+<pre><code>
+  public UserIdentity getUserIdentityByToken(String token) throws AuthException
+</code></pre>
+
+The implementation of this method must, with a given token, instantiate a
+UserIdentity object with all its member fields set properly if the
+authentication succeeds, return null if the user is not valid, or throw
+AuthException if an unexpected error occurs during authentication.  The roles of
+the user are also converted from the roles defined in the external identity
+service to the those understood by MidoNet.
+
+The authentication provider can be configured in web.xml's 'context-param'
+element as follows:
+
+<pre><code>
+  ...
+  &lt;context-param&gt;
+    &lt;param-name>auth-auth_provider&lt;/param-name&gt;
+    &lt;param-value&gt;
+      com.midokura.midolman.mgmt.auth.MockAuthClient
+    &lt;/param-value&gt;
+  &lt;/context-param&gt;
+  ...
+</code></pre>
+
+MockAuthClient class is provided as a way to mock the auth provider class.  See
+the 'Mocking auth provider' section below for more details.
+
+## Servlet filter (AuthFilter)
+
+Authentication is implemented as a servlet filter.  AuthFilter class is
+registered as a servlet filter at the start of the MidoNet API service.  The
+responsibilities of this class are loading the appropriate authentication
+provider configured in web.xml, and using the provider to authenticate the user
+with the token passed in the HTTP header.  If the validation succeeds, it sets
+the newly instantiated UserIdentity object as the value of 'UserIdentity'
+attribute in the HttpServletRequest object.  By doing so, the UserIdentity
+object becomes accessible by the API handler methods to perform additional
+authorization checks.  If the authentication fails, it responds with 401
+UNAUTHORIZED.
+
+## Container request filter (AuthContainerRequestFilter)
+
+AuthContainerRequestFilter implements ContainerRequestFilter interface, which
+is a Jersey framework request filter that provides access to various request
+objects such as HttpServletRequest.  As explained in the section above,
+HttpServletRequest is the object in which the UserIdentity object is set by the
+servlet filter.  In AuthContainerRequestFilter, a SecurityContext object is
+instantiated (explained in more detail below) and made available to the API
+resource classes that will perform authorization checks.
+
+## SecurityContext
+
+SecurtiyContext is an injectable interface that provides access to security
+related information.  This interface is described in detail in the
+[JSR-311 API page](http://jsr311.java.net/nonav/javadoc/javax/ws/rs/core/SecurityContext.html).
+
+In MidoNet API, UserIdentitySecurityContext class implements SecurityContext,
+and it is injected into the API handler methods.  This object is used for
+authorization.  UserIdentitySecurityContext is instantiated in
+AuthContainerRequestFilter's filter method.  It takes in UserIdentity as its
+only argument in the constructor, and relies on the roles set in UserIdentity
+to perform authorization checks.
+
+## Authorization
+
+Authorization is broken up into two parts:  Authorizing the access to particular
+method, and authorizing the action performed on a particular object.
+
+### Authorizing access to methods
+
+RolesAllowed annotation is used to indicate which roles are allowed to access
+methods.  The use of RolesAllowed annotation is described in the JSR-250
+specification.
+
+An example would look as follows:
+
+<pre><code>
+
+  @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+  public Response create(Port port) {
+      ...
+  }
+
+</code></pre>
+
+In the example above, only users with Admin and TenantAdmin roles are allowed
+to access this method.  403 FORBIDDEN is returned if the user is not authorized.
+
+### Authorizing an action on an object
+
+Each API resource has a concrete Authorizer<T> class that implements the
+following method:
+
+<pre><code>
+    public boolean authorize(SecurityContext context, AuthAction action, T id)
+            throws StateAccessException;
+</code></pre>
+
+where <i>context</i> is the SecurityContext object that provides access to the
+user security information, including the roles, <i>action</i> is AuthAction enum
+that can either be 'Read' or 'Write', and <i>id</i> is the ID of the resource
+object to authorize against.  This method returns true if the authorization is
+successful, and false otherwise.  403 FORBIDDEN is returned if the user is not
+authorized.
+
+## Mocking auth provider
+
+MockAuthClient is a helper class that lets you mock the auth provider.  In
+web.xml, you can specify custom tokens and their associated roles.  By making
+requests with these tokens, you can test the API with a mocked user with various
+privilege levels.
+
+<pre><code>
+  ...
+  &lt;context-param&gt;
+    &lt;param-name&gt;auth-admin_token&lt;/param-name&gt;
+    &lt;param-value&gt;1111&lt;/param-value&gt;
+  &lt;/context-param&gt;
+  &lt;context-param&gt;
+    &lt;param-name&gt;auth-tenant_admin_token&lt;/param-name&gt;
+    &lt;param-value&gt;1111&lt;/param-value&gt;
+  &lt;/context-param&gt;
+  &lt;context-param&gt;
+    &lt;param-name&gt;auth-tenant_user_token&lt;/param-name&gt;
+    &lt;param-value&gt;1111&lt;/param-value&gt;
+  &lt;/context-param&gt;
+  ...
+</code></pre>
+
+In the example above, setting 'X-Auth-Token' to '1111' instructs MockAuthClient
+to instantiate a UserIdentity object with roles set to all of 'Admin',
+'TenantAdmin' and 'TenantUser'.  Also note that the authentication always
+succeeds when using MockAuthClient.

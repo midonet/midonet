@@ -37,7 +37,8 @@ public class ApiServer extends JerseyTest {
                 "GET, POST, PUT, DELETE, OPTIONS")
             .contextParam("cors-access_control-expose_headers",
                 "Location")
-            .contextParam("auth-use_mock", "true")
+            .contextParam("auth-auth_provider",
+                    "com.midokura.midolman.mgmt.auth.MockAuthClient")
             .contextParam("zookeeper-midolman_root_key",
                 "/smoketest/midonet")
             .contextParam("cassandra-servers", "127.0.0.1:" + cassandraPort)
