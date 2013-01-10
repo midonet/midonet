@@ -21,7 +21,6 @@ public class DtoHostInterfacePort {
     private UUID portId;
     private String interfaceName;
     private URI uri;
-    private URI port;
 
     public UUID getHostId() {
         return hostId;
@@ -37,14 +36,6 @@ public class DtoHostInterfacePort {
 
     public void setInterfaceName(String interfaceName) {
         this.interfaceName = interfaceName;
-    }
-
-    public URI getPort() {
-        return port;
-    }
-
-    public void setPort(URI port) {
-        this.port = port;
     }
 
     public UUID getPortId() {
@@ -70,7 +61,6 @@ public class DtoHostInterfacePort {
             ", portId=" + portId +
             ", interfaceName='" + interfaceName + '\'' +
             ", uri=" + uri +
-            ", port=" + port +
             '}';
     }
 }
