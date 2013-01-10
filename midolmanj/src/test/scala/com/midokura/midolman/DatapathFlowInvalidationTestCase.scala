@@ -229,20 +229,9 @@ with RouterHelper{
             new GreTunnelZoneHost(host2.getId)
                 .setIp(IntIPv4.fromString("192.168.125.1")))
 
-        materializePort(port1OnHost1, host1, "port1")
-        materializePort(portOnHost2, host2, "port2")
-
         // The local MM adds the local host to the PortSet. We add the remote.
         //clusterDataClient().portSetsAddHost(bridge.getId, host1.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
-
-        // flows installed for tunnel key = port when the port becomes active.
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
-        // Wait for LocalPortActive messages - they prove the
-        // VirtualToPhysicalMapper has the correct information for the PortSet.
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
-        requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
 
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
@@ -253,6 +242,17 @@ with RouterHelper{
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
         var tunnelPortNumber = portChangedEvent.port.getPortNo
+
+        materializePort(port1OnHost1, host1, "port1")
+        materializePort(portOnHost2, host2, "port2")
+
+        // Wait for LocalPortActive messages - they prove the
+        // VirtualToPhysicalMapper has the correct information for the PortSet.
+        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
+
+        // flows installed for tunnel key = port when the port becomes active.
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // assert that a invalidateFlowByTag where tag is the port datapath short
         // id is sent
