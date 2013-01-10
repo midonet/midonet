@@ -37,8 +37,8 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val portEventsProbe = newProbe()
         actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
 
-        clusterDataClient().hostsAddVrnPortMapping(hostId, inputPort.getId, "inputPort")
-        clusterDataClient().hostsAddVrnPortMapping(hostId, outputPort.getId, "outputPort")
+        materializePort(inputPort, host, "inputPort")
+        materializePort(outputPort, host, "outputPort")
 
         drainProbe(flowProbe())
         initializeDatapath() should not be (null)
@@ -47,10 +47,10 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val inputPortNo = dpController().underlyingActor
-            .localDatapathPorts("inputPort").getPortNo
+            .ifaceNameToDpPort("inputPort").getPortNo
 
         val outputPortNo = dpController().underlyingActor
-            .localDatapathPorts("outputPort").getPortNo
+            .ifaceNameToDpPort("outputPort").getPortNo
 
         val vrnPortOutput = new FlowActionOutputToVrnPort(outputPort.getId)
         val dpPortOutput = FlowActions.output(outputPortNo)
