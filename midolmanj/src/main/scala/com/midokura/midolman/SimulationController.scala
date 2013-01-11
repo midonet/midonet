@@ -3,23 +3,25 @@
 package com.midokura.midolman
 
 import compat.Platform
-import akka.actor.{Actor, ActorLogging}
+import scala.Left
+import scala.Right
+import scala.Some
+
+import akka.actor.Actor
 import akka.dispatch.{Future, Promise}
-import akka.util.duration._
-import config.MidolmanConfig
+import com.google.inject.Inject
 import java.util.UUID
 import javax.annotation.Nullable
 
-import com.google.inject.Inject
-
 import com.midokura.cache.Cache
+import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
+import com.midokura.packets._
+import com.midokura.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
+import com.midokura.midolman.config.MidolmanConfig
+import com.midokura.midonet.cluster.DataClient
+import com.midokura.midolman.logging.ActorLogWithoutPath
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
-import com.midokura.midonet.cluster.DataClient
-import com.midokura.packets._
-import com.midokura.sdn.flows.{WildcardMatches, WildcardFlow, WildcardMatch}
-
 
 object SimulationController extends Referenceable {
     override val Name = "SimulationController"
@@ -28,11 +30,14 @@ object SimulationController extends Referenceable {
                                    parentCookie: Option[Int])
 }
 
-class SimulationController() extends Actor with ActorLogging {
+class SimulationController() extends Actor with ActorLogWithoutPath {
     import SimulationController._
     import context._
 
-    val timeout = (5 minutes).toMillis
+    @Inject
+    val config: MidolmanConfig = null
+
+    def timeout = config.getArpTimeoutSeconds * 1000
     @Inject @Nullable var connectionCache: Cache = null
     @Inject val clusterDataClient: DataClient = null
     @Inject val midolmanConfig: MidolmanConfig = null
@@ -58,7 +63,7 @@ class SimulationController() extends Actor with ActorLogging {
                     new Coordinator(
                         wMatch, ethPkt, cookie, None,
                         Platform.currentTime + timeout,
-                        connectionCache, None).simulate
+                        connectionCache, None).simulate()
             }
 
         case EmitGeneratedPacket(egressPort, ethPkt, parentCookie) =>
