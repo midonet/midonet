@@ -4,11 +4,7 @@
 package com.midokura.midolman.guice;
 
 import com.google.inject.PrivateModule;
-
-import com.midokura.cassandra.CassandraClient;
-import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
-import com.midokura.midolman.monitoring.guice.MonitoringConfigurationProvider;
-import com.midokura.midolman.monitoring.store.CassandraClientProvider;
+import com.midokura.config.ConfigProvider;
 import com.midokura.midolman.monitoring.store.CassandraStoreProvider;
 import com.midokura.midolman.monitoring.store.Store;
 
@@ -22,20 +18,11 @@ public class MonitoringStoreModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
 
-        bind(MonitoringConfiguration.class).toProvider(
-            MonitoringConfigurationProvider.class).asEagerSingleton();
-        expose(MonitoringConfiguration.class);
+        requireBinding(ConfigProvider.class);
 
-        bindCassandraStore();
-    }
-
-    protected void bindCassandraStore() {
-        bind(CassandraClient.class).toProvider(CassandraClientProvider.class)
-                .asEagerSingleton();
         bind(Store.class).toProvider(CassandraStoreProvider.class)
-                .asEagerSingleton();
+            .asEagerSingleton();
         expose(Store.class);
     }
-
 
 }

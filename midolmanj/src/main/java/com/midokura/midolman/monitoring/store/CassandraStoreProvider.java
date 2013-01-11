@@ -6,21 +6,28 @@ package com.midokura.midolman.monitoring.store;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.midokura.cassandra.CassandraClient;
+import com.midokura.config.ConfigProvider;
+import com.midokura.midolman.monitoring.config.MonitoringConfiguration;
 
 /**
  * Providers CassandraStore
  */
 public class CassandraStoreProvider implements Provider<CassandraStore> {
 
-    private final CassandraClient client;
-
     @Inject
-    public CassandraStoreProvider(CassandraClient client) {
-        this.client = client;
-    }
+    ConfigProvider configProvider;
 
     @Override
     public CassandraStore get() {
+        MonitoringConfiguration config = configProvider.getConfig(MonitoringConfiguration.class);
+        CassandraClient client = new CassandraClient(
+            config.getCassandraServers(),
+            config.getCassandraCluster(),
+            config.getMonitoringCassandraKeyspace(),
+            config.getMonitoringCassandraColumnFamily(),
+            config.getCassandraReplicationFactor(),
+            config.getMonitoringCassandraExpirationTimeout()
+        );
         return new CassandraStore(client);
     }
 }

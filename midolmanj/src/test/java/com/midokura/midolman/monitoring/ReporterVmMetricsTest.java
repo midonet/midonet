@@ -32,42 +32,50 @@ import static org.hamcrest.Matchers.is;
 public class ReporterVmMetricsTest extends AbstractModule {
 
     private final static org.slf4j.Logger log =
-            LoggerFactory.getLogger(ReporterVmMetricsTest.class);
+        LoggerFactory.getLogger(ReporterVmMetricsTest.class);
 
     String metricThreadCount = "ThreadCount";
 
     long startTime, endTime;
     Store store;
 
-   @Before
-   public void setUp() {
-       store = new MockStore();
-       store.initialize();
-   }
+    @Before
+    public void setUp() {
+        store = new MockStore();
+        store.initialize();
+    }
 
     @Test
-    public void reporterTest() throws InterruptedException, UnknownHostException {
+    public void reporterTest()
+        throws InterruptedException, UnknownHostException {
 
         Injector injector = Guice.createInjector(new ReporterVmMetricsTest());
-        VMMetricsCollection vmMetrics = injector.getInstance(VMMetricsCollection.class);
+        VMMetricsCollection vmMetrics = injector.getInstance(
+            VMMetricsCollection.class);
         vmMetrics.registerMetrics();
 
         startTime = System.currentTimeMillis();
-        MidoReporter reporter = new MidoReporter(store, "MidonetMonitoring_test");
+        MidoReporter reporter = new MidoReporter(store);
         reporter.start(1000, TimeUnit.MILLISECONDS);
 
         Thread.sleep(10000);
-        List<String> metrics = store.getMetricsForType(VMMetricsCollection.class.getSimpleName());
-        assertThat("We saved all the metrics in VMMetricsCollection", metrics.size(), is(vmMetrics.getMetricsCount()));
+        List<String> metrics = store.getMetricsForType(
+            VMMetricsCollection.class.getSimpleName());
+        assertThat("We saved all the metrics in VMMetricsCollection",
+                   metrics.size(), is(vmMetrics.getMetricsCount()));
 
         String hostName = InetAddress.getLocalHost().getHostName();
 
         List<String> types = store.getMetricsTypeForTarget(hostName);
-        assertThat("We saved the type VMMetricsCollection for this target", types.size(), is(1));
-        assertThat("We save the right type", types.get(0), is(VMMetricsCollection.class.getSimpleName()));
+        assertThat("We saved the type VMMetricsCollection for this target",
+                   types.size(), is(1));
+        assertThat("We save the right type", types.get(0),
+                   is(VMMetricsCollection.class.getSimpleName()));
         endTime = System.currentTimeMillis();
 
-        Map<String, Long> res = store.getTSPoints(VMMetricsCollection.class.getSimpleName(), hostName, metricThreadCount, startTime, endTime);
+        Map<String, Long> res = store.getTSPoints(
+            VMMetricsCollection.class.getSimpleName(), hostName,
+            metricThreadCount, startTime, endTime);
         assertThat("We collected some TS point", res.size(), greaterThan(0));
 
     }

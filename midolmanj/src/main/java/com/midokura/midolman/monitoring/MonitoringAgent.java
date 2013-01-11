@@ -14,11 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.config.MidolmanConfig;
-import com.midokura.midolman.monitoring.MonitoringActor;
 import com.midokura.midolman.monitoring.metrics.VMMetricsCollection;
 import com.midokura.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import com.midokura.midolman.monitoring.store.Store;
-import com.midokura.midolman.services.MidolmanActorsService;
 
 /**
  * This is the main entry point to the monitoring functionality. It's called
@@ -43,8 +41,6 @@ public class MonitoringAgent {
     ZookeeperMetricsCollection zookeeperMetrics;
 
     @Inject
-    MidolmanActorsService midolmanActorsService = null;
-
     MidoReporter reporter;
 
     public void startMonitoringIfEnabled() {
@@ -64,7 +60,6 @@ public class MonitoringAgent {
 
         if (store != null) {
             store.initialize();
-            reporter = new MidoReporter(store, "MidonetMonitoring");
             reporter.start(
                 config.getMonitoringCassandraReporterPullTime(),
                 TimeUnit.MILLISECONDS);

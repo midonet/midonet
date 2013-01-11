@@ -41,9 +41,6 @@ public class VifMetrics  {
 
         countersMap.put(portId, new Counters(portId));
 
-        MidoReporter.notifyNewMetricTypeForTarget(
-            new MetricName(VifMetrics.class, "", portId.toString()));
-
     }
 
 
