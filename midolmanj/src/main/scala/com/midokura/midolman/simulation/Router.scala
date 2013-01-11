@@ -278,7 +278,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                                   pktContext.getFrame, ICMP.TYPE_UNREACH,
                                   UNREACH_CODE.UNREACH_NET)
                 }
-                new DropAction: Action
+                new ErrorDropAction: Action
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
                 pktContext.getMatch.setEthernetDestination(nextHopMac)
