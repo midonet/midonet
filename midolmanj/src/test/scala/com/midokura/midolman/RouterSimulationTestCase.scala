@@ -598,6 +598,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             actors().dispatcher, actors(), null)
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
+        expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         feedArpCache("uplinkPort", hisIp.addressAsInt, hisMac,
                                    myIp.addressAsInt, myMac)
         fishForRequestOfType[DiscardPacket](flowProbe())
