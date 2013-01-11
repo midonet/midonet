@@ -3,25 +3,25 @@
 package com.midokura.midolman
 
 import compat.Platform
-import akka.actor.{Actor, ActorLogging}
-import akka.util.duration._
+import scala.Left
+import scala.Right
+import scala.Some
+
+import akka.actor.Actor
+import akka.dispatch.{Future, Promise}
+import com.google.inject.Inject
 import java.util.UUID
 import javax.annotation.Nullable
-
 
 import com.midokura.cache.Cache
 import com.midokura.midolman.simulation.{Coordinator, DhcpImpl}
 import com.midokura.packets._
+import com.midokura.midolman.config.MidolmanConfig
 import com.midokura.midolman.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
-import akka.dispatch.{Future, Promise}
 import com.midokura.midonet.cluster.DataClient
-import logging.ActorLogWithoutPath
-import scala.Left
+import com.midokura.midolman.logging.ActorLogWithoutPath
 import com.midokura.midolman.DatapathController.PacketIn
-import scala.Right
-import scala.Some
 import com.midokura.midolman.FlowController.AddWildcardFlow
-import com.google.inject.Inject
 
 object SimulationController extends Referenceable {
     override val Name = "SimulationController"
@@ -34,7 +34,10 @@ class SimulationController() extends Actor with ActorLogWithoutPath {
     import SimulationController._
     import context._
 
-    val timeout = (5 minutes).toMillis
+    @Inject
+    val config: MidolmanConfig = null
+
+    def timeout = config.getArpTimeoutSeconds * 1000
     @Inject @Nullable var connectionCache: Cache = null
     @Inject val clusterDataClient: DataClient = null
 
@@ -59,7 +62,7 @@ class SimulationController() extends Actor with ActorLogWithoutPath {
                     new Coordinator(
                         wMatch, ethPkt, cookie, None,
                         Platform.currentTime + timeout,
-                        connectionCache, None).simulate
+                        connectionCache, None).simulate()
             }
 
         case EmitGeneratedPacket(egressPort, ethPkt, parentCookie) =>
