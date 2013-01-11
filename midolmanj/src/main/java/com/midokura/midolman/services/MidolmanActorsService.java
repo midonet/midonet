@@ -194,7 +194,7 @@ public class MidolmanActorsService extends AbstractService {
     public void initProcessing() throws Exception {
         log.debug("Sending Initialization message to datapath controller.");
 
-        Timeout timeout = new Timeout(Duration.parse("1 second"));
+        Timeout timeout = new Timeout(Duration.parse("3 seconds"));
 
         Await.result(
                 Patterns.ask(datapathControllerActor,
