@@ -21,175 +21,114 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Enclosed.class)
 public class TestDHCP {
 
-    public final static byte[] dhcpBytes = new byte[] {
-            // op, htype, hlen, hops
-            (byte) 0x01, (byte) 0x01, (byte) 0x06, (byte) 0x00,
-            // transaction ID
-            (byte) 0x2e, (byte) 0x86, (byte) 0xe1, (byte) 0x21,
-            // secs and flags
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // client ip add
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // your ip add
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // server ip add
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // your ip add
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // Client Hardware address
-            (byte) 0x02, (byte) 0x16, (byte) 0x3e, (byte) 0x26,
-            (byte) 0x14, (byte) 0x99, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // Server name
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // Filename
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            // Magic number
-            (byte) 0x63, (byte) 0x82, (byte) 0x53, (byte) 0x63,
-            // Options
-            (byte) 0x35, (byte) 0x01, (byte) 0xFF, (byte) 0xFF};
-
     public static class TestDHCPGeneral {
+
+        public final static byte[] dhcpPktData =
+            new byte[] { 
+                    // op, htype, hlen, hops
+                    (byte) 0x01, (byte) 0x01, (byte) 0x06, (byte) 0x00, 
+                    // transaction ID
+                    (byte) 0x2e, (byte) 0x86, (byte) 0xe1, (byte) 0x21,
+                    // secs and flags
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+                    // Client IP addr.
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+                    // Your IP addr.
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+                    // Server IP addr.
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+                    // Your IP addr. (again?)
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+                    // Client MAC addr.
+                    (byte) 0x02, (byte) 0x16, (byte) 0x3e, (byte) 0x26,
+                    (byte) 0x14, (byte) 0x99, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    // Server name
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    // Filename
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    // Magic number
+                    (byte) 0x63, (byte) 0x82, (byte) 0x53, (byte) 0x63, 
+                    // Options
+                    (byte) 0x35, (byte) 0x01, (byte) 0x03, (byte) 0x32, 
+                    (byte) 0x04, (byte) 0xc0, (byte) 0xa8, (byte) 0x14,
+                    (byte) 0x03, (byte) 0x37, (byte) 0x0a, (byte) 0x01,
+                    (byte) 0x1c, (byte) 0x02, (byte) 0x03, (byte) 0x0f,
+                    (byte) 0x06, (byte) 0x0c, (byte) 0x28, (byte) 0x29,
+                    (byte) 0x2a, (byte) 0xff, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
         @Test
         public void testSerialization() throws MalformedPacketException {
 
-            byte[] data = new byte[] { (byte) 0x01, (byte) 0x01, (byte) 0x06,
-                    (byte) 0x00, (byte) 0x2e, (byte) 0x86, (byte) 0xe1,
-                    (byte) 0x21, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x02, (byte) 0x16, (byte) 0x3e,
-                    (byte) 0x26, (byte) 0x14, (byte) 0x99, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x63, (byte) 0x82, (byte) 0x53,
-                    (byte) 0x63, (byte) 0x35, (byte) 0x01, (byte) 0x03,
-                    (byte) 0x32, (byte) 0x04, (byte) 0xc0, (byte) 0xa8,
-                    (byte) 0x14, (byte) 0x03, (byte) 0x37, (byte) 0x0a,
-                    (byte) 0x01, (byte) 0x1c, (byte) 0x02, (byte) 0x03,
-                    (byte) 0x0f, (byte) 0x06, (byte) 0x0c, (byte) 0x28,
-                    (byte) 0x29, (byte) 0x2a, (byte) 0xff, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-                    (byte) 0x00 };
             DHCP dhcpPkt = new DHCP();
             // Deserialize the whole packet.
-            ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
+            ByteBuffer bb = ByteBuffer.wrap(dhcpPktData, 0, dhcpPktData.length);
             dhcpPkt.deserialize(bb);
             // Now re-serialize and verify we get the same bytes back.
-            Assert.assertArrayEquals(data, dhcpPkt.serialize());
+            Assert.assertArrayEquals(dhcpPktData, dhcpPkt.serialize());
 
             // Verify that deserialize/serialize from a padded buffer works.
-            byte[] buffer = Arrays.copyOf(data, data.length + 100);
+            byte[] buffer = Arrays.copyOf(dhcpPktData, dhcpPktData.length + 100);
             dhcpPkt = new DHCP();
             bb = ByteBuffer.wrap(buffer, 0, buffer.length);
             dhcpPkt.deserialize(bb);
-            Assert.assertArrayEquals(data, dhcpPkt.serialize());
+            Assert.assertArrayEquals(dhcpPktData, dhcpPkt.serialize());
         }
     }
 
@@ -258,10 +197,12 @@ public class TestDHCP {
             dhcp.setOptions(options);
 
             // With optins
-            byte[] withOptions = Arrays.copyOf(dhcpBytes, 244);
+            byte[] withOptions = Arrays.copyOf(TestDHCPGeneral.dhcpPktData, 244);
+            withOptions[242] = (byte) 0xFF;
+            withOptions[243] = (byte) 0xFF;
 
             // No options
-            byte[] noOptions = Arrays.copyOf(dhcpBytes, 240);
+            byte[] noOptions = Arrays.copyOf(TestDHCPGeneral.dhcpPktData, 240);
             DHCP noOptionsDhcp = copyDhcp(dhcp);
             noOptionsDhcp.setOptions(new ArrayList<DHCPOption>());
 
@@ -317,14 +258,16 @@ public class TestDHCP {
         @Parameters
         public static Collection<Object[]> data() {
 
-            byte[] cutOff = Arrays.copyOf(dhcpBytes, 239);
+            byte[] cutOff = Arrays.copyOf(TestDHCPGeneral.dhcpPktData, 239);
 
-            byte[] badHwLen = Arrays.copyOf(dhcpBytes, dhcpBytes.length);
+            byte[] badHwLen = Arrays.copyOf(TestDHCPGeneral.dhcpPktData,
+                                            TestDHCPGeneral.dhcpPktData.length);
             badHwLen[2] = 0x11;
 
-            byte[] missingOptionVal = Arrays.copyOf(dhcpBytes, 241);
+            byte[] missingOptionVal = Arrays.copyOf(TestDHCPGeneral.dhcpPktData, 241);
 
-            byte[] badOptionLen = Arrays.copyOf(dhcpBytes, dhcpBytes.length);
+            byte[] badOptionLen = Arrays.copyOf(TestDHCPGeneral.dhcpPktData, 
+                                            TestDHCPGeneral.dhcpPktData.length);
             badOptionLen[241] = (byte) 0xFF;
 
             Object[][] input = new Object[][] { { new byte[] {} },
