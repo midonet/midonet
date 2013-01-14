@@ -4,29 +4,27 @@
 
 package com.midokura.midolman
 
-import akka.testkit.TestProbe
-import akka.util.Duration
 import collection.immutable.HashMap
 import collection.mutable
-import collection.JavaConverters._
+
+import akka.testkit.TestProbe
+import akka.util.Duration
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.midokura.midolman.DatapathController.{PacketIn, TunnelChangeEvent}
+import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.{DiscardPacket, RemoveWildcardFlow,
-    WildcardFlowAdded, WildcardFlowRemoved}
+    WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
 import com.midokura.midolman.layer3.Route._
 import com.midokura.midolman.topology.LocalPortActive
 import com.midokura.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import com.midokura.midolman.util.{RouterHelper, TestHelpers}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midonet.cluster.data.ports.MaterializedRouterPort
-import com.midokura.midonet.cluster.data.zones.GreTunnelZoneHost
-import com.midokura.midonet.cluster.data.{Port, Router}
+import com.midokura.midonet.cluster.data.Router
 import com.midokura.odp.Datapath
 import com.midokura.odp.flows.{FlowAction, FlowActions}
 import com.midokura.packets._
@@ -148,7 +146,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         fishForRequestOfType[PacketIn](dpProbe())
         fishForRequestOfType[PacketIn](dpProbe())
 
-        requestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](flowProbe())
 
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
@@ -294,4 +292,41 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
     }
 
+    def testArpTableUpdateTest() {
+        drainProbes()
+
+        val ipToReach = "11.11.0.2"
+        val firstMac = "02:11:22:33:48:10"
+        val secondMac = "02:11:44:66:96:20"
+        // add a route from ipSource to ipToReach/32, next hop is outPort
+        routeId = newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
+            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            2)
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
+        // we trigger the learning of firstMac
+        feedArpCache(outPortName,
+            IntIPv4.fromString(ipToReach).addressAsInt,
+            MAC.fromString(firstMac),
+            IntIPv4.fromString(ipOutPort).addressAsInt,
+            MAC.fromString(macOutPort))
+
+        fishForRequestOfType[PacketIn](dpProbe())
+        fishForRequestOfType[PacketIn](dpProbe())
+
+        fishForRequestOfType[DiscardPacket](flowProbe())
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        // we trigger the learning of firstMac
+        feedArpCache(outPortName,
+            IntIPv4.fromString(ipToReach).addressAsInt,
+            MAC.fromString(secondMac),
+            IntIPv4.fromString(ipOutPort).addressAsInt,
+            MAC.fromString(macOutPort))
+
+        // when we update the ARP table we expect the flow to be invalidated
+        requestOfType[InvalidateFlowsByTag](flowProbe())
+        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+    }
 }
