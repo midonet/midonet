@@ -12,6 +12,7 @@ import collection.mutable
 import akka.testkit.TestProbe
 import akka.util.duration._
 import org.junit.runner.RunWith
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import guice.actors.OutgoingMessage
@@ -38,6 +39,7 @@ import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions, FlowAction}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 
+@Ignore
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
           VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
