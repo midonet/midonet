@@ -22,8 +22,7 @@ check_for_java7() {
 }
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
-                 /usr/lib/jvm/java-7-sun"
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
 
 if [ -n "`which java`" ]; then
         java=`which java`

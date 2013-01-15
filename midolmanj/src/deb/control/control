@@ -3,8 +3,8 @@ Version: [[version]]
 Section: misc
 Priority: optional
 Architecture: amd64
-Depends: quagga (>= 0.99.21), bridge-utils
-Recommends: java7-runtime-headless, java7-jdk, openvswitch-datapath-dkms
+Depends: quagga (>= 0.99.21), bridge-utils, java7-runtime-headless, openvswitch-datapath-dkms | openvswitch-datapth-source
+Recommends: java7-jdk
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midolman is a virtual network controller
 Distribution: development
