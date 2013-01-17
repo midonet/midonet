@@ -158,6 +158,23 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         eth
     }
 
+    def tcpBetweenPorts(portIndexA: Int, portIndexB: Int,
+                        tcpPortSrc: Short, tcpPortDst: Short): Ethernet = {
+        val tcp = new TCP()
+        tcp.setSourcePort(tcpPortSrc)
+        tcp.setDestinationPort(tcpPortDst)
+        tcp.setPayload(new Data().setData("TCP payload".getBytes))
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(vmMacs(portIndexA)).
+            setDestinationMACAddress(vmMacs(portIndexB)).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA).addressAsInt).
+            setDestinationAddress(vmIps(portIndexB).addressAsInt).
+            setProtocol(TCP.PROTOCOL_NUMBER).
+            setPayload(tcp))
+        eth
+    }
+
     def udpBetweenPorts(portIndexA: Int, portIndexB: Int): Ethernet = {
         val udp = new UDP()
         udp.setSourcePort((12000 + portIndexA).toShort)

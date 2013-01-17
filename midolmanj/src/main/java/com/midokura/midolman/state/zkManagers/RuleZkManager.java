@@ -217,7 +217,8 @@ public class RuleZkManager extends ZkManager {
 
     public void getRuleAsync(
             UUID ruleId,
-            DirectoryCallback<Rule> ruleCallback) {
+            DirectoryCallback<Rule> ruleCallback,
+            Directory.TypedWatcher watcher) {
 
         String path = paths.getRulePath(ruleId);
 
@@ -236,7 +237,7 @@ public class RuleZkManager extends ZkManager {
                         return null;
                     }
                 }),
-            null);
+            watcher);
     }
 
     public void getRuleIdListAsync(
