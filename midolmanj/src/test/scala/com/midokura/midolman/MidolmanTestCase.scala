@@ -98,24 +98,28 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     before {
-        val config = fillConfig(new HierarchicalConfiguration())
-        injector = Guice.createInjector(getModulesAsJavaIterable(config))
+        try {
+            val config = fillConfig(new HierarchicalConfiguration())
+            injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
-        injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
-        injector.getInstance(classOf[MidolmanService]).startAndWait()
-        mAgent = injector.getInstance(classOf[MonitoringAgent])
-        mAgent.startMonitoringIfEnabled()
-        interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
-            .asInstanceOf[MockInterfaceScanner]
+            injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
+            injector.getInstance(classOf[MidolmanService]).startAndWait()
+            mAgent = injector.getInstance(classOf[MonitoringAgent])
+            mAgent.startMonitoringIfEnabled()
+            interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
+                .asInstanceOf[MockInterfaceScanner]
 
-        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].
-            packetsExecuteSubscribe(new AbstractCallback[Packet, Exception] {
-                override def onSuccess(pkt: Packet) {
-                    actors().eventStream.publish(PacketsExecute(pkt))
-                }
-        })
+            dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].
+                packetsExecuteSubscribe(new AbstractCallback[Packet, Exception] {
+                    override def onSuccess(pkt: Packet) {
+                        actors().eventStream.publish(PacketsExecute(pkt))
+                    }
+            })
 
-        beforeTest()
+            beforeTest()
+        } catch {
+            case e: Throwable => fail(e)
+        }
     }
 
     after {
