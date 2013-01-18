@@ -12,8 +12,8 @@
         <module>netlink</module>
         <module>odp</module>
         <module>midolmanj</module>
-        <module>midolmanj-mgmt</module>
         <module>midokura-util</module>
+        <module>midonet-api</module>
         <module>midonet-client</module>
         <module>midonet-functional-tests</module>
         <module>midokura-jdk-bootstrap</module>
