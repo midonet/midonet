@@ -227,6 +227,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         triggerPacketIn(portNumToName(onPort), eth)
@@ -308,6 +309,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         feedArpCache(portNumToName(outPort), toIp.addressAsInt, outToMac,
                      myAddressOnPort(outPort).addressAsInt, outFromMac)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         triggerPacketIn(portNumToName(inPort), eth)
         expectPacketOnPort(portNumToId(inPort))
@@ -356,6 +358,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         val arpResult = Await.result(arpPromise, Timeout(3 seconds).duration)
         arpResult should be === mac
@@ -460,6 +463,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         val echo = new ICMP()
@@ -491,6 +495,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         val echo = new ICMP()
@@ -602,6 +607,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         feedArpCache("uplinkPort", hisIp.addressAsInt, hisMac,
                                    myIp.addressAsInt, myMac)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         val mac: MAC = Await.result(arpPromise, Timeout(1 seconds).duration)
         mac should be === hisMac
@@ -622,6 +628,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             hisIp.addressAsInt, mac,
             myIp.addressAsInt, uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         var arpResult = Await.result(arpPromise, Timeout(1 second).duration)
         arpResult should be === mac

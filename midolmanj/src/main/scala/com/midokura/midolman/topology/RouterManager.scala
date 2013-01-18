@@ -16,7 +16,7 @@ import com.midokura.midolman.topology.RouterManager._
 import com.midokura.midolman.config.MidolmanConfig
 import scala.collection.JavaConversions._
 import com.midokura.util.functors.Callback0
-import com.midokura.packets.IPv4
+import com.midokura.packets.{IntIPv4, MAC, IPv4}
 import com.midokura.midolman.topology.RouterManager.InvalidateFlows
 import com.midokura.midolman.topology.RouterManager.RemoveTag
 import com.midokura.midolman.topology.RouterManager.TriggerUpdate
@@ -136,6 +136,11 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         }
     }
 
+    private def invalidateFlowsByIp(ip: IntIPv4) {
+        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+            FlowTagger.invalidateByIp(id, ip.addressAsInt))
+    }
+
     override def receive = super.receive orElse {
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
             log.debug("TriggerUpdate with {} {} {}",
@@ -147,7 +152,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             cfg = newCfg.clone
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
-                arpTable = new ArpTableImpl(arpCache, config)
+                arpTable = new ArpTableImpl(arpCache, config,
+                    (ip: IntIPv4, mac: MAC) => invalidateFlowsByIp(ip))
                 arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
