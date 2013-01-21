@@ -13,7 +13,7 @@ import com.midokura.midonet.api.rest_api.Topology;
 import com.midokura.midonet.api.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoBridge;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoHost;
@@ -50,7 +50,7 @@ public class TestHostInterfacePort {
         private HostTopology hostTopology;
         private HostZkManager hostManager;
         private Directory rootDirectory;
-        private MidonetMgmt mgmt;
+        private MidonetApi api;
 
         private UUID host1Id = UUID.randomUUID();
 
@@ -83,8 +83,8 @@ public class TestHostInterfacePort {
                     .create(host1Id, host1).build();
 
             URI baseUri = resource().getURI();
-            mgmt = new MidonetMgmt(baseUri.toString());
-            mgmt.enableLogging();
+            api = new MidonetApi(baseUri.toString());
+            api.enableLogging();
         }
 
         @After
@@ -151,11 +151,11 @@ public class TestHostInterfacePort {
             hostManager.createHost(hostId, metadata);
             hostManager.makeAlive(hostId);
 
-            ResourceCollection<Host> hosts = mgmt.getHosts();
+            ResourceCollection<Host> hosts = api.getHosts();
             com.midokura.midonet.client.resource.Host host = hosts.get(0);
 
             // Create a bridge
-            Bridge b1 = mgmt.addBridge()
+            Bridge b1 = api.addBridge()
                             .tenantId("tenant-1")
                             .name("bridge-1")
                             .create();

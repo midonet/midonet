@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.BridgePort;
 import com.midokura.midonet.client.resource.Host;
@@ -51,7 +51,7 @@ public class BridgeTestOneDatapath {
     PacketHelper helper3_1;
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     MidolmanLauncher midolman;
 
     BridgePort port1, port2, port3;
@@ -88,7 +88,7 @@ public class BridgeTestOneDatapath {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
 
         log.info("Starting midolman");
         EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);

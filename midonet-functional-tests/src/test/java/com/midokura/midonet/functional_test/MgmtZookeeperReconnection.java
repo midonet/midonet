@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.midokura.util.Waiters;
 import com.midokura.util.process.ProcessHelper;
 import com.midokura.midonet.client.resource.*;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 
 import static com.midokura.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,7 +27,7 @@ public class MgmtZookeeperReconnection {
     Bridge bridge;
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
 
     int zkPort;
 
@@ -41,7 +41,7 @@ public class MgmtZookeeperReconnection {
         startCassandra();
         log.info("Starting REST API");
         apiStarter = new ApiServer(zkPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
     }
 
     @After
