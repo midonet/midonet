@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.FlowController;
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoExteriorRouterPort;
 import com.midokura.midonet.client.dto.DtoRoute;
 import com.midokura.midonet.client.resource.Host;
@@ -87,7 +87,7 @@ public class LinksTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
+        MidonetApi apiClient = new MidonetApi(apiStarter.getURI());
 
         log.info("Starting midolman");
         mm = startEmbeddedMidolman(testConfigurationPath);

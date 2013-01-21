@@ -10,7 +10,7 @@ import akka.util.Duration;
 import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midolman.topology.VirtualTopologyActor;
 import com.midokura.midolman.topology.VirtualTopologyActor.RouterRequest;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.resource.Bgp;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
@@ -56,7 +56,7 @@ public class BgpTest {
     static final String peerVm = "peerVmPort";
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     MidolmanLauncher midolman;
 
     Router router1;
@@ -175,7 +175,7 @@ public class BgpTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
 
         log.info("Starting midolman");
         EmbeddedMidolman mm = startEmbeddedMidolman(

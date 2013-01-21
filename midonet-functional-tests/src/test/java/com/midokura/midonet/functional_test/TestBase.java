@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
@@ -35,7 +35,7 @@ public abstract class TestBase {
             "midolmanj_runtime_configurations/midolman-default.conf";
 
     private ApiServer apiStarter;
-    protected MidonetMgmt apiClient;
+    protected MidonetApi apiClient;
     private EmbeddedMidolman midolman;
     protected TestProbe probe;
     protected Host thisHost;
@@ -51,7 +51,7 @@ public abstract class TestBase {
         startCassandra();
         log.info("Starting REST API");
         apiStarter = new ApiServer(zkPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
         log.info("Starting midolman");
         midolman = startEmbeddedMidolman(testConfigFile.getAbsolutePath());
 

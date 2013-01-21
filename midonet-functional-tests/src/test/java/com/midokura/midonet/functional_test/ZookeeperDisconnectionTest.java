@@ -27,7 +27,7 @@ import com.midokura.midolman.topology.LocalPortActive;
 import com.midokura.midonet.functional_test.utils.TapWrapper;
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.cluster.DataClient;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.functional_test.utils.EmbeddedMidolman;
 import com.midokura.midolman.topology.VirtualTopologyActor;
 import com.midokura.midolman.topology.VirtualTopologyActor.RouterRequest;
@@ -64,7 +64,7 @@ public class ZookeeperDisconnectionTest {
     TapWrapper tapB;
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     EmbeddedMidolman midolman;
 
     DataClient dataClient;
@@ -82,7 +82,7 @@ public class ZookeeperDisconnectionTest {
         startCassandra();
         log.info("Starting REST API");
         apiStarter = new ApiServer(zkPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
         log.info("Starting midolman");
         midolman = startEmbeddedMidolman(testConfigFile.getAbsolutePath());
         dataClient = midolman.getDataClient();

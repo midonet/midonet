@@ -30,7 +30,7 @@ import com.midokura.midonet.api.rest_api.FuncTest;
 import com.midokura.midonet.api.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.ZkPathManager;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoHost;
 import com.midokura.midonet.client.dto.DtoInterface;
 import com.midokura.midonet.client.exception.HttpForbiddenException;
@@ -48,7 +48,7 @@ public class TestHost extends JerseyTest {
     private HostZkManager hostManager;
     private ZkPathManager pathManager;
     private Directory rootDirectory;
-    private MidonetMgmt mgmt;
+    private MidonetApi api;
 
     public TestHost() {
         super(createWebApp());
@@ -73,8 +73,8 @@ public class TestHost extends JerseyTest {
         hostManager = new HostZkManager(rootDirectory, "/test/midolman");
 
         URI baseUri = resource().getURI();
-        mgmt = new MidonetMgmt(baseUri.toString());
-        mgmt.enableLogging();
+        api = new MidonetApi(baseUri.toString());
+        api.enableLogging();
     }
 
     @After
@@ -112,12 +112,12 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("semporiki");
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("Hosts should be empty", hosts.size(), equalTo(0));
         hostManager.createHost(hostId, metadata);
 
-        hosts = mgmt.getHosts();
+        hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -130,7 +130,7 @@ public class TestHost extends JerseyTest {
         metadata.setName("emporiki1");
         hostManager.makeAlive(hostId, metadata);
 
-        hosts = mgmt.getHosts();
+        hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -149,7 +149,7 @@ public class TestHost extends JerseyTest {
         metadata.setName("testhost");
         hostManager.createHost(hostId, metadata);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -176,7 +176,7 @@ public class TestHost extends JerseyTest {
         });
         hostManager.createHost(hostId, metadata);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -222,7 +222,7 @@ public class TestHost extends JerseyTest {
         });
         hostManager.createHost(hostId, metadata);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -259,7 +259,7 @@ public class TestHost extends JerseyTest {
         hostManager.makeAlive(hostId, metadata);
 
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("We should expose 1 host via the API",
@@ -318,7 +318,7 @@ public class TestHost extends JerseyTest {
         assertThat(clientResponse.getClientResponseStatus(),
                    equalTo(ClientResponse.Status.OK));
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
         Host h = hosts.get(0);
         ResourceCollection<HostInterface> hIfaces = h.getInterfaces();
 
@@ -353,7 +353,7 @@ public class TestHost extends JerseyTest {
 
         hostManager.createInterface(hostId, anInterface);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
         Host host = hosts.get(0);
 
         ResourceCollection<HostInterface> hIfaces = host.getInterfaces();
@@ -393,7 +393,7 @@ public class TestHost extends JerseyTest {
         hostManager.createHost(host1, metadata1);
         hostManager.createHost(host2, metadata2);
 
-        ResourceCollection<Host> hosts = mgmt.getHosts();
+        ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("We should have a proper array of hosts returned",
                    hosts.size(), equalTo(2));

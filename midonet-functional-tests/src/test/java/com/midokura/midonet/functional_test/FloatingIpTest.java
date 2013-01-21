@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoDhcpOption121;
 import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
@@ -104,7 +104,7 @@ public class FloatingIpTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
+        MidonetApi apiClient = new MidonetApi(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
         log.info("Starting midolman");

@@ -6,7 +6,7 @@ package com.midokura.midonet.api;
 
 import com.google.common.base.Predicate;
 import com.midokura.midonet.api.rest_api.FuncTest;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.RouterPredicates;
 import com.midokura.midonet.client.resource.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -36,7 +36,7 @@ public class ClientTest extends JerseyTest {
 
     private final static Logger log = LoggerFactory.getLogger(ClientTest.class);
 
-    private MidonetMgmt mgmt;
+    private MidonetApi api;
 
     public ClientTest() {
         super(FuncTest.appDesc);
@@ -46,50 +46,50 @@ public class ClientTest extends JerseyTest {
     public void setUp() {
         URI baseUri = resource().getURI();
         System.out.println("URI: " + resource().getURI());
-        mgmt = new MidonetMgmt(baseUri.toString());
-        //mgmt = new MidonetMgmt("http://localhost:8080/midolmanj-mgmt/");
-        mgmt.enableLogging();
+        api = new MidonetApi(baseUri.toString());
+        //api = new MidonetApi("http://localhost:8080/midolmanj-mgmt/");
+        api.enableLogging();
     }
 
     @Test
     public void test() {
         // Test for chains
-        RuleChain c1 = mgmt.addChain().tenantId("tenant-1").name("chain-1")
+        RuleChain c1 = api.addChain().tenantId("tenant-1").name("chain-1")
                            .create();
-        RuleChain c2 = mgmt.addChain().tenantId("tenant-1").name("chain-2")
+        RuleChain c2 = api.addChain().tenantId("tenant-1").name("chain-2")
                            .create();
 
         // Test GET with ID
         assertThat(c1.getId(), is(notNullValue()));
         assertThat(c2.getId(), is(notNullValue()));
-        c1 = mgmt.getChain(c1.getId());
+        c1 = api.getChain(c1.getId());
         assertThat(c1, is(notNullValue()));
-        c2 = mgmt.getChain(c2.getId());
+        c2 = api.getChain(c2.getId());
         assertThat(c2, is(notNullValue()));
 
         MultivaluedMap<String, String> qTenant1 = new MultivaluedMapImpl();
         qTenant1.add("tenant_id", "tenant-1");
 
-        assertThat(mgmt.getChains(qTenant1).size(), is(2));
-//        assertThat(mgmt.getChains().findBy("name", "chain-1").getId(),
+        assertThat(api.getChains(qTenant1).size(), is(2));
+//        assertThat(api.getChains().findBy("name", "chain-1").getId(),
 //                is(c1.getId()));
 
         // Test for port groups
-        PortGroup pg1 = mgmt.addPortGroup().tenantId("tenant-1").name("pg-1")
+        PortGroup pg1 = api.addPortGroup().tenantId("tenant-1").name("pg-1")
                             .create();
-        PortGroup pg2 = mgmt.addPortGroup().tenantId("tenant-1").name("pg-2")
+        PortGroup pg2 = api.addPortGroup().tenantId("tenant-1").name("pg-2")
                             .create();
 
         // Test GET with ID
         assertThat(pg1.getId(), is(notNullValue()));
         assertThat(pg2.getId(), is(notNullValue()));
-        pg1 = mgmt.getPortGroup(pg1.getId());
+        pg1 = api.getPortGroup(pg1.getId());
         assertThat(pg1, is(notNullValue()));
-        pg2 = mgmt.getPortGroup(pg2.getId());
+        pg2 = api.getPortGroup(pg2.getId());
         assertThat(pg2, is(notNullValue()));
 
 
-        ResourceCollection<PortGroup> pgs = mgmt
+        ResourceCollection<PortGroup> pgs = api
             .getPortGroups(qTenant1);
         assertThat(pgs.size(), is(2));
         assertThat(pgs.findBy("name", "pg-1").getId(),
@@ -97,31 +97,31 @@ public class ClientTest extends JerseyTest {
 
 
         pg1.delete();
-        assertThat(mgmt.getPortGroups(qTenant1).size(), is(1));
+        assertThat(api.getPortGroups(qTenant1).size(), is(1));
 
 
         // Test for bridge
-        Bridge b1 = mgmt.addBridge().tenantId("tenant-1").name("bridge-1")
+        Bridge b1 = api.addBridge().tenantId("tenant-1").name("bridge-1")
                         .create();
-        Bridge b2 = mgmt.addBridge().tenantId("tenant-1").name("bridge-2")
+        Bridge b2 = api.addBridge().tenantId("tenant-1").name("bridge-2")
                         .create();
 
         // Test GET with ID
         assertThat(b1.getId(), is(notNullValue()));
         assertThat(b2.getId(), is(notNullValue()));
-        b1 = mgmt.getBridge(b1.getId());
+        b1 = api.getBridge(b1.getId());
         assertThat(b1, is(notNullValue()));
-        b2 = mgmt.getBridge(b2.getId());
+        b2 = api.getBridge(b2.getId());
         assertThat(b2, is(notNullValue()));
 
         b2 = b2.name("bridge-222").update();
 
-        assertThat(mgmt.getBridges(qTenant1).size(), is(2));
-        for (Bridge b : mgmt.getBridges(qTenant1)) {
+        assertThat(api.getBridges(qTenant1).size(), is(2));
+        for (Bridge b : api.getBridges(qTenant1)) {
             log.debug("BRIDGE: {}", b);
         }
         b2.delete();
-        assertThat(mgmt.getBridges(qTenant1).size(), is(1));
+        assertThat(api.getBridges(qTenant1).size(), is(1));
 
 
         // Bridge port
@@ -137,13 +137,13 @@ public class ClientTest extends JerseyTest {
         assertThat(bp1.getId(), is(notNullValue()));
         assertThat(bp2.getId(), is(notNullValue()));
         assertThat(bp3.getId(), is(notNullValue()));
-        Port p = mgmt.getPort(bp1.getId());
+        Port p = api.getPort(bp1.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
-        p = mgmt.getPort(bp2.getId());
+        p = api.getPort(bp2.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
-        p = mgmt.getPort(bp3.getId());
+        p = api.getPort(bp3.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
 
@@ -186,29 +186,29 @@ public class ClientTest extends JerseyTest {
 
 
         // Router
-        Router r1 = mgmt.addRouter().tenantId("tenant-1").name("router-1")
+        Router r1 = api.addRouter().tenantId("tenant-1").name("router-1")
                         .create();
-        Router r2 = mgmt.addRouter().tenantId("tenant-1").name("router-2")
+        Router r2 = api.addRouter().tenantId("tenant-1").name("router-2")
                         .create();
 
         // Test GET with ID
         assertThat(r1.getId(), is(notNullValue()));
         assertThat(r2.getId(), is(notNullValue()));
-        r1 = mgmt.getRouter(r1.getId());
+        r1 = api.getRouter(r1.getId());
         assertThat(r1, is(notNullValue()));
-        r2 = mgmt.getRouter(r2.getId());
+        r2 = api.getRouter(r2.getId());
         assertThat(r2, is(notNullValue()));
 
-        assertThat(mgmt.getRouters(qTenant1).size(), is(2));
-//        assertThat(mgmt.getRouters().findBy("name", "router-1").
+        assertThat(api.getRouters(qTenant1).size(), is(2));
+//        assertThat(api.getRouters().findBy("name", "router-1").
 //            getName(), is("router-1"));
 
 
-        log.debug("find result: {}", mgmt.getRouters(qTenant1).find(
+        log.debug("find result: {}", api.getRouters(qTenant1).find(
             and(RouterPredicates.byId(r1.getId()),
                 RouterPredicates.byName("router-1"))));
 
-        log.debug("find result: {}", mgmt.getRouters(qTenant1).find(
+        log.debug("find result: {}", api.getRouters(qTenant1).find(
             or(
                 new RouterPredicates.Builder().name("router-1").build(),
                 new RouterPredicates.Builder().id(r1.getId()).build()
@@ -216,18 +216,18 @@ public class ClientTest extends JerseyTest {
             ))
         );
 
-        mgmt.getRouters(qTenant1).find(
+        api.getRouters(qTenant1).find(
             new RouterPredicates.Builder().name("router-1")
                                           .id(r1.getId()).build());
 
 
         r1.name("router-111").update();
-        mgmt.getRouters(qTenant1);
-//        assertThat(mgmt.routers().<Router>findBy("name", "router-111").getName(),
+        api.getRouters(qTenant1);
+//        assertThat(api.routers().<Router>findBy("name", "router-111").getName(),
 //                is("router-111"));
 
         r2.delete();
-        assertThat(mgmt.getRouters(qTenant1).size(), is(1));
+        assertThat(api.getRouters(qTenant1).size(), is(1));
 
         RouterPort mrp1 = (RouterPort) r1.addExteriorRouterPort()
                                          .portAddress("1.1.1.1")
@@ -265,19 +265,19 @@ public class ClientTest extends JerseyTest {
         assertThat(lrp1.getId(), is(notNullValue()));
         assertThat(lrp2.getId(), is(notNullValue()));
         assertThat(lrp3.getId(), is(notNullValue()));
-        p = mgmt.getPort(mrp1.getId());
+        p = api.getPort(mrp1.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(RouterPort.class)));
-        p = mgmt.getPort(mrp2.getId());
+        p = api.getPort(mrp2.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(RouterPort.class)));
-        p = mgmt.getPort(lrp1.getId());
+        p = api.getPort(lrp1.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(RouterPort.class)));
-        p = mgmt.getPort(lrp2.getId());
+        p = api.getPort(lrp2.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(RouterPort.class)));
-        p = mgmt.getPort(lrp3.getId());
+        p = api.getPort(lrp3.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(RouterPort.class)));
 
@@ -325,7 +325,7 @@ public class ClientTest extends JerseyTest {
 
         // Test GET with ID
         assertThat(bgp1.getId(), is(notNullValue()));
-        bgp1 = mgmt.getBgp(bgp1.getId());
+        bgp1 = api.getBgp(bgp1.getId());
         assertThat(bgp1, is(notNullValue()));
 
         assertThat(mrp1.getBgps(null).size(), is(1));
@@ -337,7 +337,7 @@ public class ClientTest extends JerseyTest {
 
         // Test GET with ID
         assertThat(ar1.getId(), is(notNullValue()));
-        ar1 = mgmt.getAdRoute(ar1.getId());
+        ar1 = api.getAdRoute(ar1.getId());
         assertThat(ar1, is(notNullValue()));
 
         assertThat(bgp1.getAdRoutes(null).size(), is(1));
@@ -359,9 +359,9 @@ public class ClientTest extends JerseyTest {
         // Test GET with ID
         assertThat(rte1.getId(), is(notNullValue()));
         assertThat(rte2.getId(), is(notNullValue()));
-        rte1 = mgmt.getRoute(rte1.getId());
+        rte1 = api.getRoute(rte1.getId());
         assertThat(rte1, is(notNullValue()));
-        rte2 = mgmt.getRoute(rte2.getId());
+        rte2 = api.getRoute(rte2.getId());
         assertThat(rte2, is(notNullValue()));
 
         assertThat(r1.getRoutes(null).size(), is(7));
@@ -377,9 +377,9 @@ public class ClientTest extends JerseyTest {
         // Test GET with ID
         assertThat(rule1.getId(), is(notNullValue()));
         assertThat(rule2.getId(), is(notNullValue()));
-        rule1 = mgmt.getRule(rule1.getId());
+        rule1 = api.getRule(rule1.getId());
         assertThat(rule1, is(notNullValue()));
-        rule2 = mgmt.getRule(rule2.getId());
+        rule2 = api.getRule(rule2.getId());
         assertThat(rule2, is(notNullValue()));
 
         assertThat(c1.getRules().size(), is(2));

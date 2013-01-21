@@ -12,7 +12,7 @@ import com.midokura.midonet.api.rest_api.FuncTest;
 import com.midokura.midonet.api.zookeeper.StaticMockDirectory;
 import com.midokura.midolman.state.Directory;
 import com.midokura.midolman.state.StateAccessException;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.*;
 import com.midokura.midonet.client.resource.*;
 import com.midokura.midonet.client.resource.Host;
@@ -200,8 +200,8 @@ public class TestTunnelZoneHost {
         public void testClientGre() throws Exception {
 
             URI baseUri = resource().getURI();
-            MidonetMgmt mgmt = new MidonetMgmt(baseUri.toString());
-            mgmt.enableLogging();
+            MidonetApi api = new MidonetApi(baseUri.toString());
+            api.enableLogging();
 
             UUID hostId = UUID.randomUUID();
 
@@ -215,10 +215,10 @@ public class TestTunnelZoneHost {
             hostManager.createHost(hostId, metadata);
             hostManager.makeAlive(hostId);
 
-            ResourceCollection<Host> hosts = mgmt.getHosts();
+            ResourceCollection<Host> hosts = api.getHosts();
             com.midokura.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone greTunnelZone = mgmt.addGreTunnelZone()
+            TunnelZone greTunnelZone = api.addGreTunnelZone()
                                            .name("gre-tunnel-zone-1")
                                            .create();
 
@@ -234,8 +234,8 @@ public class TestTunnelZoneHost {
         public void testClientCapwap() throws Exception {
 
             URI baseUri = resource().getURI();
-            MidonetMgmt mgmt = new MidonetMgmt(baseUri.toString());
-            mgmt.enableLogging();
+            MidonetApi api = new MidonetApi(baseUri.toString());
+            api.enableLogging();
 
             UUID hostId = UUID.randomUUID();
 
@@ -249,10 +249,10 @@ public class TestTunnelZoneHost {
             hostManager.createHost(hostId, metadata);
             hostManager.makeAlive(hostId);
 
-            ResourceCollection<Host> hosts = mgmt.getHosts();
+            ResourceCollection<Host> hosts = api.getHosts();
             com.midokura.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone capwapTunnelZone = mgmt.addCapwapTunnelZone()
+            TunnelZone capwapTunnelZone = api.addCapwapTunnelZone()
                     .name("capwap-tunnel-zone-1")
                     .create();
 
