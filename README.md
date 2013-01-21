@@ -9,11 +9,11 @@ explanation please consult the following file.
 
 Description of the module [contents](docs/midokura-util.md).
 
-### midolmanj
+### midolman
 
 Contains the *MidoNet* edge controller code.
 
-Description of the module [contents](docs/midolmanj.md).
+Description of the module [contents](docs/midolman.md).
 
 ### midonet-api
 
@@ -69,7 +69,7 @@ functional tests)
 
 In order to run a local controller one would need to provide a file named
 *managed_host.properties* somewhere in the classpath of the running process
-(being it a test case or midolmanj.
+(being it a test case or midolman).
 
 This file has the following syntax:
 

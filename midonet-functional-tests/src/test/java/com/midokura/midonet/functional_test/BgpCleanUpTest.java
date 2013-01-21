@@ -47,7 +47,7 @@ public class BgpCleanUpTest {
 
     @Before
     public void setUp() {
-        String testConfigurationPath = "midolmanj_runtime_configurations/midolman-with_bgp.conf";
+        String testConfigurationPath = "midolman_runtime_configurations/midolman-with_bgp.conf";
         File testConfigurationFile = new File(testConfigurationPath);
 
         // start zookeeper with the designated port.

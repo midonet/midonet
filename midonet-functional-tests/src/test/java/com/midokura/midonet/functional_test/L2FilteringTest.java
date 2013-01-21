@@ -84,7 +84,7 @@ public class L2FilteringTest {
     @Before
     public void setUp() throws IOException, InterruptedException {
         String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");

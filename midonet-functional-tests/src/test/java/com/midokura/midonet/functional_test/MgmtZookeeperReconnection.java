@@ -22,7 +22,7 @@ public class MgmtZookeeperReconnection {
 
     final String TENANT_NAME = "tenant-zk-disconnection-test";
     final String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
     Bridge bridge;
 

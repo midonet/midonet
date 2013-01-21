@@ -381,7 +381,7 @@
         </dependency>
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midolmanj</artifactId>
+            <artifactId>midolman</artifactId>
             <version>12.12.2-SNAPSHOT</version>
         </dependency>
          <dependency>
