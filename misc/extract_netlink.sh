@@ -13,6 +13,7 @@ UNUSED_FOLDERS="src conf conf2 err.txt \
 	.classpath lib-native .gitignore .project debian \
 	docs \
 	midolmanj \
+	midolman \
 	midolmanj-mgmt \
 	midonet-api \
 	midonet-client \

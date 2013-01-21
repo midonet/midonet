@@ -74,7 +74,7 @@ public class BgpTest {
     public static void setUpClass() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        String bgpPeerConfig = "midolmanj_runtime_configurations/peer.bgpd.conf";
+        String bgpPeerConfig = "midolman_runtime_configurations/peer.bgpd.conf";
 
         ProcessHelper.ProcessResult result;
         String cmdLine;
@@ -162,7 +162,7 @@ public class BgpTest {
     @Before
     public void setUp() throws InterruptedException, IOException {
 
-        String testConfigurationPath = "midolmanj_runtime_configurations/midolman-with_bgp.conf";
+        String testConfigurationPath = "midolman_runtime_configurations/midolman-with_bgp.conf";
         File testConfigurationFile = new File(testConfigurationPath);
 
         // start zookeeper with the designated port.

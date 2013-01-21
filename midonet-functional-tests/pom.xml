@@ -88,7 +88,7 @@
                     </systemPropertyVariables>
                     <parallel>false</parallel>
                     <additionalClasspathElements>
-                       <additionalClasspathElement>${project.basedir}/midolmanj_runtime_configurations/</additionalClasspathElement>
+                       <additionalClasspathElement>${project.basedir}/midolman_runtime_configurations/</additionalClasspathElement>
                     </additionalClasspathElements>
                 </configuration>
             </plugin>
@@ -259,7 +259,7 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midolmanj</artifactId>
+            <artifactId>midolman</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
 

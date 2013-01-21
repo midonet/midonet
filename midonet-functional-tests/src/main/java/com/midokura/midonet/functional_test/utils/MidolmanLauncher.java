@@ -98,7 +98,7 @@ public class MidolmanLauncher {
             getClassPath(),
             getLogFilePath(configType, logPostfix),
             format(
-                "midolmanj_runtime_configurations/midolman-%s.conf",
+                "midolman_runtime_configurations/midolman-%s.conf",
                 configType));
     }
 
@@ -108,7 +108,7 @@ public class MidolmanLauncher {
             System.getProperty(MIDONET_PROJECT_LOCATION, "");
 
         if (!midonetLocation.equals(""))
-            return String.format("%s:%s/midolmanj/lib-native", libraryPath, midonetLocation);
+            return String.format("%s:%s/midolman/lib-native", libraryPath, midonetLocation);
         else
             return libraryPath;
     }
@@ -136,7 +136,7 @@ public class MidolmanLauncher {
 
         File midonetFolder = new File(midonetLocation);
         if (!midonetFolder.exists() || !midonetFolder.isDirectory()) {
-            return "/usr/share/midolman/midolmanj.jar";
+            return "/usr/share/midolman/midolman.jar";
         }
 
         List<String> classPathEntries = new ArrayList<String>();
@@ -144,12 +144,12 @@ public class MidolmanLauncher {
         // add the log.xml file location first in the class path
         addEntry(classPathEntries,
                 new File(midonetLocation,
-                        "midonet-functional-tests/midolmanj_runtime_configurations"));
+                        "midonet-functional-tests/midolman_runtime_configurations"));
 
         // add either the classes or the built jars of the project dependencies
         if (!Boolean.getBoolean(MIDONET_MIDOLMAN_USE_JARS)) {
             addEntry(classPathEntries,
-                    new File(midonetLocation, "midolmanj/target/classes"));
+                    new File(midonetLocation, "midolman/target/classes"));
 
             addEntry(classPathEntries,
                     new File(midonetLocation, "midokura-util/target/classes"));
@@ -158,18 +158,18 @@ public class MidolmanLauncher {
             // version from a file dumped by maven at the build time.
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midolmanj/target/midolmanj-12.06-SNAPSHOT.jar"));
+                            "midolman/target/midolman-12.06-SNAPSHOT.jar"));
 
             addEntry(classPathEntries,
                     new File(midonetLocation,
                             "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar"));
         }
 
-        // add all the midolmanj dependencies that we find inside the
-        // target/dependencies folder (check the midolmanj/pom.xml to see how
+        // add all the midolman dependencies that we find inside the
+        // target/dependencies folder (check the midolman/pom.xml to see how
         // they are copied in there)
         File[] midolmanJars =
-                new File(midonetFolder, "midolmanj/target/dep").listFiles(
+                new File(midonetFolder, "midolman/target/dep").listFiles(
                         new FileFilter() {
                             @Override
                             public boolean accept(File pathName) {
