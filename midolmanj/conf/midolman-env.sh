@@ -14,16 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
-                 /usr/lib/jvm/java-7-sun"
+check_for_java7() {
+    [ "x" = "x$1" ] && return 1
+    [ -x "$1" ] || return 1
+    $1 -version 2>&1 | grep '^java version' | sed -e 's/^.*"\([^"]\+\)"$/\1/' \
+        | grep '^1.7.' >/dev/null 2>&1
+}
 
-# If JAVA_HOME has not been set, try to determine it.
-if [ -z "$JAVA_HOME" ]; then
-    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
-    # both consistent with how the upstream startup script works, and how
-    # Debian works (read: the use of alternatives to set a system JVM).
-    if [ -n "`which java`" ]; then
+# The first existing directory is used for JAVA_HOME if needed.
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
+
+if [ -n "`which java`" ]; then
         java=`which java`
         # Dereference symlink(s)
         while true; do
@@ -33,17 +34,19 @@ if [ -z "$JAVA_HOME" ]; then
             fi
             break
         done
-        JAVA_HOME="`dirname $java`/../"
-    # No JAVA_HOME set and no java found in PATH, search for a JVM.
-    else
-        for jdir in $JVM_SEARCH_DIRS; do
-            if [ -x "$jdir/bin/java" ]; then
-                JAVA_HOME="$jdir"
-                break
-            fi
-        done
-    fi
+        JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
 fi
+if [ ! -z "$JAVA_HOME" ]; then
+    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
+fi
+
+for jdir in $JVM_SEARCH_DIRS; do
+    check_for_java7 "$jdir/bin/java"
+    if [ $? -eq 0 ]; then
+        JAVA_HOME="$jdir"
+        break
+    fi
+done
 JAVA="$JAVA_HOME/bin/java"
 
 # Override these to set the amount of memory to allocate to the JVM at

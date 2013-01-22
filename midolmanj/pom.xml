@@ -63,7 +63,6 @@
                         </goals>
                         <configuration>
                             <args>
-                                <arg>-P:continuations:enable</arg>
                                 <arg>-deprecation</arg>
                                 <arg>-unchecked</arg>
                                 <arg>-dependencyfile</arg>
@@ -71,13 +70,6 @@
                                     ${project.build.directory}/.scala_dependencies
                                 </arg>
                             </args>
-                            <compilerPlugins>
-                                <compilerPlugin>
-                                    <groupId>org.scala-lang.plugins</groupId>
-                                    <artifactId>continuations</artifactId>
-                                    <version>${versions.scala.library}</version>
-                                </compilerPlugin>
-                            </compilerPlugins>
                         </configuration>
                     </execution>
 
@@ -96,13 +88,6 @@
                                     ${project.build.directory}/.scala_dependencies
                                 </arg>
                             </args>
-                            <compilerPlugins>
-                                <compilerPlugin>
-                                    <groupId>org.scala-lang.plugins</groupId>
-                                    <artifactId>continuations</artifactId>
-                                    <version>${versions.scala.library}</version>
-                                </compilerPlugin>
-                            </compilerPlugins>
                         </configuration>
                     </execution>
                 </executions>

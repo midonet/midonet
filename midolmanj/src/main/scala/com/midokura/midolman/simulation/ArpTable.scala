@@ -46,7 +46,8 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
     }
 }
 
-class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig)
+class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
+                   val observer: (IntIPv4, MAC) => Unit)
                   (implicit context: ActorContext) extends ArpTable {
     private val log =
           LoggerFactory.getActorSystemThreadLog(this.getClass)(context.system.eventStream)
@@ -64,6 +65,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig)
             def call(ip: IntIPv4, mac: MAC) {
                 if (mac == null)
                     return
+                log.debug("invalidating flows for {}", ip)
+                observer(ip, mac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
                         log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
@@ -190,7 +193,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig)
                                   entry.macAddr == mac) =>
                 log.debug("Skipping write to ArpCache because a non-stale " +
                     "entry for {} with the same value ({}) exists.", ip, mac)
-            case _ =>
+            case option =>
                 log.debug("Got address for {}: {}", ip, mac)
                 val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
                     now + ARP_STALE_MILLIS, 0)
