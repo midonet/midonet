@@ -118,7 +118,7 @@ public class TapWrapper {
         while (true) {
             int numRead = Tap.readFromTap(this.fd, tmp, 1492 - buf.position());
             if (numRead > 0)
-                log.debug("Got {} bytes reading from tap.", numRead);
+                log.debug("Got {} bytes reading from tap {}", numRead, name);
             if (0 == numRead) {
                 if (timeSlept >= maxSleepMillis) {
                     //log.debug("Returning null after receiving {} bytes",

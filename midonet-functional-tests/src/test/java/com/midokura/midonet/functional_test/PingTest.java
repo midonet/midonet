@@ -16,7 +16,6 @@ import akka.util.Duration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class PingTest {
 
     private final static Logger log = LoggerFactory.getLogger(PingTest.class);
@@ -175,8 +173,14 @@ public class PingTest {
             .interfaceName(tap1.getName())
             .portId(rtrPort1.getId()).create();
 
-        // Bind the internal 'local' port to the second exterior port.
+        // Set the datapath's local port to up and set its MAC address.
         String localName = "midonet";
+        newProcess(
+            String.format("sudo -n ip link set dev %s address %s arp on " +
+                "mtu 1400 multicast off", localName, vm2Mac.toString()))
+            .logOutput(log, "int_port")
+            .runAndWait();
+
         log.debug("Bind datapath's local port to bridge's exterior port.");
         host.addHostInterfacePort()
             .interfaceName(localName)
@@ -193,13 +197,6 @@ public class PingTest {
         }
         assertThat("The 2 router ports should be active.", activatedPorts,
             hasItems(rtrPort1.getId(), brPort2.getId()));
-
-        // Set the datapath's local port to up and set its MAC address.
-        newProcess(
-            String.format("sudo -n ip link set dev %s address %s arp on " +
-                "mtu 1400 multicast off", localName, vm2Mac.toString()))
-            .logOutput(log, "int_port")
-            .runAndWait();
 
         // Now ifup the local port to run the DHCP client.
         newProcess(
