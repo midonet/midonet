@@ -498,7 +498,6 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
         throws StateAccessException {
-        zonesZkManager.delMembership(zoneId, hostConfig.getId());
         return zonesZkManager.addMembership(zoneId, hostConfig);
     }
 

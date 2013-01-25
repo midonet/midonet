@@ -56,7 +56,9 @@ public class TunnelZoneHostResource {
     private <T extends TunnelZoneHost> Response createTunnelZoneHost(T tzHost)
             throws StateAccessException {
         tzHost.setTunnelZoneId(tunnelZoneId);
-        Set<ConstraintViolation<T>> violations =validator.validate(tzHost);
+
+        Set<ConstraintViolation<T>> violations =validator.validate(tzHost,
+            TunnelZoneHost.TunnelZoneHostCreateGroupSequence.class);
         if (!violations.isEmpty())
             throw new BadRequestHttpException(violations);
 

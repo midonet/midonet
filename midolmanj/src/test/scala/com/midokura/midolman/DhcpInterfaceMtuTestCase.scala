@@ -97,7 +97,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         // store original interface MTU
         strArray = testString.split("  ")
-        intfMtu = strArray(0).toInt
+        // TODO(guillermo) use pino's mock interface scanner when merged.
+        intfMtu = try { strArray(0).toInt } catch { case _ => 1500 }
 
         vmIP = IntIPv4.fromString(ipString, 24)
 
@@ -116,6 +117,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
             .setIp(IntIPv4.fromString("192.168.200.1"))
 
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
+        clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         initializeDatapath() should not be (null)
         requestOfType[HostRequest](vtpProbe())
@@ -148,9 +150,6 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         val brPort2 = newExteriorBridgePort(bridge)
         brPort2 should not be null
-
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be === greZone.getId

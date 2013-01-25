@@ -114,6 +114,11 @@ public class TestTunnelZoneHost {
                     tzhMediaType,
                     mapping,
                     DtoTunnelZoneHost.class);
+            // Verify that trying to create again fails with a 400 error.
+            dtoResource.postAndVerifyBadRequest(
+                    tz.getHosts(),
+                    tzhMediaType,
+                    mapping);
 
             // List mapping and verify that there is one
             tzHosts = dtoResource.getAndVerifyOk(
