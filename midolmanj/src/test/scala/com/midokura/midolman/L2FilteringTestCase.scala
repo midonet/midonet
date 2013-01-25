@@ -27,16 +27,22 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // this is a chain that will be set as jump chain for brInChain
         val jumpChain = createChain("jumpRule", None)
 
-        // add rule that allows return flows
-        val cond = new Condition()
-        cond.matchReturnFlow = true
-        newLiteralRuleOnChain(brInChain, 1, cond, RuleResult.Action.ACCEPT)
+        // add rule that drops everything return flows
+        newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.DROP)
+        expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        drainProbes()
 
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
-
+        // add rule that accepts everything
+        newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.ACCEPT)
         drainProbes()
         drainProbe(packetsEventsProbe)
         drainProbe(flowEventsProbe)
+
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        drainProbes()
+        drainProbe(packetsEventsProbe)
+        drainProbe(flowEventsProbe)
+
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
         cond1.nwSrcIp = vmIps(0)

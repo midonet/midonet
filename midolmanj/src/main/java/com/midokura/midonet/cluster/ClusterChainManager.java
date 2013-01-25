@@ -31,6 +31,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
     private Map<UUID, Map<UUID, Rule>> chainIdToRuleMap =
             new HashMap<UUID, Map<UUID, Rule>>();
+    private Map<UUID, Set<UUID>> chainToRuleIds =
+            new HashMap<UUID, Set<UUID>>();
     private Multimap<UUID, UUID> chainToMissingRuleIds =
             HashMultimap.create();
 
@@ -47,7 +49,18 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
     private void requestRule(UUID ruleID) {
         RuleCallback ruleCallback = new RuleCallback(ruleID);
-        ruleMgr.getRuleAsync(ruleID, ruleCallback);
+        ruleMgr.getRuleAsync(ruleID, ruleCallback, ruleCallback);
+    }
+
+    private boolean isChainConsistent(Collection<Rule> rules) {
+        Set<Integer> positions = new HashSet<Integer>();
+        for (Rule r: rules) {
+            if (r.position > rules.size())
+                return false;
+            else
+                positions.add(r.position);
+        }
+        return (positions.size() == rules.size());
     }
 
     private class RuleListCallback extends CallbackWithWatcher<Set<UUID>> {
@@ -67,8 +80,12 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             Set<UUID> curRuleIds = data.getData();
             Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(chainId);
             // If null, we no longer care about this chainId.
-            if (null == ruleMap)
+            if (null == ruleMap) {
+                chainToRuleIds.remove(chainId);
                 return;
+            } else {
+                chainToRuleIds.put(chainId, curRuleIds);
+            }
             Set<UUID> oldRuleIds = ruleMap.keySet();
             Iterator<UUID> ruleIter = oldRuleIds.iterator();
             while (ruleIter.hasNext()) {
@@ -77,9 +94,10 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             }
 
             // Are there any rules that need to be added?
-            if (oldRuleIds.size() == curRuleIds.size()) {
-                getBuilder(chainId).setRules(
-                    new HashSet<Rule>(ruleMap.values()));
+            if (oldRuleIds.size() == curRuleIds.size() &&
+                isChainConsistent(ruleMap.values())) {
+
+                getBuilder(chainId).setRules(new HashSet<Rule>(ruleMap.values()));
                 return;
             }
             // Otherwise, we have to fetch some rules.
@@ -110,7 +128,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
     }
 
-    private class RuleCallback extends RetryCallback<Rule> {
+    private class RuleCallback extends CallbackWithWatcher<Rule> {
         private UUID ruleId;
 
         private RuleCallback(UUID ruleId) {
@@ -124,19 +142,27 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
         @Override
         public void onSuccess(Result<Rule> data) {
-            Rule r = data.getData();
+            Rule rule = data.getData();
             Collection<UUID> missingRuleIds =
-                    chainToMissingRuleIds.get(r.chainId);
+                    chainToMissingRuleIds.get(rule.chainId);
+            Set<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
             // Does the chain still care about this rule?
-            if (!missingRuleIds.contains(ruleId))
+            if (ruleIds == null || ! ruleIds.contains(ruleId))
                 return;
             missingRuleIds.remove(ruleId);
-            Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(r.chainId);
-            ruleMap.put(ruleId, r);
-            if (missingRuleIds.size() == 0)
-                getBuilder(r.chainId).setRules(
-                    new HashSet<Rule>(ruleMap.values()));
+            Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(rule.chainId);
 
+            ruleMap.put(ruleId, rule);
+
+            if ((missingRuleIds.size() == 0) && isChainConsistent(ruleMap.values())) {
+                getBuilder(rule.chainId).setRules(
+                        new HashSet<Rule>(ruleMap.values()));
+            }
+        }
+
+        @Override
+        public void pathDataChanged(String path) {
+            ruleMgr.getRuleAsync(ruleId, this, this);
         }
 
         @Override
@@ -144,7 +170,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             return new Runnable() {
                 @Override
                 public void run() {
-                    ruleMgr.getRuleAsync(ruleId, RuleCallback.this);
+                    ruleMgr.getRuleAsync(ruleId,
+                        RuleCallback.this, RuleCallback.this);
                 }
             };
         }
