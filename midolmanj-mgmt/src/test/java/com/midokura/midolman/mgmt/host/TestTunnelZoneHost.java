@@ -89,6 +89,17 @@ public class TestTunnelZoneHost {
             StaticMockDirectory.clearDirectoryInstance();
         }
 
+        private void testTypeMismatch(DtoTunnelZone tz, String tzhMediaType) {
+            DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();
+            mapping.setHostId(host1Id);
+            mapping.setIpAddress("192.168.100.2");
+
+            dtoResource.postAndVerifyBadRequest(
+                    tz.getHosts(),
+                    tzhMediaType,
+                    mapping);
+        }
+
         private <DTO extends DtoTunnelZone> void testCrud(DTO tz,
                 String tzhCollectionMediaType,
                 String tzhMediaType) {
@@ -167,6 +178,8 @@ public class TestTunnelZoneHost {
         public void testCrudGre() throws Exception {
             DtoGreTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
+            testTypeMismatch(tz1,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON);
             testCrud(tz1,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
@@ -176,6 +189,8 @@ public class TestTunnelZoneHost {
         public void testCrudCapwap() throws Exception {
             DtoCapwapTunnelZone tz2 = topologyCapwap.getCapwapTunnelZone("tz2");
             Assert.assertNotNull(tz2);
+            testTypeMismatch(tz2,
+                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
             testCrud(tz2,
                 VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON,
                 VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON);
