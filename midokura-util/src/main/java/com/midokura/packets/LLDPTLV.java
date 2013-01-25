@@ -21,11 +21,15 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- *
- *
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
 public class LLDPTLV {
+
+    public static final byte TYPE_END_OF_LLDPDU_TLV = 0x0;
+    public static final byte TYPE_CHASSIS_ID = 0x1;
+    public static final byte TYPE_PORT_ID= 0x2;
+    public static final byte TYPE_TTL = 0x3;
+
     protected byte type;
     protected short length;
     protected byte[] value;

@@ -17,7 +17,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.topology.LocalPortActive;
@@ -53,7 +52,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class L2FilteringTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
@@ -202,13 +200,16 @@ public class L2FilteringTest {
         IntIPv4 ip4 = IntIPv4.fromString("10.0.0.4");
         IntIPv4 ip5 = IntIPv4.fromString("10.0.0.5");
 
+        TapWrapper[] taps = new TapWrapper[] {tap1, tap2, tap3, tap4, tap5};
+
         // Send ARPs from each edge port so that the bridge can learn MACs.
+        // If broadcasts happen, drain them
         MAC rtrMac = MAC.fromString(rtrPort.getPortMac());
-        arpAndCheckReply(tap1, mac1, ip1, rtrIp, rtrMac);
-        arpAndCheckReply(tap2, mac2, ip2, rtrIp, rtrMac);
-        arpAndCheckReply(tap3, mac3, ip3, rtrIp, rtrMac);
-        arpAndCheckReply(tap4, mac4, ip4, rtrIp, rtrMac);
-        arpAndCheckReply(tap5, mac5, ip5, rtrIp, rtrMac);
+        arpAndCheckReplyDrainBroadcasts(tap1, mac1, ip1, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap2, mac2, ip2, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap3, mac3, ip3, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap4, mac4, ip4, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap5, mac5, ip5, rtrIp, rtrMac, taps);
 
         // All traffic is allowed now.
         icmpFromTapArrivesAtTap(tap1, tap2, mac1, mac2, ip1, ip2);
