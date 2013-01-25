@@ -193,6 +193,12 @@ public class FunctionalTestsHelper {
                 tapWrapper.recv(), nullValue());
     }
 
+    public static void assertNoMorePacketsOnTaps(TapWrapper[] tapWrappers) {
+        for (TapWrapper tapWrapper : tapWrappers) {
+            assertNoMorePacketsOnTap(tapWrapper);
+        }
+    }
+
     public static void assertNoMorePacketsOnTap(RemoteTap tap) {
         assertThat(
                 format("Got an unexpected packet from tap %s", tap.getName()),
@@ -347,18 +353,55 @@ public class FunctionalTestsHelper {
             m, equalTo(expectedMac));
     }
 
+    /**
+     * Sends the ARP request, listens for a reply on the source port, and if
+     * the reply is broadcast to any of the other taps will ensure that it's
+     * the same reply and drain it from the tap.
+     *
+     * This is useful to solve a race condition that appears because the mac
+     * learning table is not immediately updated locally but needs to write to
+     * ZK and wait for the callback before the MAC-port assoc. is effectively
+     * learnt. ARP replies might get there before the callback, and trigger a
+     * broadcast to all ports.
+     *
+     * @param tap
+     * @param srcMac
+     * @param srcIp
+     * @param dstIp
+     * @param expectedMac
+     * @param taps
+     * @throws MalformedPacketException
+     */
+    public static void arpAndCheckReplyDrainBroadcasts(
+        TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
+        IntIPv4 dstIp, MAC expectedMac, TapWrapper[] taps)
+        throws MalformedPacketException {
+
+        arpAndCheckReply(tap, srcMac, srcIp, dstIp, expectedMac);
+        for(TapWrapper otherTap : taps) {
+            byte[] bytes = otherTap.recv();
+            if (bytes != null) {
+                MAC m = PacketHelper.checkArpReply(bytes, dstIp, srcMac, srcIp);
+                assertThat("Unexpected MAC reply at tap " + otherTap,
+                           m, equalTo(expectedMac));
+            }
+        }
+    }
+
     public static byte[] makeLLDP(MAC dlSrc, MAC dlDst) {
         LLDP packet = new LLDP();
         LLDPTLV chassis = new LLDPTLV();
-        chassis.setType((byte)0xca);
+        // Careful following specced mandatory field types or they'll get
+        // interpreted as optional in deserialization and break things
+        chassis.setType(LLDPTLV.TYPE_CHASSIS_ID);
         chassis.setLength((short)7);
         chassis.setValue("chassis".getBytes());
         LLDPTLV port = new LLDPTLV();
-        port.setType((byte) 0);
+        port.setType(LLDPTLV.TYPE_PORT_ID);
         port.setLength((short)4);
         port.setValue("port".getBytes());
         LLDPTLV ttl = new LLDPTLV();
-        ttl.setType((byte) 40);
+        ttl.setType(LLDPTLV.TYPE_TTL);
         ttl.setLength((short) 3);
         ttl.setValue("ttl".getBytes());
         packet.setChassisId(chassis);
