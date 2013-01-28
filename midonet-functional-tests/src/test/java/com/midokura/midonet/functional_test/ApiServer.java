@@ -12,7 +12,7 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener;
+import com.midokura.midonet.api.servlet.JerseyGuiceServletContextListener;
 import com.midokura.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
 
 public class ApiServer extends JerseyTest {
@@ -38,7 +38,7 @@ public class ApiServer extends JerseyTest {
             .contextParam("cors-access_control-expose_headers",
                 "Location")
             .contextParam("auth-auth_provider",
-                    "com.midokura.midolman.mgmt.auth.MockAuthClient")
+                    "com.midokura.midonet.api.auth.MockAuthClient")
             .contextParam("zookeeper-midolman_root_key",
                 "/smoketest/midonet")
             .contextParam("cassandra-servers", "127.0.0.1:" + cassandraPort)

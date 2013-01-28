@@ -42,7 +42,7 @@ Contains basic utilities used by the other modules, and is described
 
 Contains the *MidoNet* edge controller code, as described [here](docs/midolmanj.md).
 
-### midolmanj-mgmt
+### midonet-api
 
 Contains the implementation of the *MidoNet* REST API.
 
