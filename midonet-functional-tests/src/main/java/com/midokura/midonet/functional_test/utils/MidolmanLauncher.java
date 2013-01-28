@@ -158,11 +158,11 @@ public class MidolmanLauncher {
             // version from a file dumped by maven at the build time.
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midolman/target/midolman-12.06-SNAPSHOT.jar"));
+                            "midolman/target/midolman-12.12-SNAPSHOT.jar"));
 
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midokura-util/target/midokura-util-12.06-SNAPSHOT.jar"));
+                            "midokura-util/target/midokura-util-12.12-SNAPSHOT.jar"));
         }
 
         // add all the midolman dependencies that we find inside the
