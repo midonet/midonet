@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue
-import com.midokura.midolman.FlowController.{WildcardFlowAdded, WildcardFlowRemoved}
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
 import collection.mutable
 import com.midokura.sdn.dp.flows.FlowAction
 import com.midokura.packets.{Packets, MAC, IntIPv4, Ethernet}
@@ -86,6 +86,13 @@ object TestHelpers {
                 else
                     false
             case _ => false
+        }
+    }
+
+    def matchFlowTag(tag: AnyRef):
+    PartialFunction[Any, Boolean] = {
+        {
+            case msg: InvalidateFlowsByTag => msg.tag.equals(tag)
         }
     }
 

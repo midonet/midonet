@@ -17,8 +17,11 @@ FlowTagger {
     def invalidateFlowsByDeviceFilter(device: UUID, filter: UUID): AnyRef =
         "filter:" + device.toString + ":" + filter.toString
 
-    def invalidateFloodedFlowsByMac(bridgeId: UUID, mac: MAC): AnyRef =
+    def invalidateFloodedFlowsByDstMac(bridgeId: UUID, mac: MAC): AnyRef =
         "br_flood_mac:" + bridgeId.toString + ":" + mac.toString
+
+    def invalidateArpRequests(bridgeId: UUID): AnyRef =
+        "br_arp_req:" + bridgeId.toString
 
     def invalidateFlowsByPort(bridgeId: UUID, mac: MAC, port: UUID): AnyRef =
         "br_fwd_mac:" + bridgeId.toString + ":" + mac.toString + ":" +

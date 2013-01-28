@@ -72,11 +72,25 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         if (null != rtrMacToLogicalPortId) {
             val deletedPortMap =
                 rtrMacToLogicalPortId -- (newRtrMacToLogicalPortId.keys)
-            // invalidate the flows of the deleted logical port
-            for ((key, value) <- deletedPortMap){
+            // invalidate all the Unicast flows to the logical port
+            for ((mac, portId) <- deletedPortMap) {
                 flowController !
                     FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateFlowsByLogicalPort(id, value))
+                        FlowTagger.invalidateFlowsByLogicalPort(id, portId))
+            }
+            // 1. Invalidate all arp requests
+            // 2. Invalidate all flooded flows to the router port's specific MAC
+            // We don't expect MAC migration in this case otherwise we'd be
+            // invalidating Unicast flows to the router port's MAC
+            val addedPortMap = newRtrMacToLogicalPortId -- rtrMacToLogicalPortId.keys
+            if (addedPortMap.size > 0)
+                flowController !
+                FlowController.InvalidateFlowsByTag(
+                FlowTagger.invalidateArpRequests(id))
+            for ((mac, portId) <- addedPortMap) {
+                flowController !
+                    FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateFloodedFlowsByDstMac(id, mac))
             }
         }
         rtrMacToLogicalPortId = newRtrMacToLogicalPortId
@@ -110,13 +124,20 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
-            //3. MAC was added -> invalidate flooded flows
+            //3. MAC was added -> invalidate flooded flows. Now we have the MAC
+            // entry in the table so we can deliver it to the proper port instead
+            // of flooding it.
+            // As regards broadcast or arp requests:
+            //   1. If this port was just added to the PortSet, the invalidation
+            //    will occur in the VirtualToPhysicalMapper.
+            //   2. If we just forgot the MAC port association, no need of invalidating,
+            //    the port was in the PortSet, broadcast and ARP requests were
+            //    correctly delivered.
             if (newPort != null && oldPort == null){
                 flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFloodedFlowsByMac(id, mac)
+                    FlowTagger.invalidateFloodedFlowsByDstMac(id, mac)
                 )
             }
-
         }
     }
 

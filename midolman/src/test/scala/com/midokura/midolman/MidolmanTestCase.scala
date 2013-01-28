@@ -259,8 +259,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorByName(MonitoringActor.Name)
     }
 
-    protected def virtualToPhysicalMapper(): TestActorRef[MonitoringActor] = {
+    protected def virtualToPhysicalMapper(): TestActorRef[VirtualToPhysicalMapper] = {
         actorByName(VirtualToPhysicalMapper.Name)
+    }
+
+    protected def virtualTopologyActor(): TestActorRef[VirtualTopologyActor] = {
+        actorByName(VirtualTopologyActor.Name)
     }
 
     protected def dpProbe(): TestKit = {
