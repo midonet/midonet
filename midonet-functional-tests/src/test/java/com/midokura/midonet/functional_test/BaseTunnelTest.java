@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.resource.Bridge;
 import com.midokura.midonet.client.resource.BridgePort;
 import com.midokura.midonet.client.resource.Host;
@@ -62,7 +62,7 @@ public abstract class BaseTunnelTest {
     UUID thisHostId, remoteHostId;
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     EmbeddedMidolman midolman;
 
     DataClient dataClient;
@@ -78,7 +78,7 @@ public abstract class BaseTunnelTest {
         startCassandra();
         log.info("Starting REST API");
         apiStarter = new ApiServer(zkPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
         log.info("Starting midolman");
         midolman = startEmbeddedMidolman(testConfigFile.getAbsolutePath());
         dataClient = midolman.getDataClient();

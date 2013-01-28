@@ -21,7 +21,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
 import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
@@ -58,7 +58,7 @@ public class L2FilteringTest {
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     Bridge bridge;
     BridgePort<DtoBridgePort> brPort3;
     TapWrapper tap1;
@@ -96,7 +96,7 @@ public class L2FilteringTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
         log.info("Starting midolman");
