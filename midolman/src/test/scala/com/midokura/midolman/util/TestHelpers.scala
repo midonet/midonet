@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue
-
 import com.midokura.midolman.FlowController.{WildcardFlowAdded,
     WildcardFlowRemoved}
 import com.midokura.odp.flows.FlowAction
 import com.midokura.packets.{Ethernet, IntIPv4, MAC, Packets}
-
+import com.midokura.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
+import collection.mutable
 
 /**
  * Simple Scala object that should contain helpers methods to be used by a test
@@ -89,6 +89,13 @@ object TestHelpers {
                 else
                     false
             case _ => false
+        }
+    }
+
+    def matchFlowTag(tag: AnyRef):
+    PartialFunction[Any, Boolean] = {
+        {
+            case msg: InvalidateFlowsByTag => msg.tag.equals(tag)
         }
     }
 

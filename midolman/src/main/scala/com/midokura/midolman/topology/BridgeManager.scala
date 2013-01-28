@@ -69,12 +69,19 @@ class BridgeConfig() {
 
 object BridgeManager {
     val Name = "BridgeManager"
-    val MAC_PORT_EXPIRATION = 30*1000
+    var macPortExpiration = 30*1000
 
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
                              rtrMacToLogicalPortId: ROMap[MAC, UUID],
                              rtrIpToMac: ROMap[IntIPv4, MAC])
+
+    case class CheckExpiredMacPorts()
+
+    def setMacPortExpiration(expiration: Int) {
+        macPortExpiration = expiration
+    }
+
 }
 
 class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
@@ -110,7 +117,8 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
                     mac, port, i+1)
                 flowCountMap.put((mac, port), i+1)
                 if (i == 0) {
-                    log.debug("Unscheduling removal of mac-port pair.")
+                    log.debug("Unscheduling removal of mac-port pair, mac {}, " +
+                        "port {}.", mac, port)
                     macPortsToRemove.remove((mac, port))
                 }
         }
@@ -130,7 +138,8 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
                         "to {}", mac, port, i-1)
                     flowCountMap.put((mac, port), i-1)
                     if (i == 1) {
-                        log.debug("Scheduling removal of mac-port pair.")
+                        log.debug("Scheduling removal of mac-port pair, mac {}, " +
+                            "port {}.", mac, port)
                         macPortsToRemove.put((mac, port),
                             currentTime + expirationMillis)
                     }
@@ -139,9 +148,10 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
     }
 
     def doDeletions(currentTime: Long): Unit = {
-        var it: Iterator[((MAC, UUID), Long)] = macPortsToRemove.iterator
+        log.debug("Size deleting {}", macPortsToRemove.size)
+        val it: Iterator[((MAC, UUID), Long)] = macPortsToRemove.iterator
         while (it.hasNext) {
-            val ((mac, port), expireTime) = it.next
+            val ((mac, port), expireTime) = it.next()
             if (expireTime <= currentTime) {
                 log.debug("Forgetting mac-port entry {} {}", mac, port)
                 backendMap.remove(mac, port)
@@ -160,7 +170,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private var cfg: BridgeConfig = null
 
-    private val learningMgr = new MacLearningManager(log, MAC_PORT_EXPIRATION)
+    private val learningMgr = new MacLearningManager(log, macPortExpiration)
     private val flowCounts = new MacFlowCountImpl
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
@@ -194,7 +204,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             FlowController.getRef(), self))
         // Schedule the recurring cleanup of expired mac-port associations.
         context.system.scheduler.schedule(
-            Duration(MAC_PORT_EXPIRATION, TimeUnit.MILLISECONDS),
+            Duration(macPortExpiration, TimeUnit.MILLISECONDS),
             Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts)
 
     }
@@ -216,8 +226,6 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private case class FlowIncrement(mac: MAC, port: UUID)
 
     private case class FlowDecrement(mac: MAC, port: UUID)
-
-    private case class CheckExpiredMacPorts()
 
     override def receive = super.receive orElse {
 

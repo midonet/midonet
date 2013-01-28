@@ -28,7 +28,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              val rtrIpToMac: ROMap[IntIPv4, MAC])
             (implicit val actorSystem: ActorSystem) extends Device {
 
-    var log =  LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
+    var log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
 
     override def process(packetContext: PacketContext)
                         (implicit ec: ExecutionContext,
@@ -85,16 +85,26 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             // L2 Multicast
             val nwDst = packetContext.getMatch.getNetworkDestinationIPv4
             if (Ethernet.isBroadcast(dstDlAddress) &&
-                    packetContext.getMatch.getEtherType == ARP.ETHERTYPE &&
-                    rtrIpToMac.contains(nwDst)) {
-                // Forward broadcast ARPs to their routers if we know how.
-                log.debug("The packet is intended for an interior router port.")
-                val rtrPortID = rtrMacToLogicalPortId.get(
-                    rtrIpToMac.get(nwDst).get).get
-                action = Promise.successful(
-                    Coordinator.ToPortAction(rtrPortID))
+                packetContext.getMatch.getEtherType == ARP.ETHERTYPE) {
+                if (rtrIpToMac.contains(nwDst)) {
+                    // Forward broadcast ARPs to their routers if we know how.
+                    log.debug("The packet is intended for an interior router port.")
+                    val rtrPortID = rtrMacToLogicalPortId.get(
+                        rtrIpToMac.get(nwDst).get).get
+                    action = Promise.successful(
+                        Coordinator.ToPortAction(rtrPortID))
+                } else {
+                    // it's an ARP but it's not for a router's port or the router's
+                    // port has not been linked yet
+                    log.debug("flooding ARP to port set {}, source MAC {}", id,
+                        packetContext.getMatch.getEthernetSource)
+                    action = Promise.successful(ToPortSetAction(id))
+                    packetContext.addFlowTag(
+                        FlowTagger.invalidateArpRequests(id))
+                }
+
             } else {
-                // Not an ARP request for a router's port's address.
+                // Not an ARP request.
                 // Flood to materialized ports only.
                 log.debug("flooding to port set {}", id)
                 action = Promise.successful(ToPortSetAction(id))
@@ -112,10 +122,10 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     packetContext.addFlowTag(
                         FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
                 case None =>
-                    // Not a logical port's MAC.  Is dst MAC in
+                    // Not a logical port's MAC. Is dst MAC in
                     // macPortMap? (ie, learned)
                     val port = getPortOfMac(dstDlAddress, packetContext.expiry,
-                                            ec)
+                            ec)
 
                     // Tag the flow with the (dst-port, dst-mac) pair so we can
                     // invalidate the flow if the MAC migrates.
@@ -125,7 +135,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                             log.debug("Dst MAC {} is not learned. Flood",
                                 dstDlAddress)
                             packetContext.addFlowTag(
-                                FlowTagger.invalidateFloodedFlowsByMac(
+                                FlowTagger.invalidateFloodedFlowsByDstMac(
                                     id, dstDlAddress))
                             ToPortSetAction(id)
                         case portID: UUID =>
