@@ -11,7 +11,7 @@
     <modules>
         <module>netlink</module>
         <module>odp</module>
-        <module>midolmanj</module>
+        <module>midolman</module>
         <module>midokura-util</module>
         <module>midonet-api</module>
         <module>midonet-client</module>

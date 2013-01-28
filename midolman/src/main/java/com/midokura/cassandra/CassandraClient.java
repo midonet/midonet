@@ -67,7 +67,7 @@ public class CassandraClient {
         try {
             this.cluster = HFactory.getOrCreateCluster(clusterName, servers);
             // Using FAIL_FAST because if Hector blocks the operations too
-            // long, midolmanj gets disconnected from OVS and crashes.
+            // long, midolman gets disconnected from OVS and crashes.
             this.keyspace = HFactory.createKeyspace(
                     keyspaceName, cluster,
                     HFactory.createDefaultConsistencyLevelPolicy(),

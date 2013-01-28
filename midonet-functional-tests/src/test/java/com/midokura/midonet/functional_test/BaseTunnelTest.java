@@ -42,7 +42,7 @@ public abstract class BaseTunnelTest {
 
     final String TENANT_NAME = "tenant-tunnel-test";
     final String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
     // The two VMs that will send traffic across the bridge
     final IntIPv4 localVmIp = IntIPv4.fromString("192.168.231.1", 24);

@@ -76,7 +76,7 @@ public class BridgeTestOneDatapath {
     @Before
     public void setUp() throws Exception {
         String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
