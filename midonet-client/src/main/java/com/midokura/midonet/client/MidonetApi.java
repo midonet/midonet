@@ -13,7 +13,7 @@ import com.midokura.midonet.client.resource.*;
 /**
  * Midonet API wrapping class.
  */
-public class MidonetMgmt {
+public class MidonetApi {
 
     private static final String DEFAULT_MIDONET_URI =
         "http://localhost:8080/midolmanj-mgmt";
@@ -22,12 +22,12 @@ public class MidonetMgmt {
     private final WebResource resource;
     private Application application;
 
-    public MidonetMgmt(String midonetUriStr) {
+    public MidonetApi(String midonetUriStr) {
         this.midonetUri = URI.create(midonetUriStr);
         resource = new WebResource(midonetUri);
     }
 
-    public MidonetMgmt() {
+    public MidonetApi() {
         this(DEFAULT_MIDONET_URI);
     }
 

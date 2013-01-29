@@ -21,7 +21,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.midokura.midolman.topology.LocalPortActive;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.dto.DtoBridgePort;
 import com.midokura.midonet.client.dto.DtoInteriorBridgePort;
 import com.midokura.midonet.client.dto.DtoInteriorRouterPort;
@@ -95,7 +95,7 @@ public class PortGroupTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        MidonetMgmt apiClient = new MidonetMgmt(apiStarter.getURI());
+        MidonetApi apiClient = new MidonetApi(apiStarter.getURI());
 
         // TODO(pino): delete the datapath before starting MM
         log.info("Starting midolman");

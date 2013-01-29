@@ -9,7 +9,7 @@ import akka.testkit.TestProbe;
 import akka.util.Duration;
 import com.midokura.midolman.routingprotocols.RoutingHandler;
 import com.midokura.midolman.routingprotocols.RoutingManagerActor;
-import com.midokura.midonet.client.MidonetMgmt;
+import com.midokura.midonet.client.MidonetApi;
 import com.midokura.midonet.client.resource.Bgp;
 import com.midokura.midonet.client.resource.Host;
 import com.midokura.midonet.client.resource.ResourceCollection;
@@ -39,7 +39,7 @@ public class BgpCleanUpTest {
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
 
     ApiServer apiStarter;
-    MidonetMgmt apiClient;
+    MidonetApi apiClient;
     EmbeddedMidolman mm;
     TestProbe probe;
 
@@ -60,7 +60,7 @@ public class BgpCleanUpTest {
 
         log.info("Starting REST API");
         apiStarter = new ApiServer(zookeeperPort);
-        apiClient = new MidonetMgmt(apiStarter.getURI());
+        apiClient = new MidonetApi(apiStarter.getURI());
 
         log.info("Starting midolman");
         mm = startEmbeddedMidolman(

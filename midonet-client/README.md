@@ -15,31 +15,31 @@ Here, the code snippet below gives you an idea of how to do the following:
 
 ```java
 
-    mgmt = new MidonetMgmt("http://localhost:8080/midolmanj-mgmt/");
-    mgmt.enableLogging();
+    api = new MidonetApi("http://localhost:8080/midolmanj-mgmt/");
+    api.enableLogging();
 
-    Bridge b1 = mgmt.addBridge().tenantId("tenant-1").name("bridge-1")
+    Bridge b1 = api.addBridge().tenantId("tenant-1").name("bridge-1")
                         .create();
-    Bridge b2 = mgmt.addBridge().tenantId("tenant-1").name("bridge-2")
+    Bridge b2 = api.addBridge().tenantId("tenant-1").name("bridge-2")
                         .create();
 
 
     MultivaluedMap qTenant1 = new MultivaluedMapImpl();
     qTenant1.add("tenant_id", "tenant-1");
 
-    assertThat(mgmt.getBridges(qTenant1).size(), is(2));
-    for (Bridge b : mgmt.getBridges(qTenant1)) {
+    assertThat(api.getBridges(qTenant1).size(), is(2));
+    for (Bridge b : api.getBridges(qTenant1)) {
         log.debug("BRIDGE: {}", b);
     }
     b2.delete();
-    assertThat(mgmt.getBridges(qTenant1).size(), is(1));
+    assertThat(api.getBridges(qTenant1).size(), is(1));
 
 
 
     try {
-        Bridge b1 = mgmt.addBridge().tenantId("tenant-2").name("bridge-1")
+        Bridge b1 = api.addBridge().tenantId("tenant-2").name("bridge-1")
                 .create();
-        Bridge b2 = mgmt.addBridge().tenantId("tenant-2").name("bridge-2")
+        Bridge b2 = api.addBridge().tenantId("tenant-2").name("bridge-2")
                 .create();
         b2 = b2.name("bridge-222").update();
 
@@ -47,9 +47,9 @@ Here, the code snippet below gives you an idea of how to do the following:
         log.debug("requests for bridges got an exception={}", ex.getError());
     }
 
-    assertThat(mgmt.getBridges("tenant_id=tenant-2").size(), is(2));
+    assertThat(api.getBridges("tenant_id=tenant-2").size(), is(2));
     b2.delete();
-    assertThat(mgmt.getBridges("tenant_id=tenant-2").size(), is(1));
+    assertThat(api.getBridges("tenant_id=tenant-2").size(), is(1));
 
 ```
 
@@ -58,7 +58,7 @@ Here, the code snippet below gives you an idea of how to do the following:
 There are basically 3 components in this client library, each of which
 are described as follows:
 
-*   com.midokura.midonet.client.MidonetMgmt
+*   com.midokura.midonet.client.MidonetApi
 
     This is the entry class for midonet client. You first should instantiate
     this class to manipulate resources in the MidoNet system.

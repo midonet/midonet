@@ -133,7 +133,7 @@
   <listener>
      <listener-class>
          <!-- Use Jersey's Guice compatible context listener -->
-         com.midokura.midolman.mgmt.servlet.JerseyGuiceServletContextListener
+         com.midokura.midonet.api.servlet.JerseyGuiceServletContextListener
      </listener-class>
   </listener>
 

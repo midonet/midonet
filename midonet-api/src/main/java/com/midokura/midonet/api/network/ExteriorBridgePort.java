@@ -69,7 +69,7 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
     /*
      * (non-Javadoc)
      *
-     * @see com.midokura.midolman.mgmt.network.Port#getType()
+     * @see com.midokura.midonet.api.network.Port#getType()
      */
     @Override
     public String getType() {
