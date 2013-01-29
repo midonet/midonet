@@ -9,7 +9,7 @@
     <name>Midokura MidoNet aggregator project</name>
 
     <modules>
-        <module>midolmanj</module>
+        <module>midolman</module>
         <module>midokura-util</module>
         <module>midonet-api</module>
         <module>midonet-client</module>

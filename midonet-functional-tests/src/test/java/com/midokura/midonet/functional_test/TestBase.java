@@ -32,7 +32,7 @@ public abstract class TestBase {
 
     LockHelper.Lock lock;
     final String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
     private ApiServer apiStarter;
     protected MidonetApi apiClient;

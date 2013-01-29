@@ -38,7 +38,7 @@ public class ZKLauncher {
     //      export ZOO_LOG_DIR=${ZOO_LOG_DIR:-/var/log/zookeeper}
     static final String ZK_LOG_DIR = "ZOO_LOG_DIR";
 
-    static final String CONF_FILE_DIR = "midolmanj_runtime_configurations";
+    static final String CONF_FILE_DIR = "midolman_runtime_configurations";
     static final String CONF_FILE_NAME = "zookeeper.conf";
 
     public String getZkBinaryByOs() {

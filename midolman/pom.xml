@@ -12,7 +12,7 @@
     <version>12.12.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <artifactId>midolmanj</artifactId>
+    <artifactId>midolman</artifactId>
     <name>Midolman Java Daemon</name>
 
     <properties>

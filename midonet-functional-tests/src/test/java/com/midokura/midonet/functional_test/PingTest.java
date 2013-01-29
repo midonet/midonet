@@ -71,7 +71,7 @@ public class PingTest {
     public void setUp() throws Exception {
 
         String testConfigurationPath =
-            "midolmanj_runtime_configurations/midolman-default.conf";
+            "midolman_runtime_configurations/midolman-default.conf";
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
@@ -201,13 +201,13 @@ public class PingTest {
         // Now ifup the local port to run the DHCP client.
         newProcess(
             String.format("sudo ifdown %s --interfaces " +
-                "./midolmanj_runtime_configurations/pingtest.network",
+                "./midolman_runtime_configurations/pingtest.network",
                 localName))
             .logOutput(log, "int_port")
             .runAndWait();
         newProcess(
             String.format("sudo ifup %s --interfaces " +
-                "./midolmanj_runtime_configurations/pingtest.network",
+                "./midolman_runtime_configurations/pingtest.network",
                 localName))
             .logOutput(log, "int_port")
             .runAndWait();
