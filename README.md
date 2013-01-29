@@ -15,7 +15,7 @@ Contains the *MidoNet* edge controller code.
 
 Description of the module [contents](docs/midolmanj.md).
 
-### midolmanj-mgmt
+### midonet-api
 
 Contains the implementation of the *MidoNet* REST API.
 

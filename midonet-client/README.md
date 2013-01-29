@@ -100,4 +100,4 @@ and ordered by the following:
 
 * Remove ResourceCollection.findBy() and replace it with find()
 * Consider a better factories for Predicate class for ResourceCollection.find().
-* Change midolmanj-mgmt tests and functional tests to use this client.
+* Change midonet-api tests and functional tests to use this client.

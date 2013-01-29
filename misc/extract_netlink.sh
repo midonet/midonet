@@ -14,6 +14,7 @@ UNUSED_FOLDERS="src conf conf2 err.txt \
 	docs \
 	midolmanj \
 	midolmanj-mgmt \
+	midonet-api \
 	midonet-client \
 	midonet-functional-tests \
 	misc \
