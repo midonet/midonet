@@ -9,16 +9,14 @@ import java.nio.ByteBuffer
 
 import collection.mutable
 import akka.testkit.TestProbe
-import akka.util.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import com.midokura.midolman.guice.actors.OutgoingMessage
 
 import com.midokura.midolman.FlowController.{WildcardFlowRemoved,
-                                             WildcardFlowAdded, DiscardPacket}
-import com.midokura.midolman.DatapathController.{TunnelChangeEvent, 
-                                                 DatapathPortChangedEvent}
+                                             WildcardFlowAdded}
+import com.midokura.midolman.DatapathController.TunnelChangeEvent
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
 import com.midokura.midonet.cluster.data.zones._
 import layer3.Route
@@ -30,10 +28,9 @@ import util.RouterHelper
 import com.midokura.packets._
 import com.midokura.midonet.cluster.data.dhcp.Opt121
 import com.midokura.midonet.cluster.data.dhcp.Subnet
-import com.midokura.odp.ports.{NetDevPort, GreTunnelPort}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge}
-import com.midokura.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
-import com.midokura.odp.flows.{FlowActionOutput, FlowActions, FlowAction}
+import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
+import com.midokura.odp.flows.{FlowActionOutput, FlowAction}
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.SimulationController.EmitGeneratedPacket
 import host.interfaces.InterfaceDescription
@@ -43,7 +40,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
           VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
 
     private final val log = LoggerFactory.getLogger(classOf[DhcpInterfaceMtuTestCase])
-    
+
     val routerIp1 = IntIPv4.fromString("192.168.111.1", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
     val routerIp2 = IntIPv4.fromString("192.168.222.1", 24)
@@ -54,7 +51,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     val vmPortName = "VirtualMachine"
     var vmPortNumber = 0
     var intfMtu = 0
-    
+
     private var flowEventsProbe: TestProbe = null
     private var portEventsProbe: TestProbe = null
     private var packetsEventsProbe: TestProbe = null
