@@ -1,0 +1,41 @@
+#!/bin/bash
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "Executing functional tests as root"
+echo "PARAMETERS: $*"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+# Try to figure out project.basedir.."
+REGEX="^/var.*/midonet-functional-tests/.*target"
+for P in $* ;
+do
+    if [[ $P =~ $REGEX ]]
+    then
+        MODULE_BASEDIR=`echo "$P" | sed -e 's/target.*//'`
+        if [[ "$MODULE_BASEDIR" != "" ]]
+        then
+            break
+        fi
+    fi
+done
+
+if [[ "$MODULE_BASEDIR" != "" ]]
+then
+    ORIG_USER=`whoami`
+    echo "Looks like the project's basedir is $BASEDIR"
+    echo "Executing tests as sudo"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    sudo java $*
+    echo "Return ownership of target to user $ORIG_USER"
+    sudo chown -R $ORIG_USER $MODULE_BASEDIR
+    echo "Success!"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    # needs to return 0 so that the mvn plugin sees successful
+    # execution of the java command
+    exit 0
+else
+    echo "Cannot figure out project.basedir needed to chown generated\
+        targets"
+    exit -1
+fi
+

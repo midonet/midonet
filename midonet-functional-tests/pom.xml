@@ -75,6 +75,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <jvm>${project.basedir}/src/test/resources/sudoJava</jvm>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
                     <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
                         -Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
