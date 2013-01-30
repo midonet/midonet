@@ -75,19 +75,25 @@ public class FiltersZkManager extends ZkManager {
         List<Op> ops = new ArrayList<Op>();
         String basePath = paths.getBasePath();
 
-        // Delete SNAT blocks
-        String snatBlocksPath = paths.getFilterSnatBlocksPath(id);
-        for (String snatBlock : getChildren(snatBlocksPath, null)) {
-            String path = paths.getFilterSnatBlocksPath(id) + "/"
-                 + snatBlock;
-            log.debug("Preparing to delete: " + path);
-            ops.add(Op.delete(path, -1));
+        // The SNAT blocks are nested under
+        // /filters/<deviceId>/snat_blocks/<ipv4>/<startPortRange>
+        // Delete everything under snat_blocks
+        String devicePath = paths.getFilterSnatBlocksPath(id);
+        for (String ipStr : getChildren(devicePath, null)) {
+            int ipv4 = Integer.valueOf(ipStr, 16);
+            String ipPath =
+                paths.getFilterSnatBlocksPath(id, ipv4);
+            for (String portBlock : getChildren(ipPath, null))
+                ops.add(Op.delete(
+                    paths.getFilterSnatBlocksPath(
+                        id, ipv4, Integer.parseInt(portBlock)),
+                    -1));
+            ops.add(Op.delete(ipPath, -1));
         }
-        log.debug("Preparing to delete: " + snatBlocksPath);
-        ops.add(Op.delete(snatBlocksPath, -1));
+        ops.add(Op.delete(devicePath, -1));
 
+        // Finally, delete the filter path for the device.
         String filterPath = paths.getFilterPath(id);
-        log.debug("Preparing to delete: " + filterPath);
         ops.add(Op.delete(filterPath, -1));
         return ops;
     }

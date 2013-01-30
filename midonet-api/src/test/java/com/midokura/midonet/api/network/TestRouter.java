@@ -4,16 +4,25 @@
  */
 package com.midokura.midonet.api.network;
 
+import com.midokura.midolman.host.state.HostDirectory;
+import com.midokura.midolman.host.state.HostZkManager;
+import com.midokura.midolman.state.ArpCacheEntry;
+import com.midokura.midolman.state.ArpTable;
+import com.midokura.midolman.state.Directory;
+import com.midokura.midolman.state.zkManagers.FiltersZkManager;
+import com.midokura.midolman.state.zkManagers.RouterZkManager;
 import com.midokura.midonet.api.rest_api.DtoWebResource;
 import com.midokura.midonet.api.rest_api.FuncTest;
 import com.midokura.midonet.api.rest_api.Topology;
 import com.midokura.midonet.api.zookeeper.StaticMockDirectory;
-import com.midokura.midonet.client.dto.DtoApplication;
-import com.midokura.midonet.client.dto.DtoError;
-import com.midokura.midonet.client.dto.DtoRouter;
-import com.midokura.midonet.client.dto.DtoRuleChain;
+import com.midokura.midonet.client.dto.*;
+import com.midokura.packets.IntIPv4;
+import com.midokura.packets.MAC;
+
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +34,9 @@ import org.junit.runners.Parameterized.Parameters;
 import java.net.URI;
 import java.util.*;
 
-import static com.midokura.midonet.api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static com.midokura.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
+
+import static com.midokura.midonet.api.VendorMediaType.*;
+import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -74,52 +84,64 @@ public class TestRouter {
             StaticMockDirectory.clearDirectoryInstance();
         }
 
-        @Test
-        public void testCrud() throws Exception {
-
+        private DtoRouter createRouter(
+                String name, String tenant, boolean withChains) {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
 
-            URI routersUri = app.getRouters();
-            assertNotNull(routersUri);
-            DtoRouter[] routers = dtoResource.getAndVerifyOk(routersUri,
+            DtoRouter router = new DtoRouter();
+            router.setName(name);
+            router.setTenantId(tenant);
+            if (withChains) {
+                router.setInboundFilterId(chain1.getId());
+                router.setOutboundFilterId(chain2.getId());
+            }
+
+            DtoRouter resRouter = dtoResource.postAndVerifyCreated(
+                app.getRouters(), APPLICATION_ROUTER_JSON, router,
+                DtoRouter.class);
+            assertNotNull(resRouter.getId());
+            assertNotNull(resRouter.getUri());
+            // TODO: Implement 'equals' for DtoRouter
+            assertEquals(router.getTenantId(), resRouter.getTenantId());
+            if (withChains) {
+                assertEquals(router.getInboundFilterId(),
+                    resRouter.getInboundFilterId());
+                assertEquals(router.getOutboundFilterId(),
+                    resRouter.getOutboundFilterId());
+            }
+            return resRouter;
+        }
+
+        @Test
+        public void testCrud() throws Exception {
+            DtoApplication app = topology.getApplication();
+            DtoRuleChain chain1 = topology.getChain("chain1");
+            DtoRuleChain chain2 = topology.getChain("chain2");
+
+            assertNotNull(app.getRouters());
+            DtoRouter[] routers = dtoResource.getAndVerifyOk(app.getRouters(),
                     getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(0, routers.length);
 
             // Add a router
-            DtoRouter router = new DtoRouter();
-            router.setName("router1");
-            router.setTenantId("tenant1-id");
-            router.setInboundFilterId(chain1.getId());
-            router.setOutboundFilterId(chain2.getId());
+            DtoRouter resRouter = createRouter("router1", "tenant1-id", true);
 
-            DtoRouter resRouter = dtoResource.postAndVerifyCreated(routersUri,
-                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
-            assertNotNull(resRouter.getId());
-            assertNotNull(resRouter.getUri());
-            // TODO: Implement 'equals' for DtoRouter
-            assertEquals(router.getTenantId(), resRouter.getTenantId());
-            assertEquals(router.getInboundFilterId(),
-                    resRouter.getInboundFilterId());
-            assertEquals(router.getOutboundFilterId(),
-                    resRouter.getOutboundFilterId());
-            URI routerUri = resRouter.getUri();
-
-            // List the router
-            routers = dtoResource.getAndVerifyOk(routersUri,
+            // List the routers
+            routers = dtoResource.getAndVerifyOk(app.getRouters(),
                     getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
 
-            // Update the router
+            // Update the router: change name and swap filters.
             resRouter.setName("router1-modified");
             resRouter.setInboundFilterId(chain2.getId());
             resRouter.setOutboundFilterId(chain1.getId());
             DtoRouter updatedRouter = dtoResource.putAndVerifyNoContent(
-                    routerUri, APPLICATION_ROUTER_JSON, resRouter,
+                    resRouter.getUri(), APPLICATION_ROUTER_JSON, resRouter,
                     DtoRouter.class);
             assertNotNull(updatedRouter.getId());
             assertEquals(resRouter.getTenantId(), updatedRouter.getTenantId());
@@ -130,19 +152,133 @@ public class TestRouter {
             assertEquals(resRouter.getName(), updatedRouter.getName());
 
             // Delete the router
-            dtoResource.deleteAndVerifyNoContent(routerUri,
-                    APPLICATION_ROUTER_JSON);
+            dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
+                APPLICATION_ROUTER_JSON);
 
             // Verify that it's gone
-            dtoResource
-                    .getAndVerifyNotFound(routerUri, APPLICATION_ROUTER_JSON);
+            dtoResource.getAndVerifyNotFound(resRouter.getUri(),
+                APPLICATION_ROUTER_JSON);
 
             // List should return an empty array
-            routers = dtoResource.getAndVerifyOk(routersUri,
+            routers = dtoResource.getAndVerifyOk(app.getRouters(),
                     getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(0, routers.length);
         }
+
+        @Test
+        public void testRouterDeleteWithArpEntries() throws Exception {
+            // Add a router
+            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            // Add an ARP entry in this router's ARP cache.
+            RouterZkManager routerMgr = new RouterZkManager(
+                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            ArpTable arpTable =
+                new ArpTable(routerMgr.getArpTableDirectory(resRouter.getId()));
+            arpTable.put(IntIPv4.fromString("10.0.0.3"),
+                new ArpCacheEntry(MAC.fromString("02:00:dd:ee:ee:55"),
+                    1000, 1000, 3000));
+            dtoResource.deleteAndVerifyNoContent(
+                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+        }
+
+        @Test
+        public void testRouterDeleteWithSnatBlockLeases() throws Exception {
+            // Add a router
+            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            // Reserve a SNAT block in this router.
+            FiltersZkManager filtersMgr = new FiltersZkManager(
+                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            filtersMgr.addSnatReservation(resRouter.getId(), 0x0a000001, 100);
+            dtoResource.deleteAndVerifyNoContent(
+                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+        }
+
+        @Test
+        public void testRouterDeleteWithBoundExteriorPort() throws Exception {
+            // Add a router
+            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            // Add an exterior port.
+            DtoExteriorRouterPort port = new DtoExteriorRouterPort();
+            port.setNetworkAddress("10.0.0.0");
+            port.setNetworkLength(24);
+            port.setPortAddress("10.0.0.1");
+            DtoExteriorRouterPort resPort =
+                dtoResource.postAndVerifyCreated(resRouter.getPorts(),
+                    APPLICATION_PORT_JSON, port, DtoExteriorRouterPort.class);
+            // Create a host (this is not allowed via the API).
+            HostZkManager hostManager = new HostZkManager(
+                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+            metadata.setName("semporiki");
+            UUID hostId = UUID.randomUUID();
+            hostManager.createHost(hostId, metadata);
+            // Get the host DTO.
+            DtoHost[] hosts = dtoResource.getAndVerifyOk(
+                topology.getApplication().getHosts(),
+                APPLICATION_HOST_COLLECTION_JSON, DtoHost[].class);
+            Assert.assertEquals(1, hosts.length);
+            DtoHost resHost = hosts[0];
+            // Bind the exterior port to an interface on the host.
+            DtoHostInterfacePort hostBinding = new DtoHostInterfacePort();
+            hostBinding.setHostId(resHost.getId());
+            hostBinding.setInterfaceName("eth0");
+            hostBinding.setPortId(resPort.getId());
+            DtoHostInterfacePort resPortBinding =
+                dtoResource.postAndVerifyCreated(resHost.getPorts(),
+                    APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
+                    DtoHostInterfacePort.class);
+            // Deleting the router is not allowed because of the binding.
+            ClientResponse resp = dtoResource.deleteAndVerifyStatus(
+                resRouter.getUri(), APPLICATION_JSON, CONFLICT.getStatusCode());
+            // Unbind the port. Deleting the router now succeeds.
+            dtoResource.deleteAndVerifyNoContent(resPortBinding.getUri(),
+                APPLICATION_JSON);
+            dtoResource.deleteAndVerifyNoContent(
+                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+        }
+
+        @Test
+        public void testRouterDeleteWithLinkedInteriorPort() throws Exception {
+            // Add a router
+            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            // Add an interior router port.
+            DtoInteriorRouterPort port = new DtoInteriorRouterPort();
+            port.setNetworkAddress("10.0.0.0");
+            port.setNetworkLength(24);
+            port.setPortAddress("10.0.0.1");
+            DtoInteriorRouterPort resPort =
+                dtoResource.postAndVerifyCreated(resRouter.getPorts(),
+                    APPLICATION_PORT_JSON, port, DtoInteriorRouterPort.class);
+            // Create a bridge that we can link to the router.
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("bridge1");
+            bridge.setTenantId("tenant1");
+            DtoBridge resBridge = dtoResource.postAndVerifyCreated(
+                topology.getApplication().getBridges(),
+                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+            assertNotNull(resBridge.getId());
+            assertNotNull(resBridge.getUri());
+            // Add an interior bridge port.
+            DtoInteriorBridgePort bPort = dtoResource.postAndVerifyCreated(
+                resBridge.getPorts(), APPLICATION_PORT_JSON,
+                new DtoInteriorBridgePort(), DtoInteriorBridgePort.class);
+            assertNotNull(bPort.getId());
+            assertNotNull(bPort.getUri());
+            // Link the bridge and router ports.
+            bPort.setPeerId(resPort.getId());
+            dtoResource.postAndVerifyStatus(bPort.getLink(),
+                APPLICATION_PORT_LINK_JSON, bPort, CREATED.getStatusCode());
+            // Deleting the router is not allowed.
+            dtoResource.deleteAndVerifyStatus(
+                resRouter.getUri(), APPLICATION_JSON, CONFLICT.getStatusCode());
+            // Unlink the bridge and router. Now the router delete succeeds.
+            dtoResource.deleteAndVerifyStatus(bPort.getLink(),
+                APPLICATION_JSON, NO_CONTENT.getStatusCode());
+            dtoResource.deleteAndVerifyNoContent(
+                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+        }
+
     }
 
     @RunWith(Parameterized.class)
