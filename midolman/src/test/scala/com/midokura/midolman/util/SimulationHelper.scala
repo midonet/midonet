@@ -85,34 +85,21 @@ trait SimulationHelper extends MidolmanTestCase {
         }).toSet
     }
 
-    def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {
-        val arp = new ARP()
-        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-        arp.setProtocolType(ARP.PROTO_TYPE_IP)
-        arp.setHardwareAddressLength(6)
-        arp.setProtocolAddressLength(4)
-        arp.setOpCode(ARP.OP_REQUEST)
-        arp.setSenderHardwareAddress(srcMac)
-        arp.setSenderProtocolAddress(srcIp)
-        arp.setTargetHardwareAddress("ff:ff:ff:ff:ff:ff")
-        arp.setTargetProtocolAddress(dstIp)
-
-        val eth = new Ethernet()
-        eth.setPayload(arp)
-        eth.setSourceMACAddress(srcMac)
-        eth.setDestinationMACAddress("ff:ff:ff:ff:ff:ff")
-        eth.setEtherType(ARP.ETHERTYPE)
-        triggerPacketIn(portName, eth)
+    def makeArpRequest(srcIp: Int, srcMac: MAC, dstIp: Int): Ethernet = {
+        makeArp(srcIp, srcMac, dstIp, "ff:ff:ff:ff:ff:ff", true)
     }
 
-    def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
-                     dstIp: Int, dstMac: MAC) {
+    private def makeArp(srcIp: Int, srcMac: MAC, dstIp: Int,
+                        dstMac: MAC, isRequest: Boolean): Ethernet = {
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
         arp.setProtocolType(ARP.PROTO_TYPE_IP)
         arp.setHardwareAddressLength(6)
         arp.setProtocolAddressLength(4)
-        arp.setOpCode(ARP.OP_REPLY)
+        isRequest match {
+            case true => arp.setOpCode(ARP.OP_REQUEST)
+            case false => arp.setOpCode(ARP.OP_REPLY)
+        }
         arp.setSenderHardwareAddress(srcMac)
         arp.setSenderProtocolAddress(srcIp)
         arp.setTargetHardwareAddress(dstMac)
@@ -123,7 +110,18 @@ trait SimulationHelper extends MidolmanTestCase {
         eth.setSourceMACAddress(srcMac)
         eth.setDestinationMACAddress(dstMac)
         eth.setEtherType(ARP.ETHERTYPE)
-        triggerPacketIn(portName, eth)
+        return eth
+    }
+
+    def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {
+        triggerPacketIn(portName,
+                        makeArpRequest(srcIp, srcMac, dstIp))
+    }
+
+    def feedArpCache(portName: String, srcIp: Int, srcMac: MAC,
+                     dstIp: Int, dstMac: MAC) {
+        triggerPacketIn(portName,
+                        makeArp(srcIp, srcMac, dstIp, dstMac, false))
     }
 
     def injectTcp(port: String,

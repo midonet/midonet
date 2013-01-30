@@ -6,7 +6,7 @@ package com.midokura.midolman
 import flows.{WildcardMatches, WildcardMatch, WildcardFlow}
 import logging.ActorLogWithoutPath
 import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, immutable, mutable}
+import scala.collection.{Set => ROSet, mutable}
 import scala.collection.mutable.ListBuffer
 import akka.actor.{Cancellable, Actor, ActorRef}
 import akka.dispatch.{Future, Promise}
@@ -44,11 +44,10 @@ import com.midokura.netlink.exceptions.NetlinkException.ErrorCode
 import com.midokura.netlink.protos.OvsDatapathConnection
 import com.midokura.packets.{Unsigned, Ethernet}
 import com.midokura.sdn.dp.{Flow => KernelFlow, _}
-import com.midokura.sdn.dp.flows.{FlowActionUserspace, FlowAction, FlowKeys, FlowActions}
+import com.midokura.sdn.dp.flows._
 import com.midokura.sdn.dp.ports._
 import com.midokura.util.functors.Callback0
 import akka.event.LoggingAdapter
-import com.midokura.packets.IntIPv4
 
 /**
  * Holder object that keeps the external message definitions
@@ -400,14 +399,14 @@ object DatapathController extends Referenceable {
 
     /**
      * This message is sent when the DHCP handler needs to get information
-     * on local interfaces that are used for tunnels, what it returns is 
-     * { interface description , list of {tunnel type} } where the 
+     * on local interfaces that are used for tunnels, what it returns is
+     * { interface description , list of {tunnel type} } where the
      * interface description contains various information (including MTU)
      */
     case class LocalTunnelInterfaceInfo()
 
     /**
-     * This message is sent when the LocalTunnelInterfaceInfo handler 
+     * This message is sent when the LocalTunnelInterfaceInfo handler
      * completes the interface scan and pass the result as well as
      * original sender info
      */
@@ -1351,23 +1350,33 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
         translateActions(origActions, None, None,
                          WildcardMatches.fromEthernetPacket(ethPkt)) onComplete {
             case Right(actions) =>
-                log.debug("Translated actions to action list {}", actions)
-                val packet = new Packet().
-                    setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
-                    setData(ethPkt.serialize).setActions(actions)
-                datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[JBoolean] {
-                        def onSuccess(data: JBoolean) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to send a packet {} due to {}", packet,
-                                if (timeout) "timeout" else "error")
+                if (actions.size > 0 &&
+                    actions.last.isInstanceOf[FlowActionOutput]) {
+                    log.debug("Translated actions to action list {}", actions)
+                    val packet = new Packet().
+                        setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
+                        setData(ethPkt.serialize).setActions(actions)
+                    datapathConnection.packetsExecute(datapath, packet,
+                        new ErrorHandlingCallback[JBoolean] {
+                            def onSuccess(data: JBoolean) {}
+                            def handleError(ex: NetlinkException,
+                                            timeout: Boolean) {
+                                log.error(ex,
+                                    "Failed to send a packet with match {} " +
+                                     "and actions {} due to {}",
+                                    packet.getMatch, packet.getActions,
+                                    if (timeout) "timeout" else "error")
+                            }
                         }
-                    }
-                )
-            case _ =>
-                log.error("Failed to translate actions {}", origActions)
+                    )
+                } else {
+                    log.warning(
+                        "Discarding generated packet. The action list " +
+                        "does not end with an output action: {}", actions)
+                }
+            case Left(throwable)  =>
+                log.error(throwable, "Failed to translate actions {}",
+                    origActions)
         }
     }
 
@@ -1566,15 +1575,15 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
                 mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
         for ((zoneId, zoneConfig) <- host.zones) {
             if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Gre)
-            } 
+            }
             if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Capwap)
-            } 
+            }
             if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Ipsec)
             }
         }
@@ -1590,7 +1599,7 @@ class DatapathController() extends Actor with ActorLogWithoutPath {
                         addrTunnelMapping.get(ipAddr) foreach { tunnelTypes =>
                             for (tunnelType <- tunnelTypes) {
                                 retInterfaceTunnelMap.addBinding(interface, tunnelType)
-                            }   
+                            }
                         }
                     }
                 }

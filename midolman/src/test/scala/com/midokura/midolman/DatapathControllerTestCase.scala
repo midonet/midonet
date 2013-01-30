@@ -4,27 +4,26 @@
 package com.midokura.midolman
 
 import collection.mutable
+import datapath.{FlowActionOutputToVrnPortSet, FlowActionOutputToVrnPort}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import com.midokura.sdn.dp.{Datapath, Ports}
 import com.midokura.midonet.cluster.data.{Bridge => ClusterBridge,
-Ports => ClusterPorts}
+                                          Ports => ClusterPorts}
 import com.midokura.midonet.cluster.data.host.Host
 import com.midokura.midolman.topology.rcu.{Host => RCUHost}
 import com.midokura.midolman.topology.VirtualToPhysicalMapper._
 import topology.LocalPortActive
-import topology.VirtualTopologyActor.PortRequest
-import com.midokura.midonet.cluster.client.ExteriorBridgePort
-import org.junit.{Ignore, Test}
-import com.midokura.midolman.FlowController.AddWildcardFlow
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
 import akka.testkit.TestProbe
+import com.midokura.packets.MAC
+import com.midokura.sdn.dp.flows.{FlowActionOutput, FlowActions}
+import util.SimulationHelper
 
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
+class DatapathControllerTestCase extends MidolmanTestCase
+        with SimulationHelper with ShouldMatchers {
 
   import scala.collection.JavaConversions._
   import DatapathController._
@@ -261,6 +260,36 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
       .getDpPortNumberForVport(port1.getId) should equal(Some(1))
     dpController().underlyingActor.vportMgr
       .getDpPortNumberForVport(port2.getId) should equal(Some(2))
-  }
 
+    //-----------------------
+    // Send a generated packet to the DatapathController
+    var packetsEventsProbe: TestProbe = newProbe()
+    actors().eventStream.subscribe(packetsEventsProbe.ref,
+        classOf[PacketsExecute])
+
+    val pkt = makeArpRequest(
+        0x0a00000a, MAC.fromString("02:cc:aa:ff:ee:01"), 0x0a00000b)
+    DatapathController.getRef(actors()) !
+      SendPacket(pkt, new FlowActionOutputToVrnPort(port1.getId) :: Nil)
+
+    // First show that the DC correctly emitted the PacketsExecute message.
+    val packet = requestOfType[PacketsExecute](packetsEventsProbe).packet
+    packet should not be null
+    packet.getData should not be null
+    packet.getData should be === pkt.serialize()
+    packet.getActions should not be null
+    packet.getActions.size should equal(1)
+    packet.getActions.get(0).asInstanceOf[FlowActionOutput] should
+      equal(FlowActions.output(1))
+
+    // Now show that if after translating the output actions (from VRN to
+    // datapath actions), if there are no actions, no PacketsExecute is
+    // emitted.
+    // Create a second bridge with no ports.
+    val bridge2 = new ClusterBridge().setName("test1")
+    bridge2.setId(clusterDataClient().bridgesCreate(bridge2))
+    DatapathController.getRef(actors()) !
+      SendPacket(pkt, new FlowActionOutputToVrnPortSet(bridge2.getId) :: Nil)
+    packetsEventsProbe.expectNoMsg()
+  }
 }
