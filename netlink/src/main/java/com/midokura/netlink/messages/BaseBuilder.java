@@ -25,6 +25,7 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
 
     public BaseBuilder(ByteBuffer buffer) {
         this.buffer = buffer;
+        this.order = buffer.order();
     }
 
     protected abstract Builder self();
@@ -33,12 +34,22 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
     public Builder addAttr(NetlinkMessage.AttrKey<Byte> attr, byte value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
         addValue(value);
+
+        // Pad for 4-byte alignment
+        byte padding = 0;
+        addValue(padding);
+        addValue(padding);
+        addValue(padding);
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Short> attr, short value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
         addValue(value);
+
+        // Pad for 4-byte alignment
+        short padding = 0;
+        addValue(padding);
         return self();
     }
 
@@ -58,6 +69,10 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
                            ByteOrder order) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
         addValue(value, order);
+
+        // Pad for 4-byte alignment
+        short padding = 0;
+        addValue(padding);
         return self();
     }
 

@@ -198,8 +198,10 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
                 this.flags = flags;
             }
 
-            dstIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_DST_IPV4);
-            srcIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_SRC_IPV4);
+            dstIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_DST_IPV4,
+                          ByteOrder.BIG_ENDIAN);
+            srcIPv4 = message.getAttrValueInt(Attr.OVS_TUNNEL_ATTR_SRC_IPV4,
+                          ByteOrder.BIG_ENDIAN);
             outKey = message.getAttrValueLong(Attr.OVS_TUNNEL_ATTR_OUT_KEY);
             inKey = message.getAttrValueLong(Attr.OVS_TUNNEL_ATTR_IN_KEY);
             tos = message.getAttrValueByte(Attr.OVS_TUNNEL_ATTR_TOS);
