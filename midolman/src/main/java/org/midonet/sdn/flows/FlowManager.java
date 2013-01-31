@@ -104,8 +104,8 @@ public class FlowManager {
      * by a callback of the DpConnection, that notifies the deletion of the
      * addiction of a flow.
      */
-    private LinkedHashMap<FlowMatch, List<FlowAction<?>>> dpFlowTable =
-        new LinkedHashMap<FlowMatch, List<FlowAction<?>>>();
+    private LinkedHashMap<FlowMatch, FlowMetadata> dpFlowTable =
+            new LinkedHashMap<FlowMatch, FlowMetadata>();
 
     /* Map each datapath flow back to its wildcard flow */
     private Map<FlowMatch, WildcardFlow> dpFlowToWildFlow =
@@ -261,7 +261,20 @@ public class FlowManager {
      * @return
      */
     public List<FlowAction<?>> getActionsForDpFlow(FlowMatch flowMatch) {
-        return dpFlowTable.get(flowMatch);
+        FlowMetadata data = dpFlowTable.get(flowMatch);
+        return (data != null) ? data.actions : null;
+    }
+
+    /**
+     * If a datapath flow matching this FlowMatch was already computed, return
+     * its time of creation.
+     *
+     * @param flowMatch
+     * @return
+     */
+    public long getCreationTimeForDpFlow(FlowMatch flowMatch) {
+        FlowMetadata data = dpFlowTable.get(flowMatch);
+        return (data != null) ? data.creationTime : 0;
     }
 
     /**
@@ -277,7 +290,7 @@ public class FlowManager {
      */
     public Flow createDpFlow(FlowMatch flowMatch) {
         // TODO(ross) why should we install a copy?
-        List<FlowAction<?>> actions = dpFlowTable.get(flowMatch);
+        List<FlowAction<?>> actions = getActionsForDpFlow(flowMatch);
         if (null != actions)
             return new Flow().setMatch(flowMatch).setActions(actions);
         // Iterate through the WildcardFlowTables to find candidate wild flows.
@@ -457,7 +470,7 @@ public class FlowManager {
     }
 
     public void addFlowCompleted(Flow flow){
-        dpFlowTable.put(flow.getMatch(), flow.getActions());
+        dpFlowTable.put(flow.getMatch(), new FlowMetadata(flow.getActions()));
         WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
         if (wcFlow == null) {
             log.error("Could not find WildcardFlow for DP flow with match {} " +
@@ -512,11 +525,22 @@ public class FlowManager {
         }
     }
 
+    class FlowMetadata {
+        public List<FlowAction<?>> actions;
+        public final long creationTime;
+
+        public FlowMetadata(List<FlowAction<?>> actions) {
+            this.actions = actions;
+            this.creationTime = System.currentTimeMillis();
+        }
+    }
+
+
     Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> getWildcardTables() {
         return wildcardTables;
     }
 
-    LinkedHashMap<FlowMatch, List<FlowAction<?>>> getDpFlowTable() {
+    LinkedHashMap<FlowMatch, FlowMetadata> getDpFlowTable() {
         return dpFlowTable;
     }
 

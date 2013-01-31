@@ -168,7 +168,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         case flowMissing(flowMatch) =>
             Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
                 case actions =>
-                    log.debug("DP flow was lost, reinstalling: {}", flowMatch)
+                    log.warning("DP flow was lost, reinstalling: {}", flowMatch)
                     addDatapathFlow(flowMatch, actions)
             }
 
@@ -232,8 +232,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
     }
 
     private def handlePacketIn(packet: Packet) {
-        log.debug("Received packet {}", packet)
-
+        log.debug("Received packet {}", packet.getMatch)
 
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
             doSimulation(packet)
@@ -245,10 +244,16 @@ class FlowController extends Actor with ActorLogWithoutPath {
         var actions = flowManager.getActionsForDpFlow(packet.getMatch)
         if (actions != null) {
             // This should only happen as a race condition.
-            // TODO(pino): detect if this is happening a lot, it implies a
-            // TODO: badly installed dp flow. Try to re-install it.
-            log.debug("We have a matching cached DP flow with actions {}",
-                actions)
+            // If the we tried to install the flow more than 1 second ago,
+            // assume that the flow was removed by a external agent or badly
+            // installed: try to reinstall it.
+            log.debug("We have a matching cached DP flow with actions {}", actions)
+
+            val now = System.currentTimeMillis()
+            val created = flowManager.getCreationTimeForDpFlow(packet.getMatch)
+            if (now - created > 1000)
+                addDatapathFlow(packet.getMatch, actions)
+
             if (actions.size() == 0) {
                 // Empty action list means DROP. Do nothing.
                 return
