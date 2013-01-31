@@ -1334,7 +1334,8 @@ It contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>The beginning of the tcp/udp source port range to match.  This
-         field is required if invTpEnd is set.</td>
+         field is required if invTpEnd is set. When creating an ICMP rule,
+         this field should be set to the ICMP type value.</td>
     </tr>
     <tr>
         <td>tpSrcEnd</td>
@@ -1342,7 +1343,8 @@ It contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>The end of the tcp/udp source port range to match. This field is
-         required if tpSrcStart is set.</td>
+         required if tpSrcStart is set. When creating an ICMP rule, this field
+         should be set to the ICMP type value.</td>
     </tr>
     <tr>
         <td>invTpSrc</td>
@@ -1358,7 +1360,8 @@ It contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>The beginning of the tcp/udp dest port range to match. This field
-         is required if tpDstEnd is set.</td>
+         is required if tpDstEnd is set.  When creating an ICMP rule, this
+         field should be set to the ICMP code value.</td>
     </tr>
     <tr>
         <td>tpDstEnd</td>
@@ -1366,7 +1369,8 @@ It contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>The end of the tcp/udp port range to match.  This field is required
-         if tpDstStart is set.</td>
+         if tpDstStart is set. When creating an ICMP rule, this field should be
+         set to the ICMP code value.</td>
     </tr>
     <tr>
         <td>invTpDst</td>
