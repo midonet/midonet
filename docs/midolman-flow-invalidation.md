@@ -186,7 +186,8 @@ React to the changes in the MAC learning table
        (bridgeId, port1, MAC)
 
 ##### Logical ports
-Added -> do nothing
+Added -> invalidate all ARP requests for the port's MAC
+         invalidate all flooded flows to the port's MAC, tagged (bridge ID, MAC)
 Removed -> remove all the flows tagged (bridge ID, port ID). Where port ID is
            ID of bridge's logical port
 

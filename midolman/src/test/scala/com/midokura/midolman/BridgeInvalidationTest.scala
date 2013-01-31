@@ -17,16 +17,19 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import com.midokura.midolman.DatapathController.PacketIn
 import com.midokura.midolman.FlowController.{RemoveWildcardFlow,
     WildcardFlowRemoved, WildcardFlowAdded}
-import com.midokura.midolman.topology.LocalPortActive
+import topology.BridgeManager.CheckExpiredMacPorts
+import topology.{FlowTagger, BridgeManager, LocalPortActive}
 import com.midokura.midolman.util.{TestHelpers, RouterHelper}
 import com.midokura.midonet.cluster.data.Bridge
 import com.midokura.midonet.cluster.data.host.Host
-import com.midokura.midonet.cluster.data.ports.MaterializedBridgePort
+import com.midokura.midonet.cluster.data.ports.{LogicalBridgePort, LogicalRouterPort, MaterializedBridgePort}
 import com.midokura.odp.Datapath
 import com.midokura.odp.flows.{FlowAction, FlowActions}
-import com.midokura.sdn.flows.WildcardFlow
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import com.midokura.packets.{IntIPv4, MAC}
 
-
+@RunWith(classOf[JUnitRunner])
 class BridgeInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
 with RouterHelper{
 
@@ -51,11 +54,17 @@ with RouterHelper{
     val port2Name = "port2"
     val port3Name = "port3"
 
+    val routerMac = MAC.fromString("02:11:22:33:46:13")
+    val routerIp = IntIPv4.fromString("11.11.11.1")
+
     var bridge: Bridge = null
     var host: Host = null
     var port1: MaterializedBridgePort = null
     var port2: MaterializedBridgePort = null
     var port3: MaterializedBridgePort = null
+    var rtrPort: LogicalRouterPort = null
+    var brPort1: LogicalBridgePort = null
+    val macPortExpiration = 1000
 
     var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
 
@@ -65,12 +74,13 @@ with RouterHelper{
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         //config.setProperty("datapath.max_flow_count", 3)
         //config.setProperty("midolman.check_flow_expiration_interval", 10)
-        config.setProperty("midolman.enable_monitoring", "false")
+        config.setProperty("monitoring.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }
 
     override def beforeTest() {
+        BridgeManager.setMacPortExpiration(macPortExpiration)
 
         eventProbe = newProbe()
         addRemoveFlowsProbe = newProbe()
@@ -84,8 +94,18 @@ with RouterHelper{
 
         bridge should not be null
 
-        clusterDataClient().portSetsAddHost(bridge.getId, host.getId)
+        val router = newRouter("router")
+        router should not be null
 
+        // set up logical port on router
+        rtrPort = newInteriorRouterPort(router, routerMac,
+            routerIp.toUnicastString,
+            routerIp.toNetworkAddress.toUnicastString,
+            routerIp.getMaskLength)
+        rtrPort should not be null
+
+        brPort1 = newInteriorBridgePort(bridge)
+        brPort1 should not be null
 
         actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowAdded])
         actors().eventStream.subscribe(addRemoveFlowsProbe.ref, classOf[WildcardFlowRemoved])
@@ -112,13 +132,13 @@ with RouterHelper{
 
         // this is added when the port becomes active. A flow that takes care of
         // the tunnelled packets to this port
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+        addRemoveFlowsProbe.fishForMessage(Duration(5, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(port1Name)))))
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+        addRemoveFlowsProbe.fishForMessage(Duration(5, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(port2Name)))))
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+        addRemoveFlowsProbe.fishForMessage(Duration(5, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(port3Name)))))
     }
@@ -140,23 +160,31 @@ with RouterHelper{
     }
 
     def testFlowCountZeroForgetMac() {
-        triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
+        triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         fishForRequestOfType[PacketIn](dpProbe())
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val floodedFlow = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
         // this is the flooded flow that has been invalidated
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
+            asScalaBuffer[FlowAction[_]](floodedFlow.f.getActions)))
         // this is the flow from 2 to 1
         val flowToRemove = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's create another flow from 1 to 2
-        triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
+        triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         val flowShouldBeInvalidated = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
 
         // this will make the flowCount for vmMac2 go to 0, so it will be unlearnt
         // and the flow from 1 to 2 should get invalidated
-        flowProbe().testActor ! RemoveWildcardFlow(new WildcardFlow().setMatch(flowToRemove.f.getMatch))
+        flowProbe().testActor ! RemoveWildcardFlow(flowToRemove.f)
+        fishForRequestOfType[WildcardFlowRemoved](addRemoveFlowsProbe)
+        // wait for the flow to be removed
+        Thread.sleep(macPortExpiration + 100)
+        val bridgeManagerPath = virtualTopologyActor().path + "/" + bridge.getId.toString
+        // Since the check for the expiration of the MAC port association is done
+        // every 2 seconds, let's trigger it
+        actors().actorFor(bridgeManagerPath) ! new CheckExpiredMacPorts()
         // expect flow invalidation
         addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
@@ -184,5 +212,84 @@ with RouterHelper{
         addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
             asScalaBuffer[FlowAction[_]](flowShouldBeInvalidated.f.getActions)))
+    }
+
+    def testUnicastAddLogicalPort() {
+        drainProbes()
+        // trigger packet in before linking the port. Since routerMac is unknow
+        // the bridge logic will flood the packet
+        triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
+            routerMac.toString, routerIp.toString))
+
+        val flowShouldBeInvalidated =
+            addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        fishForRequestOfType[FlowController.AddWildcardFlow](flowProbe())
+        clusterDataClient().portsLink(rtrPort.getId, brPort1.getId)
+
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
+            asScalaBuffer[FlowAction[_]](flowShouldBeInvalidated.f.getActions)))
+        // Expect the invalidation of the following flows:
+        // 1. ARP requests
+        // 2. All the flows to routerMac that were flooded
+        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
+            TestHelpers.matchFlowTag(
+                FlowTagger.invalidateArpRequests(bridge.getId)))
+
+        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
+        TestHelpers.matchFlowTag(
+            FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac)))
+
+    }
+
+    def testArpRequestAddLogicalPort() {
+        drainProbes()
+        // send arp request before linking the port. The arp request will be flooded
+        injectArpRequest(port1Name, IntIPv4.fromString(ipVm1).addressAsInt(),
+            MAC.fromString(macVm1), routerIp.addressAsInt())
+
+        val flowShouldBeInvalidated =
+            addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        fishForRequestOfType[FlowController.AddWildcardFlow](flowProbe())
+
+        clusterDataClient().portsLink(rtrPort.getId, brPort1.getId)
+
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
+            asScalaBuffer[FlowAction[_]](flowShouldBeInvalidated.f.getActions)))
+
+        // Expect the invalidation of the following flows:
+        // 1. ARP requests
+        // 2. All the flows to routerMac that were flooded
+        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
+            TestHelpers.matchFlowTag(
+                FlowTagger.invalidateArpRequests(bridge.getId)))
+        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
+            TestHelpers.matchFlowTag(
+                FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac)))
+    }
+
+    def testUnicastDeleteLogicalPort() {
+
+        drainProbes()
+        clusterDataClient().portsLink(rtrPort.getId, brPort1.getId)
+
+        triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
+            routerMac.toString, routerIp.toString))
+
+        val flowShouldBeInvalidated =
+            addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        fishForRequestOfType[FlowController.AddWildcardFlow](flowProbe())
+
+        clusterDataClient().portsUnlink(brPort1.getId)
+
+        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+            "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
+            asScalaBuffer[FlowAction[_]](flowShouldBeInvalidated.f.getActions)))
+
+        // All the flows to the logical port should be invalidated
+        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
+            TestHelpers.matchFlowTag(
+                FlowTagger.invalidateFlowsByLogicalPort(bridge.getId, brPort1.getId)))
     }
 }
