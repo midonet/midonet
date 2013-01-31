@@ -42,7 +42,7 @@ public class TestLLDPTLV {
         public static Collection<Object[]> data() {
             byte[] header = new byte[] { 0x02, 0x00 };
             LLDPTLV tlv = new LLDPTLV();
-            tlv.setType((byte) 0x01);
+            tlv.setType(LLDPTLV.TYPE_CHASSIS_ID);
             tlv.setLength((short) 0x00);
             tlv.setValue(null);
 

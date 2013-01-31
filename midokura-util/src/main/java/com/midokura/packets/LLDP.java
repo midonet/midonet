@@ -132,16 +132,16 @@ public class LLDP extends BasePacket {
             if (tlv == null)
                 break;
             switch (tlv.getType()) {
-                case 0x0:
+                case LLDPTLV.TYPE_END_OF_LLDPDU_TLV:
                     // can throw this one away, its just an end delimiter
                     break;
-                case 0x1:
+                case LLDPTLV.TYPE_CHASSIS_ID:
                     this.chassisId = tlv;
                     break;
-                case 0x2:
+                case LLDPTLV.TYPE_PORT_ID:
                     this.portId = tlv;
                     break;
-                case 0x3:
+                case LLDPTLV.TYPE_TTL:
                     this.ttl = tlv;
                     break;
                 default:
@@ -150,7 +150,12 @@ public class LLDP extends BasePacket {
                     this.optionalTLVList.add(tlv);
                     break;
             }
-        } while (tlv.getType() != 0 && bb.hasRemaining());
+        } while ((tlv.getType() != LLDPTLV.TYPE_END_OF_LLDPDU_TLV)
+            && bb.hasRemaining());
+
+        if ((this.chassisId == null) || (this.portId == null) || (this.ttl == null)) {
+            throw new MalformedPacketException("Mandatory fields missing");
+        }
         return this;
     }
 
