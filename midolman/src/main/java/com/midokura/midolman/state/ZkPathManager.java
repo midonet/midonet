@@ -161,6 +161,25 @@ public class ZkPathManager {
         return buildFilterPath(id).append("/snat_blocks");
     }
 
+    public String getFilterSnatBlocksPath(UUID id, int ipv4) {
+        return buildFilterSnatBlocksPath(id, ipv4).toString();
+    }
+
+    private StringBuilder buildFilterSnatBlocksPath(UUID id, int ipv4) {
+        return buildFilterSnatBlocksPath(id)
+            .append("/").append(Integer.toHexString(ipv4));
+    }
+
+    public String getFilterSnatBlocksPath(UUID id, int ipv4, int startPort) {
+        return buildFilterSnatBlocksPath(id, ipv4, startPort).toString();
+    }
+
+    private StringBuilder buildFilterSnatBlocksPath(UUID id, int ipv4,
+                                                    int startPort) {
+        return buildFilterSnatBlocksPath(id, ipv4)
+            .append("/").append(startPort);
+    }
+
     /**
      * Get ZK router path.
      *
