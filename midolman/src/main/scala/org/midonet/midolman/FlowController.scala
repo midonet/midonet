@@ -8,6 +8,7 @@ import collection.JavaConversions._
 import collection.{Set => ROSet, mutable}
 import collection.mutable.{HashMap, MultiMap}
 import java.util.concurrent.TimeUnit
+import java.util.{List => JList}
 import javax.inject.Inject
 
 import org.midonet.midolman.config.MidolmanConfig
@@ -164,6 +165,13 @@ class FlowController extends Actor with ActorLogWithoutPath {
             context.system.eventStream.publish(new FlowUpdateCompleted(flow))
             flowManager.updateFlowLastUsedTimeCompleted(flow)
 
+        case flowMissing(flowMatch) =>
+            Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
+                case actions =>
+                    log.debug("DP flow was lost, reinstalling: {}", flowMatch)
+                    addDatapathFlow(flowMatch, actions)
+            }
+
         case flowAdded(flow) =>
             log.debug("DP confirmed that flow was added: {}", flow)
             if (flowsInFlight.contains(flow.getMatch)) {
@@ -200,6 +208,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
      */
     case class packetIn(packet: Packet)
     case class flowUpdated(flow: Flow)
+    case class flowMissing(flowMatch: FlowMatch)
     case class flowAdded(flow: Flow)
     case class flowRemoved(flow: Flow)
     case class flowInflightRemove(flowMatch: FlowMatch)
@@ -376,33 +385,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 dpMatchToCookie.remove(packet.getMatch)
                 flowManager.add(packet.getMatch, wildcardFlow)
 
-                val dpFlow = new Flow().
-                    setMatch(packet.getMatch).
-                    setActions(wildcardFlow.getActions).
-                    setLastUsedTime(System.currentTimeMillis())
-
-                if (!flowsInFlight.contains(packet.getMatch)) {
-
-                    log.debug("adding flow in flight {}", packet.getMatch)
-                    flowsInFlight.add(packet.getMatch)
-
-                    datapathConnection.flowsCreate(datapath, dpFlow,
-                    new ErrorHandlingCallback[Flow] {
-                        def onSuccess(data: Flow) {
-                            self ! flowAdded(data)
-                        }
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error("Got an exception {} or timeout {} when trying to add flow" +
-                                "with flow match {}", ex, timeout, dpFlow.getMatch)
-                            self ! flowInflightRemove(dpFlow.getMatch)
-                        }
-                    })
-                    log.debug("Flow created {}", dpFlow)
-
-                } else {
-                    log.debug("flow already requested to dataplane {}", packet.getMatch)
-                }
+                addDatapathFlow(packet.getMatch, wildcardFlow.getActions)
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
@@ -424,6 +407,34 @@ class FlowController extends Actor with ActorLogWithoutPath {
                             })
                     }
                 }
+        }
+    }
+
+    private def addDatapathFlow(flowMatch: FlowMatch, actions: JList[FlowAction[_]]) {
+        if (!flowsInFlight.contains(flowMatch)) {
+            val dpFlow = new Flow().
+                                setMatch(flowMatch).
+                                setActions(actions).
+                                setLastUsedTime(System.currentTimeMillis())
+
+            log.debug("adding flow in flight {}", flowMatch)
+            flowsInFlight.add(flowMatch)
+
+            datapathConnection.flowsCreate(datapath, dpFlow,
+                new ErrorHandlingCallback[Flow] {
+                    def onSuccess(data: Flow) {
+                        self ! flowAdded(data)
+                    }
+
+                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                        log.error("Got an exception {} or timeout {} when trying to add flow" +
+                            "with flow match {}", ex, timeout, dpFlow.getMatch)
+                        self ! flowInflightRemove(dpFlow.getMatch)
+                    }
+                })
+            log.debug("Flow created {}", dpFlow)
+        } else {
+            log.debug("flow already requested to dataplane {}", flowMatch)
         }
     }
 
@@ -474,7 +485,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
 
                     def onSuccess(data: Flow) {
-                        self ! flowUpdated(data)
+                        self ! (if (data != null) flowUpdated(data) else flowMissing(flowMatch))
                     }
 
                 })
