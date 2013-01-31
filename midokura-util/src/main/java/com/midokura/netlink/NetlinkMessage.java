@@ -177,6 +177,54 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
+    public Short getAttrValueShort(AttrKey<Short> attr, final ByteOrder order) {
+        return new SingleAttributeParser<Short>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                try {
+                    buffer.order(order);
+                    data = buffer.getShort();
+                } finally {
+                    buffer.order(byteOrder);
+                }
+
+                return false;
+            }
+        }.parse(this);
+    }
+
+    public Integer getAttrValueInt(AttrKey<Integer> attr, final ByteOrder order) {
+        return new SingleAttributeParser<Integer>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                try {
+                    buffer.order(order);
+                    data = buffer.getInt();
+                } finally {
+                    buffer.order(byteOrder);
+                }
+
+                return false;
+            }
+        }.parse(this);
+    }
+
+    public Long getAttrValueLong(AttrKey<Long> attr, final ByteOrder order) {
+        return new SingleAttributeParser<Long>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                try {
+                    buffer.order(order);
+                    data = buffer.getLong();
+                } finally {
+                    buffer.order(byteOrder);
+                }
+
+                return false;
+            }
+        }.parse(this);
+    }
+
     public String getAttrValueString(AttrKey<String> attr) {
         return new SingleAttributeParser<String>(attr) {
             @Override
