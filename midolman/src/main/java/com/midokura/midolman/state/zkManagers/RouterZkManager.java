@@ -169,8 +169,11 @@ public class RouterZkManager extends ZkManager {
         log.debug("Preparing to delete: " + routingTablePath);
         ops.add(Op.delete(routingTablePath, -1));
 
-        // Delete ARP table
+        // Delete ARP table (and any ARP entries found).
         String arpTablePath = paths.getRouterArpTablePath(id);
+        for (String ipStr : getChildren(arpTablePath, null)) {
+            ops.add(Op.delete(arpTablePath + "/" + ipStr, -1));
+        }
         log.debug("Preparing to delete: " + arpTablePath);
         ops.add(Op.delete(arpTablePath, -1));
 
