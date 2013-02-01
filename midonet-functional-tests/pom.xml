@@ -266,7 +266,7 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midolmanj-mgmt</artifactId>
+            <artifactId>midonet-api</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
         <dependency>

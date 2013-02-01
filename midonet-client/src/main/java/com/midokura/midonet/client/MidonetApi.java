@@ -16,7 +16,7 @@ import com.midokura.midonet.client.resource.*;
 public class MidonetApi {
 
     private static final String DEFAULT_MIDONET_URI =
-        "http://localhost:8080/midolmanj-mgmt";
+        "http://localhost:8080/midonet-api";
 
     private final URI midonetUri;
     private final WebResource resource;

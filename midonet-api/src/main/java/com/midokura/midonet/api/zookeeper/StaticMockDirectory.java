@@ -8,7 +8,7 @@ import com.midokura.midolman.state.MockDirectory;
 /**
  * This is a static MockDirectory in order to allow an integration test
  * access to a Directory implementation that is shared between the test and
- * the Midolman-mgmt Jersey application.
+ * the midonet-api Jersey application.
  *
  * @author Mihai Claudiu Toader <mtoader@midokura.com>
  *         Date 1/31/12

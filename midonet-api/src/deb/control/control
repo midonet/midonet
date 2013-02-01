@@ -1,4 +1,4 @@
-Package: midolmanj-mgmt
+Package: midonet-api
 Version: [[version]]
 Section: misc
 Priority: optional
@@ -6,5 +6,5 @@ Architecture: all
 Depends: tomcat7
 Recommends: java7-runtime-headless | java7-runtime
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
-Description: Midolman-mgmt is the REST API for Midolman, a virtual network controller
+Description: Midonet-API is the REST API for Midolman, a virtual network controller
 Distribution: development

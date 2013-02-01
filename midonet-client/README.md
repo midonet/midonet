@@ -15,7 +15,7 @@ Here, the code snippet below gives you an idea of how to do the following:
 
 ```java
 
-    api = new MidonetApi("http://localhost:8080/midolmanj-mgmt/");
+    api = new MidonetApi("http://localhost:8080/midonet-api/");
     api.enableLogging();
 
     Bridge b1 = api.addBridge().tenantId("tenant-1").name("bridge-1")

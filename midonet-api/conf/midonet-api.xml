@@ -1,0 +1,3 @@
+<Context path="/midonet-api"
+        docBase="/usr/share/midonet-api"
+        antiResourceLocking="false" privileged="true" />

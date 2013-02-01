@@ -47,7 +47,7 @@ public class ClientTest extends JerseyTest {
         URI baseUri = resource().getURI();
         System.out.println("URI: " + resource().getURI());
         api = new MidonetApi(baseUri.toString());
-        //api = new MidonetApi("http://localhost:8080/midolmanj-mgmt/");
+        //api = new MidonetApi("http://localhost:8080/midonet-api/");
         api.enableLogging();
     }
 

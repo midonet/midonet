@@ -6,7 +6,7 @@ package com.midokura.midonet.api.error;
 import com.google.inject.AbstractModule;
 
 /**
- * Bindings specific to error handling in mgmt.
+ * Bindings specific to error handling in api.
  */
 public class ErrorModule extends AbstractModule {
 

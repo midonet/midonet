@@ -1,3 +1,0 @@
-<Context path="/midolmanj-mgmt" 
-        docBase="/usr/share/midolmanj-mgmt" 
-        antiResourceLocking="false" privileged="true" />

@@ -6,7 +6,7 @@ package com.midokura.midonet.api.serialization;
 import com.google.inject.AbstractModule;
 
 /**
- * Bindings specific to error handling in mgmt.
+ * Bindings specific to error handling in api.
  */
 public class SerializationModule extends AbstractModule {
 
