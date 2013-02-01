@@ -59,9 +59,6 @@ public class FuncTest {
                 .filterClass(GuiceFilter.class)
                 .servletPath("/")
                 .contextParam(
-                        getConfigKey(RestApiConfig.GROUP_NAME,
-                                RestApiConfig.VERSION_KEY), "1")
-                .contextParam(
                         getConfigKey(CorsConfig.GROUP_NAME,
                                 CorsConfig.ALLOW_ORIGIN_KEY), "*")
                 .contextParam(

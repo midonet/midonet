@@ -191,7 +191,7 @@ public class ApplicationResource extends AbstractResource {
         log.debug("ApplicationResource: entered");
 
         Application a = new Application(getBaseUri());
-        a.setVersion(config.getVersion());
+        a.setVersion(Version.CURRENT);
 
         log.debug("ApplicationResource: existing: " + a);
         return a;
