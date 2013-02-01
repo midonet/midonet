@@ -42,7 +42,7 @@ public class TestCacheFactory {
         hierarhicalConfig.setProperty("midolman.cache_type", "cassandra");
         hierarhicalConfig.setProperty("cassandra.servers", "localhost:9165");
         hierarhicalConfig.setProperty("cassandra.cluster", "newCluster");
-        hierarhicalConfig.setProperty("cassandra.keyspace", "midolmanj");
+        hierarhicalConfig.setProperty("cassandra.keyspace", "midolman");
         hierarhicalConfig.setProperty("cassandra.replication_factor", 1);
 
         CacheFactory.create(

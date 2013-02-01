@@ -24,7 +24,7 @@ public interface CassandraConfig {
     @ConfigString(key = "cluster", defaultValue = "midonet")
     public String getCassandraCluster();
 
-    @ConfigString(key = "midonet_keyspace", defaultValue = "midolmanj")
+    @ConfigString(key = "midonet_keyspace", defaultValue = "midolman")
     public String getCassandraMidonetKeyspace();
 
     @ConfigInt(key = "replication_factor", defaultValue = 1)

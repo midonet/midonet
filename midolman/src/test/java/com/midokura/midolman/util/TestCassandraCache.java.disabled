@@ -26,7 +26,7 @@ public class TestCassandraCache extends TestCache {
     public void setUp() throws Exception {
         lifetime = 1000;
         cache = new CassandraCache("localhost:9171", "TestCluster",
-                                   "midolmanj", "nat", 1, (int)lifetime/1000);
+                                   "midolman", "nat", 1, (int)lifetime/1000);
     }
 
     @AfterClass
