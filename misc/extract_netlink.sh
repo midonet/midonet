@@ -19,16 +19,16 @@ UNUSED_FOLDERS="src conf conf2 err.txt \
 	midonet-client \
 	midonet-functional-tests \
 	misc \
-	midonet-util/src/main/java/com/midokura/{cache,config,hamcrest,midolman,packets,remote,tools} \
-	midonet-util/src/main/java/com/midokura/util/{collections,jmx,lock,process,ssh} \
-	midonet-util/src/main/java/com/midokura/util/{Percentile,Sampler,StringUtil,SystemHelper}.java \
-	midonet-util/src/main/java/com/midokura/util/functors/{CollectionFunctors,UnaryFunctor,TreeNode,TreeNodeFunctors,Callback0,Callback1,Callback2,Callback3}.java \
-	midonet-util/src/main/java/com/midokura/sdn/flows/{FlowManagerHelper,PacketMatch,FlowManager,WildcardFlow,WildcardFlowIndex},java \
-	midonet-util/src/main/java/com/midokura/sdn/flowa/{NetlinkFlowTable,WildcardSpec,MidoMatch,WildcardMatch,WildcardMatches,WildcardMatchImpl,ProjectedWildcardMatch}.java \
-	midonet-util/src/main/java/com/midokura/Test.java \
-	midonet-util/src/test/java/com/midokura/{config,packets,remote,sdn} \
-	midonet-util/src/test/java/com/midokura/util/{TestPercentile,TestStringUtil}.java \
-	midonet-util/src/test/java/com/midokura/util/process/TestProcessHelper.java \
+	midonet-util/src/main/java/org/midonet/{cache,config,hamcrest,midolman,packets,remote,tools} \
+	midonet-util/src/main/java/org/midonet/util/{collections,jmx,lock,process,ssh} \
+	midonet-util/src/main/java/org/midonet/util/{Percentile,Sampler,StringUtil,SystemHelper}.java \
+	midonet-util/src/main/java/org/midonet/util/functors/{CollectionFunctors,UnaryFunctor,TreeNode,TreeNodeFunctors,Callback0,Callback1,Callback2,Callback3}.java \
+	midonet-util/src/main/java/org/midonet/sdn/flows/{FlowManagerHelper,PacketMatch,FlowManager,WildcardFlow,WildcardFlowIndex},java \
+	midonet-util/src/main/java/org/midonet/sdn/flowa/{NetlinkFlowTable,WildcardSpec,MidoMatch,WildcardMatch,WildcardMatches,WildcardMatchImpl,ProjectedWildcardMatch}.java \
+	midonet-util/src/main/java/org/midonet/Test.java \
+	midonet-util/src/test/java/org/midonet/{config,packets,remote,sdn} \
+	midonet-util/src/test/java/org/midonet/util/{TestPercentile,TestStringUtil}.java \
+	midonet-util/src/test/java/org/midonet/util/process/TestProcessHelper.java \
 	midonet-util/src/test/resources/logback.xml \
 	midonet-util/{pom.xml,.classpath,.project,README} \
 	midonet-smoketest

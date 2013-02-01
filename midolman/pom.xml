@@ -45,7 +45,7 @@
                     <source>1.7</source>
                     <target>1.7</target>
                     <excludes>
-                        <exclude>com/midokura/midolman/netlink/*Channel*.java</exclude>
+                        <exclude>org/midonet/midolman/netlink/*Channel*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -361,8 +361,8 @@
                         <argument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-13.06-SNAPSHOT.jar</argument>
                         <argument>-cp</argument>
                         <classpath />
-                        <!--<argument>com.midokura.midolman.Midolman</argument>-->
-                        <argument>com.midokura.midolman.netlink.Client</argument>
+                        <!--<argument>org.midonet.midolman.Midolman</argument>-->
+                        <argument>org.midonet.midolman.netlink.Client</argument>
                     </arguments>
                 </configuration>
             </plugin>

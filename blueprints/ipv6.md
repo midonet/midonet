@@ -9,15 +9,15 @@ larger address space.  This is a plan to do so.
 
 ### Core address classes
 
-Currently MidoNet uses the `IntIPv4` class in the `com.midokura.packets` package
+Currently MidoNet uses the `IntIPv4` class in the `org.midonet.packets` package
 to represent an internet address.
 There are some legacy uses of `int` in the codebase also, but that is rare.
 
- * Make a trait (interface) `IPAddr` in `com.midokura.packets`, with two
+ * Make a trait (interface) `IPAddr` in `org.midonet.packets`, with two
 	implementations, `IPv4Addr` and `IPv6Addr` and a parallel trait for
         IP subnets, `IPSubnet`/`IPv4Subnet`/`IPv6Subnet`.
  * For parsing IPv6 packets, we'll have to make an `IPv6` class in
-	`com.midokura.packets`.  IPv6 can have several layer 3 payloads
+	`org.midonet.packets`.  IPv6 can have several layer 3 payloads
 	until it gets to layer 4, which can even be hidden by IPSec.  We
 	should probably parse the packet the same way the kernel module does.
  * Create `getSourceIPAddress` and `getDestinationIPAddress` getters in the
@@ -72,7 +72,7 @@ packets.)
         ditto for IPv4), a router can be made effectively IPv4-only (or
         IPv6-only) by providing it no routes for the unsupported address
         family.
- * Create an `ICMPv6` packet type in `com.midokura.packets`.
+ * Create an `ICMPv6` packet type in `org.midonet.packets`.
  * Implement neighbor discovery (RFC 5942).  (TODO: This needs to be
         expanded upon.)
  * Use ICMPv6 for pings and non-delivery messages of IPv6 packets.

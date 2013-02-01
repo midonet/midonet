@@ -7,7 +7,7 @@ operations.
 
 The `ArpCache` object it wraps is itself a thin thread-safe wrapper around
 a ZooKeeper backed `ReplicatedMap`, also called `ArpTable`, which lives in the
-`com.midokura.midolman.state` package.
+`org.midonet.midolman.state` package.
 
 ## Lifecycle and ownership
 

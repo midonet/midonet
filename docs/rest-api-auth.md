@@ -23,7 +23,7 @@ the user privilege information.
 This document attempts to describe the current design of MidoNet API that allows
 you to plug in different authentication/authorization (AuthN/AuthZ) mechanisms
 with simple configuration setting.  Note that all the classes mentioned exist
-under the package 'com.midokura.midonet.api.auth' unless mentioned
+under the package 'org.midonet.api.auth' unless mentioned
 otherwise.
 
 
@@ -85,7 +85,7 @@ element as follows:
   &lt;context-param&gt;
     &lt;param-name>auth-auth_provider&lt;/param-name&gt;
     &lt;param-value&gt;
-      com.midokura.midonet.api.auth.MockAuthClient
+      org.midonet.api.auth.MockAuthClient
     &lt;/param-value&gt;
   &lt;/context-param&gt;
   ...

@@ -37,7 +37,7 @@
     <param-name>auth-auth_provider</param-name>
     <!-- Specify the class path of the auth client -->
     <param-value>
-      com.midokura.midonet.api.auth.MockAuthClient
+      org.midonet.api.auth.MockAuthClient
     </param-value>
   </context-param>
   <context-param>
@@ -156,7 +156,7 @@
   <listener>
      <listener-class>
          <!-- Use Jersey's Guice compatible context listener -->
-         com.midokura.midonet.api.servlet.JerseyGuiceServletContextListener
+         org.midonet.api.servlet.JerseyGuiceServletContextListener
      </listener-class>
   </listener>
 

@@ -58,13 +58,13 @@ Here, the code snippet below gives you an idea of how to do the following:
 There are basically 3 components in this client library, each of which
 are described as follows:
 
-*   com.midokura.midonet.client.MidonetApi
+*   org.midonet.client.MidonetApi
 
     This is the entry class for midonet client. You first should instantiate
     this class to manipulate resources in the MidoNet system.
     It has WebResource instance to make HTTP REST requests.
 
-*   package com.midokura.midonet.client.dto;
+*   package org.midonet.client.dto;
 
     This package contains DTOs for MidoNet resources.
     These are wrapped by the following Resource packages and hidden from

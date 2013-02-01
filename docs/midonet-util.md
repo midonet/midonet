@@ -1,6 +1,6 @@
 ## midonet-util package contents.
 
--   *com.midokura.util.process.ProcessHelper*
+-   *org.midonet.util.process.ProcessHelper*
 
     It is a class that allow easy and simple process execution and control.
 
@@ -15,7 +15,7 @@
     It can also force a process to be launched locally regardless if an remote
     host specification was provided at runtime.
 
--   *com.midokura.util.ssh.SshHelper*
+-   *org.midonet.util.ssh.SshHelper*
 
     It's a basic class that provides a simple entry point for operations executed
     over a ssh connection to a remote host: file upload/download,
@@ -26,18 +26,18 @@
     to transparently execute remote commands and respectively forward ports at
     runtime if so desired.
 
-- *com.midokura.util.SystemHelper*
+- *org.midonet.util.SystemHelper*
 
     Easy way to find out the currently running OS type.
 
-- *com.midokura.remote.RemoteHost*
+- *org.midonet.remote.RemoteHost*
 
     Class that will look for a managed_host.properties in the current classpath.
     If found it will read it and it it will try to open a ssh connection to the
     remote host specified in there while at the same time enabling a set of port
     forwardings (those port forwardings that have been already specified in there).
 
-- *com.midokura.tools.timed.Timed*
+- *org.midonet.tools.timed.Timed*
 
     Provides support for conditional wait loops. Waiting up to x amount of
     milliseconds while checking for a condition every y amount of milliseconds.
@@ -45,7 +45,7 @@
 
     Mainly used inside the functional tests.
 
-- *com.midokura.util.functors*
+- *org.midonet.util.functors*
 
     A couple of simple interfaces that abstract functions. Until we will have
     closures in java :).
