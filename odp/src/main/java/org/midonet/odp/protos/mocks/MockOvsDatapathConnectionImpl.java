@@ -44,7 +44,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     Map<Datapath, AtomicInteger> portsIndexes
         = new HashMap<Datapath, AtomicInteger>();
     
-    Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
+    public Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
 
     org.midonet.util.functors.Callback<Packet, ?> packetExecCb = null;
 
