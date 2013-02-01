@@ -3,14 +3,12 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>MidoNet Management API</display-name>
+  <display-name>MidoNet API</display-name>
 
   <!-- REST API configuration -->
-  <context-param>
-    <param-name>rest_api-version</param-name>
-    <param-value>1</param-value>
-  </context-param>
-  <!-- This value overrides the default base URI -->
+  <!-- This value overrides the default base URI.  This is typically set if
+       you are proxying the API server and the base URI that the clients use
+       to access the API is different from the actual server base URI. -->
   <!-- context-param>
     <param-name>rest_api-base_uri</param-name>
     <param-value>http://localhost:8080/</param-value>
