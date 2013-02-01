@@ -89,8 +89,8 @@ public class MidolmanLauncher {
 
         return format(
             "sudo java " +
-            "-Xbootclasspath/p:../midokura-jdk-bootstrap/target/" +
-                "midokura-jdk-bootstrap-13.06-SNAPSHOT.jar " +
+            "-Xbootclasspath/p:../midonet-jdk-bootstrap/target/" +
+                "midonet-jdk-bootstrap-13.06-SNAPSHOT.jar " +
             " -Djava.library.path=%s " +
             "-cp %s -Dmidolman.log.file=%s com.midokura.midolman.Midolman " +
             "-c %s",
@@ -152,7 +152,7 @@ public class MidolmanLauncher {
                     new File(midonetLocation, "midolman/target/classes"));
 
             addEntry(classPathEntries,
-                    new File(midonetLocation, "midokura-util/target/classes"));
+                    new File(midonetLocation, "midonet-util/target/classes"));
         } else {
             // TODO: (mtoader@midokura.com) Fix this by locating the current
             // version from a file dumped by maven at the build time.
@@ -162,7 +162,7 @@ public class MidolmanLauncher {
 
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midokura-util/target/midokura-util-13.06-SNAPSHOT.jar"));
+                            "midonet-util/target/midonet-util-13.06-SNAPSHOT.jar"));
         }
 
         // add all the midolman dependencies that we find inside the

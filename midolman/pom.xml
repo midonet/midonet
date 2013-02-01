@@ -126,7 +126,7 @@
                     <parallel>false</parallel>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
                     <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
-                        -Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-${project.version}.jar</argLine>
+                        -Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <org.newsclub.net.unix.library.path>
                             ${project.build.directory}/lib-native
@@ -358,7 +358,7 @@
                     <executable>sudo</executable>
                     <arguments>
                         <argument>java</argument>
-                        <argument>-Xbootclasspath/p:${project.basedir}/../midokura-jdk-bootstrap/target/classes:${project.basedir}/../midokura-jdk-bootstrap/target/midokura-jdk-bootstrap-13.06-SNAPSHOT.jar</argument>
+                        <argument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-13.06-SNAPSHOT.jar</argument>
                         <argument>-cp</argument>
                         <classpath />
                         <!--<argument>com.midokura.midolman.Midolman</argument>-->
@@ -649,7 +649,7 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midokura-util</artifactId>
+            <artifactId>midonet-util</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
 
@@ -667,7 +667,7 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midokura-jdk-bootstrap</artifactId>
+            <artifactId>midonet-jdk-bootstrap</artifactId>
             <version>13.06-SNAPSHOT</version>
         </dependency>
 

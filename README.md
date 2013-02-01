@@ -33,10 +33,10 @@ The **MidoNet** project is split into several submodules:
 This holds basic classes for parsing, building, and manipulating packets
 of various network protocol types.
 
-### midokura-util
+### midonet-util
 
 Contains basic utilities used by the other modules, and is described
-[here](docs/midokura-util.md).
+[here](docs/midonet-util.md).
 
 ### midolman
 

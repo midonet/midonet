@@ -1,4 +1,4 @@
-## midokura-util package contents.
+## midonet-util package contents.
 
 -   *com.midokura.util.process.ProcessHelper*
 

@@ -12,11 +12,11 @@
         <module>netlink</module>
         <module>odp</module>
         <module>midolman</module>
-        <module>midokura-util</module>
+        <module>midonet-util</module>
         <module>midonet-api</module>
         <module>midonet-client</module>
         <module>midonet-functional-tests</module>
-        <module>midokura-jdk-bootstrap</module>
+        <module>midonet-jdk-bootstrap</module>
         <module>packets</module>
     </modules>
 

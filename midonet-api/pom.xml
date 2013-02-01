@@ -375,7 +375,7 @@
         </dependency>
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midokura-util</artifactId>
+            <artifactId>midonet-util</artifactId>
             <version>13.06-SNAPSHOT</version>
             <exclusions>
                 <exclusion>

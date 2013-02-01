@@ -11,7 +11,7 @@
     <version>13.06-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <artifactId>midokura-jdk-bootstrap</artifactId>
+    <artifactId>midonet-jdk-bootstrap</artifactId>
     <name>Midokura Jdk Bootstrapping jar</name>
 
     <properties>

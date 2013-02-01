@@ -81,7 +81,7 @@ if [ ! -d "$MIDO_HOME" ]; then
 fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midokura-jdk-bootstrap.jar
+MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midonet-jdk-bootstrap.jar
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 MIDO_JAR=$MIDO_HOME/midolman.jar
 if [ ! -e "$MIDO_JAR" ]; then

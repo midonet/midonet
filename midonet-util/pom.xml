@@ -15,7 +15,7 @@
     <version>13.06-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <artifactId>midokura-util</artifactId>
+    <artifactId>midonet-util</artifactId>
     <name>Midokura Java Utilities</name>
 
     <properties>
@@ -133,7 +133,7 @@
 
         <dependency>
             <groupId>com.midokura</groupId>
-            <artifactId>midokura-jdk-bootstrap</artifactId>
+            <artifactId>midonet-jdk-bootstrap</artifactId>
             <version>13.06-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

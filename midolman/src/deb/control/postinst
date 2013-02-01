@@ -44,6 +44,6 @@ fi
 
 ln -sf $MIDOLMAN_JAR "$MIDOLMAN_JAR_DIR/midolman.jar"
 ln -sf $MIDOLMAN_JAR "$MIDOLMAN_JAR_DIR/midolmanj.jar"
-ln -sf `cat $POST_DIR/midolman.list | grep midokura-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midokura-jdk-bootstrap.jar"
+ln -sf `cat $POST_DIR/midolman.list | grep midonet-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"
 
 test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman
