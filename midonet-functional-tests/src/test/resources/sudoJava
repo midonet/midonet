@@ -6,7 +6,7 @@ echo "PARAMETERS: $*"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 # Try to figure out project.basedir.."
-REGEX="^/var.*/midonet-functional-tests/.*target"
+REGEX="^/.*/midonet-functional-tests/.*target"
 for P in $* ;
 do
     if [[ $P =~ $REGEX ]]
@@ -14,6 +14,7 @@ do
         MODULE_BASEDIR=`echo "$P" | sed -e 's/target.*//'`
         if [[ "$MODULE_BASEDIR" != "" ]]
         then
+            echo "Found project's basedir: '$MODULE_BASEDIR'"
             break
         fi
     fi
@@ -22,7 +23,6 @@ done
 if [[ "$MODULE_BASEDIR" != "" ]]
 then
     ORIG_USER=`whoami`
-    echo "Looks like the project's basedir is $BASEDIR"
     echo "Executing tests as sudo"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     sudo java $*
@@ -38,4 +38,3 @@ else
         targets"
     exit -1
 fi
-

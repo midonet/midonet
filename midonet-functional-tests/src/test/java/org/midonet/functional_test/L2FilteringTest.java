@@ -4,37 +4,22 @@
 
 package org.midonet.functional_test;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import akka.testkit.TestProbe;
-import akka.util.Duration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 
-import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoInteriorBridgePort;
 import org.midonet.client.dto.DtoInteriorRouterPort;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.Router;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
-import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IntIPv4;
@@ -43,69 +28,29 @@ import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.lock.LockHelper;
 
-
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.midonet.util.Waiters.sleepBecause;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-public class L2FilteringTest {
+public class L2FilteringTest extends TestBase {
+
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
-    ApiServer apiStarter;
-    MidonetApi apiClient;
     Bridge bridge;
-    BridgePort<DtoBridgePort> brPort3;
-    TapWrapper tap1;
-    TapWrapper tap2;
-    TapWrapper tap3;
-    TapWrapper tap4;
-    TapWrapper tap5;
+    BridgePort[] brPorts;
+    TapWrapper[] taps;
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID =
         "910de343-c39b-4933-86c7-540225fb02f9";
 
-    @BeforeClass
-    public static void checkLock() {
-        lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
-    }
-
-    @AfterClass
-    public static void releaseLock() {
-        lock.release();
-    }
-
-    @Before
-    public void setUp() throws IOException, InterruptedException {
-        String testConfigurationPath =
-            "midolman_runtime_configurations/midolman-default.conf";
-
-        // start zookeeper with the designated port.
-        log.info("Starting embedded zookeeper.");
-        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
-        Assert.assertThat(zookeeperPort, greaterThan(0));
-
-        log.info("Starting cassandra");
-        startCassandra();
-
-        log.info("Starting REST API");
-        apiStarter = new ApiServer(zookeeperPort);
-        apiClient = new MidonetApi(apiStarter.getURI());
-
-        // TODO(pino): delete the datapath before starting MM
-        log.info("Starting midolman");
-        EmbeddedMidolman mm = startEmbeddedMidolman(testConfigurationPath);
-        TestProbe probe = new TestProbe(mm.getActorSystem());
-        mm.getActorSystem().eventStream().subscribe(
-            probe.ref(), LocalPortActive.class);
+    @Override
+    public void setup() {
 
         // Build a router
-        Router rtr =
-            apiClient.addRouter().tenantId("L2filter_tnt").name("rtr1").create();
+        Router rtr = apiClient.addRouter()
+                              .tenantId("L2filter_tnt")
+                              .name("rtr1")
+                              .create();
         // Add a interior port to the router.
         rtrPort = rtr
             .addInteriorRouterPort()
@@ -122,69 +67,30 @@ public class L2FilteringTest {
 
         // Build a bridge
         bridge = apiClient.addBridge()
-            .tenantId("L2filter_tnt").name("br").create();
+            .tenantId("L2filter_tnt")
+            .name("br")
+            .create();
+
         // Link the bridge to the router.
         BridgePort<DtoInteriorBridgePort> logBrPort =
             bridge.addInteriorPort().create();
         rtrPort.link(logBrPort.getId());
 
-        tap1 = new TapWrapper("l2filterTap1");
-        tap2 = new TapWrapper("l2filterTap2");
-        tap3 = new TapWrapper("l2filterTap3");
-        tap4 = new TapWrapper("l2filterTap4");
-        tap5 = new TapWrapper("l2filterTap5");
 
-        // Now bind the taps to exterior bridge ports.
-        log.debug("Getting host from REST API");
-        ResourceCollection<Host> hosts = apiClient.getHosts();
+        // Add some exterior ports and bind to taps
+        brPorts = buildBridgePorts(bridge, true, 5);
+        taps = bindTapsToBridgePorts(
+        thisHost, brPorts, "l2FilterTap", probe);
 
-        Host host = null;
-        for (Host h : hosts) {
-            if (h.getId().toString().matches(TEST_HOST_ID)) {
-                host = h;
-            }
-        }
-        // check that we've actually found the test host.
-        assertNotNull("Host is null", host);
-
-        host.addHostInterfacePort().interfaceName(tap1.getName())
-            .portId(bridge.addExteriorPort().create().getId()).create();
-        host.addHostInterfacePort().interfaceName(tap2.getName())
-            .portId(bridge.addExteriorPort().create().getId()).create();
-        brPort3 = bridge.addExteriorPort().create();
-        host.addHostInterfacePort().interfaceName(tap3.getName())
-            .portId(brPort3.getId()).create();
-        host.addHostInterfacePort().interfaceName(tap4.getName())
-            .portId(bridge.addExteriorPort().create().getId()).create();
-        host.addHostInterfacePort().interfaceName(tap5.getName())
-            .portId(bridge.addExteriorPort().create().getId()).create();
-
-        log.info("Waiting for 5 LocalPortActive notifications");
-        Set<UUID> activatedPorts = new HashSet<UUID>();
-        for (int i = 0; i < 5; i++) {
-            LocalPortActive activeMsg = probe.expectMsgClass(
-                Duration.create(10, TimeUnit.SECONDS),
-                LocalPortActive.class);
-            log.info("Received a LocalPortActive message about {}.",
-                activeMsg.portID());
-            assertTrue("The port should be active.", activeMsg.active());
-            activatedPorts.add(activeMsg.portID());
-        }
-        assertThat("The 5 exterior ports should be active.",
-            activatedPorts, hasSize(5));
     }
 
-    @After
-    public void tearDown() {
-        removeTapWrapper(tap1);
-        removeTapWrapper(tap2);
-        removeTapWrapper(tap3);
-        removeTapWrapper(tap4);
-        removeTapWrapper(tap5);
-        stopEmbeddedMidolman();
-        apiStarter.stop();
-        stopCassandra();
-        stopEmbeddedZookeeper();
+    @Override
+    public void teardown() {
+        if (taps != null) {
+            for (TapWrapper tap : taps) {
+                removeTapWrapper(tap);
+            }
+        }
     }
 
     @Test
@@ -200,7 +106,12 @@ public class L2FilteringTest {
         IntIPv4 ip4 = IntIPv4.fromString("10.0.0.4");
         IntIPv4 ip5 = IntIPv4.fromString("10.0.0.5");
 
-        TapWrapper[] taps = new TapWrapper[] {tap1, tap2, tap3, tap4, tap5};
+        // Extract taps to variables for clarity (tap1 better than taps[0])
+        final TapWrapper tap1 = taps[0];
+        final TapWrapper tap2 = taps[1];
+        final TapWrapper tap3 = taps[2];
+        final TapWrapper tap4 = taps[3];
+        final TapWrapper tap5 = taps[4];
 
         // Send ARPs from each edge port so that the bridge can learn MACs.
         // If broadcasts happen, drain them
@@ -224,6 +135,7 @@ public class L2FilteringTest {
         // mac5 to mac2
         icmpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip5, ip2);
         icmpFromTapArrivesAtTap(tap5, tap2, mac5, mac2, ip4, ip2);
+
         // LLDP packets.
         lldpFromTapArrivesAtTap(tap3, tap2, mac3, mac2);
         lldpFromTapArrivesAtTap(tap2, tap1, mac2, mac1);
@@ -271,7 +183,7 @@ public class L2FilteringTest {
             .dlSrc(mac1.toString()).create();
         // Add a rule that drops any IP packet that ingresses the third port.
         brInFilter.addRule().type(DtoRule.Drop)
-            .inPorts(new UUID[] {brPort3.getId()})
+            .inPorts(new UUID[]{brPorts[2].getId()})
             .dlType(IPv4.ETHERTYPE).create();
         sleepBecause("we need the network to process the rule changes", 2);
 

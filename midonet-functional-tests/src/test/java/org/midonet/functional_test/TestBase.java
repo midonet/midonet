@@ -8,6 +8,7 @@ import java.io.File;
 
 import akka.testkit.TestProbe;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +20,9 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.util.lock.LockHelper;
 
-
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
-
 
 public abstract class TestBase {
 
@@ -47,6 +47,7 @@ public abstract class TestBase {
         File testConfigFile = new File(testConfigurationPath);
         log.info("Starting embedded zookeper");
         int zkPort = startEmbeddedZookeeper(testConfigurationPath);
+        Assert.assertThat(zkPort, greaterThan(0));
         log.info("Starting cassandra");
         startCassandra();
         log.info("Starting REST API");
@@ -69,6 +70,7 @@ public abstract class TestBase {
         // check that we've actually found the test host.
         assertNotNull(thisHost);
 
+        // all done, delegate to custom test setup
         setup();
     }
 

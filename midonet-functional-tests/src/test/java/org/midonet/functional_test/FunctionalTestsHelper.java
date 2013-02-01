@@ -6,23 +6,39 @@ package org.midonet.functional_test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
-import com.google.inject.*;
+import org.midonet.client.dto.PortType;
+import org.midonet.client.resource.Bridge;
+import org.midonet.client.resource.BridgePort;
+import org.midonet.client.resource.Host;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.functional_test.utils.*;
 
+import akka.testkit.TestProbe;
+import akka.util.Duration;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.midonet.midolman.topology.LocalPortActive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 
 import org.midonet.functional_test.vm.VMController;
 import org.midonet.packets.Ethernet;
@@ -35,7 +51,6 @@ import org.midonet.util.SystemHelper;
 import org.midonet.util.process.ProcessHelper;
 
 // TODO marc this class should be converted to a base class for all the functional tests:
-
 public class FunctionalTestsHelper {
 
     public static final String LOCK_NAME = "functional-tests";
@@ -126,8 +141,8 @@ public class FunctionalTestsHelper {
 
         int exitCode = ProcessHelper
                 .newLocalProcess(
-                    String.format("%s -server 127.0.0.1:%d rmr /smoketest",
-                                  zkClient, port))
+                    format("%s -server 127.0.0.1:%d rmr /smoketest",
+                           zkClient, port))
                 .logOutput(log, "cleaning_zk")
                 .runAndWait();
 
@@ -139,7 +154,7 @@ public class FunctionalTestsHelper {
             // Now delete the functional test ZK directory.
             ProcessHelper
                     .newLocalProcess(
-                        String.format(
+                        format(
                             "%s -server 127.0.0.1:%d rmr /smoketest",
                             zkClient, port))
                     .logOutput(log, "cleaning_zk")
@@ -328,7 +343,7 @@ public class FunctionalTestsHelper {
         assertThat("The packet should have been sent from the source tap.",
             tapSrc.send(pkt));
         assertThat("The packet should have arrived at the destination tap.",
-            tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+                   tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
     }
 
     public static void icmpFromTapDoesntArriveAtTap(
@@ -340,6 +355,27 @@ public class FunctionalTestsHelper {
             tapSrc.send(pkt));
         assertThat("The packet should not have arrived at the destination tap.",
             tapDst.recv(), nullValue());
+    }
+    public static void udpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
+                                       MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+                                       short tpSrc, short tpDst, byte[] payload) {
+        byte[] pkt = PacketHelper.makeUDPPacket(
+            dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
+        assertThat("The packet should have been sent from the source tap.",
+                   tapSrc.send(pkt));
+        assertThat("The packet should have arrived at the destination tap.",
+                   tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+    }
+
+    public static void udpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
+                                            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+                                            short tpSrc, short tpDst, byte[] payload) {
+        byte[] pkt = PacketHelper.makeUDPPacket(
+            dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
+        assertThat("The packet should have been sent from the source tap.",
+                   tapSrc.send(pkt));
+        assertThat("The packet should not have arrived at the destination tap.",
+                   tapDst.recv(), nullValue());
     }
 
     public static void arpAndCheckReply(
@@ -372,20 +408,22 @@ public class FunctionalTestsHelper {
      * @param taps
      * @throws MalformedPacketException
      */
-    public static void arpAndCheckReplyDrainBroadcasts(
-        TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
-        IntIPv4 dstIp, MAC expectedMac, TapWrapper[] taps)
-        throws MalformedPacketException {
+    public static MAC arpAndCheckReplyDrainBroadcasts(
+            TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
+            IntIPv4 dstIp, MAC expectedMac, TapWrapper[] taps)
+            throws MalformedPacketException {
 
+        MAC m = null;
         arpAndCheckReply(tap, srcMac, srcIp, dstIp, expectedMac);
         for(TapWrapper otherTap : taps) {
             byte[] bytes = otherTap.recv();
             if (bytes != null) {
-                MAC m = PacketHelper.checkArpReply(bytes, dstIp, srcMac, srcIp);
+                m = PacketHelper.checkArpReply(bytes, dstIp, srcMac, srcIp);
                 assertThat("Unexpected MAC reply at tap " + otherTap,
                            m, equalTo(expectedMac));
             }
         }
+        return m;
     }
 
     public static byte[] makeLLDP(MAC dlSrc, MAC dlDst) {
@@ -421,6 +459,7 @@ public class FunctionalTestsHelper {
         byte[] pkt = makeLLDP(dlSrc, dlDst);
         assertThat("The packet should have been sent from the source tap.",
             tapSrc.send(pkt));
+        log.info("LLDP sent from {} expecting at {}", dlSrc, dlDst);
         assertThat("The packet should have arrived at the destination tap.",
             tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
     }
@@ -432,6 +471,78 @@ public class FunctionalTestsHelper {
             tapSrc.send(pkt));
         assertThat("The packet should not have arrived at the destination tap.",
             tapDst.recv(), nullValue());
+    }
+
+    public static BridgePort[] buildBridgePorts(
+        Bridge bridge, boolean exterior, int n) {
+
+        BridgePort[] bridgePorts = new BridgePort[5];
+        for (int i = 0; i < n; i++) {
+            bridgePorts[i] = (exterior) ?
+                bridge.addExteriorPort().create() :
+                bridge.addInteriorPort().create();
+        }
+        return bridgePorts;
+    }
+
+    /**
+     * This convenient method takes a host, a set of ports, and takes care to
+     * bind the ports to newly created taps and confirm that the corresponding
+     * LocalPortActive events are triggered. It will return the Taps.
+     *
+     * @param host
+     * @param ports expected exterior, and created
+     * @param tapNamePrefix used to name the taps prefix + index,
+     *                      if null it'll use a default "testTap"
+     * @param probe for LocalPortActive events on the eventStream
+     * @return the taps, each will be bound to the port at the same index
+     */
+    public static TapWrapper[] bindTapsToBridgePorts(
+        Host host,
+        BridgePort[] ports,
+        String tapNamePrefix,
+        TestProbe probe) {
+
+        // Make taps
+        if (tapNamePrefix == null) {
+            tapNamePrefix = "testTap";
+        }
+        TapWrapper[] taps = new TapWrapper[ports.length];
+        for (int i = 0; i < taps.length; i++) {
+            log.debug("New tap: {}" , tapNamePrefix + i);
+            taps[i] = new TapWrapper(tapNamePrefix + i);
+        }
+
+        // Bind to taps
+        int i = 0;
+        for (BridgePort port : ports) {
+            assertEquals(port.getType(), PortType.EXTERIOR_BRIDGE);
+            TapWrapper tap = taps[i++];
+            log.debug("Bind tap {} to port {}", tap.getName(), port.getId());
+            host.addHostInterfacePort()
+                .interfaceName(tap.getName())
+                .portId(port.getId()).create();
+        }
+
+        // Wait until they become active
+        log.info("Waiting for {} LocalPortActive notifications", ports.length);
+        Set<UUID> activatedPorts = new HashSet<UUID>();
+        for (i = 0; i < ports.length; i++) {
+            LocalPortActive activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+            log.info("Received a LocalPortActive message about {}",
+                     activeMsg.portID());
+            assertTrue("The port should be active.", activeMsg.active());
+            activatedPorts.add(activeMsg.portID());
+
+        }
+
+        assertThat("The " + ports.length + " exterior ports should be active",
+                   activatedPorts, hasSize(ports.length));
+
+        return taps;
+
     }
 
 }
