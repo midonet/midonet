@@ -77,13 +77,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         // Register filters - the order matters here.  Make sure that CORS
         // filter is registered before Auth because Auth would reject OPTION
         // requests without a token in the header.
-        filter("/v1/*").through(CrossOriginResourceSharingFilter.class);
         filter("/*").through(CrossOriginResourceSharingFilter.class);
-        filter("/v1/*").through(AuthFilter.class);
         filter("/*").through(AuthFilter.class);
 
         // Register servlet
-        serve("/v1/*").with(GuiceContainer.class, servletParams);
         serve("/*").with(GuiceContainer.class, servletParams);
 
         log.debug("configureServlets: exiting");

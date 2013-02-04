@@ -55,13 +55,13 @@ the API reveals the locations of the available resources.
 
     GET /
     Host: example.org
-    Accept: application/vnd.org.midonet.Application+json
+    Accept: application/vnd.org.midonet.Application-v1+json
 
 The request above may yield the following output:
 
 
     HTTP/1.1 200 OK
-    Content-Type: application/vnd.org.midonet.Application+json
+    Content-Type: application/vnd.org.midonet.Application-v1+json
     {
         "uri": "http://example.org/",
         "version": "1",
@@ -103,7 +103,7 @@ In MidoNet REST API, the resources are encoded in JSON, as specified in
 RFC 4267.  Each type of resource has its own media-type, which matches the
 pattern:
 
-*application/vnd.org.midonet.xxxxx+json*
+*application/vnd.org.midonet.xxxxx-v1+json*
 
 where “xxxxx“ represents the unique resource identifier.
 
@@ -275,7 +275,7 @@ with these verbs.  If they are not specified, the field should not be included
 in the request.
 
 <a name="application"/>
-### Application [application/vnd.org.midonet.Application+json]
+### Application [application/vnd.org.midonet.Application-v1+json]
 
     GET     /
 
@@ -454,7 +454,7 @@ traverse the URIs to discover all the available services.
 </table>
 
 <a name="router"/>
-### Router [application/vnd.org.midonet.Router+json]
+### Router [application/vnd.org.midonet.Router-v1+json]
 
     GET     /routers?tenant_id=:tenantId
     GET     /routers/:routerId
@@ -573,7 +573,7 @@ contains the following fields:
 </table>
 
 <a name="bridge"/>
-### Bridge [application/vnd.org.midonet.Bridge+json]
+### Bridge [application/vnd.org.midonet.Bridge-v1+json]
 
     GET     /bridges?tenant_id=:tenantId
     GET     /bridges/:bridgeId
@@ -689,7 +689,7 @@ contains the following fields:
 </table>
 
 <a name="port"/>
-### Port [application/vnd.org.midonet.Port+json]
+### Port [application/vnd.org.midonet.Port-v1+json]
 
     GET     /ports?tenant_id=:tenantId
     GET     /ports/:portId
@@ -889,7 +889,7 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
 </table>
 
 <a name="portlink"/>
-### PortLink [application/vnd.org.midonet.PortLink+json]
+### PortLink [application/vnd.org.midonet.PortLink-v1+json]
 
     POST     /ports/:portId/link
     DELETE   /ports/:portId/link
@@ -944,7 +944,7 @@ fields:
 </table>
 
 <a name="route"/>
-### Route [application/vnd.org.midonet.Route+json]
+### Route [application/vnd.org.midonet.Route-v1+json]
 
     GET     /routes/:routeId
     GET     /routers/:routerId/routes
@@ -1059,7 +1059,7 @@ contains the following fields:
 </table>
 
 <a name="portgroup"/>
-### PortGroup [application/vnd.org.midonet.PortGroup+json]
+### PortGroup [application/vnd.org.midonet.PortGroup-v1+json]
 
     GET     /port_groups?tenant_id=:tenantId
     GET     /port_groups?port_id=:portId
@@ -1115,7 +1115,7 @@ contains the following fields:
 </table>
 
 <a name="portgroupport"/>
-### PortGroupPort [application/vnd.org.midonet.PortGroupPort+json]
+### PortGroupPort [application/vnd.org.midonet.PortGroupPort-v1+json]
 
     GET     /port_groups/:portGroupId/ports
     GET     /port_groups/:portGroupId/ports/:portId
@@ -1171,7 +1171,7 @@ PortGroupPort represents membership of ports in port groups.
 </table>
 
 <a name="chain"/>
-### Chain [application/vnd.org.midonet.Chain+json]
+### Chain [application/vnd.org.midonet.Chain-v1+json]
 
     GET     /chains
     GET     /chains?tenant_id=:tenantId
@@ -1231,7 +1231,7 @@ It contains the following fields:
 </table>
 
 <a name="rule"/>
-### Rule [application/vnd.org.midonet.Rule+json]
+### Rule [application/vnd.org.midonet.Rule-v1+json]
 
     GET     /chains/:chainId/rules
     GET     /rules/:ruleId
@@ -1490,7 +1490,7 @@ It contains the following fields:
 </table>
 
 <a name="bgp"/>
-### BGP [application/vnd.org.midonet.Bgp+json]
+### BGP [application/vnd.org.midonet.Bgp-v1+json]
 
     GET     /ports/:portId/bgps
     GET     /bgps/:bgpId
@@ -1569,7 +1569,7 @@ contains the following fields:
 </table>
 
 <a name="routeadvertisement"/>
-### Route Advertisement [application/vnd.org.midonet.AdRoute+json]
+### Route Advertisement [application/vnd.org.midonet.AdRoute-v1+json]
 
     GET     /bgps/:bgpId/ad_routes
     GET     /ad_routes/:adRouteId
@@ -1632,7 +1632,7 @@ contains the following fields:
     </tr>
 </table>
 
-### VPN [application/vnd.org.midonet.Vpn+json]
+### VPN [application/vnd.org.midonet.Vpn-v1+json]
 *This is NOT supported in Caddo.*
 
 VPN is an entity that represents a single set of VPN configurations.  It
@@ -1678,7 +1678,7 @@ contains the following fields:
 </table>
 
 <a name="host"/>
-### Host [application/vnd.org.midonet.Host+json]
+### Host [application/vnd.org.midonet.Host-v1+json]
 
     GET     /hosts
     GET     /hosts/:hostId
@@ -1736,7 +1736,7 @@ contains the following fields:
 </table>
 
 <a name="interface"/>
-### Interface [application/vnd.org.midonet.Interface+json]
+### Interface [application/vnd.org.midonet.Interface-v1+json]
 
     GET     /hosts/:hostId/interfaces
     GET     /hosts/:hostId/interfaces/:interfaceName
@@ -1825,7 +1825,7 @@ Unknown | Physical | Virtual | Tunnel</td>
 </table>
 
 <a name="hostcommand"/>
-### HostCommand [application/vnd.org.midonet.HostCommand+json]
+### HostCommand [application/vnd.org.midonet.HostCommand-v1+json]
 
     GET     /hosts/:hostId/commands
     GET     /hosts/:hostId/commands/:hostCommandId
@@ -1897,7 +1897,7 @@ The value is the value of the operation as a string.</td>
 </table>
 
 <a name="hostinterfaceport"/>
-### Host-Interface-Port Binding [application/vnd.org.midonet.HostInterfacePort+json]
+### Host-Interface-Port Binding [application/vnd.org.midonet.HostInterfacePort-v1+json]
 
     GET     /hosts/:hostId/ports
     GET     /hosts/:hostId/ports/:portId
@@ -1949,7 +1949,7 @@ It contains the following fields:
 </table>
 
 <a name="tunnelzone"/>
-### TunnelZone [application/vnd.org.midonet.TunnelZone+json]
+### TunnelZone [application/vnd.org.midonet.TunnelZone-v1+json]
 
     GET     /tunnel_zones
     GET     /tunnel_zones/:tunnelZoneId
@@ -2000,7 +2000,7 @@ isolated zone for tunneling. It contains the following fields:
 </table>
 
 <a name="tunnelzonehost"/>
-### TunnelZoneHost [application/vnd.org.midonet.TunnelZoneHost+json]
+### TunnelZoneHost [application/vnd.org.midonet.TunnelZoneHost-v1+json]
 
     GET     /tunnel_zones/:tunnelZoneId/hosts
     GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
@@ -2015,15 +2015,15 @@ Especially the following two `GET` requests are allowed to specify the media typ
 
 The media types below are available for each URI:
 
-* `"application/vnd.org.midonet.collection.CapwapTunnelZoneHost+json"`
-* `"application/vnd.org.midonet.collection.GreTunnelZoneHost+json"`
-* `"application/vnd.org.midonet.collection.IpsecTunnelZoneHost+json"`
+* `"application/vnd.org.midonet.collection.CapwapTunnelZoneHost-v1+json"`
+* `"application/vnd.org.midonet.collection.GreTunnelZoneHost-v1+json"`
+* `"application/vnd.org.midonet.collection.IpsecTunnelZoneHost-v1+json"`
 
 and
 
-* `"application/vnd.org.midonet.CapwapTunnelZoneHost+json"`
-* `"application/vnd.org.midonet.GreTunnelZoneHost+json"`
-* `"application/vnd.org.midonet.IpsecTunnelZoneHost+json"`
+* `"application/vnd.org.midonet.CapwapTunnelZoneHost-v1+json"`
+* `"application/vnd.org.midonet.GreTunnelZoneHost-v1+json"`
+* `"application/vnd.org.midonet.IpsecTunnelZoneHost-v1+json"`
 
 Represents a host's membership in a tunnel zone:
 
@@ -2088,7 +2088,7 @@ Represents a host's membership in a tunnel zone:
 </table>
 
 <a name="metrictarget"/>
-### Metric Target [application/vnd.org.midonet.MetricTarget+json]
+### Metric Target [application/vnd.org.midonet.MetricTarget-v1+json]
 
     POST    /metrics/filter
 
@@ -2115,7 +2115,7 @@ target.
 </table>
 
 <a name="metric"/>
-### Metric [application/vnd.org.midonet.collection.Metric+json]
+### Metric [application/vnd.org.midonet.collection.Metric-v1+json]
 
     POST    /metrics/filter
 
@@ -2155,7 +2155,7 @@ It’s an entity representing a metric in the monitoring system.
 </table>
 
 <a name="metricquery"/>
-### Metric Query [application/vnd.org.midonet.MetricQuery+json]
+### Metric Query [application/vnd.org.midonet.MetricQuery-v1+json]
 
     POST    /metrics/query
 
@@ -2209,7 +2209,7 @@ MetricQueryResponse containing the result of the queries.
 </table>
 
 <a name="metricqueryresponse"/>
-### Metric Query Response [application/vnd.org.midonet.MetricQueryResponse+json]
+### Metric Query Response [application/vnd.org.midonet.MetricQueryResponse-v1+json]
 
     POST    /metrics/query
 
@@ -2269,16 +2269,16 @@ It represents the result of a query to the monitoring system.
 </table>
 
 <a name="resourcecollection"/>
-### Resource Collection [application/vnd.org.midonet.collection.resource+json]
+### Resource Collection [application/vnd.org.midonet.collection.resource-v1+json]
 
 A collection of a resource is represented by the media type format:
 
-*application/vnd.org.midonet.collection.xxxx+json*
+*application/vnd.org.midonet.collection.xxxx-v1+json*
 
 where xxxx is the resource name.  The media type of a collection of tenants,
 for example, would be:
 
-*vnd.org.midonet.collection.Tenant+json*
+*vnd.org.midonet.collection.Tenant-v1+json*
 
 <a name="acronyms"/>
 ## List of Acronyms
