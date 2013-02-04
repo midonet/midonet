@@ -19,7 +19,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class FloatingIpTest {
 
     private final static Logger log = LoggerFactory
@@ -384,6 +382,7 @@ public class FloatingIpTest {
         }
         serverCmd = "grep -w domain-name-servers " + midnetDhcpFile;
         result = ProcessHelper.executeCommandLine(serverCmd);
+        numLines = result.consoleOutput.size() - 1;
         log.debug("DNS Server ID from DHCP file is {}", result.consoleOutput.get(numLines));
         if (! result.consoleOutput.get(numLines).contains("192.168.77.128")) {
             log.error("DNS Server ID does NOT match: {} != {}", "192.168.77.128", result.consoleOutput.get(numLines));

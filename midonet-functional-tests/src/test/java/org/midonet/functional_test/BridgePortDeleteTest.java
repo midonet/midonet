@@ -7,7 +7,6 @@ package org.midonet.functional_test;
 import java.util.concurrent.TimeUnit;
 
 import akka.util.Duration;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.midolman.topology.LocalPortActive;
@@ -22,7 +21,6 @@ import static org.midonet.functional_test.FunctionalTestsHelper
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-@Ignore
 public class BridgePortDeleteTest extends TestBase {
 
     //Tenant tenant1;
@@ -101,11 +99,11 @@ public class BridgePortDeleteTest extends TestBase {
         MAC mac2 = MAC.fromString("02:00:00:00:aa:02");
         MAC mac3 = MAC.fromString("02:00:00:00:aa:03");
 
-        // Send broadcast from Mac1/port1.
+        log.info("Send broadcast from Mac1/port1.");
         byte[] pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
 
-        // Send unicast from Mac2/port2 to mac1.
+        log.info("Send unicast from Mac2/port2 to mac1.");
         pkt = PacketHelper.makeIcmpEchoRequest(mac2, ip2, mac1, ip1);
         assertThat(
             String.format(
@@ -118,17 +116,18 @@ public class BridgePortDeleteTest extends TestBase {
 
         // The last packet caused the bridge to learn the mapping Mac2->port2.
         // That also triggered invalidation of flooded flows: flow1.
-        // Resend the ARP to re-install the flooded flow.
+        log.info("Resend the ARP to re-install the flooded flow.");
         pkt = PacketHelper.makeArpRequest(mac1, ip1, ip2);
         sendPacket(pkt, tap1, new TapWrapper[] {tap2, tap3});
 
         // Delete port1. It is the destination of flow2 and
         // the origin of flow1 - so expect both flows to be removed.
-        //ovsBridge1.deletePort(tap1.getName());
+        log.info("Removing tap1 and expect port1 to be set inactive");
+        tap1.remove();
         LocalPortActive msg = probe.expectMsgClass(
             Duration.create(10, TimeUnit.SECONDS),
             LocalPortActive.class);
-        assertThat(msg.portID(), equalTo(bPort3.getId()));
+        assertThat(msg.portID(), equalTo(bPort1.getId()));
         assertThat(msg.active(), equalTo(false));
     }
 }

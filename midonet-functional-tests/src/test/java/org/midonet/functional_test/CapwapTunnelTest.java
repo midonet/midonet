@@ -7,7 +7,6 @@ package org.midonet.functional_test;
 import java.util.UUID;
 import java.nio.ByteBuffer;
 
-import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-@Ignore
 public class CapwapTunnelTest extends BaseTunnelTest {
     private final static Logger log = LoggerFactory.getLogger(CapwapTunnelTest.class);
 
