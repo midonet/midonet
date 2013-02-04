@@ -15,6 +15,8 @@ import metrics.vrn.VifMetrics
 import org.midonet.midolman.{Referenceable, DatapathController}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.monitoring.MonitoringActor.MetricsUpdated
+import org.midonet.odp.Port
 
 /**
  * This actor periodically sends requests to the DatapathController to get stats for the ports.
@@ -26,67 +28,70 @@ import org.midonet.midolman.config.MidolmanConfig
  */
 
 object MonitoringActor extends Referenceable {
-  override val Name = "MonitoringActor"
+    override val Name = "MonitoringActor"
+    case class MetricsUpdated(portID: UUID, portStatistics: Port.Stats)
 
 }
 
 class MonitoringActor extends Actor with ActorLogWithoutPath {
 
-  import DatapathController._
-  import VirtualToPhysicalMapper._
-  import context._
+    import DatapathController._
+    import VirtualToPhysicalMapper._
+    import context._
 
-  @Inject
-  var configuration: MidolmanConfig = null
+    @Inject
+    var configuration: MidolmanConfig = null
 
-  val vifMetrics: VifMetrics = new VifMetrics(context.system.eventStream)
+    val vifMetrics: VifMetrics = new VifMetrics(context.system.eventStream)
 
-  // monitored ports.
-  val portsMap = new mutable.HashMap[UUID, Cancellable]
+    // monitored ports.
+    val portsMap = new mutable.HashMap[UUID, Cancellable]
 
-  override def preStart {
+    override def preStart() {
 
-    // subscribe to the LocalPortActive messages (the ones that create and remove local ports).
-    context.system.eventStream.subscribe(self, classOf[LocalPortActive])
+        // subscribe to the LocalPortActive messages (the ones that create and remove local ports).
+        context.system.eventStream.subscribe(self, classOf[LocalPortActive])
 
-  }
+    }
 
-  override def postStop {
-    log.info("Monitoring actor is shutting down")
-  }
-
-
-  def receive = {
-
-    case LocalPortActive(portID, true) =>
-      if (!portsMap.contains(portID)) {
-
-        // create the metric for this port.
-        vifMetrics.enableVirtualPortMetrics(portID)
-
-        val task = system.scheduler.schedule(
-          new FiniteDuration(0, "milliseconds"),
-          new FiniteDuration(configuration.getPortStatsRequestTime, "milliseconds"),
-          DatapathController.getRef(),
-          PortStatsRequest(portID))
-
-        // add this port to the local map.
-        portsMap.put(portID, task);
-      }
+    override def postStop() {
+        log.info("Monitoring actor is shutting down")
+    }
 
 
-    case LocalPortActive(portID, false) =>
-      if (portsMap.contains(portID)) {
-        portsMap.get(portID).get.cancel()
-        portsMap.remove(portID)
-      }
-      vifMetrics.disableVirtualPortMetrics(portID)
+    def receive = {
+
+        case LocalPortActive(portID, true) =>
+            if (!portsMap.contains(portID)) {
+
+                // create the metric for this port.
+                vifMetrics.enableVirtualPortMetrics(portID)
+
+                val task = system.scheduler.schedule(
+                    new FiniteDuration(0, "milliseconds"),
+                    new FiniteDuration(configuration.getPortStatsRequestTime,
+                        "milliseconds"),
+                    DatapathController.getRef(),
+                    PortStatsRequest(portID))
+
+                // add this port to the local map.
+                portsMap.put(portID, task)
+            }
 
 
-    case PortStats(portID, stats) =>
-      vifMetrics.updateStats(portID, stats);
+        case LocalPortActive(portID, false) =>
+            if (portsMap.contains(portID)) {
+                portsMap.get(portID).get.cancel()
+                portsMap.remove(portID)
+            }
+            vifMetrics.disableVirtualPortMetrics(portID)
 
-    case _ => log.info("RECEIVED UNKNOWN MESSAGE")
-  }
+
+        case PortStats(portID, stats) =>
+            vifMetrics.updateStats(portID, stats)
+            context.system.eventStream.publish(new MetricsUpdated(portID, stats))
+
+        case _ => log.info("RECEIVED UNKNOWN MESSAGE")
+    }
 
 }

@@ -36,7 +36,7 @@ public abstract class TestBase {
 
     private ApiServer apiStarter;
     protected MidonetApi apiClient;
-    private EmbeddedMidolman midolman;
+    protected EmbeddedMidolman midolman;
     protected TestProbe probe;
     protected Host thisHost;
 
