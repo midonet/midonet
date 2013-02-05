@@ -4,7 +4,6 @@
 
 package org.midonet.functional_test;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.client.dto.DtoRule;
@@ -20,32 +19,32 @@ import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 
 
+import static org.midonet.functional_test.FunctionalTestsHelper.arpAndCheckReplyDrainBroadcasts;
+import static org.midonet.functional_test.FunctionalTestsHelper.bindTapsToBridgePorts;
+import static org.midonet.functional_test.FunctionalTestsHelper.buildBridgePorts;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static org.midonet.functional_test.FunctionalTestsHelper.udpFromTapArrivesAtTap;
+import static org.midonet.functional_test.FunctionalTestsHelper.udpFromTapDoesntArriveAtTap;
 import static org.midonet.util.Waiters.sleepBecause;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
-@Ignore
 public class FilteringConnTrackingTest extends TestBase {
     Bridge bridge1;
-    BridgePort bPort1;
-    BridgePort bPort2;
-    BridgePort bPort3;
-    BridgePort bPort4;
-    BridgePort bPort5;
     BridgePort interiorBrPort;
     RouterPort rPort1;
-    TapWrapper tap1;
-    TapWrapper tap2;
-    TapWrapper tap3;
-    TapWrapper tap4;
-    TapWrapper tap5;
+    TapWrapper[] taps;
+    BridgePort[] ports;
 
     @Override
     public void setup() {
-        bridge1 = apiClient.addBridge().name("br1").create();
+        bridge1 = apiClient.addBridge()
+            .tenantId("tenant-1")
+            .name("br1")
+            .create();
 
-        Router rtr = apiClient.addRouter().name("rtr1").create();
+        Router rtr = apiClient.addRouter()
+            .tenantId("tenant-1")
+            .name("rtr1")
+            .create();
         // Link the Bridge and Router
         rPort1 = rtr.addInteriorRouterPort()
                     .networkAddress("10.0.0.0")
@@ -54,66 +53,21 @@ public class FilteringConnTrackingTest extends TestBase {
         interiorBrPort = bridge1.addInteriorPort().create();
         rPort1.link(interiorBrPort.getId());
 
-        // Add ports to the bridge.
-        bPort1 = bridge1.addExteriorPort().create();
-        bPort2 = bridge1.addExteriorPort().create();
-        bPort3 = bridge1.addExteriorPort().create();
-        bPort4 = bridge1.addExteriorPort().create();
-        bPort5 = bridge1.addExteriorPort().create();
+        ports = buildBridgePorts(bridge1, true, 5);
+        taps = bindTapsToBridgePorts(thisHost, ports, "filterConnTap", probe);
 
-        tap1 = new TapWrapper("l2filterTap1");
-        //ovsBridge1.addSystemPort(bPort1.getId(), tap1.getName());
-        tap2 = new TapWrapper("l2filterTap2");
-        //ovsBridge1.addSystemPort(bPort2.getId(), tap2.getName());
-        tap3 = new TapWrapper("l2filterTap3");
-        //ovsBridge1.addSystemPort(bPort3.getId(), tap3.getName());
-        tap4 = new TapWrapper("l2filterTap4");
-        //ovsBridge1.addSystemPort(bPort4.getId(), tap4.getName());
-        tap5 = new TapWrapper("l2filterTap5");
-        //ovsBridge1.addSystemPort(bPort5.getId(), tap5.getName());
     }
 
     @Override
     public void teardown() {
-        removeTapWrapper(tap1);
-        removeTapWrapper(tap2);
-        removeTapWrapper(tap3);
-        removeTapWrapper(tap4);
-        removeTapWrapper(tap5);
-
+        if (taps != null) {
+            for (TapWrapper tap : taps) {
+                log.debug("Cleaning tap {}", tap);
+                removeTapWrapper(tap);
+            }
+        }
         if (null != rPort1)
             rPort1.unlink();
-    }
-
-    public MAC arpFromTapAndGetReply(
-            TapWrapper tap, MAC dlSrc, IntIPv4 ipSrc, IntIPv4 ipDst)
-            throws MalformedPacketException {
-        assertThat("We failed to send the ARP request.",
-                tap.send(PacketHelper.makeArpRequest(dlSrc, ipSrc, ipDst)));
-        return PacketHelper.checkArpReply(
-                tap.recv(), ipDst, dlSrc, ipSrc);
-    }
-
-    public void udpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
-            short tpSrc, short tpDst, byte[] payload) {
-        byte[] pkt = PacketHelper.makeUDPPacket(
-                dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
-        assertThat("The packet should have been sent from the source tap.",
-                tapSrc.send(pkt));
-        assertThat("The packet should have arrived at the destination tap.",
-                tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
-    }
-
-    public void udpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
-            short tpSrc, short tpDst, byte[] payload) {
-        byte[] pkt = PacketHelper.makeUDPPacket(
-                dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
-        assertThat("The packet should have been sent from the source tap.",
-                tapSrc.send(pkt));
-        assertThat("The packet should not have arrived at the destination tap.",
-                tapDst.recv(), nullValue());
     }
 
     @Test
@@ -134,17 +88,20 @@ public class FilteringConnTrackingTest extends TestBase {
         final short port3 = 3;
         final short port4 = 4;
         final short port5 = 5;
+        // Extract taps to variables for clarity (tap1 better than taps[0])
+        final TapWrapper tap1 = taps[0];
+        final TapWrapper tap2 = taps[1];
+        final TapWrapper tap3 = taps[2];
+        final TapWrapper tap4 = taps[3];
+        final TapWrapper tap5 = taps[4];
 
         // Send ARPs from each edge port so that the bridge can learn MACs.
-        MAC rtrMac = arpFromTapAndGetReply(tap1, mac1, ip1, rtrIp);
-        assertThat("The router's IP should always resolve to the same MAC",
-                rtrMac, equalTo(arpFromTapAndGetReply(tap2, mac2, ip2, rtrIp)));
-        assertThat("The router's IP should always resolve to the same MAC",
-                rtrMac, equalTo(arpFromTapAndGetReply(tap3, mac3, ip3, rtrIp)));
-        assertThat("The router's IP should always resolve to the same MAC",
-                rtrMac, equalTo(arpFromTapAndGetReply(tap4, mac4, ip4, rtrIp)));
-        assertThat("The router's IP should always resolve to the same MAC",
-                rtrMac, equalTo(arpFromTapAndGetReply(tap5, mac5, ip5, rtrIp)));
+        MAC rtrMac = MAC.fromString(rPort1.getPortMac());
+        arpAndCheckReplyDrainBroadcasts(tap1, mac1, ip1, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap2, mac2, ip2, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap3, mac3, ip3, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap4, mac4, ip4, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(tap5, mac5, ip5, rtrIp, rtrMac, taps);
 
         // tap3 (ip3, mac3) can send packets to (ip1, mac1) and (ip2, mac2).
         udpFromTapArrivesAtTap(tap3, tap1, mac3, mac1, ip3, ip1, port3, port1,
@@ -153,22 +110,25 @@ public class FilteringConnTrackingTest extends TestBase {
                                "three => two".getBytes());
 
         // Now create a chain for the L2 virtual bridge's inbound filter.
-        RuleChain brInFilter = apiClient.addChain().name("brInFilter").create();
+        RuleChain brInFilter = apiClient.addChain().tenantId("tenantId").name("brInFilter").create();
         // Add a rule that accepts all return packets.
         Rule rule0 = brInFilter.addRule().position(1).matchReturnFlow(true)
                                .type(DtoRule.Accept).create();
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
-        Rule rule1 = brInFilter.addRule().position(2)
+        brInFilter.addRule().position(2)
             .nwSrcAddress(ip4.toUnicastString()).nwSrcLength(32)
             .nwDstAddress(ip1.toUnicastString()).nwDstLength(32)
-            .type(DtoRule.Drop) .create();
+            .type(DtoRule.Drop)
+            .create();
 
         // Add a rule that drops packets from mac5 to mac2. Because of the
         // initial conn-tracking rule, return pkts from mac5 to mac2 still pass.
-        Rule rule2 = brInFilter.addRule().position(3)
+        brInFilter.addRule().position(3)
             .dlSrc(mac5.toString()).dlDst(mac2.toString())
-            .type(DtoRule.Drop).create();
+            .type(DtoRule.Drop)
+            .create();
+
         // Set this chain as the bridge's inbound filter.
         bridge1.inboundFilterId(brInFilter.getId()).update();
 
