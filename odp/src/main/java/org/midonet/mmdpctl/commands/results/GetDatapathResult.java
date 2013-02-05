@@ -5,6 +5,7 @@ package org.midonet.mmdpctl.commands.results;
 
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Port;
+import org.midonet.odp.ports.TunnelPortOptions;
 
 import java.util.Set;
 
@@ -34,6 +35,11 @@ public class GetDatapathResult implements Result {
                 System.out.println("  Port number: " + port.getPortNo());
                 System.out.println("  Port type  : " + port.getType().toString());
                 System.out.println("  "+port.getStats().toString());
+                Port.Type portType = port.getType();
+                if (portType.equals(Port.Type.Gre) || portType.equals(Port.Type.CapWap)) {
+                    TunnelPortOptions options = (TunnelPortOptions) port.getOptions();
+                    System.out.println("  " + options.toString());
+                }
             }
         } else {
             System.out.println("Datapath does not contain any port.");
