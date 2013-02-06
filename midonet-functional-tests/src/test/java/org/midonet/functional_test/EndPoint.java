@@ -5,6 +5,7 @@
 package org.midonet.functional_test;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.junit.Ignore;
 
@@ -49,20 +50,16 @@ public class EndPoint {
         }
     }
 
-    public static MAC exchangeArpWithGw(EndPoint ep)
+    public static void exchangeArpWithGw(EndPoint ep, List<TapWrapper> taps)
             throws MalformedPacketException {
-        assertThat("The ARP request was sent from the endpoint to the router.",
-                ep.tap.send(PacketHelper.makeArpRequest(
-                        ep.mac, ep.ip, ep.gwIp)));
-        MAC dlDst = PacketHelper.checkArpReply(
-                ep.tap.recv(), ep.gwIp, ep.mac, ep.ip);
-        assertThat("The router's MAC is what we expected.",
-                dlDst, equalTo(ep.gwMac));
+        FunctionalTestsHelper.arpAndCheckReplyDrainBroadcasts(
+                ep.tap, ep.mac, ep.ip, ep.gwIp, ep.gwMac,
+                (taps == null) ? null :
+                    taps.toArray(new TapWrapper[taps.size()]));
         // Send unsolicited ARP replies so the router populates its ARP cache.
         assertThat("The unsolicited ARP reply was sent to the router.",
                 ep.tap.send(PacketHelper.makeArpReply(
-                        ep.mac, ep.ip, dlDst, ep.gwIp)));
-        return dlDst;
+                        ep.mac, ep.ip, ep.gwMac, ep.gwIp)));
     }
 
     public static void icmpDoesntArrive(EndPoint sender, EndPoint receiver,

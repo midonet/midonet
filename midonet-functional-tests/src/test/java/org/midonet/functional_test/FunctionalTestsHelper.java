@@ -408,22 +408,23 @@ public class FunctionalTestsHelper {
      * @param taps
      * @throws MalformedPacketException
      */
-    public static MAC arpAndCheckReplyDrainBroadcasts(
+    public static void arpAndCheckReplyDrainBroadcasts(
             TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
             IntIPv4 dstIp, MAC expectedMac, TapWrapper[] taps)
             throws MalformedPacketException {
 
-        MAC m = null;
         arpAndCheckReply(tap, srcMac, srcIp, dstIp, expectedMac);
+        if (null == taps)
+            return;
         for(TapWrapper otherTap : taps) {
-            byte[] bytes = otherTap.recv();
+            byte[] bytes = otherTap.recv(200);
             if (bytes != null) {
-                m = PacketHelper.checkArpReply(bytes, dstIp, srcMac, srcIp);
+                MAC m = PacketHelper.checkArpReply(bytes, dstIp, srcMac,
+                    srcIp);
                 assertThat("Unexpected MAC reply at tap " + otherTap,
                            m, equalTo(expectedMac));
             }
         }
-        return m;
     }
 
     public static byte[] makeLLDP(MAC dlSrc, MAC dlDst) {

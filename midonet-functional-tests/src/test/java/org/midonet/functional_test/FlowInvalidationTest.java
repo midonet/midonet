@@ -7,44 +7,55 @@ package org.midonet.functional_test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
+import akka.util.Duration;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.BridgePort;
+import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
+import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.functional_test.utils.TapWrapper;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.midonet.functional_test.EndPoint.*;
 import static org.midonet.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@Ignore
 public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
     RuleChain inChain;
     RuleChain outChain;
     Map<IntIPv4, Rule> floatingIpDnats = new HashMap<IntIPv4, Rule>();
     Map<IntIPv4, Rule> floatingIpSnats = new HashMap<IntIPv4, Rule>();
+    HostInterfacePort rportBinding;
 
     @Override
     public void teardown() {
-        super.teardown();
-        router1.inboundFilterId(null).outboundFilterId(null).update();
-        bridge1.inboundFilterId(null).outboundFilterId(null).update();
+        if (null != router1)
+            router1.inboundFilterId(null).outboundFilterId(null).update();
+        if (null != bridge1)
+            bridge1.inboundFilterId(null).outboundFilterId(null).update();
         for (BridgePort bport : bports)
             bport.inboundFilterId(null).outboundFilterId(null).update();
         for (EndPoint ep : vmEndpoints)
             ep.floatingIp = null;
+        if (null != rportBinding) {
+            rportBinding.delete();
+            rportBinding = null;
+        }
+        super.teardown();
     }
 
     private void addFloatingIp(
@@ -80,13 +91,14 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
             r.delete();
     }
 
+    @Ignore
     @Test
     public void testRouterChanges()
             throws InterruptedException, MalformedPacketException {
         // Populate the bridge's MAC learning table and router's ARP cache.
-        exchangeArpWithGw(vmEndpoints.get(0));
-        exchangeArpWithGw(vmEndpoints.get(1));
-        exchangeArpWithGw(rtrUplinkEndpoint);
+        exchangeArpWithGw(vmEndpoints.get(0), taps);
+        exchangeArpWithGw(vmEndpoints.get(1), taps);
+        exchangeArpWithGw(rtrUplinkEndpoint, null);
 
         // Before any NAT is enabled, endpoint0 sends a packet to floatingIP1.
         // This goes to the router's uplink.
@@ -95,8 +107,10 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         retrySentPacket(vmEndpoints.get(0), rtrUplinkEndpoint, packets1);
 
         // Now assign a floatingIP to endpoint0.
-        RuleChain inChain = apiClient.addChain().name("in").create();
-        RuleChain outChain = apiClient.addChain().name("out").create();
+        RuleChain inChain = apiClient.addChain().name("in")
+                .tenantId(TENANT_NAME).create();
+        RuleChain outChain = apiClient.addChain().name("out")
+                .tenantId(TENANT_NAME).create();
         router1.inboundFilterId(inChain.getId())
             .outboundFilterId(outChain.getId()).update();
 
@@ -105,8 +119,8 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         vmEndpoints.get(0).floatingIp = floatingIP0;
         sleepBecause("The filter has to be loaded", 1);
 
-        // Endpoint0 agains sends a packet to floatingIP1 (which is still
-        // unassigned and therefore isn't NAT'ed. The packet still goes to the
+        // Endpoint0 again sends a packet to floatingIP1 (which is still
+        // unassigned and therefore isn't NAT'ed). The packet still goes to the
         // uplink, but the source address at arrival is floatingIP0.
         PacketPair packets2 = icmpTest(
                 vmEndpoints.get(0), floatingIP1, rtrUplinkEndpoint, false);
@@ -153,8 +167,8 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
     public void testBridgeChanges()
             throws InterruptedException, MalformedPacketException {
         // Populate the bridge's MAC learning table.
-        exchangeArpWithGw(vmEndpoints.get(0));
-        exchangeArpWithGw(vmEndpoints.get(1));
+        exchangeArpWithGw(vmEndpoints.get(0), taps);
+        exchangeArpWithGw(vmEndpoints.get(1), taps);
 
         // The bridge starts out without any filters, so anyone can talk to
         // anyone else. In particular endpoint0 can talk to endpoint1.
@@ -164,7 +178,8 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
         // Now add an inbound filter on the bridge and a rule that drops
         // traffic from endpoint0's ip to endpoint1's ip.
-        RuleChain inFilter = apiClient.addChain().name("in").create();
+        RuleChain inFilter = apiClient.addChain().name("in")
+                .tenantId(TENANT_NAME).create();
         bridge1.inboundFilterId(inFilter.getId()).update();
         Rule rule1 = inFilter.addRule()
             .nwSrcAddress(vmEndpoints.get(0).ip.toUnicastString())
@@ -195,9 +210,9 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
     public void testPortChanges()
             throws InterruptedException, MalformedPacketException {
         // Populate the bridge's MAC learning table.
-        exchangeArpWithGw(vmEndpoints.get(0));
-        exchangeArpWithGw(vmEndpoints.get(1));
-        exchangeArpWithGw(vmEndpoints.get(2));
+        exchangeArpWithGw(vmEndpoints.get(0), taps);
+        exchangeArpWithGw(vmEndpoints.get(1), taps);
+        exchangeArpWithGw(vmEndpoints.get(2), taps);
 
         // Port1 starts out without any filters, so anyone can talk to it.
         PacketPair packets =
@@ -206,8 +221,9 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
 
         // Now add an outbound filter for endpoint1 and a rule that drops all
         // traffic from endpoint0's mac.
-        RuleChain outFilter = null; //bports.get(1)
-                //.addOutboundFilter("bport1_outfilter", tenant1.dto);
+        RuleChain outFilter = apiClient.addChain()
+            .name("bport1_outfilter").tenantId(TENANT_NAME).create();
+        bports.get(1).outboundFilterId(outFilter.getId()).update();
         Rule rule1 = outFilter.addRule()
                 .nwSrcAddress(vmEndpoints.get(0).ip.toUnicastString())
                 .nwSrcLength(32)
@@ -240,7 +256,7 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         // so that its MAC can be learned only in this test.
 
         // Make sure that the bridge already learned macs for port0.
-        exchangeArpWithGw(vmEndpoints.get(0));
+        exchangeArpWithGw(vmEndpoints.get(0), taps);
 
         // If endpoint0 sends endpoint4 a packet, the bridge will flood it
         // because it has not yet learned the endpoint's MAC.
@@ -284,8 +300,8 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
     public void testRoutingTableUpdate()
             throws MalformedPacketException, InterruptedException {
         // Populate the bridge's MAC learning table and router's ARP cache.
-        exchangeArpWithGw(vmEndpoints.get(0));
-        exchangeArpWithGw(rtrUplinkEndpoint);
+        exchangeArpWithGw(vmEndpoints.get(0), taps);
+        exchangeArpWithGw(rtrUplinkEndpoint, null);
 
         IntIPv4 pubNewIp = IntIPv4.fromString("112.0.1.40");
         // The router has no filters or NAT. So if endpoint0
@@ -298,17 +314,26 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         TapWrapper tapNew = new TapWrapper("newRouterPort");
         IntIPv4 gwIp = IntIPv4.fromString("172.16.1.2");
         RouterPort rtrNewPort = router1.addExteriorRouterPort()
-                .portMac(tapNew.getHwAddr().toString()).create();
-                //.setLocalLink(IntIPv4.fromString("172.16.1.1"), gwIp)
+                .portMac(tapNew.getHwAddr().toString())
+                .portAddress(gwIp.toUnicastString())
+                .networkAddress(gwIp.toNetworkAddress().toUnicastString())
+                .networkLength(gwIp.getMaskLength()).create();
+        routerUplink = router1.addExteriorRouterPort()
+            .portAddress("172.16.0.1")
+            .networkAddress("172.16.0.0").networkLength(24).create();
+        //.setLocalLink(IntIPv4.fromString("172.16.1.1"), gwIp)
                 //.addRoute(pubNewIp).build();
         EndPoint epNew = new EndPoint(gwIp, MAC.random(),
                 IntIPv4.fromString(rtrNewPort.getPortAddress()),
                 MAC.fromString(rtrNewPort.getPortMac()), tapNew);
-        //ovsBridge1.addSystemPort(
-        //        rtrNewPort.port.getId(),
-        //        tapNew.getName());
-        sleepBecause("we need the new port to come up", 2);
-        exchangeArpWithGw(epNew);
+        rportBinding = thisHost.addHostInterfacePort()
+            .interfaceName(tapNew.getName())
+            .portId(rtrNewPort.getId()).create();
+        LocalPortActive activeMsg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS), LocalPortActive.class);
+        assertTrue(activeMsg.active());
+        assertEquals(rtrNewPort.getId(), activeMsg.portID());
+        exchangeArpWithGw(epNew, null);
 
         // Now we resend the packet from endpoint0 to pubNewIp, it will go
         // to the new exterior router port. This shows that the previous
