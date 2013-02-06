@@ -121,7 +121,7 @@ public class TapWrapper {
         while (true) {
             int numRead = Tap.readFromTap(this.fd, tmp, 1492 - buf.position());
             if (numRead > 0)
-                log.debug("Got {} bytes reading from tap.", numRead);
+                log.debug("Got {} bytes reading from tap {}.", numRead, name);
             if (0 == numRead) {
                 if (timeSlept >= maxSleepMillis) {
                     //log.debug("Returning null after receiving {} bytes",
@@ -129,7 +129,7 @@ public class TapWrapper {
                     return null;
                 }
                 try {
-                    log.debug("Sleeping for 100 millis.");
+                    log.debug("Sleeping for 100 millis {}", name);
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     log.error("InterruptedException in recv()", e);
@@ -141,7 +141,7 @@ public class TapWrapper {
             if (totalSize < 0) {
                 totalSize = getTotalPacketSize(data, buf.position());
                 if (totalSize == -2) {
-                    log.warn("Got a non-IPv4 packet. Discarding.");
+                    log.warn("Got a non-IPv4 packet at {}. Discarding.", name);
                     totalSize = -1;
                     buf.position(0);
                     continue;

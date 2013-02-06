@@ -335,7 +335,7 @@ public class FunctionalTestsHelper {
         ml.stop();
     }
 
-    public static void icmpFromTapArrivesAtTap(
+    public static byte[] icmpFromTapArrivesAtTap(
         TapWrapper tapSrc, TapWrapper tapDst,
         MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
         byte[] pkt = PacketHelper.makeIcmpEchoRequest(
@@ -344,9 +344,10 @@ public class FunctionalTestsHelper {
             tapSrc.send(pkt));
         assertThat("The packet should have arrived at the destination tap.",
                    tapDst.recv(), allOf(notNullValue(), equalTo(pkt)));
+        return pkt;
     }
 
-    public static void icmpFromTapDoesntArriveAtTap(
+    public static byte[] icmpFromTapDoesntArriveAtTap(
         TapWrapper tapSrc, TapWrapper tapDst,
         MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
         byte[] pkt = PacketHelper.makeIcmpEchoRequest(
@@ -355,7 +356,9 @@ public class FunctionalTestsHelper {
             tapSrc.send(pkt));
         assertThat("The packet should not have arrived at the destination tap.",
             tapDst.recv(), nullValue());
+        return pkt;
     }
+
     public static void udpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
                                        MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
                                        short tpSrc, short tpDst, byte[] payload) {
