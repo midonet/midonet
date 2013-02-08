@@ -186,6 +186,19 @@ public class PingTest {
             .interfaceName(localName)
             .portId(brPort2.getId()).create();
 
+        // Now ifup the local port to run the DHCP client.
+        newProcess(
+            String.format("sudo ifdown %s --interfaces " +
+                          "./midolman_runtime_configurations/pingtest.network",
+                          localName))
+                         .logOutput(log, "int_port")
+                         .runAndWait();
+        newProcess(String.format("sudo ifup %s --interfaces " +
+                          "./midolman_runtime_configurations/pingtest.network",
+                          localName))
+                         .logOutput(log, "int_port")
+                         .runAndWait();
+
         Set<UUID> activatedPorts = new HashSet<UUID>();
         for (int i = 0; i < 2; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
@@ -197,20 +210,6 @@ public class PingTest {
         }
         assertThat("The 2 router ports should be active.", activatedPorts,
             hasItems(rtrPort1.getId(), brPort2.getId()));
-
-        // Now ifup the local port to run the DHCP client.
-        newProcess(
-            String.format("sudo ifdown %s --interfaces " +
-                "./midolman_runtime_configurations/pingtest.network",
-                localName))
-            .logOutput(log, "int_port")
-            .runAndWait();
-        newProcess(
-            String.format("sudo ifup %s --interfaces " +
-                "./midolman_runtime_configurations/pingtest.network",
-                localName))
-            .logOutput(log, "int_port")
-            .runAndWait();
 
         // No need to set the IP address (and static route to VM1) for the
         // datapath's local port. They're set via DHCP.
