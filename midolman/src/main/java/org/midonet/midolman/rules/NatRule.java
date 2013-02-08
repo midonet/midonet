@@ -6,9 +6,8 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
-import org.midonet.midolman.layer4.NatMapping;
-
 import org.midonet.midolman.rules.RuleResult.Action;
+
 
 public abstract class NatRule extends Rule {
     // The NatMapping is irrelevant to the hashCode, equals and serialization.

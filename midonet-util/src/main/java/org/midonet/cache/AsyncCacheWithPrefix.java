@@ -13,6 +13,8 @@ public class AsyncCacheWithPrefix implements AsyncCache {
     private String prefix;
 
     public AsyncCacheWithPrefix(AsyncCache cache, String prefix) {
+        if (cache == null)
+            throw new NullPointerException("underlying cache is null");
         this.cache = cache;
         this.prefix = prefix;
     }
