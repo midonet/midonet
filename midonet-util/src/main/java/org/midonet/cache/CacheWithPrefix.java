@@ -11,6 +11,8 @@ public class CacheWithPrefix implements Cache {
     private String prefix;
 
     public CacheWithPrefix(Cache cache, String prefix) {
+        if (cache == null)
+            throw new NullPointerException("Underlying cache is null");
         this.cache = cache;
         this.prefix = prefix;
     }

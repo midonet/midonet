@@ -102,6 +102,10 @@ public class FlowStateCacheModule extends PrivateModule {
                 public NatMapping get(final UUID ownerID) {
                     if (natMappingMap.containsKey(ownerID)) {
                         return natMappingMap.get(ownerID);
+                    } else if (cache == null) {
+                        log.warn("Not creating a NatMapping because cache is " +
+                                 "null.");
+                        return null;
                     } else {
                         log.debug("Creating a new NatMapping for {}", ownerID);
                         NatMapping natMapping = new NatLeaseManager(
