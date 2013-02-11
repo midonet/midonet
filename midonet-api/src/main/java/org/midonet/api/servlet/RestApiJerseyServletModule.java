@@ -3,26 +3,27 @@
  */
 package org.midonet.api.servlet;
 
+import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.guice.JerseyServletModule;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import org.midonet.api.auth.AuthContainerRequestFilter;
 import org.midonet.api.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
+import org.midonet.api.auth.LoginFilter;
 import org.midonet.api.auth.cors.CrossOriginResourceSharingFilter;
 import org.midonet.api.config.ConfigurationModule;
+import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.filter.FilterModule;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
+import org.midonet.api.validation.ValidationModule;
+import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
-import org.midonet.api.auth.AuthContainerRequestFilter;
-import org.midonet.api.error.ErrorModule;
-import org.midonet.api.validation.ValidationModule;
-import org.midonet.api.zookeeper.ZookeeperModule;
-import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.guice.JerseyServletModule;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +78,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         // Register filters - the order matters here.  Make sure that CORS
         // filter is registered before Auth because Auth would reject OPTION
         // requests without a token in the header.
+        filter("/login").through(LoginFilter.class);
         filter("/*").through(CrossOriginResourceSharingFilter.class);
         filter("/*").through(AuthFilter.class);
 

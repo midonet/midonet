@@ -6,35 +6,35 @@ package org.midonet.api.auth.keystone;
 import org.midonet.api.auth.AuthException;
 
 /**
- * KeystoneInvalidJsonException class for bad JSON response from Keystone.
+ * KeystoneInvalidFormatException class for bad JSON response from Keystone.
  */
-public class KeystoneInvalidJsonException extends AuthException {
+public class KeystoneInvalidFormatException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create a KeystoneInvalidJsonException object with a message.
+     * Create a KeystoneInvalidFormatException object with a message.
      *
      * @param message
      *            Error message.
      */
-    public KeystoneInvalidJsonException(String message) {
+    public KeystoneInvalidFormatException(String message) {
         super(message);
     }
 
     /**
-     * Create a KeystoneInvalidJsonException object with no message and wrap a
+     * Create a KeystoneInvalidFormatException object with no message and wrap a
      * Throwable object.
      *
      * @param e
      *            Throwable object
      */
-    public KeystoneInvalidJsonException(Throwable e) {
+    public KeystoneInvalidFormatException(Throwable e) {
         super(e);
     }
 
     /**
-     * Create a KeystoneInvalidJsonException object with a message and wrap a
+     * Create a KeystoneInvalidFormatException object with a message and wrap a
      * Throwable object.
      *
      * @param message
@@ -42,7 +42,7 @@ public class KeystoneInvalidJsonException extends AuthException {
      * @param e
      *            Throwable object
      */
-    public KeystoneInvalidJsonException(String message, Throwable e) {
+    public KeystoneInvalidFormatException(String message, Throwable e) {
         super(message, e);
     }
 }

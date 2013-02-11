@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,21 +15,21 @@ import java.util.Map;
  * Configurable auth client that skips authentication but allows setting of
  * roles.
  */
-public final class MockAuthClient implements AuthClient {
+public final class MockAuthService implements AuthService {
 
     private final static Logger log = LoggerFactory
-            .getLogger(MockAuthClient.class);
+            .getLogger(MockAuthService.class);
     private final MockAuthConfig config;
     private final Map<String, UserIdentity> tokenMap;
 
     /**
-     * Create a MockAuthClient object.
+     * Create a MockAuthService object.
      *
      * @param config
      *            MockAuthConfig object.
      */
     @Inject
-    public MockAuthClient(MockAuthConfig config) {
+    public MockAuthService(MockAuthConfig config) {
 
         this.config = config;
         this.tokenMap = new HashMap<String, UserIdentity>();
@@ -82,7 +83,7 @@ public final class MockAuthClient implements AuthClient {
      */
     @Override
     public UserIdentity getUserIdentityByToken(String token) {
-        log.debug("MockAuthClient.getUserIdentityByToken entered. {}", token);
+        log.debug("MockAuthService.getUserIdentityByToken entered. {}", token);
 
         UserIdentity user = tokenMap.get(token);
         if (user == null) {
@@ -91,7 +92,21 @@ public final class MockAuthClient implements AuthClient {
             user.addRole(AuthRole.ADMIN);
         }
 
-        log.debug("MockAuthClient.getUserIdentityByToken exiting. {}", user);
+        log.debug("MockAuthService.getUserIdentityByToken exiting. {}", user);
         return user;
+    }
+
+    /**
+     * Always return admin token
+     * @param _username username Unused
+     * @param _password password Unused
+     * @param _request HttpServletRequest object Unsued
+     * @return Admin token specified in config.
+     * @throws AuthException
+     */
+    @Override
+    public Token login(String _username, String _password,
+                           HttpServletRequest _request) throws AuthException {
+        return new Token(this.config.getAdminToken(), null);
     }
 }

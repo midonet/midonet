@@ -35,9 +35,9 @@
   <!-- Auth configuration -->
   <context-param>
     <param-name>auth-auth_provider</param-name>
-    <!-- Specify the class path of the auth client -->
+    <!-- Specify the class path of the auth service -->
     <param-value>
-      org.midonet.api.auth.MockAuthClient
+      org.midonet.api.auth.MockAuthService
     </param-value>
   </context-param>
   <context-param>

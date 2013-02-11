@@ -3,12 +3,12 @@
  */
 package org.midonet.api.auth.cloudstack;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.api.auth.AuthServerException;
 
 /**
  * CloudStackServerException class for bad HTTP response from CloudStack..
  */
-public class CloudStackServerException extends AuthException {
+public class CloudStackServerException extends AuthServerException {
 
     private static final long serialVersionUID = 1L;
 
@@ -17,9 +17,11 @@ public class CloudStackServerException extends AuthException {
      *
      * @param message
      *            Error message.
+     * @param status
+     *            HTTP status code
      */
-    public CloudStackServerException(String message) {
-        super(message);
+    public CloudStackServerException(String message, int status) {
+        super(message, status);
     }
 
     /**
@@ -28,9 +30,11 @@ public class CloudStackServerException extends AuthException {
      *
      * @param e
      *            Throwable object
+     * @param status
+     *            HTTP status code
      */
-    public CloudStackServerException(Throwable e) {
-        super(e);
+    public CloudStackServerException(Throwable e, int status) {
+        super(e, status);
     }
 
     /**
@@ -41,8 +45,10 @@ public class CloudStackServerException extends AuthException {
      *            Error message.
      * @param e
      *            Throwable object
+     * @param status
+     *            HTTP status code
      */
-    public CloudStackServerException(String message, Throwable e) {
-        super(message, e);
+    public CloudStackServerException(String message, Throwable e, int status) {
+        super(message, e, status);
     }
 }

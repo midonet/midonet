@@ -3,30 +3,16 @@
  */
 package org.midonet.api.auth;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.midonet.api.rest_api.ResponseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.HttpSupport;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.error.ErrorEntity;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Servlet filter for authentication.
@@ -35,8 +21,6 @@ import org.midonet.api.error.ErrorEntity;
 public final class AuthFilter implements Filter {
 
     private final static Logger log = LoggerFactory.getLogger(AuthFilter.class);
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
 
     /**
      * User identity key
@@ -44,8 +28,13 @@ public final class AuthFilter implements Filter {
     public static final String USER_IDENTITY_ATTR_KEY =
             UserIdentity.class.getName();
 
+    /**
+     * HTTP extension token header
+     */
+    public final static String HEADER_X_AUTH_TOKEN = "X-Auth-Token";
+
     @Inject
-    private AuthClient client;
+    private AuthService service;
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -60,26 +49,6 @@ public final class AuthFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         log.debug("AuthFilter.init: entered.");
-    }
-
-    private String generateJsonError(int code, String msg) throws IOException {
-        ErrorEntity err = new ErrorEntity();
-        err.setCode(code);
-        err.setMessage(msg);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(bos,
-                JsonEncoding.UTF8);
-        jsonGenerator.writeObject(err);
-        bos.close();
-        return bos.toString(HttpSupport.UTF8_ENC);
-    }
-
-    private void setErrorResponse(HttpServletResponse resp, int code,
-                                  String msg) throws IOException {
-        resp.setContentType(VendorMediaType.APPLICATION_ERROR_JSON);
-        resp.setCharacterEncoding(HttpSupport.UTF8_ENC);
-        resp.setStatus(code);
-        resp.getWriter().write(generateJsonError(code, msg));
     }
 
     /**
@@ -104,19 +73,15 @@ public final class AuthFilter implements Filter {
         log.debug("AuthFilter: entered doFilter.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
 
-        String token = req.getHeader(HttpSupport.TOKEN_HEADER);
-        if (token == null) {
-            // For legacy support
-            token = req.getHeader("HTTP_X_AUTH_TOKEN");
-        }
+        String token = req.getHeader(HEADER_X_AUTH_TOKEN);
 
         UserIdentity user = null;
         try {
             // It will accept null token since client implementations may
             // want to treat such case differently.
-            user = this.client.getUserIdentityByToken(token);
+            user = this.service.getUserIdentityByToken(token);
         } catch (AuthException ex) {
-            setErrorResponse((HttpServletResponse) response,
+            ResponseUtils.setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
             log.error("AuthFilter: auth error occurred. ", ex);
             return;
@@ -126,8 +91,9 @@ public final class AuthFilter implements Filter {
             req.setAttribute(USER_IDENTITY_ATTR_KEY, user);
             chain.doFilter(request, response);
         } else {
-            setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_UNAUTHORIZED,
+            // This is the case where a token was invalid.  Challenge the
+            // client to submit Basic auth credentials.
+            ResponseUtils.setAuthErrorResponse((HttpServletResponse) response,
                     "Authentication error");
         }
 
@@ -142,6 +108,6 @@ public final class AuthFilter implements Filter {
     public void destroy() {
         log.debug("AuthFilter.destroy: entered.");
         // Reset all the member variables.
-        this.client = null;
+        this.service = null;
     }
 }

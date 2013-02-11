@@ -3,12 +3,12 @@
  */
 package org.midonet.api.auth.keystone;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.api.auth.AuthServerException;
 
 /**
  * KeystoneServerException class for bad JSON response from Keystone.
  */
-public class KeystoneServerException extends AuthException {
+public class KeystoneServerException extends AuthServerException {
 
     private static final long serialVersionUID = 1L;
 
@@ -17,9 +17,11 @@ public class KeystoneServerException extends AuthException {
      *
      * @param message
      *            Error message.
+     * @param status
+     *            HTTP status code
      */
-    public KeystoneServerException(String message) {
-        super(message);
+    public KeystoneServerException(String message, int status) {
+        super(message, status);
     }
 
     /**
@@ -28,9 +30,11 @@ public class KeystoneServerException extends AuthException {
      *
      * @param e
      *            Throwable object
+     * @param status
+     *            HTTP status code
      */
-    public KeystoneServerException(Throwable e) {
-        super(e);
+    public KeystoneServerException(Throwable e, int status) {
+        super(e, status);
     }
 
     /**
@@ -41,8 +45,10 @@ public class KeystoneServerException extends AuthException {
      *            Error message.
      * @param e
      *            Throwable object
+     * @param status
+     *            HTTP status code
      */
-    public KeystoneServerException(String message, Throwable e) {
-        super(message, e);
+    public KeystoneServerException(String message, Throwable e, int status) {
+        super(message, e, status);
     }
 }

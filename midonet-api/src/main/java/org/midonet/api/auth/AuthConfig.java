@@ -23,7 +23,7 @@ public interface AuthConfig {
 
     @ConfigString(key = AUTH_PROVIDER,
             defaultValue =
-                    "org.midonet.api.auth.MockAuthClient")
+                    "org.midonet.api.auth.MockAuthService")
     public String getAuthProvider();
 
     @ConfigString(key = ADMIN_ROLE_KEY, defaultValue = "mido_admin")

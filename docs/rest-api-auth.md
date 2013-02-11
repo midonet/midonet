@@ -43,6 +43,14 @@ name, roles, and the unique identifier('token') used to validate the user.  How
 this object is used for authentication and authorization is explained in the
 sections below.
 
+## Token
+
+Token class represents a generic token in MidoNet.  When a user logins into the
+external auth service using its username and password credentials, MidoNet
+returns a Token object to the user, which contains 'key' that is used to
+generate subsequent API requests, and 'expires' which indicates the time to
+which the token is valid until.
+
 # Roles
 
 MidoNet API implements Role-Based Access Control (RBAC) mechanism to perform
@@ -61,21 +69,30 @@ successful attempt at authentication, the roles of this user from the external
 services must be converted to the roles in MidoNet.  This conversion is one of
 the responsibilities of the auth provider class described in the section below.
 
-## Authentication provider
+## Authentication service
 
-Authentication provider is a class that implements AuthClient interface.  In
-the current version of MidoNet API, it defines only one method:
+Authentication service is a class that implements AuthService interface.  In
+the current version of MidoNet API, it defines two methods:
 
 <pre><code>
-  public UserIdentity getUserIdentityByToken(String token) throws AuthException
+  public UserIdentity getUserIdentityByToken(String token) throws AuthException;
+
+  public Token login(String username, String password,
+                     HttpServletRequest request) throws AuthException;
 </code></pre>
 
-The implementation of this method must, with a given token, instantiate a
-UserIdentity object with all its member fields set properly if the
+The implementation of 'getUserIdentityByToken' method must, with a given token,
+instantiate a UserIdentity object with all its member fields set properly if the
 authentication succeeds, return null if the user is not valid, or throw
 AuthException if an unexpected error occurs during authentication.  The roles of
 the user are also converted from the roles defined in the external identity
 service to the those understood by MidoNet.
+
+The implementation of 'login' method must authenticate the user using the given
+username and password credentials (and any item from HttpServletRequest object
+if necessary) with the auth service.  It should return a Token object if the
+authentication succeeds, null if the authentication fails, and throw an
+exception if there was an error.
 
 The authentication provider can be configured in web.xml's 'context-param'
 element as follows:
@@ -85,16 +102,16 @@ element as follows:
   &lt;context-param&gt;
     &lt;param-name>auth-auth_provider&lt;/param-name&gt;
     &lt;param-value&gt;
-      org.midonet.api.auth.MockAuthClient
+      org.midonet.api.auth.MockAuthService
     &lt;/param-value&gt;
   &lt;/context-param&gt;
   ...
 </code></pre>
 
-MockAuthClient class is provided as a way to mock the auth provider class.  See
-the 'Mocking auth provider' section below for more details.
+MockAuthService class is provided as a way to mock the auth provider class.  See
+the 'Mocking auth service' section below for more details.
 
-## Servlet filter (AuthFilter)
+## Servlet filter (AuthFilter and LoginFilter)
 
 Authentication is implemented as a servlet filter.  AuthFilter class is
 registered as a servlet filter at the start of the MidoNet API service.  The
@@ -106,6 +123,43 @@ attribute in the HttpServletRequest object.  By doing so, the UserIdentity
 object becomes accessible by the API handler methods to perform additional
 authorization checks.  If the authentication fails, it responds with 401
 UNAUTHORIZED.
+
+LoginFilter is also a servlet filter, and it is applied to requests that are
+destined to '&lt;root_uri&gt;/login' URI.  AuthFilter is not applied for this URI,
+and LoginFilter is not applied for al the other requests.  Thus, there is never
+a case in which both of these filters are applied simultaneously.  LoginFilter
+is a convenience filter that allows externals clients of MidoNet to 'login'
+using username and password, and let MidoNet handle the generation of session
+tokens that can be used for subsequent requests until they expire.  Behind the
+scene, MidoNet is actually logging in to the external auth system on behalf of
+the user.  The username and password are sent using HTTP's Basic Authorization
+header as such:
+
+<pre><code>
+Authorization: Basic &lt;Base64 encoded value of 'username:password'&gt;
+</code></pre>
+
+The response to this request, if successful, would set the cookie of
+the response as such:
+
+<pre><code>
+Set-Cookie: &lt;cookie value&gt;; Expires=&lt;expiration date in GMT&gt;
+</code></pre>
+
+Where the cookie value contains the string that should be used for API
+request, and the 'Expires' is set to the token expiration time with the format,
+"Wdy, DD Mon YYYY HH:MM:SS GMT".
+
+When an invalid or expired token is sent to the API, the filter responds
+with 'WWW-Authenticate' header set to 'Basic MidoNet' to indicate a
+challenge to the client to go through Basic HTTP authentication with
+username/password credentials to obtain the token.
+
+Note that, in addition to basic authentication header, in some authentication
+systems, it may require that the client send additional data in the HTTP
+extension header.  The only authentication system that requires an
+additional header value is Keystone, in which it needs 'X-Auth-Project'
+to be set to the tenant name in Keystone.
 
 ## Container request filter (AuthContainerRequestFilter)
 
@@ -174,7 +228,7 @@ authorized.
 
 ## Mocking auth provider
 
-MockAuthClient is a helper class that lets you mock the auth provider.  In
+MockAuthService is a helper class that lets you mock the auth provider.  In
 web.xml, you can specify custom tokens and their associated roles.  By making
 requests with these tokens, you can test the API with a mocked user with various
 privilege levels.
@@ -196,7 +250,7 @@ privilege levels.
   ...
 </code></pre>
 
-In the example above, setting 'X-Auth-Token' to '1111' instructs MockAuthClient
+In the example above, setting 'X-Auth-Token' to '1111' instructs MockAuthService
 to instantiate a UserIdentity object with roles set to all of 'Admin',
 'TenantAdmin' and 'TenantUser'.  Also note that the authentication always
-succeeds when using MockAuthClient.
+succeeds when using MockAuthService.

@@ -6,26 +6,29 @@ package org.midonet.api.auth;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.midonet.config.ConfigProvider;
+import org.midonet.api.auth.cloudstack.CloudStackAuthService;
 import org.midonet.api.auth.cloudstack.CloudStackClient;
 import org.midonet.api.auth.cloudstack.CloudStackConfig;
+import org.midonet.api.auth.cloudstack.CloudStackJsonParser;
 import org.midonet.api.auth.keystone.KeystoneClient;
 import org.midonet.api.auth.keystone.KeystoneConfig;
+import org.midonet.api.auth.keystone.KeystoneService;
+import org.midonet.config.ConfigProvider;
 
 /**
- * Auth client provider.
+ * Auth service provider.
  */
-public class AuthClientProvider implements Provider<AuthClient> {
+public class AuthServiceProvider implements Provider<AuthService> {
 
     private final ConfigProvider provider;
 
     @Inject
-    public AuthClientProvider(ConfigProvider provider) {
+    public AuthServiceProvider(ConfigProvider provider) {
         this.provider = provider;
     }
 
     @Override
-    public AuthClient get() {
+    public AuthService get() {
 
         AuthConfig config = provider.getConfig(AuthConfig.class);
         // Get the class path of the auth class and load it.
@@ -38,22 +41,39 @@ public class AuthClientProvider implements Provider<AuthClient> {
                             + config.getAuthProvider(), e);
         }
 
-        if (clazz == KeystoneClient.class) {
+        if (clazz == KeystoneService.class) {
+
             KeystoneConfig keystoneConfig = provider.getConfig(
                     KeystoneConfig.class);
-            return new KeystoneClient(keystoneConfig);
-        } else if (clazz == CloudStackClient.class) {
+
+            KeystoneClient keystoneClient = new KeystoneClient(
+                    keystoneConfig.getServiceHost(),
+                    keystoneConfig.getServicePort(),
+                    keystoneConfig.getServiceProtocol(),
+                    keystoneConfig.getAdminToken());
+
+            return new KeystoneService(keystoneClient, keystoneConfig);
+
+        } else if (clazz == CloudStackAuthService.class) {
             CloudStackConfig cloudStackConfig = provider.getConfig(
                     CloudStackConfig.class);
-            return new CloudStackClient(cloudStackConfig);
-        } else if (clazz == MockAuthClient.class) {
+
+            CloudStackClient cloudStackClient = new CloudStackClient(
+                    cloudStackConfig.getApiBaseUri()
+                            + cloudStackConfig.getApiPath(),
+                    cloudStackConfig.getApiKey(),
+                    cloudStackConfig.getSecretKey(),
+                    new CloudStackJsonParser()
+            );
+            return new CloudStackAuthService(cloudStackClient);
+        } else if (clazz == MockAuthService.class) {
             MockAuthConfig mockAuthConfig = provider.getConfig(
                     MockAuthConfig.class);
-            return new MockAuthClient(mockAuthConfig);
+            return new MockAuthService(mockAuthConfig);
         } else {
             try {
                 // Try instantiating with no parameter
-                return (AuthClient) clazz.newInstance();
+                return (AuthService) clazz.newInstance();
             } catch (InstantiationException e) {
                 // The class is abstract or interface
                 throw new UnsupportedOperationException(

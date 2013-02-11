@@ -1,22 +1,22 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2013 Midokura PTE LTD.
  */
 package org.midonet.api.auth;
 
 /**
  * AuthException class to represent no token.
  */
-public class InvalidTokenException extends AuthException {
+public class InvalidCredentialsException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create a InvalidTokenException object with a message.
+     * Create a InvalidCredentialsException object with a message.
      *
      * @param message
      *            Error message.
      */
-    public InvalidTokenException(String message) {
+    public InvalidCredentialsException(String message) {
         super(message);
     }
 }

@@ -75,7 +75,7 @@ public class FuncTest {
                 .contextParam(
                         getConfigKey(AuthConfig.GROUP_NAME,
                                 AuthConfig.AUTH_PROVIDER),
-                        "org.midonet.api.auth.MockAuthClient")
+                        "org.midonet.api.auth.MockAuthService")
                 .contextParam(
                         getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
                                 ExtendedZookeeperConfig.USE_MOCK_KEY), "true")

@@ -14,6 +14,8 @@ import org.midonet.api.bgp.auth.AdRouteAuthorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.auth.RuleAuthorizer;
+import org.midonet.api.network.auth.*;
+import org.midonet.config.ConfigProvider;
 
 /**
  * Auth bindings.
@@ -25,8 +27,8 @@ public class AuthModule extends AbstractModule {
 
         requireBinding(ConfigProvider.class);
 
-        bind(AuthClient.class).toProvider(
-                AuthClientProvider.class).asEagerSingleton();
+        bind(AuthService.class).toProvider(
+                AuthServiceProvider.class).asEagerSingleton();
 
         bind(AdRouteAuthorizer.class).asEagerSingleton();
         bind(BgpAuthorizer.class).asEagerSingleton();
