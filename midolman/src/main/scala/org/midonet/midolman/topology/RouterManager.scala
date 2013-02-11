@@ -104,7 +104,11 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private def makeNewRouter() {
         if (chainsReady && null != rTable && null != arpTable) {
             log.debug("Send an RCU router to the VTA")
-            context.actorFor("..").tell(
+            // Not using context.actorFor("..") because in tests it will
+            // bypass the probes and make it harder to fish for these messages
+            // Should this need to be decoupled from the VTA, the parent
+            // actor reference should be passed in the constructor
+            VirtualTopologyActor.getRef().tell(
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter,
                     new TagManagerImpl))
     } else {

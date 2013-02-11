@@ -16,6 +16,7 @@ import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import akka.testkit.{TestProbe, TestKit}
 
 
 trait SimulationHelper extends MidolmanTestCase {
@@ -217,4 +218,30 @@ trait SimulationHelper extends MidolmanTestCase {
             setPayload(echo))
         triggerPacketIn(portName, eth)
     }
+
+    def expectRoutedPacketOut(portNum : Int,
+                              packetEventsProbe: TestProbe): Ethernet = {
+        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        pktOut should not be null
+        pktOut.getData should not be null
+        val flowActs = pktOut.getActions
+        flowActs.size should equal (3)
+        flowActs.contains(FlowActions.output(portNum)) should be (true)
+        Ethernet.deserialize(pktOut.getData)
+    }
+
+    def expectPacketOut(portNum : Int,
+                        packetEventsProbe: TestProbe): Ethernet = {
+        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        pktOut should not be null
+        pktOut.getData should not be null
+        pktOut.getActions.size should equal (1)
+        pktOut.getActions.toList map { action =>
+            action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
+            action.getValue.getClass should be === classOf[FlowActionOutput]
+            action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
+        } should contain (portNum)
+        Ethernet.deserialize(pktOut.getData)
+    }
+
 }
