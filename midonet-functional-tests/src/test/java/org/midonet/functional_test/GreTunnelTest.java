@@ -5,28 +5,22 @@
 package org.midonet.functional_test;
 
 import org.midonet.client.resource.*;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.UDP;
 import org.midonet.packets.IPacket;
 import org.midonet.packets.GRE;
 import org.midonet.packets.MalformedPacketException;
 
-import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-@Ignore
 public class GreTunnelTest extends BaseTunnelTest {
     private final static Logger log = LoggerFactory.getLogger(GreTunnelTest.class);
 
