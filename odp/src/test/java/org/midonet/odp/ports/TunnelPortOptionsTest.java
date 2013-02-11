@@ -13,6 +13,8 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import static org.junit.Assert.*;
+
 public class TunnelPortOptionsTest {
 
     private class TestTunnelPortOptions extends TunnelPortOptions<TestTunnelPortOptions> {
@@ -72,6 +74,27 @@ public class TunnelPortOptionsTest {
         copyTunnelPortOptions.deserialize(netlinkMessage);
 
         assert(testTunnelPortOptions.equals(copyTunnelPortOptions));
+    }
+
+    @Test
+    public void testFlags() {
+        testTunnelPortOptions = new TestTunnelPortOptions();
+        testTunnelPortOptions
+                .setFlags(TunnelPortOptions.Flag.TNL_F_CSUM,
+                        TunnelPortOptions.Flag.TNL_F_TTL_INHERIT,
+                        TunnelPortOptions.Flag.TNL_F_DF_DEFAULT,
+                        TunnelPortOptions.Flag.TNL_F_HDR_CACHE);
+
+        assertTrue(testTunnelPortOptions.getFlags()
+                .contains(TunnelPortOptions.Flag.TNL_F_CSUM));
+        assertTrue(testTunnelPortOptions.getFlags()
+                .contains(TunnelPortOptions.Flag.TNL_F_TTL_INHERIT));
+        assertTrue(testTunnelPortOptions.getFlags()
+                .contains(TunnelPortOptions.Flag.TNL_F_DF_DEFAULT));
+        assertTrue(testTunnelPortOptions.getFlags()
+                .contains(TunnelPortOptions.Flag.TNL_F_HDR_CACHE));
+        assertFalse(testTunnelPortOptions.getFlags()
+                .contains(TunnelPortOptions.Flag.TNL_F_DF_INHERIT));
     }
 
 }

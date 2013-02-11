@@ -4,8 +4,7 @@
 package org.midonet.odp.ports;
 
 import java.nio.ByteOrder;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
@@ -65,6 +64,20 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         }
     }
 
+    private static final Map<Flag, String> flagNames;
+    static {
+        Map<Flag, String> aMap = new HashMap<Flag, String>();
+        aMap.put(Flag.TNL_F_CSUM, "Checksum packets");
+        aMap.put(Flag.TNL_F_DF_DEFAULT, "Inherit ToS from inner packet");
+        aMap.put(Flag.TNL_F_DF_INHERIT, "Inherit DF bit from inner packet");
+        aMap.put(Flag.TNL_F_HDR_CACHE, "Enable tunnel header caching");
+        aMap.put(Flag.TNL_F_IPSEC, "Traffic is IPsec encrypted");
+        aMap.put(Flag.TNL_F_PMTUD, "Enable path MTU discovery");
+        aMap.put(Flag.TNL_F_TOS_INHERIT, "Inherit ToS from inner packet.");
+        aMap.put(Flag.TNL_F_TTL_INHERIT, "Inherit TTL from inner packet.");
+        flagNames = Collections.unmodifiableMap(aMap);
+    }
+
     int flags;
     Integer dstIPv4;
     Integer srcIPv4;
@@ -101,14 +114,15 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     }
 
     public Set<Flag> getFlags() {
-        EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+        Set<Flag> activeFlags = new HashSet<Flag>();
+        EnumSet<Flag> flags = EnumSet.allOf(Flag.class);
         for (Flag flag : flags) {
             if ((this.flags & flag.value) != 0) {
-                flags.add(flag);
+                activeFlags.add(flag);
             }
         }
 
-        return flags;
+        return activeFlags;
     }
 
     public Options setTos(byte tos) {
@@ -255,7 +269,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     @Override
     public String toString() {
         return "TunnelPortOptions{" +
-            "flags=" + flags +
+            "flags=" + printFlags() +
             ", dstIPv4=" + Net.convertIntAddressToString(dstIPv4 != null ? dstIPv4 : 0) +
             ", srcIPv4=" + Net.convertIntAddressToString(srcIPv4 != null ? srcIPv4 : 0) +
             ", outKey=" + outKey +
@@ -263,6 +277,21 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
             ", tos=" + tos +
             ", ttl=" + ttl +
             '}';
+    }
+
+    private String printFlags() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ ");
+        Set<Flag> activeFlags = getFlags();
+        if (activeFlags.isEmpty()) {
+           sb.append("No active flags");
+        } else {
+            for (Flag f : getFlags()) {
+                sb.append(flagNames.get(f));
+            }
+        }
+        sb.append(" ]");
+        return sb.toString();
     }
 }
 
