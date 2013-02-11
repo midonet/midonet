@@ -42,13 +42,12 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowActionUserspace,
-                               FlowKeys}
+                              FlowKeys}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.packets.{Ethernet, IntIPv4, Unsigned}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.packets.{Ethernet, Unsigned}
 import org.midonet.util.functors.Callback0
-import org.midonet.packets.IntIPv4
 
 /**
  * Holder object that keeps the external message definitions
@@ -1530,7 +1529,7 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    private def getLocalInterfaceTunnelPhaseOne(caller : ActorRef) {
+    private def getLocalInterfaceTunnelPhaseOne(caller: ActorRef) {
         if (recentInterfacesScanned.isEmpty == false) {
             log.debug("Interface Scanning took place and cache is hot")
             getLocalInterfaceTunnelInfo(caller, recentInterfacesScanned)
@@ -1552,15 +1551,23 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    private def getLocalInterfaceTunnelInfo(caller: ActorRef,
-        interfaces : JList[InterfaceDescription]) {
+    /* Deep nesting of function literals in getLocalInterfaceTunnelInfo
+     * results in the class file "DatapathController$$anonfun$org$midonet$midolman$DatapathController$$getLocalInterfaceTunnelInfo$3$$anonfun$apply$14$$anonfun$apply$15$$anonfun$apply$16.class"
+     * which is too long for ecryptfs, so alias it to "gliti" to save some
+     * room.
+     */
+    private val getLocalInterfaceTunnelInfo:
+        (ActorRef, JList[InterfaceDescription]) => Unit = gliti _
+
+    private def gliti(caller: ActorRef,
+                      interfaces: JList[InterfaceDescription]) {
         // First we would populate the data structure with tunnel info
         // on all local interfaces
-        var addrTunnelMapping : mutable.MultiMap[Int, TunnelZone.Type] =
+        var addrTunnelMapping: mutable.MultiMap[Int, TunnelZone.Type] =
             new mutable.HashMap[Int, mutable.Set[TunnelZone.Type]] with
                 mutable.MultiMap[Int, TunnelZone.Type]
         // This next variable is the structure for return message
-        var retInterfaceTunnelMap : mutable.MultiMap[InterfaceDescription, TunnelZone.Type] =
+        var retInterfaceTunnelMap: mutable.MultiMap[InterfaceDescription, TunnelZone.Type] =
             new mutable.HashMap[InterfaceDescription, mutable.Set[TunnelZone.Type]] with
                 mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
         for ((zoneId, zoneConfig) <- host.zones) {
