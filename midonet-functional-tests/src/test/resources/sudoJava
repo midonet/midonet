@@ -22,12 +22,12 @@ done
 
 if [[ "$MODULE_BASEDIR" != "" ]]
 then
-    ORIG_USER=`whoami`
+    ORIG_OWNERSHIP=`stat $MODULE_BASEDIR --format="%U:%G"`
     echo "Executing tests as sudo"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     sudo java $*
-    echo "Return ownership of target to user $ORIG_USER"
-    sudo chown -R $ORIG_USER $MODULE_BASEDIR
+    echo "Return ownership of $MODULE_BASEDIR to user $ORIG_OWNERSHIP"
+    sudo chown -R $ORIG_OWNERSHIP $MODULE_BASEDIR
     echo "Success!"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     # needs to return 0 so that the mvn plugin sees successful
