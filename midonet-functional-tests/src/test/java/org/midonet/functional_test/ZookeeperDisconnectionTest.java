@@ -10,6 +10,7 @@ import akka.dispatch.Future;
 import akka.pattern.Patterns;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
+import org.junit.Ignore;
 import org.midonet.packets.*;
 import org.junit.After;
 import org.junit.Before;
@@ -223,6 +224,7 @@ public class ZookeeperDisconnectionTest {
     }
 
 
+    @Ignore
     @Test
     public void testSimulationBeforeAndAfterDisconnection() throws Exception {
         log.info("simulating a packet");

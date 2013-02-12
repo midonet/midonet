@@ -44,6 +44,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
@@ -297,7 +298,6 @@ public class BgpTest {
         stopEmbeddedZookeeper();
     }
 
-    @Ignore
     @Test
     public void testNoRouteConnectivity() throws Exception {
         log.debug("testNoRouteConnectivity - start");
