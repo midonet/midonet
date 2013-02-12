@@ -253,6 +253,28 @@ public class FloatingIpTest {
             .interfaceName(localName)
             .portId(brPort2.getId()).create();
 
+        // Set the datapath's local port to up and set its MAC address.
+        newProcess(
+            String.format("sudo -n ip link set dev %s address %s arp on " +
+                              "mtu 1400 multicast off", localName, vm3Mac.toString()))
+            .logOutput(log, "int_port")
+            .runAndWait();
+
+        // Now ifup the local port to run the DHCP client.
+        newProcess(
+            String.format("sudo ifdown %s --interfaces " +
+                              "./midolman_runtime_configurations/pingtest.network",
+                          localName))
+            .logOutput(log, "int_port")
+            .runAndWait();
+        newProcess(
+            String.format("sudo ifup %s --interfaces " +
+                              "./midolman_runtime_configurations/pingtest.network",
+                          localName))
+            .logOutput(log, "int_port")
+            .runAndWait();
+
+
         log.info("Waiting for LocalPortActive notifications for ports {}, {}," +
             " and {}",
             new Object[] {rtrPort1.getId(), rtrPort2.getId(), brPort2.getId()});
@@ -270,27 +292,6 @@ public class FloatingIpTest {
         assertThat("The 3 exterior ports should be active.",
             activatedPorts,
             hasItems(rtrPort1.getId(), rtrPort2.getId(), brPort2.getId()));
-
-        // Set the datapath's local port to up and set its MAC address.
-        newProcess(
-            String.format("sudo -n ip link set dev %s address %s arp on " +
-                "mtu 1400 multicast off", localName, vm3Mac.toString()))
-            .logOutput(log, "int_port")
-            .runAndWait();
-
-        // Now ifup the local port to run the DHCP client.
-        newProcess(
-            String.format("sudo ifdown %s --interfaces " +
-                "./midolman_runtime_configurations/pingtest.network",
-                localName))
-            .logOutput(log, "int_port")
-            .runAndWait();
-        newProcess(
-            String.format("sudo ifup %s --interfaces " +
-                "./midolman_runtime_configurations/pingtest.network",
-                localName))
-            .logOutput(log, "int_port")
-            .runAndWait();
 
         // No need to set the IP address (and static route to VM1) for the
         // datapath's local port. They're set via DHCP.
