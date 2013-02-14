@@ -18,9 +18,9 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
-import org.midonet.packets._
 import org.midonet.cluster.data.ports.MaterializedRouterPort
-import org.midonet.midolman.util.AddressConversions._
+import org.midonet.packets._
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
 
 @RunWith(classOf[JUnitRunner])

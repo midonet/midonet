@@ -11,10 +11,10 @@ import scala.collection.JavaConversions._
 import org.midonet.midolman.DatapathController.PacketIn
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.MidolmanTestCase
-import org.midonet.midolman.util.AddressConversions._
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.packets._
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import akka.testkit.{TestProbe, TestKit}
 
