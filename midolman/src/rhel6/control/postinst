@@ -1,0 +1,50 @@
+#!/bin/sh
+
+NAME="midolman"
+GROUP="midokura"
+USER="midolman"
+DATADIR=/var/lib/midolman
+POST_DIR=/var/lib/dpkg/info
+
+# shamelessly copied from debian mysql-server package...
+if ! getent group $GROUP >/dev/null ; then
+        # Adding system group
+        groupadd --system $GROUP >/dev/null
+fi
+
+# creating midonet user if it isn't already there
+if ! getent passwd $USER >/dev/null ; then
+        # Adding system user
+        adduser \
+          --system \
+          --groups $GROUP \
+          --home $DATADIR \
+          --comment "MidoNet" \
+          --shell /bin/false \
+          $USER  >/dev/null
+fi
+
+install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
+
+# allow group access to /var/run/quagga
+usermod -G quagga $USER
+
+# make a symlink for the package
+MIDOLMAN_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midolman-\[^/\]*\.jar`
+MIDOLMAN_JAR_DIR=`dirname $MIDOLMAN_JAR`
+if [ ! -d "$MIDOLMAN_JAR_DIR" ] ; then
+    echo "did not find jar installation dir" >&2
+    exit 1
+fi
+if [ ! -f "$MIDOLMAN_JAR" ] ; then
+    echo "did not find midolman.jar" >&2
+    exit 1
+fi
+
+ln -sf $MIDOLMAN_JAR "$MIDOLMAN_JAR_DIR/midolman.jar"
+BOOT_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midonet-jdk-bootstrap-\[^/\]*\.jar`
+if [ ! -f "$BOOT_JAR" ] ; then
+    echo "did not find midonet-jdk-bootstrap.jar" >&2
+    exit 1
+fi
+ln -sf "$BOOT_JAR" "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"

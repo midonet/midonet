@@ -167,6 +167,130 @@
             </plugin>
 
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>${versions.plugins.rpm}</version>
+                <configuration>
+                    <copyright>2013, Midokura</copyright>
+                    <packager>Midokura</packager>
+                    <prefix>/usr</prefix>
+                    <group>System Environment/Daemons</group>
+                    <needarch>true</needarch>
+                    <requires>
+                        <require>kmod-openvswitch &gt;= 1.4</require>
+                        <require>java7</require>
+                        <require>quagga &gt;= 0.99.21</require>
+                        <require>bridge-utils</require>
+                    </requires>
+                    <conflicts>
+                        <conflict>kmod-openvswitch &gt;= 1.5</conflict>
+                    </conflicts>
+                    <mappings>
+                        <mapping>
+                            <directory>/usr/share/midolman</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>${project.build.directory}/${project.build.finalName}.jar</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/init.d</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <configuration>true</configuration>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
+                                    <location>src/rhel6/init.d/midolman</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/init</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/deb/init/midolman.conf</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/midolman</directory>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>conf</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/lib</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>lib-native/libjunixsocket-linux-1.5-amd64.so</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/share/midolman/dep</directory>
+                            <sources>
+                                <source>
+                                    <location>${project.build.directory}/dep</location>
+                                </source>
+                                <source>
+                                    <location>${project.build.directory}/dep-midokura</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/sudoers.d</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>440</filemode>
+                            <sources>
+                                <source>
+                                    <location>src/deb/sudoers/midolman</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/quagga</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>src/deb/quagga/bgpd.conf</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
+                                    <location>src/deb/bin/mm-dpctl</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                    <preinstallScriptlet>
+                        <scriptFile>${project.basedir}/src/deb/control/preinst</scriptFile>
+                    </preinstallScriptlet>
+                    <postinstallScriptlet>
+                        <scriptFile>${project.basedir}/src/rhel6/control/postinst</scriptFile>
+                    </postinstallScriptlet>
+                    <preremoveScriptlet>
+                        <scriptFile>${project.basedir}/src/deb/control/prerm</scriptFile>
+                    </preremoveScriptlet>
+                    <postremoveScriptlet>
+                        <scriptFile>${project.basedir}/src/deb/control/postrm</scriptFile>
+                    </postremoveScriptlet>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <version>${versions.plugins.jdeb}</version>
@@ -718,6 +842,31 @@
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <property>
+                    <name>rpm</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>functional-tests</id>
             <activation>
