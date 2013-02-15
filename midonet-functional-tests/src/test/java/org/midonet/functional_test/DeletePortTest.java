@@ -4,112 +4,168 @@
 
 package org.midonet.functional_test;
 
-import org.junit.Ignore;
+import akka.testkit.TestActor;
+import akka.util.Duration;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.midonet.client.dto.DtoRoute;
+import org.midonet.client.resource.Host;
+import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.Router;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.ICMP;
+import org.midonet.midolman.FlowController;
+import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
-import org.midonet.sdn.flows.WildcardMatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
-import static org.midonet.util.Waiters.sleepBecause;
+import java.util.concurrent.TimeUnit;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import static org.midonet.util.Waiters.sleepBecause;
 
-@Ignore
-public class DeletePortTest extends RouterBridgeBaseTest {
+public class DeletePortTest extends TestBase {
 
     private final static Logger log = LoggerFactory.getLogger(
         DeletePortTest.class);
-    public static final String INT_PORT_NAME = "intDeletePort";
 
-    IntIPv4 rtrIp = IntIPv4.fromString("192.168.231.1");
-    IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-    IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
+    IntIPv4 ip1 = IntIPv4.fromString("192.168.1.1", 24);
+    IntIPv4 ip2 = IntIPv4.fromString("192.168.2.1", 24);
+    IntIPv4 ip3 = IntIPv4.fromString("192.168.3.1", 24);
 
     Router rtr;
     RouterPort p1;
     RouterPort p2;
     RouterPort p3;
+
     TapWrapper tap1;
     TapWrapper tap2;
-    PacketHelper helper1;
-    PacketHelper helper2;
+    TapWrapper tap3;
+
+    IntIPv4 tap1Ip = IntIPv4.fromString("192.168.1.5", 24);
+    IntIPv4 tap2Ip = IntIPv4.fromString("192.168.2.5", 24);
+    IntIPv4 tap3Ip = IntIPv4.fromString("192.168.3.5", 24);
+
+    MAC tap1Mac = MAC.fromString("02:00:00:aa:aa:01");
+    MAC tap2Mac = MAC.fromString("02:00:00:aa:aa:02");
+    MAC tap3Mac = MAC.fromString("02:00:00:aa:aa:03");
 
     @Override
     public void setup() {
-        super.setup();
-        helper1 = new PacketHelper(
-                MAC.fromString("02:00:00:aa:aa:01"), ip1, rtrIp);
-        helper2 = new PacketHelper(
-                MAC.fromString("02:00:00:aa:aa:02"), ip2, rtrIp);
 
-        // First arp for router's mac.
-        assertThat("The ARP request was sent properly",
-                   tap1.send(helper1.makeArpRequest()));
+        rtr = apiClient.addRouter().tenantId("tenant-id").name("rtr1").create();
 
-        MAC rtrMac = null;
+        p1 = rtr.addExteriorRouterPort()
+                .portAddress(ip1.toUnicastString())
+                .networkAddress(ip1.toNetworkAddress().toUnicastString())
+                .networkLength(ip1.getMaskLength())
+                .create();
+        rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
+                .dstNetworkAddr(p1.getNetworkAddress())
+                .dstNetworkLength(p1.getNetworkLength())
+                .nextHopPort(p1.getId())
+                .type(DtoRoute.Normal).weight(10).create();
+
+        tap1 = new TapWrapper("tap1");
+        log.debug("Bind tap to router's exterior port.");
+        thisHost.addHostInterfacePort()
+                .interfaceName(tap1.getName())
+                .portId(p1.getId()).create();
+
+        log.info("Waiting for the port to start up.");
+        LocalPortActive activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+        log.info("Received one LocalPortActive message from stream.");
+        assertTrue("The port should be active.", activeMsg.active());
+
+        p2 = rtr.addExteriorRouterPort()
+                .portAddress(ip2.toUnicastString())
+                .networkAddress(ip2.toNetworkAddress().toUnicastString())
+                .networkLength(ip2.getMaskLength())
+                .create();
+        rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
+                .dstNetworkAddr(p2.getNetworkAddress())
+                .dstNetworkLength(p2.getNetworkLength())
+                .nextHopPort(p2.getId())
+                .type(DtoRoute.Normal).weight(10).create();
+
+        tap2 = new TapWrapper("tap2");
+        log.debug("Bind tap to router's exterior port.");
+        thisHost.addHostInterfacePort()
+                .interfaceName(tap2.getName())
+                .portId(p2.getId()).create();
+
+        log.info("Waiting for the port to start up.");
+        activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+        log.info("Received one LocalPortActive message from stream.");
+        assertTrue("The port should be active.", activeMsg.active());
+
+        p3 = rtr.addExteriorRouterPort()
+                .portAddress(ip3.toUnicastString())
+                .networkAddress(ip3.toNetworkAddress().toUnicastString())
+                .networkLength(ip3.getMaskLength())
+                .create();
+        rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
+                .dstNetworkAddr(p3.getNetworkAddress())
+                .dstNetworkLength(p3.getNetworkLength())
+                .nextHopPort(p3.getId())
+                .type(DtoRoute.Normal).weight(10).create();
+        tap3 = new TapWrapper("tap3");
+        log.debug("Bind tap to router's exterior port.");
+        thisHost.addHostInterfacePort()
+                .interfaceName(tap3.getName())
+                .portId(p3.getId()).create();
+
+        log.info("Waiting for the port to start up.");
+        activeMsg = probe.expectMsgClass(
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
+        log.info("Received one LocalPortActive message from stream.");
+        assertTrue("The port should be active.", activeMsg.active());
+
+        // simple check that everything is fine.
         try {
-            rtrMac = helper1.checkArpReply(tap1.recv());
+            FunctionalTestsHelper.arpAndCheckReply(tap1, tap1Mac,
+                    tap1Ip, ip1, MAC.fromString(p1.getPortMac()));
+            FunctionalTestsHelper.arpAndCheckReply(tap2, tap2Mac,
+                    tap2Ip, ip2, MAC.fromString(p2.getPortMac()) );
+            FunctionalTestsHelper.arpAndCheckReply(tap3, tap3Mac,
+                    tap3Ip, ip3, MAC.fromString(p3.getPortMac()));
         } catch (MalformedPacketException e) {
-            //assertFailed
+            fail(e.getMessage());
         }
-        helper1.setGwMac(rtrMac);
+    }
 
-        // First arp for router's mac.
-        assertThat("The ARP request was sent properly",
-                   tap2.send(helper2.makeArpRequest()));
-
-        try {
-            rtrMac = helper2.checkArpReply(tap2.recv());
-        } catch (MalformedPacketException e) {
-            //assertFailed();
-        }
-        helper2.setGwMac(rtrMac);
+    @Override
+    protected void teardown() {
+        removeTapWrapper(tap1);
+        removeTapWrapper(tap2);
+        removeTapWrapper(tap3);
     }
 
     @Test
     public void testPortDelete()
         throws InterruptedException, MalformedPacketException {
-        short num1 = 0;
-            //ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        short num2 = 0;//ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        short num3 = 0;//ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
-        log.debug(
-            "The OF ports have numbers: {}, {}, and {}",
-            new Object[]{num1, num2, num3});
 
-        // Remove/re-add the two tap ports to remove all flows.
-        //ovsBridge.deletePort(tap1.getName());
-        //ovsBridge.deletePort(tap2.getName());
-        // Sleep to let OVS complete the port requests.
-        sleepBecause("wait OVS to complete the port deletions", 1);
+        midolman.getActorSystem().eventStream().subscribe(
+                probe.ref(), FlowController.WildcardFlowRemoved.class);
 
-        //ovsBridge.addSystemPort(p1.port.getId(), tap1.getName());
-        //ovsBridge.addSystemPort(p2.port.getId(), tap2.getName());
-        // Sleep to let OVS complete the port requests.
-        sleepBecause("wait OVS to complete the port creations", 1);
 
-        //num1 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap1.getName()));
-        //num2 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(tap2.getName()));
-        //num3 = ovsdb.getPortNumByUUID(ovsdb.getPortUUID(INT_PORT_NAME));
-        log.debug("The OF ports have numbers: {}, {}, and {}",
-                  new Object[]{num1, num2, num3});
+        // send two pings so two flows are installed:
+        // tap1 --> tap3
+        // tap2 --> tap3
 
-        // Verify that there are no ICMP flows.
-        WildcardMatch icmpMatch = new WildcardMatch()
-            .setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
-        //List<FlowStats> fstats = null; //svcController.getFlowStats
-        // (icmpMatch);
-        //assertThat("There are no stats for ICMP yet",
-        //           fstats, hasSize(0));
+        PacketHelper helper1 = new PacketHelper(
+            tap1Mac, tap1Ip,
+            MAC.fromString(p1.getPortMac()), ip1);
 
         // Send ICMPs from p1 to internal port p3.
         byte[] ping1_3 = helper1.makeIcmpEchoRequest(ip3);
@@ -117,95 +173,32 @@ public class DeletePortTest extends RouterBridgeBaseTest {
         assertThat("The tap should have sent the packet",
                    tap1.send(ping1_3));
 
-        // Note: the virtual router ARPs before delivering the reply packet.
-        helper1.checkArpRequest(tap1.recv());
-        assertThat("The tap should have sent the ARP reply",
-                   tap1.send(helper1.makeArpReply()));
-
         // Finally, the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(ping1_3, tap1.recv());
 
+        PacketHelper helper2 = new PacketHelper(
+                tap2Mac, tap2Ip,
+                MAC.fromString(p2.getPortMac()), ip2);
+
         // Send ICMPs from p2 to internal port p3.
-        byte[] ping2_3 = helper2.makeIcmpEchoRequest(ip3);
+        byte[] ping2_3 = helper2.makeIcmpEchoRequest(tap3Ip);
         assertThat("The tap should have sent the packet", tap2.send(ping2_3));
+        log.info("Sending the second ping");
 
-        // Note: the virtual router ARPs before delivering the reply packet.
-        helper2.checkArpRequest(tap2.recv());
-        assertThat("The tap should have sent the ARP reply",
-                   tap2.send(helper2.makeArpReply()));
-        // Finally, the icmp echo reply from the peer.
-        PacketHelper.checkIcmpEchoReply(ping2_3, tap2.recv());
+        sleepBecause("Wait for all the packets to be sent and the flows installed.",5);
 
-        // Sleep to let OVS update its stats.
-        sleepBecause("OVS needs to update it's stats", 1);
+        // Removing port3 in the router should invalidate two flows.
+        log.info("Deleting the router port.");
+        p3.delete();
+        rtr.update();
 
-        // Now there should be 4 ICMP flows
-        //fstats = svcController.getFlowStats(icmpMatch);
-        //assertEquals(4, fstats.size());
-
-        // Verify that there are flows: 1->3, 3->1, 2->3, 3->2.
-        /*fstats =
-            svcController.getFlowStats(
-                new MidoMatch().setNetworkSource(ip1.addressAsInt())
-                               .setNetworkDestination(ip3.addressAsInt()));*/
-
-        //assertThat("Only one FlowStats object should be visible",
-        //           fstats, hasSize(1));
-
-        //FlowStats flow1_3 = null; //fstats.get(0);
-        //flow1_3.expectCount(1).expectOutputAction(num3);
-
-        /*fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip3.addressAsInt())
-                           .setNetworkDestination(ip1.addressAsInt()));*/
-        //assertThat("Only one FlowStats object should be visible.",
-        //           fstats, hasSize(1));
-        //FlowStats flow3_1 = fstats.get(0);
-        //flow3_1.expectCount(1).expectOutputAction(num1);
-
-        /*fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip2.addressAsInt())
-                           .setNetworkDestination(ip3.addressAsInt()));
-        assertThat("One one FlowStats object should be visible.",
-                   fstats, hasSize(1));
-        FlowStats flow2_3 = fstats.get(0);
-        flow2_3.expectCount(1).expectOutputAction(num3);*/
-
-        /*fstats = svcController.getFlowStats(
-            new MidoMatch().setNetworkSource(ip3.addressAsInt())
-                           .setNetworkDestination(ip2.addressAsInt()));
-        assertThat("Only one FlowStats object should be visible.",
-                   fstats, hasSize(1));
-        FlowStats flow3_2 = fstats.get(0);
-        flow3_2.expectCount(1).expectOutputAction(num2);*/
-
-        // Repeat the pings and verify that the packet counts increase.
-        assertPacketWasSentOnTap(tap1, ping1_3);
-        assertPacketWasSentOnTap(tap2, ping2_3);
-
-        // Sleep to let OVS update its stats.
-        sleepBecause("OVS needs to update its stats", 1);
-
-        // Verify that the flow counts have increased as expected.
-        // TODO(pino): re-enable the following checks after committing NXM changes.
-        /*
-        flow1_3.findSameInList(svcController.getFlowStats(flow1_3.getMatch()))
-               .expectCount(2).expectOutputAction(num3);
-        flow3_1.findSameInList(svcController.getFlowStats(flow3_1.getMatch()))
-               .expectCount(2).expectOutputAction(num1);
-        flow2_3.findSameInList(svcController.getFlowStats(flow2_3.getMatch()))
-               .expectCount(2).expectOutputAction(num3);
-        flow3_2.findSameInList(svcController.getFlowStats(flow3_2.getMatch()))
-               .expectCount(2).expectOutputAction(num2);
-        */
-
-        // Now remove p3 and verify that all flows are removed since they
-        // are ingress or egress at p3.
-        //ovsBridge.deletePort(INT_PORT_NAME);
-        sleepBecause("OVS should process the internal port deletion", 2);
-
-        //fstats = svcController.getFlowStats(icmpMatch);
-        //assertThat("The list of FlowStats should be empty", fstats,
-        //    hasSize(0));
+        // port (tap3) going down
+        probe.expectMsgClass(LocalPortActive.class);
+        // flow invalidation 1
+        probe.expectMsgClass(FlowController.WildcardFlowRemoved.class);
+        // flow invalidation 2
+        probe.expectMsgClass(FlowController.WildcardFlowRemoved.class);
+        // no more messages.
+        probe.expectNoMsg();
     }
 }
