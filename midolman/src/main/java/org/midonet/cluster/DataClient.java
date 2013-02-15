@@ -325,16 +325,6 @@ public interface DataClient {
 
     List<Rule<?, ?>> rulesFindByChain(UUID chainId) throws StateAccessException;
 
-
-    /* VPN related methods */
-    @CheckForNull VPN vpnGet(UUID id) throws StateAccessException;
-
-    void vpnDelete(UUID id) throws StateAccessException;
-
-    UUID vpnCreate(@Nonnull VPN vpn) throws StateAccessException;
-
-    List<VPN> vpnFindByPort(UUID portId) throws StateAccessException;
-
     /* PortSet related methods */
 
     /**

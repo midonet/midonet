@@ -831,15 +831,6 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td>A GET against this BGP configurations for this port.</td>
     </tr>
     <tr>
-        <td>vpns
-(Exterior router only)</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI retrieves the VPN configurations for this
-         port.</td>
-    </tr>
-    <tr>
         <td>link
 (Interior only)</td>
         <td>URI</td>
@@ -1629,51 +1620,6 @@ contains the following fields:
         <td>POST</td>
         <td>Yes</td>
         <td>The prefix length of the advertising route.</td>
-    </tr>
-</table>
-
-### VPN [application/vnd.org.midonet.Vpn-v1+json]
-*This is NOT supported in Caddo.*
-
-VPN is an entity that represents a single set of VPN configurations.  It
-contains the following fields:
-
-<table>
-    <tr>
-        <th>Field Name</th>
-        <th>Type</th>
-        <th>POST/PUT</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>uri</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI refreshes the representation of this
-         resource.</td>
-    </tr>
-    <tr>
-        <td>id</td>
-        <td>UUID</td>
-        <td/>
-        <td/>
-        <td>A unique identifier of the resource.</td>
-    </tr>
-    <tr>
-        <td>portId</td>
-        <td>UUID</td>
-        <td/>
-        <td/>
-        <td>ID of the port to set the VPN confgurations on.</td>
-    </tr>
-    <tr>
-        <td>port</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI gets the port resource.</td>
     </tr>
 </table>
 

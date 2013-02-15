@@ -98,9 +98,6 @@ public class LocalDataClientImpl implements DataClient {
     private TunnelZoneZkManager zonesZkManager;
 
     @Inject
-    private VpnZkManager vpnZkManager;
-
-    @Inject
     private PortSetZkManager portSetZkManager;
 
     @Inject
@@ -1466,40 +1463,6 @@ public class LocalDataClientImpl implements DataClient {
             rules.add(rulesGet(id));
         }
         return rules;
-    }
-
-    @Override
-    public @CheckForNull VPN vpnGet(UUID id) throws StateAccessException {
-        log.debug("Entered: id={}", id);
-
-        VPN vpn = null;
-        if (vpnZkManager.exists(id)) {
-            vpn = Converter.fromVpnConfig(vpnZkManager.get(id));
-            vpn.setId(id);
-        }
-
-        log.debug("Exiting: vpn={}", vpn);
-        return vpn;
-    }
-
-    @Override
-    public void vpnDelete(UUID id) throws StateAccessException {
-        vpnZkManager.delete(id);
-    }
-
-    @Override
-    public UUID vpnCreate(@Nonnull VPN vpn) throws StateAccessException {
-        return vpnZkManager.create(Converter.toVpnConfig(vpn));
-    }
-
-    @Override
-    public List<VPN> vpnFindByPort(UUID portId) throws StateAccessException {
-        List<UUID> vpnIds = vpnZkManager.list(portId);
-        List<VPN> vpns = new ArrayList<VPN>();
-        for (UUID vpnId : vpnIds) {
-            vpns.add(vpnGet(vpnId));
-        }
-        return vpns;
     }
 
     @Override

@@ -8,7 +8,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import org.midonet.config.ConfigProvider;
 import org.midonet.api.network.auth.*;
-import org.midonet.api.vpn.auth.VpnAuthorizer;
 import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.bgp.auth.AdRouteAuthorizer;
@@ -38,7 +37,6 @@ public class AuthModule extends AbstractModule {
         bind(RouteAuthorizer.class).asEagerSingleton();
         bind(RouterAuthorizer.class).asEagerSingleton();
         bind(RuleAuthorizer.class).asEagerSingleton();
-        bind(VpnAuthorizer.class).asEagerSingleton();
 
     }
 

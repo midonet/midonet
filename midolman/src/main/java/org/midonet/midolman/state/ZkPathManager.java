@@ -835,63 +835,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK VPN path.
-     *
-     * @return /vpns
-     */
-    public String getVpnPath() {
-        return buildVpnPath().toString();
-    }
-
-    private StringBuilder buildVpnPath() {
-        return basePath().append("/vpns");
-    }
-
-    /**
-     * Get ZK VPN path.
-     *
-     * @param id VPN UUID
-     * @return /vpns/vpnId
-     */
-    public String getVpnPath(UUID id) {
-        return buildVpnPath(id).toString();
-    }
-
-    private StringBuilder buildVpnPath(UUID id) {
-        return new StringBuilder(getVpnPath()).append("/").append(id);
-    }
-
-    /**
-     * Get ZK port VPN path.
-     *
-     * @param portId Port UUID
-     * @return /ports/portId/vpns
-     */
-    public String getPortVpnPath(UUID portId) {
-        return buildPortVpnPath(portId).toString();
-    }
-
-    private StringBuilder buildPortVpnPath(UUID portId) {
-        return buildPortPath(portId).append("/vpns");
-    }
-
-    /**
-     * Get ZK port VPN path.
-     *
-     * @param portId Port UUID
-     * @param vpnId  VPN UUID
-     * @return /ports/portId/vpns/vpnId
-     */
-    public String getPortVpnPath(UUID portId, UUID vpnId) {
-        return buildPortVpnPath(portId, vpnId).toString();
-    }
-
-    private StringBuilder buildPortVpnPath(UUID portId, UUID vpnId) {
-        return buildPortVpnPath(portId).append("/")
-            .append(vpnId);
-    }
-
-    /**
      * Get ZK agent path.
      *
      * @return /agents
@@ -930,34 +873,6 @@ public class ZkPathManager {
     private StringBuilder buildAgentPortPath(UUID portId) {
         return new StringBuilder(getAgentPortPath()).append("/").append(portId);
     }
-
-    /**
-     * Get ZK agent VPN path.
-     *
-     * @return /agents/vpns
-     */
-    public String getAgentVpnPath() {
-        return buildAgentVpnPath().toString();
-    }
-
-    private StringBuilder buildAgentVpnPath() {
-        return new StringBuilder(getAgentPath()).append("/vpns");
-    }
-
-    /**
-     * Get ZK agent VPN path.
-     *
-     * @param vpnId VPN UUID
-     * @return /agents/vpns/vpnId
-     */
-    public String getAgentVpnPath(UUID vpnId) {
-        return buildAgentVpnPath(vpnId).toString();
-    }
-
-    private StringBuilder buildAgentVpnPath(UUID vpnId) {
-        return new StringBuilder(getAgentVpnPath()).append("/").append(vpnId);
-    }
-
 
     public String getTunnelZonesPath() {
         return buildTunnelZonesPath().toString();

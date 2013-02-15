@@ -23,7 +23,6 @@ import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.*;
-import org.midonet.api.vpn.rest_api.VpnResource.PortVpnResource;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -245,18 +244,6 @@ public class PortResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return factory.getPortBgpResource(id);
-    }
-
-    /**
-     * Port resource locator for VPN.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @returns PortVpnResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.VPN)
-    public PortVpnResource getVpnResource(@PathParam("id") UUID id) {
-        return factory.getPortVpnResource(id);
     }
 
     /**

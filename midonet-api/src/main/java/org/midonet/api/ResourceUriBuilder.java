@@ -26,7 +26,6 @@ public class ResourceUriBuilder {
     public static final String ROUTES = "/routes";
     public static final String BGP = "/bgps";
     public static final String AD_ROUTES = "/ad_routes";
-    public static final String VPN = "/vpns";
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
@@ -183,19 +182,6 @@ public class ResourceUriBuilder {
     public static URI getBgpAdRoutes(URI baseUri, UUID bgpId) {
         return UriBuilder.fromUri(getBgp(baseUri, bgpId)).path(AD_ROUTES)
                 .build();
-    }
-
-    public static URI getVpns(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(VPN).build();
-    }
-
-    public static URI getVpn(URI baseUri, UUID vpnId) {
-        return UriBuilder.fromUri(getVpns(baseUri)).path(vpnId.toString())
-                .build();
-    }
-
-    public static URI getPortVpns(URI baseUri, UUID portId) {
-        return UriBuilder.fromUri(getPort(baseUri, portId)).path(VPN).build();
     }
 
     public static URI getRoutes(URI baseUri) {
@@ -422,15 +408,5 @@ public class ResourceUriBuilder {
      */
     public static String getTunnelZoneTemplate(URI baseUri) {
         return buildIdTemplateUri(getTunnelZones(baseUri));
-    }
-
-    /**
-     * Generate a VPN URI template
-     *
-     * @param baseUri Base URI
-     * @return VPN template URI
-     */
-    public static String getVpnTemplate(URI baseUri) {
-        return buildIdTemplateUri(getVpns(baseUri));
     }
 }
