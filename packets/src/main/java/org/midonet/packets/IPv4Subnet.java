@@ -12,6 +12,20 @@ public class IPv4Subnet implements IPSubnet {
         prefixLen = prefixLen_;
     }
 
+    public IPv4Subnet(IntIPv4 ii) {
+        // This is supposed to work as just "IPAddr.fromIntIPv4" (see
+        // http://lampwww.epfl.ch/~michelou/scala/using-scala-from-java.html )
+        // but doesn't.  This will become moot when IPAddr.scala is
+        // translated into Java.
+        addr = IPAddr$.MODULE$.fromIntIPv4(ii);
+        prefixLen = ii.prefixLen();
+    }
+
+    @Override
+    public IntIPv4 toIntIPv4() {
+        return new IntIPv4(addr.getIntAddress(), prefixLen);
+    }
+
     @Override
     public IPv4Addr getAddress() {
         return addr;

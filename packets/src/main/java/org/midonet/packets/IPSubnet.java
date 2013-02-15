@@ -9,4 +9,5 @@ public interface IPSubnet {
     boolean containsAddress(IPAddr addr);
     String toString();
     String toZkString();
+    IntIPv4 toIntIPv4();
 }
