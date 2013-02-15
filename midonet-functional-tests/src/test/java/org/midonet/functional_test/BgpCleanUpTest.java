@@ -7,6 +7,7 @@ package org.midonet.functional_test;
 import akka.actor.ActorRef;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
+import org.junit.Ignore;
 import org.midonet.midolman.routingprotocols.RoutingHandler;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.client.MidonetApi;
@@ -34,6 +35,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 
+@Ignore
 public class BgpCleanUpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);

@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
+import akka.util.Duration;
 import org.junit.Test;
+import org.junit.Ignore;
 
+import org.midonet.cassandra.CassandraClient;
 import org.midonet.midolman.monitoring.metrics.VMMetricsCollection;
 import org.midonet.midolman.monitoring.metrics.ZookeeperMetricsCollection;
 import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics;
@@ -19,11 +22,15 @@ import org.midonet.midolman.monitoring.store.CassandraStore;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.functional_test.utils.TapWrapper;
+import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.lock.LockHelper;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static org.midonet.util.Waiters.sleepBecause;
@@ -51,30 +58,51 @@ public class MonitoringTest extends TestBase {
 
     @Override
     public void setup() {
-        bridge = apiClient.addBridge().name("bridge-metrics").create();
+        // Build a bridge and link it to the router's interior port
+        bridge = apiClient.addBridge()
+            .tenantId("tenant-monitoring")
+            .name("bridge-metrics")
+            .create();
 
         ipInt = IntIPv4.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
         intBridgePort = bridge.addExteriorPort().create();
         //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
         //        ipInt, 24);
+        thisHost.addHostInterfacePort()
+            .interfaceName("metricsInt")
+            .portId(intBridgePort.getId()).create();
+        LocalPortActive activeMsg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS), LocalPortActive.class);
+        assertTrue(activeMsg.active());
+        log.info("Received local port active {}", activeMsg);
 
         ipTap = IntIPv4.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
 
         tapBridgePort = bridge.addExteriorPort().create();
         metricsTap = new TapWrapper("metricsTap");
+
+        log.debug("Bind datapath's local port to bridge's exterior port.");
         //ovsBridge.addSystemPort(tapBridgePort.getId(), metricsTap.getName());
+        thisHost.addHostInterfacePort()
+            .interfaceName(metricsTap.getName())
+            .portId(tapBridgePort.getId()).create();
+        activeMsg = probe.expectMsgClass(
+            Duration.create(10, TimeUnit.SECONDS), LocalPortActive.class);
+        assertTrue(activeMsg.active());
+        assertEquals(tapBridgePort.getId(), activeMsg.portID());
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
 
-        //TODO: fix me.
-        store = new CassandraStore(null);
-//        store = new CassandraStore("localhost:9171",
-//                "midonet",
-//                "midonet_monitoring_keyspace",
-//                "midonet_monitoring_column_family",
-//                replicationFactor, ttlInSecs);
+        CassandraClient client = new CassandraClient("localhost:9171",
+                "midonet",
+                "midonet_monitoring",
+                "monitoring_data",
+                replicationFactor, ttlInSecs
+                );
+        store = new CassandraStore(client);
+        store.initialize();
 
     }
 
@@ -87,12 +115,12 @@ public class MonitoringTest extends TestBase {
     public void test() throws Exception {
 
         long startTime = System.currentTimeMillis();
-        String hostName = InetAddress.getLocalHost().getHostName();
+        String hostName = thisHost.getId().toString();
         Map<String, Long> resZkMetrics = new HashMap<String, Long>();
         Map<String, Long> resVmMetrics = new HashMap<String, Long>();
 
 
-        sleepBecause("Let's collect metrics", 5);
+        sleepBecause("Let's collect metrics for host " + hostName, 5);
         List<String> types = store.getMetricsTypeForTarget(hostName);
         assertThat("We didn't save the metric type", types.size(), greaterThan(2));
 
