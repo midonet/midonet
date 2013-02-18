@@ -109,6 +109,7 @@
                 <configuration>
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
+                    <argLine>-XX:-UseSplitVerifier</argLine>
                 </configuration>
             </plugin>
 
