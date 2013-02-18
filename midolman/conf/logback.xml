@@ -3,16 +3,21 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%X{sourceThread}] %logger{0} - %X{akkaSource} %m%n%rEx </pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%X{sourceThread}] %logger{0} - %X{akkaSource} %m%n%rEx </pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${midolman.log.dir}midolman.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%X{sourceThread}] %logger{0} - %X{akkaSource} %m%n%rEx </pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%X{sourceThread}] %logger{0} - %X{akkaSource} %m%n%rEx </pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
     </appender>
 
     <root level="debug">
