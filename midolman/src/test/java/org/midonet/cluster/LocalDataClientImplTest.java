@@ -35,6 +35,7 @@ import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.ports.MaterializedRouterPort;
 import org.midonet.packets.MAC;
+import org.midonet.packets.Net;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -113,6 +114,9 @@ public class LocalDataClientImplTest {
         // Verify that the route is type LOCAL and forwards to the new port.
         assertThat(rt.getNextHop(), equalTo(NextHop.LOCAL));
         assertThat(rt.getNextHopPort(), equalTo(portId));
+        assertThat(rt.getNextHopGateway(), equalTo(
+            Net.convertIntAddressToString(
+                org.midonet.midolman.layer3.Route.NO_GATEWAY)));
         // Now delete the port and verify that the route is deleted.
         client.portsDelete(portId);
         routes = client.routesFindByRouter(routerId);

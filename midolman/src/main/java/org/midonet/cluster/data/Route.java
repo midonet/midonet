@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.midonet.packets.Net;
+
 public class Route extends Entity.Base<UUID, Route.Data, Route> {
 
     public enum Property {
@@ -163,7 +165,8 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             dstNetworkLength = 0;
             nextHop = org.midonet.midolman.layer3.Route.NextHop.REJECT;
             nextHopPort = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
-            nextHopGateway = "0.0.0.0";
+            nextHopGateway = Net.convertIntAddressToString(
+                org.midonet.midolman.layer3.Route.NO_GATEWAY);
             weight = 0;
             attributes = "";
             routerId = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
