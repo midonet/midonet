@@ -13,6 +13,11 @@ public class IPv6Subnet implements IPSubnet {
     }
 
     @Override
+    public IntIPv4 toIntIPv4() {
+        throw new IllegalArgumentException("Can't convert IPv6 subnet to IPv4");
+    }
+
+    @Override
     public IPv6Addr getAddress() {
         return addr;
     }

@@ -16,6 +16,8 @@ object IPAddr {
         else
             IPv4Addr.fromString(s)
     }
+
+    def fromIntIPv4(ii: IntIPv4) = new IPv4Addr().setIntAddress(ii.addressAsInt)
 }
 
 class IPv4Addr extends IPAddr {
