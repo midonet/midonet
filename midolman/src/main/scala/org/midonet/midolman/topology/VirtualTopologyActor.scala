@@ -35,20 +35,6 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-    // The VPN Actor sends this message to the Virtual Topology Actor to
-    // register VPNs. The VTA subsequently will try to 'lock' VPNs on
-    // behalf of the local host ID and send notifications of any acquired
-    // VPN locks to the local VPNManager.
-    case class RegisterVPNHandler()
-
-    // The Virtual Topology Actor sends this message to the VPNmanager whenever
-    // a lock is acquired/released to manage a VPN.
-    case class AcquiredLockOnVPN(vpnID: UUID, acquired: Boolean)
-
-    // Clients send this message to the VTA to requests the configuration
-    // of a VPN. Once ready, the VTA sends back a VPN read-copy-update object.
-    case class VPNRequest(id: UUID, update: Boolean)
-
     sealed trait Unsubscribe
 
     case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
@@ -63,8 +49,6 @@ object VirtualTopologyActor extends Referenceable {
 class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
     // dir: Directory, zkBasePath: String, val hostIp: IntIPv4
-
-    // XXX TODO(pino): get the local host ID for VPN locking.
 
     private val idToBridge = mutable.Map[UUID, Bridge]()
     private val idToChain = mutable.Map[UUID, Chain]()

@@ -98,17 +98,6 @@ public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
         }
     }
 
-    /**
-     * @return the vpns URI
-     */
-    public URI getVpns() {
-        if (getBaseUri() != null && this.getId() != null) {
-            return ResourceUriBuilder.getPortVpns(getBaseUri(), this.getId());
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public org.midonet.cluster.data.Port toData() {
         org.midonet.cluster.data.ports.MaterializedRouterPort data =

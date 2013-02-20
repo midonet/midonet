@@ -17,7 +17,6 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
-import org.midonet.midolman.state.zkManagers.VpnZkManager.VpnConfig;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.host.*;
@@ -422,22 +421,6 @@ public class Converter {
                 .setChainId(ruleConfig.chainId)
                 .setPosition(ruleConfig.position)
                 .setProperties(ruleConfig.getProperties());
-    }
-
-    public static VpnConfig toVpnConfig(VPN vpn) {
-
-        return new VpnConfig(vpn.getPublicPortId(), vpn.getPrivatePortId(),
-                vpn.getRemoteIp(), vpn.getVpnType(), vpn.getPort());
-    }
-
-    public static VPN fromVpnConfig(VpnConfig vpnConfig) {
-
-        return new VPN()
-                .setPort(vpnConfig.port)
-                .setPrivatePortId(vpnConfig.privatePortId)
-                .setPublicPortId(vpnConfig.publicPortId)
-                .setRemoteIp(vpnConfig.remoteIp)
-                .setVpnType(vpnConfig.vpnType);
     }
 
     public static BridgeDhcpZkManager.Host toDhcpHostConfig(

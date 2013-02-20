@@ -13,7 +13,6 @@ import org.midonet.api.dhcp.rest_api.BridgeFilterDbResource;
 import org.midonet.api.dhcp.rest_api.DhcpHostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
-import org.midonet.api.vpn.rest_api.VpnResource;
 import org.midonet.packets.IntIPv4;
 
 import java.util.UUID;
@@ -40,8 +39,6 @@ public interface ResourceFactory {
     BgpResource getBgpResource();
 
     AdRouteResource getAdRouteResource();
-
-    VpnResource getVpnResource();
 
     HostResource getHostResource();
 
@@ -72,8 +69,6 @@ public interface ResourceFactory {
     HostCommandResource getHostCommandsResource(UUID id);
 
     BgpResource.PortBgpResource getPortBgpResource(UUID id);
-
-    VpnResource.PortVpnResource getPortVpnResource(UUID id);
 
     PortResource.RouterPortResource getRouterPortResource(UUID id);
 

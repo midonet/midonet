@@ -24,7 +24,6 @@ public class PortZkManager extends ZkManager {
     private final TunnelZkManager tunnelZkManager;
     private FiltersZkManager filterZkManager;
     private BgpZkManager bgpManager;
-    private VpnZkManager vpnManager;
     private RouteZkManager routeZkManager;
 
     /**
@@ -41,7 +40,6 @@ public class PortZkManager extends ZkManager {
         tunnelZkManager = new TunnelZkManager(zk, basePath);
         filterZkManager = new FiltersZkManager(zk, basePath);
         this.bgpManager = new BgpZkManager(zk, basePath);
-        this.vpnManager = new VpnZkManager(zk, basePath);
         this.routeZkManager = new RouteZkManager(zk, basePath);
     }
 
@@ -130,8 +128,6 @@ public class PortZkManager extends ZkManager {
 
         // Add materialized port specific operations.
         ops.add(Op.create(paths.getPortBgpPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getPortVpnPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the port.
@@ -422,11 +418,6 @@ public class PortZkManager extends ZkManager {
         ops.addAll(bgpManager.preparePortDelete(id));
         String path = paths.getPortBgpPath(id);
         log.debug("Preparing to delete: " + path);
-        ops.add(Op.delete(path, -1));
-
-        ops.addAll(vpnManager.preparePortDelete(id));
-        path = paths.getPortVpnPath(id);
-        log.debug("Preparing to delete: {}", path);
         ops.add(Op.delete(path, -1));
 
         // Remove the reference from the port interface mapping

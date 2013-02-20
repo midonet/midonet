@@ -40,8 +40,6 @@ public class VendorMediaType {
     public static final String APPLICATION_BGP_COLLECTION_JSON = "application/vnd.org.midonet.collection.Bgp-v1+json";
     public static final String APPLICATION_AD_ROUTE_JSON = "application/vnd.org.midonet.AdRoute-v1+json";
     public static final String APPLICATION_AD_ROUTE_COLLECTION_JSON = "application/vnd.org.midonet.collection.AdRoute-v1+json";
-    public static final String APPLICATION_VPN_JSON = "application/vnd.org.midonet.Vpn-v1+json";
-    public static final String APPLICATION_VPN_COLLECTION_JSON = "application/vnd.org.midonet.collection.Vpn-v1+json";
 
     /* DHCP configuration types. */
     public static final String APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v1+json";

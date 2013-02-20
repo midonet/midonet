@@ -11,7 +11,6 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.network.rest_api.*;
-import org.midonet.api.vpn.rest_api.VpnResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
@@ -137,16 +136,6 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.AD_ROUTES)
     public AdRouteResource getAdRouteResource() {
         return factory.getAdRouteResource();
-    }
-
-    /**
-     * VPN resource locator.
-     *
-     * @return VpnResource object to handle sub-resource requests.
-     */
-    @Path(ResourceUriBuilder.VPN)
-    public VpnResource getVpnResource() {
-        return factory.getVpnResource();
     }
 
     /**
