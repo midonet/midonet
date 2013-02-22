@@ -43,7 +43,7 @@ public class ForwardNatRule extends NatRule {
         floatingIp = false;
         if (targets.size() == 1) {
             NatTarget tg = targets.iterator().next();
-            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpStart) {
+            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpEnd) {
                 floatingIp = true;
                 floatingIpAddr = tg.nwStart;
             }
@@ -52,6 +52,10 @@ public class ForwardNatRule extends NatRule {
             log.debug("Created a FloatingIP forward nat rule");
         else
             log.debug("Created a normal forward nat rule");
+    }
+
+    public boolean isFloatingIp() {
+        return floatingIp;
     }
 
     @Override
