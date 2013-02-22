@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.midolman.host.sensor.DmesgInterfaceSensor;
 import org.midonet.midolman.host.sensor.InterfaceSensor;
 import org.midonet.midolman.host.sensor.IpAddrInterfaceSensor;
 import org.midonet.midolman.host.sensor.IpTuntapInterfaceSensor;
+import org.midonet.midolman.host.sensor.SysfsInterfaceSensor;
 import org.midonet.midolman.host.sensor.NetlinkInterfaceSensor;
 import org.midonet.netlink.Callback;
 import org.midonet.util.eventloop.Reactor;
@@ -55,7 +55,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
         // member is annotated with @Inject it will try to inject
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
         sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
-        sensors.add(injector.getInstance(DmesgInterfaceSensor.class));
+        sensors.add(injector.getInstance(SysfsInterfaceSensor.class));
         sensors.add(injector.getInstance(NetlinkInterfaceSensor.class));
     }
 
