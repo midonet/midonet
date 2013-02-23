@@ -27,7 +27,6 @@ import static akka.pattern.Patterns.gracefulStop;
 
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.FlowController;
-import org.midonet.midolman.SimulationController;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.SupervisorActor.StartChild;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -60,7 +59,6 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef datapathControllerActor;
     ActorRef virtualToPhysicalActor;
     ActorRef flowControllerActor;
-    ActorRef simulationControllerActor;
     ActorRef monitoringActor;
     ActorRef routingManagerActor;
 
@@ -96,10 +94,6 @@ public class MidolmanActorsService extends AbstractService {
                 startActor(getGuiceAwareFactory(FlowController.class),
                         FlowController.Name());
 
-        simulationControllerActor =
-                startActor(getGuiceAwareFactory(SimulationController.class),
-                        SimulationController.Name());
-
         routingManagerActor =
                 startActor(getGuiceAwareFactory(RoutingManagerActor.class),
                         RoutingManagerActor.Name());
@@ -120,7 +114,6 @@ public class MidolmanActorsService extends AbstractService {
             stopActor(virtualTopologyActor);
             stopActor(virtualToPhysicalActor);
             stopActor(flowControllerActor);
-            stopActor(simulationControllerActor);
             stopActor(routingManagerActor);
             if (config.getMidolmanEnableMonitoring()) {
                 stopActor(monitoringActor);

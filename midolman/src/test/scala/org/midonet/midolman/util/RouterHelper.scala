@@ -7,10 +7,12 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import org.midonet.packets._
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.topology.VirtualTopologyActor.{RouterRequest, PortRequest}
 import org.midonet.midolman.simulation.{Router => SimRouter}
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.topology.VirtualTopologyActor
 
 trait RouterHelper extends SimulationHelper {
 
@@ -48,18 +50,19 @@ trait RouterHelper extends SimulationHelper {
         arp.getOpCode should be === ARP.OP_REQUEST
     }
 
-    def fetchRouterAndPort(portName: String) : (SimRouter, RouterPort[_]) = {
+    def fetchRouterAndPort(portName: String,
+                           portId: UUID) : (SimRouter, RouterPort[_]) = {
         // Simulate a dummy packet so the system creates the Router RCU object
         val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
             setDestinationMACAddress(MAC.fromString("de:de:de:de:de:de")).
             setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
             setPad(true)
         triggerPacketIn(portName, eth)
+        fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-        fishForRequestOfType[PortRequest](vtaProbe())
-        val port = fishForReplyOfType[RouterPort[_]](vtaProbe())
-        fishForRequestOfType[RouterRequest](vtaProbe())
-        val router = fishForReplyOfType[SimRouter](vtaProbe())
+        val port = VirtualTopologyActor.everything.idToPort(portId)
+             .asInstanceOf[RouterPort[_]]
+        val router = VirtualTopologyActor.everything.idToRouter(port.deviceID)
         drainProbes()
         (router, port)
     }

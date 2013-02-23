@@ -7,7 +7,7 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import java.util.UUID
 
-import org.midonet.midolman.SimulationController
+import org.midonet.midolman.DatapathController
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.simulation.Coordinator._
@@ -15,16 +15,15 @@ import org.midonet.midolman.topology._
 import org.midonet.cluster.client._
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import org.midonet.sdn.flows.{WildcardMatches, WildcardMatch}
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.sdn.flows.{WildcardMatch, WildcardMatches}
 import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.simulation.Coordinator.ConsumedAction
 import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
 import org.midonet.midolman.simulation.Coordinator.NotIPv4Action
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
@@ -289,9 +288,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
     private def getRouterPort(portID: UUID, expiry: Long)
             (implicit actorSystem: ActorSystem,
              pktContext: PacketContext): Future[RouterPort[_]] = {
-        val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
-        expiringAsk(virtualTopologyManager, PortRequest(portID, false),
-                    expiry).mapTo[RouterPort[_]] map {
+        expiringAsk(PortRequest(portID, false), expiry)
+            .mapTo[RouterPort[_]] map {
             case null =>
                 log.error("Can't find router port: {}", portID)
                 null
@@ -354,7 +352,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setSourceMACAddress(inPort.portMac)
         eth.setDestinationMACAddress(pkt.getSenderHardwareAddress)
         eth.setEtherType(ARP.ETHERTYPE)
-        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
             inPort.id, eth,
             if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
     }
@@ -444,8 +442,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem,
                            pktContext: PacketContext): Future[MAC] = {
-        val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
-        val peerPortFuture = expiringAsk(virtualTopologyManager,
+        val peerPortFuture = expiringAsk(
                 PortRequest(rtrPort.peerID, false), expiry).mapTo[Port[_]]
         peerPortFuture map {
             case null =>
@@ -579,7 +576,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
                     if (postRoutingResult.action == RuleAction.ACCEPT) {
-                        SimulationController.getRef(actorSystem).tell(
+                        DatapathController.getRef(actorSystem).tell(
                             EmitGeneratedPacket(rt.nextHopPort, eth,
                                 if (packetContext != null)
                                     Option(packetContext.getFlowCookie) else None))
@@ -754,7 +751,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 ingressMatch.getInputPortUUID,
                 IPv4.fromIPv4Address(ip.getSourceAddress()),
                 IPv4.fromIPv4Address(ip.getDestinationAddress()) }) */
-        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
         // TODO(pino): check with Guillermo about match's vs. device's inPort.
             //ingressMatch.getInputPortUUID, eth)
             inPort.id, eth,

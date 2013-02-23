@@ -239,6 +239,7 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
 class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
+    import context.system
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -335,9 +336,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                 // We need to track whether the vport belongs to a PortSet.
                 // Fetch the port configuration first. Make the timeout long
                 // enough that it has a chance to retry.
-                val f1 = (ask(VirtualTopologyActor.getRef(),
-                    PortRequest(vportID, update = false))
-                    (Duration(10, TimeUnit.SECONDS))).mapTo[Port[_]]
+                val f1 = VirtualTopologyActor.expiringAsk(
+                    PortRequest(vportID, update = false)).mapTo[Port[_]]
                 f1 onComplete {
                     case Left(ex) =>
                         log.error("Failed to get config for port that " +
@@ -348,9 +348,9 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                             log.debug("LocalPortActive - it's a bridge port")
                             // Get the bridge config. Make the timeout long
                             // enough that it has a chance to retry.
-                            val f2 = (ask(VirtualTopologyActor.getRef(),
+                            val f2 = VirtualTopologyActor.expiringAsk(
                                 BridgeRequest(port.deviceID, update = false))
-                                (Duration(10, TimeUnit.SECONDS))).mapTo[Bridge]
+                                .mapTo[Bridge]
                             f2 onComplete {
                                 case Left(ex) =>
                                     log.error("Failed to get bridge config " +

@@ -14,6 +14,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IntIPv4, MAC, Packets}
+import util.TestHelpers
 
 
 @RunWith(classOf[JUnitRunner])
@@ -46,17 +47,9 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val portNo = dpController().underlyingActor.ifaceNameToDpPort("port").getPortNo
-        triggerPacketIn(
-            new Packet()
-                .setData(
-                    Packets.udp(
-                        MAC.fromString("10:10:10:10:10:10"),
-                        MAC.fromString("10:10:10:10:10:11"),
-                        IntIPv4.fromString("192.168.100.1"),
-                        IntIPv4.fromString("192.168.200.1"),
-                        100, 100, new Array[Byte](0)
-                    ).serialize())
-                .setMatch(new FlowMatch().addKey(FlowKeys.inPort(portNo))))
+        triggerPacketIn("port", TestHelpers.createUdpPacket(
+                "10:10:10:10:10:10", "192.168.100.1",
+                "10:10:10:10:10:11", "192.168.200.1"))
 
         val packetIn = fishForRequestOfType[PacketIn](dpProbe())
 
@@ -67,6 +60,11 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         val packetInMsg = requestOfType[PacketIn](simProbe())
 
         packetInMsg.wMatch should not be null
-        packetInMsg.wMatch.getInputPortUUID should be (vifPort.getId)
+        // We cannot check that the input port ID has been set correctly
+        // because of a race condition: when the simulation finishes, the
+        // DatapathController sets the input port ID back to null before
+        // passing the wMatch to the FlowController in a InstallWildcardFlow
+        // message.
+        packetInMsg.wMatch.getInputPortNumber should be (getPortNumber("port"))
     }
 }

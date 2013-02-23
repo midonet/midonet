@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.DatapathController.PacketIn
 import org.midonet.midolman.FlowController._
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.simulation.{ArpTableImpl, LoadBalancer}
@@ -170,7 +170,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             newRoute(clusterRouter, "0.0.0.0", 0, routeDst, 32,
                      NextHop.PORT, uplinkPort.getId, gw, 1)
         }
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val lb = new LoadBalancer(router.rTable)
 
         val wmatch = new WildcardMatch().
@@ -346,7 +346,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestFulfilledLocally() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(
@@ -366,7 +366,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestFulfilledRemotely() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
 
         val ip = IntIPv4.fromString(uplinkGatewayAddr)
         val mac = MAC.fromString("fe:fe:fe:da:da:da")
@@ -386,7 +386,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestGeneration() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val expiry = Platform.currentTime + 1000
         val fromIp = IntIPv4.fromString(uplinkPortAddr)
         val toIp = IntIPv4.fromString(uplinkGatewayAddr)
@@ -410,7 +410,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     private def arpReceivedRequestProcessing(isUnicast: Boolean) {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
         val myIp = IntIPv4.fromString(uplinkPortAddr)
         val hisMac = MAC.fromString("ab:cd:ef:ab:cd:ef")
@@ -576,7 +576,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestTimeout() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val myIp = IntIPv4.fromString(uplinkPortAddr)
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)
         val expiry = Platform.currentTime + ARP_TIMEOUT_SECS * 1000 + 1000
@@ -594,7 +594,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpRequestRetry() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val myMac = uplinkMacAddr
         val myIp = IntIPv4.fromString(uplinkPortAddr)
         val hisMac = MAC.fromString("77:aa:66:bb:55:cc")
@@ -616,7 +616,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     def testArpEntryExpiration() {
-        val (router, port) = fetchRouterAndPort("uplinkPort")
+        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val myIp = IntIPv4.fromString(uplinkPortAddr)
         val hisIp = IntIPv4.fromString(uplinkGatewayAddr)

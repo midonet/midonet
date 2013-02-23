@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.DatapathController.PacketIn
 import org.midonet.midolman.FlowController.{DiscardPacket, WildcardFlowAdded,
     WildcardFlowRemoved}
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -355,7 +355,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectPacketOut(rtrPort1Num)
 
         log.info("Send Ping reply on behalf of VM1")
-        sendEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 
+        sendEchoReply(rtrPort1Name, vm1Mac, vm1Ip,
                       16, 32,
                       routerMac1, vm2IP)
         requestOfType[PacketIn](simProbe())
