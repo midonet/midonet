@@ -55,7 +55,7 @@ public class WildcardFlow {
         if(o == null || o.getClass() != this.getClass())
             return false;
         WildcardFlow that = (WildcardFlow)o;
-        if (that.getHardExpirationMillis() != this.getCreationTimeMillis() ||
+        if (that.getHardExpirationMillis() != this.getHardExpirationMillis() ||
             that.getIdleExpirationMillis() != this.getIdleExpirationMillis() ||
             that.getPriority() != this.getPriority())
                 return false;
