@@ -137,11 +137,11 @@
   <!-- Monitoring configuration -->
   <context-param>
     <param-name>monitoring-cassandra_keyspace</param-name>
-    <param-value>midonet_monitoring_keyspace</param-value>
+    <param-value>midonet_monitoring</param-value>
   </context-param>
   <context-param>
     <param-name>monitoring-cassandra_column_family</param-name>
-    <param-value>midonet_monitoring_column_family</param-value>
+    <param-value>monitoring_data</param-value>
   </context-param>
   <context-param>
     <param-name>monitoring-cassandra_replication_factor</param-name>
