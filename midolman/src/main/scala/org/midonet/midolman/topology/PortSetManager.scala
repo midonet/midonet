@@ -7,19 +7,15 @@ import akka.actor.ActorRef
 import org.midonet.cluster.client.PortSetBuilder
 import java.util.{Set, UUID}
 import collection.{immutable, mutable}
-import rcu.RCUDeviceManager
 import scala.collection.JavaConversions._
-import javax.inject.Inject
 import org.midonet.cluster.Client
 
-class PortSetManager extends RCUDeviceManager {
+class PortSetManager(clusterClient: Client,
+                     actor: ActorRef) extends DeviceHandler {
 
-    @Inject
-    var clusterClient: Client = null
-
-    protected def startManager(deviceId: UUID, clientActor: ActorRef) {
+    def handle(deviceId: UUID) {
         clusterClient.getPortSet(deviceId,
-            new LocalPortSetBuilder(context.actorFor(".."), deviceId))
+            new LocalPortSetBuilder(actor, deviceId))
     }
 
     class LocalPortSetBuilder(actor:ActorRef, portSetId: UUID) extends PortSetBuilder {

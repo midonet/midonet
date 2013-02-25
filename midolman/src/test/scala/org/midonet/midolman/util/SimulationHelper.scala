@@ -5,6 +5,7 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
+import java.util.{List => JList}
 
 import scala.collection.JavaConversions._
 
@@ -86,15 +87,24 @@ trait SimulationHelper extends MidolmanTestCase {
         eth
     }
 
+    private def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short]
+    = {
+        actions.flatMap(action => action match {
+            case a: FlowActionOutput => Option(a.getValue.getPortNumber.toShort)
+            case _ => None
+        }).toSet
+    }
+
+    def getFlowOutputPorts(flow: WildcardFlow): Set[Short] = {
+        actionsToOutputPorts(flow.getActions)
+    }
+
+
     def getOutPacketPorts(packet: Packet): Set[Short] = {
         packet should not be null
         packet.getData should not be null
         packet.getActions should not be null
-
-        packet.getActions.flatMap(action => action match {
-            case a: FlowActionOutput => Option(a.getValue.getPortNumber.toShort)
-            case _ => None
-        }).toSet
+        actionsToOutputPorts(packet.getActions)
     }
 
     def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {

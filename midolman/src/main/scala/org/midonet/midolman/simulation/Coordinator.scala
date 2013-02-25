@@ -90,7 +90,7 @@ class Coordinator(val origMatch: WildcardMatch,
                   val connectionCache: Cache,
                   val parentCookie: Option[Int])
                  (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem) {
+                  val actorSystem: ActorSystem) extends Runnable {
     import Coordinator._
 
     val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
@@ -130,6 +130,8 @@ class Coordinator(val origMatch: WildcardMatch,
                 pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
         }
     }
+
+    override def run: Unit = simulate
 
     /**
      * Simulate the packet moving through the virtual topology. The packet

@@ -140,7 +140,7 @@ public class Packet {
     @Override
     public String toString() {
         return "Packet{" +
-            "data=" + Arrays.toString(data) +
+            "data_length=" + data.length +
             ", match=" + match +
             ", actions=" + actions +
             ", userData=" + userData +

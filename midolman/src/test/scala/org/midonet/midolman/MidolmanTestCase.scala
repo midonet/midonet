@@ -49,6 +49,7 @@ import org.midonet.util.functors.callbacks.AbstractCallback
 import org.midonet.midolman.DatapathController.{EmitGeneratedPacket,
                                                 InitializationComplete,
                                                 PacketIn}
+import protos.mocks.MockOvsDatapathConnectionImpl.FlowListener
 import scala.List
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
@@ -63,6 +64,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         with OneInstancePerTest with ShouldMatchers with Dilation {
 
     case class PacketsExecute(packet: Packet)
+    case class FlowAdded(flow: Flow)
+    case class FlowRemoved(flow: Flow)
 
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanTestCase])
 
@@ -77,6 +80,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
+    }
+
+    def mockDpConn(): MockOvsDatapathConnectionImpl = {
+        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl]
     }
 
     protected def dpConn(): OvsDatapathConnection = {
@@ -120,12 +127,24 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
-            dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].
-                packetsExecuteSubscribe(new AbstractCallback[Packet, Exception] {
+            mockDpConn().packetsExecuteSubscribe(
+                new AbstractCallback[Packet, Exception] {
                     override def onSuccess(pkt: Packet) {
                         actors().eventStream.publish(PacketsExecute(pkt))
                     }
-            })
+                })
+
+            mockDpConn().flowsSubscribe(
+                new FlowListener {
+                    def flowCreated(flow: Flow) {
+                        actors().eventStream.publish(FlowAdded(flow))
+                    }
+
+                    def flowDeleted(flow: Flow) {
+                        actors().eventStream.publish(FlowRemoved(flow))
+                    }
+                })
+
             sProbe = newProbe()
             actors().eventStream.subscribe(sProbe.ref, classOf[PacketIn])
             actors().eventStream.subscribe(sProbe.ref,
@@ -305,6 +324,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         probeByName(VirtualTopologyActor.Name)
     }
 
+    // TODO(pino): clean-up. Leave it for now to minimize test-code changes.
     protected def simProbe() = sProbe
 
     protected def fishForRequestOfType[T](testKit: TestKit,

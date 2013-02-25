@@ -5,7 +5,6 @@ package org.midonet.midolman
 import compat.Platform
 import scala.Left
 import scala.Right
-import scala.Some
 
 import akka.dispatch.{Future, Promise}
 import akka.dispatch.ExecutionContext
@@ -49,10 +48,10 @@ class SimulationController {
             case Right(true) =>
             //Nothing to do
             case Right(false) =>
-                new Coordinator(
+                ec.execute(new Coordinator(
                     wMatch, ethPkt, cookie, None,
                     Platform.currentTime + timeout,
-                    connectionCache, None).simulate()
+                    connectionCache, None))
         }
     }
 
@@ -60,10 +59,11 @@ class SimulationController {
                             parentCookie: Option[Int])
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Unit = {
-        new Coordinator(
+
+        ec.execute(new Coordinator(
             WildcardMatch.fromEthernetPacket(ethPkt), ethPkt, None,
             Some(egressPort), Platform.currentTime + timeout,
-            connectionCache, parentCookie).simulate()
+            connectionCache, parentCookie))
     }
 
     private def handleDHCP(wMatch: WildcardMatch,

@@ -6,7 +6,6 @@ package org.midonet.midolman.topology
 import scala.collection.mutable
 import java.util.UUID
 import akka.actor.ActorRef
-import javax.inject.Inject
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.TunnelZones
@@ -19,7 +18,6 @@ import org.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
                                                 GreTunnelZone}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{CapwapZoneChanged,
                                                                GreZoneChanged}
-import org.midonet.midolman.topology.rcu.RCUDeviceManager
 import org.midonet.packets.IPv4
 
 // TODO(guillermo) - this is a candidate for relocation into a util package
@@ -39,14 +37,12 @@ trait MapperToFirstCall {
     }
 }
 
-class TunnelZoneManager extends RCUDeviceManager {
+class TunnelZoneManager(clusterClient: Client,
+                        actor: ActorRef) extends DeviceHandler {
 
-    @Inject
-    var clusterClient: Client = null
-
-    protected def startManager(deviceId: UUID, clientActor: ActorRef) {
+    def handle(deviceId: UUID) {
         clusterClient.getTunnelZones(deviceId,
-            new ZoneBuildersProvider(context.actorFor(".."), deviceId))
+            new ZoneBuildersProvider(actor, deviceId))
     }
 
     class ZoneBuildersProvider(val actor: ActorRef, val zoneId:UUID)

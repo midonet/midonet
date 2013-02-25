@@ -7,20 +7,17 @@ import akka.actor.ActorRef
 import java.util.UUID
 import org.midonet.cluster.client.HostBuilder
 import collection.mutable
-import rcu.{RCUDeviceManager, Host}
+import rcu.Host
 import scala.collection.JavaConversions._
 import org.midonet.cluster.data.TunnelZone
 import java.util
-import javax.inject.Inject
 import org.midonet.cluster.Client
 
-class HostManager extends RCUDeviceManager {
+class HostManager(clusterClient: Client,
+                  actor: ActorRef) extends DeviceHandler {
 
-    @Inject
-    var clusterClient: Client = null
-
-    protected def startManager(deviceId: UUID, clientActor: ActorRef) {
-        clusterClient.getHost(deviceId, new LocalHostBuilder(clientActor, deviceId))
+    def handle(deviceId: UUID) {
+        clusterClient.getHost(deviceId, new LocalHostBuilder(actor, deviceId))
     }
 
     class LocalHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {

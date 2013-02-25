@@ -4,8 +4,10 @@
 */
 package org.midonet.odp.protos.mocks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -43,10 +45,12 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     Map<Datapath, AtomicInteger> portsIndexes
         = new HashMap<Datapath, AtomicInteger>();
-    
+
     public Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
+    public List<Packet> packetsSent = new ArrayList<Packet>();
 
     org.midonet.util.functors.Callback<Packet, ?> packetExecCb = null;
+    FlowListener flowsCb = null;
 
     boolean initialized = false;
 
@@ -277,6 +281,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
         flow.setLastUsedTime(System.currentTimeMillis());
         flowsTable.put(flow.getMatch(), flow);
         callback.onSuccess(flow);
+        flowsCb.flowCreated(flow);
     }
 
     @Override
@@ -284,6 +289,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
        if(flowsTable.containsKey(flow.getMatch())){
            Flow removed = flowsTable.remove(flow.getMatch());
            callback.onSuccess(removed);
+           flowsCb.flowDeleted(removed);
        }
         else{
            callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
@@ -327,6 +333,8 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath, @Nonnull Packet packet,
                                      @Nonnull Callback<Boolean> callback, long timeoutMillis) {
+        packetsSent.add(packet);
+        callback.onSuccess(true);
         if (packetExecCb != null)
             packetExecCb.onSuccess(packet);
     }
@@ -334,5 +342,14 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
     public void packetsExecuteSubscribe(
             org.midonet.util.functors.Callback<Packet, ?> cb) {
         this.packetExecCb = cb;
+    }
+
+    public interface FlowListener {
+        void flowCreated(Flow flow);
+        void flowDeleted(Flow flow);
+    }
+
+    public void flowsSubscribe(FlowListener listener) {
+        this.flowsCb = listener;
     }
 }

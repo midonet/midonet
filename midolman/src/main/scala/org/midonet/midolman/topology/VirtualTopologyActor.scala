@@ -53,10 +53,10 @@ object VirtualTopologyActor extends Referenceable {
 
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
-    case class Everything(idToBridge: Map[UUID, Bridge],
-                          idToChain: Map[UUID, Chain],
-                          idToPort: Map[UUID, Port[_]],
-                          idToRouter: Map[UUID, Router])
+    case class Everything(idToBridge: immutable.Map[UUID, Bridge],
+                          idToChain: immutable.Map[UUID, Chain],
+                          idToPort: immutable.Map[UUID, Port[_]],
+                          idToRouter: immutable.Map[UUID, Router])
 
     // This variable should only be updated by the singleton
     // VirtualTopologyInstance. Also, we strongly recommend not accessing
@@ -83,7 +83,7 @@ object VirtualTopologyActor extends Referenceable {
                 .ask(request)(timeLeft milliseconds)
 
         // Try using the cache
-        val deviceMap: Map[UUID, Any] = request match {
+        val deviceMap: immutable.Map[UUID, Any] = request match {
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
             case r: PortRequest => e.idToPort

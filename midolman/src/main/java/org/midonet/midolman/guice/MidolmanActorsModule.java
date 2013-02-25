@@ -88,9 +88,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(SimulationController.class);
         bind(MonitoringActor.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
-        bind(HostManager.class);
-        bind(TunnelZoneManager.class);
-        bind(PortSetManager.class);
         bind(RoutingManagerActor.class);
     }
 

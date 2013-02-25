@@ -7,12 +7,10 @@ import scala.collection.{immutable, mutable}
 import scala.collection.immutable.{Set => ROSet}
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import akka.actor._
-import akka.pattern.ask
 import akka.util.duration._
-import akka.util.{Duration, Timeout}
+import akka.util.Timeout
 
 import com.google.inject.Inject
 
@@ -20,7 +18,6 @@ import org.midonet.midolman.{FlowController, Referenceable}
 import org.midonet.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.rcu.RCUDeviceManager.Start
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
@@ -119,6 +116,10 @@ object VirtualToPhysicalMapper extends Referenceable {
     case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 }
 
+trait DeviceHandler {
+    def handle(deviceId: UUID)
+}
+
 /**
  * The Virtual-Physical Mapping is a component that interacts with Midonet
  * state management cluster and is responsible for those pieces of state that
@@ -137,13 +138,10 @@ object VirtualToPhysicalMapper extends Referenceable {
  * </li>
  * </ul>
  */
-class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: ActorContext,
-                                                               val actorsService: MidolmanActorsService,
-                                                               val prefix: String)
-     (implicit val managerManifest: Manifest[ManagerType]) {
+class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     val devices = mutable.Map[UUID, T]()
-    val deviceHandlers = mutable.Map[UUID, ActorRef]()
+    val deviceHandlers = mutable.Set[UUID]()
     val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     val deviceObservers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
@@ -188,13 +186,8 @@ class DeviceHandlersManager[T <: AnyRef, ManagerType <: Actor](val context: Acto
 
     private def makeHandler(deviceId: UUID): Unit = {
         if (!deviceHandlers.contains(deviceId)) {
-            val manager =
-                context.actorOf(
-                    actorsService.getGuiceAwareFactory(managerManifest.erasure.asInstanceOf[Class[ManagerType]]),
-                    "%s-%s" format (prefix, deviceId))
-            deviceHandlers.put(deviceId, manager)
-
-            manager ! Start(deviceId)
+            handler.handle(deviceId)
+            deviceHandlers.add(deviceId)
         }
     }
 
@@ -259,14 +252,14 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
     @Inject
     val connectionWatcher: ZkConnectionAwareWatcher = null
 
-    private lazy val hosts: DeviceHandlersManager[Host, HostManager] =
-        new DeviceHandlersManager[Host, HostManager](context, actorsService, "host")
+    private lazy val hosts = new DeviceHandlersManager[Host](
+        new HostManager(clusterClient, self))
 
-    private lazy val portSets: DeviceHandlersManager[rcu.PortSet, PortSetManager] =
-        new DeviceHandlersManager[rcu.PortSet, PortSetManager](context, actorsService, "portset")
+    private lazy val portSets = new DeviceHandlersManager[rcu.PortSet](
+        new PortSetManager(clusterClient, self))
 
-    private lazy val tunnelZones: DeviceHandlersManager[ZoneMembers[_], TunnelZoneManager] =
-        new DeviceHandlersManager[ZoneMembers[_], TunnelZoneManager](context, actorsService, "tunnel_zone")
+    private lazy val tunnelZones = new DeviceHandlersManager[ZoneMembers[_]](
+        new TunnelZoneManager(clusterClient, self))
 
     // Map a PortSet ID to the vports in the set that are local to this host.
     private val psetIdToLocalVports = mutable.Map[UUID, mutable.Set[UUID]]()
