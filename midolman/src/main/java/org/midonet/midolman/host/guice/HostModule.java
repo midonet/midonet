@@ -10,10 +10,10 @@ import org.midonet.midolman.host.HostInterfaceWatcher;
 import org.midonet.midolman.host.commands.executors.CommandInterpreter;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.host.sensor.DmesgInterfaceSensor;
 import org.midonet.midolman.host.sensor.IpAddrInterfaceSensor;
 import org.midonet.midolman.host.sensor.IpTuntapInterfaceSensor;
 import org.midonet.midolman.host.sensor.NetlinkInterfaceSensor;
+import org.midonet.midolman.host.sensor.SysfsInterfaceSensor;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
@@ -66,8 +66,8 @@ public class HostModule extends PrivateModule {
         expose(IpAddrInterfaceSensor.class);
         bind(IpTuntapInterfaceSensor.class);
         expose(IpTuntapInterfaceSensor.class);
-        bind(DmesgInterfaceSensor.class);
-        expose(DmesgInterfaceSensor.class);
+        bind(SysfsInterfaceSensor.class);
+        expose(SysfsInterfaceSensor.class);
         bind(NetlinkInterfaceSensor.class);
         expose(NetlinkInterfaceSensor.class);
     }
