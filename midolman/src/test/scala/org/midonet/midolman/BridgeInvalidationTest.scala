@@ -68,8 +68,6 @@ with RouterHelper{
 
     var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
 
-
-
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         //config.setProperty("datapath.max_flow_count", 3)
@@ -141,6 +139,7 @@ with RouterHelper{
         addRemoveFlowsProbe.fishForMessage(Duration(5, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(port3Name)))))
+
     }
 
     def testLearnMAC() {
@@ -150,12 +149,19 @@ with RouterHelper{
         val m = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
-        // the flood flow should be invalidated
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            asScalaBuffer[FlowAction[_]](m.f.getActions)))
-        // this is the flow from 2 to 1
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        val s = addRemoveFlowsProbe.expectMsgAllClassOf(
+            Duration(3, TimeUnit.SECONDS),
+            classOf[WildcardFlowRemoved], classOf[WildcardFlowAdded])
+
+        for (w <- s) w match {
+            case w: WildcardFlowRemoved =>
+                // the flood flow should be invalidated
+                w.f.getActions should be (m.f.getActions)
+            case w: WildcardFlowAdded =>
+                // this is the flow from 2 to 1
+        }
+
         addRemoveFlowsProbe.expectNoMsg()
     }
 
@@ -197,10 +203,13 @@ with RouterHelper{
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
-        // this is the flooded flow that has been invalidated
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        // this is the flow from 2 to 1
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        addRemoveFlowsProbe.expectMsgAllClassOf(
+            // this is the flooded flow that has been invalidated
+            classOf[WildcardFlowRemoved],
+            // this is the flow from 2 to 1
+            classOf[WildcardFlowAdded])
+
         // let's create another flow from 1 to 2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         val flowShouldBeInvalidated = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])

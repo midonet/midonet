@@ -9,7 +9,6 @@ import host.interfaces.InterfaceDescription
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-import collection.JavaConversions._
 
 import org.midonet.midolman.DatapathController.PacketIn
 import org.midonet.midolman.FlowController.{DiscardPacket, WildcardFlowAdded, WildcardFlowRemoved}
@@ -20,7 +19,6 @@ import topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.Router
-import org.midonet.odp.flows.{FlowActionOutput, FlowAction, FlowActions}
 import org.midonet.packets._
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
@@ -211,8 +209,6 @@ class LinksTestCase extends MidolmanTestCase
 
         log.info("PING vm1 -> vm2, should pass now")
         injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
-        // requestOfType[PacketIn](simProbe())
-        // requestOfType[EmitGeneratedPacket](simProbe())
         pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
               .getPayload.asInstanceOf[IPv4]
         pkt.getSourceAddress should be === vm1Ip.addressAsInt

@@ -50,12 +50,19 @@ import org.midonet.midolman.DatapathController.InitializationComplete
 import scala.List
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
+import java.util.concurrent.locks.ReentrantLock
+import org.slf4j.{Logger, LoggerFactory}
 
+object MidolmanTestCaseLock {
+    val sequential: ReentrantLock = new ReentrantLock()
+}
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
         with OneInstancePerTest with ShouldMatchers with Dilation {
 
     case class PacketsExecute(packet: Packet)
+
+    private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanTestCase])
 
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
@@ -97,6 +104,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         injector.getInstance(classOf[HostIdProviderService]).getHostId
     }
 
+
     before {
         try {
             val config = fillConfig(new HierarchicalConfiguration())
@@ -116,6 +124,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     }
             })
 
+            // Make sure that each test method runs alone
+            MidolmanTestCaseLock.sequential.lock()
+            log.info("Aquired test lock")
+
             beforeTest()
         } catch {
             case e: Throwable => fail(e)
@@ -123,10 +135,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
+
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
         if (mAgent != null) {
             mAgent.stop()
         }
+
+        MidolmanTestCaseLock.sequential.unlock()
+        log.info("Released lock")
+
         afterTest()
     }
 
