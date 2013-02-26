@@ -253,6 +253,7 @@ public class ZookeeperDisconnectionTest {
         icmpRoutedFromTapToTap(tapA, tapB, macA, rtrMacA, ipA, ipB);
     }
 
+    @Ignore
     @Test
     public void testSimulationDuringAndAfterDisconnection() throws Exception {
         log.info("blocking communications with zookeeper");
