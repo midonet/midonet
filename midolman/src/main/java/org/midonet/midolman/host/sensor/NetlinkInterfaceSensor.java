@@ -68,16 +68,12 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
                 // Set the port type
                 interfaceDescription.setPortType(port.getType());
 
-                // Set the endpoint if it's still unknown
-                if (interfaceDescription.getEndpoint() ==
-                        InterfaceDescription.Endpoint.UNKNOWN) {
-                    // We have not got an endpoint classification from the
-                    // previous sensor.
-                    interfaceDescription.setEndpoint(
-                            InterfaceDescription.Endpoint.DATAPATH);
-                    interfaceDescription.setType(
-                            InterfaceDescription.Type.VIRT);
-                }
+                // Set the endpoint to DATAPATH and type to VIRT if this inteface
+                // is a dp port
+                interfaceDescription.setEndpoint(
+                    InterfaceDescription.Endpoint.DATAPATH);
+                interfaceDescription.setType(
+                    InterfaceDescription.Type.VIRT);
             }
 
         }

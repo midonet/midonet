@@ -76,36 +76,36 @@ public class LinksTest extends TestBase {
         EmbeddedMidolman mm = getEmbeddedMidolman();
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
-                probe.ref(), LocalPortActive.class);
+            probe.ref(), LocalPortActive.class);
 
         rtr = apiClient.addRouter().tenantId(TENANT_NAME)
-                .name("rtr1").create();
+                       .name("rtr1").create();
         // Add a exterior port.
         rtrPort1 = rtr.addExteriorRouterPort()
-                .portAddress(rtrIp1.toUnicastString())
-                .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
-                .networkLength(rtrIp1.getMaskLength())
-                .create();
+                      .portAddress(rtrIp1.toUnicastString())
+                      .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
+                      .networkLength(rtrIp1.getMaskLength())
+                      .create();
 
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-                .dstNetworkAddr(vm1IP.toUnicastString())
-                .dstNetworkLength(vm1IP.getMaskLength())
-                .nextHopPort(rtrPort1.getId())
-                .type(DtoRoute.Normal).weight(10).create();
+           .dstNetworkAddr(vm1IP.toUnicastString())
+           .dstNetworkLength(vm1IP.getMaskLength())
+           .nextHopPort(rtrPort1.getId())
+           .type(DtoRoute.Normal).weight(10).create();
 
         // Add a interior port to the router.
         rtrPort2 = rtr.addExteriorRouterPort()
-                .portAddress(rtrIp2.toUnicastString())
-                .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
-                .networkLength(rtrIp2.getMaskLength())
-                .create();
+                      .portAddress(rtrIp2.toUnicastString())
+                      .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
+                      .networkLength(rtrIp2.getMaskLength())
+                      .create();
 
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-                .dstNetworkAddr(vm2IP.toUnicastString())
-                .dstNetworkLength(vm2IP.getMaskLength())
-                .nextHopPort(rtrPort2.getId())
-                .type(DtoRoute.Normal).weight(10)
-                .create();
+           .dstNetworkAddr(vm2IP.toUnicastString())
+           .dstNetworkLength(vm2IP.getMaskLength())
+           .nextHopPort(rtrPort2.getId())
+           .type(DtoRoute.Normal).weight(10)
+           .create();
 
         rtrMac1 = MAC.fromString(rtrPort1.getPortMac());
         rtrMac2 = MAC.fromString(rtrPort2.getPortMac());
@@ -130,8 +130,8 @@ public class LinksTest extends TestBase {
         log.info("Waiting for the port to start up.");
         for (int i = 0; i < 2; i++) {
             LocalPortActive activeMsg = probe.expectMsgClass(
-                    Duration.create(10, TimeUnit.SECONDS),
-                    LocalPortActive.class);
+                Duration.create(10, TimeUnit.SECONDS),
+                LocalPortActive.class);
             log.info("Received one LocalPortActive message from stream.");
             assertTrue("The port should be active.", activeMsg.active());
         }
@@ -177,7 +177,7 @@ public class LinksTest extends TestBase {
 
     @Test
     public void testMakePing()
-            throws MalformedPacketException, InterruptedException {
+        throws MalformedPacketException, InterruptedException {
 
         // First arp for router's macs
         arpAndCheckReply(tap1, vm1Mac, vm1IP, rtrIp1, rtrMac1);
@@ -198,7 +198,7 @@ public class LinksTest extends TestBase {
         EmbeddedMidolman mm = getEmbeddedMidolman();
         TestProbe probe = new TestProbe(mm.getActorSystem());
         mm.getActorSystem().eventStream().subscribe(
-                probe.ref(), LocalPortActive.class);
+            probe.ref(), LocalPortActive.class);
 
         tap2.down();
         log.info("Waiting for MM to realize that the port has gone down.");
@@ -241,18 +241,10 @@ public class LinksTest extends TestBase {
         doPingsToVms();
         doPingsToRouter();
 
-        // TODO - figure out why it doesn't work.
-        // The only difference with the sequence above is that the tap is
-        // deleted with removeTapWrapper instead of bringing it down with
-        // tap2.down(). When the tap is recreated, the simulation proceeds
-        // normally, routes are restored, flows are installed, but as soon as
-        // the packet is routed towards vm2 and handed over to the datapath it
-        // never appears on the other tap
-        /*
         log.info("Deleting the tap.");
         removeTapWrapper(tap2);
 
-        log.info("Waiting for MM to realize that the port has gone down.");
+        log.info("Waiting for MM to realize that the tap was deleted.");
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertFalse(lpa.active());
         assertEquals(lpa.portID(), rtrPort2.getId());
@@ -270,10 +262,6 @@ public class LinksTest extends TestBase {
 
         log.info("Resurrecting the tap.");
         tap2 = new TapWrapper(TAP2NAME);
-        thisHost.addHostInterfacePort()
-                .interfaceName(tap2.getName())
-                .portId(rtrPort2.getId()).create();
-        tap2.up();
 
         lpa = probe.expectMsgClass(LocalPortActive.class);
         assertTrue(lpa.active());
@@ -284,9 +272,22 @@ public class LinksTest extends TestBase {
 
         doPingsToVms();
         doPingsToRouter();
-        */
 
+        log.info("Deleting the tap and don't wait for next interface scanner");
+        removeTapWrapper(tap2);
+        Thread.sleep(250);
+        log.info("Resurrecting the tap.");
+        tap2 = new TapWrapper(TAP2NAME);
+
+        log.info("Waiting for MM to realize that the port has gone down.");
+        lpa = probe.expectMsgClass(LocalPortActive.class);
+        assertTrue(lpa.active());
+        assertEquals(lpa.portID(), rtrPort2.getId());
+
+        // Let router catch up with reality
+        Thread.sleep(500);
+
+        doPingsToVms();
+        doPingsToRouter();
     }
-
-
 }

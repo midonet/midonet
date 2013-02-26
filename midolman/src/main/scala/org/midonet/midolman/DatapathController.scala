@@ -1491,7 +1491,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         if (pendingUpdateCount == 0) {
             if (!initialized)
-                completeInitialization
+                completeInitialization()
             else
                 processNextHost()
         }
@@ -1525,7 +1525,13 @@ class DatapathController() extends Actor with ActorLogging {
             }
 
             def handleError(ex: NetlinkException, timeout: Boolean) {
-                sendOpReply(caller, port, tag, PortOperation.Delete, ex, timeout = false)
+                // check if the port has already been removed, if that's the
+                // case we can consider that the delete operation succeeded
+                if (ex.getErrorCodeEnum == NetlinkException.ErrorCode.ENOENT) {
+                    sendOpReply(caller, port, tag, PortOperation.Delete, null, timeout = false)
+                } else {
+                    sendOpReply(caller, port, tag, PortOperation.Delete, ex, timeout = false)
+                }
             }
         })
     }
@@ -1842,7 +1848,15 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
         }
     }
 
-    def updateInterfaces(interfaces : Collection[InterfaceDescription]) {
+    private def notifyPortRemoval(port: Port[_, _]) {
+        if (port.getPortNo != 0 && dpPortsWeAdded.contains(port.getName) &&
+            !dpPortsInProgress.contains(port.getName)) {
+             dpPortsWeAdded.remove(port.getName)
+             datapathPortRemoved(port.getName)
+        }
+    }
+
+    def updateInterfaces(interfaces: Collection[InterfaceDescription]) {
         log.debug("updateInterfaces {}", interfaces)
         val currentInterfaces = mutable.Set[String]()
 
@@ -1870,14 +1884,27 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
                         }
                     }
                 case Some(wasUp) =>
-                    interfaceToStatus.put(itf.getName, isUp)
-                    if (isUp != wasUp) {
-                        val vportId = interfaceToVport.get(itf.getName)
-                        if (vportId != null) {
-                            val dpPort = interfaceToDpPort.get(itf.getName)
-                            if (dpPort.isDefined)
-                                controller.setVportStatus(dpPort.get,
-                                                          vportId, isUp)
+                    // The NetlinkInterfaceSenson sets the endpoint for all the
+                    // ports of the dp to DATAPATH. It the endpoint is not DATAPATH
+                    // it means that this is a dangling tap. We need to recreate
+                    // the dp port. Use case: add tap, bind it to a vport, remove
+                    // the tap. The dp port gets destryed.
+                    if (itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
+                        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
+                        interfaceToDpPort.containsKey(itf.getName) && isUp) {
+                        requestDpPortAdd(itf.getName)
+                        log.debug("Recreating port {} because was removed and the dp" +
+                            " didn't request the removal", itf.getName)
+                    } else {
+                        interfaceToStatus.put(itf.getName, isUp)
+                        if (isUp != wasUp) {
+                            val vportId = interfaceToVport.get(itf.getName)
+                            if (vportId != null) {
+                                val dpPort = interfaceToDpPort.get(itf.getName)
+                                if (dpPort.isDefined)
+                                    controller.setVportStatus(dpPort.get,
+                                        vportId, isUp)
+                            }
                         }
                     }
             }
@@ -1888,7 +1915,9 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
         deletedInterfaces.keys.foreach {
             name =>
                 interfaceToStatus.remove(name)
-                interfaceToVport.remove(name) match {
+                // we don't have to remove the binding, the interface was deleted
+                // but the binding is still valid
+                interfaceToVport.get(name) match {
                     case null => // do nothing
                     case vportId =>
                         val dpPort = interfaceToDpPort.get(name)
@@ -1898,7 +1927,11 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
                 }
                 interfaceToDpPort.get(name) match {
                     case None => // do nothing
-                    case Some(port) => requestDpPortRemove(port)
+                    case Some(port) =>
+                        // if the interface is not present the port
+                        // has already been removed, we just need to
+                        // notify the dp
+                        notifyPortRemoval(port)
                 }
         }
     }
