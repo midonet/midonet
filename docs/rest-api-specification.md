@@ -1241,21 +1241,6 @@ It contains the following fields:
         <th>Description</th>
     </tr>
     <tr>
-        <td>uri</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI refreshes the representation of this
-         resource.</td>
-    </tr>
-    <tr>
-        <td>id</td>
-        <td>UUID</td>
-        <td/>
-        <td/>
-        <td>A unique identifier of the resource.</td>
-    </tr>
-    <tr>
         <td>chainId</td>
         <td>UUID</td>
         <td/>
@@ -1270,12 +1255,80 @@ It contains the following fields:
         <td>Invert the conjunction of all the other predicates.</td>
     </tr>
     <tr>
+        <td>dlDst</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The data layer destination that this rule matches on. A MAC
+         address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>dlSrc</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The data layer source that this rule matches on. A MAC
+         address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>dlType</td>
+        <td>Short</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set the data layer tpe (ethertype) of packets matched by
+         this rule. The type provided is not check for validity.</td>
+    </tr>
+    <tr>
+        <td>flowAction</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>Action to take on each flow. Must be one of accept, continue,
+         return.</td>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>A unique identifier of the resource.</td>
+    </tr>
+    <tr>
         <td>inPorts</td>
         <td>UUID</td>
         <td>POST</td>
         <td>No</td>
         <td>The list of (interior or exterior) ingress port UUIDs to
          match.</td>
+    </tr>
+    <tr>
+        <td>invDlDst</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data layer destination should
+         be inverted (match packets whose data layer destination is NOT
+         equal to dlDst). Will be stored, but ignored until dlDst is
+         set.</td>
+    </tr>
+    <tr>
+        <td>invDlSrc</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data layer source should be
+         inverted (match packets whose data layer source is NOT equal to
+         dlSrc). Will be stored, but ignored until dlSrc is set.</td>
+    </tr>
+    <tr>
+        <td>invDlType</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data layer type should be
+         inverted (match packets whose data layer type is NOT equal to
+         the Ethertype set by dlType. Will be stored, but ignored until
+         dlType is set.</td>
     </tr>
     <tr>
         <td>invInPorts</td>
@@ -1286,42 +1339,12 @@ It contains the following fields:
          NOT in in_ports.</td>
     </tr>
     <tr>
-        <td>outPorts</td>
-        <td>Array of UUID</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The list of (interior or exterior) egress port UUIDs to match.
-        </td>
-    </tr>
-    <tr>
-        <td>invOutPorts</td>
+        <td>invNwDst</td>
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Inverts the out_ports predicate. Match if the packet’s egress is
-        NOT in out_ports.</td>
-    </tr>
-    <tr>
-        <td>nwTos</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The value of the IP packet TOS field to match (0-255).</td>
-    </tr>
-    <tr>
-        <td>invNwTos</td>
-        <td>Bool</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>Invert the nwTos predicate. Match if the packet's protocol number
-         is not nwTos.</td>
-    </tr>
-    <tr>
-        <td>nwProto</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The Network protocol number to match (0-255).</td>
+        <td>Invert the IP dest prefix predicate. Match packets whose
+         destination is NOT in the prefix.</td>
     </tr>
     <tr>
         <td>invNwProto</td>
@@ -1332,21 +1355,6 @@ It contains the following fields:
          is not nwProto.</td>
     </tr>
     <tr>
-        <td>nwSrcAddress</td>
-        <td>String</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The IP address of the IP source prefix to match.</td>
-    </tr>
-    <tr>
-        <td>nwSrcLength</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The length of the source IP prefix to match (number of fixed
-         network bits).</td>
-    </tr>
-    <tr>
         <td>invNwSrc</td>
         <td>Bool</td>
         <td>POST</td>
@@ -1355,70 +1363,20 @@ It contains the following fields:
          is NOT in the prefix.</td>
     </tr>
     <tr>
-        <td>nwDstAddress</td>
-        <td>String</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The address part of the IP destination prefix to match.</td>
-    </tr>
-    <tr>
-        <td>nwDstLength</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The length of the IP destination prefix to match.</td>
-    </tr>
-    <tr>
-        <td>invNwDst</td>
+        <td>invNwTos</td>
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Invert the IP dest prefix predicate. Match packets whose
-         destination is NOT in the prefix.</td>
+        <td>Invert the nwTos predicate. Match if the packet's protocol number
+         is not nwTos.</td>
     </tr>
     <tr>
-        <td>tpSrcStart</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The beginning of the tcp/udp source port range to match.  This
-         field is required if invTpEnd is set. When creating an ICMP rule,
-         this field should be set to the ICMP type value.</td>
-    </tr>
-    <tr>
-        <td>tpSrcEnd</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The end of the tcp/udp source port range to match. This field is
-         required if tpSrcStart is set. When creating an ICMP rule, this field
-         should be set to the ICMP type value.</td>
-    </tr>
-    <tr>
-        <td>invTpSrc</td>
+        <td>invOutPorts</td>
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Invert the source tcp/udp port range predicate. Match packets whose
-         source port is NOT in the range.</td>
-    </tr>
-    <tr>
-        <td>tpDstStart</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The beginning of the tcp/udp dest port range to match. This field
-         is required if tpDstEnd is set.  When creating an ICMP rule, this
-         field should be set to the ICMP code value.</td>
-    </tr>
-    <tr>
-        <td>tpDstEnd</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The end of the tcp/udp port range to match.  This field is required
-         if tpDstStart is set. When creating an ICMP rule, this field should be
-         set to the ICMP code value.</td>
+        <td>Inverts the out_ports predicate. Match if the packet’s egress is
+        NOT in out_ports.</td>
     </tr>
     <tr>
         <td>invTpDst</td>
@@ -1429,12 +1387,12 @@ It contains the following fields:
          whose dest port is NOT in the range.</td>
     </tr>
     <tr>
-        <td>type</td>
-        <td>String</td>
+        <td>invTpSrc</td>
+        <td>Bool</td>
         <td>POST</td>
-        <td>Yes</td>
-        <td>Must be one of these strings: accept, dnat, drop, jump, rev_dnat,
-         rev_snat, reject, return, snat.</td>
+        <td>No</td>
+        <td>Invert the source tcp/udp port range predicate. Match packets whose
+         source port is NOT in the range.</td>
     </tr>
     <tr>
         <td>jumpChainId</td>
@@ -1452,22 +1410,72 @@ It contains the following fields:
         <td>Name of the jump chain.</td>
     </tr>
     <tr>
-        <td>flowAction</td>
-        <td>String</td>
-        <td>POST</td>
-        <td>Yes</td>
-        <td>Action to take on each flow.  Must be one of accept, continue,
-         return.</td>
-    </tr>
-    <tr>
         <td>natTargets</td>
         <td>Multi Array</td>
         <td>POST</td>
         <td>No</td>
         <td>list of nat_target. Each nat target is a (address-range,
-         port-range) pair. An address-range is like ['1.2.3.4', '5.6.7.8'], a
-          port-range is like [10, 11].  This field is required if the type is
-           dnat or snat.</td>
+         port-range) pair. An address-range is like ['1.2.3.4',
+         '5.6.7.8'], a port-range is like [10, 11].  This field is
+         required if the type is dnat or snat.</td>
+    </tr>
+    <tr>
+        <td>nwDstAddress</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The address part of the IP destination prefix to match.</td>
+    </tr>
+    <tr>
+        <td>nwDstLength</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The length of the IP destination prefix to match.</td>
+    </tr>
+    <tr>
+        <td>nwProto</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The Network protocol number to match (0-255).</td>
+    </tr>
+    <tr>
+        <td>nwSrcAddress</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The IP address of the IP source prefix to match.</td>
+    </tr>
+    <tr>
+        <td>nwSrcLength</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The length of the source IP prefix to match (number of fixed
+         network bits).</td>
+    </tr>
+    <tr>
+        <td>nwTos</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The value of the IP packet TOS field to match (0-255).</td>
+    </tr>
+    <tr>
+        <td>outPorts</td>
+        <td>Array of UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The list of (interior or exterior) egress port UUIDs to match.
+        </td>
+    </tr>
+    <tr>
+        <td>portGroup</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td></td>
     </tr>
     <tr>
         <td>position</td>
@@ -1477,6 +1485,58 @@ It contains the following fields:
         <td>The position at which this rule should be inserted &gt;= 1 and
          &lt;= the greatest position in the chain + 1.  If not specified, it is
           assumed to be 1.</td>
+    </tr>
+    <tr>
+        <td>tpSrcEnd</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The end of the tcp/udp source port range to match. This field is
+         required if tpSrcStart is set. When creating an ICMP rule, this field
+         should be set to the ICMP type value.</td>
+    </tr>
+    <tr>
+        <td>tpSrcStart</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The beginning of the tcp/udp source port range to match.  This
+         field is required if invTpEnd is set. When creating an ICMP rule,
+         this field should be set to the ICMP type value.</td>
+    </tr>
+    <tr>
+        <td>tpDstEnd</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The end of the tcp/udp port range to match.  This field is required
+         if tpDstStart is set. When creating an ICMP rule, this field should be
+         set to the ICMP code value.</td>
+    </tr>
+    <tr>
+        <td>tpDstStart</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The beginning of the tcp/udp dest port range to match. This field
+         is required if tpDstEnd is set.  When creating an ICMP rule, this
+         field should be set to the ICMP code value.</td>
+    </tr>
+    <tr>
+        <td>type</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>Must be one of these strings: accept, dnat, drop, jump, rev_dnat,
+         rev_snat, reject, return, snat.</td>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
     </tr>
 </table>
 
