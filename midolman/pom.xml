@@ -123,8 +123,6 @@
 
                 <configuration>
                     <failIfNoTests>false</failIfNoTests>
-                    <parallel>false</parallel>
-                    <useUnlimitedThreads>true</useUnlimitedThreads>
                     <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
                         -Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</argLine>
                     <systemPropertyVariables>
