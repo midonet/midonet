@@ -752,7 +752,7 @@
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.9.2</artifactId>
-            <version>2.0.M4</version>
+            <version>${versions.scalatest}</version>
             <scope>test</scope>
         </dependency>
 

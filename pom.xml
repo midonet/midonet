@@ -46,6 +46,7 @@
         <versions.plugins.rpm>2.1-alpha-2</versions.plugins.rpm>
         <versions.javax.servlet>2.5</versions.javax.servlet>
         <versions.guice>3.0</versions.guice>
+        <versions.scalatest>2.0.M4</versions.scalatest>
     </properties>
 
     <pluginRepositories>
