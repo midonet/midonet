@@ -82,7 +82,13 @@ public class IPv4 extends BasePacket {
         sb.append("IPv4 [headerL=").append(headerLength);
         sb.append(", totalL=").append(totalLength);
         sb.append(", ttl=").append(ttl);
-        sb.append(", frag=").append(fragmentOffset);
+        sb.append(", flags=");
+        if (dontFragmentFlagSet())
+            sb.append("DF");
+        sb.append("|");
+        if (moreFragmentsFlagSet())
+            sb.append("MF");
+        sb.append(", offset=").append(fragmentOffset);
         sb.append(", cksum=").append(checksum);
         sb.append(", proto=").append(protocol);
         sb.append(", nwSrc=").append(
@@ -179,6 +185,14 @@ public class IPv4 extends BasePacket {
      */
     public byte getFlags() {
         return flags;
+    }
+
+    public boolean dontFragmentFlagSet() {
+        return (flags & IP_FLAGS_DF) != 0;
+    }
+
+    public boolean moreFragmentsFlagSet() {
+        return (flags & IP_FLAGS_MF) != 0;
     }
 
     /**
