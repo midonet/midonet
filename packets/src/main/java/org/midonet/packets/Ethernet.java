@@ -330,6 +330,8 @@ public class Ethernet extends BasePacket {
         int result = super.hashCode();
         result = prime * result + Arrays.hashCode(destinationMACAddress);
         result = prime * result + etherType;
+        if (vlanID != 0)
+            result = prime * result + priorityCode << 16 + vlanID;
         result = prime * result + (pad ? 1231 : 1237);
         result = prime * result + Arrays.hashCode(sourceMACAddress);
         return result;

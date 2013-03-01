@@ -192,4 +192,23 @@ public class ICMP extends BasePacket {
         return this;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (!(obj instanceof ICMP))
+            return false;
+        final ICMP other = (ICMP) obj;
+        if (this.type != other.type)
+            return false;
+        if (this.code != other.code)
+            return false;
+        if (this.checksum != other.checksum)
+            return false;
+        if (this.quench != other.quench)
+            return false;
+        return java.util.Arrays.equals(this.data, other.data);
+    }
 }
