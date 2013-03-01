@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-package org.midonet.midolman.util
+package org.midonet.packets.util
 
 import org.midonet.packets.{MAC, IPv4, IntIPv4}
 

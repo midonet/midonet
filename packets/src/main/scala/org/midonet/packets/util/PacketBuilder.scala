@@ -1,0 +1,281 @@
+/*
+ * Copyright 2012 Midokura Europe SARL
+ */
+package org.midonet.packets.util
+
+import org.midonet.packets.util.AddressConversions._
+import org.midonet.packets._
+import org.midonet.packets.ICMP.UNREACH_CODE
+import org.midonet.packets.ICMP.UNREACH_CODE._
+import org.midonet.packets.ICMP.EXCEEDED_CODE
+import org.midonet.packets.ICMP.EXCEEDED_CODE._
+
+object PacketBuilder {
+    implicit def builderToPacket[T <: IPacket](b: PacketBuilder[T]): T = b.packet
+
+    val eth_zero: MAC = "00:00:00:00:00:00"
+    val eth_bcast: MAC = "ff:ff:ff:ff:ff:ff"
+    val ip4_zero: IntIPv4 = "0.0.0.0"
+    val ip4_bcast: IntIPv4 = "255.255.255.255"
+
+    def eth = EthBuilder()
+    def arp = ArpBuilder()
+    def ip4 = IPv4Builder()
+    def tcp = TcpBuilder()
+    def udp = UdpBuilder()
+    def icmp = IcmpBuilder()
+    def payload = DataBuilder()
+
+    case class MacPair(src: MAC = eth_zero, dst: MAC = eth_zero) {
+        def src(addr: MAC): MacPair = copy(src = addr)
+        def src(addr: String): MacPair = src(stringToMac(addr))
+
+        def dst(addr: MAC): MacPair = copy(dst = addr)
+        def dst(addr: String): MacPair = dst(stringToMac(addr))
+        def ->(addr: String): MacPair = dst(stringToMac(addr))
+        def ->(addr: MAC): MacPair = dst(addr)
+    }
+
+    implicit def stringToMacPair(src: String): MacPair = MacPair(src)
+    implicit def macToMacPair(src: MAC): MacPair = MacPair(src)
+
+    case class Ip4Pair(src: IntIPv4 = 0, dst: IntIPv4 = 0) {
+        def src(addr: IntIPv4): Ip4Pair = copy(src = addr)
+        def src(addr: Int): Ip4Pair =  src(intToIp(addr))
+        def src(addr: String): Ip4Pair =  src(stringToIp(addr))
+
+        def dst(addr: IntIPv4): Ip4Pair = copy(dst = addr)
+        def dst(addr: Int): Ip4Pair =  dst(intToIp(addr))
+        def dst(addr: String): Ip4Pair =  dst(stringToIp(addr))
+        def -->(addr: Int): Ip4Pair =  dst(intToIp(addr))
+        def -->(addr: String): Ip4Pair =  dst(stringToIp(addr))
+        def -->(addr: IntIPv4): Ip4Pair =  dst(addr)
+    }
+
+    implicit def stringToIp4Pair(src: String): Ip4Pair = Ip4Pair(src)
+    implicit def intToIp4Pair(src: Int): Ip4Pair = Ip4Pair(src)
+    implicit def ip4ToIp4Pair(src: IntIPv4): Ip4Pair = Ip4Pair(src)
+
+    case class PortPair(src: Short = 0, dst: Short = 0) {
+        def src(port: Short): PortPair = copy(src = port)
+        def dst(port: Short): PortPair = copy(dst = port)
+        def --->(port: Short): PortPair =  dst(port)
+    }
+
+    implicit def shortToPortPair(src: Short): PortPair = PortPair(src)
+    implicit def intToPortPair(src: Int): PortPair = PortPair(src.toShort)
+}
+
+sealed trait PacketBuilder[PacketClass <: IPacket] {
+    val packet: PacketClass
+    protected var innerBuilder: Option[PacketBuilder[_ <: IPacket]] = None
+
+    override def toString: String = packet.toString
+
+    val etherType = 0.toShort
+    val ipProto = 0.toByte
+
+    final def <<(b: PacketBuilder[_ <: IPacket]): this.type = {
+        innerBuilder match {
+            case None =>
+                innerBuilder = Some(b)
+                setPayload(b)
+            case Some(inner) => inner << b
+        }
+        this
+    }
+
+    protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
+        packet.setPayload(b)
+        this
+    }
+}
+
+sealed trait NonAppendable[T <: IPacket] extends PacketBuilder[T] {
+    override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
+        throw new UnsupportedOperationException()
+    }
+}
+
+case class DataBuilder(packet: Data = new Data()) extends PacketBuilder[Data] with NonAppendable[Data] {
+    def apply(str: String): DataBuilder = { packet.setData(str.getBytes) ; this }
+    def apply(data: Array[Byte]): DataBuilder = { packet.setData(data) ; this }
+}
+
+case class IcmpBuilder(packet: ICMP = new ICMP()) extends PacketBuilder[ICMP]
+                                                  with NonAppendable[ICMP] {
+    override val ipProto = ICMP.PROTOCOL_NUMBER
+
+    def echo: IcmpEchoBuilder = IcmpEchoBuilder(packet)
+    def unreach: IcmpUnreachBuilder = IcmpUnreachBuilder(packet)
+    def time_exceeded: IcmpTimeExceededBuilder = IcmpTimeExceededBuilder(packet)
+}
+
+case class IcmpEchoBuilder(override val packet: ICMP,
+                           isRequest: Boolean = true,
+                           id: Short = 0,
+                           seq: Short = 0,
+                           data: Array[Byte] = Array[Byte]())
+            extends PacketBuilder[ICMP] with NonAppendable[ICMP] {
+
+    override val ipProto = ICMP.PROTOCOL_NUMBER
+
+    private def set(): IcmpEchoBuilder = {
+        if (isRequest)
+            packet.setEchoRequest(id, seq, data)
+        else
+            packet.setEchoReply(id, seq, data)
+        this
+    }
+
+    def request: IcmpEchoBuilder = copy(isRequest = true).set()
+    def reply: IcmpEchoBuilder = copy(isRequest = false).set()
+    def id(id: Short): IcmpEchoBuilder = copy(id = id).set()
+    def seq(seq: Short): IcmpEchoBuilder = copy(seq = seq).set()
+    def data(data: Array[Byte]): IcmpEchoBuilder = copy(data = data).set()
+    def data(data: String): IcmpEchoBuilder = copy(data = data.getBytes).set()
+}
+
+case class IcmpTimeExceededBuilder(override val packet: ICMP,
+                                   code: EXCEEDED_CODE = EXCEEDED_TTL,
+                                   forPacket: IPv4 = new IPv4())
+    extends PacketBuilder[ICMP] with NonAppendable[ICMP] {
+
+    private def set(): IcmpTimeExceededBuilder = {
+        packet.setTimeExceeded(code, forPacket)
+        this
+    }
+
+    def ttl: IcmpTimeExceededBuilder = copy(code = EXCEEDED_TTL).set()
+    def reassembly: IcmpTimeExceededBuilder = copy(code = EXCEEDED_REASSEMBLY).set()
+    def culprit(p: IPv4): IcmpTimeExceededBuilder = copy(forPacket = p).set()
+}
+
+case class IcmpUnreachBuilder(override val packet: ICMP,
+                              code: UNREACH_CODE = UNREACH_NET,
+                              forPacket: IPv4 = new IPv4())
+            extends PacketBuilder[ICMP] with NonAppendable[ICMP] {
+
+    override val ipProto = ICMP.PROTOCOL_NUMBER
+
+    private def set(): IcmpUnreachBuilder = {
+        packet.setUnreachable(code, forPacket)
+        this
+    }
+
+    def net: IcmpUnreachBuilder = copy(code = UNREACH_NET).set()
+    def host: IcmpUnreachBuilder = copy(code = UNREACH_HOST).set()
+    def protocol: IcmpUnreachBuilder = copy(code = UNREACH_PROTOCOL).set()
+    def port: IcmpUnreachBuilder = copy(code = UNREACH_PORT).set()
+    def source_route: IcmpUnreachBuilder = copy(code = UNREACH_SOURCE_ROUTE).set()
+    def filter: IcmpUnreachBuilder = copy(code = UNREACH_FILTER_PROHIB).set()
+    def culprit(p: IPv4): IcmpUnreachBuilder = copy(forPacket = p).set()
+    def frag_needed: IcmpFragNeededBuilder = IcmpFragNeededBuilder(packet, 0, forPacket)
+}
+
+case class IcmpFragNeededBuilder(override val packet: ICMP,
+                                 fragSize: Int = 0,
+                                 forPacket: IPv4 = new IPv4())
+             extends PacketBuilder[ICMP] with NonAppendable[ICMP] {
+
+    override val ipProto = ICMP.PROTOCOL_NUMBER
+
+    private def set(): IcmpFragNeededBuilder = {
+        packet.setFragNeeded(fragSize, forPacket)
+        this
+    }
+
+    def frag_size(size: Int): IcmpFragNeededBuilder = copy(fragSize = size).set()
+    def culprit(p: IPv4): IcmpFragNeededBuilder = copy(forPacket = p).set()
+}
+
+case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
+    import PacketBuilder._
+    override val ipProto = TCP.PROTOCOL_NUMBER
+
+    def ports(ports: PortPair): TcpBuilder = { src(ports.src) ; dst(ports.dst) }
+    def src(port: Short): TcpBuilder = { packet.setSourcePort(port) ; this }
+    def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port) ; this }
+}
+
+case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
+    import PacketBuilder._
+    override val ipProto = UDP.PROTOCOL_NUMBER
+
+    def ports(ports: PortPair): UdpBuilder = { src(ports.src) ; dst(ports.dst) }
+    def src(port: Short): UdpBuilder = { packet.setSourcePort(port) ; this }
+    def dst(port: Short): UdpBuilder = { packet.setDestinationPort(port) ; this }
+}
+
+case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
+    import PacketBuilder._
+    override val etherType = IPv4.ETHERTYPE
+
+    override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
+        super.setPayload(b)
+        proto(b.ipProto)
+        this
+    }
+
+    def addr(pair: Ip4Pair): IPv4Builder = { src(pair.src) ; dst(pair.dst) }
+    def src(addr: String): IPv4Builder = { packet.setSourceAddress(addr) ; this }
+    def src(addr: Int): IPv4Builder = { packet.setSourceAddress(addr) ; this }
+    def src(addr: IntIPv4): IPv4Builder = src(ipToInt(addr))
+    def dst(addr: String): IPv4Builder = { packet.setDestinationAddress(addr) ; this }
+    def dst(addr: Int): IPv4Builder = { packet.setDestinationAddress(addr) ; this }
+    def dst(addr: IntIPv4): IPv4Builder = dst(ipToInt(addr))
+    def ttl(ttl: Byte): IPv4Builder = { packet.setTtl(ttl) ; this }
+    def version(ver: Byte): IPv4Builder = { packet.setVersion(ver) ; this }
+    def diff_serv(ds: Byte): IPv4Builder = { packet.setDiffServ(ds) ; this }
+    def flags(flags: Byte): IPv4Builder = { packet.setFlags(flags) ; this }
+    def frag_offset(offset: Short): IPv4Builder = { packet.setFragmentOffset(offset) ; this }
+    def proto(protocol: Byte): IPv4Builder = { packet.setProtocol(protocol) ; this }
+    def options(protocol: Array[Byte]): IPv4Builder = { packet.setOptions(protocol) ; this }
+}
+
+case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {
+    import PacketBuilder._
+    override val etherType = ARP.ETHERTYPE
+
+    val packet = new ARP()
+
+    def mac(pair: MacPair): ArpBuilder = {
+        packet.setHardwareType(ARP.HW_TYPE_ETHERNET)
+        packet.setHardwareAddressLength(6)
+        packet.setSenderHardwareAddress(pair.src)
+        packet.setTargetHardwareAddress(pair.dst)
+        this
+    }
+
+    def ip(pair: Ip4Pair): ArpBuilder = {
+        packet.setProtocolType(ARP.PROTO_TYPE_IP)
+        packet.setProtocolAddressLength(4)
+        packet.setSenderProtocolAddress(pair.src)
+        packet.setTargetProtocolAddress(pair.dst)
+        this
+    }
+
+    def req: ArpBuilder = { packet.setOpCode(ARP.OP_REQUEST) ; this }
+    def reply: ArpBuilder = { packet.setOpCode(ARP.OP_REPLY) ; this }
+}
+
+case class EthBuilder(packet: Ethernet = new Ethernet()) extends PacketBuilder[Ethernet] {
+    import PacketBuilder._
+
+    override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
+        super.setPayload(b)
+        packet.setEtherType(b.etherType)
+        this
+    }
+
+    def addr(pair: MacPair): EthBuilder = mac(pair)
+    def mac(pair: MacPair): EthBuilder = { src(pair.src) ; dst(pair.dst) }
+    def src(addr: String): EthBuilder = src(stringToMac(addr))
+    def src(addr: MAC): EthBuilder = { packet.setSourceMACAddress(addr) ; this }
+    def dst(addr: String): EthBuilder = dst(stringToMac(addr))
+    def dst(addr: MAC): EthBuilder = { packet.setDestinationMACAddress(addr) ; this }
+    def with_pad: EthBuilder = { packet.setPad(true) ; this }
+    def vlan(vid: Short): EthBuilder = { packet.setVlanID(vid) ; this }
+    def priority(prio: Byte): EthBuilder = { packet.setPriorityCode(prio) ; this }
+    def ether_type(t: Short): EthBuilder = { packet.setEtherType(t) ; this }
+}
