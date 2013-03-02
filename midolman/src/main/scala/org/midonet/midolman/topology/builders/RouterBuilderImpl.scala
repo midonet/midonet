@@ -17,7 +17,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     extends RouterBuilder {
 
-    private val cfg: RouterConfig = new RouterConfig
+    private var cfg: RouterConfig = new RouterConfig
     private var arpCache: ArpCache = null
     private val routes = new scala.collection.mutable.HashSet[Route]()
     private val routesToAdd = new scala.collection.mutable.HashSet[Route]()
@@ -45,12 +45,12 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     def setID(id: UUID) = null
 
     def setInFilter(filterID: UUID) = {
-        cfg.inboundFilter = filterID
+        cfg = cfg.copy(inboundFilter = filterID)
         this
     }
 
     def setOutFilter(filterID: UUID) = {
-        cfg.outboundFilter = filterID
+        cfg = cfg.copy(outboundFilter = filterID)
         this
     }
 

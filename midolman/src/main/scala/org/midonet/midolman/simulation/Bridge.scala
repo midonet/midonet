@@ -161,15 +161,19 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         //XXX: Add to traversed elements list if flooding.
 
         // If the packet's not being forwarded, we're done.
+        if (!act.isInstanceOf[Coordinator.ForwardAction]) {
+            log.debug("Dropping the packet after mac-learning.")
+            return act
+        }
+
         // Otherwise, apply egress (post-bridging) chain
         act match {
             case a: Coordinator.ToPortAction =>
                 packetContext.setOutputPort(a.outPort)
             case a: Coordinator.ToPortSetAction =>
                 packetContext.setOutputPort(a.portSetID)
-            case _ =>
-                log.debug("Dropping the packet after mac-learning.")
-                return act
+            case a =>
+                log.error("Unhandled Coordinator.ForwardAction {}", a)
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
                                            packetContext.getMatch, id, false)

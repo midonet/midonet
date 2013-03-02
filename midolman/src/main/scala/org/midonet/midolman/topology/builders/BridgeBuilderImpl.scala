@@ -30,14 +30,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     final val log =
         LoggerFactory.getLogger(classOf[BridgeBuilderImpl])
 
-    private val cfg: BridgeConfig = new BridgeConfig
+    private var cfg = new BridgeConfig
     private var macPortMap: MacLearningTable = null
     private var rtrMacToLogicalPortId: Map[MAC, UUID] = null
     private var rtrIpToMac: Map[IntIPv4, MAC] = null
 
 
     def setTunnelKey(key: Long) {
-        cfg.tunnelKey = key.toInt
+        cfg = cfg.copy(tunnelKey = key.toInt)
     }
 
     def setMacLearningTable(table: MacLearningTable) {
@@ -53,12 +53,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     def setID(id: UUID) = null //useless TODO(ross): delete it
 
     def setInFilter(filterID: UUID) = {
-        cfg.inboundFilter = filterID
+        cfg = cfg.copy(inboundFilter = filterID)
         this
     }
 
     def setOutFilter(filterID: UUID) = {
-        cfg.outboundFilter = filterID
+        cfg = cfg.copy(outboundFilter = filterID)
         this
     }
 

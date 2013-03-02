@@ -48,6 +48,7 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.{Ethernet, IntIPv4, Unsigned}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import compat.Platform
 
 /**
  * Holder object that keeps the external message definitions
@@ -330,6 +331,13 @@ object DatapathController extends Referenceable {
 
     case class DeleteFlow(flow: KernelFlow)
 
+    /* This message is sent by simulations that result in packets being
+     * generated that in turn need to be simulated before they can correctly
+     * be forwarded.
+     */
+    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet,
+                                   parentCookie: Option[Int])
+
     /**
      * Upon receiving this message, the DatapathController translates any
      * actions that are not understood by the Netlink layer and then sends the
@@ -399,14 +407,14 @@ object DatapathController extends Referenceable {
 
     /**
      * This message is sent when the DHCP handler needs to get information
-     * on local interfaces that are used for tunnels, what it returns is 
-     * { interface description , list of {tunnel type} } where the 
+     * on local interfaces that are used for tunnels, what it returns is
+     * { interface description , list of {tunnel type} } where the
      * interface description contains various information (including MTU)
      */
     case class LocalTunnelInterfaceInfo()
 
     /**
-     * This message is sent when the LocalTunnelInterfaceInfo handler 
+     * This message is sent when the LocalTunnelInterfaceInfo handler
      * completes the interface scan and pass the result as well as
      * original sender info
      */
@@ -474,6 +482,9 @@ class DatapathController() extends Actor with ActorLogging {
 
     @Inject
     val interfaceScanner: InterfaceScanner = null
+
+    @Inject
+    val simCtrl: SimulationController = null
 
     var datapath: Datapath = null
 
@@ -756,6 +767,12 @@ class DatapathController() extends Actor with ActorLogging {
         case LocalInterfaceTunnelInfoFinal(caller : ActorRef,
                 interfaces: JList[InterfaceDescription]) =>
             getLocalInterfaceTunnelInfo(caller, interfaces)
+
+        case e: EmitGeneratedPacket =>
+            system.eventStream.publish(e)
+            simCtrl.emitGeneratedPacket(e.egressPort, e.ethPkt, e.parentCookie)
+
+        case m => log.error("Unhandled message {}", m)
     }
 
     def checkPortUpdates() {
@@ -934,8 +951,7 @@ class DatapathController() extends Actor with ActorLogging {
                     VirtualToPhysicalMapper.getRef(),
                     PortSetRequest(portSet, update = false)).mapTo[PortSet]
 
-                val bridgeFuture = ask(
-                    VirtualTopologyActor.getRef(),
+                val bridgeFuture = VirtualTopologyActor.expiringAsk(
                     BridgeRequest(portSet, update = false)).mapTo[RCUBridge]
 
                 portSetFuture map {
@@ -956,9 +972,10 @@ class DatapathController() extends Actor with ActorLogging {
                             }
                             val localPortFutures =
                                 outPorts.toSeq map {
-                                    portID => ask(VirtualTopologyActor.getRef(),
-                                                  PortRequest(portID, false))
-                                              .mapTo[client.Port[_]]
+                                    portID =>
+                                        VirtualTopologyActor.expiringAsk(
+                                            PortRequest(portID, false))
+                                            .mapTo[client.Port[_]]
                                 }
                             Future.sequence(localPortFutures) onComplete {
                                 case Right(localPorts) =>
@@ -988,8 +1005,9 @@ class DatapathController() extends Actor with ActorLogging {
                             actions, port, List(portNum.shortValue()),
                             None, Nil, dpTags.orNull))
                     case None =>
-                        ask(VirtualTopologyActor.getRef(), PortRequest(port,
-                            update = false)).mapTo[client.Port[_]] map {
+                        VirtualTopologyActor.expiringAsk(
+                            PortRequest(port, update = false))
+                            .mapTo[client.Port[_]] map {
                                 case p: ExteriorPort[_] =>
                                     translated.success(translateToDpPorts(
                                             actions, port, Nil,
@@ -1123,8 +1141,8 @@ class DatapathController() extends Actor with ActorLogging {
     }
 
     private def installTunnelKeyFlow(port: Port[_, _], vifId: UUID, active: Boolean) {
-        val clientPortFuture = VirtualTopologyActor.getRef() ?
-            PortRequest(vifId, update = false)
+        val clientPortFuture = VirtualTopologyActor.expiringAsk(
+            PortRequest(vifId, update = false))
 
         clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
             case Right(exterior) =>
@@ -1221,9 +1239,8 @@ class DatapathController() extends Actor with ActorLogging {
                 // egress port filter simulation
                 val localPortFutures =
                     portSet.localPorts.toSeq map {
-                        portID => ask(VirtualTopologyActor.getRef(),
-                            PortRequest(portID, false))
-                            .mapTo[client.Port[_]]
+                        portID => VirtualTopologyActor.expiringAsk(
+                            PortRequest(portID, false)).mapTo[client.Port[_]]
                     }
                 Future.sequence(localPortFutures) onComplete {
                     // Take the outgoing filter for each port
@@ -1276,8 +1293,9 @@ class DatapathController() extends Actor with ActorLogging {
                 vportMgr.getVportForDpPortNumber(port) match {
                     case Some(vportId) =>
                         wMatch.setInputPortUUID(vportId)
-                        SimulationController.getRef().tell(
+                        system.eventStream.publish(
                             PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
+                        simCtrl.packetIn(wMatch, pktBytes, cookie)
                         return
                     case None =>
                         if (localTunnelPorts.contains(port)) {
@@ -1310,7 +1328,7 @@ class DatapathController() extends Actor with ActorLogging {
                 if (port.outFilterID == null)
                     Promise.successful(null)
                 else
-                    ask(VirtualTopologyActor.getRef,
+                    VirtualTopologyActor.expiringAsk(
                         ChainRequest(port.outFilterID, false)).mapTo[Chain]
             }
         // Apply the chains.
@@ -1572,15 +1590,15 @@ class DatapathController() extends Actor with ActorLogging {
                 mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
         for ((zoneId, zoneConfig) <- host.zones) {
             if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Gre)
-            } 
+            }
             if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Capwap)
-            } 
+            }
             if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt, 
+                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Ipsec)
             }
         }
@@ -1596,7 +1614,7 @@ class DatapathController() extends Actor with ActorLogging {
                         addrTunnelMapping.get(ipAddr) foreach { tunnelTypes =>
                             for (tunnelType <- tunnelTypes) {
                                 retInterfaceTunnelMap.addBinding(interface, tunnelType)
-                            }   
+                            }
                         }
                     }
                 }

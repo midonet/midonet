@@ -11,13 +11,13 @@ import akka.util.Duration
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.SimulationController
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
 import org.midonet.util.functors.{Callback2, Callback1}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 
 
 /* The ArpTable is called from the Coordinators' actors and
@@ -260,7 +260,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            SimulationController.getRef(actorSystem) !
+            DatapathController.getRef(actorSystem) !
                 EmitGeneratedPacket(port.id, arp,
                       if (pktContext != null) Option(pktContext.getFlowCookie) else None)
             // we don't retry for stale entries.

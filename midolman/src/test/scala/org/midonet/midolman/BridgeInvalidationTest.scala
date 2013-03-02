@@ -144,24 +144,38 @@ with RouterHelper{
 
     def testLearnMAC() {
         // this packet should be flooded
-        triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
+        triggerPacketIn(port1Name,
+            TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         fishForRequestOfType[PacketIn](dpProbe())
-        val m = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        // let's make the bridge learn vmMac2
-        triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
 
-        val s = addRemoveFlowsProbe.expectMsgAllClassOf(
+        var add = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        // let's make the bridge learn vmMac2.
+        // the first flow will be removed, and a new one will be added
+        triggerPacketIn(port2Name,
+            TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
+        val msgs = addRemoveFlowsProbe.expectMsgAllClassOf[Any](
             Duration(3, TimeUnit.SECONDS),
-            classOf[WildcardFlowRemoved], classOf[WildcardFlowAdded])
-
-        for (w <- s) w match {
-            case w: WildcardFlowRemoved =>
-                // the flood flow should be invalidated
-                w.f.getActions should be (m.f.getActions)
-            case w: WildcardFlowAdded =>
-                // this is the flow from 2 to 1
+            classOf[WildcardFlowAdded], classOf[WildcardFlowRemoved])
+        msgs should have size (2)
+        // First check the removal is correct
+        msgs map {
+            case m: WildcardFlowRemoved =>
+                m.f.getActions.equals(
+                    (bufferAsJavaList[FlowAction[_]](
+                        add.f.getActions)))  should be (true)
+            case _ =>
         }
-
+        // Now store the add message for comparison with the next removal.
+        add = (msgs collect { case m: WildcardFlowAdded => m }).get(0)
+        // The MacPortExpiration is set to only one second. The association
+        // between port1 and macVm1 will expire approximately one second after
+        // its only representative flow was removed. At that point, any flow
+        // directed at macVm1 is invalidated.
+        val rem = addRemoveFlowsProbe.expectMsgClass(
+            classOf[WildcardFlowRemoved])
+        rem.f.getActions.equals(
+            (bufferAsJavaList[FlowAction[_]](
+                add.f.getActions))) should be (true)
         addRemoveFlowsProbe.expectNoMsg()
     }
 

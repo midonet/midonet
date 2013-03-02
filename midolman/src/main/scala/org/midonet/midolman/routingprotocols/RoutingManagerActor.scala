@@ -23,6 +23,8 @@ object RoutingManagerActor extends Referenceable {
 }
 
 class RoutingManagerActor extends Actor with ActorLogWithoutPath {
+    import context.dispatcher
+    import context.system
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -66,7 +68,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
                 // Request the port configuration
-                VirtualTopologyActor.getRef() ! PortRequest(portID, update = false)
+                VirtualTopologyActor.expiringAsk(
+                    PortRequest(portID, update = false))
             }
 
         case LocalPortActive(portID, false) =>

@@ -4,8 +4,6 @@ package org.midonet.midolman.simulation
 
 import collection.mutable
 import collection.JavaConversions._
-import compat.Platform
-import java.util.concurrent.TimeoutException
 import java.util.UUID
 
 import akka.actor.{ActorRef, ActorSystem}
@@ -14,17 +12,14 @@ import akka.pattern.ask
 import akka.util.duration._
 
 import org.midonet.cache.Cache
-import org.midonet.midolman.{DatapathController, FlowController,
-                              SimulationController}
-import org.midonet.midolman.DatapathController.SendPacket
+import org.midonet.midolman.{DatapathController, FlowController}
+import org.midonet.midolman.DatapathController.{EmitGeneratedPacket, SendPacket}
 import org.midonet.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                        FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-    ChainRequest, RouterRequest, PortRequest}
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.cluster.client._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
@@ -69,15 +64,6 @@ object Coordinator {
                    (implicit ec: ExecutionContext,
                     actorSystem: ActorSystem): Future[Action]
     }
-
-    def expiringAsk(actor: ActorRef, message: Any, expiry: Long)
-                   (implicit ec: ExecutionContext): Future[Any] = {
-        val timeLeft = expiry - Platform.currentTime
-        if (timeLeft <= 0)
-            Promise.failed(new TimeoutException)
-        else
-            actor.ask(message)(timeLeft milliseconds)
-    }
 }
 
 /**
@@ -106,6 +92,7 @@ class Coordinator(val origMatch: WildcardMatch,
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     import Coordinator._
+
     val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
     private val datapathController = DatapathController.getRef(actorSystem)
     private val flowController = FlowController.getRef(actorSystem)
@@ -267,7 +254,7 @@ class Coordinator(val origMatch: WildcardMatch,
         eth.setPayload(ip)
         eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
         eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
-        SimulationController.getRef(actorSystem) !
+        DatapathController.getRef(actorSystem) !
             EmitGeneratedPacket(inPort, eth, Option(pktContext.getFlowCookie))
     }
 
@@ -275,10 +262,10 @@ class Coordinator(val origMatch: WildcardMatch,
         var deviceFuture: Future[Any] = null
         port match {
             case _: BridgePort[_] =>
-                deviceFuture = expiringAsk(virtualTopologyManager,
+                deviceFuture = expiringAsk(
                     BridgeRequest(port.deviceID, false), expiry)
             case _: RouterPort[_] =>
-                deviceFuture = expiringAsk(virtualTopologyManager,
+                deviceFuture = expiringAsk(
                     RouterRequest(port.deviceID, false), expiry)
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
@@ -409,8 +396,7 @@ class Coordinator(val origMatch: WildcardMatch,
         }
 
         // Get the RCU port object and start simulation.
-        expiringAsk(virtualTopologyManager, PortRequest(portID, false),
-                    expiry) onComplete {
+        expiringAsk(PortRequest(portID, false), expiry) onComplete {
             case Left(err) => dropFlow(temporary = true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>
@@ -436,8 +422,7 @@ class Coordinator(val origMatch: WildcardMatch,
                         thunk: (Port[_]) => Unit) {
         if (filterID == null)
             thunk(port)
-        else expiringAsk(virtualTopologyManager, ChainRequest(filterID, false),
-                         expiry) onComplete {
+        else expiringAsk(ChainRequest(filterID, false), expiry) onComplete {
             case Left(err) => dropFlow(temporary = true)
             case Right(chainReply) => chainReply match {
                 case chain: Chain =>
@@ -471,8 +456,7 @@ class Coordinator(val origMatch: WildcardMatch,
      * @param portID
      */
     private def packetEgressesPort(portID: UUID) {
-        expiringAsk(virtualTopologyManager, PortRequest(portID, false),
-                    expiry) onComplete {
+        expiringAsk(PortRequest(portID, false), expiry) onComplete {
             case Left(err) => dropFlow(temporary = true)
             case Right(portReply) => portReply match {
                 case port: Port[_] =>

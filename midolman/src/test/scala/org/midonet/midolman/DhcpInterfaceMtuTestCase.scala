@@ -32,7 +32,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import org.midonet.midolman.DatapathController.PacketIn
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import host.interfaces.InterfaceDescription
 
 @RunWith(classOf[JUnitRunner])

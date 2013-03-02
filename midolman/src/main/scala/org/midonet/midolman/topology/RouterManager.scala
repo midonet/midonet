@@ -46,37 +46,8 @@ object RouterManager {
     case class RouterInvTrieTagCountModified(dstIp: Int, count: Int)
 }
 
-class RouterConfig {
-    var inboundFilter: UUID = null
-    var outboundFilter: UUID = null
-
-    override def hashCode: Int = {
-        var hCode = 0
-        if (null != inboundFilter)
-            hCode += inboundFilter.hashCode
-        if (null != outboundFilter)
-            hCode = hCode * 17 + outboundFilter.hashCode
-        hCode
-    }
-
-    override def equals(other: Any) = other match {
-        case that: RouterConfig =>
-            (that canEqual this) &&
-                (this.inboundFilter == that.inboundFilter) &&
-                (this.outboundFilter == that.outboundFilter)
-        case _ =>
-            false
-    }
-
-    def canEqual(other: Any) = other.isInstanceOf[RouterConfig]
-
-    override def clone: RouterConfig = {
-        val ret = new RouterConfig()
-        ret.inboundFilter = this.inboundFilter
-        ret.outboundFilter = this.outboundFilter
-        ret
-    }
-}
+case class RouterConfig(inboundFilter: UUID = null,
+                        outboundFilter: UUID = null)
 
 trait TagManager {
     def addTag(dstIp: Int)
@@ -153,7 +124,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 // the cfg of this router changed, invalidate all the flows
                 filterChanged = true
             }
-            cfg = newCfg.clone
+            cfg = newCfg
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config,

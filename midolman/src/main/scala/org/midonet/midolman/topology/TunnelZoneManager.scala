@@ -72,7 +72,6 @@ class TunnelZoneManager extends RCUDeviceManager {
 
         def setConfiguration(configuration: GreBuilder.ZoneConfig): LocalGreZoneBuilder = {
             zone = configuration.getTunnelZoneConfig
-            actor ! configuration.getTunnelZoneConfig
             this
         }
 
@@ -99,7 +98,6 @@ class TunnelZoneManager extends RCUDeviceManager {
 
         def setConfiguration(configuration: CapwapBuilder.ZoneConfig): LocalCapwapZoneBuilder = {
             zone = configuration.getTunnelZoneConfig
-            actor ! configuration.getTunnelZoneConfig
             this
         }
 

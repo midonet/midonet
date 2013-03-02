@@ -33,39 +33,9 @@ trait RemoveFlowCallbackGenerator {
     def getCallback(mac: MAC, port: UUID): Callback0
 }
 
-class BridgeConfig() {
-    var tunnelKey: Int = 0 // Only set in prepareBridgeCreate
-    var inboundFilter: UUID = null
-    var outboundFilter: UUID = null
-
-    override def hashCode: Int = {
-        var hCode = 0
-        if (null != inboundFilter)
-            hCode += inboundFilter.hashCode
-        if (null != outboundFilter)
-            hCode = hCode * 17 + outboundFilter.hashCode
-        hCode
-    }
-
-    override def equals(other: Any) = other match {
-        case that: BridgeConfig =>
-            (that canEqual this) &&
-                (this.inboundFilter == that.inboundFilter) &&
-                (this.outboundFilter == that.outboundFilter)
-        case _ =>
-            false
-    }
-
-    def canEqual(other: Any) = other.isInstanceOf[BridgeConfig]
-
-    override def clone: BridgeConfig = {
-        val ret = new BridgeConfig()
-        ret.inboundFilter = this.inboundFilter
-        ret.outboundFilter = this.outboundFilter
-        ret.tunnelKey = this.tunnelKey
-        ret
-    }
-}
+case class BridgeConfig(tunnelKey: Int = 0,
+                        inboundFilter: UUID = null,
+                        outboundFilter: UUID = null)
 
 object BridgeManager {
     val Name = "BridgeManager"
@@ -205,7 +175,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         // Schedule the recurring cleanup of expired mac-port associations.
         context.system.scheduler.schedule(
             Duration(macPortExpiration, TimeUnit.MILLISECONDS),
-            Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts)
+            Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts())
 
     }
 
@@ -245,7 +215,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
                 // the cfg of this bridge changed, invalidate all the flows
                 filterChanged = true
             }
-            cfg = newCfg.clone
+            cfg = newCfg
             learningMgr.backendMap = macLearningTable
             rtrMacToLogicalPortId = newRtrMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac

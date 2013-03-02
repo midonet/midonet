@@ -13,6 +13,7 @@ import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowKeyICMP
 import org.midonet.sdn.flows.FlowManager
+import topology.BridgeManager
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
@@ -24,6 +25,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
     var flowManager: FlowManager = null
 
     override def beforeTest() {
+        BridgeManager.setMacPortExpiration(60000)
         super.beforeTest()
 
         flowManager = flowController().underlyingActor.flowManager

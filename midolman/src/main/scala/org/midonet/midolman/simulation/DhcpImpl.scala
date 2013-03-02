@@ -16,17 +16,15 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.util.duration._
 import java.util.UUID
 
-import org.midonet.midolman.{FlowController, SimulationController, DatapathController}
+import org.midonet.midolman.{FlowController, DatapathController}
 import org.midonet.midolman.FlowController.DiscardPacket
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client._
 import org.midonet.packets._
-import org.midonet.midolman.SimulationController.EmitGeneratedPacket
-import org.midonet.midolman.DatapathController.LocalTunnelInterfaceInfo
+import org.midonet.midolman.DatapathController.{EmitGeneratedPacket,
+                                                LocalTunnelInterfaceInfo}
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones.{GreTunnelZone, CapwapTunnelZone, IpsecTunnelZone}
@@ -38,8 +36,6 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
-    private val virtualTopologyManager =
-        VirtualTopologyActor.getRef(actorSystem)
     private val flowController = FlowController.getRef(actorSystem)
     private val datapathController = DatapathController.getRef(actorSystem)
 
@@ -57,12 +53,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
 
         log.debug("Got a DHCP request");
         // Get the RCU port object and start simulation.
-        Coordinator.expiringAsk(
-            virtualTopologyManager,
-            PortRequest(inPortId, false),
-            Platform.currentTime + (10 seconds).toMillis)
-            .mapTo[Port[_]]
-        .flatMap {
+        expiringAsk(PortRequest(inPortId, false)).mapTo[Port[_]].flatMap {
             port: Port[_] => port match {
                 case p: ExteriorBridgePort =>
                     log.debug("Handle DHCP request arriving on bridge port.")
@@ -107,7 +98,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         var interfaceMTUFuture : Future[Short] = null
                         interfaceMTUFuture = calculateInterfaceMTU
                         return (interfaceMTUFuture flatMap {
-                            case mtu => 
+                            case mtu =>
                                 if (mtu == 0) {
                                     log.error("Fail to calculate interface MTU");
                                     Promise.successful(false)
@@ -355,7 +346,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             inPortId)
 
         // Emit our DHCP reply packet
-        SimulationController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
             inPortId, eth, cookie)
         // Tell the FlowController not to track the packet anymore.
         cookie match {
@@ -370,22 +361,20 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         var minMtu : Short = 0
         var overhead : Short = 0
         var intfMtu : Short = 0
-        Coordinator.expiringAsk(
-            datapathController,
-            LocalTunnelInterfaceInfo(),
+        ask(datapathController, LocalTunnelInterfaceInfo())(
             Platform.currentTime + (3 seconds).toMillis)
         .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
         .map {
-            interfaceTunnelList : 
+            interfaceTunnelList :
                 mutable.MultiMap[InterfaceDescription, TunnelZone.Type] => {
                 for ((interfaceDesc, tunnelTypeList) <- interfaceTunnelList) {
                     for (tunnelType <- tunnelTypeList) {
                         tunnelType match {
                             case TunnelZone.Type.Gre =>
                                 overhead = (new GreTunnelZone).getTunnelOverhead()
-                            case TunnelZone.Type.Capwap => 
+                            case TunnelZone.Type.Capwap =>
                                 overhead = (new CapwapTunnelZone).getTunnelOverhead()
-                            case TunnelZone.Type.Ipsec => 
+                            case TunnelZone.Type.Ipsec =>
                                 overhead = (new IpsecTunnelZone).getTunnelOverhead()
                         }
                         intfMtu = interfaceDesc.getMtu().toShort

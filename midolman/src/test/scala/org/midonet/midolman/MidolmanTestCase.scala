@@ -46,7 +46,9 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import org.midonet.packets.Ethernet
 import org.midonet.util.functors.callbacks.AbstractCallback
-import org.midonet.midolman.DatapathController.InitializationComplete
+import org.midonet.midolman.DatapathController.{EmitGeneratedPacket,
+                                                InitializationComplete,
+                                                PacketIn}
 import scala.List
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
@@ -67,6 +69,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
     var interfaceScanner: MockInterfaceScanner = null
+    var sProbe: TestProbe = null
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -123,6 +126,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                         actors().eventStream.publish(PacketsExecute(pkt))
                     }
             })
+            sProbe = newProbe()
+            actors().eventStream.subscribe(sProbe.ref, classOf[PacketIn])
+            actors().eventStream.subscribe(sProbe.ref,
+                classOf[EmitGeneratedPacket])
 
             // Make sure that each test method runs alone
             MidolmanTestCaseLock.sequential.lock()
@@ -298,9 +305,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         probeByName(VirtualTopologyActor.Name)
     }
 
-    protected def simProbe(): TestKit = {
-        probeByName(SimulationController.Name)
-    }
+    protected def simProbe() = sProbe
 
     protected def fishForRequestOfType[T](testKit: TestKit,
             timeout: Duration = Duration(3, TimeUnit.SECONDS))
