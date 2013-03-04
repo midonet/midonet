@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
-import org.midonet.packets.Unsigned;
 
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -24,8 +23,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.midonet.odp.FlowMatches.tcpFlow;
 import static org.midonet.sdn.flows.WildcardMatch.Field.EthernetDestination;
 import static org.midonet.sdn.flows.WildcardMatch.Field.EthernetSource;
-import static org.midonet.sdn.flows.WildcardMatch.fromFlowMatch;
-
 
 public class TestWildcardMatch {
 
@@ -33,13 +30,13 @@ public class TestWildcardMatch {
     public void testEqualityRelationByProjection() {
 
         WildcardMatch wildcard =
-            fromFlowMatch(
+            WildcardMatch.fromFlowMatch(
                 tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
                         "192.168.100.1", "192.168.100.2",
                         8096, 1025));
 
-        WildcardMatch projection =
-            wildcard.project(of(EthernetSource, EthernetDestination));
+        WildcardMatch projection = new ProjectedWildcardMatch(
+                of(EthernetSource, EthernetDestination), wildcard);
 
         assertThat("A wildcard should not match a projection smaller than it",
                    wildcard, not(equalTo(projection)));
@@ -51,7 +48,7 @@ public class TestWildcardMatch {
     @Test
     public void testFindableInMap() {
         WildcardMatch wildcard =
-            fromFlowMatch(
+            WildcardMatch.fromFlowMatch(
                 tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
                         "192.168.100.1", "192.168.100.2",
                         8096, 1025));

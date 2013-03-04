@@ -33,61 +33,65 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair allocateDnat(int nwSrc, int tpSrc, int oldNwDst,
-            int oldTpDst, Set<NatTarget> nats) {
+    public NwTpPair allocateDnat(byte protocol,
+                                 int nwSrc, int tpSrc, int oldNwDst,
+                                 int oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
         int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
-        dnatFwdMap.put(new PacketSignature(nwSrc, tpSrc, oldNwDst, oldTpDst),
-                newDst);
-        dnatRevMap.put(new PacketSignature(nwSrc, tpSrc, newNwDst, newTpDst),
-                new NwTpPair(oldNwDst, oldTpDst));
+        dnatFwdMap.put(new PacketSignature(
+                                protocol, nwSrc, tpSrc, oldNwDst, oldTpDst),
+                       newDst);
+        dnatRevMap.put(new PacketSignature(
+                                protocol, nwSrc, tpSrc, newNwDst, newTpDst),
+                       new NwTpPair(oldNwDst, oldTpDst));
         return newDst;
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, int tpSrc, int oldNwDst,
-            int oldTpDst) {
-        return dnatFwdMap.get(new PacketSignature(nwSrc, tpSrc, oldNwDst,
-                oldTpDst));
+    public NwTpPair lookupDnatFwd(byte protocol, int nwSrc, int tpSrc,
+                                  int oldNwDst, int oldTpDst) {
+        return dnatFwdMap.get(new PacketSignature(
+                                protocol, nwSrc, tpSrc, oldNwDst, oldTpDst));
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, int tpSrc, int newNwDst,
-            int newTpDst) {
-        return dnatRevMap.get(new PacketSignature(nwSrc, tpSrc, newNwDst,
-                newTpDst));
+    public NwTpPair lookupDnatRev(byte protocol, int nwSrc, int tpSrc,
+                                  int newNwDst, int newTpDst) {
+        return dnatRevMap.get(new PacketSignature(
+                                protocol, nwSrc, tpSrc, newNwDst, newTpDst));
     }
 
     @Override
-    public NwTpPair allocateSnat(int oldNwSrc, int oldTpSrc, int nwDst,
-            int tpDst, Set<NatTarget> nats) {
+    public NwTpPair allocateSnat(byte protocol, int oldNwSrc, int oldTpSrc,
+                                 int nwDst, int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
         int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);
-        snatFwdMap.put(new PacketSignature(oldNwSrc, oldTpSrc, nwDst, tpDst),
-                newSrc);
-        snatRevMap.put(new PacketSignature(newNwSrc, newTpSrc, nwDst, tpDst),
-                new NwTpPair(oldNwSrc, oldTpSrc));
+        snatFwdMap.put(new PacketSignature(
+            protocol, oldNwSrc, oldTpSrc, nwDst, tpDst), newSrc);
+        snatRevMap.put(new PacketSignature(
+                                protocol, newNwSrc, newTpSrc, nwDst, tpDst),
+                       new NwTpPair(oldNwSrc, oldTpSrc));
         return newSrc;
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, int oldTpSrc, int nwDst,
-            int tpDst) {
-        return snatFwdMap.get(new PacketSignature(oldNwSrc, oldTpSrc, nwDst,
-                tpDst));
+    public NwTpPair lookupSnatFwd(byte protocol, int oldNwSrc, int oldTpSrc,
+                                  int nwDst, int tpDst) {
+        return snatFwdMap.get(new PacketSignature(
+                                protocol, oldNwSrc, oldTpSrc, nwDst, tpDst));
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, int newTpSrc, int nwDst,
-            int tpDst) {
-        return snatRevMap.get(new PacketSignature(newNwSrc, newTpSrc, nwDst,
-                tpDst));
+    public NwTpPair lookupSnatRev(byte protocol, int newNwSrc, int newTpSrc,
+                                  int nwDst, int tpDst) {
+        return snatRevMap.get(new PacketSignature(
+                                protocol, newNwSrc, newTpSrc, nwDst, tpDst));
     }
 
     @Override

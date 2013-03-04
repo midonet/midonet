@@ -1302,7 +1302,7 @@ class DatapathController() extends Actor with ActorLogging {
                             handlePacketFromTunnel(wMatch, pktBytes, dpMatch,
                                 reason, cookie)
                         } else {
-                            // We're eceiving packets from a port we don't
+                            // We're receiving packets from a port we don't
                             // recognize. Install a low-priority temporary
                             // rule that will drop these packets.
                             FlowController.getRef().tell(

@@ -4,6 +4,7 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
+import scala.collection.JavaConversions._
 
 import host.interfaces.InterfaceDescription
 import org.junit.runner.RunWith
@@ -22,6 +23,8 @@ import org.midonet.cluster.data.Router
 import org.midonet.packets._
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
+import org.midonet.odp.flows.{FlowKeyICMPError, FlowActionSetKey, FlowAction, FlowActionOutput}
+import org.midonet.netlink.NetlinkMessage
 
 @RunWith(classOf[JUnitRunner])
 class LinksTestCase extends MidolmanTestCase
@@ -146,7 +149,7 @@ class LinksTestCase extends MidolmanTestCase
         drainProbes()
 
         log.debug("PING vm1 -> vm2")
-        injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
         requestOfType[PacketIn](simProbe())
         var pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
                   .getPayload.asInstanceOf[IPv4]
@@ -155,7 +158,7 @@ class LinksTestCase extends MidolmanTestCase
         pkt.getDestinationAddress should be === vm2Ip.addressAsInt
 
         log.debug("PING vm1 -> vm2")
-        injectIcmpEcho(rtrPort2Name, vm2Mac, vm2Ip, rtrMac2, vm1Ip)
+        injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip, rtrMac2, vm1Ip)
         requestOfType[PacketIn](simProbe())
         pkt = expectRoutedPacketOut(rtrPort1Num, packetEventsProbe)
               .getPayload.asInstanceOf[IPv4]
@@ -177,13 +180,34 @@ class LinksTestCase extends MidolmanTestCase
         // wait for the routes to be updated
         fishForRequestOfType[simulation.Router](vtaProbe())
 
-        injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
         requestOfType[PacketIn](simProbe())
-        pkt = expectPacketOut(rtrPort1Num, packetEventsProbe)
-              .getPayload.asInstanceOf[IPv4]
+
+        // can't use expectPacketOut because we inspect actions differently
+        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        pktOut should not be null
+        pktOut.getData should not be null
+        pktOut.getActions.size should equal (2)
+        pktOut.getActions.foreach( action => { action.getKey match {
+                case FlowAction.FlowActionAttr.OUTPUT =>
+                    action.getValue
+                        .getClass should be === classOf[FlowActionOutput]
+                    action.getValue.asInstanceOf[FlowActionOutput]
+                        .getPortNumber should be === (rtrPort1Num)
+                case FlowAction.FlowActionAttr.SET =>
+                    action.getValue
+                        .getClass should be === classOf[FlowActionSetKey]
+                    action.getValue.asInstanceOf[FlowActionSetKey].getFlowKey
+                        .getClass should be === classOf[FlowKeyICMPError]
+            }
+        })
+
+        pkt = Ethernet.deserialize(pktOut.getData).getPayload.asInstanceOf[IPv4]
+
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
         pkt.getSourceAddress should be === rtrIp1.addressAsInt
         pkt.getDestinationAddress should be === vm1Ip.addressAsInt
+
         val icmp = pkt.getPayload.asInstanceOf[ICMP]
         icmp should not be null
         icmp.getType should be (ICMP.TYPE_UNREACH)
@@ -211,9 +235,9 @@ class LinksTestCase extends MidolmanTestCase
         drainProbes()
 
         log.info("PING vm1 -> vm2, should pass now")
-        injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
         pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
-              .getPayload.asInstanceOf[IPv4]
+            .getPayload.asInstanceOf[IPv4]
         pkt.getSourceAddress should be === vm1Ip.addressAsInt
         pkt.getDestinationAddress should be === vm2Ip.addressAsInt
 

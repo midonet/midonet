@@ -54,6 +54,20 @@ public class FlowKeys {
             .setCode((byte) code);
     }
 
+    public static FlowKeyICMPEcho icmpEcho(int type, int code, short id) {
+        FlowKeyICMPEcho key = new FlowKeyICMPEcho();
+        key.setType((byte) type)
+           .setCode((byte) code);
+        return key.setIdentifier(id);
+    }
+
+    public static FlowKeyICMPError icmpError(int type, int code, byte[] data) {
+        FlowKeyICMPError key = new FlowKeyICMPError();
+        key.setType((byte) type)
+           .setCode((byte) code);
+        return key.setIcmpData(data);
+    }
+
     public static FlowKeyICMPv6 icmpv6(int type, int code) {
         return new FlowKeyICMPv6()
             .setType((byte) type)

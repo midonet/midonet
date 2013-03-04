@@ -16,13 +16,16 @@ import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Datapath, Flow, FlowMatch, Packet}
-import org.midonet.odp.flows.{FlowAction, FlowActionUserspace}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.sdn.flows._
 import org.midonet.util.functors.Callback0
 import akka.event.LoggingReceive
 import logging.ActorLogWithoutPath
+import org.midonet.packets.{IPv4, ICMP, Ethernet}
 import scala.Some
+import org.midonet.sdn.flows.{FlowManagerHelper, WildcardMatch, FlowManager,
+                              WildcardFlow}
+import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyICMPError,
+                              FlowActionUserspace}
 
 
 object FlowController extends Referenceable {
@@ -168,8 +171,14 @@ class FlowController extends Actor with ActorLogWithoutPath {
         case flowMissing(flowMatch) =>
             Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
                 case actions =>
-                    log.warning("DP flow was lost, reinstalling: {}", flowMatch)
-                    addDatapathFlow(flowMatch, actions)
+                    if (flowMatch.isUserSpaceOnly) {
+                        log.warning("DP flow was lost, but flowMatch is for" +
+                            "userspace only, this should not be happening",
+                            flowMatch)
+                    } else {
+                        log.warning("DP flow was lost, reinstalling: {}", flowMatch)
+                        addDatapathFlow(flowMatch, actions)
+                    }
             }
 
         case flowAdded(flow) =>
@@ -251,8 +260,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
             val now = System.currentTimeMillis()
             val created = flowManager.getCreationTimeForDpFlow(packet.getMatch)
-            if (now - created > 1000)
+            if (now - created > 1000) {
                 addDatapathFlow(packet.getMatch, actions)
+            }
 
             if (actions.size() == 0) {
                 // Empty action list means DROP. Do nothing.
@@ -266,34 +276,40 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 log.debug("A matching wildcard flow returned actions {}",
                     dpFlow.getActions)
 
-                if (!flowsInFlight.contains(packet.getMatch)) {
-
-                    log.debug("adding flow in flight {}", packet.getMatch)
-                    flowsInFlight.add(packet.getMatch)
-
-                    datapathConnection.flowsCreate(datapath, dpFlow,
-                    new ErrorHandlingCallback[Flow] {
-                        def onSuccess(data: Flow) {
-                            log.debug("succes")
-                            self ! flowAdded(data)
-                        }
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error("Got an exception {} or timeout {} when "+
-                                "trying to add flow with flow match {}",
-                                ex, timeout, dpFlow.getMatch)
-                            self ! flowInflightRemove(dpFlow.getMatch)
-                        }
-                    })
-
+                if (flowsInFlight.contains(packet.getMatch)) {
+                    log.debug("Flow already requested to dataplane {}",
+                        packet.getMatch)
                 } else {
-                    log.debug("flow already requested to dataplane {}", packet.getMatch)
+                    if (packet.getMatch.isUserSpaceOnly) {
+                        log.debug("Won't add flow with unsupported key {}",
+                            packet.getMatch)
+                        flowManager.addFlowCompleted(dpFlow)
+                    } else {
+                        log.debug("adding flow in flight {}", packet.getMatch)
+                        flowsInFlight.add(packet.getMatch)
+                        datapathConnection.flowsCreate(datapath, dpFlow,
+                        new ErrorHandlingCallback[Flow] {
+                            def onSuccess(data: Flow) {
+                                log.debug("succes")
+                                self ! flowAdded(data)
+                            }
+
+                            def handleError(ex: NetlinkException, timeout: Boolean) {
+                                log.error("Got an exception {} or timeout {} when "+
+                                    "trying to add flow with flow match {}",
+                                    ex, timeout, dpFlow.getMatch)
+                                self ! flowInflightRemove(dpFlow.getMatch)
+                            }
+                        })
+                    }
                 }
 
                 actions = dpFlow.getActions
                 // Empty action list means DROP. Do nothing.
-                if (actions.size == 0)
+                if (actions.size == 0) {
+                    log.debug("No actions, DROP")
                     return
+                }
             }
 
         }
@@ -303,9 +319,15 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
             val packetActions = actions.filter(action => !action.isInstanceOf[FlowActionUserspace])
             packet.setActions(packetActions)
-            if (packetActions.size != actions.size)
+            if (packetActions.size != actions.size) {
                 // we removed at least one FlowActionUserspace
                 doSimulation(packet)
+            }
+
+            // Apply actions associated to UserSpaceOnly keys
+            if (packet.getMatch.isUserSpaceOnly) {
+                applyActionsAfterUserspaceMatch(packet, packet.getActions)
+            }
 
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
@@ -390,7 +412,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 dpMatchToCookie.remove(packet.getMatch)
                 flowManager.add(packet.getMatch, wildcardFlow)
 
-                addDatapathFlow(packet.getMatch, wildcardFlow.getActions)
+                if (!packet.getMatch.isUserSpaceOnly) {
+                    addDatapathFlow(packet.getMatch, wildcardFlow.getActions)
+                }
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
@@ -400,13 +424,23 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         log.debug("Sending pended packet {} for cookie {}",
                             unpendedPacket, cookie)
 
-                        datapathConnection.packetsExecute(datapath, unpendedPacket,
+                        // Apply actions associated to userspace-only keys
+                        if (packet.getMatch.isUserSpaceOnly) {
+                            applyActionsAfterUserspaceMatch(unpendedPacket,
+                                wildcardFlow.getActions)
+                        }
+                        // send to the datapath
+                        datapathConnection.packetsExecute(
+                            datapath,
+                            unpendedPacket,
                             new ErrorHandlingCallback[java.lang.Boolean] {
                                 def onSuccess(data: java.lang.Boolean) {}
 
-                                def handleError(ex: NetlinkException, timeout: Boolean) {
+                                def handleError(ex: NetlinkException,
+                                                timeout: Boolean) {
                                     log.error(ex,
-                                        "Failed to send a packet {} due to {}", packet,
+                                        "Failed to send a packet {} due to {}",
+                                        packet,
                                         if (timeout) "timeout" else "error")
                                 }
                             })
@@ -416,30 +450,32 @@ class FlowController extends Actor with ActorLogWithoutPath {
     }
 
     private def addDatapathFlow(flowMatch: FlowMatch, actions: JList[FlowAction[_]]) {
-        if (!flowsInFlight.contains(flowMatch)) {
+        if (flowMatch.isUserSpaceOnly) {
+            log.warning("Won't add dpFlow with userspace key {}", flowMatch)
+        } else if (flowsInFlight.contains(flowMatch)) {
+            log.debug("flow already requested to dataplane {}", flowMatch)
+        } else {
             val dpFlow = new Flow().
-                                setMatch(flowMatch).
-                                setActions(actions).
-                                setLastUsedTime(System.currentTimeMillis())
+                setMatch(flowMatch).
+                setActions(actions).
+                setLastUsedTime(System.currentTimeMillis())
 
             log.debug("adding flow in flight {}", flowMatch)
             flowsInFlight.add(flowMatch)
-
             datapathConnection.flowsCreate(datapath, dpFlow,
                 new ErrorHandlingCallback[Flow] {
                     def onSuccess(data: Flow) {
                         self ! flowAdded(data)
                     }
 
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error("Got an exception {} or timeout {} when trying to add flow" +
-                            "with flow match {}", ex, timeout, dpFlow.getMatch)
+                    def handleError(e: NetlinkException, timeout: Boolean) {
+                        log.error("Got exception {} or timeout {} when " +
+                            "trying to add flow with flow match {}",
+                            e, timeout, dpFlow.getMatch)
                         self ! flowInflightRemove(dpFlow.getMatch)
                     }
                 })
             log.debug("Flow created {}", dpFlow)
-        } else {
-            log.debug("flow already requested to dataplane {}", flowMatch)
         }
     }
 
@@ -459,8 +495,58 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }).get()
     }
 
+    /**
+     * This method applies actions related to UserSpaceKeys to a Packet. Cases
+     * supported should be the ones that match on keys that implement
+     * @see(FlowKey.UserSpaceOnly)
+     *
+     * @param packet
+     * @param actions
+     * @return A newly allocated packet with the fields in the match applied
+     * @throws MalformedPacketException
+     */
+    private def applyActionsAfterUserspaceMatch(packet: Packet,
+                                                actions: JList[FlowAction[_]]) {
+        var eth: Ethernet = null
+        var ipv4: IPv4 = null;
+        var icmp: ICMP = null
+        val deserialize = {
+            // This is very limited but we don't really need more
+            if (eth == null) {
+                eth = Ethernet.deserialize(packet.getData)
+                ipv4 = eth.getPayload.asInstanceOf[IPv4]
+                icmp = ipv4.getPayload.asInstanceOf[ICMP]
+            }
+        }
+        for (action <- actions) {
+            action match {
+                case a: FlowActionSetKey =>
+                    a.getFlowKey match {
+                        case k: FlowKeyICMPError =>
+                            deserialize // actual deserialize happens only once
+                            icmp.setData(k.getIcmpData)
+                        case _ => // no need to fix anything
+                    }
+                case _ =>
+            }
+        }
+        if (icmp != null) {
+            ipv4.setPayload(icmp)
+            eth.setPayload(ipv4)
+            packet.setData(eth.serialize())
+        }
+    }
+
+
     class FlowManagerInfoImpl() extends FlowManagerHelper{
         def removeFlow(flow: Flow) {
+
+            if (flow.getMatch.isUserSpaceOnly) {
+                // the DP doesn't need to remove userspace-only flows
+                self ! flowRemoved(flow)
+                return
+            }
+
             datapathConnection.flowsDelete(datapath, flow,
             new ErrorHandlingCallback[Flow] {
                 def handleError(ex: NetlinkException, timeout: Boolean) {

@@ -587,6 +587,22 @@ class Coordinator(val origMatch: WildcardMatch,
                 .setTtl(modif.getNetworkTTL)
             ))
         }
+        // ICMP errors
+        if (!matchObjectsSame(orig.getIcmpData,
+                              modif.getIcmpData)) {
+            val icmpType = modif.getTransportSource()
+            if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
+                icmpType == ICMP.TYPE_UNREACH ||
+                icmpType == ICMP.TYPE_TIME_EXCEEDED) {
+                val actSetKey = FlowActions.setKey(null)
+                actions.append(actSetKey)
+                actSetKey.setFlowKey(FlowKeys.icmpError(
+                    modif.getTransportSource,
+                    modif.getTransportDestination,
+                    modif.getIcmpData
+                ))
+            }
+        }
         if (!matchObjectsSame(orig.getTransportSourceObject,
                               modif.getTransportSourceObject) ||
             !matchObjectsSame(orig.getTransportDestinationObject,
@@ -602,6 +618,9 @@ class Coordinator(val origMatch: WildcardMatch,
                     actSetKey.setFlowKey(FlowKeys.udp(
                         modif.getTransportSource,
                         modif.getTransportDestination))
+                case ICMP.PROTOCOL_NUMBER =>
+                    // this case would only happen if icmp id in ECHO req/reply
+                    // were translated, which is not the case, so leave alone
             }
         }
         return actions

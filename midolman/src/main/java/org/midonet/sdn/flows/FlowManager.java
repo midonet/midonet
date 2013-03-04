@@ -480,11 +480,9 @@ public class FlowManager {
         if(wcFlow.getIdleExpirationMillis() > 0){
             // TODO(pino): check with Rossella. Newly created flows will
             // TODO: always have a null lastUsedTime.
-            if (null == flow.getLastUsedTime())
-                wcFlow.setLastUsedTimeMillis(System.currentTimeMillis());
-            else
-                wcFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
-            //log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
+            wcFlow.setLastUsedTimeMillis((null == flow.getLastUsedTime())
+                                             ? System.currentTimeMillis()
+                                             : flow.getLastUsedTime());
         }
     }
 

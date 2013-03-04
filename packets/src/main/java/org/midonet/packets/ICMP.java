@@ -100,6 +100,12 @@ public class ICMP extends BasePacket {
             this.data = Arrays.copyOf(data, length);
     }
 
+    public void setError(char type, char code, byte[] data) {
+        this.type = type;
+        this.code = code;
+        this.data = Arrays.copyOf(data, data.length);
+    }
+
     public void setUnreachable(UNREACH_CODE unreachCode, IPv4 ipPkt) {
         type = TYPE_UNREACH;
         code = unreachCode.value;
@@ -121,6 +127,13 @@ public class ICMP extends BasePacket {
         setIPv4Packet(ipPkt);
     }
 
+    /**
+     * BEWARE: direct assignment of data
+     *
+     * @param id
+     * @param seq
+     * @param data
+     */
     public void setEchoRequest(short id, short seq, byte[] data) {
         type = TYPE_ECHO_REQUEST;
         code = CODE_NONE;
@@ -130,6 +143,13 @@ public class ICMP extends BasePacket {
         this.data = data;
     }
 
+    /**
+     * BEWARE: direct assignment of data
+     *
+     * @param id
+     * @param seq
+     * @param data
+     */
     public void setEchoReply(short id, short seq, byte[] data) {
         type = TYPE_ECHO_REPLY;
         code = CODE_NONE;
@@ -145,6 +165,15 @@ public class ICMP extends BasePacket {
 
     public short getSequenceNum() {
         return (short)quench;
+    }
+
+    /**
+     * BEWARE: direct assignment of data
+     *
+     * @param data
+     */
+    public void setData (byte[] data) {
+        this.data = data;
     }
 
     /**

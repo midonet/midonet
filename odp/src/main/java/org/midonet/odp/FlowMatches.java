@@ -71,24 +71,36 @@ public class FlowMatches {
                 switch (ipPkt.getProtocol()) {
                     case TCP.PROTOCOL_NUMBER:
                         TCP tcpPkt = TCP.class.cast(ipPkt.getPayload());
-                        match.addKey(
-                            tcp(tcpPkt.getSourcePort(),
-                                tcpPkt.getDestinationPort())
+                        match.addKey(tcp(tcpPkt.getSourcePort(),
+                                         tcpPkt.getDestinationPort())
                         );
                         break;
                     case UDP.PROTOCOL_NUMBER:
                         UDP udpPkt = UDP.class.cast(ipPkt.getPayload());
-                        match.addKey(
-                            udp(udpPkt.getSourcePort(),
-                                udpPkt.getDestinationPort())
+                        match.addKey(udp(udpPkt.getSourcePort(),
+                                         udpPkt.getDestinationPort())
                         );
                         break;
                     case ICMP.PROTOCOL_NUMBER:
                         ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                        match.addKey(
-                            icmp(icmpPkt.getType(), icmpPkt.getCode())
-                        );
-                        break;
+                        switch (icmpPkt.getType()) {
+                            case ICMP.TYPE_ECHO_REPLY:
+                            case ICMP.TYPE_ECHO_REQUEST:
+                                match.addKey(icmpEcho(icmpPkt.getType(),
+                                                      icmpPkt.getCode(),
+                                                      icmpPkt.getIdentifier()));
+                                break;
+                            case ICMP.TYPE_UNREACH:
+                            case ICMP.TYPE_TIME_EXCEEDED:
+                            case ICMP.TYPE_PARAMETER_PROBLEM:
+                                match.addKey(icmpError(icmpPkt.getType(),
+                                                       icmpPkt.getCode(),
+                                                       icmpPkt.getData()));
+                                break;
+                            default:
+                                match.addKey(icmp(icmpPkt.getType(),
+                                                  icmpPkt.getCode()));
+                        }
                     default:
                         break;
                 }

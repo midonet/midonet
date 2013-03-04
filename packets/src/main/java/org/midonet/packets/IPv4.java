@@ -441,50 +441,7 @@ public class IPv4 extends BasePacket {
 
     @Override
     public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
-
-        int length = bb.remaining();
-
-        // Check that the size is correct to avoid BufferUnderflowException.
-        if (length < MIN_HEADER_LEN || length > MAX_PACKET_LEN) {
-            throw new MalformedPacketException("Invalid IPv4 packet size: "
-                    + length);
-        }
-
-        short sscratch;
-        byte versionAndHeaderLen = bb.get();
-        this.headerLength = (byte) (versionAndHeaderLen & 0xf);
-        if (this.headerLength < MIN_HEADER_WORD_NUM) {
-            // Don't process if it contains a bad header word num value.
-            throw new MalformedPacketException("Bad IPv4 header word num: "
-                    + this.headerLength);
-        }
-
-        this.version = (byte) ((versionAndHeaderLen >> 4) & 0xf);
-        this.diffServ = bb.get();
-        this.totalLength = bb.getShort() & 0xffff;
-        if (this.totalLength < (this.headerLength * 4)) {
-            // Don't process if the total length is corrupted.
-            throw new MalformedPacketException("Bad IPv4 datagram length: "
-                    + this.totalLength + " based on the given header size: "
-                    + this.headerLength);
-        }
-
-        this.identification = bb.getShort();
-        sscratch = bb.getShort();
-        this.flags = (byte) ((sscratch >> 13) & 0x7);
-        this.fragmentOffset = (short) (sscratch & 0x1fff);
-        this.ttl = bb.get();
-        this.protocol = bb.get();
-        this.checksum = bb.getShort();
-        this.sourceAddress = bb.getInt();
-        this.destinationAddress = bb.getInt();
-
-        if (this.headerLength > MIN_HEADER_WORD_NUM) {
-            int optionsLength = (this.headerLength - MIN_HEADER_WORD_NUM) * 4;
-            this.options = new byte[optionsLength];
-            bb.get(this.options);
-        }
-
+        this.deserializeHeader(bb);
         if (IPv4.protocolClassMap.containsKey(this.protocol)) {
             Class<? extends IPacket> clazz = IPv4.protocolClassMap.get(this.protocol);
             try {
@@ -509,6 +466,61 @@ public class IPv4 extends BasePacket {
         payload.deserialize(bb.slice());
         payload.setParent(this);
         return this;
+    }
+
+    /**
+     * Deserializes only the header of an IPv4 packet only, ignoring all the
+     * rest of data in the given ByteBuffer.
+     *
+     * @param bb
+     * @throws MalformedPacketException
+     */
+    public void deserializeHeader(ByteBuffer bb)
+        throws MalformedPacketException {
+
+        int length = bb.remaining();
+
+        // Check that the size is correct to avoid BufferUnderflowException.
+        if (length < MIN_HEADER_LEN || length > MAX_PACKET_LEN) {
+            throw new MalformedPacketException("Invalid IPv4 packet size: "
+                                                   + length);
+        }
+
+        short sscratch;
+        byte versionAndHeaderLen = bb.get();
+        this.headerLength = (byte) (versionAndHeaderLen & 0xf);
+        if (this.headerLength < MIN_HEADER_WORD_NUM) {
+            // Don't process if it contains a bad header word num value.
+            throw new MalformedPacketException("Bad IPv4 header word num: "
+                                                   + this.headerLength);
+        }
+
+        this.version = (byte) ((versionAndHeaderLen >> 4) & 0xf);
+        this.diffServ = bb.get();
+        this.totalLength = bb.getShort() & 0xffff;
+        if (this.totalLength < (this.headerLength * 4)) {
+            // Don't process if the total length is corrupted.
+            throw new MalformedPacketException("Bad IPv4 datagram length: "
+                       + this.totalLength + " based on the given header size: "
+                       + this.headerLength);
+        }
+
+        this.identification = bb.getShort();
+        sscratch = bb.getShort();
+        this.flags = (byte) ((sscratch >> 13) & 0x7);
+        this.fragmentOffset = (short) (sscratch & 0x1fff);
+        this.ttl = bb.get();
+        this.protocol = bb.get();
+        this.checksum = bb.getShort();
+        this.sourceAddress = bb.getInt();
+        this.destinationAddress = bb.getInt();
+
+        if (this.headerLength > MIN_HEADER_WORD_NUM) {
+            int optionsLength = (this.headerLength - MIN_HEADER_WORD_NUM) * 4;
+            this.options = new byte[optionsLength];
+            bb.get(this.options);
+        }
+
     }
 
     /**

@@ -4,6 +4,7 @@
 
 package org.midonet.sdn.flows;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -33,10 +34,10 @@ import org.midonet.packets.UDP;
 
 public class WildcardMatch implements Cloneable {
 
-    private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
     private static final Logger log =
             LoggerFactory.getLogger(WildcardMatch.class);
 
+    private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 
     public enum Field {
         InputPortNumber,
@@ -54,7 +55,11 @@ public class WildcardMatch implements Cloneable {
         TransportSource,
         TransportDestination,
         ArpSip,
-        ArpTip
+        ArpTip,
+        // TODO (galo) extract MM-custom fields to a child class? We'd need
+        // some more changes there since Enums can't inherit though
+        IcmpId,
+        IcmpData
     }
 
     /**
@@ -81,6 +86,10 @@ public class WildcardMatch implements Cloneable {
     private Integer transportDestination;
     private IntIPv4 arpSip;
     private IntIPv4 arpTip;
+
+    // Extended fields only supported inside MM
+    private Short icmpId;
+    private byte[] icmpData;
 
     @Nonnull
     public WildcardMatch setInputPortNumber(short inputPortNumber) {
@@ -517,100 +526,43 @@ public class WildcardMatch implements Cloneable {
         return arpTip;
     }
 
-    /**
-     * Applies this match to a fresh copy of an ethernet packet
-     *
-     * @param toPacket Packet to apply match to (read-only)
-     * @return A newly allocated packet with the fields in the match applied
-     * @throws MalformedPacketException
-     */
-    public Ethernet apply(Ethernet toPacket) throws MalformedPacketException {
-        if (toPacket == null)
-            return null;
+    @Nonnull
+    public WildcardMatch setIcmpIdentifier(Short identifier) {
+        usedFields.add(Field.IcmpId);
+        this.icmpId = identifier;
+        return this;
+    }
 
-        Ethernet eth = Ethernet.deserialize(toPacket.serialize());
-        IPv4 ipv4 = null;
-        Transport transport = null;
-        ARP arp = null;
+    @Nonnull
+    public WildcardMatch unsetIcmpIdentifier() {
+        usedFields.remove(Field.IcmpId);
+        this.icmpId = null;
+        return this;
+    }
 
-        if (eth.getPayload() instanceof IPv4)
-            ipv4 = (IPv4) eth.getPayload();
-        if (ipv4 != null && ipv4.getPayload() instanceof Transport)
-            transport = (Transport) ipv4.getPayload();
-        if (eth.getPayload() instanceof ARP)
-            arp = (ARP) eth.getPayload();
+    @Nullable
+    public Short getIcmpIdentifier() {
+        return icmpId;
+    }
 
-        /* TODO (guillermo)
-         * support (ethernet(ip(tcp|udp))) in the 1st go. A full/correct
-         * implementation of apply() should cover all matchable protocols
-         * for each network layer
-         */
-        for (Field field : getUsedFields()) {
-            switch (field) {
-                case EtherType:
-                    eth.setEtherType(etherType);
-                    break;
-                case EthernetDestination:
-                    eth.setDestinationMACAddress(ethernetDestination);
-                    break;
-                case EthernetSource:
-                    eth.setSourceMACAddress(ethernetSource);
-                    break;
+    @Nullable
+    public byte[] getIcmpData() {
+        return (icmpData == null) ? null
+                                  : Arrays.copyOf(icmpData, icmpData.length);
+    }
 
-                case TransportDestination:
-                    if (null != transport)
-                        transport.setDestinationPort(transportDestination);
-                    break;
-                case TransportSource:
-                    if (null != transport)
-                        transport.setSourcePort(transportSource);
-                    break;
+    @Nonnull
+    public WildcardMatch setIcmpData(byte[] icmpData) {
+        usedFields.add(Field.IcmpData);
+        this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
+        return this;
+    }
 
-                case NetworkDestination:
-                    if (null != ipv4)
-                        ipv4.setDestinationAddress(
-                            networkDestination.addressAsInt());
-                    break;
-                case NetworkSource:
-                    if (null != ipv4)
-                        ipv4.setSourceAddress(networkSource.addressAsInt());
-                    break;
-                case ArpSip:
-                    if (null != arp)
-                        arp.setSenderProtocolAddress(
-                                IPv4.toIPv4AddressBytes(arpSip.addressAsInt()));
-                    break;
-                case ArpTip:
-                    if (null != arp)
-                        arp.setTargetProtocolAddress(
-                                IPv4.toIPv4AddressBytes(arpTip.addressAsInt()));
-                    break;
-                case NetworkProtocol:
-                    if (null != ipv4)
-                        ipv4.setProtocol(networkProtocol);
-                    break;
-
-                case NetworkTTL:
-                    if (null != ipv4)
-                        ipv4.setTtl(networkTTL);
-                    break;
-
-                case FragmentType:
-                    // XXX guillermo (does it make sense to make changes to
-                    // this? it would be useless without changing the offset
-                    // accordingly.
-                    break;
-
-                case InputPortUUID:
-                    break;
-                case InputPortNumber:
-                    break;
-                case TunnelID:
-                    break;
-            }
-        }
-
-        return eth;
+    @Nonnull
+    public WildcardMatch unsetIcmpData() {
+        usedFields.remove(Field.IcmpData);
+        this.icmpData = null;
+        return this;
     }
 
     @Override
@@ -695,8 +647,18 @@ public class WildcardMatch implements Cloneable {
                 case TunnelID:
                     if (!isEqual(tunnelID, that.tunnelID))
                         return false;
-
                     break;
+
+                case IcmpId:
+                    if (!isEqual(icmpId, that.icmpId))
+                        return false;
+                    break;
+
+                case IcmpData:
+                    if (!isEqual(icmpData.hashCode(),  that.icmpData.hashCode()))
+                        return false;
+                    break;
+
             }
         }
 
@@ -757,6 +719,10 @@ public class WildcardMatch implements Cloneable {
                 case TunnelID:
                     result = 31 * result + tunnelID.hashCode();
                     break;
+                case IcmpId:
+                    result = 31 * result + icmpId.hashCode();
+                case IcmpData:
+                    result = 31 * result + Arrays.hashCode(icmpData);
             }
         }
 
@@ -767,8 +733,7 @@ public class WildcardMatch implements Cloneable {
     public String toString() {
         String output = "";
         for (Field f: getUsedFields()) {
-            output += f.toString();
-            output += " : ";
+            output += f.toString() + " : ";
             switch (f) {
                 case EtherType:
                     output += etherType.toString();
@@ -821,6 +786,12 @@ public class WildcardMatch implements Cloneable {
                 case TunnelID:
                     output += tunnelID.toString();
                     break;
+                case IcmpId:
+                    output += Short.toString(icmpId);
+                    break;
+
+                case IcmpData:
+                    output += Arrays.toString(icmpData);
             }
             output += ";";
         }
@@ -903,6 +874,14 @@ public class WildcardMatch implements Cloneable {
 
                     case TunnelID:
                         newClone.tunnelID = tunnelID;
+                        break;
+                    case IcmpId:
+                        newClone.icmpId = icmpId;
+                        break;
+
+                    case IcmpData:
+                        newClone.icmpData =
+                            Arrays.copyOf(icmpData, icmpData.length);
                         break;
 
                     default:
@@ -989,6 +968,12 @@ public class WildcardMatch implements Cloneable {
                     FlowKeyICMP icmp = as(flowKey, FlowKeyICMP.class);
                     setTransportSource(icmp.getType());
                     setTransportDestination(icmp.getCode());
+                    if (icmp instanceof FlowKeyICMPEcho) {
+                        FlowKeyICMPEcho icmpEcho = ((FlowKeyICMPEcho) icmp);
+                        setIcmpIdentifier(icmpEcho.getIdentifier());
+                    } else if (icmp instanceof FlowKeyICMPError) {
+                        setIcmpData(((FlowKeyICMPError) icmp).getIcmpData());
+                    }
                     setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
                     break;
                 case 12: // FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);

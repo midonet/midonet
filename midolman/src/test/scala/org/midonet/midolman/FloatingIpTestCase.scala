@@ -215,7 +215,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm1Ip.addressAsInt)
 
         log.info("ICMP echo, VM1 -> VM2, should be SNAT'ed")
-        injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, vm2Ip)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null
@@ -227,7 +227,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm2Ip.addressAsInt)
 
         log.info("ICMP echo, VM2 -> floatingIp, should be DNAT'ed")
-        injectIcmpEcho(rtrPort1Name, vm2Mac, vm2Ip, routerMac1, floatingIP)
+        injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null
@@ -239,7 +239,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm1Ip.addressAsInt)
 
         log.info("ICMP echo, VM1 -> floatingIp, should be DNAT'ed, but not SNAT'ed")
-        injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, floatingIP)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null

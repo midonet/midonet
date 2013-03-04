@@ -57,6 +57,12 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case TunnelID:
                     setTunnelID(source.getTunnelID());
                     break;
+                case IcmpData:
+                    setIcmpData(source.getIcmpData());
+                    break;
+                case IcmpId:
+                    setIcmpIdentifier(source.getIcmpIdentifier());
+                    break;
             }
         }
 

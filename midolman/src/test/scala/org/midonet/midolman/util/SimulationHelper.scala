@@ -16,10 +16,12 @@ import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import akka.testkit.{TestProbe, TestKit}
-
+import akka.testkit.TestProbe
+import org.slf4j.LoggerFactory
 
 trait SimulationHelper extends MidolmanTestCase {
+
+    private final val log = LoggerFactory.getLogger(classOf[SimulationHelper])
 
     final val IPv6_ETHERTYPE: Short = 0x86dd.toShort
 
@@ -33,6 +35,7 @@ trait SimulationHelper extends MidolmanTestCase {
         var tcp: TCP = null
         var udp: UDP = null
         var icmp: ICMP = null
+        log.debug("Applying out packet actions on {}", eth)
         eth.getEtherType match {
             case IPv4.ETHERTYPE =>
                 ip = eth.getPayload.asInstanceOf[IPv4]
@@ -70,6 +73,13 @@ trait SimulationHelper extends MidolmanTestCase {
                     udp should not be null
                     if (key.getUdpDst != 0) udp.setDestinationPort(key.getUdpDst)
                     if (key.getUdpSrc != 0) udp.setSourcePort(key.getUdpSrc)
+                case key: FlowKeyICMPError =>
+                    log.debug("FlowKeyIcmpError related actions are userspace" +
+                        "only so they should have been applied already in" +
+                        "FlowController.applyActionsAfterUserspaceMatch")
+                    icmp.getData should be === key.getIcmpData
+                case unmatched =>
+                    log.warn("Won't translate {}", unmatched)
             }
         }
 
@@ -204,10 +214,11 @@ trait SimulationHelper extends MidolmanTestCase {
             Unsigned.unsign(portNo))
     }
 
-    def injectIcmpEcho(portName : String, srcMac : MAC, srcIp : IntIPv4,
-                       dstMac : MAC, dstIp : IntIPv4) = {
+    def injectIcmpEchoReq(portName : String, srcMac : MAC, srcIp : IntIPv4,
+                       dstMac : MAC, dstIp : IntIPv4, icmpId: Short = 16,
+                       icmpSeq: Short = 32) : ICMP =  {
         val echo = new ICMP()
-        echo.setEchoRequest(16, 32, "My ICMP".getBytes)
+        echo.setEchoRequest(icmpId, icmpSeq, "My ICMP".getBytes)
         val eth: Ethernet = new Ethernet().
             setSourceMACAddress(srcMac).
             setDestinationMACAddress(dstMac).
@@ -217,6 +228,48 @@ trait SimulationHelper extends MidolmanTestCase {
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echo))
         triggerPacketIn(portName, eth)
+        echo
+    }
+
+    def injectIcmpEchoReply(portName : String, srcMac : MAC, srcIp : IntIPv4,
+                            echoId : Short, echoSeqNum : Short, dstMac : MAC,
+                            dstIp : IntIPv4) = {
+        val echoReply = new ICMP()
+        echoReply.setEchoReply(echoId, echoSeqNum, "My ICMP".getBytes)
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(srcMac).
+            setDestinationMACAddress(dstMac).
+            setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
+            setDestinationAddress(dstIp.addressAsInt).
+            setProtocol(ICMP.PROTOCOL_NUMBER).
+            setPayload(echoReply))
+        triggerPacketIn(portName, eth)
+        echoReply
+    }
+
+    def injectIcmpUnreachable(portName: String, srcMac: MAC, dstMac: MAC,
+                    code: ICMP.UNREACH_CODE, origEth: Ethernet) {
+
+        val origIpPkt = origEth.getPayload.asInstanceOf[IPv4]
+
+        val icmp = new ICMP()
+        icmp.setUnreachable(code, origIpPkt)
+
+        val ip = new IPv4()
+        ip.setSourceAddress(origIpPkt.getDestinationAddress)
+        ip.setDestinationAddress(origIpPkt.getSourceAddress)
+        ip.setPayload(icmp)
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
+
+        val eth: Ethernet = new Ethernet()
+            .setSourceMACAddress(srcMac)
+            .setDestinationMACAddress(dstMac)
+            .setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(ip)
+
+        triggerPacketIn(portName, eth)
+        icmp
     }
 
     def expectRoutedPacketOut(portNum : Int,

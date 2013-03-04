@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowKeyICMP
+import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.sdn.flows.FlowManager
 import topology.BridgeManager
 
@@ -33,60 +33,90 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
         arpVmToRouterAndCheckReply(vmPortNames(0), vmMacs(0), vmIps(0), routerIp, routerMac)
         arpVmToRouterAndCheckReply(vmPortNames(1), vmMacs(1), vmIps(1), routerIp, routerMac)
-        findPingMatch should be (None)
+        findMatch[FlowKeyICMP] should be (None)
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyTCP] should be (None)
     }
 
-    private def findPingMatch: Option[FlowMatch] = {
+    private def findMatch[T](implicit m: Manifest[T]) : Option[FlowMatch] = {
+        val klass = manifest.erasure.asInstanceOf[Class[T]]
         for (flowMatch <- datapath.flowsTable.keySet()) {
-            for (flowKey <- flowMatch.getKeys) {
-                flowKey match {
-                    case icmp: FlowKeyICMP => return Option(flowMatch)
-                    case _ =>
-                }
-            }
+           for (flowKey <- flowMatch.getKeys) {
+               if (klass.isInstance(flowKey)) {
+                   return Option(flowMatch)
+               }
+           }
         }
         None
     }
 
+    def testMultipleICMPPacketIn() {
+        // flow will not be installed for ICMP echo req/reply
+        // required to process them in userspace to support PING through NAT
+        expectPacketAllowed(0, 1, icmpBetweenPorts)
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyICMP] should be (None)
+
+        // resend packet and check that the flow was not re-added
+        expectPacketAllowed(0, 1, icmpBetweenPorts)
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyICMP] should be (None)
+
+        // wait 1 second, the threshold that the flow controller uses to decide
+        // that it's time to reinstall the flow
+        Thread.sleep(1000)
+
+        // resend packet and check that the flow is still not added
+        expectPacketAllowed(0, 1, icmpBetweenPorts)
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyICMP] should be (None)
+    }
+
     def testFlowGetMiss() {
         // cause flow to be installed.
-        expectPacketAllowed(0, 1, icmpBetweenPorts)
-        val pingMatch = findPingMatch
-        pingMatch should not be (None)
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+            tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+
+        val tcpMatch = findMatch[FlowKeyTCP]
+        tcpMatch should not be (None)
 
         // remove flow, from the datapath
-        pingMatch.foreach{datapath.flowsTable.remove(_)}
-        findPingMatch should be (None)
+        tcpMatch.foreach{datapath.flowsTable.remove(_)}
+        findMatch[FlowKeyTCP] should be (None)
 
         // call flowsGet(), need to wait IDLE_EXPIRATION / 2. That's 30 secs.
         Thread.sleep(32000)
         flowManager.checkFlowsExpiration()
 
         // check that flow was re-installed.
-        findPingMatch should not be (None)
+        findMatch[FlowKeyTCP] should not be (None)
     }
 
-    def testMultiplePacketIn() {
+
+    def testMultipleTCPPacketIn() {
         // cause flow to be installed.
-        expectPacketAllowed(0, 1, icmpBetweenPorts)
-        val pingMatch = findPingMatch
-        pingMatch should not be (None)
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+            tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+
+        val pktMatch = findMatch[FlowKeyTCP]
+        pktMatch should not be (None)
 
         // remove flow, from the datapath
-        pingMatch.foreach{datapath.flowsTable.remove(_)}
-        findPingMatch should be (None)
+        pktMatch.foreach{datapath.flowsTable.remove(_)}
+        findMatch[FlowKeyTCP] should be (None)
 
         // resend packet and check that the flow was not re-added
-        expectPacketAllowed(0, 1, icmpBetweenPorts)
-        findPingMatch should be (None)
-
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+            tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+        findMatch[FlowKeyTCP] should be (None)
 
         // wait 1 second, the threshold that the flow controller uses to decide
         // that it's time to reinstall the flow
         Thread.sleep(1000)
 
         // resend packet and check that the flow is re-added
-        expectPacketAllowed(0, 1, icmpBetweenPorts)
-        findPingMatch should not be (None)
+        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+            tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+        findMatch[FlowKeyTCP] should not be (None)
     }
 }

@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
-import akka.util.duration._
 import collection.JavaConversions._
 import collection.mutable
 
@@ -21,13 +20,13 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.util.{RouterHelper, SimulationHelper}
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.packets._
+
 
 @RunWith(classOf[JUnitRunner])
 class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
@@ -189,22 +188,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // TODO(guillermo) check the arp reply packet
     }
 
-    private def sendEchoReply(portName : String, srcMac : MAC, srcIp : IntIPv4,
-                              echoId : Short, echoSeqNum : Short, dstMac : MAC,
-                              dstIp : IntIPv4) = {
-        val echoReply = new ICMP()
-        echoReply.setEchoReply(echoId, echoSeqNum, "My ICMP".getBytes)
-        val eth: Ethernet = new Ethernet().
-            setSourceMACAddress(srcMac).
-            setDestinationMACAddress(dstMac).
-            setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
-            setDestinationAddress(dstIp.addressAsInt).
-            setProtocol(ICMP.PROTOCOL_NUMBER).
-            setPayload(echoReply))
-        triggerPacketIn(portName, eth)
-    }
-
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {
         val dhcpDiscover = new DHCP()
         dhcpDiscover.setOpCode(0x01)
@@ -307,7 +290,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
         expectEmitDhcpReply(DHCPOption.MsgType.OFFER.value)
-        expectPacketOut(vm2PortNumber);
+        expectPacketOut(vm2PortNumber)
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
@@ -315,7 +298,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
-        expectPacketOut(vm2PortNumber);
+        expectPacketOut(vm2PortNumber)
 
         val vm2IpInt = vm2IP.addressAsInt
         dhcpClientIp should be === vm2IpInt
@@ -330,7 +313,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         drainProbes()
 
         log.info("Ping Router port 2")
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
+        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
         requestOfType[PacketIn](simProbe())
         log.info("Check ICMP Echo Reply from Router port 2")
         expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
@@ -338,7 +321,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectPacketOut(vm2PortNumber)
 
         log.info("Ping Router port 1")
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
+        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
         requestOfType[PacketIn](simProbe())
         log.info("Check ICMP Echo Reply from Router port 1")
         expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP,
@@ -347,7 +330,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         fishForRequestOfType[DiscardPacket](flowProbe())
 
         log.info("Ping VM1, not expecting any reply")
-        injectIcmpEcho(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
+        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
         requestOfType[PacketIn](simProbe())
         // this is an ARP request, the ICMP echo will not be delivered
         // because this ARP will go unanswered
@@ -355,9 +338,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectPacketOut(rtrPort1Num)
 
         log.info("Send Ping reply on behalf of VM1")
-        sendEchoReply(rtrPort1Name, vm1Mac, vm1Ip,
-                      16, 32,
-                      routerMac1, vm2IP)
+        injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 16, 32,
+                            routerMac1, vm2IP)
         requestOfType[PacketIn](simProbe())
 
         log.info("Expecting packet out on VM2 port")

@@ -7,18 +7,18 @@ package org.midonet.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.util.functors.Callback0;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MalformedPacketException;
 import org.midonet.packets.Net;
-import org.midonet.packets.TCP;
-import org.midonet.packets.UDP;
+import org.midonet.sdn.flows.WildcardMatch;
+import org.midonet.util.functors.Callback0;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ForwardNatRule extends NatRule {
@@ -27,7 +27,6 @@ public class ForwardNatRule extends NatRule {
     private int floatingIpAddr;
     private final static Logger log = LoggerFactory
             .getLogger(ForwardNatRule.class);
-    private static final int USHORT = 0xffff;
 
     // Default constructor for the Jackson deserialization.
     public ForwardNatRule() {
@@ -49,10 +48,9 @@ public class ForwardNatRule extends NatRule {
                 floatingIpAddr = tg.nwStart;
             }
         }
-        if (floatingIp)
-            log.debug("Created a FloatingIP forward nat rule");
-        else
-            log.debug("Created a normal forward nat rule");
+
+        log.debug("Created a {} forward nat rule",
+                  (floatingIp) ? "FloatingIp" : "normal");
     }
 
     public boolean isFloatingIp() {
@@ -62,14 +60,17 @@ public class ForwardNatRule extends NatRule {
     @Override
     public void apply(ChainPacketContext fwdInfo, RuleResult res,
                       NatMapping natMapping) {
-        if (null == natMapping) {
+        if (null == natMapping)
             log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
-            return;
-        }
-        if (dnat)
-            applyDnat(fwdInfo, res, natMapping);
         else
-            applySnat(fwdInfo, res, natMapping);
+            try {
+                if (dnat)
+                    applyDnat(fwdInfo, res, natMapping);
+                else
+                    applySnat(fwdInfo, res, natMapping);
+            } catch (MalformedPacketException e) {
+                log.error("Errors applying forward NAT {}", e);
+            }
     }
 
     private Callback0 makeUnrefCallback(final NatMapping mapping,
@@ -85,49 +86,50 @@ public class ForwardNatRule extends NatRule {
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param res
-     *            contains the match of the packet as seen by this rule,
+     * @param res contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
     private void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
-                           final NatMapping natMapping) {
+                           final NatMapping natMapping)
+        throws MalformedPacketException {
+
+        WildcardMatch match = res.pmatch;
+
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
+                    IPv4.fromIPv4Address(match.getNetworkDestination()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.pmatch.setNetworkDestination(new IPv4Addr().setIntAddress(
-                    floatingIpAddr));
+            match.setNetworkDestination(new IPv4Addr()
+                                            .setIntAddress(floatingIpAddr));
             res.action = action;
             return;
         }
         log.debug("applying a dnat to {}", res);
-        // Don't attempt to do port translation on anything but udp/tcp
-        byte nwProto = res.pmatch.getNetworkProtocol();
-        if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
+
+        if (!isNatSupported(match))
             return;
 
-        NwTpPair conn = natMapping.lookupDnatFwd(
-                res.pmatch.getNetworkSource(),
-                res.pmatch.getTransportSource(),
-                res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination());
-        if (null == conn)
-            conn = natMapping.allocateDnat(res.pmatch.getNetworkSource(),
-                    res.pmatch.getTransportSource(),
-                    res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets);
-        else
+        NatLookupTuple tp = getTpForMappingLookup(match);
+
+        NwTpPair conn = natMapping.lookupDnatFwd(tp.proto,
+                                                 tp.nwSrc, tp.tpSrc,
+                                                 tp.nwDst, tp.tpDst);
+        if (null == conn) {
+            conn = natMapping.allocateDnat(tp.proto,
+                                           tp.nwSrc, tp.tpSrc,
+                                           tp.nwDst, tp.tpDst, targets);
+        } else {
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
-                    + "to {}:{}", new Object[] {
+                    + "to {}:{}, protocol {}", new Object[] {
                     IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
-                    res.pmatch.getTransportSource() & USHORT,
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
-                    res.pmatch.getTransportDestination() & USHORT });
+                    IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
+                    IPv4.fromIPv4Address(tp.nwDst), tp.tpDst, tp.proto});
+        }
         // TODO(pino): deal with case that conn couldn't be allocated.
-        res.pmatch.setNetworkDestination(new IPv4Addr().setIntAddress(
-                    conn.nwAddr));
-        res.pmatch.setTransportDestination(conn.tpPort);
+        match.setNetworkDestination(new IPv4Addr().setIntAddress(conn.nwAddr));
+        if (tp.proto != ICMP.PROTOCOL_NUMBER) {
+            match.setTransportDestination(conn.tpPort);
+        }
         res.action = action;
         res.trackConnection = true;
 
@@ -137,55 +139,58 @@ public class ForwardNatRule extends NatRule {
     /**
      * Translate the destination network address (and possibly L4 port).
      *
-     * @param res
-     *            contains the match of the packet as seen by this rule,
+     * @param res contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
     private void applySnat(ChainPacketContext fwdInfo,  RuleResult res,
-                           final NatMapping natMapping) {
+                           final NatMapping natMapping)
+        throws MalformedPacketException {
+
+        WildcardMatch match = res.pmatch;
+
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
+                    IPv4.fromIPv4Address(match.getNetworkSource()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(
-                    floatingIpAddr));
+            match.setNetworkSource(new IPv4Addr().setIntAddress(floatingIpAddr));
             res.action = action;
             return;
         }
-        // Don't attempt to do port translation on anything but udp/tcp
-        byte nwProto = res.pmatch.getNetworkProtocol();
-        if (UDP.PROTOCOL_NUMBER != nwProto && TCP.PROTOCOL_NUMBER != nwProto)
+
+        if (!isNatSupported(match))
             return;
 
-        NwTpPair conn = natMapping.lookupSnatFwd(
-                res.pmatch.getNetworkSource(),
-                res.pmatch.getTransportSource(),
-                res.pmatch.getNetworkDestination(),
-                res.pmatch.getTransportDestination());
-        if (null == conn)
-            conn = natMapping.allocateSnat(res.pmatch.getNetworkSource(),
-                    res.pmatch.getTransportSource(),
-                    res.pmatch.getNetworkDestination(),
-                    res.pmatch.getTransportDestination(), targets);
-        else
+        NatLookupTuple tp = getTpForMappingLookup(match);
+
+        NwTpPair conn = natMapping.lookupSnatFwd(tp.proto,
+                                                 tp.nwSrc, tp.tpSrc,
+                                                 tp.nwDst, tp.tpDst);
+        if (null == conn) {
+            conn = natMapping.allocateSnat(tp.proto,
+                                           tp.nwSrc, tp.tpSrc,
+                                           tp.nwDst, tp.tpDst, targets);
+        } else {
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
-                    + "to {}:{}", new Object[] {
+                    + "to {}:{}, protocol {}", new Object[] {
                     IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
-                    res.pmatch.getTransportSource() & USHORT,
-                    IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
-                    res.pmatch.getTransportDestination() & USHORT});
+                    IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
+                    IPv4.fromIPv4Address(tp.nwDst), tp.tpDst,
+                    tp.proto});
+        }
 
         if (conn == null) {
             log.error("Could not allocate Snat");
             return;
         }
-        res.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(conn.nwAddr));
-        res.pmatch.setTransportSource(conn.tpPort);
+        match.setNetworkSource(new IPv4Addr().setIntAddress(conn.nwAddr));
+        if (tp.proto != ICMP.PROTOCOL_NUMBER) {
+            match.setTransportSource(conn.tpPort);
+        }
         res.action = action;
         res.trackConnection = true;
 
-        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
+        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping,
+                                                         conn.unrefKey));
     }
 
     // Used by RuleEngine to discover resources that must be initialized
@@ -241,7 +246,6 @@ public class ForwardNatRule extends NatRule {
             for (NatTarget t : targets)
                 sb.append(t.toString()).append(", ");
         }
-        sb.append("}]");
-        return sb.toString();
+        return sb.append("}]").toString();
     }
 }

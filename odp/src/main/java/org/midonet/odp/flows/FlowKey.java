@@ -8,6 +8,17 @@ import org.midonet.netlink.messages.BuilderAware;
 
 public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, NetlinkMessage.Attr<Key> {
 
+    /**
+     * Should be used by those keys that are only supported in user space.
+     *
+     * Note that Matches containing any UserSpaceOnly key will NOT be sent
+     * to the datapath, and will also need to have all UserSpace-related actions
+     * applied before being sent to the DP.
+     */
+    public interface UserSpaceOnly {
+
+    }
+
     public static class FlowKeyAttr<T extends FlowKey> extends
                                                 NetlinkMessage.AttrKey<T> {
 

@@ -23,6 +23,10 @@ import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
 
+import org.midonet.packets._
+import org.midonet.cluster.data.Chain
+import java.nio.ByteBuffer
+
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     private final val log = LoggerFactory.getLogger(classOf[NatTestCase])
@@ -42,6 +46,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
     private var leaseManager: NatLeaseManager = null
     private var mappings = Set[String]()
+
+    private var rtrOutChain: Chain = null
+    private var rtrInChain: Chain = null
 
     private class Mapping(val key: String, val flowCount: AtomicInteger,
         val fwdInPort: String, val fwdOutPort: String,
@@ -144,8 +151,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         // create NAT rules
         log.info("creating chains")
-        val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", router)
-        val rtrInChain = newInboundChainOnRouter("rtrInChain", router)
+        rtrOutChain = newOutboundChainOnRouter("rtrOutChain", router)
+        rtrInChain = newInboundChainOnRouter("rtrInChain", router)
 
         // 0.- Reverse NAT rules
         val revDnatRule = newReverseNatRuleOnChain(rtrOutChain, 1,
@@ -161,9 +168,13 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val dnatCond = new Condition()
         dnatCond.nwSrcIp = vmNetworkIp
         dnatCond.nwSrcInv = true
-        dnatCond.nwDstIp = dnatAddress
-        dnatCond.tpDstStart = 80.toInt
-        dnatCond.tpDstEnd = 80.toInt
+        dnatCond.nwDstIp = IntIPv4.fromString(dnatAddress)
+        /*
+         * (Galo): removed this since it prevents matching on ICMP packets for
+         * testDnatPing
+         * dnatCond.tpDstStart = 80.toInt
+         * dnatCond.tpDstEnd = 80.toInt
+         */
         val dnatTarget =  new NatTarget(vmIps.head, vmIps.last, 80, 80)
         val dnatRule = newForwardNatRuleOnChain(rtrInChain, 2, dnatCond,
                 RuleResult.Action.CONTINUE, Set(dnatTarget), isDnat = true)
@@ -368,4 +379,396 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (0)
         leaseManager.fwdKeys.size should be === (0)
     }
+
+    // -----------------------------------------------
+    // -----------------------------------------------
+    //             ICMP over NAT tests
+    // -----------------------------------------------
+    // -----------------------------------------------
+
+    private def pingExpectDnated(outPort: String,
+                                 srcMac: MAC, srcIp: IntIPv4,
+                                 dstMac: MAC, dstIp: IntIPv4,
+                                 icmpId: Short, icmpSeq: Short): Mapping = {
+
+        log.info("Sending a PING that should be DNAT'ed")
+        val icmpReq = injectIcmpEchoReq(outPort,
+            srcMac, srcIp, dstMac, dstIp, icmpId, icmpSeq)
+
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === 1
+
+        val newMappings: Set[String] = updateAndDiffMappings()
+        newMappings.size should be === (1)
+        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+
+        val eth = applyOutPacketActions(pktOut)
+        val mapping = new Mapping(newMappings.head,
+            leaseManager.fwdKeys.get(newMappings.head).flowCount,
+            outPort, localPortNumberToName(outPorts.head).get,
+            Ethernet.deserialize(pktOut.getData),
+            eth)
+
+        var ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak should not be null
+        ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        ipPak.getSourceAddress should be === srcIp.addressAsInt
+        ipPak.getDestinationAddress should be ===
+            mapping.fwdOutToIp.addressAsInt
+
+        val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
+        icmpPak should not be null
+        icmpPak.getType should be === (ICMP.TYPE_ECHO_REQUEST)
+        icmpPak.getIdentifier should be === (icmpReq.getIdentifier)
+        icmpPak.getQuench should be === (icmpReq.getQuench)
+
+        mapping
+    }
+
+    private def pongExpectRevDnated(outPort: String,
+                                    srcMac: MAC, srcIp: IntIPv4,
+                                    dstMac: MAC, dstIp: IntIPv4,
+                                    origSrcIp: IntIPv4, icmpId: Short, icmpSeq: Short) {
+
+        log.info("Send ICMP reply into the router, should be revSnat'ed")
+        val icmpReply = injectIcmpEchoReply(outPort, srcMac, srcIp,
+            icmpId, icmpSeq, dstMac, dstIp)
+
+        // Expect the packet delivered back to the source, MAC should be learnt
+        // already so expect straight on the bridge's port
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === 1
+        localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
+
+        val eth = applyOutPacketActions(pktOut)
+        val ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak should not be null
+        ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        ipPak.getSourceAddress should be === dnatAddress.addressAsInt
+        ipPak.getDestinationAddress should be === origSrcIp.addressAsInt
+        val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
+        icmpPak should not be null
+        icmpPak.getType should be === (ICMP.TYPE_ECHO_REPLY)
+        icmpPak.getIdentifier should be === (icmpReply.getIdentifier)
+
+    }
+
+    /**
+     * Assuming that expectIcmpData was sent, this method will expect an
+     * ICMP UNREACHABLE HOST back on the given port, containing in its data
+     * the expectIcmpData
+     *
+     * @param port
+     * @param expectIcmpData
+     */
+    private def expectICMPError(port: String, expectIcmpData: IPv4) {
+        // we should have a packet coming out of the expected port
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === (1)
+        localPortNumberToName(outPorts.head) should be === (Some(port))
+
+        // the ip packet should be addressed as expected
+        val ethApplied = applyOutPacketActions(pktOut)
+        val ipv4 = ethApplied.getPayload.asInstanceOf[IPv4]
+
+        log.debug("Received reply {}", pktOut)
+        ipv4 should not be null
+        ipv4.getSourceAddress should be ===
+            expectIcmpData.getDestinationAddress.addressAsInt
+        ipv4.getDestinationAddress should be ===
+            expectIcmpData.getSourceAddress.addressAsInt
+        // The ICMP contents should be as expected
+        val icmp = ipv4.getPayload.asInstanceOf[ICMP]
+        icmp should not be null
+        icmp.getType should be === ICMP.TYPE_UNREACH
+        icmp.getCode should be === ICMP.UNREACH_CODE.UNREACH_HOST.toChar
+
+        // Now we need to look inside the ICMP data that not only should
+        // bring the data contained in the original packet that this ICMP is
+        // replying to, but also should do NAT on the L3 and L4 data contained
+        // in it
+        val icmpData = ByteBuffer.wrap(icmp.getData)
+        val actualIcmpData = new IPv4()
+        actualIcmpData.deserializeHeader(icmpData)
+        actualIcmpData.getProtocol should be === expectIcmpData.getProtocol
+        actualIcmpData.getSourceAddress should be ===
+            expectIcmpData.getSourceAddress
+        actualIcmpData.getDestinationAddress should be ===
+            expectIcmpData.getDestinationAddress
+        actualIcmpData.getTtl should be === expectIcmpData.getTtl - 1
+
+        // The parts of the TCP payload inside the ICMP error
+        expectIcmpData.getProtocol match {
+            case ICMP.PROTOCOL_NUMBER =>
+                val icmpPayload = expectIcmpData.getPayload.asInstanceOf[ICMP]
+                log.info("---- {}", icmpPayload)
+            case TCP.PROTOCOL_NUMBER =>
+                val tcpPayload = expectIcmpData.getPayload.asInstanceOf[TCP]
+                tcpPayload.getSourcePort should be === icmpData.getShort
+                tcpPayload.getDestinationPort should be === icmpData.getShort
+                tcpPayload.getSeqNo should be === icmpData.getShort
+                tcpPayload.getAckNo should be === icmpData.getShort
+        }
+    }
+
+    /**
+     * Pings from src (assumed a VM in the private network) to a dst (assumed
+     * a host beyond the gateway). Expects that the router outputs the packet
+     * on the gateway link, with the srcIp translated
+     */
+    private def pingExpectSnated(port: String, srcMac: MAC, srcIp: IntIPv4,
+                                dstMac: MAC, dstIp: IntIPv4,
+                                icmpId: Short, icmpSeq: Short,
+                                transSrcIp: IntIPv4) {
+
+        log.info("Sending a PING that should be NAT'ed")
+        val icmpReq = injectIcmpEchoReq(port,
+                        srcMac, IntIPv4.fromString(srcIp.toString),
+                        dstMac, IntIPv4.fromString(dstIp.toString),
+                        icmpId, icmpSeq)
+
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === 1
+        localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
+
+        val eth = applyOutPacketActions(pktOut)
+        var ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak should not be null
+        ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        ipPak.getSourceAddress should be === transSrcIp.addressAsInt
+        ipPak.getDestinationAddress should be === dstIp.addressAsInt
+
+        val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
+        icmpPak should not be null
+        icmpPak.getType should be === (ICMP.TYPE_ECHO_REQUEST)
+        icmpPak.getIdentifier should be === (icmpReq.getIdentifier)
+        icmpPak.getQuench should be === (icmpReq.getQuench)
+
+    }
+
+    /**
+     * Puts an ICMP reply from a host beyond the gateway on the router's uplink
+     * port with a destination on the router's uplink IP. Expects that the
+     * origSrcIp (a VM) receives the packet on its port, with the dstIp
+     * translated to origSrcIp
+     */
+    private def pongExpectRevNatd(port: String, srcMac: MAC, srcIp: IntIPv4,
+                                      dstMac: MAC, dstIp: IntIPv4,
+                                      icmpId: Short, icmpSeq: Short,
+                                      origSrcIp: IntIPv4){
+
+        log.info("Send ICMP reply into the router, should be revSnat'ed")
+        val icmpReply = injectIcmpEchoReply(port, srcMac, srcIp,
+                                            icmpId, icmpSeq, dstMac, origSrcIp)
+
+        // Expect the packet delivered back to the source, MAC should be learnt
+        // already so expect straight on the bridge's port
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === 1
+
+        // localPortNumberToName(outPorts.head) should be === (Some())
+
+        // TODO (galo) check mappings?
+        val eth = applyOutPacketActions(pktOut)
+        val ipPak = eth.getPayload.asInstanceOf[IPv4]
+        ipPak should not be null
+        ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        ipPak.getSourceAddress should be === srcIp.addressAsInt
+        ipPak.getDestinationAddress should be === origSrcIp.addressAsInt
+        val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
+        icmpPak should not be null
+        icmpPak.getType should be === (ICMP.TYPE_ECHO_REPLY)
+        icmpPak.getIdentifier should be === (icmpReply.getIdentifier)
+
+    }
+
+    /**
+     * See issue #435
+     *
+     * Two hosts from a private network send pings that should be SNAT'ed,
+     * we check that the router can send each reply back to the correct host.
+     */
+    def testSnatPing() {
+
+        val vm1Port = vmPortNames.head
+        val vm5Port = vmPortNames.last
+        val upPort = "uplinkPort"
+        val src1Mac = vmMacs.head // VM inside the private network
+        val src1Ip = vmIps.last
+        val src5Mac = vmMacs.last // VM inside the private network
+        val src5Ip = vmIps.last
+        val dstMac = routerMac   // A destination beyond the gateway
+        val dstIp = IntIPv4.fromString("62.72.82.1")
+        val snatIp = snatAddressStart // expected translated source
+
+        log.info("Sending ICMP pings into private network")
+        pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac, dstIp, 16, 1, snatIp)
+        pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac, dstIp, 21, 1, snatIp)
+        // TODO (galo) test that should
+        log.info("Sending ICMP pings, expect userspace match")
+        pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac, dstIp, 16, 1, snatIp)
+        pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac, dstIp, 21, 1, snatIp)
+
+        log.info("Sending ICMP replies")
+        // Let's see if replies get into the private network
+        pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
+                          snatIp, 16, 1, src1Ip)
+        pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
+                          snatIp, 21, 1, src5Ip)
+        pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
+                          snatIp, 16, 2, src1Ip)
+        pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
+                          snatIp, 21, 2, src5Ip)
+
+    }
+
+    /**
+     * See issue #435
+     *
+     * A VM sends a ping request that should be DNAT'ed, and we check that the
+     * reply gets back correctly.
+     */
+    def testDnatPing() {
+        val srcIp = IntIPv4.fromString("62.72.82.1")
+        val mp = pingExpectDnated("uplinkPort", uplinkGatewayMac, srcIp,
+                                  uplinkPortMac, dnatAddress, 92, 1)
+        pongExpectRevDnated(mp.revInPort, mp.revInFromMac,  mp.revInFromIp,
+                            mp.revInToMac, mp.revInToIp, srcIp, 92, 1)
+    }
+
+    /**
+     * You send a packet from a VM to a remote addr. beyond the router,
+     * this method will kindly check that it arrives, reply with an ICMP
+     * UNREACHABLE, and verify that the reverse SNAT is done properly
+     */
+    private def verifySnatICMPErrorAfterPacket() {
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === (1)
+        drainProbes()
+
+        val newMappings: Set[String] = updateAndDiffMappings()
+        newMappings.size should be === (1)
+        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
+        localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
+
+        val eth = Ethernet.deserialize(pktOut.getData)
+        val ethApplied = applyOutPacketActions(pktOut)
+        val mp = new Mapping(newMappings.head,
+            leaseManager.fwdKeys.get(newMappings.head).flowCount,
+            vmPortNames.head, "uplinkPort", eth,
+            ethApplied)
+
+        log.info("Reply with an ICMP error that should be rev SNAT'ed")
+        injectIcmpUnreachable("uplinkPort", mp.revInFromMac, mp.revInToMac,
+            ICMP.UNREACH_CODE.UNREACH_HOST, ethApplied)
+
+        // We should see the ICMP reply back at the sender VM
+        // Note that the second parameter is the packet sent from the origin
+        // who is unaware of the NAT, eth has no actions applied so we can
+        // use this one
+        expectICMPError(vmPortNames.head, eth.getPayload.asInstanceOf[IPv4])
+    }
+
+    /**
+     * You send a packet from a remote addr. beyond the gateway to the DNAT
+     * address, this method will kindly check that it arrives to the VM,
+     * reply with an ICMP UNREACHABLE, and verify that the reverse DNAT is done
+     * properly
+     */
+    private def verifyDnatICMPErrorAfterPacket() {
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val outPorts = getOutPacketPorts(pktOut)
+        outPorts.size should be === (1)
+        drainProbes()
+
+        val newMappings: Set[String] = updateAndDiffMappings()
+        newMappings.size should be === (1)
+        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
+
+        val eth = Ethernet.deserialize(pktOut.getData)
+        val ethApplied = applyOutPacketActions(pktOut)
+        val mapping = new Mapping(newMappings.head,
+            leaseManager.fwdKeys.get(newMappings.head).flowCount,
+            "uplinkPort", localPortNumberToName(outPorts.head).get,
+            eth, ethApplied)
+
+        log.info("TCP reached destination, {}", pktOut)
+
+        // 10.0.0.X:80 -> 62.72.82.1:888
+        log.info("Reply with an ICMP error that should be rev DNAT'ed")
+        injectIcmpUnreachable(mapping.revInPort, mapping.revInFromMac,
+            mapping.revInToMac, ICMP.UNREACH_CODE.UNREACH_HOST, ethApplied)
+
+        // We should see the ICMP reply back going out on the original source
+        // Note that the second parameter is the packet sent from the origin
+        // who is unaware of the NAT, eth has no actions applied so we can
+        // use this one
+        expectICMPError("uplinkPort", eth.getPayload.asInstanceOf[IPv4])
+
+    }
+
+    /**
+     * See issue #513
+     *
+     * A VM sends a TCP packet that should be SNAT'ed, an ICMP error is sent
+     * back from the destination, we expect it to get to the VM
+     */
+    def testSnatICMPErrorAfterTCP() {
+        val dstIp = IntIPv4.fromString("62.72.82.1")
+        log.info("Sending a TCP packet that should be SNAT'ed")
+        injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 5555,
+            routerMac, dstIp, 1111, syn = true)
+        verifySnatICMPErrorAfterPacket()
+    }
+
+    /**
+     * See issue #513
+     *
+     * A TCP packet is sent to a VM that should be DNAT'ed, the VM replies with
+     * an ICMP error is sent, we expect it to get back
+     */
+    def testDnatICMPErrorAfterTCP() {
+        val srcIp = IntIPv4.fromString("62.72.82.1")
+        log.info("Sending a TCP packet that should be DNAT'ed")
+        injectTcp("uplinkPort", uplinkGatewayMac, srcIp, 888,
+            uplinkPortMac, dnatAddress, 333, syn = true)
+        verifyDnatICMPErrorAfterPacket()
+    }
+
+    /**
+     * See issue #513
+     *
+     * ICMP packet is sent to a VM that should be SNAT'ed, the VM replies with
+     * an ICMP error is sent, we expect it to get back
+     */
+    def testSnatICMPErrorAfterICMP() {
+        val dstIp = IntIPv4.fromString("62.72.82.1")
+        log.info("Sending a TCP packet that should be SNAT'ed")
+        injectIcmpEchoReq(
+            vmPortNames.head, vmMacs.head, vmIps.head, routerMac, dstIp, 22, 55)
+        verifySnatICMPErrorAfterPacket()
+    }
+
+    /**
+     * See issue #513
+     *
+     * ICMP packet is sent to a VM that should be DNAT'ed, the VM replies with
+     * an ICMP error is sent, we expect it to get back
+     */
+    def testDnatICMPErrorAfterICMP() {
+        val srcIp = IntIPv4.fromString("62.72.82.1")
+        log.info("Sending a TCP packet that should be DNAT'ed")
+        injectIcmpEchoReq("uplinkPort", uplinkGatewayMac, srcIp,
+            uplinkPortMac, dnatAddress, 7, 6)
+        verifyDnatICMPErrorAfterPacket()
+    }
+
 }

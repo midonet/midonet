@@ -16,6 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.midonet.packets.ICMP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,24 +27,31 @@ import org.midonet.packets.IPv4;
 import org.midonet.packets.Net;
 import org.midonet.util.eventloop.Reactor;
 
-
 public class NatLeaseManager implements NatMapping {
 
     private static final Logger log =
             LoggerFactory.getLogger(NatLeaseManager.class);
     private static final int USHORT = 0xffff;
 
+    private static final int MAX_PORT_ALLOC_ATTEMPTS = 20;
+
     public static final String FWD_DNAT_PREFIX = "dnatfwd";
     public static final String REV_DNAT_PREFIX = "dnatrev";
     public static final String FWD_SNAT_PREFIX = "snatfwd";
     public static final String REV_SNAT_PREFIX = "snatrev";
 
-    // The following maps IP addresses to ordered lists of free ports.
+    // The following maps IP addresses to ordered lists of free ports (for
+    // non-ICMP protocols).
+
     // These structures are meant to be shared by all rules/snat targets.
     // So snat targets for different rules can overlap and we'll still avoid
     // collisions. That's why we don't care about the snat target here.
+    // In the case of ICMP, we don't take watch for collisions and instead
+    // rely on randomness on the icmp identifiers (which are used as ports).
+    //
     // Note that we use a NavigableSet instead of a simple list because different
     // snat targets might use different port ranges for the same ip.
+    //
     // Also note that we don't care about ip ranges - snat targets with more than
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
@@ -76,7 +84,7 @@ public class NatLeaseManager implements NatMapping {
         this.filterMgr = filterMgr;
         this.ipToFreePortsMap = new ConcurrentHashMap<Integer, NavigableSet<Integer>>();
         this.routerId = routerId;
-        rtrIdStr = routerId.toString();
+        this.rtrIdStr = routerId.toString();
         this.cache = cache;
         this.refreshSeconds = cache.getExpirationSeconds() / 2;
         this.reactor = reactor;
@@ -123,15 +131,43 @@ public class NatLeaseManager implements NatMapping {
         }
     }
 
+    /**
+     * This method offers unified DNAT allocation for any supported protocol
+     * verified by isNatSupported. It will take a 4-tuple and try to create a
+     * translated 4-tuple. Only source values will be translated.
+     *
+     * It's possible to use this method even with a protocol that doesn't have
+     * source and destination transport, such as ICMP. In this case, "fake"
+     * values can be set in tpSrc and tpDst fields.
+     *
+     * However, users are encouraged to provide values that minimize the
+     * chance of collisions when performing lookups.
+     *
+     * For example, in ICMP ECHO messages this is achieved using the ICMP ECHO
+     * identifier field as both tpSrc and tpDst, relying on the random
+     * generation of these values as a sufficient prevention of collisions.
+     *
+     * @param protocol of the packet
+     * @param nwSrc src ip, may get translated in the return pair
+     * @param tpSrc_ src transport, may get translated in the return pair
+     * @param oldNwDst old dst ip, will not get translated in the return pair
+     * @param oldTpDst_ old dst transport, will not get translated in the return
+     *                  pair
+     * @param nats
+     * @return
+     */
     @Override
-    public NwTpPair allocateDnat(int nwSrc, int tpSrc_, int oldNwDst,
-                                 int oldTpDst_, Set<NatTarget> nats) {
+    public NwTpPair allocateDnat(byte protocol, int nwSrc, int tpSrc_,
+                                 int oldNwDst, int oldTpDst_,
+                                 Set<NatTarget> nats) {
+
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
-        log.debug("allocateDnat: nwSrc {} tpSrc {} oldNwDst {} oldTpDst {} "
-                + "nats {}", new Object[] { IPv4.fromIPv4Address(nwSrc),
-                tpSrc, IPv4.fromIPv4Address(oldNwDst), oldTpDst, nats });
+        log.debug("allocateDnat: proto {} nwSrc {} tpSrc {} oldNwDst {} " +
+                  "oldTpDst {} nats {}", new Object[] { protocol,
+                    IPv4.fromIPv4Address(nwSrc), tpSrc,
+                    IPv4.fromIPv4Address(oldNwDst), oldTpDst, nats });
 
         if (nats.size() == 0)
             throw new IllegalArgumentException("Nat list was emtpy.");
@@ -143,20 +179,22 @@ public class NatLeaseManager implements NatMapping {
         int tpStart = nat.tpStart & USHORT;
         int tpEnd = nat.tpEnd & USHORT;
         int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        int newTpDst = rand.nextInt(tpEnd - tpStart + 1) + tpStart;
+        int newTpDst = (protocol == ICMP.PROTOCOL_NUMBER)
+                       ? oldTpDst
+                       : rand.nextInt(tpEnd - tpStart + 1) + tpStart;
         log.debug("{} DNAT allocated new DST {}:{} to flow from {}:{} to "
-                + "{}:{}",
-                new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwDst),
+                + "{}:{} protocol {}", new Object[] { rtrIdStr,
+                        IPv4.fromIPv4Address(newNwDst),
                         newTpDst, IPv4.fromIPv4Address(nwSrc),
                         tpSrc, IPv4.fromIPv4Address(oldNwDst),
-                        oldTpDst });
+                        oldTpDst, protocol});
 
         // TODO(pino): can't one write to the cache suffice?
-        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc, oldNwDst,
-                oldTpDst);
+        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, protocol,
+                                     nwSrc, tpSrc, oldNwDst, oldTpDst);
         cache.set(fwdKey, makeCacheValue(newNwDst, newTpDst));
-        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc, newNwDst,
-                                     newTpDst);
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, protocol,
+                                     nwSrc, tpSrc, newNwDst, newTpDst);
         cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
         scheduleRefresh(fwdKey, revKey);
@@ -180,10 +218,10 @@ public class NatLeaseManager implements NatMapping {
         }
     }
 
-    public static String makeCacheKey(String prefix, int nwSrc, int tpSrc,
-                                                     int nwDst, int tpDst) {
-        return String.format("%s%08x:%d:%08x:%d", prefix, nwSrc,
-                tpSrc & USHORT, nwDst, tpDst & USHORT);
+    public static String makeCacheKey(String prefix, byte protocol,
+                                   int nwSrc, int tpSrc, int nwDst, int tpDst) {
+        return String.format("%s:%x:%08x:%d:%08x:%d", prefix, protocol,
+                             nwSrc, tpSrc & USHORT, nwDst, tpDst & USHORT);
     }
 
     public static String makeCacheValue(int nwAddr, int tpPort) {
@@ -196,8 +234,7 @@ public class NatLeaseManager implements NatMapping {
         String[] parts = value.split("/");
         try {
             return new NwTpPair((int) Long.parseLong(parts[0], 16),
-                    Integer.parseInt(parts[1]),
-                    unrefKey);
+                    Integer.parseInt(parts[1]), unrefKey);
         }
         catch (Exception e) {
             log.warn("makePairFromString bad value {}", value);
@@ -206,12 +243,12 @@ public class NatLeaseManager implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(int nwSrc, int tpSrc_,
+    public NwTpPair lookupDnatFwd(byte protocol, int nwSrc, int tpSrc_,
                                   int oldNwDst, int oldTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
-        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, nwSrc, tpSrc,
-                oldNwDst, oldTpDst);
+        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, protocol,
+                                     nwSrc, tpSrc, oldNwDst, oldTpDst);
         String value = cache.getAndTouch(fwdKey);
         log.debug("lookupDnatFwd: key {} value {}", fwdKey, value);
         // If the forward mapping was found, touch the reverse mapping too,
@@ -221,53 +258,54 @@ public class NatLeaseManager implements NatMapping {
         NwTpPair pair = makePairFromString(value, fwdKey);
         if (null == pair)
             return null;
-        String revKey = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
-                pair.nwAddr, pair.tpPort);
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, protocol,
+                                     nwSrc, tpSrc, pair.nwAddr, pair.tpPort);
         cache.getAndTouch(revKey);
         scheduleRefresh(fwdKey, revKey);
         return pair;
     }
 
     @Override
-    public NwTpPair lookupDnatRev(int nwSrc, int tpSrc_,
+    public NwTpPair lookupDnatRev(byte protocol, int nwSrc, int tpSrc_,
                                   int newNwDst, int newTpDst_) {
         int tpSrc = tpSrc_ & USHORT;
         int newTpDst = newTpDst_ & USHORT;
-        String key = makeCacheKey(REV_DNAT_PREFIX, nwSrc, tpSrc,
-                newNwDst, newTpDst);
+        String key = makeCacheKey(REV_DNAT_PREFIX, protocol,
+                                  nwSrc, tpSrc, newNwDst, newTpDst);
         String value = cache.get(key);
         log.debug("lookupDnatRev key {} value {}", key, value);
-        if (null == value)
-            return null;
-        return makePairFromString(value, null);
+        return (null == value) ? null : makePairFromString(value, null);
     }
 
-    private NwTpPair makeSnatReservation(int oldNwSrc, int oldTpSrc,
-            int newNwSrc, int newTpSrc, int nwDst, int tpDst) {
-        log.debug("makeSnatReservation: oldNwSrc {} oldTpSrc {} newNwSrc {} "
-                + "newTpSrc {} nw Dst {} tpDst {}",
-                new Object[] { IPv4.fromIPv4Address(oldNwSrc),
-                        oldTpSrc, IPv4.fromIPv4Address(newNwSrc),
-                        newTpSrc, IPv4.fromIPv4Address(nwDst),
-                        tpDst });
+    private NwTpPair makeSnatReservation(byte protocol,
+                                         int oldNwSrc,  int oldTpSrc,
+                                         int newNwSrc, int newTpSrc,
+                                         int nwDst, int tpDst) {
+        log.debug("makeSnatReservation: protocol {} oldNwSrc {} oldTpSrc {} " +
+                  "newNwSrc {} newTpSrc {} nw Dst {} tpDst {}",
+                new Object[] { protocol,
+                    IPv4.fromIPv4Address(oldNwSrc), oldTpSrc,
+                    IPv4.fromIPv4Address(newNwSrc), newTpSrc,
+                    IPv4.fromIPv4Address(nwDst), tpDst });
 
-        String reverseKey = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
-                nwDst, tpDst);
+        String reverseKey = makeCacheKey(REV_SNAT_PREFIX, protocol,
+                                         newNwSrc, newTpSrc, nwDst, tpDst);
         if (null != cache.get(reverseKey)) {
-            log.warn("{} Snat encountered a collision reserving SRC {}:{}",
-                    new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
-                            newTpSrc });
+            log.warn(
+                "{} Snat encountered a collision reserving SRC {}:{}, proto: {}",
+                new Object[] {rtrIdStr,
+                    IPv4.fromIPv4Address(newNwSrc), newTpSrc, protocol });
             return null;
         }
         // If we got here, we can use this port.
         log.debug("{} SNAT reserved new SRC {}:{} for flow from {}:{} to "
-                + "{}:{}",
+                + "{}:{}, protocol {}",
                 new Object[] { rtrIdStr, IPv4.fromIPv4Address(newNwSrc),
                         newTpSrc, IPv4.fromIPv4Address(oldNwSrc),
                         oldTpSrc, IPv4.fromIPv4Address(nwDst),
-                        tpDst });
-        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc, nwDst,
-                tpDst);
+                        tpDst, protocol});
+        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, protocol,
+                                     oldNwSrc, oldTpSrc, nwDst, tpDst);
         // TODO(pino): can't one write to the cache suffice?
         cache.set(fwdKey, makeCacheValue(newNwSrc, newTpSrc));
         cache.set(reverseKey, makeCacheValue(oldNwSrc, oldTpSrc));
@@ -276,11 +314,49 @@ public class NatLeaseManager implements NatMapping {
         return new NwTpPair(newNwSrc, newTpSrc, fwdKey);
     }
 
+    /**
+     * This method offers unified SNAT allocation for any supported protocol
+     * verified by isNatSupported. It will take a 4-tuple and try to create a
+     * translated 4-tuple. Only source values will be translated.
+     *
+     * It's possible to use this method even with a protocol that doesn't have
+     * source and destination transport, such as ICMP. In this case, "fake"
+     * values can be set in tpSrc and tpDst fields.
+     *
+     * However, users are encouraged to provide values that minimize the
+     * chance of collisions when performing lookups.
+     *
+     * For example, in ICMP ECHO messages this is achieved using the ICMP ECHO
+     * identifier field as both tpSrc and tpDst, relying on the random
+     * generation of these values as a sufficient prevention of collisions.
+     *
+     * NOTE: it may not make sense to use this method in certain types of
+     * packets. For example, an ICMP error should not allocate a SNAT.
+     *
+     * NOTE: for ICMP the ports are assumed to be fake ports that will not be
+     * translated.
+     *
+     * @param protocol of the packet
+     * @param oldNwSrc old src ip, may get translated in the return pair
+     * @param oldTpSrc_ old src transport, may get translated in the return pair
+     * @param nwDst dst ip, will not get translated in the return pair
+     * @param tpDst_ dst transport, will not get translated in the return pair
+     * @param nats
+     * @return
+     */
     @Override
-    public NwTpPair allocateSnat(int oldNwSrc, int oldTpSrc_, int nwDst,
-                                 int tpDst_, Set<NatTarget> nats) {
+    public NwTpPair allocateSnat(byte protocol, int oldNwSrc, int oldTpSrc_,
+                                 int nwDst, int tpDst_, Set<NatTarget> nats) {
+
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
+
+        // ICMP reservations are much simpler: we grant the same port as reqd.
+        // which in fact is the ICMP id (we rely on id generation randomness)
+        if (protocol == ICMP.PROTOCOL_NUMBER) {
+            return allocateSnatICMP(oldNwSrc, oldTpSrc, nwDst, tpDst, nats);
+        }
+
         // First try to find a port in a block we've already leased.
         int numTries = 0;
         for (NatTarget tg : nats) {
@@ -299,16 +375,16 @@ public class NatLeaseManager implements NatMapping {
                         // We've found a free port.
                         freePorts.remove(port);
                         // Check cache to make sure the port's really free.
-                        NwTpPair reservation = makeSnatReservation(
+                        NwTpPair reservation = makeSnatReservation(protocol,
                                     oldNwSrc, oldTpSrc, ip, port, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
                     }
                     // Give up after 20 attempts.
                     numTries++;
-                    if (numTries > 20) {
-                        log.warn("allocateSnat failed to reserve 20 free "
-                                + "ports. Giving up.");
+                    if (numTries > MAX_PORT_ALLOC_ATTEMPTS) {
+                        log.warn("allocateSnat failed to reserve {} free "
+                                + "ports. Giving up.", MAX_PORT_ALLOC_ATTEMPTS);
                         return null;
                     }
                 } // No free ports for this ip and port range
@@ -408,7 +484,7 @@ public class NatLeaseManager implements NatMapping {
                         freePort = tpStart;
                     while (true) {
                         freePorts.remove(freePort);
-                        NwTpPair reservation = makeSnatReservation(
+                        NwTpPair reservation = makeSnatReservation(protocol,
                                 oldNwSrc, oldTpSrc, ip, freePort, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
@@ -425,13 +501,42 @@ public class NatLeaseManager implements NatMapping {
         return null;
     }
 
-    @Override
-    public NwTpPair lookupSnatFwd(int oldNwSrc, int oldTpSrc_,
-                                  int nwDst, int tpDst_) {
+    /**
+     * This performs the SNAT allocation for ICMP since the logic differs from
+     * the TCP/UDP case. In particular: in ICMP we can save iterating over
+     * NatTarget ports since ICMP NAT will not translate identifiers (which
+     * is what the tpSrc and tpDst contain).
+     */
+    private NwTpPair allocateSnatICMP(int oldNwSrc, int oldTpSrc_, int nwDst,
+                                      int tpDst_, Set<NatTarget> nats) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
-        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, oldNwSrc, oldTpSrc,
-                nwDst, tpDst);
+        int numTries = MAX_PORT_ALLOC_ATTEMPTS;
+        for (NatTarget tg : nats) {
+            for (int newNwSrc = tg.nwStart; newNwSrc <= tg.nwEnd; newNwSrc++) {
+                NwTpPair reservation = makeSnatReservation(ICMP.PROTOCOL_NUMBER,
+                       oldNwSrc, oldTpSrc, newNwSrc, oldTpSrc, nwDst, tpDst);
+                if (reservation != null)
+                    return reservation;
+                if (++numTries > MAX_PORT_ALLOC_ATTEMPTS) {
+                    log.warn("allocateSnatICMP failed to reserve {} nw src",
+                             MAX_PORT_ALLOC_ATTEMPTS);
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public NwTpPair lookupSnatFwd(byte protocol, int oldNwSrc, int oldTpSrc_,
+                                  int nwDst, int tpDst_) {
+
+
+        int oldTpSrc = oldTpSrc_ & USHORT;
+        int tpDst = tpDst_ & USHORT;
+        String fwdKey = makeCacheKey(FWD_SNAT_PREFIX, protocol,
+                                     oldNwSrc, oldTpSrc, nwDst, tpDst);
         String value = cache.getAndTouch(fwdKey);
         log.debug("lookupSnatFwd: key {} value {}", fwdKey, value);
         if (null == value)
@@ -441,33 +546,29 @@ public class NatLeaseManager implements NatMapping {
             return null;
         // If the forward mapping was found, touch the reverse mapping too,
         // then schedule a refresh.
-        String revKey = makeCacheKey(REV_SNAT_PREFIX, pair.nwAddr,
-                pair.tpPort, nwDst, tpDst);
+        String revKey = makeCacheKey(REV_SNAT_PREFIX, protocol,
+                                     pair.nwAddr, pair.tpPort, nwDst, tpDst);
         cache.getAndTouch(revKey);
         scheduleRefresh(fwdKey, revKey);
         return pair;
     }
 
     @Override
-    public NwTpPair lookupSnatRev(int newNwSrc, int newTpSrc_,
+    public NwTpPair lookupSnatRev(byte protocol, int newNwSrc, int newTpSrc_,
                                   int nwDst, int tpDst_) {
         int newTpSrc = newTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
-        String key = makeCacheKey(REV_SNAT_PREFIX, newNwSrc, newTpSrc,
+        String key = makeCacheKey(REV_SNAT_PREFIX, protocol, newNwSrc, newTpSrc,
                 nwDst, tpDst);
         String value = cache.get(key);
         log.debug("lookupSnatRev: key {} value {}", key, value);
-        if (null == value)
-            return null;
-        return makePairFromString(value, null);
+        return (null == value) ? null : makePairFromString(value, null);
     }
 
     @Override
     public void updateSnatTargets(Set<NatTarget> targets) {
-        log.warn("updateSnatTargets: {}", targets);
-
-        // TODO Auto-generated method stub
-
+        // TODO shouldn't this be a UnsupportedOperationException
+        log.warn("updateSnatTargets - UNIMPLEMENTED: {}", targets);
     }
 
     /* natUnref() and natRef() update the reference count for a forwardKey,
@@ -534,8 +635,7 @@ public class NatLeaseManager implements NatMapping {
         // Cancel refreshing of the nat keys
         log.debug("natUnref canceling refresh of key {}", fwdKey);
         if (null != keyData.revKey) {
-            log.debug("natUnref canceling refresh of key {}",
-                      keyData.revKey);
+            log.debug("natUnref canceling refresh of key {}", keyData.revKey);
         }
         if (null != keyData.future) {
             log.debug("natUnref found future to cancel.");
@@ -558,18 +658,14 @@ public class NatLeaseManager implements NatMapping {
         log.debug("incrementing reference count for key {}", fwdKey);
         KeyMetadata keyData = fwdKeys.get(fwdKey);
         if (null == keyData) {
-            /* This is a new key. Put a new metadata object into the map.
-             * If somebody else races with us and adds it first, start over with
-             * a recursive call.
-             */
+            // New key. Put a new metadata object into the map. If somebody else
+            // races with us and adds it first, start over with a recursive call
             keyData = new KeyMetadata(revKey);
             KeyMetadata oldV = fwdKeys.putIfAbsent(fwdKey, keyData);
             return (null == oldV) ? true : natRef(fwdKey, revKey);
         } else {
-            /* This is a known key. If somebody raced with us to delete the
-             * key while we increment the refcount, start over with a recursive
-             * call.
-             */
+             // Known key. If somebody raced with us to delete the key while
+             // we increment the refcount, start over with a recursive call.
             if (incrementIfGreaterThanAndGet(keyData.flowCount, 0) > 1)
                 return false;
             else
