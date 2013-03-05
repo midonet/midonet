@@ -92,11 +92,7 @@ trait RouterPort[T] extends Port[T] {
     var portAddr: IPSubnet = null
     var portMac: MAC = null
 
-    def nwLength(): Int = {
-        portAddr.getPrefixLen
-    }
-
-    def nwAddr(): IPAddr = portAddr.getAddress
+    def nwSubnet() = portAddr
 
     def setPortAddr(addr: IPSubnet): T = {
         this.portAddr = addr; self

@@ -463,20 +463,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val nwAddr = new IntIPv4(nextHopIP)
         port match {
             case extPort: ExteriorRouterPort =>
-                extPort.nwAddr match {
-                    case extAddr: IPv4Addr =>
-                        val shift = 32 - extPort.nwLength
-                        // Shifts by 32 in java are no-ops (see
-                        // http://www.janeg.ca/scjp/oper/shift.html), so
-                        // special case nwLength=0 <=> shift=32 to always match.
-                        if ((nextHopIP >>> shift) !=
-                                (extAddr.getIntAddress >>> shift) &&
-                                shift != 32) {
+                extPort.nwSubnet match {
+                    case extAddr: IPv4Subnet =>
+                        if (!extAddr.containsAddress(
+                                new IPv4Addr().setIntAddress(nextHopIP))) {
                             log.warning("getMacForIP: cannot get MAC for {} - "+
-                                "address not in network segment of port {} ({}/{})",
-                                Array[Object](nwAddr, port.id,
-                                    extPort.nwAddr.toString,
-                                    extPort.nwLength.toString))
+                                "address not in network segment of port {} ({})",
+                                nwAddr, port.id, extAddr)
                             return Promise.successful(null)(ec)
                         }
                     case _ =>
@@ -656,13 +649,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
-        if (null != outPort && outPort.portAddr.isInstanceOf[IPv4Subnet]) {
-            val ipv4addr = outPort.portAddr.asInstanceOf[IPv4Subnet].getAddress
-            if (ipPkt.isSubnetBcast(ipv4addr.getIntAddress, outPort.nwLength)) {
-                log.debug("Not generating ICMP Unreachable for packet to "
-                        + "the subnet local broadcast address.")
-                return false
-            }
+        if (null != outPort && outPort.portAddr.isInstanceOf[IPv4Subnet] &&
+                ipPkt.getDestinationIPAddress == 
+                    outPort.portAddr.asInstanceOf[IPv4Subnet]
+                           .getBroadcastAddress) {
+            log.debug("Not generating ICMP Unreachable for packet to "
+                      + "the subnet local broadcast address.")
+            return false
         }
         // Ignore packets to Ethernet broadcast and multicast addresses.
         if (ethPkt.isMcast) {

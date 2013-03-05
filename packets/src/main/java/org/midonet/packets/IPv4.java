@@ -341,12 +341,6 @@ public class IPv4 extends BasePacket {
         return byte1 >= 224 && byte1 < 240;
     }
 
-    public boolean isSubnetBcast(int nwAddr, int nwLength) {
-        int mask = 0xffffffff >>> nwLength;
-        int subnetBcast = mask | nwAddr;
-        return getDestinationAddress() == subnetBcast;
-    }
-
     /**
      * Compute the IPv4 checksum of length bytes of an array starting at offset.
      * From RFC 1071: "The checksum field is the 16-bit one's complement of the
